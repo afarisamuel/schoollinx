@@ -51,6 +51,9 @@ func (a *App) Bootstrap() {
 		logger.Fatal("Database migration failed", err)
 	}
 
+	if os.Getenv("GIN_MODE") == "" {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	a.Router = gin.Default()
 	a.Router.Use(middleware.ErrorRecoveryMiddleware())
 	a.Router.Use(middleware.CORSMiddleware(a.DB))
@@ -67,7 +70,9 @@ func (a *App) Bootstrap() {
 		}
 		c.JSON(200, gin.H{"status": "up"})
 	})
-	a.Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	if os.Getenv("ENV") != "production" {
+		a.Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	}
 
 	a.setupRoutes()
 }

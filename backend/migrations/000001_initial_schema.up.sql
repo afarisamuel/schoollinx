@@ -1,4 +1,5 @@
 -- Source: 000001_init_schema.up.sql
+-- Source: 000001_init_schema.up.sql
 -- Migration: 000003_baseline_full_schema.up.sql
 -- =============================================================================
 -- 000003_baseline_full_schema.up.sql
@@ -1513,4 +1514,258 @@ CREATE TABLE IF NOT EXISTS disciplinary_incidents (
     created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+
+
+-- Source: 000002_phase_1.up.sql
+ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS custom_domain VARCHAR(255) UNIQUE;
+ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS feature_flags JSONB DEFAULT '{}';
+
+CREATE TABLE IF NOT EXISTS public.system_announcements (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    priority VARCHAR(50) DEFAULT 'INFO',
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+CREATE INDEX IF NOT EXISTS idx_system_announcements_deleted_at ON public.system_announcements(deleted_at);
+
+
+-- Source: 000003_phase_2.up.sql
+-- 000003_phase_2.up.sql
+
+ALTER TABLE tenants 
+ADD COLUMN discount_percentage DOUBLE PRECISION DEFAULT 0,
+ADD COLUMN fixed_price_override DOUBLE PRECISION DEFAULT 0;
+
+CREATE TABLE sms_ledgers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    direction VARCHAR(20) NOT NULL,
+    amount INT NOT NULL,
+    provider_cost DOUBLE PRECISION DEFAULT 0,
+    description TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_sms_ledgers_tenant_id ON sms_ledgers(tenant_id);
+CREATE INDEX idx_sms_ledgers_created_at ON sms_ledgers(created_at);
+
+CREATE TABLE platform_invoices (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    invoice_number VARCHAR(100) NOT NULL UNIQUE,
+    amount DOUBLE PRECISION NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'UNPAID',
+    pdf_url VARCHAR(255),
+    due_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_platform_invoices_tenant_id ON platform_invoices(tenant_id);
+
+CREATE TABLE affiliates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    commission_rate DOUBLE PRECISION DEFAULT 0.10,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE affiliate_referrals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    affiliate_id UUID NOT NULL REFERENCES affiliates(id) ON DELETE CASCADE,
+    tenant_id UUID NOT NULL UNIQUE REFERENCES tenants(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_affiliate_referrals_affiliate_id ON affiliate_referrals(affiliate_id);
+
+CREATE TABLE hardware_leases (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    item_name VARCHAR(255) NOT NULL,
+    monthly_cost DOUBLE PRECISION DEFAULT 0,
+    upfront_cost DOUBLE PRECISION DEFAULT 0,
+    status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
+    serial_number VARCHAR(255),
+    acquired_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_hardware_leases_tenant_id ON hardware_leases(tenant_id);
+
+
+-- Source: 000004_phase_3.up.sql
+-- 000004_phase_3.up.sql
+
+ALTER TABLE tenants 
+ADD COLUMN nps_score INT DEFAULT 0;
+
+CREATE TABLE telemetry_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID,
+    user_id UUID,
+    event_type VARCHAR(50) NOT NULL,
+    metadata JSONB DEFAULT '{}',
+    ip_address VARCHAR(50),
+    device VARCHAR(50),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_telemetry_events_tenant_id ON telemetry_events(tenant_id);
+CREATE INDEX idx_telemetry_events_event_type ON telemetry_events(event_type);
+CREATE INDEX idx_telemetry_events_created_at ON telemetry_events(created_at);
+
+
+-- Source: 000005_phase_4.up.sql
+-- 000005_phase_4.up.sql
+
+ALTER TABLE tenants 
+ADD COLUMN require_2fa BOOLEAN DEFAULT FALSE,
+ADD COLUMN dpa_signed_at TIMESTAMP WITH TIME ZONE;
+
+CREATE TABLE system_audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    admin_id UUID,
+    target_id UUID,
+    action VARCHAR(50) NOT NULL,
+    details TEXT,
+    ip_address VARCHAR(50),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_sysaudit_admin_id ON system_audit_logs(admin_id);
+CREATE INDEX idx_sysaudit_target_id ON system_audit_logs(target_id);
+
+CREATE TABLE whitelisted_ips (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    ip_address VARCHAR(50) UNIQUE NOT NULL,
+    description VARCHAR(255),
+    added_by UUID,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+
+-- Source: 000006_phase_5.up.sql
+-- 000006_phase_5.up.sql
+
+CREATE TABLE system_configs (
+    key VARCHAR(50) PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed some default degradation configs
+INSERT INTO system_configs (key, value) VALUES
+('DISABLE_HEAVY_JOBS', 'false'),
+('DISABLE_SMS_DELIVERY', 'false'),
+('DISABLE_REPORT_GENERATION', 'false');
+
+CREATE TABLE support_tickets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    subject VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    status VARCHAR(20) DEFAULT 'OPEN',
+    priority VARCHAR(20) DEFAULT 'MEDIUM',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_support_tickets_tenant_id ON support_tickets(tenant_id);
+
+
+-- Source: 000007_contact_submissions.up.sql
+-- 000007_contact_submissions.up.sql
+
+CREATE TABLE contact_submissions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    full_name VARCHAR(255) NOT NULL,
+    work_email VARCHAR(255) NOT NULL,
+    school_name VARCHAR(255) NOT NULL,
+    message TEXT,
+    status VARCHAR(20) DEFAULT 'UNREAD',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_contact_submissions_status ON contact_submissions(status);
+CREATE INDEX idx_contact_submissions_created_at ON contact_submissions(created_at DESC);
+
+
+-- Source: 000008_affiliates.up.sql
+CREATE TABLE IF NOT EXISTS public.affiliates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    phone VARCHAR(50),
+    commission_rate DECIMAL(5,4) NOT NULL DEFAULT 0.10,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.affiliate_referrals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    affiliate_id UUID NOT NULL REFERENCES public.affiliates(id) ON DELETE CASCADE,
+    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+    commission_paid DECIMAL(12,2) NOT NULL DEFAULT 0,
+    paid_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE(tenant_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_affiliate_referrals_affiliate ON public.affiliate_referrals(affiliate_id);
+
+
+-- Source: 000009_security_ips.up.sql
+CREATE TABLE IF NOT EXISTS public.system_security_ips (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    ip_address VARCHAR(50) NOT NULL UNIQUE,
+    description VARCHAR(255),
+    added_by VARCHAR(255),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_system_security_ips_ip ON public.system_security_ips(ip_address);
+
+
+-- Source: 000010_add_paystack_subaccount.up.sql
+ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS paystack_subaccount_code VARCHAR(255);
+
+
+-- Source: 000011_tenant_billing_fields.up.sql
+-- 000011_tenant_billing_fields.up.sql
+-- Add missing billing and configuration columns to public.tenants that were added via GORM struct but not migrated.
+
+ALTER TABLE public.tenants
+  ADD COLUMN IF NOT EXISTS billing_due_date TIMESTAMP WITH TIME ZONE,
+  ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMP WITH TIME ZONE,
+  ADD COLUMN IF NOT EXISTS discount_percentage DOUBLE PRECISION DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS fixed_price_override DOUBLE PRECISION DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS nps_score INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS require2_fa BOOLEAN DEFAULT false,
+  ADD COLUMN IF NOT EXISTS dpa_signed_at TIMESTAMP WITH TIME ZONE,
+  ADD COLUMN IF NOT EXISTS feature_flags JSONB DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS address TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS contact_numbers TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS email TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS logo_url TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS paystack_public_key TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS paystack_secret_key TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS class_score_weight REAL DEFAULT 0.5,
+  ADD COLUMN IF NOT EXISTS exam_score_weight REAL DEFAULT 0.5;
+
+-- Rename require_2fa to require2_fa if it was previously created
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='tenants' AND column_name='require_2fa') THEN
+    ALTER TABLE public.tenants RENAME COLUMN require_2fa TO require2_fa;
+  END IF;
+END $$;
+
 

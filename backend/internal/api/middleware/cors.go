@@ -50,7 +50,7 @@ func CORSMiddleware(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		if isAllowed {
-			c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 		}
 
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")

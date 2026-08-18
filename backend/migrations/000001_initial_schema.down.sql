@@ -1,3 +1,93 @@
+-- Source: 000011_tenant_billing_fields.down.sql
+-- 000011_tenant_billing_fields.down.sql
+ALTER TABLE public.tenants
+  DROP COLUMN IF EXISTS billing_due_date,
+  DROP COLUMN IF EXISTS trial_ends_at,
+  DROP COLUMN IF EXISTS discount_percentage,
+  DROP COLUMN IF EXISTS fixed_price_override,
+  DROP COLUMN IF EXISTS nps_score,
+  DROP COLUMN IF EXISTS require_2fa,
+  DROP COLUMN IF EXISTS dpa_signed_at,
+  DROP COLUMN IF EXISTS feature_flags,
+  DROP COLUMN IF EXISTS address,
+  DROP COLUMN IF EXISTS contact_numbers,
+  DROP COLUMN IF EXISTS email,
+  DROP COLUMN IF EXISTS logo_url,
+  DROP COLUMN IF EXISTS paystack_public_key,
+  DROP COLUMN IF EXISTS paystack_secret_key,
+  DROP COLUMN IF EXISTS class_score_weight,
+  DROP COLUMN IF EXISTS exam_score_weight;
+
+
+-- Source: 000010_add_paystack_subaccount.down.sql
+ALTER TABLE public.tenants DROP COLUMN paystack_subaccount_code;
+
+
+-- Source: 000009_security_ips.down.sql
+DROP TABLE IF EXISTS public.system_security_ips;
+
+
+-- Source: 000008_affiliates.down.sql
+DROP TABLE IF EXISTS public.affiliate_referrals;
+DROP TABLE IF EXISTS public.affiliates;
+
+
+-- Source: 000007_contact_submissions.down.sql
+-- 000007_contact_submissions.down.sql
+
+DROP TABLE IF EXISTS contact_submissions;
+
+
+-- Source: 000006_phase_5.down.sql
+-- 000006_phase_5.down.sql
+
+DROP TABLE IF EXISTS support_tickets CASCADE;
+DROP TABLE IF EXISTS system_configs CASCADE;
+
+
+-- Source: 000005_phase_4.down.sql
+-- 000005_phase_4.down.sql
+
+DROP TABLE IF EXISTS system_audit_logs CASCADE;
+DROP TABLE IF EXISTS whitelisted_ips CASCADE;
+
+ALTER TABLE tenants 
+DROP COLUMN IF EXISTS require_2fa,
+DROP COLUMN IF EXISTS dpa_signed_at;
+
+
+-- Source: 000004_phase_3.down.sql
+-- 000004_phase_3.down.sql
+
+DROP TABLE IF EXISTS telemetry_events CASCADE;
+
+ALTER TABLE tenants 
+DROP COLUMN IF EXISTS nps_score;
+
+
+-- Source: 000003_phase_2.down.sql
+-- 000003_phase_2.down.sql
+
+DROP TABLE IF EXISTS hardware_leases CASCADE;
+DROP TABLE IF EXISTS affiliate_referrals CASCADE;
+DROP TABLE IF EXISTS affiliates CASCADE;
+DROP TABLE IF EXISTS platform_invoices CASCADE;
+DROP TABLE IF EXISTS sms_ledgers CASCADE;
+
+ALTER TABLE tenants 
+DROP COLUMN IF EXISTS discount_percentage,
+DROP COLUMN IF EXISTS fixed_price_override;
+
+
+-- Source: 000002_phase_1.down.sql
+DROP TABLE IF EXISTS public.system_announcements;
+
+ALTER TABLE public.tenants DROP COLUMN IF EXISTS custom_domain;
+ALTER TABLE public.tenants DROP COLUMN IF EXISTS trial_ends_at;
+ALTER TABLE public.tenants DROP COLUMN IF EXISTS feature_flags;
+
+
+-- Source: 000001_init_schema.down.sql
 -- Source: 000016_campus_operations.down.sql
 -- =============================================================================
 -- 000016_campus_operations.down.sql
@@ -216,6 +306,8 @@ DROP TABLE IF EXISTS users CASCADE;
 -- Global tables
 DROP TABLE IF EXISTS revoked_tokens CASCADE;
 DROP TABLE IF EXISTS tenants CASCADE;
+
+
 
 
 
