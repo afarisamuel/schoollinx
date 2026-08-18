@@ -1,0 +1,382 @@
+<div class="flex flex-col gap-8 animate-fade-in">
+
+    <!-- Page Header -->
+    <div class="flex items-center gap-4">
+        <a routerLink="/students" class="p-2.5 hover:bg-bg-tertiary text-text-muted hover:text-text-primary rounded-xl transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        </a>
+        <div class="h-10 w-px bg-bg-tertiary"></div>
+        <div>
+            <h1 class="text-xl md:text-2xl font-black tracking-tight text-text-primary">{{ isEditMode ? 'Update Record' : 'Admit Candidate' }}</h1>
+            <p class="text-sm font-medium text-text-secondary mt-1">{{ isEditMode ? 'Modify the student academic record' : 'Register a new student from the placement list' }}</p>
+        </div>
+    </div>
+
+    <form [formGroup]="studentForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-6" novalidate>
+
+        <!-- SECTION 1: Core Identity -->
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-8 flex flex-col gap-6 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+            <div class="flex items-center gap-6 pb-6 border-b border-border-primary">
+                <div class="relative group cursor-pointer">
+                    @if (photoPreviewUrl) {
+                        <img [src]="photoPreviewUrl" alt="Preview" class="w-20 h-20 rounded-2xl object-cover border border-indigo-500/30">
+                    } @else {
+                        <div class="w-20 h-20 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex flex-col items-center justify-center text-indigo-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                            <span class="text-[9px] font-bold uppercase mt-1">Upload</span>
+                        </div>
+                    }
+                    <input type="file" (change)="onFileSelected($event)" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+                </div>
+                <div>
+                    <h2 class="text-lg font-black text-text-primary">Core Identity</h2>
+                    <p class="text-xs text-text-muted uppercase tracking-widest font-bold">Student personal record & photo</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Index Number -->
+                <!-- <div class="flex flex-col gap-2">
+                    <label class="field-label">Index Number <span class="text-indigo-400">*</span></label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>
+                        <input formControlName="index_number" type="text" placeholder="e.g. 010107603325"
+                            class="field-input font-mono tracking-widest"
+                            [class.border-red-500]="f['index_number'].invalid && f['index_number'].touched"
+                            [class.border-emerald-500]="f['index_number'].valid && f['index_number'].touched"
+                            [class.border-white\/10]="!f['index_number'].touched">
+                    </div>
+                    @if (f['index_number'].invalid && f['index_number'].touched) {
+                    <p class="error-msg">Index number is required</p>
+                    } -->
+                <!-- </div> -->
+
+                <!-- First Name -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">First Name <span class="text-indigo-400">*</span></label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <input formControlName="first_name" type="text" placeholder="e.g. MICHAEL"
+                            class="field-input uppercase"
+                            [class.border-red-500]="f['first_name'].invalid && f['first_name'].touched"
+                            [class.border-emerald-500]="f['first_name'].valid && f['first_name'].touched"
+                            [class.border-white\/10]="!f['first_name'].touched">
+                    </div>
+                    @if (f['first_name'].invalid && f['first_name'].touched) {
+                    <p class="error-msg">First name is required</p>
+                    }
+                </div>
+
+                <!-- Last Name -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Last Name <span class="text-indigo-400">*</span></label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <input formControlName="last_name" type="text" placeholder="e.g. BOATENG"
+                            class="field-input uppercase"
+                            [class.border-red-500]="f['last_name'].invalid && f['last_name'].touched"
+                            [class.border-emerald-500]="f['last_name'].valid && f['last_name'].touched"
+                            [class.border-white\/10]="!f['last_name'].touched">
+                    </div>
+                    @if (f['last_name'].invalid && f['last_name'].touched) {
+                    <p class="error-msg">Last name is required</p>
+                    }
+                </div>
+
+                <!-- Other Name -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Other Name</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                        <input formControlName="other_name" type="text" placeholder="e.g. BEKOE (optional)"
+                            class="field-input uppercase border-border-secondary">
+                    </div>
+                </div>
+
+                <!-- Gender -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Gender <span class="text-indigo-400">*</span></label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="11" r="3"/><path d="M12 3a7 7 0 1 0 7 7"/><path d="M19 3v4"/><path d="M21 5h-4"/></svg>
+                        <select formControlName="gender" class="field-input border-border-secondary" style="background:#0a0f1d">
+                            <option value="" disabled>Select gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+                    @if (f['gender'].invalid && f['gender'].touched) {
+                    <p class="error-msg">Gender is required</p>
+                    }
+                </div>
+
+                <!-- Date of Birth -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Date of Birth <span class="text-indigo-400">*</span></label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                        <input formControlName="dob" type="date" class="field-input [color-scheme:dark] border-border-secondary">
+                    </div>
+                    @if (f['dob'].invalid && f['dob'].touched) {
+                    <p class="error-msg">Date of birth is required</p>
+                    }
+                </div>
+
+                <!-- Phone Number -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Phone Number</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 11.92a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.07 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        <input formControlName="phone_number" type="tel" placeholder="e.g. 0246386231"
+                            class="field-input font-mono border-border-secondary">
+                    </div>
+                </div>
+
+                <!-- Email (optional) -->
+                <!-- <div class="flex flex-col gap-2">
+                    <label class="field-label">Email Address</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        <input formControlName="email" type="email" placeholder="student@school.edu"
+                            class="field-input border-border-secondary"
+                            [class.border-red-500]="f['email'].invalid && f['email'].touched">
+                    </div>
+                    @if (f['email'].invalid && f['email'].touched) {
+                    <p class="error-msg">Enter a valid email</p>
+                    }
+                </div> -->
+            </div>
+        </div>
+
+        <!-- SECTION 4: Family Information -->
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-8 flex flex-col gap-6 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+            <div class="flex items-center gap-3 pb-4 border-b border-border-primary">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div>
+                    <h2 class="text-sm font-black text-text-primary">Family Information</h2>
+                    <p class="text-[10px] text-text-muted uppercase tracking-widest font-bold">Parents and primary contact details</p>
+                </div>
+            </div>
+            
+            <h3 class="text-xs font-bold text-text-muted uppercase tracking-widest mt-2">Father Details</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Name</label>
+                    <input formControlName="father_name" type="text" placeholder="e.g. JOHN DOE" class="field-input uppercase border-border-secondary">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Phone</label>
+                    <input formControlName="father_phone" type="tel" placeholder="e.g. 0240000000" class="field-input font-mono border-border-secondary">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Email</label>
+                    <input formControlName="father_email" type="email" placeholder="father@email.com" class="field-input border-border-secondary">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Occupation</label>
+                    <input formControlName="father_occupation" type="text" placeholder="e.g. Engineer" class="field-input border-border-secondary">
+                </div>
+            </div>
+
+            <h3 class="text-xs font-bold text-text-muted uppercase tracking-widest mt-4">Mother Details</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Name</label>
+                    <input formControlName="mother_name" type="text" placeholder="e.g. JANE DOE" class="field-input uppercase border-border-secondary">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Phone</label>
+                    <input formControlName="mother_phone" type="tel" placeholder="e.g. 0240000000" class="field-input font-mono border-border-secondary">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Email</label>
+                    <input formControlName="mother_email" type="email" placeholder="mother@email.com" class="field-input border-border-secondary">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Occupation</label>
+                    <input formControlName="mother_occupation" type="text" placeholder="e.g. Doctor" class="field-input border-border-secondary">
+                </div>
+            </div>
+
+            <h3 class="text-xs font-bold text-text-muted uppercase tracking-widest mt-4">Primary Guardian (If not parents)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Name</label>
+                    <input formControlName="guardian_name" type="text" placeholder="e.g. PETER DOE" class="field-input uppercase border-border-secondary">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Phone</label>
+                    <input formControlName="guardian_phone" type="tel" placeholder="e.g. 0240000000" class="field-input font-mono border-border-secondary">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Relationship</label>
+                    <select formControlName="guardian_relation" class="field-input border-border-secondary" style="background:#0a0f1d">
+                        <option value="Parent">Parent</option>
+                        <option value="Guardian">Guardian</option>
+                        <option value="Sibling">Sibling</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Email</label>
+                    <input formControlName="guardian_email" type="email" placeholder="guardian@email.com" class="field-input border-border-secondary">
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 5: Health & Emergency Information -->
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-8 flex flex-col gap-6 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+            <div class="flex items-center gap-3 pb-4 border-b border-border-primary">
+                <div class="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                </div>
+                <div>
+                    <h2 class="text-sm font-black text-text-primary">Health & Emergency</h2>
+                    <p class="text-[10px] text-text-muted uppercase tracking-widest font-bold">Medical records and emergency contacts</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Emergency Contact Name</label>
+                    <input formControlName="emergency_contact_name" type="text" placeholder="e.g. JANE DOE" class="field-input uppercase border-border-secondary">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Emergency Contact Phone</label>
+                    <input formControlName="emergency_contact_phone" type="tel" placeholder="e.g. 0240000000" class="field-input font-mono border-border-secondary">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Blood Group</label>
+                    <select formControlName="blood_group" class="field-input border-border-secondary" style="background:#0a0f1d">
+                        <option value="">Select Blood Group</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Allergies</label>
+                    <input formControlName="allergies" type="text" placeholder="e.g. Peanuts, Dust" class="field-input border-border-secondary">
+                </div>
+                <div class="flex flex-col gap-2 md:col-span-2">
+                    <label class="field-label">Pre-existing Health Conditions</label>
+                    <textarea formControlName="health_conditions" rows="3" placeholder="Any medical conditions we should know about..." class="field-input border-border-secondary"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 5: Placement Details -->
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-8 flex flex-col gap-6 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+            <div class="flex items-center gap-3 pb-4 border-b border-border-primary">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                </div>
+                <div>
+                    <h2 class="text-sm font-black text-text-primary">Placement Details</h2>
+                    <p class="text-[10px] text-text-muted uppercase tracking-widest font-bold">CSSPS school & programme assignment</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+                <!-- Placed Residence Type -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Residence Type</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        <select formControlName="placed_residence_type" class="field-input border-border-secondary" style="background:#0a0f1d">
+                            <option value="">Select type</option>
+                            <option value="Boarding">Boarding</option>
+                            <option value="Day">Day</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 5: Academic Association -->
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-8 flex flex-col gap-6 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+            <div class="flex items-center gap-3 pb-4 border-b border-border-primary">
+                <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div>
+                    <h2 class="text-sm font-black text-text-primary">Academic Association</h2>
+                    <p class="text-[10px] text-text-muted uppercase tracking-widest font-bold">Assign student to program and class</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Scholastic Level -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Current Scholastic Level <span class="text-indigo-400">*</span></label>
+                    <div class="input-wrapper">
+                        <select formControlName="level" class="field-input border-border-secondary" style="background:#0a0f1d">
+                            <option [value]="null" disabled>Select Level</option>
+                            @for (level of scholasticLevels(); track level.id) {
+                                <option [value]="level.ordinal">{{ level.name }}</option>
+                            }
+                        </select>
+                    </div>
+                    @if (f['level'].invalid && f['level'].touched) {
+                        <p class="error-msg">Scholastic level is required</p>
+                    }
+                </div>
+
+
+
+                <!-- Category/Class Selection -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Assigned Class</label>
+                    <div class="input-wrapper">
+                        <select formControlName="class_id" class="field-input border-border-secondary" style="background:#0a0f1d">
+                            <option [value]="null">Select Class (Optional)</option>
+                            @for (cls of classes(); track cls.id) {
+                                <option [value]="cls.id">{{ cls.name }}</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sticky Action Bar -->
+        <div class="sticky bottom-0 z-10 flex items-center justify-between p-4 bg-bg-primary/80  border border-border-primary rounded-2xl shadow-xl">
+            <div class="flex items-center gap-2 text-xs font-semibold text-text-muted">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                @if (studentForm.invalid && studentForm.touched) {
+                <span class="text-red-400">Please fill in all required fields before submitting.</span>
+                } @else {
+                <span>Fields marked <span class="text-indigo-400 font-black">*</span> are required.</span>
+                }
+            </div>
+            <div class="flex items-center gap-3">
+                <a routerLink="/students" class="px-6 py-2.5 bg-bg-tertiary hover:bg-bg-secondary border border-border-secondary text-text-secondary hover:text-text-primary text-sm font-bold rounded-xl transition-all">
+                    Cancel
+                </a>
+                <button type="submit" [disabled]="studentForm.invalid || isSubmitting"
+                    class="px-8 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-text-primary text-sm font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-2">
+                    @if (isSubmitting) {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                    Processing...
+                    } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    {{ isEditMode ? 'Update Record' : 'Admit Candidate' }}
+                    }
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+

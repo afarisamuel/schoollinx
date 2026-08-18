@@ -1,0 +1,92 @@
+<div class="landing-root">
+  <!-- ── NAV ──────────────────────────────────────── -->
+  <nav class="nav-bar" [class.scrolled]="isScrolled">
+    <div class="nav-inner">
+      <a routerLink="/" class="nav-logo">
+        <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+        <span class="logo-text">School Linx</span>
+      </a>
+      <div class="nav-links">
+        <a routerLink="/" fragment="features" class="nav-link">Features</a>
+        <a routerLink="/how-it-works" class="nav-link">How it Works</a>
+        <a routerLink="/" fragment="testimonials" class="nav-link">Success Stories</a>
+        <!-- For Roles Dropdown -->
+        <div class="relative group">
+          <button class="nav-link cursor-pointer">
+            For <i class="fas fa-chevron-down text-[10px] ml-1 group-hover:rotate-180 transition-transform duration-300"></i>
+          </button>
+          <div class="absolute top-full left-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-50">
+            <a routerLink="/for-principals" class="flex items-center gap-3 px-5 py-3.5 text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition-colors text-sm font-bold">
+              <i class="fas fa-user-tie text-orange-500 w-4"></i> Principals
+            </a>
+            <a routerLink="/for-teachers" class="flex items-center gap-3 px-5 py-3.5 text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition-colors text-sm font-bold">
+              <i class="fas fa-chalkboard-teacher text-orange-500 w-4"></i> Teachers
+            </a>
+            <a routerLink="/for-parents" class="flex items-center gap-3 px-5 py-3.5 text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition-colors text-sm font-bold">
+              <i class="fas fa-users text-orange-500 w-4"></i> Parents
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <!-- Dark Mode Toggle -->
+        <button (click)="toggleDarkMode()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors text-slate-600" [title]="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+          <i class="fas" [class]="isDark ? 'fa-sun' : 'fa-moon'"></i>
+        </button>
+        <a routerLink="/login" class="nav-link font-medium hidden md:block">Log In</a>
+        <a routerLink="/signup" class="nav-cta-btn">
+          Get Started
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- ── FOOTER ───────────────────────────────────── -->
+  <footer class="footer">
+    <div class="max-w-6xl mx-auto w-full px-6 flex flex-col md:flex-row items-center md:items-start justify-between">
+      <div class="footer-brand mb-8 md:mb-0">
+        <a routerLink="/" class="footer-logo justify-center md:justify-start">
+          <div class="logo-icon logo-icon-sm"><i class="fas fa-graduation-cap"></i></div>
+          <span class="logo-text" style="font-size: 1rem;">School Linx</span>
+        </a>
+        <p class="mt-4 text-sm text-slate-500 max-w-xs mx-auto md:mx-0">
+          The modern operating system for forward-thinking educational institutions.
+        </p>
+      </div>
+
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 max-w-sm w-full mb-8 md:mb-0">
+        <h4 class="font-bold text-slate-900 mb-2">Subscribe to The Linx Ledger</h4>
+        <p class="text-sm text-slate-500 mb-4">Get monthly edtech insights and school administration best practices.</p>
+        <form class="flex gap-2">
+          <input type="email" placeholder="Email address" class="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-pink-500">
+          <button type="button" class="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-800 transition">Subscribe</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto w-full px-6 mt-12 pt-8 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between">
+      <div class="text-sm text-slate-500">&copy; {{ currentYear }} School Linx Inc. All rights reserved.</div>
+      <div class="flex gap-6 flex-wrap justify-center mt-4 md:mt-0">
+        <a routerLink="/features" class="footer-link">Features</a>
+        <a routerLink="/how-it-works" class="footer-link">How it Works</a>
+        <a routerLink="/case-studies" class="footer-link">Case Studies</a>
+        <a routerLink="/blog" class="footer-link">Blog</a>
+        <a routerLink="/updates" class="footer-link">Changelog</a>
+        <a routerLink="/press" class="footer-link">Press Kit</a>
+        <a routerLink="/contact" class="footer-link">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <app-exit-intent-popup></app-exit-intent-popup>
+
+  <!-- Mobile Floating CTA -->
+  <div class="mobile-floating-cta">
+    <a routerLink="/signup" class="btn-primary w-full">Get Started Free</a>
+  </div>
+</div>

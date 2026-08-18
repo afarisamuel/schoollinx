@@ -1,0 +1,51 @@
+<div class="h-full bg-slate-900 p-6 flex flex-col font-sans text-slate-100">
+  <header class="mb-6 flex justify-between items-end">
+    <div>
+      <h1 class="text-3xl font-extrabold text-white">Live Bus Tracker</h1>
+      <p class="text-slate-400 mt-1">Monitor your child's journey in real-time</p>
+    </div>
+    
+    <div class="bg-slate-800 p-1 rounded-lg flex border border-slate-700 w-64">
+      <select [ngModel]="selectedRouteId()" (ngModelChange)="selectRoute($event)" class="bg-transparent border-none w-full text-sm font-semibold focus:ring-0 text-slate-200">
+        <option *ngFor="let r of routes()" [value]="r.id">{{ r.name }}</option>
+      </select>
+    </div>
+  </header>
+
+  <div class="flex-1 bg-slate-800 border border-slate-700 rounded-2xl shadow-xl overflow-hidden relative">
+    
+    <!-- Mock Map Background -->
+    <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-slate-900" style="background-size: 50px;"></div>
+    
+    <!-- Empty State -->
+    <div *ngIf="!currentLocation()" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 z-10">
+      <svg class="w-16 h-16 mb-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+      <p class="font-medium text-lg">Waiting for GPS signal...</p>
+    </div>
+
+    <!-- Map Marker -->
+    <div *ngIf="currentLocation() as loc" class="absolute z-20 transition-all duration-1000 ease-linear"
+         [style.left.%]="mapX" [style.top.%]="mapY" style="transform: translate(-50%, -50%);">
+         
+      <div class="relative group cursor-pointer">
+        <!-- Ping Ring -->
+        <div class="absolute -inset-4 bg-emerald-500 rounded-full opacity-20 animate-ping"></div>
+        
+        <!-- Bus Icon -->
+        <div class="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg border-4 border-slate-900 relative z-10"
+             [style.transform]="'rotate(' + (loc.heading || 0) + 'deg)'">
+          <svg class="w-6 h-6 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+        </div>
+        
+        <!-- Info Tooltip -->
+        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 bg-slate-900 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity border border-slate-700 shadow-xl pointer-events-none">
+          <p class="font-bold text-emerald-400 mb-1">School Bus</p>
+          <p>Speed: {{ loc.speed || 0 }} km/h</p>
+          <p class="text-slate-400 mt-1">Updated {{ loc.timestamp | date:'mediumTime' }}</p>
+          <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-900"></div>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</div>

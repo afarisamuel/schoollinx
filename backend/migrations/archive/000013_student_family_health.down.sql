@@ -1,0 +1,18 @@
+ALTER TABLE students 
+DROP COLUMN IF EXISTS father_name,
+DROP COLUMN IF EXISTS father_phone,
+DROP COLUMN IF EXISTS father_email,
+DROP COLUMN IF EXISTS father_occupation,
+DROP COLUMN IF EXISTS mother_name,
+DROP COLUMN IF EXISTS mother_phone,
+DROP COLUMN IF EXISTS mother_email,
+DROP COLUMN IF EXISTS mother_occupation,
+DROP COLUMN IF EXISTS guardian_name,
+DROP COLUMN IF EXISTS guardian_phone,
+DROP COLUMN IF EXISTS guardian_email,
+DROP COLUMN IF EXISTS guardian_relation,
+DROP COLUMN IF EXISTS emergency_contact_name,
+DROP COLUMN IF EXISTS emergency_contact_phone,
+DROP COLUMN IF EXISTS health_conditions,
+DROP COLUMN IF EXISTS allergies,
+DROP COLUMN IF EXISTS blood_group;

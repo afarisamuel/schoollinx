@@ -1,0 +1,62 @@
+<section class="campaign-builder">
+    <div class="builder-header">
+        <h2>📣 Newsletter & Campaign Manager</h2>
+        <p>Draft and dispatch rich HTML email campaigns to targeted institutional segments.</p>
+    </div>
+
+    @if (successMsg()) {
+    <div class="alert success">✅ {{ successMsg() }}</div>
+    }
+    @if (errorMsg()) {
+    <div class="alert error">⚠️ {{ errorMsg() }}</div>
+    }
+
+    <!-- Draft Composer -->
+    <div class="card composer">
+        <h3>New Campaign</h3>
+        <div class="form-group">
+            <label>Subject Line</label>
+            <input type="text" [(ngModel)]="draft.subject" placeholder="e.g., Weekly Digest – February 2026" />
+        </div>
+        <div class="form-group">
+            <label>Target Audience</label>
+            <select [(ngModel)]="draft.target">
+                @for (opt of targetOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+                }
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Email Body (HTML supported)</label>
+            <textarea [(ngModel)]="draft.body_html" rows="8"
+                placeholder="<h2>Greetings...</h2><p>This week at school...</p>"></textarea>
+        </div>
+        <button class="btn-primary" (click)="saveDraft()" [disabled]="isLoading()">
+            {{ isLoading() ? 'Saving...' : '💾 Save as Draft' }}
+        </button>
+    </div>
+
+    <!-- Campaign List -->
+    <div class="card campaign-list">
+        <h3>Saved Campaigns</h3>
+        @if (campaigns().length === 0) {
+        <p class="empty-state">No campaigns yet. Create your first newsletter above.</p>
+        }
+        @for (c of campaigns(); track c.id) {
+        <div class="campaign-row">
+            <div class="campaign-info">
+                <span class="campaign-subject">{{ c.subject }}</span>
+                <span class="campaign-target">{{ c.target }}</span>
+                <span class="badge" [class]="'status-' + (c.status || 'draft').toLowerCase()">{{ c.status || 'DRAFT'
+                    }}</span>
+            </div>
+            <div class="campaign-actions">
+                @if (c.status === 'DRAFT') {
+                <button class="btn-send" (click)="dispatch(c)">🚀 Dispatch</button>
+                }
+                <button class="btn-delete" (click)="deleteCampaign(c.id!)">🗑</button>
+            </div>
+        </div>
+        }
+    </div>
+</section>

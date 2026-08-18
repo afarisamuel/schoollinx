@@ -1,0 +1,281 @@
+<div class="flex flex-col gap-8 animate-fade-in">
+
+    <!-- Page Header -->
+    <div class="flex items-center gap-4">
+        <a routerLink="/teachers" class="p-2.5 hover:bg-bg-tertiary text-text-muted hover:text-text-primary rounded-xl transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        </a>
+        <div class="h-10 w-px bg-bg-tertiary"></div>
+        <div>
+            <h1 class="text-xl md:text-2xl font-black tracking-tight text-text-primary">{{ isEditMode ? 'Update Educator' : 'Recruit Educator' }}</h1>
+            <p class="text-sm font-medium text-text-secondary mt-1">{{ isEditMode ? 'Modify the teacher professional record' : 'Register a new educator into the institutional system' }}</p>
+        </div>
+    </div>
+
+    <form [formGroup]="teacherForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-6" novalidate>
+
+        @if (successMessage()) {
+        <div class="mb-2 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold animate-fade-in flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span>{{ successMessage() }}</span>
+        </div>
+        }
+
+        @if (errorMessage()) {
+        <div class="mb-2 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold animate-fade-in flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            <span>{{ errorMessage() }}</span>
+        </div>
+        }
+
+        <!-- SECTION 1: Educator Identity -->
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-8 flex flex-col gap-6 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+            <div class="flex items-center gap-3 pb-4 border-b border-border-primary">
+                <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                </div>
+                <div>
+                    <h2 class="text-sm font-black text-text-primary">Educator Identity</h2>
+                    <p class="text-[10px] text-text-muted uppercase tracking-widest font-bold">Personal and contact information</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- First Name -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">First Name <span class="text-indigo-400">*</span></label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <input formControlName="first_name" type="text" placeholder="e.g. Sarah"
+                            class="field-input uppercase"
+                            [class.border-red-500]="f['first_name'].invalid && f['first_name'].touched"
+                            [class.border-emerald-500]="f['first_name'].valid && f['first_name'].touched"
+                            [class.border-white\/10]="!f['first_name'].touched">
+                    </div>
+                    @if (f['first_name'].invalid && f['first_name'].touched) {
+                    <p class="error-msg">First name is required</p>
+                    }
+                </div>
+
+                <!-- Last Name -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Last Name <span class="text-indigo-400">*</span></label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <input formControlName="last_name" type="text" placeholder="e.g. Jenkins"
+                            class="field-input uppercase"
+                            [class.border-red-500]="f['last_name'].invalid && f['last_name'].touched"
+                            [class.border-emerald-500]="f['last_name'].valid && f['last_name'].touched"
+                            [class.border-white\/10]="!f['last_name'].touched">
+                    </div>
+                    @if (f['last_name'].invalid && f['last_name'].touched) {
+                    <p class="error-msg">Last name is required</p>
+                    }
+                </div>
+
+                <!-- Email -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Email Address <span class="text-indigo-400">*</span></label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        <input formControlName="email" type="email" placeholder="sarah.jenkins@school.edu"
+                            class="field-input border-border-secondary"
+                            [class.border-red-500]="f['email'].invalid && f['email'].touched"
+                            [class.border-emerald-500]="f['email'].valid && f['email'].touched"
+                            [class.border-white\/10]="!f['email'].touched">
+                    </div>
+                    @if (f['email'].invalid && f['email'].touched) {
+                    <p class="error-msg">Valid email is required</p>
+                    }
+                </div>
+
+                <!-- Phone Number -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Phone Number</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 11.92a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.07 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        <input formControlName="phone_number" type="tel" placeholder="e.g. 0551234567"
+                            class="field-input font-mono border-border-secondary">
+                    </div>
+                </div>
+
+                <!-- Date of Birth -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Date of Birth <span class="text-indigo-400">*</span></label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                        <input formControlName="dob" type="date"
+                            class="field-input [color-scheme:dark] border-border-secondary"
+                            [class.border-red-500]="f['dob'].invalid && f['dob'].touched"
+                            [class.border-emerald-500]="f['dob'].valid && f['dob'].touched"
+                            [class.border-white\/10]="!f['dob'].touched">
+                    </div>
+                    @if (f['dob'].invalid && f['dob'].touched) {
+                    <p class="error-msg">Date of birth is required</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: Professional Assignment -->
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-8 flex flex-col gap-6 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+            <div class="flex items-center gap-3 pb-4 border-b border-border-primary">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6.5 18H20"/></svg>
+                </div>
+                <div>
+                    <h2 class="text-sm font-black text-text-primary">Professional Assignment</h2>
+                    <p class="text-[10px] text-text-muted uppercase tracking-widest font-bold">Primary teaching specialization</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 gap-5">
+                <!-- Subject Specialization -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Subject Specializations <span class="text-text-muted text-[10px] font-normal">(optional)</span></label>
+                    <div class="input-wrapper h-auto">
+                        <select formControlName="subjects" multiple class="field-input border-border-secondary min-h-[120px] py-4 bg-bg-primary">
+                            @for (subj of availableSubjects(); track subj.id) {
+                                <option [value]="subj.id">{{ subj.name }} ({{ subj.code }})</option>
+                            }
+                        </select>
+                        <p class="text-[10px] text-text-muted mt-1 px-2">Hold Ctrl/Cmd to select multiple subjects</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: Class Assignments (Edit Mode Only) -->
+        @if (isEditMode) {
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-8 flex flex-col gap-6 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+            <div class="flex items-center gap-3 pb-4 border-b border-border-primary">
+                <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div>
+                    <h2 class="text-sm font-black text-text-primary">Class Assignments</h2>
+                    <p class="text-[10px] text-text-muted uppercase tracking-widest font-bold">Link educator to specific classes</p>
+                </div>
+            </div>
+
+            <!-- Teacher Role Toggle -->
+            <div class="flex items-center gap-2 p-3 bg-bg-tertiary rounded-2xl border border-border-primary">
+                <button type="button"
+                    (click)="assignmentType.set('class')"
+                    [class]="assignmentType() === 'class' 
+                        ? 'flex-1 py-2 text-xs font-black rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 transition-all'
+                        : 'flex-1 py-2 text-xs font-bold rounded-xl bg-transparent border border-transparent text-text-muted hover:text-text-primary transition-all'">
+                    🏫 Class Teacher
+                </button>
+                <button type="button"
+                    (click)="assignmentType.set('subject')"
+                    [class]="assignmentType() === 'subject'
+                        ? 'flex-1 py-2 text-xs font-black rounded-xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 transition-all'
+                        : 'flex-1 py-2 text-xs font-bold rounded-xl bg-transparent border border-transparent text-text-muted hover:text-text-primary transition-all'">
+                    📚 Subject Teacher
+                </button>
+            </div>
+            <p class="text-[10px] text-text-muted px-1 -mt-2">
+                @if (assignmentType() === 'class') {
+                    <strong class="text-amber-400">Class Teacher</strong>: Teaches all subjects assigned to the class.
+                } @else {
+                    <strong class="text-indigo-400">Subject Teacher</strong>: Teaches a specific subject in the class.
+                }
+            </p>
+
+            <div [formGroupName]="'current_assignment'" class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-bg-tertiary rounded-2xl border border-border-primary">
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] font-bold text-text-muted uppercase">Class</label>
+                    <select formControlName="class_id" class="field-input text-xs border-border-primary bg-bg-primary">
+                        <option value="">Select Class</option>
+                        @for (cls of availableClasses(); track cls.id) {
+                            <option [value]="cls.id">{{ cls.name }}</option>
+                        }
+                    </select>
+                </div>
+                @if (assignmentType() === 'subject') {
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] font-bold text-text-muted uppercase">Subject</label>
+                    <select formControlName="subject_id" class="field-input text-xs border-border-primary bg-bg-primary">
+                        <option value="">Select Subject</option>
+                        @for (subj of availableSubjects(); track subj.id) {
+                            <option [value]="subj.id">{{ subj.name }}</option>
+                        }
+                    </select>
+                </div>
+                }
+                <div class="flex items-end" [class.md:col-start-3]="assignmentType() === 'class'">
+                    <button type="button" (click)="addAssignment()" 
+                        class="w-full py-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-600/30 text-indigo-400 text-xs font-bold rounded-xl transition-all">
+                        Assign to Class
+                    </button>
+                </div>
+            </div>
+
+            <!-- Active Assignments List -->
+            <div class="flex flex-col gap-2">
+                @for (asn of assignments(); track asn.id) {
+                <div class="flex items-center justify-between p-4 bg-bg-tertiary rounded-2xl border border-border-primary group transition-all hover:border-border-secondary">
+                    <div class="flex items-center gap-4">
+                        <div class="w-8 h-8 rounded-lg bg-bg-tertiary flex items-center justify-center text-text-muted group-hover:text-text-primary transition-colors text-xs font-bold">
+                            {{ $index + 1 }}
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <p class="text-sm font-bold text-text-primary">{{ asn.class?.name }}</p>
+                                @if (!asn.subject_id) {
+                                    <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/20">Class Teacher</span>
+                                } @else {
+                                    <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-lg bg-indigo-500/15 text-indigo-400 border border-indigo-500/20">Subject Teacher</span>
+                                }
+                            </div>
+                            <p class="text-[10px] text-text-muted">{{ asn.subject?.name || 'All Subjects' }} • {{ asn.academic_year }}</p>
+                        </div>
+                    </div>
+                    <button type="button" (click)="removeAssignment(asn.id!)" 
+                        class="p-2 opacity-0 group-hover:opacity-100 hover:bg-red-500/10 text-red-500 rounded-lg transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                    </button>
+                </div>
+                } @empty {
+                <div class="flex flex-col items-center justify-center p-12 bg-bg-tertiary border border-dashed border-border-secondary rounded-2xl">
+                    <p class="text-xs font-medium text-text-muted">No classes assigned to this educator yet.</p>
+                </div>
+                }
+            </div>
+        </div>
+        }
+
+        <!-- Sticky Action Bar -->
+        <div class="sticky bottom-0 z-10 flex items-center justify-between p-4 bg-bg-primary/80  border border-border-primary rounded-2xl shadow-xl">
+            <div class="flex items-center gap-2 text-xs font-semibold text-text-muted">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                @if (teacherForm.invalid && teacherForm.touched) {
+                <span class="text-red-400">Please complete all required fields.</span>
+                } @else {
+                <span>Fields marked <span class="text-indigo-400 font-black">*</span> are required.</span>
+                }
+            </div>
+            <div class="flex items-center gap-3">
+                <a routerLink="/teachers" class="px-6 py-2.5 bg-bg-tertiary hover:bg-bg-secondary border border-border-secondary text-text-secondary hover:text-text-primary text-sm font-bold rounded-xl transition-all">
+                    Cancel
+                </a>
+                <button type="submit" [disabled]="teacherForm.invalid || isSubmitting()"
+                    class="px-8 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-text-primary text-sm font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-2">
+                    @if (isSubmitting()) {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                    Processing...
+                    } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    {{ isEditMode ? 'Update Record' : 'Save Educator' }}
+                    }
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+

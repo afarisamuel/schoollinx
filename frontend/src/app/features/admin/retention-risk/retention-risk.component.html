@@ -1,0 +1,139 @@
+<div class="min-h-screen px-6 py-10 md:px-12 max-w-[1600px] mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+        <div>
+            <a routerLink="/executive-dashboard" class="flex items-center gap-2 text-text-muted hover:text-text-primary text-xs font-bold uppercase tracking-widest mb-4 transition-colors w-fit">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                Back to Executive Dashboard
+            </a>
+            <div class="flex items-center gap-3 mb-2">
+                <span class="px-3 py-1 bg-red-500/10 text-red-400 border border-red-400/20 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">Action Required</span>
+            </div>
+            <h1 class="text-2xl md:text-4xl font-black text-text-primary tracking-tighter">
+                Retention Risk <span class="bg-gradient-to-r from-red-400 to-amber-500 bg-clip-text text-transparent">Matrix</span>
+            </h1>
+            <p class="text-text-muted text-sm mt-2 max-w-xl">Predictive analysis of students at risk of disengagement or dropout.</p>
+        </div>
+        <button (click)="loadData()" class="flex items-center gap-2 px-5 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm font-bold text-text-primary hover:bg-bg-secondary transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+            Refresh Analysis
+        </button>
+    </div>
+
+    @if (isLoading()) {
+    <div class="flex flex-col items-center justify-center py-32 bg-bg-tertiary border border-border-primary rounded-3xl">
+        <div class="w-12 h-12 border-4 border-red-500/20 border-t-red-500 rounded-full animate-spin mb-4"></div>
+        <p class="text-text-muted font-medium">Running retention analysis...</p>
+    </div>
+    } @else {
+
+    <!-- Summary KPIs -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-bg-tertiary border border-border-primary rounded-2xl p-5">
+            <p class="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Total Monitored</p>
+            <p class="text-2xl font-black text-text-primary">{{ risks().length }}</p>
+        </div>
+        <div class="bg-bg-tertiary border border-red-500/20 rounded-2xl p-5">
+            <p class="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">High Risk</p>
+            <p class="text-2xl font-black text-red-400">{{ highCount() }}</p>
+        </div>
+        <div class="bg-bg-tertiary border border-amber-500/20 rounded-2xl p-5">
+            <p class="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-1">Medium Risk</p>
+            <p class="text-2xl font-black text-amber-400">{{ mediumCount() }}</p>
+        </div>
+        <div class="bg-bg-tertiary border border-emerald-500/20 rounded-2xl p-5">
+            <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Low Risk</p>
+            <p class="text-2xl font-black text-emerald-400">{{ lowCount() }}</p>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="flex flex-wrap gap-2 mb-6">
+        <button (click)="setFilter('all')"
+            class="px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+            [class]="filterLevel() === 'all' ? 'bg-text-primary text-bg-primary' : 'bg-bg-tertiary border border-border-primary text-text-muted hover:text-text-primary'">
+            All ({{ risks().length }})
+        </button>
+        <button (click)="setFilter('high')"
+            class="px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+            [class]="filterLevel() === 'high' ? 'bg-red-500 text-white' : 'bg-bg-tertiary border border-border-primary text-text-muted hover:text-red-400'">
+            High Risk ({{ highCount() }})
+        </button>
+        <button (click)="setFilter('medium')"
+            class="px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+            [class]="filterLevel() === 'medium' ? 'bg-amber-500 text-white' : 'bg-bg-tertiary border border-border-primary text-text-muted hover:text-amber-400'">
+            Medium Risk ({{ mediumCount() }})
+        </button>
+        <button (click)="setFilter('low')"
+            class="px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+            [class]="filterLevel() === 'low' ? 'bg-emerald-500 text-white' : 'bg-bg-tertiary border border-border-primary text-text-muted hover:text-emerald-400'">
+            Low Risk ({{ lowCount() }})
+        </button>
+    </div>
+
+    <!-- Risk Matrix Table -->
+    <div class="bg-bg-tertiary border border-border-primary rounded-3xl overflow-hidden">
+        @if (filteredRisks().length > 0) {
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b border-border-primary">
+                        <th class="px-8 py-5 text-[10px] font-black text-text-muted uppercase tracking-widest">Student</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-text-muted uppercase tracking-widest">Risk Level</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-text-muted uppercase tracking-widest">Risk Score</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-text-muted uppercase tracking-widest">Primary Factors</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border-primary">
+                    @for (risk of filteredRisks(); track risk.student_id) {
+                    <tr class="group hover:bg-bg-secondary transition-colors">
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm text-white"
+                                     [class]="risk.risk_score > 0.7 ? 'bg-red-500' : risk.risk_score > 0.4 ? 'bg-amber-500' : 'bg-emerald-500'">
+                                    {{ risk.student_name.charAt(0) }}
+                                </div>
+                                <span class="font-bold text-text-primary">{{ risk.student_name }}</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest"
+                                  [class]="risk.risk_score > 0.7 ? 'bg-red-500/10 text-red-400 border border-red-500/20' : risk.risk_score > 0.4 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'">
+                                <span class="w-1.5 h-1.5 rounded-full animate-pulse"
+                                      [class]="risk.risk_score > 0.7 ? 'bg-red-400' : risk.risk_score > 0.4 ? 'bg-amber-400' : 'bg-emerald-400'"></span>
+                                {{ getRiskLabel(risk.risk_score) }}
+                            </span>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-24 h-2 bg-bg-secondary rounded-full overflow-hidden">
+                                    <div class="h-full rounded-full transition-all duration-1000"
+                                         [style.width.%]="risk.risk_score * 100"
+                                         [class]="risk.risk_score > 0.7 ? 'bg-red-500' : risk.risk_score > 0.4 ? 'bg-amber-500' : 'bg-emerald-500'"></div>
+                                </div>
+                                <span class="text-sm font-bold text-text-secondary">{{ risk.risk_score | percent:'1.0-0' }}</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex flex-wrap gap-2">
+                                @for (factor of risk.primary_factors; track factor) {
+                                <span class="px-2 py-0.5 bg-bg-secondary border border-border-primary rounded text-[10px] text-text-secondary font-medium">{{ factor }}</span>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        } @else {
+        <div class="flex flex-col items-center justify-center py-24 text-text-muted">
+            <svg class="mb-4 opacity-20" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+            <p class="font-bold text-lg">Strategic Equilibrium</p>
+            <p class="text-sm mt-1">No retention risks detected for the selected filter.</p>
+        </div>
+        }
+    </div>
+
+    }
+</div>

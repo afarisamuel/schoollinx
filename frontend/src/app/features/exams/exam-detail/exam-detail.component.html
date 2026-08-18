@@ -1,0 +1,128 @@
+<div class="max-w-[1440px] mx-auto p-4 md:p-8 animate-fade-in pb-24">
+    @if (loading()) {
+        <div class="flex items-center justify-center h-64">
+            <div class="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+        </div>
+    } @else if (exam()) {
+        <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10">
+            <div>
+                <a routerLink="/exams" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 uppercase tracking-widest flex items-center gap-1 mb-4 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+                    Back to Exams
+                </a>
+                <h1 class="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-text-primary to-text-secondary tracking-tight mb-2">
+                    {{ exam()?.title }}
+                </h1>
+                <p class="text-text-muted font-medium text-sm">{{ exam()?.description }}</p>
+                <div class="flex items-center gap-4 mt-4">
+                    <span class="px-3 py-1 bg-bg-tertiary rounded-lg text-[10px] font-black uppercase tracking-widest">{{ exam()?.academic_year }} - {{ exam()?.term }}</span>
+                    <span class="px-3 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest">{{ exam()?.status }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 border-b border-border-primary pb-4 mb-8 overflow-x-auto">
+            <button (click)="activeTab.set('schedules')" [class.bg-bg-tertiary]="activeTab() === 'schedules'" [class.text-text-primary]="activeTab() === 'schedules'" class="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-[0.15em] text-text-muted hover:text-text-primary hover:bg-bg-tertiary/50 transition-all whitespace-nowrap">Schedules</button>
+            <button (click)="activeTab.set('results')" [class.bg-bg-tertiary]="activeTab() === 'results'" [class.text-text-primary]="activeTab() === 'results'" class="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-[0.15em] text-text-muted hover:text-text-primary hover:bg-bg-tertiary/50 transition-all whitespace-nowrap">Results</button>
+        </div>
+
+        @if (activeTab() === 'schedules') {
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-text-primary">Exam Schedules</h2>
+                <button (click)="addingSchedule.set(true)" *ngIf="!addingSchedule()" class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition-colors">Add Schedule</button>
+            </div>
+
+            @if (addingSchedule()) {
+                <div class="p-6 bg-bg-secondary border border-border-primary rounded-3xl mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] font-bold text-text-muted uppercase">Class</label>
+                            <select [(ngModel)]="newSchedule().class_id" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1">
+                                @for(c of classes(); track c.id) {
+                                    <option [value]="c.id">{{ c.name }}</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-text-muted uppercase">Subject</label>
+                            <input [(ngModel)]="newSchedule().subject" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-text-muted uppercase">Date</label>
+                            <input [(ngModel)]="newSchedule().date" type="date" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1">
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="text-[10px] font-bold text-text-muted uppercase">Start Time</label>
+                                <input [(ngModel)]="newSchedule().start_time" type="time" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1">
+                            </div>
+                            <div class="flex-1">
+                                <label class="text-[10px] font-bold text-text-muted uppercase">End Time</label>
+                                <input [(ngModel)]="newSchedule().end_time" type="time" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 mt-6">
+                        <button (click)="saveSchedule()" class="px-6 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition-colors">Save Schedule</button>
+                        <button (click)="addingSchedule.set(false)" class="px-6 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-xs font-bold hover:bg-bg-primary transition-colors">Cancel</button>
+                    </div>
+                </div>
+            }
+
+            <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-2xl">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-black/20 border-b border-border-primary/50">
+                            <th class="p-6 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Class / Subject</th>
+                            <th class="p-6 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Date & Time</th>
+                            <th class="p-6 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Max Score</th>
+                            <th class="p-6 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border-primary/30">
+                        @for (sch of schedules(); track sch.id) {
+                            <tr class="hover:bg-white/5 transition-colors group">
+                                <td class="p-6">
+                                    <div class="font-bold text-text-primary">{{ sch.subject }}</div>
+                                    <div class="text-[10px] font-bold text-text-muted uppercase tracking-widest">{{ $any(sch).class?.name || 'Class ' + sch.class_id }}</div>
+                                </td>
+                                <td class="p-6">
+                                    <div class="text-sm font-medium text-text-secondary">{{ sch.date | date }}</div>
+                                    <div class="text-xs text-text-muted">{{ sch.start_time }} - {{ sch.end_time }}</div>
+                                </td>
+                                <td class="p-6 text-sm font-medium">{{ sch.max_score }}</td>
+                                <td class="p-6 text-right">
+                                    <button (click)="selectSchedule(sch.id!)" class="px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all border border-indigo-500/20">Enter Results</button>
+                                </td>
+                            </tr>
+                        } @empty {
+                            <tr>
+                                <td colspan="4" class="p-12 text-center text-text-muted font-bold">No schedules configured yet.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        } @else {
+            <div class="flex flex-col gap-6">
+                @if (selectedScheduleId()) {
+                    <div class="p-6 bg-bg-secondary border border-border-primary rounded-3xl">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold">Results Entry</h3>
+                            <button class="px-4 py-2 bg-indigo-500 text-white rounded-xl text-xs font-bold">Save All Results</button>
+                        </div>
+                        <div class="text-center p-12 text-text-muted border border-dashed border-border-primary rounded-2xl">
+                            <p class="font-bold">Select a student roster to enter results.</p>
+                            <p class="text-xs mt-2">In a full implementation, this will display the list of students in the class with input fields for scores.</p>
+                        </div>
+                    </div>
+                } @else {
+                    <div class="text-center py-20 text-text-muted">
+                        <p class="font-bold">Please select a schedule to view or enter results.</p>
+                        <button (click)="activeTab.set('schedules')" class="mt-4 px-6 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-xs font-bold hover:text-text-primary transition-colors">Go to Schedules</button>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>

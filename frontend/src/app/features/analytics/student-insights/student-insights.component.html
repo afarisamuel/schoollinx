@@ -1,0 +1,54 @@
+<div class="page-container animate-fade-in">
+    <div class="page-header">
+        <div>
+            <h1>Academic Intelligence</h1>
+            <p class="subtitle">Data-driven success tracking and personalized recommendations</p>
+        </div>
+    </div>
+
+    @if (score(); as s) {
+    <div class="score-overview glass-panel" [class]="s.risk_level.toLowerCase()">
+        <div class="score-circle">
+            <span class="score-value">{{ s.composite_score | number:'1.1-1' }}</span>
+            <span class="score-label">Success Index</span>
+        </div>
+        <div class="score-metrics">
+            <div class="metric">
+                <span class="label">Academic GPA</span>
+                <span class="value">{{ s.gpa | number:'1.1-1' }}</span>
+            </div>
+            <div class="metric">
+                <span class="label">Attendance Rate</span>
+                <span class="value">{{ s.attendance_rate * 100 | number:'1.0-0' }}%</span>
+            </div>
+            <div class="metric">
+                <span class="label">Risk Assessment</span>
+                <span class="value risk-badge">{{ s.risk_level }} Risk</span>
+            </div>
+        </div>
+    </div>
+    }
+
+    <div class="insights-section">
+        <h2 class="section-title">Personalized Recommendations</h2>
+        <div class="insights-grid">
+            @for (insight of insights(); track insight.id) {
+            <div class="glass-panel insight-card" [class]="insight.type.toLowerCase()">
+                <div class="insight-header">
+                    <span class="type-tag">{{ insight.type }}</span>
+                    <span class="confidence">{{ insight.confidence_score * 100 | number:'1.0-0' }}% Confidence</span>
+                </div>
+                <h3 class="insight-title">{{ insight.title }}</h3>
+                <p class="insight-desc">{{ insight.description }}</p>
+                <div class="insight-reasoning">
+                    <strong>Why?</strong> {{ insight.reasoning }}
+                </div>
+            </div>
+            } @empty {
+            <div class="empty-state glass-panel">
+                <p>Generating more insights... Keep up your academic efforts!</p>
+            </div>
+            }
+        </div>
+    </div>
+</div>

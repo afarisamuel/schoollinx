@@ -1,0 +1,40 @@
+<div class="modal-backdrop fade-in" (click)="close.emit()">
+    <div class="modal-content glass-panel animate-slide-up" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>Graduate Student</h2>
+            <button class="btn-close" (click)="close.emit()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <p class="intro">Transition <strong>{{ student.first_name }} {{ student.last_name }}</strong> to Alumni
+                status. This will archive their active records and create their legacy profile.</p>
+
+            <form class="graduation-form">
+                <div class="form-group">
+                    <label>Higher Education (Optional)</label>
+                    <input type="text" placeholder="e.g. Stanford University" [(ngModel)]="profile.higher_ed"
+                        name="higher_ed">
+                </div>
+
+                <div class="form-group">
+                    <label>Current/Planned Career</label>
+                    <input type="text" placeholder="e.g. Software Engineer" [(ngModel)]="profile.current_career"
+                        name="current_career">
+                </div>
+
+                <div class="form-group">
+                    <label>LinkedIn URL</label>
+                    <input type="url" placeholder="https://linkedin.com/in/..." [(ngModel)]="profile.linkedin_url"
+                        name="linkedin_url">
+                </div>
+            </form>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-secondary" (click)="close.emit()">Cancel</button>
+            <button class="btn btn-primary" (click)="submit()" [disabled]="isSubmitting()">
+                {{ isSubmitting() ? 'Graduating...' : 'Confirm Graduation' }}
+            </button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,142 @@
+<div class="p-12">
+  <div class="max-w-7xl mx-auto">
+    <header class="mb-12 border-b border-border-primary pb-10 flex justify-between items-end">
+      <div>
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/20 text-[9px] font-black text-cyan-500 uppercase tracking-widest">Analytics Engine</span>
+        </div>
+        <h1 class="text-5xl font-black text-white tracking-tighter">Event <span class="text-cyan-500 text-opacity-80">Telemetry</span></h1>
+        <p class="text-text-secondary mt-3 max-w-xl text-sm leading-relaxed">Platform usage, module engagement, and real-time conversion funnels.</p>
+      </div>
+      <button (click)="loadTelemetry()" class="admin-btn-primary bg-cyan-600 border-cyan-500 hover:bg-cyan-500 px-6 py-3 text-xs tracking-wider flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+        REFRESH DATA
+      </button>
+    </header>
+
+    @if (isLoading()) {
+      <div class="py-24 text-center">
+        <div class="w-10 h-10 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4"></div>
+        <p class="text-xs font-bold text-text-muted uppercase tracking-widest">Fetching events...</p>
+      </div>
+    } @else {
+      <div class="grid grid-cols-2 gap-8 mb-8">
+        
+        <!-- Module Usage (Bar Chart) -->
+        <div class="admin-card flex flex-col h-96 group hover:border-cyan-500/30 transition-colors">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-sm font-black text-white uppercase tracking-widest">Module Engagement</h2>
+              <p class="text-[10px] text-text-muted mt-1 font-mono">Top features by event count</p>
+            </div>
+          </div>
+          <div class="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+            @for (mod of moduleUsage(); track mod.module) {
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <span class="font-bold text-white">{{ mod.module || 'Unknown Module' }}</span>
+                  <span class="font-mono text-cyan-400 font-bold">{{ mod.count | number }}</span>
+                </div>
+                <div class="h-2 w-full bg-bg-tertiary rounded-full overflow-hidden">
+                  <!-- Hack to calculate percentage based on the highest count (first element) -->
+                  <div class="h-full bg-gradient-to-r from-cyan-600 to-cyan-400 rounded-full" 
+                       [style.width]="moduleUsage().length ? ((mod.count / moduleUsage()[0].count) * 100) + '%' : '0%'">
+                  </div>
+                </div>
+              </div>
+            }
+            @if (moduleUsage().length === 0) {
+              <div class="text-xs text-text-muted text-center py-10">No usage data available.</div>
+            }
+          </div>
+        </div>
+
+        <!-- Funnel Metrics -->
+        <div class="admin-card flex flex-col h-96 group hover:border-purple-500/30 transition-colors">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-sm font-black text-white uppercase tracking-widest">Signup Funnel</h2>
+              <p class="text-[10px] text-text-muted mt-1 font-mono">Conversion tracking</p>
+            </div>
+          </div>
+          <div class="flex-1 flex flex-col items-center justify-center space-y-2">
+            @if (funnelMetrics().length === 0) {
+              <div class="text-xs text-text-muted text-center py-10">No funnel data available.</div>
+            } @else {
+              @for (step of funnelMetrics(); track step.step; let i = $index) {
+                <!-- Visual Funnel Layer -->
+                <div class="relative flex items-center justify-center bg-purple-500/10 border border-purple-500/20 text-center transition-all hover:bg-purple-500/20"
+                     [style.width]="100 - (i * 15) + '%'"
+                     [style.height]="'60px'"
+                     [style.border-radius]="'8px'">
+                  <div class="flex flex-col">
+                    <span class="text-[10px] font-black text-purple-400 uppercase tracking-widest">{{ step.step }}</span>
+                    <span class="text-xl font-black text-white tracking-tighter">{{ step.count | number }}</span>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-8">
+        <!-- Active Users per Tenant -->
+        <div>
+          <h2 class="text-sm font-black text-white uppercase tracking-widest mb-4">DAU By Tenant</h2>
+          <div class="admin-card !p-0 overflow-hidden border-border-primary/50 h-96 overflow-y-auto custom-scrollbar">
+            <table class="w-full text-left whitespace-nowrap">
+              <thead class="bg-bg-tertiary/30 sticky top-0 backdrop-blur-md">
+                <tr>
+                  <th class="pl-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Tenant ID</th>
+                  <th class="pr-6 py-3 text-right text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Active Users</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border-primary">
+                @for (user of activeUsers(); track user.tenant_id) {
+                  <tr class="hover:bg-cyan-500/[0.02] transition-colors">
+                    <td class="pl-6 py-3 font-mono text-xs text-text-secondary">{{ user.tenant_id || 'System' }}</td>
+                    <td class="pr-6 py-3 text-right font-black text-cyan-400">{{ user.active_users | number }}</td>
+                  </tr>
+                }
+                @if (activeUsers().length === 0) {
+                  <tr><td colspan="2" class="py-10 text-center text-xs text-text-muted">No active user data.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Recent Errors -->
+        <div>
+          <h2 class="text-sm font-black text-white uppercase tracking-widest mb-4">Error Spikes (Last 24h)</h2>
+          <div class="admin-card !p-0 overflow-hidden border-border-primary/50 h-96 overflow-y-auto custom-scrollbar">
+            <table class="w-full text-left whitespace-nowrap">
+              <thead class="bg-bg-tertiary/30 sticky top-0 backdrop-blur-md">
+                <tr>
+                  <th class="pl-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Error Code</th>
+                  <th class="pr-6 py-3 text-right text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Occurrences</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border-primary">
+                @for (err of errorLogs(); track err.error_code) {
+                  <tr class="hover:bg-rose-500/[0.02] transition-colors">
+                    <td class="pl-6 py-3">
+                      <div class="inline-flex items-center px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-[9px] font-black text-rose-500 uppercase tracking-widest">
+                        {{ err.error_code || 'UNKNOWN_ERROR' }}
+                      </div>
+                    </td>
+                    <td class="pr-6 py-3 text-right font-black text-rose-400">{{ err.count | number }}</td>
+                  </tr>
+                }
+                @if (errorLogs().length === 0) {
+                  <tr><td colspan="2" class="py-10 text-center text-xs text-text-muted">No errors recorded.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

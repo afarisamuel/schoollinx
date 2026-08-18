@@ -1,0 +1,927 @@
+<div class="max-w-[1440px] mx-auto animate-fade-in pb-24">
+    <!-- Breadcrumb & Actions -->
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-3 text-sm font-bold">
+            <a routerLink="/students" class="text-text-muted hover:text-indigo-400 transition-colors flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                Back to Registry
+            </a>
+            <span class="text-text-muted/50">/</span>
+            <span class="text-text-primary">Student Profile</span>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            @if (student()) {
+                <button (click)="printPupilBill()" [disabled]="isPrintingBill()" class="px-5 py-2.5 bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 text-xs font-bold rounded-xl transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(99,102,241,0.15)] hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed">
+                    @if (isPrintingBill()) {
+                        <div class="w-3.5 h-3.5 border-2 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin"></div>
+                        Generating...
+                    } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        Print Bill
+                    }
+                </button>
+                <button (click)="printTerminalReport()" [disabled]="isPrintingReport()" class="px-5 py-2.5 bg-green-600/10 hover:bg-green-600/20 border border-green-500/30 text-green-400 text-xs font-bold rounded-xl transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(74,222,128,0.15)] hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed">
+                    @if (isPrintingReport()) {
+                        <div class="w-3.5 h-3.5 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin"></div>
+                        Generating...
+                    } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+                        Terminal Report
+                    }
+                </button>
+                <a [routerLink]="['/students/edit', student()?.id]" class="px-5 py-2.5 bg-bg-tertiary hover:bg-bg-secondary border border-border-primary text-text-primary text-xs font-bold rounded-xl transition-all flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                    Edit Profile
+                </a>
+            }
+        </div>
+    </div>
+
+    @if (loading()) {
+        <div class="flex flex-col items-center justify-center py-32 gap-4">
+            <div class="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
+            <span class="text-sm font-bold text-text-muted animate-pulse">Assembling full student profile...</span>
+        </div>
+    } @else if (error()) {
+        <div class="bg-red-500/10 border border-red-500/20 p-8 rounded-3xl flex flex-col items-center text-center max-w-lg mx-auto mt-20">
+            <div class="w-16 h-16 bg-red-500/20 text-red-500 rounded-2xl flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </div>
+            <h2 class="text-xl font-black text-text-primary mb-2">Profile Unavailable</h2>
+            <p class="text-sm text-text-muted mb-6">{{ error() }}</p>
+            <a routerLink="/students" class="px-6 py-3 bg-bg-tertiary hover:bg-bg-secondary border border-border-primary text-text-primary text-xs font-bold rounded-xl transition-all">Return to Directory</a>
+        </div>
+    } @else if (student()) {
+        <!-- Profile Header -->
+        <div class="relative overflow-hidden bg-bg-secondary/40 backdrop-blur-3xl border border-white/10 rounded-[0.5rem] p-8 md:p-6 mb-10 shadow-2xl group">
+            <!-- Ambient Glow -->
+            <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 blur-[150px] rounded-full pointer-events-none group-hover:bg-indigo-500/20 transition-colors duration-1000"></div>
+            <div class="absolute bottom-0 left-0 w-[300px] h-[300px] bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none"></div>
+            
+            <div class="flex flex-col lg:flex-row gap-10 items-start lg:items-center relative z-10">
+                <!-- Avatar -->
+                <div class="w-32 h-32 rounded-[2rem] bg-gradient-to-br from-indigo-500/20 to-purple-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-3xl font-black flex-shrink-0 shadow-[inset_0_0_20px_rgba(99,102,241,0.2)] hover:scale-105 transition-transform duration-500 overflow-hidden relative">
+                    @if (student()?.photo_url) {
+                        <img [src]="student()?.photo_url" class="absolute inset-0 w-full h-full object-cover" alt="Student Photo">
+                    } @else {
+                        {{ student()?.first_name?.[0] }}{{ student()?.last_name?.[0] }}
+                    }
+                </div>
+                
+                <div class="flex-1">
+                    <div class="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+                        <h1 class="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-text-primary to-text-secondary tracking-tight">
+                            {{ student()?.first_name }} {{ student()?.other_name ? student()?.other_name + ' ' : '' }}{{ student()?.last_name }}
+                        </h1>
+                        <span class="px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-xl flex items-center gap-2 w-fit shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            {{ student()?.status || 'ACTIVE' }}
+                        </span>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-x-8 gap-y-4 text-sm font-medium">
+                        
+                        <div class="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-bg-tertiary/50 border border-white/5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-indigo-400"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                            <span class="text-text-muted font-bold text-[10px] uppercase tracking-widest">Class:</span>
+                            <span class="font-black text-text-primary">{{ student()?.class?.name || getClassName(student()?.class_id) }}</span>
+                        </div>
+                        
+                        <div class="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-bg-tertiary/50 border border-white/5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-amber-400"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                            <span class="text-text-muted font-bold text-[10px] uppercase tracking-widest">Residence:</span>
+                            <span class="font-black text-text-primary">{{ student()?.placed_residence_type || 'Day' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row lg:flex-col gap-4 w-full lg:w-auto bg-black/20 backdrop-blur-md p-6 rounded-[1.5rem] border border-white/10 shadow-inner">
+                    <div class="flex-1 flex flex-col items-center justify-center gap-1 bg-bg-tertiary/30 p-4 rounded-xl">
+                        <span class="text-[10px] font-black text-text-muted uppercase tracking-widest">Current Balance</span>
+                        <span class="text-2xl font-black" [ngClass]="fiscalBalance() > 0 ? 'text-rose-400' : 'text-emerald-400'">
+                            {{ fiscalBalance() | currency:'GHS':'symbol-narrow' }}
+                        </span>
+                    </div>
+                    <div class="flex-1 flex flex-col items-center justify-center gap-1 bg-bg-tertiary/30 p-4 rounded-xl">
+                        <span class="text-[10px] font-black text-text-muted uppercase tracking-widest">Attendance</span>
+                        <span class="text-2xl font-black" [ngClass]="overallAttendancePercentage() < 80 ? 'text-amber-400' : 'text-emerald-400'">
+                            {{ overallAttendancePercentage() }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex overflow-x-auto custom-scrollbar gap-2 mb-10 border-b border-border-primary/50 pb-2 relative">
+            <button (click)="setTab('overview')" [class.bg-bg-tertiary]="activeTab() === 'overview'" [class.text-text-primary]="activeTab() === 'overview'" class="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-[0.15em] text-text-muted hover:text-text-primary hover:bg-bg-tertiary/50 transition-all whitespace-nowrap">Overview</button>
+            <button (click)="setTab('timeline')" [class.bg-bg-tertiary]="activeTab() === 'timeline'" [class.text-text-primary]="activeTab() === 'timeline'" class="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-[0.15em] text-text-muted hover:text-text-primary hover:bg-bg-tertiary/50 transition-all whitespace-nowrap flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Timeline
+            </button>
+            <button (click)="setTab('portfolio')" [class.bg-bg-tertiary]="activeTab() === 'portfolio'" [class.text-text-primary]="activeTab() === 'portfolio'" class="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-[0.15em] text-text-muted hover:text-text-primary hover:bg-bg-tertiary/50 transition-all whitespace-nowrap flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                Portfolio
+            </button>
+            <button (click)="setTab('financials')" [class.bg-bg-tertiary]="activeTab() === 'financials'" [class.text-text-primary]="activeTab() === 'financials'" class="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-[0.15em] text-text-muted hover:text-text-primary hover:bg-bg-tertiary/50 transition-all whitespace-nowrap">Financial Ledger</button>
+            <button (click)="setTab('academics')" [class.bg-bg-tertiary]="activeTab() === 'academics'" [class.text-text-primary]="activeTab() === 'academics'" class="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-[0.15em] text-text-muted hover:text-text-primary hover:bg-bg-tertiary/50 transition-all whitespace-nowrap">Academic Record</button>
+            <button (click)="setTab('attendance')" [class.bg-bg-tertiary]="activeTab() === 'attendance'" [class.text-text-primary]="activeTab() === 'attendance'" class="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-[0.15em] text-text-muted hover:text-text-primary hover:bg-bg-tertiary/50 transition-all whitespace-nowrap">Attendance Log</button>
+            <button (click)="setTab('behavior')" [class.bg-bg-tertiary]="activeTab() === 'behavior'" [class.text-text-primary]="activeTab() === 'behavior'" class="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-[0.15em] text-text-muted hover:text-text-primary hover:bg-bg-tertiary/50 transition-all whitespace-nowrap flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Behavior
+            </button>
+            <button (click)="setTab('documents')" [class.bg-bg-tertiary]="activeTab() === 'documents'" [class.text-text-primary]="activeTab() === 'documents'" class="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-[0.15em] text-text-muted hover:text-text-primary hover:bg-bg-tertiary/50 transition-all whitespace-nowrap">Digital Vault</button>
+            <button (click)="setTab('health')" [class.bg-bg-tertiary]="activeTab() === 'health'" [class.text-text-primary]="activeTab() === 'health'" class="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-[0.15em] text-text-muted hover:text-text-primary hover:bg-bg-tertiary/50 transition-all whitespace-nowrap flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                Health & Emergency
+            </button>
+        </div>
+
+        <!-- Tab Content Area -->
+        <div class="min-h-[400px]">
+            <!-- Timeline Tab -->
+            @if (activeTab() === 'timeline') {
+                <div class="animate-fade-in max-w-3xl mx-auto py-8">
+                    @if (timelineEvents().length === 0) {
+                        <div class="text-center py-20 text-text-muted">
+                            <div class="w-16 h-16 bg-bg-tertiary rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            </div>
+                            <p class="font-bold">No timeline events recorded yet.</p>
+                        </div>
+                    } @else {
+                        <div class="relative border-l-2 border-border-secondary ml-6 md:ml-10 space-y-12">
+                            @for (event of timelineEvents(); track event.id) {
+                                <div class="relative pl-8 md:pl-12 group transition-all duration-300 hover:translate-x-2">
+                                    <!-- Timeline Dot -->
+                                    <div class="absolute -left-[13px] top-1 w-6 h-6 rounded-full border-4 border-bg-primary flex items-center justify-center shadow-lg transition-transform group-hover:scale-125 duration-300"
+                                         [ngClass]="{
+                                            'bg-indigo-500 text-indigo-100': event.type === 'grade',
+                                            'bg-amber-500 text-amber-100': event.type === 'attendance',
+                                            'bg-emerald-500 text-emerald-100': event.type === 'welfare',
+                                            'bg-purple-500 text-purple-100': event.type === 'extracurricular'
+                                         }">
+                                        <!-- Optional Icon inside dot -->
+                                    </div>
+
+                                    <!-- Event Content -->
+                                    <div class="bg-bg-secondary/60 backdrop-blur-md border border-border-primary rounded-2xl p-6 shadow-xl group-hover:shadow-indigo-500/10 transition-all relative overflow-hidden">
+                                        <div class="absolute top-0 left-0 w-1 h-full"
+                                             [ngClass]="{
+                                                'bg-indigo-500': event.type === 'grade',
+                                                'bg-amber-500': event.type === 'attendance',
+                                                'bg-emerald-500': event.type === 'welfare',
+                                                'bg-purple-500': event.type === 'extracurricular'
+                                             }"></div>
+                                        
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border"
+                                                [ngClass]="{
+                                                    'bg-indigo-500/10 text-indigo-400 border-indigo-500/20': event.type === 'grade',
+                                                    'bg-amber-500/10 text-amber-400 border-amber-500/20': event.type === 'attendance',
+                                                    'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': event.type === 'welfare',
+                                                    'bg-purple-500/10 text-purple-400 border-purple-500/20': event.type === 'extracurricular'
+                                                }">
+                                                {{ event.type }}
+                                            </span>
+                                            <span class="text-xs font-bold text-text-muted bg-bg-tertiary px-3 py-1 rounded-lg">
+                                                {{ event.date | date:'mediumDate' }}
+                                            </span>
+                                        </div>
+                                        
+                                        <h3 class="text-lg font-black text-text-primary mb-2 mt-4">{{ event.title }}</h3>
+                                        <p class="text-text-secondary text-sm leading-relaxed">{{ event.description }}</p>
+                                        
+                                        @if (event.metadata) {
+                                            <div class="mt-6 pt-4 border-t border-border-primary/50 flex flex-wrap gap-4">
+                                                @for (meta of event.metadata | keyvalue; track meta.key) {
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="text-[10px] font-black text-text-muted uppercase tracking-widest">{{ meta.key }}:</span>
+                                                        <span class="text-xs font-bold text-text-primary bg-bg-tertiary px-2 py-1 rounded-md">{{ meta.value }}</span>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Portfolio Tab -->
+            @if (activeTab() === 'portfolio') {
+                <div class="animate-fade-in py-8">
+                    <div class="flex flex-col lg:flex-row gap-8">
+                        <!-- Sidebar: Profile & About -->
+                        <div class="w-full lg:w-1/3 flex flex-col gap-6">
+                            <div class="p-6 bg-bg-secondary border border-border-primary rounded-[0.5rem] shadow-2xl relative group">
+                                <div class="absolute top-4 right-4">
+                                    <button (click)="startEditPortfolio()" class="p-2 rounded-xl bg-bg-tertiary text-text-muted hover:text-indigo-400 transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                                    </button>
+                                </div>
+                                <h3 class="text-sm font-black text-text-primary uppercase tracking-widest mb-4">About Me</h3>
+                                @if (editingPortfolio()) {
+                                    <div class="flex flex-col gap-4">
+                                        <div>
+                                            <label class="text-[10px] font-bold text-text-muted uppercase">Bio</label>
+                                            <textarea [(ngModel)]="portfolioDraft().bio" rows="3" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1"></textarea>
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] font-bold text-text-muted uppercase">Ambition</label>
+                                            <input [(ngModel)]="portfolioDraft().ambition" type="text" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1">
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] font-bold text-text-muted uppercase">Skills (comma separated)</label>
+                                            <input [(ngModel)]="portfolioDraft().skills" type="text" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1">
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] font-bold text-text-muted uppercase">Languages</label>
+                                            <input [(ngModel)]="portfolioDraft().languages" type="text" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1">
+                                        </div>
+                                        <div class="flex items-center gap-2 mt-2">
+                                            <button (click)="savePortfolio()" class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition-colors flex-1">Save Profile</button>
+                                            <button (click)="editingPortfolio.set(false)" class="px-4 py-2 bg-bg-tertiary border border-border-primary hover:bg-bg-primary rounded-xl text-xs font-bold transition-colors">Cancel</button>
+                                        </div>
+                                    </div>
+                                } @else {
+                                    @if (portfolio()?.bio) {
+                                        <p class="text-sm text-text-secondary leading-relaxed mb-6">{{ portfolio()?.bio }}</p>
+                                    } @else {
+                                        <p class="text-sm text-text-muted italic mb-6">No bio provided yet.</p>
+                                    }
+                                    
+                                    <div class="space-y-4">
+                                        <div>
+                                            <div class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Future Ambition</div>
+                                            <div class="text-sm font-medium text-text-primary mt-0.5">{{ portfolio()?.ambition || 'Not specified' }}</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Core Skills</div>
+                                            <div class="flex flex-wrap gap-2 mt-2">
+                                                @if (portfolio()?.skills) {
+                                                    @for (skill of portfolio()!.skills.split(','); track skill) {
+                                                        <span class="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase rounded-lg">{{ skill.trim() }}</span>
+                                                    }
+                                                } @else {
+                                                    <span class="text-xs text-text-muted">None listed</span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Languages</div>
+                                            <div class="text-sm font-medium text-text-primary mt-0.5">{{ portfolio()?.languages || 'Not specified' }}</div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Main Content: Achievements -->
+                        <div class="w-full lg:w-2/3 flex flex-col gap-6">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-black text-text-primary tracking-tight">Achievements & Awards</h3>
+                                <button (click)="addingAchievement.set(true)" *ngIf="!addingAchievement()" class="px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-xl text-xs font-bold transition-colors flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                                    Add Entry
+                                </button>
+                            </div>
+
+                            @if (addingAchievement()) {
+                                <div class="p-6 bg-bg-secondary border border-indigo-500/30 rounded-[0.5rem] shadow-xl shadow-indigo-500/5 mb-4 animate-fade-in">
+                                    <h4 class="text-sm font-black text-text-primary uppercase tracking-widest mb-4">New Achievement</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                        <div class="col-span-full">
+                                            <label class="text-[10px] font-bold text-text-muted uppercase">Title</label>
+                                            <input [(ngModel)]="newAchievement().title" placeholder="e.g. Science Fair 1st Place" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1">
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] font-bold text-text-muted uppercase">Category</label>
+                                            <select [(ngModel)]="newAchievement().category" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1">
+                                                <option>Award</option>
+                                                <option>Certificate</option>
+                                                <option>Project</option>
+                                                <option>Sports</option>
+                                                <option>Leadership</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] font-bold text-text-muted uppercase">Date Earned</label>
+                                            <input [(ngModel)]="newAchievement().date_earned" type="date" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1">
+                                        </div>
+                                        <div class="col-span-full">
+                                            <label class="text-[10px] font-bold text-text-muted uppercase">Issuer / Organization</label>
+                                            <input [(ngModel)]="newAchievement().issuer" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1">
+                                        </div>
+                                        <div class="col-span-full">
+                                            <label class="text-[10px] font-bold text-text-muted uppercase">Description</label>
+                                            <textarea [(ngModel)]="newAchievement().description" rows="2" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <button (click)="submitAchievement()" class="px-6 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition-colors">Save Achievement</button>
+                                        <button (click)="addingAchievement.set(false)" class="px-6 py-2.5 bg-bg-tertiary border border-border-primary hover:bg-bg-primary rounded-xl text-xs font-bold transition-colors">Cancel</button>
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="flex flex-col gap-4">
+                                @if (!portfolio()?.achievements || portfolio()?.achievements?.length === 0) {
+                                    <div class="p-8 border border-dashed border-border-primary rounded-3xl text-center flex flex-col items-center justify-center">
+                                        <div class="w-12 h-12 rounded-full bg-bg-tertiary flex items-center justify-center mb-3">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-text-muted"><path d="M12 15v5s3-1.5 6-3.5a10 10 0 1 0-12 0C9 18.5 12 20 12 20z"/><path d="M12 2v3"/><path d="M12 9v.01"/></svg>
+                                        </div>
+                                        <p class="text-sm font-bold text-text-muted">No achievements recorded yet.</p>
+                                    </div>
+                                } @else {
+                                    @for (ach of portfolio()?.achievements; track ach.id) {
+                                        <div class="p-5 bg-bg-secondary hover:bg-bg-tertiary/50 border border-border-primary rounded-2xl transition-colors group relative flex items-start gap-4">
+                                            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-start justify-between gap-4">
+                                                    <div>
+                                                        <h4 class="text-sm font-black text-text-primary">{{ ach.title }}</h4>
+                                                        <p class="text-xs text-text-secondary mt-0.5">{{ ach.issuer }}</p>
+                                                    </div>
+                                                    <div class="flex flex-col items-end gap-1">
+                                                        <span class="px-2.5 py-1 bg-bg-tertiary text-text-muted text-[9px] font-bold uppercase tracking-widest rounded-lg border border-border-secondary">{{ ach.category }}</span>
+                                                        <span class="text-[10px] text-text-muted">{{ ach.date_earned | date:'MMM yyyy' }}</span>
+                                                    </div>
+                                                </div>
+                                                @if (ach.description) {
+                                                    <p class="text-xs text-text-muted mt-3 leading-relaxed">{{ ach.description }}</p>
+                                                }
+                                            </div>
+                                            <button (click)="deleteAchievement(ach.id!)" class="absolute top-4 right-4 p-2 text-rose-500/0 group-hover:text-rose-500 transition-colors hover:bg-rose-500/10 rounded-lg">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                            </button>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Overview Tab -->
+            @if (activeTab() === 'overview') {
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+                    <!-- Bio Info -->
+                    <div class="bg-bg-secondary/60 backdrop-blur-xl border border-white/5 rounded-[0.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_40px_rgba(99,102,241,0.1)] transition-all duration-500">
+                        <h3 class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+                            <span class="p-2 bg-indigo-500/10 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            </span>
+                            Biographical Information
+                        </h3>
+                        
+                        <div class="space-y-6">
+                            <div class="group">
+                                <span class="block text-[9px] font-black text-text-muted uppercase tracking-[0.2em] mb-1 group-hover:text-indigo-400 transition-colors">Full Legal Name</span>
+                                <span class="text-sm font-bold text-text-primary">{{ student()?.first_name }} {{ student()?.other_name }} {{ student()?.last_name }}</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="group">
+                                    <span class="block text-[9px] font-black text-text-muted uppercase tracking-[0.2em] mb-1 group-hover:text-indigo-400 transition-colors">Gender</span>
+                                    <span class="text-sm font-bold text-text-primary capitalize">{{ student()?.gender || 'Not specified' }}</span>
+                                </div>
+                                <div class="group">
+                                    <span class="block text-[9px] font-black text-text-muted uppercase tracking-[0.2em] mb-1 group-hover:text-indigo-400 transition-colors">Date of Birth</span>
+                                    <span class="text-sm font-bold text-text-primary">{{ student()?.dob ? (student()?.dob | date:'longDate') : 'Not specified' }}</span>
+                                </div>
+                            </div>
+                            <div class="group">
+                                <span class="block text-[9px] font-black text-text-muted uppercase tracking-[0.2em] mb-1 group-hover:text-indigo-400 transition-colors">Academic Year</span>
+                                <span class="text-sm font-bold text-text-primary">{{ student()?.academic_year || 'Not specified' }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Info -->
+                    <div class="bg-bg-secondary/60 backdrop-blur-xl border border-white/5 rounded-[0.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_40px_rgba(16,185,129,0.1)] transition-all duration-500">
+                        <h3 class="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+                            <span class="p-2 bg-emerald-500/10 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            </span>
+                            Contact Details
+                        </h3>
+                        
+                        <div class="space-y-6">
+                            <div class="group">
+                                <span class="block text-[9px] font-black text-text-muted uppercase tracking-[0.2em] mb-1 group-hover:text-emerald-400 transition-colors">Phone Number</span>
+                                <span class="text-sm font-bold font-mono text-text-primary">{{ student()?.phone_number || 'No phone on file' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (student()?.guardians?.length) {
+                    <div class="mt-6 bg-bg-secondary/60 backdrop-blur-xl border border-white/5 rounded-[0.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+                        <h3 class="text-[10px] font-black text-purple-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+                            <span class="p-2 bg-purple-500/10 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                            </span>
+                            Linked Guardians
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            @for (guardian of student()?.guardians; track guardian.id) {
+                                <div class="bg-bg-tertiary/50 border border-border-primary rounded-[0.5rem] p-5 relative group">
+                                    <h4 class="text-sm font-black text-text-primary mb-1">{{ guardian.first_name }} {{ guardian.last_name }}</h4>
+                                    <span class="inline-block px-2 py-0.5 bg-purple-500/10 text-purple-400 text-[9px] font-black uppercase tracking-widest rounded-md mb-4">{{ guardian.relationship || 'Guardian' }}</span>
+                                    
+                                    <div class="space-y-2 mb-6">
+                                        @if (guardian.phone_number) {
+                                            <div class="flex items-center gap-2 text-xs font-medium text-text-secondary">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                                {{ guardian.phone_number }}
+                                            </div>
+                                        }
+                                        @if (guardian.email) {
+                                            <div class="flex items-center gap-2 text-xs font-medium text-text-secondary">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                                {{ guardian.email }}
+                                            </div>
+                                        }
+                                    </div>
+                                    
+                                    @if (guardian.user_id) {
+                                        <button (click)="resetGuardianPassword(guardian)" class="w-full px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-widest rounded-lg border border-amber-500/20 transition-all flex items-center justify-center gap-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                                            Reset Portal Password
+                                        </button>
+                                    } @else {
+                                        <div class="w-full text-center px-4 py-2 bg-bg-tertiary rounded-lg text-[10px] font-black uppercase tracking-widest text-text-muted">No Portal Account</div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+
+        <!-- Financial Ledger Tab -->
+        @if (activeTab() === 'financials') {
+            <div class="bg-bg-secondary/40 backdrop-blur-xl border border-white/5 rounded-[0.5rem] overflow-hidden shadow-2xl animate-fade-in relative group">
+                <div class="absolute -top-40 -right-40 w-80 h-80 bg-rose-500/5 blur-[100px] rounded-full pointer-events-none group-hover:bg-rose-500/10 transition-colors duration-700"></div>
+                
+                <div class="p-8 border-b border-border-primary/30 flex items-center justify-between relative z-10">
+                    <h3 class="text-[10px] font-black text-rose-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                        <span class="p-2 bg-rose-500/10 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </span>
+                        Fee Invoices & Payments
+                    </h3>
+                </div>
+                
+                <div class="overflow-x-auto w-full relative z-10">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-bg-tertiary/20">
+                                <th class="px-8 py-5 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Category</th>
+                                <th class="px-8 py-5 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Description</th>
+                                <th class="px-8 py-5 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Amount</th>
+                                <th class="px-8 py-5 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Due Date</th>
+                                <th class="px-8 py-5 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-primary/20">
+                            @for (record of fiscalRecords(); track record.id) {
+                                <tr class="hover:bg-bg-tertiary/50 transition-colors group/row">
+                                    <td class="px-8 py-5">
+                                        <span class="text-xs font-black text-text-primary uppercase tracking-wider group-hover/row:text-rose-400 transition-colors">{{ record.category }}</span>
+                                    </td>
+                                    <td class="px-8 py-5">
+                                        <span class="text-xs text-text-secondary">{{ record.description }}</span>
+                                    </td>
+                                    <td class="px-8 py-5 font-mono font-black text-sm">
+                                        {{ record.amount | currency:'GHS':'symbol-narrow' }}
+                                    </td>
+                                    <td class="px-8 py-5">
+                                        <span class="text-xs font-bold text-text-secondary">{{ record.due_date | date:'longDate' }}</span>
+                                    </td>
+                                    <td class="px-8 py-5">
+                                        <span class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-[0.15em] border backdrop-blur-sm"
+                                            [ngClass]="{
+                                                'bg-amber-500/10 border-amber-500/20 text-amber-500': record.status === 'PENDING',
+                                                'bg-rose-500/10 border-rose-500/20 text-rose-500': record.status === 'OVERDUE',
+                                                'bg-emerald-500/10 border-emerald-500/20 text-emerald-500': record.status === 'PAID'
+                                            }">
+                                            {{ record.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            } @empty {
+                                <tr>
+                                    <td colspan="5" class="px-8 py-20 text-center">
+                                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-[0.5rem] bg-bg-tertiary/50 text-text-muted mb-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                        </div>
+                                        <p class="text-sm font-bold text-text-secondary">No financial records found.</p>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Daily Bills Section -->
+            <div class="bg-bg-secondary/40 backdrop-blur-xl border border-white/5 rounded-[0.5rem] overflow-hidden shadow-2xl animate-fade-in relative group mt-8">
+                <div class="absolute -top-40 -left-40 w-80 h-80 bg-amber-500/5 blur-[100px] rounded-full pointer-events-none group-hover:bg-amber-500/10 transition-colors duration-700"></div>
+                
+                <div class="p-8 border-b border-border-primary/30 flex items-center justify-between relative z-10">
+                    <h3 class="text-[10px] font-black text-amber-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                        <span class="p-2 bg-amber-500/10 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </span>
+                        Daily Fees (Canteen, Transport, etc.)
+                    </h3>
+                </div>
+                
+                <div class="overflow-x-auto w-full relative z-10">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-bg-tertiary/20">
+                                <th class="px-8 py-5 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Date</th>
+                                <th class="px-8 py-5 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Amount</th>
+                                <th class="px-8 py-5 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Status</th>
+                                <th class="px-8 py-5 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Collected At</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-primary/20">
+                            @for (bill of dailyBills(); track bill.id) {
+                                <tr class="hover:bg-bg-tertiary/50 transition-colors group/row">
+                                    <td class="px-8 py-5">
+                                        <span class="text-xs text-text-secondary font-bold">{{ bill.date | date:'longDate' }}</span>
+                                    </td>
+                                    <td class="px-8 py-5 font-mono font-black text-sm">
+                                        {{ bill.amount | currency:'GHS':'symbol-narrow' }}
+                                    </td>
+                                    <td class="px-8 py-5">
+                                        <span class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-[0.15em] border backdrop-blur-sm"
+                                            [ngClass]="{
+                                                'bg-amber-500/10 border-amber-500/20 text-amber-500': bill.status === 'PENDING',
+                                                'bg-rose-500/10 border-rose-500/20 text-rose-500': bill.status === 'OVERDUE',
+                                                'bg-emerald-500/10 border-emerald-500/20 text-emerald-500': bill.status === 'PAID'
+                                            }">
+                                            {{ bill.status }}
+                                        </span>
+                                    </td>
+                                    <td class="px-8 py-5">
+                                        @if (bill.collected_at) {
+                                            <span class="text-xs text-text-muted">{{ bill.collected_at | date:'short' }}</span>
+                                        } @else {
+                                            <span class="text-xs text-text-muted italic">N/A</span>
+                                        }
+                                    </td>
+                                </tr>
+                            } @empty {
+                                <tr>
+                                    <td colspan="4" class="px-8 py-20 text-center">
+                                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-bg-tertiary/50 text-text-muted mb-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                        </div>
+                                        <p class="text-sm font-bold text-text-secondary">No daily fees found.</p>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+            }
+
+            <!-- Academic Record Tab -->
+            @if (activeTab() === 'academics') {
+                <div class="bg-bg-secondary/40 backdrop-blur-xl border border-white/5 rounded-[0.5rem] overflow-hidden shadow-2xl animate-fade-in relative group">
+                    <div class="absolute -top-40 -left-40 w-80 h-80 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none group-hover:bg-indigo-500/10 transition-colors duration-700"></div>
+                    
+                    <div class="p-8 border-b border-border-primary/30 flex items-center justify-between relative z-10">
+                        <h3 class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                            <span class="p-2 bg-indigo-500/10 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                            </span>
+                            Academic Grades
+                        </h3>
+                        @if (averageGrade() !== null) {
+                            <div class="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.15)]">
+                                <span class="text-[9px] font-black text-text-muted uppercase tracking-widest">Class Avg</span>
+                                <span class="text-sm font-black text-indigo-400">{{ averageGrade() }}%</span>
+                            </div>
+                        }
+                    </div>
+
+                    @if (trajectoryData().length > 0) {
+                        <div class="p-8 border-b border-border-primary/30 relative z-10">
+                            <h4 class="text-xs font-black text-text-primary mb-4">Grade Trajectory</h4>
+                            <div class="h-64 w-full">
+                                <ngx-charts-line-chart
+                                    [results]="trajectoryData()"
+                                    [xAxis]="true"
+                                    [yAxis]="true"
+                                    [legend]="true"
+                                    [showXAxisLabel]="false"
+                                    [showYAxisLabel]="true"
+                                    yAxisLabel="Score"
+                                    [autoScale]="true">
+                                </ngx-charts-line-chart>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="overflow-x-auto w-full relative z-10">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-bg-tertiary/20">
+                                    <th class="px-8 py-5 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Subject</th>
+                                    <th class="px-8 py-5 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Type</th>
+                                    <th class="px-8 py-5 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Score</th>
+                                    <th class="px-8 py-5 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Term</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border-primary/20">
+                                @for (grade of grades(); track grade.id) {
+                                    <tr class="hover:bg-bg-tertiary/50 transition-colors group/row">
+                                        <td class="px-8 py-5 text-sm font-bold text-text-primary group-hover/row:text-indigo-400 transition-colors">{{ grade.subject }}</td>
+                                        <td class="px-8 py-5">
+                                            <span class="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border bg-bg-tertiary/50 border-white/5 text-text-secondary">{{ grade.category }}</span>
+                                        </td>
+                                        <td class="px-8 py-5">
+                                            <span class="text-sm font-black font-mono" [ngClass]="grade.score < 50 ? 'text-rose-400' : grade.score < 75 ? 'text-amber-400' : 'text-emerald-400'">{{ grade.score }}</span>
+                                        </td>
+                                        <td class="px-8 py-5 text-xs font-medium text-text-muted">{{ grade.term }}</td>
+                                    </tr>
+                                } @empty {
+                                    <tr>
+                                        <td colspan="4" class="px-8 py-20 text-center">
+                                            <div class="inline-flex flex-col items-center justify-center gap-3">
+                                                <div class="w-16 h-16 rounded-2xl bg-bg-tertiary/50 border border-white/5 flex items-center justify-center text-text-muted">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                                                </div>
+                                                <p class="text-sm font-bold text-text-secondary">No grades recorded yet.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            <!-- Attendance Tab -->
+            @if (activeTab() === 'attendance') {
+                <div class="bg-bg-secondary/40 backdrop-blur-xl border border-white/5 rounded-[0.5rem] overflow-hidden shadow-2xl animate-fade-in relative group">
+                    <div class="absolute -bottom-40 -right-40 w-80 h-80 bg-amber-500/5 blur-[100px] rounded-full pointer-events-none group-hover:bg-amber-500/10 transition-colors duration-700"></div>
+                    
+                    <div class="p-8 border-b border-border-primary/30 flex items-center justify-between relative z-10">
+                        <h3 class="text-[10px] font-black text-amber-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                            <span class="p-2 bg-amber-500/10 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
+                            </span>
+                            Attendance Log
+                        </h3>
+                        <div class="flex items-center gap-2 px-4 py-2 rounded-xl" [ngClass]="overallAttendancePercentage() < 80 ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-emerald-500/10 border border-emerald-500/20'">
+                            <span class="text-[9px] font-black text-text-muted uppercase tracking-widest">Rate</span>
+                            <span class="text-sm font-black" [ngClass]="overallAttendancePercentage() < 80 ? 'text-amber-400' : 'text-emerald-400'">{{ overallAttendancePercentage() }}%</span>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto w-full relative z-10">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-bg-tertiary/20">
+                                    <th class="px-8 py-5 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Date</th>
+                                    <th class="px-8 py-5 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Status</th>
+                                    <th class="px-8 py-5 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border-primary/20">
+                                @for (record of attendanceRecords(); track record.id) {
+                                    <tr class="hover:bg-bg-tertiary/50 transition-colors group/row">
+                                        <td class="px-8 py-5 text-sm font-bold text-text-primary group-hover/row:text-amber-400 transition-colors">{{ record.date | date:'fullDate' }}</td>
+                                        <td class="px-8 py-5">
+                                            <span class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-[0.15em] border backdrop-blur-sm"
+                                                [ngClass]="{
+                                                    'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.1)]': record.status === 'Present',
+                                                    'bg-amber-500/10 border-amber-500/20 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.1)]': record.status === 'Tardy',
+                                                    'bg-rose-500/10 border-rose-500/20 text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.1)]': record.status === 'Absent'
+                                                }">
+                                                {{ record.status }}
+                                            </span>
+                                        </td>
+                                        <td class="px-8 py-5 text-xs text-text-muted italic">{{ record.remarks || '—' }}</td>
+                                    </tr>
+                                } @empty {
+                                    <tr>
+                                        <td colspan="3" class="px-8 py-20 text-center">
+                                            <div class="inline-flex flex-col items-center justify-center gap-3">
+                                                <div class="w-16 h-16 rounded-2xl bg-bg-tertiary/50 border border-white/5 flex items-center justify-center text-text-muted">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                                                </div>
+                                                <p class="text-sm font-bold text-text-secondary">No attendance records found.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            <!-- Behavior Tab -->
+            @if (activeTab() === 'behavior') {
+                <div class="animate-fade-in py-8 max-w-4xl mx-auto">
+                    <!-- Actions -->
+                    <div class="flex justify-end mb-8">
+                        @if (!loggingBehavior()) {
+                            <button (click)="startLoggingBehavior()" class="px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-500/20 transition-all hover:scale-105">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                Log Incident
+                            </button>
+                        }
+                    </div>
+
+                    <!-- Log Form -->
+                    @if (loggingBehavior()) {
+                        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-8 shadow-2xl mb-8 animate-fade-in">
+                            <h3 class="text-xl font-black text-text-primary mb-6">Log Behavior Incident</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="text-[10px] font-bold text-text-muted uppercase">Type</label>
+                                    <select [(ngModel)]="newBehaviorLog().type" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1 focus:border-indigo-500 outline-none">
+                                        <option value="MERIT">Merit (Positive)</option>
+                                        <option value="DEMERIT">Demerit (Negative)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-text-muted uppercase">Category</label>
+                                    <input [(ngModel)]="newBehaviorLog().category" type="text" placeholder="e.g., Outstanding Work, Disruption" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1 focus:border-indigo-500 outline-none">
+                                </div>
+                                <div class="col-span-full">
+                                    <label class="text-[10px] font-bold text-text-muted uppercase">Description</label>
+                                    <textarea [(ngModel)]="newBehaviorLog().description" rows="3" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1 focus:border-indigo-500 outline-none"></textarea>
+                                </div>
+                                <div class="col-span-full">
+                                    <label class="text-[10px] font-bold text-text-muted uppercase">Action Taken (Optional)</label>
+                                    <input [(ngModel)]="newBehaviorLog().action_taken" type="text" placeholder="e.g., Warning given, Parents notified" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1 focus:border-indigo-500 outline-none">
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 mt-8 pt-6 border-t border-border-primary/50">
+                                <button (click)="submitBehaviorLog()" [disabled]="!newBehaviorLog().category || !newBehaviorLog().description" class="px-6 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-bold transition-colors disabled:opacity-50">Save Log</button>
+                                <button (click)="loggingBehavior.set(false)" class="px-6 py-2.5 bg-bg-tertiary hover:bg-bg-primary border border-border-primary text-text-primary rounded-xl text-sm font-bold transition-colors">Cancel</button>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Behavior History -->
+                    @if (behaviorLogs().length === 0) {
+                        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-12 text-center shadow-xl">
+                            <div class="w-16 h-16 bg-bg-tertiary rounded-2xl flex items-center justify-center mx-auto mb-4 text-text-muted">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            </div>
+                            <h3 class="text-lg font-black text-text-primary mb-2">Clean Record</h3>
+                            <p class="text-sm text-text-muted">No behavioral incidents have been logged for this student.</p>
+                        </div>
+                    } @else {
+                        <div class="space-y-4">
+                            @for (log of behaviorLogs(); track log.id) {
+                                <div class="bg-bg-secondary border border-border-primary rounded-2xl p-6 flex flex-col md:flex-row gap-6 items-start hover:border-border-secondary transition-colors relative overflow-hidden group">
+                                    <div class="absolute top-0 left-0 w-1 h-full" [ngClass]="log.type === 'MERIT' ? 'bg-emerald-500' : 'bg-rose-500'"></div>
+                                    
+                                    <!-- Meta -->
+                                    <div class="w-full md:w-48 shrink-0">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            @if (log.type === 'MERIT') {
+                                                <span class="px-2 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-black uppercase tracking-widest rounded-lg">Merit</span>
+                                            } @else {
+                                                <span class="px-2 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-black uppercase tracking-widest rounded-lg">Demerit</span>
+                                            }
+                                        </div>
+                                        <div class="text-xs font-bold text-text-muted">{{ log.date | date:'mediumDate' }}</div>
+                                    </div>
+                                    
+                                    <!-- Content -->
+                                    <div class="flex-1">
+                                        <h4 class="text-base font-black text-text-primary mb-2">{{ log.category }}</h4>
+                                        <p class="text-sm text-text-secondary leading-relaxed mb-4">{{ log.description }}</p>
+                                        
+                                        @if (log.action_taken) {
+                                            <div class="bg-bg-tertiary p-3 rounded-xl">
+                                                <span class="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-1">Action Taken</span>
+                                                <span class="text-sm text-text-primary font-medium">{{ log.action_taken }}</span>
+                                            </div>
+                                        }
+                                    </div>
+                                    
+                                    <!-- Actions -->
+                                    <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button (click)="deleteBehaviorLog(log.id ?? '')" class="p-2 bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white rounded-lg transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Documents Tab -->
+            @if (activeTab() === 'documents') {
+                <div class="bg-bg-secondary/40 backdrop-blur-xl border border-white/5 rounded-[0.5rem] p-10 shadow-2xl animate-fade-in min-h-[400px] relative group">
+                    <div class="absolute top-0 right-0 w-80 h-80 bg-purple-500/5 blur-[100px] rounded-full pointer-events-none group-hover:bg-purple-500/10 transition-colors duration-700"></div>
+                    <h3 class="text-[10px] font-black text-purple-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3 relative z-10">
+                        <span class="p-2 bg-purple-500/10 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        </span>
+                        Digital Vault
+                    </h3>
+                    <div class="relative z-10">
+                        <app-document-manager [ownerId]="student()?.id || ''" ownerType="STUDENT" />
+                    </div>
+                </div>
+            }
+            <!-- Health & Emergency Tab -->
+            @if (activeTab() === 'health') {
+                <div class="animate-fade-in max-w-4xl mx-auto py-8">
+                    <div class="bg-bg-secondary border border-border-primary rounded-[2rem] p-8 shadow-2xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-96 h-96 bg-rose-500/5 blur-[120px] rounded-full pointer-events-none"></div>
+                        
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-14 h-14 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center justify-center text-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.15)]">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-black text-text-primary">Health & Emergency Profile</h2>
+                                <p class="text-xs text-text-muted font-bold uppercase tracking-widest mt-1">Medical records and emergency contacts</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                            <!-- Medical Information -->
+                            <div class="bg-bg-tertiary/50 border border-border-secondary rounded-2xl p-6">
+                                <h3 class="text-sm font-black text-text-primary uppercase tracking-widest mb-6 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-rose-400"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                                    Medical Information
+                                </h3>
+                                
+                                <div class="space-y-5">
+                                    <div>
+                                        <p class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">Blood Group</p>
+                                        <p class="text-base font-black text-rose-400">{{ student()?.blood_group || 'Not Specified' }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">Known Allergies</p>
+                                        <p class="text-sm font-medium text-text-primary">{{ student()?.allergies || 'None recorded' }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">Underlying Health Conditions</p>
+                                        <p class="text-sm font-medium text-text-primary">{{ student()?.health_conditions || 'None recorded' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Emergency Contacts -->
+                            <div class="bg-bg-tertiary/50 border border-border-secondary rounded-2xl p-6">
+                                <h3 class="text-sm font-black text-text-primary uppercase tracking-widest mb-6 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-indigo-400"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 11.92a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.07 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                    Emergency Contact
+                                </h3>
+                                
+                                @if (student()?.emergency_contact_name || student()?.emergency_contact_phone) {
+                                    <div class="space-y-4">
+                                        <div class="bg-bg-primary border border-border-primary rounded-xl p-4 flex items-center gap-4">
+                                            <div class="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center text-indigo-400">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                            </div>
+                                            <div>
+                                                <p class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Primary Contact</p>
+                                                <p class="text-sm font-black text-text-primary uppercase">{{ student()?.emergency_contact_name }}</p>
+                                                <p class="text-sm font-mono text-indigo-400 mt-0.5">{{ student()?.emergency_contact_phone }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                } @else {
+                                    <div class="text-center py-8 text-text-muted">
+                                        <p class="text-sm font-medium">No emergency contact specified.</p>
+                                        <p class="text-xs mt-1">Please update the student record.</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+    }
+</div>

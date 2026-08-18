@@ -1,0 +1,174 @@
+<div class="p-12">
+  <div class="max-w-7xl mx-auto">
+    <header class="mb-16 flex items-end justify-between border-b border-border-primary pb-10">
+      <div>
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-[9px] font-black text-amber-500 uppercase tracking-widest">Security & Compliance</span>
+        </div>
+        <h1 class="text-5xl font-black text-white tracking-tighter">System <span class="text-amber-500 text-opacity-80">Ledger</span></h1>
+        <p class="text-text-secondary mt-3 max-w-xl text-sm leading-relaxed">Immutable chronological record of administrative actions and infrastructural provisionings.</p>
+      </div>
+      
+      <!-- Export Button -->
+      <button 
+        (click)="exportToCSV()" 
+        [disabled]="filteredAndSortedLogs().length === 0 || isLoading()"
+        class="admin-btn-secondary px-6 py-3 text-xs tracking-wider flex items-center gap-2 disabled:opacity-50"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+        EXPORT TO CSV
+      </button>
+    </header>
+
+    <div class="admin-card !p-0 overflow-hidden shadow-premium">
+      <div class="p-8 border-b border-border-primary bg-bg-secondary/30 flex items-center justify-between">
+        <h2 class="text-xl font-black text-white tracking-tight">Audit History</h2>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-black text-text-muted uppercase tracking-widest">Total Events Recorded:</span>
+          <span class="px-3 py-1 bg-bg-tertiary border border-border-primary rounded-lg text-text-primary text-xs font-black">{{ logs().length }}</span>
+        </div>
+      </div>
+
+      <!-- Controls Row: Search & Filters -->
+      <div class="p-6 border-b border-border-primary flex flex-col md:flex-row items-center gap-4 bg-bg-primary/50">
+        
+        <!-- Search Input -->
+        <div class="flex-1 relative w-full">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          <input 
+            type="text" 
+            [ngModel]="searchQuery()" 
+            (ngModelChange)="onSearchChange($event)" 
+            placeholder="Search by action, email, ID, or metadata..." 
+            class="admin-input pl-10 w-full"
+          >
+        </div>
+        
+        <!-- Action Filter Dropdown -->
+        <div class="w-full md:w-64">
+           <select 
+             [ngModel]="actionFilter()" 
+             (ngModelChange)="onActionFilterChange($event)"
+             class="admin-input w-full cursor-pointer appearance-none bg-bg-tertiary border-border-primary text-text-secondary text-sm font-bold"
+           >
+             @for (action of uniqueActions(); track action) {
+               <option [value]="action">{{ action === 'ALL' ? 'ALL ACTIONS' : action }}</option>
+             }
+           </select>
+        </div>
+        
+      </div>
+
+      <!-- Table Section -->
+      <div class="overflow-x-auto custom-scrollbar min-h-[500px]">
+        @if (isLoading()) {
+          <div class="p-32 flex flex-col items-center justify-center text-text-muted">
+            <div class="relative w-12 h-12 mb-6 animate-spin">
+              <div class="absolute inset-0 border-4 border-amber-500/20 rounded-full"></div>
+              <div class="absolute inset-0 border-4 border-amber-500 border-t-transparent rounded-full"></div>
+            </div>
+            <p class="text-[10px] font-black uppercase tracking-[0.2em]">Decrypting Ledger...</p>
+          </div>
+        } @else if (filteredAndSortedLogs().length === 0) {
+          <div class="p-32 text-center">
+            <div class="w-16 h-16 bg-bg-tertiary rounded-2xl flex items-center justify-center mx-auto mb-6 text-text-muted/30">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+            </div>
+            <p class="text-text-muted font-bold text-sm tracking-wide">No security events found matching the criteria.</p>
+          </div>
+        } @else {
+          <table class="admin-table w-full whitespace-nowrap">
+            <thead>
+              <tr class="bg-bg-secondary/20 cursor-pointer text-left">
+                <th (click)="sort('action')" class="pl-10 py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em] hover:text-white transition-colors">
+                  Event Signature <span class="ml-1 text-amber-500">{{ sortIcon('action') }}</span>
+                </th>
+                <th (click)="sort('actor_email')" class="py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em] hover:text-white transition-colors">
+                  Administrative Actor <span class="ml-1 text-amber-500">{{ sortIcon('actor_email') }}</span>
+                </th>
+                <th class="py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">
+                  Target Entity
+                </th>
+                <th class="py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">
+                  Metadata / Context
+                </th>
+                <th (click)="sort('created_at')" class="pr-10 py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em] text-right hover:text-white transition-colors">
+                  Timestamp (UTC) <span class="ml-1 text-amber-500">{{ sortIcon('created_at') }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-primary">
+              @for (log of paginatedLogs(); track log.id) {
+                <tr class="hover:bg-amber-500/[0.02] transition-colors group">
+                  <td class="pl-10 py-6 align-top">
+                    <div class="flex items-start gap-4">
+                      <div class="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)] mt-1.5"></div>
+                      <div>
+                        <div class="font-black text-white text-xs uppercase tracking-widest group-hover:text-amber-500 transition-colors">
+                          {{ log.action }}
+                        </div>
+                        <div class="text-[10px] font-bold text-text-muted mt-0.5 font-mono">{{ log.id.toString().split('-')[0] }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="py-6 align-top">
+                    <div class="flex flex-col">
+                      <span class="text-xs font-bold text-text-secondary">{{ log.actor_email || 'System Process' }}</span>
+                      <span class="text-[9px] text-text-muted font-mono uppercase tracking-tighter mt-1">REF: {{ log.actor_id || 'INTERNAL' }}</span>
+                    </div>
+                  </td>
+                  <td class="py-6 align-top">
+                     <span class="inline-block px-2.5 py-1 bg-bg-tertiary border border-border-primary rounded-md text-[10px] font-bold text-text-secondary font-mono truncate max-w-[150px]" title="{{ extractTargetEntity(log.metadata) }}">
+                       {{ extractTargetEntity(log.metadata) }}
+                     </span>
+                  </td>
+                  <td class="py-6 max-w-sm align-top">
+                    <div class="p-3 bg-black/40 border border-border-primary/50 rounded-xl overflow-x-auto custom-scrollbar max-h-32">
+                      <pre class="text-[10px] text-amber-500/80 font-mono leading-relaxed m-0">{{ formatMetadata(log.metadata) }}</pre>
+                    </div>
+                  </td>
+                  <td class="py-6 pr-10 text-right align-top">
+                    <div class="text-xs font-bold text-text-primary group-hover:text-amber-500 transition-colors">{{ log.created_at | date:'HH:mm:ss' }}</div>
+                    <div class="text-[9px] font-bold text-text-muted uppercase tracking-tighter mt-1">{{ log.created_at | date:'MMM d, y' }}</div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+
+      <!-- Pagination Footer -->
+      @if (!isLoading() && filteredAndSortedLogs().length > 0) {
+        <div class="p-6 border-t border-border-primary bg-bg-secondary/30 flex items-center justify-between">
+           <div class="text-xs font-bold text-text-muted">
+             Showing <span class="text-white">{{ (currentPage() - 1) * pageSize() + 1 }}</span> to <span class="text-white">{{ Math.min(currentPage() * pageSize(), filteredAndSortedLogs().length) }}</span> of <span class="text-white">{{ filteredAndSortedLogs().length }}</span> entries
+           </div>
+           
+           <div class="flex items-center gap-2">
+             <button 
+               (click)="prevPage()" 
+               [disabled]="currentPage() === 1"
+               class="p-2 rounded-lg bg-bg-tertiary border border-border-primary text-text-secondary hover:text-white hover:border-amber-500/50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+             >
+               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+             </button>
+             
+             <div class="px-4 py-2 rounded-lg bg-bg-tertiary border border-border-primary text-xs font-black text-white">
+               Page {{ currentPage() }} of {{ totalPages() }}
+             </div>
+             
+             <button 
+               (click)="nextPage()" 
+               [disabled]="currentPage() === totalPages()"
+               class="p-2 rounded-lg bg-bg-tertiary border border-border-primary text-text-secondary hover:text-white hover:border-amber-500/50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+             >
+               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+             </button>
+           </div>
+        </div>
+      }
+
+    </div>
+  </div>
+</div>

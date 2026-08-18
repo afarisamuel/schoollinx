@@ -1,0 +1,148 @@
+<div class="p-6 md:p-10 animate-fade-in">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold text-text-primary">Executive Operations</h1>
+            <p class="text-text-muted mt-1">Real-time Institutional Intelligence & Predictive Analytics</p>
+        </div>
+        <div>
+            <button class="px-6 py-2.5 bg-bg-tertiary hover:bg-bg-secondary text-text-primary font-medium rounded-xl border border-border-secondary transition-all flex items-center gap-2" (click)="exportSummary()">
+                <i class="fas fa-file-export"></i> Export Strategic Summary
+            </button>
+        </div>
+    </div>
+
+    @if (isLoading()) {
+    <div class="flex flex-col items-center justify-center py-20 bg-bg-tertiary  border border-border-secondary rounded-3xl">
+        <div class="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
+        <p class="text-text-muted font-medium">Aggregating institutional telemetry...</p>
+    </div>
+    } @else {
+    <!-- Key Performance Indicators Row -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
+        <div class="bg-bg-tertiary  border border-border-secondary rounded-2xl p-6 flex items-center gap-6 transition-all hover:-translate-y-1">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-xl text-text-primary flex-shrink-0 bg-linear-to-br from-blue-500 to-blue-700">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-[10px] uppercase font-bold tracking-widest text-text-muted">Active Population</span>
+                <span class="text-xl md:text-2xl font-bold text-text-primary my-1">{{ kpis()?.total_students }}</span>
+                <span class="text-xs text-emerald-400 font-medium flex items-center gap-1">
+                    <i class="fas fa-arrow-up"></i> +{{ kpis()?.total_teachers }} Staff
+                </span>
+            </div>
+        </div>
+
+        <div class="bg-bg-tertiary  border border-border-secondary rounded-2xl p-6 flex items-center gap-6 transition-all hover:-translate-y-1">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-xl text-text-primary flex-shrink-0 bg-linear-to-br from-emerald-500 to-emerald-700">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-[10px] uppercase font-bold tracking-widest text-text-muted">Scholastic Index</span>
+                <span class="text-xl md:text-2xl font-bold text-text-primary my-1">{{ kpis()?.average_gpa | number:'1.2-2' }}</span>
+                <span class="text-xs text-text-muted font-medium">Global GPA Avg</span>
+            </div>
+        </div>
+
+        <div class="bg-bg-tertiary  border border-border-secondary rounded-2xl p-6 flex items-center gap-6 transition-all hover:-translate-y-1">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-xl text-text-primary flex-shrink-0 bg-linear-to-br from-violet-500 to-violet-700">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-[10px] uppercase font-bold tracking-widest text-text-muted">System Engagement</span>
+                <span class="text-xl md:text-2xl font-bold text-text-primary my-1">{{ kpis()?.average_attendance | number:'1.1-1' }}%</span>
+                <span class="text-xs text-emerald-400 font-medium flex items-center gap-1">
+                    <i class="fas fa-arrow-up"></i> Global Attendance
+                </span>
+            </div>
+        </div>
+
+        <div class="bg-bg-tertiary  border border-border-secondary rounded-2xl p-6 flex items-center gap-6 transition-all hover:-translate-y-1">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-xl text-text-primary flex-shrink-0 bg-linear-to-br from-amber-500 to-amber-700">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-[10px] uppercase font-bold tracking-widest text-text-muted">Fiscal Velocity</span>
+                <span class="text-xl md:text-2xl font-bold text-text-primary my-1">${{ kpis()?.total_revenue | number:'1.2-2' }}</span>
+                <span class="text-xs text-emerald-400 font-medium whitespace-nowrap">YTD Revenue Realized</span>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Course Demand Card -->
+        <a routerLink="/course-demand" class="group bg-bg-tertiary border border-border-primary rounded-2xl p-8 hover:border-blue-500/50 transition-all hover:-translate-y-1 cursor-pointer block">
+            <div class="flex items-start justify-between mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 flex-shrink-0">
+                    <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/><path d="M2 20h20"/></svg>
+                </div>
+                <span class="px-2 py-1 bg-blue-500/10 text-blue-400 border border-blue-400/20 rounded-full text-[10px] font-black uppercase tracking-widest">Predictive Index</span>
+            </div>
+            <h2 class="text-xl font-black text-text-primary mb-2 group-hover:text-blue-400 transition-colors">Course Demand Forecaster</h2>
+            <p class="text-text-muted text-sm mb-6">AI-driven enrollment projections and teacher shortage analysis by subject area.</p>
+            <div class="flex items-center gap-2 text-blue-400 text-xs font-black uppercase tracking-widest">
+                <span>View Full Forecast</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </div>
+        </a>
+
+        <!-- Retention Risk Card -->
+        <a routerLink="/retention-risk" class="group bg-bg-tertiary border border-border-primary rounded-2xl p-8 hover:border-red-500/50 transition-all hover:-translate-y-1 cursor-pointer block">
+            <div class="flex items-start justify-between mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 flex-shrink-0">
+                    <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <span class="px-2 py-1 bg-red-500/10 text-red-400 border border-red-400/20 rounded-full text-[10px] font-black uppercase tracking-widest">Action Required</span>
+            </div>
+            <h2 class="text-xl font-black text-text-primary mb-2 group-hover:text-red-400 transition-colors">Retention Risk Matrix</h2>
+            <p class="text-text-muted text-sm mb-4">Predictive analysis identifying students at risk of disengagement or dropout.</p>
+            @if (risks().length > 0) {
+            <div class="flex items-center gap-3 mb-4">
+                <span class="px-3 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full text-xs font-black">{{ risks().length }} students flagged</span>
+            </div>
+            }
+            <div class="flex items-center gap-2 text-red-400 text-xs font-black uppercase tracking-widest">
+                <span>View Full Matrix</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </div>
+        </a>
+    </div>
+
+
+    <!-- Quick Links: Security & Admin Tools -->
+    <div class="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <a routerLink="/role-management" class="group flex items-center gap-4 p-5 bg-bg-secondary border border-border-primary rounded-2xl hover:border-indigo-500/50 transition-all hover:scale-[1.01] cursor-pointer">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 flex-shrink-0">
+                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div>
+                <p class="font-black text-text-primary group-hover:text-indigo-400 transition-colors">Role &amp; Permission Matrix</p>
+                <p class="text-text-muted text-xs">View all roles and their system permissions</p>
+            </div>
+            <svg class="w-4 h-4 text-text-muted group-hover:text-indigo-400 ml-auto transition-all group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+
+        <a routerLink="/profile" class="group flex items-center gap-4 p-5 bg-bg-secondary border border-border-primary rounded-2xl hover:border-emerald-500/50 transition-all hover:scale-[1.01] cursor-pointer">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <div>
+                <p class="font-black text-text-primary group-hover:text-emerald-400 transition-colors">Security Settings</p>
+                <p class="text-text-muted text-xs">Manage 2FA and account security</p>
+            </div>
+            <svg class="w-4 h-4 text-text-muted group-hover:text-emerald-400 ml-auto transition-all group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+
+        <a routerLink="/audit-logs" class="group flex items-center gap-4 p-5 bg-bg-secondary border border-border-primary rounded-2xl hover:border-amber-500/50 transition-all hover:scale-[1.01] cursor-pointer">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 flex-shrink-0">
+                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+            </div>
+            <div>
+                <p class="font-black text-text-primary group-hover:text-amber-400 transition-colors">System Audit Logs</p>
+                <p class="text-text-muted text-xs">View immutable security and activity ledger</p>
+            </div>
+            <svg class="w-4 h-4 text-text-muted group-hover:text-amber-400 ml-auto transition-all group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+    </div>
+    } <!-- end @else -->
+</div>

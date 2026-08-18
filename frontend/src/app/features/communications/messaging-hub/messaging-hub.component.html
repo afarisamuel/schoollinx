@@ -1,0 +1,250 @@
+<div class="flex flex-col h-[calc(100vh-5rem)] animate-fade-in p-4 lg:p-6 gap-4">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black text-text-primary tracking-tight">Message Center</h1>
+                <p class="text-[11px] text-text-muted font-medium">Secure, auditable direct messages between educators and guardians</p>
+            </div>
+        </div>
+        <button (click)="showNewConv.set(!showNewConv())"
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-95">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            New Message
+        </button>
+    </div>
+
+    <!-- New Conversation Drawer -->
+    @if (showNewConv()) {
+    <div class="flex-shrink-0 flex items-center gap-3 p-4 bg-bg-secondary border border-indigo-500/20 rounded-2xl shadow-xl animate-fade-in">
+        <div class="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <input
+            type="text"
+            [value]="newRecipientId()"
+            (input)="newRecipientId.set($any($event.target).value)"
+            (keyup.enter)="startNewConversation()"
+            placeholder="Enter recipient User ID..."
+            class="flex-1 bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-indigo-500/40 transition-all"
+        >
+        <button (click)="startNewConversation()" [disabled]="!newRecipientId().trim()"
+            class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition-all">
+            Start Thread
+        </button>
+        <button (click)="showNewConv.set(false)" class="w-9 h-9 flex items-center justify-center rounded-xl bg-bg-tertiary border border-border-primary text-text-muted hover:text-text-primary transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+    </div>
+    }
+
+    <!-- Main Layout -->
+    <div class="flex flex-1 gap-4 min-h-0">
+
+        <!-- Sidebar: Conversations -->
+        <aside class="w-72 flex-shrink-0 flex flex-col bg-bg-secondary border border-border-primary rounded-3xl shadow-xl overflow-hidden">
+            <!-- Sidebar Header -->
+            <div class="px-5 py-4 border-b border-border-primary flex-shrink-0">
+                <p class="text-[10px] font-black text-text-muted uppercase tracking-widest">Conversations</p>
+                <p class="text-lg font-black text-text-primary">{{ conversations().length }} Threads</p>
+            </div>
+
+            <!-- Conversation List -->
+            <div class="flex-1 overflow-y-auto flex flex-col gap-1 p-3">
+                @for (conv of conversations(); track conv.id) {
+                <button
+                    (click)="selectConversation(conv)"
+                    class="w-full flex items-center gap-3 p-3 rounded-2xl text-left transition-all group"
+                    [class.bg-indigo-500/10]="activeConversation()?.id === conv.id"
+                    [class.border]="activeConversation()?.id === conv.id"
+                    [class.border-indigo-500/20]="activeConversation()?.id === conv.id"
+                    [class.hover:bg-bg-tertiary]="activeConversation()?.id !== conv.id">
+
+                    <!-- Avatar -->
+                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black flex-shrink-0 transition-all"
+                         [class.bg-indigo-500]="activeConversation()?.id === conv.id"
+                         [class.text-white]="activeConversation()?.id === conv.id"
+                         [class.bg-bg-tertiary]="activeConversation()?.id !== conv.id"
+                         [class.text-text-secondary]="activeConversation()?.id !== conv.id"
+                         [class.group-hover:bg-bg-secondary]="activeConversation()?.id !== conv.id">
+                        {{ getInitial(getOtherParticipant(conv)) }}
+                    </div>
+
+                    <!-- Meta -->
+                    <div class="flex flex-col gap-0.5 min-w-0 flex-1">
+                        <span class="text-sm font-bold truncate"
+                              [class.text-indigo-400]="activeConversation()?.id === conv.id"
+                              [class.text-text-primary]="activeConversation()?.id !== conv.id">
+                            Thread #{{ conv.id.slice(0, 8) }}
+                        </span>
+                        <span class="text-[10px] text-text-muted truncate font-mono">
+                            {{ getOtherParticipant(conv).slice(0, 16) }}...
+                        </span>
+                    </div>
+
+                    <!-- Time -->
+                    <span class="text-[9px] text-text-muted font-medium flex-shrink-0">{{ formatDate(conv.updated_at) }}</span>
+                </button>
+                } @empty {
+                <div class="flex flex-col items-center justify-center gap-3 py-16 px-4">
+                    <div class="w-12 h-12 rounded-2xl bg-bg-tertiary border border-border-primary flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-text-muted"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs font-bold text-text-primary">No conversations</p>
+                        <p class="text-[10px] text-text-muted mt-0.5">Start a new thread above</p>
+                    </div>
+                </div>
+                }
+            </div>
+        </aside>
+
+        <!-- Chat Pane -->
+        <main class="flex-1 flex flex-col bg-bg-secondary border border-border-primary rounded-3xl shadow-xl overflow-hidden min-w-0">
+
+            @if (!activeConversation()) {
+            <!-- Empty State -->
+            <div class="flex-1 flex flex-col items-center justify-center gap-4 p-8">
+                <div class="w-20 h-20 rounded-3xl bg-bg-tertiary border border-border-primary flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="text-text-muted"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <div class="text-center flex flex-col gap-1">
+                    <p class="text-base font-black text-text-primary">Select a conversation</p>
+                    <p class="text-sm text-text-muted">Choose a thread from the sidebar or start a new one</p>
+                </div>
+                <button (click)="showNewConv.set(true)"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                    Start New Conversation
+                </button>
+            </div>
+            }
+
+            @if (activeConversation()) {
+            <!-- Chat Header -->
+            <div class="flex items-center gap-4 px-6 py-4 border-b border-border-primary flex-shrink-0">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-500 flex items-center justify-center text-white font-black text-sm">
+                    {{ getInitial(getOtherParticipant(activeConversation()!)) }}
+                </div>
+                <div class="flex flex-col gap-0.5">
+                    <p class="text-sm font-black text-text-primary">Thread #{{ activeConversation()!.id.slice(0, 8) }}</p>
+                    <p class="text-[10px] text-text-muted font-mono">{{ getOtherParticipant(activeConversation()!) }}</p>
+                </div>
+                <div class="ml-auto flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                    <span class="text-[9px] font-black text-emerald-400 uppercase tracking-wider">Secure</span>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div #messagesList class="flex-1 overflow-y-auto flex flex-col gap-4 p-6 scroll-smooth">
+                @if (isLoading()) {
+                <div class="flex items-center justify-center gap-3 py-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-indigo-400 animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                    <span class="text-sm text-text-muted">Loading messages...</span>
+                </div>
+                }
+
+                @for (msg of messages(); track msg.id) {
+                <div class="flex gap-3 max-w-[75%]"
+                     [class.self-end]="isSentByMe(msg)"
+                     [class.flex-row-reverse]="isSentByMe(msg)"
+                     [class.self-start]="!isSentByMe(msg)">
+
+                    <!-- Avatar dot -->
+                    <div class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-black flex-shrink-0 mt-0.5"
+                         [class.bg-indigo-500]="isSentByMe(msg)"
+                         [class.text-white]="isSentByMe(msg)"
+                         [class.bg-bg-tertiary]="!isSentByMe(msg)"
+                         [class.text-text-secondary]="!isSentByMe(msg)"
+                         [class.border]="!isSentByMe(msg)"
+                         [class.border-border-primary]="!isSentByMe(msg)">
+                        {{ getInitial(msg.sender_id) }}
+                    </div>
+
+                    <!-- Bubble -->
+                    <div class="flex flex-col gap-1" [class.items-end]="isSentByMe(msg)">
+                        <!-- Parent Message Context -->
+                        @if (msg.parent_id) {
+                        <div class="mb-1 p-2 rounded-xl text-xs bg-bg-secondary border border-border-primary text-text-muted opacity-80 max-w-full cursor-pointer hover:opacity-100 transition-all flex flex-col items-start"
+                             [class.self-end]="isSentByMe(msg)"
+                             [class.self-start]="!isSentByMe(msg)">
+                             <span class="text-[9px] font-bold text-indigo-400 mb-0.5">Replying to message</span>
+                             <span class="line-clamp-2 italic">"{{ getParentMessage(msg.parent_id)?.content || 'Original message...' }}"</span>
+                        </div>
+                        }
+                        
+                        <div class="group relative flex items-center gap-2" [class.flex-row-reverse]="isSentByMe(msg)">
+                            <!-- Bubble -->
+                            <div class="px-4 py-3 rounded-2xl text-sm leading-relaxed max-w-full word-break shadow-sm"
+                                 [class.bg-indigo-600]="isSentByMe(msg)"
+                                 [class.text-white]="isSentByMe(msg)"
+                                 [class.rounded-tr-sm]="isSentByMe(msg) && !msg.parent_id"
+                                 [class.bg-bg-tertiary]="!isSentByMe(msg)"
+                                 [class.text-text-primary]="!isSentByMe(msg)"
+                                 [class.border]="!isSentByMe(msg)"
+                                 [class.border-border-primary]="!isSentByMe(msg)"
+                                 [class.rounded-tl-sm]="!isSentByMe(msg) && !msg.parent_id">
+                                {{ msg.content }}
+                            </div>
+                            
+                            <!-- Reply Button (Hover) -->
+                            <button (click)="setReplyTo(msg)" class="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-full bg-bg-tertiary border border-border-primary text-text-muted hover:text-indigo-400 hover:border-indigo-500/30 flex-shrink-0" title="Reply">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/></svg>
+                            </button>
+                        </div>
+                        <span class="text-[9px] text-text-muted font-medium px-1" [class.text-right]="isSentByMe(msg)">{{ msg.created_at | date:'h:mm a' }}</span>
+                    </div>
+                </div>
+                } @empty {
+                @if (!isLoading()) {
+                <div class="flex flex-col items-center justify-center gap-2 py-16">
+                    <p class="text-sm font-bold text-text-primary">No messages yet</p>
+                    <p class="text-xs text-text-muted">Send the first message below to start the conversation</p>
+                </div>
+                }
+                }
+            </div>
+
+            <!-- Input Area -->
+            <div class="flex flex-col border-t border-border-primary bg-bg-secondary flex-shrink-0">
+                <!-- Reply Context Bar -->
+                @if (replyingTo()) {
+                <div class="flex items-center justify-between px-4 py-2.5 bg-indigo-500/5 border-b border-border-primary/50 text-xs">
+                    <div class="flex flex-col gap-0.5 overflow-hidden">
+                        <span class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">Replying to</span>
+                        <span class="text-text-secondary truncate line-clamp-1">"{{ replyingTo()!.content }}"</span>
+                    </div>
+                    <button (click)="cancelReply()" class="p-1 rounded-full text-text-muted hover:text-rose-400 hover:bg-rose-500/10 transition-all flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                </div>
+                }
+
+                <div class="flex items-center gap-3 px-4 py-4">
+                <div class="flex-1 relative">
+                    <input
+                        type="text"
+                        [value]="newMessage()"
+                        (input)="newMessage.set($any($event.target).value)"
+                        (keyup.enter)="send()"
+                        placeholder="Type a message..."
+                        class="w-full bg-bg-tertiary border border-border-primary rounded-2xl pl-4 pr-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-indigo-500/40 transition-all"
+                    >
+                </div>
+                <button
+                    (click)="send()"
+                    [disabled]="!newMessage().trim()"
+                    class="w-12 h-12 flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-2xl shadow-lg shadow-indigo-500/20 transition-all active:scale-95 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                </button>
+            </div>
+            </div>
+            }
+        </main>
+    </div>
+</div>

@@ -1,0 +1,121 @@
+<div class="max-w-4xl mx-auto space-y-6 print:space-y-4 print:text-black">
+  <!-- Header / Action Bar -->
+  <div class="flex justify-between items-center print:hidden">
+    <div>
+      <h2 class="text-2xl font-black text-text-primary tracking-tight">Academic Report Card</h2>
+      <p class="text-sm text-text-muted mt-1">Official performance summary</p>
+    </div>
+    <div class="flex gap-3">
+      <select [ngModel]="selectedTerm" (ngModelChange)="setTerm($event)" class="bg-bg-primary border border-border-primary rounded-xl px-4 py-2 text-text-primary focus:outline-none focus:border-indigo-500">
+        <option *ngFor="let term of terms" [value]="term">{{ term }}</option>
+      </select>
+      <button (click)="printReportCard()" class="px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-bold transition-all flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+        Print PDF
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="py-12 flex justify-center text-text-muted print:hidden">
+    Loading report card...
+  </div>
+
+  <div *ngIf="!isLoading && student" class="bg-white text-gray-900 rounded-2xl p-10 shadow-2xl print:shadow-none print:p-0 relative overflow-hidden">
+    <!-- Watermark logo for print -->
+    <div *ngIf="tenantProfile?.logo_url"
+         class="absolute inset-0 flex items-center justify-center pointer-events-none z-0"
+         aria-hidden="true">
+      <img [src]="tenantProfile!.logo_url!"
+           class="w-80 h-80 object-contain opacity-[0.07] select-none"
+           alt="school watermark" />
+    </div>
+
+    <!-- Report Header -->
+    <div class="relative z-10 border-b-4 border-indigo-600 pb-6 mb-8 flex items-center gap-6">
+      <div class="w-20 h-20 bg-indigo-100 rounded-2xl flex items-center justify-center overflow-hidden">
+        <img *ngIf="tenantProfile?.logo_url" [src]="tenantProfile!.logo_url!" alt="School Logo" class="w-full h-full object-contain" />
+        <svg *ngIf="!tenantProfile?.logo_url" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      </div>
+      <div>
+        <h1 class="text-xl md:text-2xl font-black uppercase tracking-tight">{{ tenantProfile?.name || 'SCHOOL NAME' }}</h1>
+        <p class="text-sm font-bold text-gray-500 tracking-widest uppercase">Academic Excellence Report</p>
+        <p *ngIf="tenantProfile?.address" class="text-xs text-gray-400 mt-0.5">{{ tenantProfile!.address }}</p>
+      </div>
+      <div class="ml-auto text-right">
+        <p class="font-black text-indigo-600 uppercase tracking-widest">{{ selectedTerm }}</p>
+        <p class="text-sm font-bold text-gray-500 mt-1">Date: {{ currentYear }}</p>
+      </div>
+    </div>
+
+    <!-- Student Info -->
+    <div class="relative z-10 grid grid-cols-2 gap-6 mb-8 p-6 bg-gray-50 rounded-xl">
+      <div>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Student Name</p>
+        <p class="font-black text-lg">{{ student.first_name }} {{ student.last_name }}</p>
+      </div>
+      
+      <div>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Gender</p>
+        <p class="font-bold">{{ student.gender }}</p>
+      </div>
+      <div>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Academic Year</p>
+        <p class="font-bold">{{ student.academic_year || '2025/2026' }}</p>
+      </div>
+    </div>
+
+    <!-- Grades Table -->
+    <div class="relative z-10 mb-8 overflow-hidden rounded-xl border border-gray-200">
+      <div class="overflow-x-auto w-full">
+<table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-gray-100 text-gray-600 text-xs font-bold uppercase tracking-wider">
+            <th class="p-4 border-b border-gray-200">Subject</th>
+            <th class="p-4 border-b border-gray-200">Category</th>
+            <th class="p-4 border-b border-gray-200 text-center">Score</th>
+            <th class="p-4 border-b border-gray-200 text-center">Percentage</th>
+            <th class="p-4 border-b border-gray-200">Remarks</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let grade of termGrades" class="hover:bg-gray-50">
+            <td class="p-4 font-bold">{{ grade.subject }}</td>
+            <td class="p-4 text-sm text-gray-500">{{ grade.category }}</td>
+            <td class="p-4 text-center font-bold">{{ grade.score }} / {{ grade.max_score || 100 }}</td>
+            <td class="p-4 text-center font-black" [ngClass]="{'text-green-600': (grade.score / (grade.max_score || 100)) >= 0.8, 'text-red-500': (grade.score / (grade.max_score || 100)) < 0.5}">
+              {{ ((grade.score / (grade.max_score || 100)) * 100) | number:'1.0-2' }}%
+            </td>
+            <td class="p-4 text-sm italic">{{ grade.remarks || '-' }}</td>
+          </tr>
+          <tr *ngIf="termGrades.length === 0">
+            <td colspan="5" class="p-8 text-center text-gray-500 italic">No grades recorded for this term.</td>
+          </tr>
+        </tbody>
+      </table>
+</div>
+    </div>
+
+    <!-- Summary & Signatures -->
+    <div class="relative z-10 grid grid-cols-2 gap-8 items-end">
+      <div class="bg-indigo-50 p-6 rounded-xl border border-indigo-100">
+        <p class="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2">Term Aggregate</p>
+        <div class="flex items-baseline gap-2">
+          <span class="text-2xl md:text-3xl font-black text-indigo-600">{{ gpa }}</span>
+          <span class="text-sm font-bold text-indigo-400">/ 100</span>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-2 gap-4 text-center">
+        <div>
+          <div class="border-b border-gray-400 pb-8 mb-2"></div>
+          <p class="text-xs font-bold text-gray-500 uppercase">Class Teacher</p>
+        </div>
+        <div>
+          <div class="border-b border-gray-400 pb-8 mb-2"></div>
+          <p class="text-xs font-bold text-gray-500 uppercase">Headmaster</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

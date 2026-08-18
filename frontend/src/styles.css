@@ -1,0 +1,265 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-secondary: var(--accent-secondary);
+  
+  --color-border-primary: var(--border-primary);
+  --color-border-secondary: var(--border-secondary);
+
+  --shadow-premium: var(--shadow-main);
+  
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+}
+
+:root {
+  /* Default Dark Mode */
+  --bg-primary: #0f172a;
+  --bg-secondary: #0a0f1d;
+  --bg-tertiary: #161d2f;
+  --text-primary: #f8fafc;
+  --text-secondary: #94adca;
+  --text-muted: #64748b;
+  --border-primary: rgba(255, 255, 255, 0.06);
+  --border-secondary: rgba(255, 255, 255, 0.1);
+  --shadow-main: 0 12px 20px -5px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --input-bg: rgba(0, 0, 0, 0.2);
+  
+  --accent-primary: #6366f1;
+  --accent-secondary: #8b5cf6;
+  --accent-gradient: linear-gradient(135deg, #6366f1, #8b5cf6);
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-full: 9999px;
+  
+  --border-focus: rgba(99, 102, 241, 0.5);
+  
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:root.light-mode {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --border-primary: rgba(0, 0, 0, 0.05);
+  --border-secondary: rgba(0, 0, 0, 0.1);
+  --shadow-main: 0 8px 12px -3px rgba(0, 0, 0, 0.08), 0 3px 6px -2px rgba(0, 0, 0, 0.04);
+  --input-bg: #ffffff;
+}
+
+body {
+  @apply bg-bg-primary text-text-primary min-h-screen antialiased;
+}
+
+/* Base Styles Utilities */
+@utility animate-fade-in {
+  animation: fadeIn var(--transition-slow) forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@utility custom-scrollbar {
+  &::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--border-secondary);
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text-muted);
+  }
+}
+
+/* Standard Components using Utility classes (@apply transition) */
+.data-table {
+  @apply w-full border-collapse text-left;
+  th { @apply px-6 py-6 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] bg-bg-tertiary border-b border-border-primary; }
+  td { @apply px-6 py-5 border-b border-border-primary; }
+}
+
+.table-row {
+  @apply transition-all duration-300 hover:bg-bg-tertiary/50;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-text-primary text-xs font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-bg-tertiary hover:bg-bg-secondary border border-border-primary text-text-primary text-xs font-bold rounded-xl transition-all;
+}
+
+/* Global Component Classes extracted for Bundle Optimization */
+
+/* Navigation Link Base Style */
+.nav-link {
+  @apply flex items-center gap-3 px-6 py-3 rounded-2xl text-sm font-bold text-text-secondary hover:bg-bg-tertiary hover:text-white transition-all duration-300 relative overflow-hidden;
+}
+
+.active-pill {
+  @apply bg-indigo-500/10 text-white border border-indigo-500/20 shadow-lg shadow-indigo-500/5;
+}
+
+.active-pill::before {
+  content: '';
+  @apply absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-500 rounded-r-full shadow-[2px_0_8px_rgba(99,102,241,0.5)];
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: none; }
+}
+
+.animate-slide-down {
+  animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Public Pages Shared Classes */
+.page-root {
+  @apply pt-32 min-h-screen bg-bg-primary;
+}
+.page-header {
+  @apply text-center max-w-3xl mx-auto px-6 mb-16;
+}
+.page-title {
+  @apply text-4xl md:text-5xl font-black text-text-primary tracking-tight mb-4 leading-tight;
+}
+.page-sub {
+  @apply text-lg text-text-secondary leading-relaxed;
+}
+.section-badge {
+  @apply inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 text-orange-500 text-xs font-black uppercase tracking-widest border border-orange-500/20 mb-6;
+}
+
+/* Teacher Portal Classes */
+.teacher-portal {
+    @apply p-6 md:p-10 max-w-[1920px] mx-auto;
+}
+
+.portal-header {
+    @apply mb-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6;
+}
+
+@keyframes slide-in {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: none; opacity: 1; }
+}
+
+.animate-slide-in {
+    animation: slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.loading-overlay {
+    @apply fixed inset-0 z-50 bg-bg-primary/80 flex flex-col items-center justify-center gap-4 text-sm font-black text-indigo-500 uppercase tracking-widest;
+}
+
+.loader {
+    @apply w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin;
+}
+
+/* Form Styles */
+.field-label { @apply text-xs font-black text-text-muted uppercase tracking-[0.15em] mb-1; }
+.input-wrapper { @apply relative flex items-center; }
+.input-icon { @apply absolute left-4 text-text-muted pointer-events-none flex-shrink-0; }
+.field-input { @apply w-full px-10 py-3 bg-bg-tertiary border border-border-secondary rounded-xl text-sm font-medium text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all; }
+.error-msg { @apply text-xs font-semibold text-red-400 flex items-center gap-1.5; }
+
+/* Sticky Column Shadow specifically for scrolling */
+.sticky-column-shadow {
+    box-shadow: 10px 0 15px -10px rgba(0, 0, 0, 0.1);
+}
+
+.alert {
+    @apply p-5 rounded-2xl mb-8 flex items-center border font-bold;
+}
+
+.alert.error {
+    @apply bg-rose-500/10 border-rose-500/20 text-rose-500;
+}
+
+.alert.success {
+    @apply bg-emerald-500/10 border-emerald-500/20 text-emerald-500;
+}
+
+.modal-desc {
+    @apply text-sm text-text-muted mb-6 leading-relaxed;
+}
+
+/* Fix for number input appearance */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Global Select / Dropdown Fixes — adapts to light & dark mode */
+select {
+    color: var(--text-primary);
+    border-color: var(--border-secondary);
+}
+
+/* Fallback background for selects without an explicit bg class */
+:root.light-mode select {
+    background-color: #ffffff;
+}
+
+select option {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* Mobile Card View for Tables */
+@media (max-width: 768px) {
+  .mobile-card-view {
+    @apply block w-full;
+  }
+  .mobile-card-view thead {
+    @apply hidden;
+  }
+  .mobile-card-view tbody {
+    @apply block w-full space-y-4;
+  }
+  .mobile-card-view tr {
+    @apply block w-full bg-bg-tertiary border border-border-primary rounded-2xl p-4 shadow-sm;
+  }
+  .mobile-card-view td {
+    @apply flex justify-between items-center py-2 px-0 border-b border-white/5;
+  }
+  .mobile-card-view td:last-child {
+    @apply border-0 pb-0;
+  }
+  .mobile-card-view td::before {
+    content: attr(data-label);
+    @apply text-[10px] font-black text-text-muted uppercase tracking-widest block pr-4;
+  }
+}

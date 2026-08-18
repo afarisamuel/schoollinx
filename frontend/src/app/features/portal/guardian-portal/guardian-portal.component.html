@@ -1,0 +1,229 @@
+<!-- ===== Payment Modal ===== -->
+@if (showPaymentModal()) {
+    <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" (click)="closePaymentModal()">
+        <div class="relative w-full max-w-md bg-gradient-to-br from-[#0F172A] to-[#1E293B] border border-slate-700/60 rounded-3xl shadow-2xl p-8" (click)="$event.stopPropagation()">
+            <!-- Glow -->
+            <div class="absolute top-0 right-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-[60px] pointer-events-none"></div>
+
+            <!-- Header -->
+            <div class="flex items-start justify-between mb-6 relative z-10">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 text-[10px] font-black uppercase tracking-widest mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                        Secure Payment
+                    </div>
+                    <h2 class="text-xl font-black text-white">Pay Online</h2>
+                    <p class="text-sm text-slate-400 mt-1">Initialize secure payment via Paystack.</p>
+                </div>
+                <button (click)="closePaymentModal()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Invoice Details -->
+            <div class="bg-slate-900/60 rounded-2xl p-4 border border-slate-700/50 mb-6 relative z-10">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs text-slate-400 font-bold uppercase tracking-widest">Fee Category</span>
+                    <span class="text-sm font-black text-white">{{ selectedRecordForPayment()?.category }}</span>
+                </div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs text-slate-400 font-bold uppercase tracking-widest">Total Amount</span>
+                    <span class="text-sm font-black text-white">GH₵{{ selectedRecordForPayment()?.amount | number:'1.2-2' }}</span>
+                </div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs text-slate-400 font-bold uppercase tracking-widest">Amount Paid</span>
+                    <span class="text-sm font-black text-emerald-400">GH₵{{ selectedRecordForPayment()?.amount_paid || 0 | number:'1.2-2' }}</span>
+                </div>
+                <div class="flex justify-between items-center pt-2 border-t border-slate-700/50">
+                    <span class="text-xs text-rose-400 font-black uppercase tracking-widest">Balance Due</span>
+                    <span class="text-lg font-black text-rose-400">GH₵{{ selectedRecordForPayment()?.balance_due || (selectedRecordForPayment()!.amount - (selectedRecordForPayment()!.amount_paid || 0)) | number:'1.2-2' }}</span>
+                </div>
+            </div>
+
+            <!-- Amount Input -->
+            <div class="mb-6 relative z-10">
+                <label for="payment-amount" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Amount to Pay (GH₵)</label>
+                <div class="relative">
+                    <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-black">
+                        ₵
+                    </div>
+                    <input
+                        id="payment-amount"
+                        type="number"
+                        min="1"
+                        [max]="selectedRecordForPayment()?.balance_due || (selectedRecordForPayment()!.amount - (selectedRecordForPayment()!.amount_paid || 0))"
+                        [value]="paymentAmount()"
+                        (input)="paymentAmount.set($any($event.target).valueAsNumber)"
+                        class="w-full bg-slate-900/80 border border-slate-700 hover:border-slate-500 focus:border-indigo-500 rounded-xl pl-11 pr-4 py-3.5 text-sm text-white placeholder:text-slate-600 outline-none transition-all font-mono"
+                    />
+                </div>
+                <p class="text-[11px] text-slate-500 mt-2">You can modify the amount for a partial payment.</p>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-3 relative z-10">
+                <button
+                    (click)="closePaymentModal()"
+                    class="flex-1 py-3 rounded-xl font-bold text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700"
+                >
+                    Cancel
+                </button>
+                <button
+                    (click)="confirmPayment()"
+                    [disabled]="isPaymentLoading()"
+                    class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    @if (isPaymentLoading()) {
+                        <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    }
+                    Pay Now
+                </button>
+            </div>
+        </div>
+    </div>
+}
+<!-- ===== / Payment Modal ===== -->
+
+<div class="page-container animate-fade-in">
+    <div class="page-header">
+        <div>
+            <h1>Family Portal</h1>
+            <p class="subtitle">Secure overview of your children's academic journey</p>
+        </div>
+    </div>
+
+    @if (isLoading()) {
+    <div class="loading-state glass-panel">
+        <div class="spinner"></div>
+        <p>Loading family matrix...</p>
+    </div>
+    } @else {
+    <div class="children-grid">
+        @for (child of children(); track child.id) {
+        <div class="glass-panel child-card" [class.active-child]="selectedChild()?.id === child.id"
+            (click)="selectChild(child)">
+            <div class="child-avatar">
+                {{ child.first_name.charAt(0) }}{{ child.last_name.charAt(0) }}
+            </div>
+            <div class="child-info">
+                <h3>{{ child.first_name }} {{ child.last_name }}</h3>
+                <span class="badge badge-outline">Grade Level/Class Info</span>
+                <a [routerLink]="['/students', child.id, 'report-card']" class="mt-2 text-xs font-bold text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1" (click)="$event.stopPropagation()">
+                    View Report Card
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </a>
+            </div>
+        </div>
+        }
+    </div>
+
+    @if (selectedChild()) {
+    <hr class="separator">
+
+    <div class="academics-section animate-slide-up">
+        <h2>Academic Insights: {{ selectedChild()?.first_name }}</h2>
+
+        @if (insightsLoading()) {
+        <p class="text-muted">Loading scholastic data...</p>
+        } @else if (insights().length === 0) {
+        <div class="glass-panel empty-state">
+            <p>No recent academic insights available for this term.</p>
+        </div>
+        } @else {
+        <div class="insights-grid">
+            @for (insight of insights(); track insight.title) {
+            <div class="glass-panel insight-card" [ngClass]="insight.type">
+                <h4>{{ insight.title }}</h4>
+                <p>{{ insight.description }}</p>
+                <div class="insight-footer">
+                    <span class="reasoning">Ref: {{ insight.reasoning }}</span>
+                </div>
+            </div>
+            }
+        </div>
+        }
+    </div>
+
+    <div class="billing-section animate-slide-up mt-12 pt-8 border-t border-border-primary">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-xl font-black text-text-primary uppercase tracking-tight italic">Financial Account: {{ selectedChild()?.first_name }}</h2>
+                <p class="text-xs text-text-muted mt-1">Outstanding statement and online payment gateway</p>
+            </div>
+            <div class="text-right">
+                <span class="text-[10px] font-black text-text-muted uppercase tracking-widest block">Outstanding Balance</span>
+                <span class="text-2xl font-black text-text-primary" [class.text-red-400]="fiscalBalance() > 0" [class.text-emerald-400]="fiscalBalance() === 0">
+                    GH₵{{ fiscalBalance() | number:'1.2-2' }}
+                </span>
+            </div>
+        </div>
+
+        @if (fiscalLoading()) {
+            <p class="text-muted">Loading account invoice statement...</p>
+        } @else if (fiscalRecords().length === 0) {
+            <div class="glass-panel empty-state">
+                <p>No billing or fee structures have been charged for this candidate.</p>
+            </div>
+        } @else {
+            <div class="glass-panel overflow-hidden border border-border-primary rounded-[2rem] bg-bg-tertiary">
+                <div class="overflow-x-auto w-full">
+<table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-bg-tertiary border-b border-border-primary">
+                            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted">Category</th>
+                            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted">Description</th>
+                            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted">Amount</th>
+                            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted">Due Date</th>
+                            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted">Status</th>
+                            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted text-right">Payment Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5">
+                        @for (record of fiscalRecords(); track record.id) {
+                            <tr class="hover:bg-bg-tertiary transition-all">
+                                <td class="px-6 py-4">
+                                    <span class="text-xs font-bold text-indigo-400 uppercase">{{ record.category }}</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="text-xs text-text-secondary">{{ record.description }}</span>
+                                </td>
+                                <td class="px-6 py-4 text-xs font-black text-text-primary">
+                                    GH₵{{ record.amount | number:'1.2-2' }}
+                                </td>
+                                <td class="px-6 py-4 text-xs text-text-secondary">
+                                    {{ record.due_date | date:'mediumDate' }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2.5 py-1 rounded text-[9px] font-black uppercase tracking-wider"
+                                        [ngClass]="{
+                                            'bg-amber-500/10 text-amber-500 border border-amber-500/20': record.status === 'PENDING',
+                                            'bg-red-500/10 text-red-500 border border-red-500/20': record.status === 'OVERDUE',
+                                            'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20': record.status === 'PAID'
+                                        }">
+                                        {{ record.status }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    @if (record.status !== 'PAID') {
+                                        <button (click)="payOnline(record)" 
+                                            class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg hover:shadow-indigo-500/20 gap-2 ml-auto">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                                            Pay Online
+                                        </button>
+                                    } @else {
+                                        <span class="text-xs font-bold text-emerald-400">Settled</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+</div>
+            </div>
+        }
+    </div>
+    }
+    }
+</div>

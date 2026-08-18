@@ -1,0 +1,48 @@
+<div class="widget-container glass-panel animate-fade-in">
+    <div class="widget-header">
+        <h3>Student Success Alerts</h3>
+        <span class="badge" [class.high]="highRiskCount() > 0"
+            [class.medium]="highRiskCount() === 0 && mediumRiskCount() > 0">
+            {{ alerts().length }} At-Risk
+        </span>
+    </div>
+
+    <div class="alerts-list">
+        @for (alert of alerts(); track alert.student_id) {
+        <div class="alert-item" [class.high-risk]="alert.level === 'HIGH'"
+            [class.medium-risk]="alert.level === 'MEDIUM'">
+            <div class="alert-main">
+                <div class="student-info">
+                    <span class="name">{{ alert.student_name }}</span>
+                    <span class="id">ID: {{ alert.student_id }}</span>
+                </div>
+                <div class="risk-level">{{ alert.level }} RISK</div>
+            </div>
+
+            <div class="alert-details">
+                <div class="metrics">
+                    <div class="metric">
+                        <span class="label">Grade Avg</span>
+                        <span class="value" [class.danger]="alert.grade_avg < 50">{{ alert.grade_avg }}%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="label">Attendance</span>
+                        <span class="value" [class.danger]="alert.attendance_pct < 75">{{ alert.attendance_pct
+                            }}%</span>
+                    </div>
+                </div>
+                <ul class="reasons">
+                    @for (reason of alert.reasons; track reason) {
+                    <li>{{ reason }}</li>
+                    }
+                </ul>
+            </div>
+        </div>
+        } @empty {
+        <div class="empty-state">
+            <div class="icon">✓</div>
+            <p>No high-risk students identified</p>
+        </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,273 @@
+<div class="p-12">
+  <div class="max-w-7xl mx-auto">
+
+    <header class="mb-16 border-b border-border-primary pb-10">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black text-emerald-500 uppercase tracking-widest">Financial Operations</span>
+      </div>
+      <h1 class="text-5xl font-black text-white tracking-tighter">Revenue <span class="text-emerald-500 text-opacity-80">Intelligence</span></h1>
+      <p class="text-text-secondary mt-3 max-w-xl text-sm leading-relaxed">Platform-wide financial overview, subscription health, and churn analysis.</p>
+    </header>
+
+    @if (isLoading()) {
+      <div class="flex flex-col items-center justify-center py-24 text-text-muted">
+        <div class="relative w-14 h-14 mb-6">
+          <div class="absolute inset-0 border-4 border-emerald-500/20 rounded-full"></div>
+          <div class="absolute inset-0 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        <p class="text-xs font-black uppercase tracking-[0.2em]">Computing Financials...</p>
+      </div>
+    } @else {
+
+      <!-- === ROW 1: Primary KPI Cards === -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
+
+        <!-- MRR -->
+        <div class="admin-card !p-6 group overflow-hidden relative col-span-2 md:col-span-1">
+          <div class="absolute -bottom-4 -right-4 w-20 h-20 bg-emerald-500/8 rounded-full blur-2xl"></div>
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          </div>
+          <div class="text-3xl font-black text-white mb-0.5">GH₵ {{ overview()?.mrr | number:'1.2-2' }}</div>
+          <div class="text-[9px] font-black text-text-muted uppercase tracking-[0.15em]">Monthly Recurring Revenue</div>
+        </div>
+
+        <!-- ARR -->
+        <div class="admin-card !p-6 group overflow-hidden relative col-span-2 md:col-span-1">
+          <div class="absolute -bottom-4 -right-4 w-20 h-20 bg-blue-500/8 rounded-full blur-2xl"></div>
+          <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+          </div>
+          <div class="text-3xl font-black text-white mb-0.5">GH₵ {{ overview()?.arr | number:'1.2-2' }}</div>
+          <div class="text-[9px] font-black text-text-muted uppercase tracking-[0.15em]">Annual Run Rate</div>
+        </div>
+
+        <!-- Active Tenants -->
+        <div class="admin-card !p-6 group overflow-hidden relative">
+          <div class="absolute -bottom-4 -right-4 w-20 h-20 bg-accent-primary/8 rounded-full blur-2xl"></div>
+          <div class="w-10 h-10 rounded-xl bg-accent-primary/10 flex items-center justify-center text-accent-primary mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+          </div>
+          <div class="text-3xl font-black text-white mb-0.5">{{ overview()?.active_tenants ?? 0 }}</div>
+          <div class="text-[9px] font-black text-text-muted uppercase tracking-[0.15em]">Active Tenants</div>
+          <div class="flex gap-2 mt-2">
+            @if (overview()?.new_this_month > 0) {
+              <span class="text-[9px] font-bold text-emerald-400">+{{ overview()?.new_this_month }} this month</span>
+            }
+            @if (overview()?.suspended_tenants > 0) {
+              <span class="text-[9px] font-bold text-rose-400">{{ overview()?.suspended_tenants }} suspended</span>
+            }
+          </div>
+        </div>
+
+        <!-- DPA Compliance -->
+        <div class="admin-card !p-6 group overflow-hidden relative">
+          <div class="absolute -bottom-4 -right-4 w-20 h-20 bg-amber-500/8 rounded-full blur-2xl"></div>
+          <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+          </div>
+          <div class="text-3xl font-black text-white mb-0.5">{{ overview()?.dpa_compliance_pct | number:'1.0-0' }}%</div>
+          <div class="text-[9px] font-black text-text-muted uppercase tracking-[0.15em]">DPA Compliance</div>
+          <div class="text-[9px] font-bold text-text-muted mt-2">{{ overview()?.dpa_signed }}/{{ overview()?.total_tenants }} signed</div>
+        </div>
+      </div>
+
+      <!-- === ROW 2: Secondary KPI Tiles === -->
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-5 mb-10">
+
+        <!-- SMS Credits -->
+        <div class="admin-card !p-5 flex items-center gap-4">
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+          </div>
+          <div>
+            <div class="text-xl font-black text-white">{{ overview()?.total_sms_credits | number }}</div>
+            <div class="text-[9px] font-black text-text-muted uppercase tracking-wider">Total SMS Credits (All Tenants)</div>
+          </div>
+        </div>
+
+        <!-- Storage Used -->
+        <div class="admin-card !p-5 flex items-center gap-4">
+          <div class="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-400 flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" /></svg>
+          </div>
+          <div>
+            <div class="text-xl font-black text-white">{{ overview()?.storage_used_gb | number:'1.1-1' }} GB</div>
+            <div class="text-[9px] font-black text-text-muted uppercase tracking-wider">Total Platform Storage Used</div>
+          </div>
+        </div>
+
+        <!-- Churn Risk -->
+        <div class="admin-card !p-5 flex items-center gap-4 col-span-2 md:col-span-1">
+          <div class="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-400 flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+          </div>
+          <div>
+            <div class="text-xl font-black text-white">{{ churnRiskList().length }}</div>
+            <div class="text-[9px] font-black text-text-muted uppercase tracking-wider">High-Churn Risk Tenants</div>
+            <div class="text-[9px] font-bold text-rose-400 mt-0.5">Inactive 30+ days</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- === ROW 3: Revenue by Plan + Churn Risk === -->
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
+
+        <!-- Revenue by Plan (bar chart) -->
+        <div class="admin-card !p-0 overflow-hidden lg:col-span-2">
+          <div class="p-6 border-b border-border-primary bg-bg-secondary/30">
+            <h2 class="text-base font-black text-white tracking-tight">Revenue by Plan</h2>
+            <p class="text-[10px] font-bold text-text-muted uppercase tracking-widest mt-1">MRR Distribution</p>
+          </div>
+          <div class="p-6 flex flex-col gap-5">
+            @if (revenueByPlan().length === 0) {
+              <div class="py-8 text-center text-text-muted text-xs font-bold">No data available</div>
+            } @else {
+              @for (plan of revenueByPlan(); track plan.plan) {
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="px-2 py-0.5 rounded text-[9px] font-black border uppercase tracking-widest" [class]="planTextColor(plan.plan)">{{ plan.plan }}</span>
+                    <div class="text-right">
+                      <span class="text-xs font-black text-white">GH₵ {{ plan.revenue | number:'1.2-2' }}</span>
+                      <span class="text-[9px] text-text-muted ml-2">{{ plan.count }} tenant{{ plan.count !== 1 ? 's' : '' }}</span>
+                    </div>
+                  </div>
+                  <div class="h-2 bg-bg-tertiary rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all duration-700" [class]="planColor(plan.plan)" [style.width.%]="(plan.revenue / maxPlanRevenue()) * 100"></div>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <!-- Churn Risk Table -->
+        <div class="admin-card !p-0 overflow-hidden lg:col-span-3">
+          <div class="p-6 border-b border-border-primary bg-rose-500/[0.03] flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-black text-white tracking-tight flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                High Churn Risk
+              </h2>
+              <p class="text-[9px] font-bold text-text-muted uppercase tracking-widest mt-1">Tenants inactive for 30+ days</p>
+            </div>
+            <span class="px-3 py-1 bg-rose-500/10 text-rose-500 text-xs font-black rounded-lg border border-rose-500/20">{{ churnRiskList().length }} AT RISK</span>
+          </div>
+          <div class="overflow-y-auto max-h-72 custom-scrollbar">
+            @if (churnRiskList().length === 0) {
+              <div class="py-12 text-center text-text-muted text-sm font-bold">
+                No high-risk tenants detected. Excellent retention!
+              </div>
+            } @else {
+              <table class="w-full text-left">
+                <thead class="bg-bg-tertiary/30 sticky top-0">
+                  <tr>
+                    <th class="pl-6 py-3 text-[9px] font-bold text-text-muted uppercase tracking-[0.2em]">Organization</th>
+                    <th class="py-3 text-[9px] font-bold text-text-muted uppercase tracking-[0.2em]">Subdomain</th>
+                    <th class="pr-6 py-3 text-[9px] font-bold text-text-muted uppercase tracking-[0.2em] text-right">Last Activity</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-border-primary">
+                  @for (tenant of churnRiskList(); track tenant.tenant_id) {
+                    <tr class="hover:bg-rose-500/[0.03]">
+                      <td class="pl-6 py-3 font-bold text-sm text-white">{{ tenant.name }}</td>
+                      <td class="py-3 font-mono text-xs text-text-secondary">{{ tenant.subdomain }}.schoollinx.com</td>
+                      <td class="pr-6 py-3 text-xs font-bold text-rose-400 text-right">
+                        {{ tenant.last_activity && tenant.last_activity !== '0001-01-01T00:00:00Z' ? (tenant.last_activity | date:'mediumDate') : 'Never' }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- === ROW 4: Per-Tenant Billing Health Table === -->
+      <div class="admin-card !p-0 overflow-hidden">
+        <div class="p-6 border-b border-border-primary bg-bg-secondary/30 flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-black text-white tracking-tight">Tenant Billing Health</h2>
+            <p class="text-[9px] font-bold text-text-muted uppercase tracking-widest mt-1">Per-tenant SMS, storage, and plan status</p>
+          </div>
+          <div class="relative w-64">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <input type="text" (input)="onHealthFilter($event)" placeholder="Filter tenants..." class="admin-input pl-9 py-2 text-xs w-full">
+          </div>
+        </div>
+        <div class="overflow-x-auto custom-scrollbar">
+          @if (filteredTenantHealth().length === 0) {
+            <div class="py-16 text-center text-text-muted text-sm font-bold">No active tenants found.</div>
+          } @else {
+            <table class="admin-table w-full whitespace-nowrap">
+              <thead>
+                <tr class="bg-bg-tertiary/30 text-left">
+                  <th class="pl-8 py-3 text-[9px] font-bold text-text-muted uppercase tracking-[0.2em]">Organization</th>
+                  <th class="py-3 text-[9px] font-bold text-text-muted uppercase tracking-[0.2em]">Plan</th>
+                  <th class="py-3 text-[9px] font-bold text-text-muted uppercase tracking-[0.2em]">Monthly</th>
+                  <th class="py-3 text-[9px] font-bold text-text-muted uppercase tracking-[0.2em]">SMS Credits</th>
+                  <th class="py-3 text-[9px] font-bold text-text-muted uppercase tracking-[0.2em]">Storage</th>
+                  <th class="py-3 text-[9px] font-bold text-text-muted uppercase tracking-[0.2em]">2FA</th>
+                  <th class="pr-8 py-3 text-[9px] font-bold text-text-muted uppercase tracking-[0.2em]">DPA</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border-primary">
+                @for (t of filteredTenantHealth(); track t.id) {
+                  <tr class="hover:bg-accent-primary/[0.02] group">
+                    <td class="pl-8 py-4">
+                      <div class="font-bold text-sm text-white group-hover:text-accent-primary transition-colors">{{ t.name }}</div>
+                      <div class="text-[10px] font-mono text-text-muted">{{ t.subdomain }}.schoollinx.com</div>
+                    </td>
+                    <td class="py-4">
+                      <span class="px-2.5 py-1 rounded text-[9px] font-black border uppercase tracking-widest" [class]="planTextColor(t.plan)">{{ t.plan }}</span>
+                    </td>
+                    <td class="py-4">
+                      <span class="text-sm font-black text-white">GH₵ {{ t.monthly | number:'1.2-2' }}</span>
+                      @if (t.discount > 0) {
+                        <span class="ml-2 text-[9px] text-emerald-400 font-bold">-{{ t.discount }}%</span>
+                      }
+                    </td>
+                    <td class="py-4">
+                      <span class="text-sm font-bold" [class]="t.sms_credits < 100 ? 'text-rose-400' : t.sms_credits < 500 ? 'text-amber-400' : 'text-white'">
+                        {{ t.sms_credits | number }}
+                      </span>
+                    </td>
+                    <td class="py-4">
+                      <div class="flex items-center gap-3">
+                        <div class="w-20 h-1.5 bg-bg-tertiary rounded-full overflow-hidden">
+                          <div class="h-full rounded-full transition-all" [class]="storageBarColor(t.storage_used_pct)" [style.width.%]="t.storage_used_pct"></div>
+                        </div>
+                        <span class="text-[10px] font-bold text-text-secondary">{{ t.storage_used_gb | number:'1.1-1' }}/{{ t.storage_limit_gb }}GB</span>
+                      </div>
+                    </td>
+                    <td class="py-4">
+                      @if (t.require_2fa) {
+                        <span class="inline-flex items-center gap-1 text-[9px] font-black text-emerald-400 uppercase tracking-widest">
+                          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ON
+                        </span>
+                      } @else {
+                        <span class="text-[9px] font-black text-text-muted uppercase tracking-widest">OFF</span>
+                      }
+                    </td>
+                    <td class="pr-8 py-4">
+                      @if (t.dpa_signed) {
+                        <span class="inline-flex items-center gap-1 text-[9px] font-black text-emerald-400 uppercase tracking-widest">
+                          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+                          Signed
+                        </span>
+                      } @else {
+                        <span class="text-[9px] font-black text-rose-400 uppercase tracking-widest">Pending</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      </div>
+
+    }
+  </div>
+</div>

@@ -1,0 +1,98 @@
+<div class="flex flex-col gap-6">
+    <!-- Upload Zone -->
+    <div class="bg-bg-tertiary border border-border-primary rounded-3xl p-6">
+        <h4 class="text-xs font-black text-text-muted uppercase tracking-widest mb-5">Upload Document</h4>
+        <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex flex-col gap-2 flex-1">
+                <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Category</label>
+                <select [value]="selectedCategory()" (change)="selectedCategory.set($any($event.target).value)"
+                    class="bg-bg-tertiary border border-border-secondary rounded-2xl px-4 py-3 text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all">
+                    @for (cat of categories; track cat.value) {
+                    <option [value]="cat.value">{{ cat.label }}</option>
+                    }
+                </select>
+            </div>
+            <div class="flex flex-col gap-2 flex-1">
+                <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Description (optional)</label>
+                <input type="text" [value]="selectedDescription()" (input)="selectedDescription.set($any($event.target).value)"
+                    placeholder="Brief description…"
+                    class="bg-bg-tertiary border border-border-secondary rounded-2xl px-4 py-3 text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all">
+            </div>
+            <div class="flex flex-col gap-2">
+                <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] opacity-0">Upload</label>
+                <label class="relative cursor-pointer">
+                    <input type="file" class="sr-only" (change)="onFileSelected($event)"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv">
+                    <div class="px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2 whitespace-nowrap"
+                        [class]="isUploading() ? 'bg-bg-tertiary text-text-muted cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'">
+                        @if (isUploading()) {
+                        <div class="w-4 h-4 border-2 border-text-muted border-t-transparent rounded-full animate-spin"></div>
+                        Uploading…
+                        } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Upload File
+                        }
+                    </div>
+                </label>
+            </div>
+        </div>
+        <p class="text-[10px] text-text-muted mt-3">Accepted: PDF, Word, Excel, images, CSV, text · Max 10MB</p>
+
+        @if (successMsg()) {
+        <div class="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-xs font-bold">✓ {{ successMsg() }}</div>
+        }
+        @if (errorMsg()) {
+        <div class="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs font-bold">{{ errorMsg() }}</div>
+        }
+    </div>
+
+    <!-- Document List -->
+    <div class="bg-bg-tertiary border border-border-primary rounded-3xl p-6">
+        <h4 class="text-xs font-black text-text-muted uppercase tracking-widest mb-5">Uploaded Documents</h4>
+
+        @if (isLoading()) {
+        <div class="flex items-center gap-3 py-8 text-text-muted">
+            <div class="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-xs font-bold">Loading documents…</span>
+        </div>
+        } @else if (documents().length === 0) {
+        <div class="flex flex-col items-center py-10 gap-3 text-text-muted">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <p class="text-xs font-medium">No documents uploaded yet</p>
+        </div>
+        } @else {
+        <div class="flex flex-col gap-3">
+            @for (doc of documents(); track doc.id) {
+            <div class="flex items-center justify-between gap-4 p-4 bg-bg-tertiary rounded-2xl border border-border-primary group hover:border-indigo-500/30 transition-all">
+                <div class="flex items-center gap-4 flex-1 min-w-0">
+                    <span class="text-2xl">{{ fileIcon(doc.file_mime_type) }}</span>
+                    <div class="flex flex-col min-w-0">
+                        <span class="text-sm font-bold text-text-primary truncate">{{ doc.title }}</span>
+                        <div class="flex items-center gap-3 mt-0.5">
+                            <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{{ doc.category }}</span>
+                            <span class="text-[10px] text-text-muted">{{ formatSize(doc.file_size) }}</span>
+                            <span class="text-[10px] text-text-muted">{{ doc.uploaded_at | date:'dd MMM yyyy' }}</span>
+                        </div>
+                        @if (doc.description) {
+                        <span class="text-xs text-text-muted mt-0.5 truncate">{{ doc.description }}</span>
+                        }
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button (click)="download(doc)"
+                        class="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all"
+                        title="Download">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    </button>
+                    <button (click)="delete(doc)"
+                        class="p-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all"
+                        title="Delete">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    </button>
+                </div>
+            </div>
+            }
+        </div>
+        }
+    </div>
+</div>

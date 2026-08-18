@@ -1,0 +1,315 @@
+<div class="p-4 md:p-8 min-h-screen animate-fade-in">
+
+    <!-- Header -->
+    <div class="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-black text-text-primary tracking-tight flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                Role & Permission Matrix
+            </h1>
+            <p class="text-text-muted font-medium mt-1">View default permission sets for each system role.</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex items-center gap-1 p-1 bg-bg-secondary border border-border-primary rounded-2xl">
+            <button (click)="activeTab.set('matrix')"
+                [class]="activeTab() === 'matrix' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'text-text-muted hover:text-text-primary'"
+                class="px-4 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2">
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+                Permission Matrix
+            </button>
+            <button (click)="activeTab.set('users')"
+                [class]="activeTab() === 'users' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'text-text-muted hover:text-text-primary'"
+                class="px-4 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2">
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Users ({{ users().length }})
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    @if (isLoading()) {
+    <div class="flex items-center justify-center py-24">
+        <div class="flex flex-col items-center gap-4">
+            <div class="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
+            <p class="text-text-muted font-medium">Loading roles & permissions…</p>
+        </div>
+    </div>
+    }
+
+    <!-- Permission Matrix Tab -->
+    @if (!isLoading() && activeTab() === 'matrix') {
+
+    <!-- Role Summary Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+        @for (r of roleMatrix(); track r.role) {
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-4 text-center">
+            <span [class]="'inline-block px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-widest border mb-2 ' + getRoleClass(r.role)">
+                {{ getRoleDisplayName(r.role) }}
+            </span>
+            <p class="text-2xl font-black text-text-primary">{{ r.permissions.length }}</p>
+            <p class="text-[10px] font-bold text-text-muted uppercase tracking-widest">permissions</p>
+            <p class="text-xs text-text-muted mt-1">{{ getUserCount(r.role) }} users</p>
+        </div>
+        }
+    </div>
+
+    <!-- Matrix Table -->
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-border-primary bg-bg-tertiary/50">
+                        <th class="text-left px-6 py-4 font-bold text-text-muted uppercase tracking-widest text-[10px] sticky left-0 bg-bg-tertiary/50 min-w-[200px]">
+                            Permission
+                        </th>
+                        @for (r of roleMatrix(); track r.role) {
+                        <th class="px-4 py-4 text-center min-w-[110px]">
+                            <span [class]="'inline-block px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border ' + getRoleClass(r.role)">
+                                {{ getRoleDisplayName(r.role) }}
+                            </span>
+                        </th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (group of permissionGroups(); track group.group) {
+                    <!-- Group Header -->
+                    <tr class="bg-bg-primary/50">
+                        <td [attr.colspan]="roleMatrix().length + 1" class="px-6 py-2">
+                            <span class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">{{ group.group }}</span>
+                        </td>
+                    </tr>
+                    <!-- Permission Rows -->
+                    @for (perm of group.perms; track perm.key) {
+                    <tr class="border-t border-border-primary/30 hover:bg-bg-tertiary/20 transition-colors">
+                        <td class="px-6 py-3 sticky left-0 bg-bg-secondary font-medium text-text-secondary text-xs">
+                            {{ perm.label }}
+                            <span class="ml-2 text-[9px] font-mono text-text-muted/60">{{ perm.key }}</span>
+                        </td>
+                        @for (r of roleMatrix(); track r.role) {
+                        <td class="px-4 py-3 text-center">
+                            @if (hasPermission(r.role, perm.key)) {
+                            <div class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                                <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            } @else {
+                            <div class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-text-muted/5 border border-border-primary text-text-muted/30">
+                                <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            </div>
+                            }
+                        </td>
+                        }
+                    </tr>
+                    }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    }
+
+    <!-- Users Tab -->
+    @if (!isLoading() && activeTab() === 'users') {
+    
+    <!-- Filters -->
+    <div class="flex flex-col sm:flex-row gap-3 mb-6">
+        <div class="relative flex-1">
+            <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" placeholder="Search users…" [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)"
+                class="w-full pl-11 pr-4 py-3 bg-bg-secondary border border-border-primary rounded-2xl text-text-primary focus:border-indigo-500 focus:outline-none text-sm transition-colors" />
+        </div>
+        <select [value]="filterRole()" (change)="filterRole.set($any($event.target).value)"
+            class="px-4 py-3 bg-bg-secondary border border-border-primary rounded-2xl text-text-primary focus:border-indigo-500 focus:outline-none text-sm transition-colors">
+            <option value="">All Roles</option>
+            @for (role of allRoles(); track role) {
+            <option [value]="role">{{ getRoleDisplayName(role) }}</option>
+            }
+        </select>
+    </div>
+
+    <!-- Users Table -->
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-border-primary bg-bg-tertiary/50">
+                        <th class="text-left px-6 py-4 font-bold text-text-muted uppercase tracking-widest text-[10px]">User</th>
+                        <th class="text-left px-6 py-4 font-bold text-text-muted uppercase tracking-widest text-[10px]">Role</th>
+                        <th class="text-left px-6 py-4 font-bold text-text-muted uppercase tracking-widest text-[10px]">Permissions</th>
+                        <th class="text-left px-6 py-4 font-bold text-text-muted uppercase tracking-widest text-[10px]">2FA</th>
+                        <th class="text-left px-6 py-4 font-bold text-text-muted uppercase tracking-widest text-[10px]">Joined</th>
+                        <th class="px-6 py-4"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (user of filteredUsers(); track user.id) {
+                    <tr class="border-t border-border-primary/30 hover:bg-bg-tertiary/20 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 flex items-center justify-center text-indigo-400 font-black border border-indigo-500/20 text-sm">
+                                    {{ (user.email || user.username || '?')[0].toUpperCase() }}
+                                </div>
+                                <div>
+                                    <p class="font-bold text-text-primary text-xs">{{ user.username || user.email }}</p>
+                                    <p class="text-text-muted text-[10px]">{{ user.email }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span [class]="'inline-block px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border ' + getRoleClass(user.role)">
+                                {{ getRoleDisplayName(user.role) }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-xs font-bold text-text-secondary">
+                                {{ (roleMatrix().find(r => r.role === user.role)?.permissions?.length || 0) }} permissions
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            @if (user.two_factor_enabled) {
+                            <span class="inline-flex items-center gap-1 px-2 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-widest rounded-full border border-emerald-500/20">
+                                <svg class="w-2.5 h-2.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                Enabled
+                            </span>
+                            } @else {
+                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Off</span>
+                            }
+                        </td>
+                        <td class="px-6 py-4 text-text-muted text-xs">{{ user.created_at | date:'mediumDate' }}</td>
+                        <td class="px-6 py-4 text-right">
+                            <button (click)="openPermissionsModal(user)"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10 transition-colors">
+                                <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+                                Permissions
+                            </button>
+                        </td>
+                    </tr>
+                    } @empty {
+                    <tr>
+                        <td colspan="5" class="px-6 py-16 text-center">
+                            <p class="text-text-muted font-medium">No users found.</p>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    }
+
+</div>
+
+<!-- ===== PERMISSIONS MODAL ===== -->
+@if (selectedUser()) {
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" (click)="closeModal()"></div>
+
+    <!-- Modal Panel -->
+    <div class="relative w-full max-w-3xl max-h-[90vh] flex flex-col bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl animate-slide-up overflow-hidden">
+
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between px-6 py-5 border-b border-border-primary flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-black text-lg">
+                    {{ (selectedUser()!.email || selectedUser()!.username || '?')[0].toUpperCase() }}
+                </div>
+                <div>
+                    <p class="font-black text-text-primary text-sm">{{ selectedUser()!.username || selectedUser()!.email }}</p>
+                    <span [class]="'inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-widest border ' + getRoleClass(selectedUser()!.role)">
+                        {{ getRoleDisplayName(selectedUser()!.role) }}
+                    </span>
+                </div>
+            </div>
+            <button (click)="closeModal()" class="w-8 h-8 rounded-xl bg-bg-tertiary hover:bg-bg-primary flex items-center justify-center text-text-muted hover:text-text-primary transition-colors">
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <!-- Legend -->
+        <div class="px-6 py-3 border-b border-border-primary/50 bg-bg-primary/30 flex-shrink-0 flex flex-wrap items-center gap-4 text-[10px] font-bold uppercase tracking-widest">
+            <div class="flex items-center gap-1.5 text-emerald-400">
+                <div class="w-3.5 h-3.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+                    <svg class="w-2 h-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                Inherited from Role
+            </div>
+            <div class="flex items-center gap-1.5 text-indigo-400">
+                <div class="w-3.5 h-3.5 rounded-full bg-indigo-500/20 border-2 border-indigo-500 flex items-center justify-center">
+                    <svg class="w-2 h-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                Custom (Added)
+            </div>
+            <div class="flex items-center gap-1.5 text-text-muted">
+                <div class="w-3.5 h-3.5 rounded-full bg-bg-tertiary border border-border-primary"></div>
+                Not Granted
+            </div>
+            <span class="ml-auto text-text-muted">Toggle checkboxes to add/remove extra permissions</span>
+        </div>
+
+        <!-- Scrollable Permission Groups -->
+        <div class="overflow-y-auto flex-1 px-6 py-4 space-y-5">
+            @for (group of permissionGroups(); track group.group) {
+            <div>
+                <p class="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] mb-2">{{ group.group }}</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    @for (perm of group.perms; track perm.key) {
+                    @let isInherited = hasPermission(selectedUser()!.role, perm.key);
+                    @let isCustom = userCustomPermissions().has(perm.key);
+                    <label [for]="'perm-' + perm.key"
+                        class="flex items-center gap-3 p-3 rounded-2xl border cursor-pointer transition-all"
+                        [class]="isInherited ? 'bg-emerald-500/5 border-emerald-500/20 cursor-not-allowed' : isCustom ? 'bg-indigo-500/10 border-indigo-500/30' : 'bg-bg-tertiary/30 border-border-primary hover:border-indigo-500/30'">
+
+                        <!-- Checkbox -->
+                        <input [id]="'perm-' + perm.key" type="checkbox"
+                            [checked]="isInherited || isCustom"
+                            [disabled]="isInherited"
+                            (change)="toggleCustomPermission(perm.key)"
+                            class="w-4 h-4 rounded accent-indigo-500 flex-shrink-0" />
+
+                        <!-- Label -->
+                        <div class="min-w-0">
+                            <p class="text-xs font-bold truncate" [class]="isInherited ? 'text-emerald-400' : isCustom ? 'text-indigo-300' : 'text-text-secondary'">
+                                {{ perm.label }}
+                            </p>
+                            <p class="text-[9px] font-mono text-text-muted/60 truncate">{{ perm.key }}</p>
+                        </div>
+
+                        <!-- Badge -->
+                        @if (isInherited) {
+                        <span class="ml-auto text-[8px] font-bold uppercase tracking-widest text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-md flex-shrink-0">Role</span>
+                        } @else if (isCustom) {
+                        <span class="ml-auto text-[8px] font-bold uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded-md flex-shrink-0">Custom</span>
+                        }
+                    </label>
+                    }
+                </div>
+            </div>
+            }
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex items-center justify-between px-6 py-4 border-t border-border-primary bg-bg-primary/30 flex-shrink-0">
+            <p class="text-xs text-text-muted">
+                <span class="font-bold text-indigo-400">{{ userCustomPermissions().size }}</span> custom permission{{ userCustomPermissions().size !== 1 ? 's' : '' }} selected
+            </p>
+            <div class="flex items-center gap-3">
+                <button (click)="closeModal()" class="px-4 py-2 rounded-xl text-sm font-bold text-text-muted hover:text-text-primary transition-colors">Cancel</button>
+                <button (click)="saveCustomPermissions()" [disabled]="isSaving()"
+                    class="px-5 py-2 rounded-xl text-sm font-bold bg-indigo-500 text-white hover:bg-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-500/30 flex items-center gap-2">
+                    @if (isSaving()) {
+                    <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Saving…
+                    } @else {
+                    <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    Save Permissions
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+}

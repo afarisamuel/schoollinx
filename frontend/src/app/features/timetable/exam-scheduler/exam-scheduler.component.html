@@ -1,0 +1,191 @@
+<div class="p-6 md:p-10 animate-fade-in pb-24">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+        <div>
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent uppercase italic">
+                Temporal Exam Scheduler
+            </h1>
+            <p class="text-sm font-medium text-text-secondary mt-2">
+                Automated constraint-satisfaction scheduling engine for academic evaluations
+            </p>
+        </div>
+    </div>
+
+    <!-- Controls Panel -->
+    <div class="bg-bg-secondary/40 backdrop-blur-xl border border-border-primary/60 rounded-3xl p-8 mb-8 shadow-2xl relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end relative z-10">
+            <!-- Period Selector -->
+            <div class="flex flex-col gap-3">
+                <label class="text-[11px] font-black text-text-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> Academic Period
+                </label>
+                <select [ngModel]="selectedPeriodId()" (ngModelChange)="selectedPeriodId.set($event)"
+                    class="bg-bg-tertiary/60 border border-border-secondary/80 rounded-2xl px-5 py-4 text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all cursor-pointer shadow-inner">
+                    <option value="">Select Period…</option>
+                    @for (p of periods(); track p.id) {
+                    <option [value]="p.id">{{ p.name }} ({{ p.term_type }})</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Class Selector -->
+            <div class="flex flex-col gap-3">
+                <label class="text-[11px] font-black text-text-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> View Exams for Class
+                </label>
+                <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event); loadExamSchedule()"
+                    class="bg-bg-tertiary/60 border border-border-secondary/80 rounded-2xl px-5 py-4 text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all cursor-pointer shadow-inner">
+                    <option value="">Select Class…</option>
+                    @for (c of classes(); track c.id) {
+                    <option [value]="c.id">{{ c.name }}</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Auto-Generate Action Button -->
+            <button (click)="generate()" [disabled]="isGenerating() || !selectedPeriodId()"
+                class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-40 disabled:pointer-events-none text-white text-xs font-black rounded-2xl shadow-xl shadow-indigo-500/10 hover:shadow-indigo-500/25 transition-all active:scale-[0.98] whitespace-nowrap flex items-center justify-center gap-3 border border-indigo-400/20 group">
+                @if (isGenerating()) {
+                <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Compiling Schedule…
+                } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="group-hover:rotate-180 transition-transform duration-500"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                Auto-Generate Engine
+                }
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
+    @if (successMsg()) {
+    <div class="mb-6 p-5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-400 text-sm font-bold flex items-center gap-3 animate-fade-in">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-emerald-400"><polyline points="20 6 9 17 4 12"/></svg>
+        {{ successMsg() }}
+    </div>
+    }
+    @if (errorMsg()) {
+    <div class="mb-6 p-5 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-400 text-sm font-bold flex items-center gap-3 animate-fade-in">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-red-400"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ errorMsg() }}
+    </div>
+    }
+
+    <!-- Exam Sessions Layout -->
+    @if (isLoading()) {
+    <div class="flex flex-col items-center justify-center py-24 gap-4 text-text-muted">
+        <div class="relative w-12 h-12">
+            <div class="absolute inset-0 border-4 border-indigo-500/20 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        <span class="text-sm font-black tracking-wider uppercase text-indigo-400/80 animate-pulse">Resolving Timetable Matrix…</span>
+    </div>
+    } @else if (examSessions().length > 0) {
+    <!-- Main Content Area -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <!-- Timetable Chronological View (Left/Center) -->
+        <div class="xl:col-span-2 flex flex-col gap-6">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-black tracking-wider text-text-primary uppercase flex items-center gap-3">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Chronological Evaluations
+                </h2>
+                <span class="px-4 py-1.5 bg-bg-secondary border border-border-primary rounded-full text-xs font-black text-text-secondary">
+                    {{ examSessions().length }} Scheduled Sessions
+                </span>
+            </div>
+
+            <!-- List layout of elegant cards -->
+            <div class="flex flex-col gap-4">
+                @for (session of examSessions(); track session.id; let idx = $index) {
+                <div class="bg-bg-secondary/40 hover:bg-bg-secondary/70 border border-border-primary hover:border-indigo-500/30 rounded-3xl p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-xl hover:shadow-indigo-500/[0.02] flex flex-col md:flex-row md:items-center justify-between gap-6 group">
+                    <!-- Date Card section -->
+                    <div class="flex items-center gap-5">
+                        <div class="w-16 h-16 rounded-2xl bg-bg-tertiary flex flex-col items-center justify-center border border-border-secondary shadow-md group-hover:border-indigo-500/20 transition-colors">
+                            <span class="text-[10px] font-black text-text-muted uppercase tracking-widest">{{ session.date | date:'LLL' }}</span>
+                            <span class="text-2xl font-black text-indigo-500 mt-0.5 leading-none">{{ session.date | date:'dd' }}</span>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-text-primary uppercase tracking-wider">{{ session.date | date:'EEEE' }}</h3>
+                            <!-- Morning/Afternoon session tag -->
+                            <div class="flex items-center gap-2 mt-1.5">
+                                <span class="w-2 h-2 rounded-full" [ngClass]="session.start_time < '12:00' ? 'bg-amber-500' : 'bg-indigo-500'"></span>
+                                <span class="text-xs font-bold text-text-secondary">
+                                    {{ session.start_time }} – {{ session.end_time }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subject and Details -->
+                    <div class="flex flex-col md:items-end gap-2">
+                        <div class="flex items-center gap-3">
+                            <span class="px-3.5 py-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-black rounded-xl uppercase tracking-widest">
+                                {{ getSubjectDetail(session.subject_id).code }}
+                            </span>
+                            <span class="text-sm font-black text-text-primary">
+                                {{ getSubjectDetail(session.subject_id).name }}
+                            </span>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 text-xs text-text-muted mt-1 font-bold">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
+                            <span>{{ getRoomName(session.facility_id) }}</span>
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+
+        <!-- Sidebar Summary / Action center (Right) -->
+        <div class="flex flex-col gap-6">
+            <h2 class="text-lg font-black tracking-wider text-text-primary uppercase flex items-center gap-3">
+                <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Summary Details
+            </h2>
+
+            <div class="bg-bg-secondary/40 border border-border-primary rounded-3xl p-6 shadow-xl flex flex-col gap-6">
+                <!-- Class metrics -->
+                <div class="flex justify-between items-center border-b border-border-primary pb-4">
+                    <span class="text-xs font-black text-text-muted uppercase tracking-wider">Schedule Status</span>
+                    <span class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black rounded-lg uppercase tracking-wider">
+                        Active
+                    </span>
+                </div>
+
+                <div class="flex justify-between items-center border-b border-border-primary pb-4">
+                    <span class="text-xs font-black text-text-muted uppercase tracking-wider">Evaluation Count</span>
+                    <span class="text-sm font-black text-text-primary">
+                        {{ examSessions().length }} subjects
+                    </span>
+                </div>
+
+                <!-- Guidelines info block -->
+                <div class="bg-indigo-500/5 border border-indigo-500/10 rounded-2xl p-5 mt-2">
+                    <h4 class="text-xs font-black text-indigo-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        Invigilation Rules
+                    </h4>
+                    <p class="text-[11px] text-text-secondary leading-relaxed font-medium">
+                        Exam scheduling adheres to the conflict-free assignment rule: no class is assigned more than one exam per day. Facilities are automatically cross-checked to avoid double-bookings.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    } @else if (selectedClassId()) {
+    <!-- Empty State -->
+    <div class="flex flex-col items-center justify-center py-28 gap-6 bg-bg-secondary/20 border border-dashed border-border-primary rounded-3xl">
+        <div class="w-20 h-20 rounded-3xl bg-bg-tertiary flex items-center justify-center border border-border-secondary shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="indigo-500" stroke-width="1.5"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <div class="text-center max-w-sm">
+            <h3 class="text-base font-black text-text-primary uppercase tracking-wider mb-2">No Evaluations Registered</h3>
+            <p class="text-xs font-semibold text-text-muted leading-relaxed">
+                This class does not currently have any generated exam sessions. Use the Auto-Generate button to construct a conflict-free schedule.
+            </p>
+        </div>
+    </div>
+    }
+</div>
+

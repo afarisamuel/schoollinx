@@ -1,0 +1,182 @@
+<div class="p-12">
+  <div class="max-w-7xl mx-auto">
+    <header class="mb-16 flex items-end justify-between border-b border-border-primary pb-10">
+      <div>
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2 py-0.5 rounded bg-accent-primary/10 border border-accent-primary/20 text-[9px] font-black text-accent-primary uppercase tracking-widest">Global Broadcasts</span>
+        </div>
+        <h1 class="text-5xl font-black text-white tracking-tighter">System <span class="text-accent-primary text-opacity-80">Announcements</span></h1>
+        <p class="text-text-secondary mt-3 max-w-xl text-sm leading-relaxed">Broadcast messages globally to all isolated tenants.</p>
+      </div>
+      <button (click)="openCreateModal()"
+          class="admin-btn-primary px-6 py-3 rounded-2xl flex items-center gap-2 shadow-lg shadow-accent-primary/20">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+          NEW ANNOUNCEMENT
+      </button>
+    </header>
+
+    <!-- Global Notification Area -->
+    <div class="min-h-[4rem] mb-6">
+      @if (successMessage()) {
+        <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold animate-fade-in flex items-center gap-3 shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <span>{{ successMessage() }}</span>
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold animate-fade-in flex items-center gap-3 shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- Filter & Search Controls -->
+    <div class="admin-card !p-4 mb-8 flex flex-col md:flex-row items-center gap-4 bg-bg-secondary/40 shadow-sm border-border-primary/50">
+      <div class="flex-1 relative w-full">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        <input 
+          type="text" 
+          (input)="onSearchChange($event)" 
+          placeholder="Search broadcasts..." 
+          class="admin-input pl-10 w-full bg-bg-tertiary border-border-primary"
+        >
+      </div>
+      
+      <div class="flex gap-4 w-full md:w-auto">
+        <select (change)="onPriorityChange($event)" class="admin-input flex-1 md:w-48 appearance-none bg-bg-tertiary border-border-primary text-text-secondary text-sm font-bold cursor-pointer">
+          <option value="ALL">All Priorities</option>
+          <option value="INFO">Info</option>
+          <option value="WARNING">Warning</option>
+          <option value="CRITICAL">Critical</option>
+        </select>
+
+        <select (change)="onStatusChange($event)" class="admin-input flex-1 md:w-48 appearance-none bg-bg-tertiary border-border-primary text-text-secondary text-sm font-bold cursor-pointer">
+          <option value="ALL">All Statuses</option>
+          <option value="ACTIVE">Active</option>
+          <option value="DISABLED">Disabled</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Grid Area -->
+    <div class="min-h-[400px]">
+      @if (isLoading()) {
+        <div class="flex flex-col items-center justify-center py-24 text-text-muted">
+          <div class="relative w-12 h-12 mb-6 animate-spin">
+            <div class="absolute inset-0 border-4 border-accent-primary/20 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-accent-primary border-t-transparent rounded-full"></div>
+          </div>
+          <p class="text-[10px] font-black uppercase tracking-[0.2em]">Synchronizing Broadcasts...</p>
+        </div>
+      } @else if (filteredAnnouncements().length === 0) {
+        <div class="flex flex-col items-center justify-center py-24 text-center">
+            <div class="w-16 h-16 bg-bg-tertiary rounded-2xl flex items-center justify-center mx-auto mb-6 text-text-muted/30">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+            </div>
+            <h3 class="text-xl font-bold text-white uppercase tracking-tighter">No Broadcasts Found</h3>
+            <p class="text-text-muted text-sm mt-2">Adjust your filters or create a new announcement.</p>
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          @for (ann of filteredAnnouncements(); track ann.id) {
+          <div 
+            class="admin-card flex flex-col gap-4 group transition-all relative overflow-hidden"
+            [ngClass]="ann.is_active ? 'hover:border-accent-primary/40 shadow-premium' : 'opacity-60 grayscale-[30%] hover:opacity-100 hover:grayscale-0'"
+          >
+              <!-- Disabled Overlay Ribbon -->
+              @if (!ann.is_active) {
+                <div class="absolute -right-10 top-5 bg-text-muted/80 text-bg-primary text-[8px] font-black uppercase tracking-widest py-1 px-10 rotate-45 z-10 shadow-sm">
+                  DISABLED
+                </div>
+              }
+
+              <div class="flex items-start justify-between relative z-10 pr-6">
+                  <div>
+                      <h3 class="text-lg font-black text-white tracking-tight leading-tight mb-1" [class.line-through]="!ann.is_active">{{ ann.title }}</h3>
+                      <span class="text-[9px] font-bold text-text-muted uppercase tracking-widest">{{ ann.created_at | date:'mediumDate' }}</span>
+                  </div>
+                  <span class="px-2.5 py-1 text-[9px] font-black rounded-lg uppercase tracking-widest shadow-sm border"
+                      [ngClass]="{
+                          'bg-blue-500/10 text-blue-500 border-blue-500/20': ann.priority === 'INFO',
+                          'bg-amber-500/10 text-amber-500 border-amber-500/20': ann.priority === 'WARNING',
+                          'bg-rose-500/10 text-rose-500 border-rose-500/20': ann.priority === 'CRITICAL'
+                      }">
+                      {{ ann.priority }}
+                  </span>
+              </div>
+              <p class="text-sm text-text-secondary leading-relaxed line-clamp-3 relative z-10 flex-1">{{ ann.content }}</p>
+              
+              <div class="flex gap-2 mt-auto pt-4 border-t border-border-primary relative z-10">
+                  <button (click)="toggleAnnouncement(ann.id, ann.is_active)"
+                      class="flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all"
+                      [class]="ann.is_active ? 'bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white border-emerald-500/20'">
+                      {{ ann.is_active ? 'DISABLE' : 'ENABLE' }}
+                  </button>
+                  <button (click)="openEditModal(ann)"
+                      class="w-10 h-10 flex items-center justify-center bg-bg-tertiary text-text-muted hover:text-accent-primary hover:bg-accent-primary/10 hover:border-accent-primary/30 rounded-xl transition-all border border-border-primary">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  </button>
+                  <button (click)="deleteAnnouncement(ann.id)"
+                      class="w-10 h-10 flex items-center justify-center bg-bg-tertiary text-text-muted hover:text-rose-500 hover:bg-rose-500/10 hover:border-rose-500/30 rounded-xl transition-all border border-border-primary">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
+              </div>
+          </div>
+          }
+        </div>
+      }
+    </div>
+
+  </div>
+</div>
+
+<!-- Announcement Edit/Create Modal (Reactive Forms) -->
+@if (showAnnouncementModal()) {
+<div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div class="admin-card !p-8 w-full max-w-lg animate-scale-in shadow-2xl">
+        <h2 class="text-xl font-black text-white tracking-tighter uppercase mb-6">
+          {{ isEditing() ? 'Edit Announcement' : 'New Announcement' }}
+        </h2>
+        
+        <form [formGroup]="announcementForm" (ngSubmit)="submitAnnouncement()" class="flex flex-col gap-5">
+            <div>
+                <label class="block text-[10px] font-black text-text-muted uppercase mb-1">Title</label>
+                <input type="text" formControlName="title" placeholder="System Maintenance..."
+                    class="admin-input" [class.border-rose-500]="announcementForm.get('title')?.invalid && announcementForm.get('title')?.touched">
+                @if (announcementForm.get('title')?.invalid && announcementForm.get('title')?.touched) {
+                   <div class="text-rose-500 text-[10px] mt-1 font-bold">Title is required</div>
+                }
+            </div>
+            
+            <div>
+                <label class="block text-[10px] font-black text-text-muted uppercase mb-1">Content</label>
+                <textarea formControlName="content" placeholder="Details..." rows="5"
+                    class="admin-input resize-none" [class.border-rose-500]="announcementForm.get('content')?.invalid && announcementForm.get('content')?.touched"></textarea>
+                @if (announcementForm.get('content')?.invalid && announcementForm.get('content')?.touched) {
+                   <div class="text-rose-500 text-[10px] mt-1 font-bold">Content is required</div>
+                }
+            </div>
+            
+            <div>
+                <label class="block text-[10px] font-black text-text-muted uppercase mb-1">Priority Level</label>
+                <select formControlName="priority" class="admin-input cursor-pointer">
+                    <option value="INFO">Info (Blue)</option>
+                    <option value="WARNING">Warning (Yellow)</option>
+                    <option value="CRITICAL">Critical (Red)</option>
+                </select>
+            </div>
+            
+            <div class="flex gap-4 pt-4 mt-2 border-t border-border-primary">
+                <button type="button" (click)="closeModal()"
+                    class="flex-1 py-3 rounded-xl border border-border-primary text-xs font-bold text-text-secondary hover:text-white transition-colors">CANCEL</button>
+                <button type="submit" [disabled]="isSubmitting()"
+                    class="flex-1 admin-btn-primary py-3 text-xs tracking-wider disabled:opacity-50">
+                    {{ isSubmitting() ? 'SAVING...' : (isEditing() ? 'SAVE CHANGES' : 'PUBLISH') }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+}

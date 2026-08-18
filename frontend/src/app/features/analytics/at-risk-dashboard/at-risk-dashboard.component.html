@@ -1,0 +1,124 @@
+<div class="min-h-screen bg-bg-primary text-text-primary p-6 md:p-10 font-sans">
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 border-b border-border-primary pb-6">
+        <div>
+            <div class="flex items-center gap-3 mb-2">
+                <a routerLink="/dashboard" class="text-text-primary/50 hover:text-text-primary transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                </a>
+                <h1 class="text-3xl md:text-4xl font-extralight tracking-tight text-text-primary/90">
+                    At-Risk <span class="font-bold text-rose-500">Students</span>
+                </h1>
+            </div>
+            <p class="text-text-primary/40 font-bold tracking-[0.2em] text-[11px] uppercase">
+                Predictive Drop-out Analytics & Intelligence
+            </p>
+        </div>
+        <div class="flex gap-4 mt-6 md:mt-0">
+            <div class="glass-panel px-6 py-4 flex gap-8 items-center rounded-xl border border-border-primary bg-bg-secondary/50">
+                <div class="flex flex-col items-center">
+                    <span class="text-2xl font-bold text-rose-500">{{ highRiskCount() }}</span>
+                    <span class="text-[10px] font-bold text-text-primary/50 uppercase tracking-widest mt-1">High Risk</span>
+                </div>
+                <div class="w-px h-8 bg-border-primary"></div>
+                <div class="flex flex-col items-center">
+                    <span class="text-2xl font-bold text-amber-500">{{ mediumRiskCount() }}</span>
+                    <span class="text-[10px] font-bold text-text-primary/50 uppercase tracking-widest mt-1">Medium Risk</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Filters -->
+    <div class="flex gap-2 mb-8">
+        <button (click)="setFilter('ALL')" [class]="filterRiskLevel() === 'ALL' ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-500/20' : 'bg-bg-tertiary text-text-primary/70 hover:bg-bg-secondary border-border-primary'" class="px-6 py-2 rounded-full border text-[11px] font-bold uppercase tracking-widest transition-all">
+            All Risk Cases
+        </button>
+        <button (click)="setFilter('HIGH')" [class]="filterRiskLevel() === 'HIGH' ? 'bg-rose-500 text-white border-rose-500 shadow-lg shadow-rose-500/20' : 'bg-bg-tertiary text-text-primary/70 hover:bg-bg-secondary border-border-primary'" class="px-6 py-2 rounded-full border text-[11px] font-bold uppercase tracking-widest transition-all">
+            High Priority
+        </button>
+        <button (click)="setFilter('MEDIUM')" [class]="filterRiskLevel() === 'MEDIUM' ? 'bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/20' : 'bg-bg-tertiary text-text-primary/70 hover:bg-bg-secondary border-border-primary'" class="px-6 py-2 rounded-full border text-[11px] font-bold uppercase tracking-widest transition-all">
+            Medium Risk
+        </button>
+    </div>
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+        <div class="flex flex-col items-center justify-center py-20 text-indigo-400">
+            <svg class="animate-spin w-10 h-10 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span class="text-[10px] font-bold tracking-widest uppercase">Analyzing Student Data...</span>
+        </div>
+    } @else {
+        <!-- Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @for (student of filteredStudents(); track student.student_id) {
+                <div class="glass-panel p-6 rounded-2xl border border-border-primary flex flex-col justify-between hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 relative overflow-hidden group">
+                    
+                    <!-- Decorative Background Gradient based on risk -->
+                    <div class="absolute -right-20 -top-20 w-40 h-40 blur-3xl opacity-10 rounded-full pointer-events-none transition-opacity group-hover:opacity-20"
+                         [ngClass]="student.level === 'HIGH' ? 'bg-rose-500' : 'bg-amber-500'"></div>
+
+                    <div>
+                        <!-- Header / ID -->
+                        <div class="flex justify-between items-start mb-6 relative z-10">
+                            <div>
+                                <h3 class="text-xl font-bold mb-1">{{ student.student_name }}</h3>
+                                <p class="text-text-primary/50 text-[10px] font-bold tracking-widest uppercase font-mono">{{ student.student_id | slice:0:8 }}...</p>
+                            </div>
+                            <span class="px-3 py-1 text-[9px] font-bold uppercase tracking-widest rounded-full border shadow-lg"
+                                  [ngClass]="student.level === 'HIGH' ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 shadow-rose-500/10' : 'bg-amber-500/10 text-amber-400 border-amber-500/30 shadow-amber-500/10'">
+                                {{ student.level }} Risk
+                            </span>
+                        </div>
+
+                        <!-- Core Metrics Grid -->
+                        <div class="grid grid-cols-3 gap-4 mb-6">
+                            <!-- Grades -->
+                            <div class="bg-bg-secondary/40 p-3 rounded-xl border border-border-primary/50 text-center">
+                                <span class="block text-xl font-light mb-1" [class.text-rose-400]="student.grade_avg < 50">{{ student.grade_avg | number:'1.0-1' }}%</span>
+                                <span class="block text-[8px] font-bold uppercase tracking-widest text-text-primary/50">Grades</span>
+                            </div>
+                            <!-- Attendance -->
+                            <div class="bg-bg-secondary/40 p-3 rounded-xl border border-border-primary/50 text-center">
+                                <span class="block text-xl font-light mb-1" [class.text-rose-400]="student.attendance_pct < 75">{{ student.attendance_pct | number:'1.0-0' }}%</span>
+                                <span class="block text-[8px] font-bold uppercase tracking-widest text-text-primary/50">Present</span>
+                            </div>
+                            <!-- Risk Score -->
+                            <div class="bg-bg-secondary/40 p-3 rounded-xl border border-border-primary/50 text-center">
+                                <span class="block text-lg font-light mb-1 text-rose-400">{{ student.risk_score | number:'1.0-0' }}</span>
+                                <span class="block text-[8px] font-bold uppercase tracking-widest text-text-primary/50">Risk Score</span>
+                            </div>
+                        </div>
+
+                        <!-- Warning Factors -->
+                        <div class="space-y-2 mb-6">
+                            <h4 class="text-[9px] font-bold uppercase tracking-widest text-text-primary/40 mb-3">Risk Factors Detected</h4>
+                            @for (reason of student.reasons; track reason) {
+                                <div class="flex items-center gap-2 text-sm text-text-primary/80">
+                                    <div class="w-1.5 h-1.5 rounded-full" [ngClass]="student.level === 'HIGH' ? 'bg-rose-500' : 'bg-amber-500'"></div>
+                                    <span class="font-mono text-[11px]">{{ reason }}</span>
+                                </div>
+                            }
+                            @if (!student.reasons || student.reasons.length === 0) {
+                                <span class="text-xs text-text-primary/40 italic">No specific factors cited.</span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Action Link -->
+                    <a [routerLink]="['/students', student.student_id]" class="block w-full py-3 text-center border-t border-border-primary text-indigo-400 hover:bg-indigo-500/10 text-xs font-bold uppercase tracking-widest transition-colors relative z-10">
+                        View Profile & Intervene
+                    </a>
+                </div>
+            }
+
+            @if (filteredStudents().length === 0) {
+                <div class="col-span-full py-20 text-center border-2 border-dashed border-border-primary rounded-2xl bg-bg-secondary/30">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-4 text-emerald-500 opacity-50"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                    <h3 class="text-xl font-bold text-text-primary/80 mb-2">No students at risk</h3>
+                    <p class="text-sm text-text-primary/50">There are currently no students matching this risk profile.</p>
+                </div>
+            }
+        </div>
+    }
+</div>

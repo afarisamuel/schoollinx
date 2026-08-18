@@ -1,0 +1,267 @@
+<div class="p-6 md:p-10 animate-fade-in">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+        <div>
+            <span class="text-[10px] font-black text-red-400 uppercase tracking-[0.3em] mb-2 block">⚠ Super Admin</span>
+            <h1 class="text-2xl md:text-3xl font-black tracking-tighter text-text-primary uppercase italic">System Control</h1>
+            <p class="text-sm font-medium text-text-secondary mt-1">Global organisation management & platform oversight</p>
+        </div>
+        <div class="flex gap-4">
+            <button *ngIf="activeTab() === 'tenants'" (click)="isAdding.set(true)"
+                class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black rounded-2xl shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-2 active:scale-95">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+                Onboard Organisation
+            </button>
+            <button *ngIf="activeTab() === 'announcements'" (click)="showAnnouncementModal.set(true)"
+                class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black rounded-2xl shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-2 active:scale-95">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+                New Announcement
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-2 p-1 bg-bg-tertiary rounded-2xl w-fit mb-8 border border-border-primary">
+        <button (click)="activeTab.set('tenants')" 
+                class="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                [class]="activeTab() === 'tenants' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-secondary'">
+            Organisations
+        </button>
+        <button (click)="activeTab.set('announcements')" 
+                class="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                [class]="activeTab() === 'announcements' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-secondary'">
+            Global Announcements
+        </button>
+    </div>
+
+    <!-- Alerts -->
+    @if (successMsg()) {
+    <div class="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-400 text-sm font-bold">✓ {{ successMsg() }}</div>
+    }
+    @if (errorMsg()) {
+    <div class="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-400 text-sm font-bold">{{ errorMsg() }}</div>
+    }
+
+    <!-- Stats -->
+    @if (stats()) {
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-10">
+        <div class="glass-panel rounded-3xl p-6 flex flex-col gap-1">
+            <span class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Total Organisations</span>
+            <span class="text-xl md:text-2xl font-black text-text-primary">{{ stats()!.totalTenants }}</span>
+        </div>
+        <div class="glass-panel rounded-3xl p-6 flex flex-col gap-1">
+            <span class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Total Users</span>
+            <span class="text-xl md:text-2xl font-black text-text-primary">{{ stats()!.totalUsers }}</span>
+        </div>
+        <div class="glass-panel rounded-3xl p-6 flex flex-col gap-1">
+            <span class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Active Sessions</span>
+            <span class="text-xl md:text-2xl font-black text-emerald-400">{{ stats()!.activeSessions }}</span>
+        </div>
+        <div class="glass-panel rounded-3xl p-6 flex flex-col gap-1">
+            <span class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">System Health</span>
+            <span class="text-xl font-black text-emerald-400">{{ stats()!.systemHealth }}</span>
+        </div>
+    </div>
+    }
+
+    <!-- Search & Grid Tab -->
+    @if (activeTab() === 'tenants') {
+    <div class="relative mb-6 w-full md:w-80">
+        <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none text-text-muted">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </div>
+        <input type="text" placeholder="Search organisations…" (input)="onSearch($event)"
+            class="w-full pl-11 pr-4 py-3 bg-bg-tertiary border border-border-secondary rounded-2xl text-sm font-bold text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all">
+    </div>
+
+    <!-- Tenant Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (tenant of filteredTenants(); track tenant.id) {
+        <div class="glass-panel rounded-[28px] p-7 flex flex-col gap-5 group">
+            <div class="flex items-start justify-between">
+                <div>
+                    <h3 class="text-lg font-black text-text-primary uppercase tracking-tight">{{ tenant.name }}</h3>
+                    <span class="text-xs font-bold text-indigo-400">{{ tenant.subdomain }}.app</span>
+                </div>
+                <span class="px-3 py-1 text-[10px] font-black rounded-lg uppercase tracking-widest"
+                    [class]="tenant.is_active ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'">
+                    {{ tenant.is_active ? 'Active' : 'Inactive' }}
+                </span>
+            </div>
+            <div class="text-[10px] font-bold text-text-muted font-mono bg-bg-tertiary rounded-xl px-3 py-2 border border-border-primary">
+                Schema: {{ tenant.schema_name || '—' }}
+            </div>
+            <div class="flex gap-3 mt-auto pt-3 border-t border-border-primary">
+                <button (click)="resendSetup(tenant)"
+                    class="p-2 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-lg transition-colors border border-indigo-500/20" title="Resend Setup Email">
+                    <i class="fas fa-envelope"></i>
+                </button>
+                <button (click)="openBillingConfig(tenant)"
+                    class="p-2 bg-purple-500/10 text-purple-400 hover:bg-purple-500 hover:text-white rounded-lg transition-colors border border-purple-500/20" title="Configure Billing">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </button>
+                <button (click)="impersonateTenant(tenant)"
+                    class="p-2 bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white rounded-lg transition-colors border border-amber-500/20" title="Impersonate Tenant (Ghost Login)">
+                    <i class="fas fa-ghost"></i>
+                </button>
+                <button (click)="exportTenantData(tenant)"
+                    class="p-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-lg transition-colors border border-emerald-500/20" title="Export Tenant Data">
+                    <i class="fas fa-download"></i>
+                </button>
+                <button (click)="wipeTenantData(tenant)"
+                    class="p-2 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-lg transition-colors border border-rose-500/20" title="DANGER: Wipe Tenant Data">
+                    <i class="fas fa-dumpster-fire"></i>
+                </button>
+                <button (click)="toggleStatus(tenant)"
+                    class="flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl border border-border-primary transition-all"
+                    [class]="tenant.is_active ? 'bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white hover:border-red-500' : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white hover:border-emerald-500'">
+                    {{ tenant.is_active ? 'Deactivate' : 'Activate' }}
+                </button>
+            </div>
+        </div>
+        } @empty {
+        <div class="col-span-full flex flex-col items-center py-24 gap-5">
+            <div class="w-20 h-20 rounded-full bg-bg-tertiary flex items-center justify-center border border-dashed border-border-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-text-muted"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div class="text-center">
+                <h3 class="text-xl font-bold text-text-primary uppercase tracking-tighter">No Organisations</h3>
+                <p class="text-text-muted text-sm mt-1">Onboard the first organisation to get started.</p>
+            </div>
+        </div>
+        }
+    </div>
+    }
+
+    <!-- Announcements Tab -->
+    @if (activeTab() === 'announcements') {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (ann of announcements(); track ann.id) {
+        <div class="glass-panel rounded-[28px] p-7 flex flex-col gap-4">
+            <div class="flex items-start justify-between">
+                <div>
+                    <h3 class="text-lg font-black text-text-primary tracking-tight">{{ ann.title }}</h3>
+                    <span class="text-[10px] font-bold text-text-muted uppercase tracking-widest">{{ ann.created_at | date:'medium' }}</span>
+                </div>
+                <span class="px-3 py-1 text-[10px] font-black rounded-lg uppercase tracking-widest"
+                    [ngClass]="{
+                        'bg-blue-500/10 text-blue-500': ann.priority === 'INFO',
+                        'bg-amber-500/10 text-amber-500': ann.priority === 'WARNING',
+                        'bg-rose-500/10 text-rose-500': ann.priority === 'CRITICAL'
+                    }">
+                    {{ ann.priority }}
+                </span>
+            </div>
+            <p class="text-sm text-text-secondary line-clamp-3">{{ ann.content }}</p>
+            <div class="flex gap-3 mt-auto pt-3 border-t border-border-primary">
+                <button (click)="toggleAnnouncement(ann.id, ann.is_active)"
+                    class="flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border border-border-primary transition-all"
+                    [class]="ann.is_active ? 'bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white border-emerald-500/20'">
+                    {{ ann.is_active ? 'Disable' : 'Enable' }}
+                </button>
+                <button (click)="deleteAnnouncement(ann.id)"
+                    class="w-10 h-10 flex items-center justify-center bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl transition-all border border-rose-500/20">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+        } @empty {
+        <div class="col-span-full flex flex-col items-center py-24 gap-5">
+            <div class="text-center">
+                <h3 class="text-xl font-bold text-text-primary uppercase tracking-tighter">No Announcements</h3>
+                <p class="text-text-muted text-sm mt-1">Create a global announcement to notify all tenants.</p>
+            </div>
+        </div>
+        }
+    </div>
+    }
+
+    <!-- Onboard Modal -->
+    @if (isAdding()) {
+    <div class="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-fade-in">
+        <div class="absolute inset-0 bg-bg-primary" (click)="isAdding.set(false)"></div>
+        <div class="bg-bg-secondary w-full max-w-lg rounded-[40px] border border-border-secondary p-10 shadow-3xl relative z-10 overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+            <h2 class="text-2xl font-black text-text-primary tracking-tighter uppercase italic mb-8">Onboard Organisation</h2>
+            <div class="flex flex-col gap-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Organisation Name</label>
+                        <input type="text" [(ngModel)]="draft.name" placeholder="e.g. Accra High School"
+                            class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-indigo-500/50">
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Subdomain</label>
+                        <input type="text" [(ngModel)]="draft.subdomain" placeholder="e.g. accra-high"
+                            class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-indigo-500/50">
+                    </div>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Admin Email</label>
+                    <input type="email" [(ngModel)]="draft.admin_email" placeholder="admin@school.edu.gh"
+                        class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-indigo-500/50">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Admin First Name</label>
+                        <input type="text" [(ngModel)]="draft.admin_first_name" placeholder="Kwame"
+                            class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-indigo-500/50">
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Admin Last Name</label>
+                        <input type="text" [(ngModel)]="draft.admin_last_name" placeholder="Mensah"
+                            class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-indigo-500/50">
+                    </div>
+                </div>
+                <div class="flex gap-4 pt-2">
+                    <button type="button" (click)="isAdding.set(false)"
+                        class="flex-1 py-4 bg-bg-tertiary hover:bg-bg-secondary text-text-primary font-black text-[10px] uppercase tracking-widest rounded-2xl border border-border-primary transition-all">Cancel</button>
+                    <button type="button" (click)="onboard()" [disabled]="isSaving()"
+                        class="flex-[2] py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-xl shadow-indigo-500/20 transition-all active:scale-95">
+                        {{ isSaving() ? 'Onboarding…' : 'Onboard & Send Setup Email' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+
+    <!-- Announcement Modal -->
+    @if (showAnnouncementModal()) {
+    <div class="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-fade-in">
+        <div class="absolute inset-0 bg-bg-primary" (click)="showAnnouncementModal.set(false)"></div>
+        <div class="bg-bg-secondary w-full max-w-lg rounded-[40px] border border-border-secondary p-10 shadow-3xl relative z-10">
+            <h2 class="text-2xl font-black text-text-primary tracking-tighter uppercase italic mb-8">New Announcement</h2>
+            <div class="flex flex-col gap-5">
+                <div class="flex flex-col gap-2">
+                    <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Title</label>
+                    <input type="text" [(ngModel)]="announcementDraft().title" placeholder="System Maintenance..."
+                        class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-indigo-500/50">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Content</label>
+                    <textarea [(ngModel)]="announcementDraft().content" placeholder="Details..." rows="4"
+                        class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none"></textarea>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Priority</label>
+                    <select [(ngModel)]="announcementDraft().priority"
+                        class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none">
+                        <option value="INFO">Info (Blue)</option>
+                        <option value="WARNING">Warning (Yellow)</option>
+                        <option value="CRITICAL">Critical (Red)</option>
+                    </select>
+                </div>
+                <div class="flex gap-4 pt-2">
+                    <button type="button" (click)="showAnnouncementModal.set(false)"
+                        class="flex-1 py-4 bg-bg-tertiary hover:bg-bg-secondary text-text-primary font-black text-[10px] uppercase tracking-widest rounded-2xl border border-border-primary transition-all">Cancel</button>
+                    <button type="button" (click)="createAnnouncement()"
+                        class="flex-[2] py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-xl shadow-indigo-500/20 transition-all active:scale-95">
+                        Publish
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+</div>

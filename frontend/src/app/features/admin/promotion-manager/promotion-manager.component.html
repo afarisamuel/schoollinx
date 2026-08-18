@@ -1,0 +1,251 @@
+<div class="flex flex-col gap-8 animate-fade-in p-4 lg:p-8">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex flex-col gap-1">
+            <h1 class="text-2xl md:text-3xl font-black text-text-primary tracking-tight">Student Promotion Manager</h1>
+            <p class="text-text-secondary font-medium">Bulk advancement and academic cycle transition control</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="flex flex-col items-end">
+                <span class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Promoting To</span>
+                <span class="text-sm font-bold text-indigo-400">{{ nextAcademicYear() || '—' }}</span>
+            </div>
+            <div class="w-10 h-10 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                <div class="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
+            </div>
+        </div>
+    </div>
+
+    @if (promotionMessage()) {
+    <div class="p-4 rounded-2xl flex items-center justify-between border font-bold"
+         [class.bg-indigo-500/10]="promotionMessage().startsWith('Successfully')"
+         [class.border-indigo-500/20]="promotionMessage().startsWith('Successfully')"
+         [class.text-indigo-400]="promotionMessage().startsWith('Successfully')"
+         [class.bg-rose-500/10]="!promotionMessage().startsWith('Successfully')"
+         [class.border-rose-500/20]="!promotionMessage().startsWith('Successfully')"
+         [class.text-rose-400]="!promotionMessage().startsWith('Successfully')">
+        <div class="flex items-center gap-3">
+            @if (promotionMessage().startsWith('Successfully')) {
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z"/></svg>
+            }
+            <span class="text-sm">{{ promotionMessage() }}</span>
+        </div>
+        <button (click)="promotionMessage.set('')" class="opacity-60 hover:opacity-100 transition-opacity">✕</button>
+    </div>
+    }
+
+    <div class="grid grid-cols-12 gap-8">
+        <!-- Filter & List Section -->
+        <div class="col-span-full lg:col-span-8 flex flex-col gap-6">
+            <div class="p-6 bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl flex flex-col gap-6">
+
+                <!-- Filters Row -->
+                <div class="flex flex-wrap items-end gap-4 border-b border-border-primary pb-6">
+                    <!-- Level Filter -->
+                    <div class="flex flex-col gap-1.5 flex-1 min-w-[160px]">
+                        <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Current Level</label>
+                        <select [(ngModel)]="selectedLevel" class="bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-indigo-500/50 transition-colors appearance-none cursor-pointer">
+                            @for(level of scholasticLevels(); track level.id) {
+                                <option [value]="level.ordinal">{{ level.name }}</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Class Filter -->
+                    <div class="flex flex-col gap-1.5 flex-1 min-w-[160px]">
+                        <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Class</label>
+                        <select [(ngModel)]="selectedClassId" class="bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-indigo-500/50 transition-colors appearance-none cursor-pointer">
+                            <option value="all">All Classes</option>
+                            @for (cls of classes(); track cls.id) {
+                                <option [value]="cls.id">{{ cls.name }}</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="flex flex-col gap-1.5 flex-1 min-w-[200px]">
+                        <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Search</label>
+                        <div class="relative">
+                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg>
+                            <input [(ngModel)]="searchQuery" type="text" placeholder="Search by name..."
+                                   class="w-full bg-bg-tertiary border border-border-secondary rounded-xl pl-9 pr-4 py-3 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-indigo-500/50 transition-colors">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Toolbar -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-text-secondary">{{ filteredStudents().length }} students</span>
+                        @if (selectedStudentIds.size > 0) {
+                            <span class="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 rounded-full px-2 py-0.5">{{ selectedStudentIds.size }} selected</span>
+                        }
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button (click)="selectAll()" class="text-[10px] font-bold text-text-muted hover:text-indigo-400 transition-colors uppercase tracking-widest">Select All</button>
+                        <button (click)="clearSelection()" class="text-[10px] font-bold text-text-muted hover:text-rose-400 transition-colors uppercase tracking-widest">Clear</button>
+                    </div>
+                </div>
+
+                <!-- Student List -->
+                <div class="flex flex-col gap-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                    @for (student of filteredStudents(); track student.id) {
+                    <div class="p-4 rounded-2xl border transition-all cursor-pointer group flex items-center justify-between"
+                         [class.bg-indigo-500/10]="selectedStudentIds.has(student.id!)"
+                         [class.border-indigo-500/40]="selectedStudentIds.has(student.id!)"
+                         [class.bg-bg-tertiary]="!selectedStudentIds.has(student.id!)"
+                         [class.border-border-primary]="!selectedStudentIds.has(student.id!)"
+                         (click)="toggleSelection(student.id!)">
+                        
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center font-black text-xs uppercase transition-colors"
+                                 [class.bg-indigo-500/20]="selectedStudentIds.has(student.id!)"
+                                 [class.text-indigo-400]="selectedStudentIds.has(student.id!)"
+                                 [class.bg-bg-primary]="!selectedStudentIds.has(student.id!)"
+                                 [class.text-text-muted]="!selectedStudentIds.has(student.id!)">
+                                {{ student.first_name[0] }}{{ student.last_name[0] }}
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm font-bold text-text-primary group-hover:text-indigo-400 transition-colors">{{ student.first_name }} {{ student.last_name }}</span>
+                                <span class="text-[10px] text-text-muted font-medium">{{ getClassName(student.class_id) }}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-6">
+                            <div class="hidden md:flex flex-col items-end">
+                                <span class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Cycle</span>
+                                <span class="text-xs font-medium text-text-primary opacity-80">{{ student.academic_year || '—' }}</span>
+                            </div>
+                            <div class="w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all"
+                                 [class.bg-indigo-500]="selectedStudentIds.has(student.id!)"
+                                 [class.border-indigo-500]="selectedStudentIds.has(student.id!)"
+                                 [class.border-border-secondary]="!selectedStudentIds.has(student.id!)">
+                                @if (selectedStudentIds.has(student.id!)) {
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="4"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    } @empty {
+                    <div class="py-20 text-center bg-bg-tertiary border border-dashed border-border-secondary rounded-2xl">
+                        <svg class="mx-auto mb-3 text-text-muted" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path stroke-linecap="round" stroke-linejoin="round" d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/></svg>
+                        <span class="text-sm font-medium text-text-muted italic">No students found for the selected filters.</span>
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Panel Section -->
+        <div class="col-span-full lg:col-span-4 flex flex-col gap-6">
+            <div class="p-8 bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl flex flex-col gap-8 sticky top-8">
+                <div class="flex flex-col gap-1">
+                    <h2 class="text-xl font-bold text-text-primary">Promotion Settings</h2>
+                    <p class="text-xs text-text-secondary">Configure the transition parameters for selected students</p>
+                </div>
+
+                <!-- Stats summary -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-bg-tertiary rounded-2xl p-4 flex flex-col gap-1">
+                        <span class="text-[10px] font-bold text-text-muted uppercase tracking-widest">In Filter</span>
+                        <span class="text-2xl font-black text-text-primary">{{ filteredStudents().length }}</span>
+                    </div>
+                    <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4 flex flex-col gap-1">
+                        <span class="text-[10px] font-bold text-indigo-400/70 uppercase tracking-widest">Selected</span>
+                        <span class="text-2xl font-black text-indigo-400">{{ selectedStudentIds.size }}</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-6">
+                    <!-- Next Academic Year -->
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">Next Academic Year Cycle</label>
+                        <input [(ngModel)]="nextAcademicYear" type="text" placeholder="e.g. 2024/2025"
+                               class="bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-3 text-sm text-text-primary font-bold focus:outline-none focus:border-indigo-500/50 transition-colors">
+                        <p class="text-[9px] text-indigo-400/60 pl-1">Students will be recorded under this enrollment cycle.</p>
+                    </div>
+
+                    <!-- Optional class reassignment -->
+                    @if (selectedLevel() < maxLevelOrdinal()) {
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest pl-1">New Class Assignment <span class="normal-case text-indigo-400/50">(optional)</span></label>
+                        <select [(ngModel)]="nextClassId" class="bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-indigo-500/50 transition-colors appearance-none cursor-pointer">
+                            <option value="">Keep Existing Class</option>
+                            @for (cls of classes(); track cls.id) {
+                                <option [value]="cls.id">{{ cls.name }}</option>
+                            }
+                        </select>
+                    </div>
+                    } @else {
+                        <div class="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
+                            <p class="text-xs font-bold text-amber-500">⚠ Graduation Path</p>
+                            <p class="text-[10px] text-amber-500/70 mt-1">Students at the maximum level will transition to <strong>ALUMNI</strong> status upon promotion.</p>
+                        </div>
+                    }
+
+                    <!-- Summary stats -->
+                    <div class="flex flex-col gap-3 pt-4 border-t border-border-primary">
+                        <div class="flex items-center justify-between text-xs font-bold">
+                            <span class="text-text-muted uppercase tracking-tighter">Current Level</span>
+                            <span class="text-text-primary">{{ getLevelName(selectedLevel()) }}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs font-bold">
+                            <span class="text-text-muted uppercase tracking-tighter">Next Action</span>
+                            <span class="text-indigo-400">{{ selectedLevel() >= maxLevelOrdinal() ? 'Graduate → ALUMNI' : 'Advance to ' + getLevelName(selectedLevel() + 1) }}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs font-bold">
+                            <span class="text-text-muted uppercase tracking-tighter">New Cycle</span>
+                            <span class="text-text-primary">{{ nextAcademicYear() || '—' }}</span>
+                        </div>
+                    </div>
+
+                    <button (click)="confirmPromote()" [disabled]="selectedStudentIds.size === 0 || isPromoting() || !nextAcademicYear()"
+                            class="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white text-sm font-black transition-all hover:scale-[1.02] active:scale-100 disabled:opacity-30 disabled:hover:scale-100 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20">
+                        @if (isPromoting()) {
+                            <span class="flex items-center justify-center gap-2">
+                                <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                                Executing...
+                            </span>
+                        } @else {
+                            Execute Advancement ({{ selectedStudentIds.size }})
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+@if (showConfirm()) {
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" (click)="showConfirm.set(false)">
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-8 max-w-md w-full shadow-2xl flex flex-col gap-6 animate-slide-down" (click)="$event.stopPropagation()">
+        <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#6366f1" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z"/></svg>
+            </div>
+            <div>
+                <h3 class="text-lg font-black text-text-primary">Confirm Advancement</h3>
+                <p class="text-sm text-text-muted mt-1">This action will permanently advance <strong class="text-text-primary">{{ selectedStudentIds.size }}</strong> student(s) to the next level under cycle <strong class="text-indigo-400">{{ nextAcademicYear() }}</strong>.</p>
+            </div>
+        </div>
+
+        @if (selectedLevel() >= maxLevelOrdinal()) {
+            <div class="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-xs font-bold text-amber-500">
+                ⚠ These students will be graduated and marked as ALUMNI. This cannot be undone.
+            </div>
+        }
+
+        <div class="flex gap-3">
+            <button (click)="showConfirm.set(false)" class="flex-1 py-3 bg-bg-tertiary border border-border-secondary rounded-xl text-sm font-bold text-text-primary hover:bg-bg-primary transition-all">
+                Cancel
+            </button>
+            <button (click)="promote()" class="flex-1 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white text-sm font-black hover:opacity-90 transition-all shadow-lg shadow-indigo-500/20">
+                Confirm & Advance
+            </button>
+        </div>
+    </div>
+</div>
+}

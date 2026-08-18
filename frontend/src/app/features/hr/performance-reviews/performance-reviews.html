@@ -1,0 +1,164 @@
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-xl font-light text-text-primary">Performance Reviews</h2>
+            <p class="text-[10px] text-text-muted uppercase tracking-widest font-bold mt-1">Staff Evaluation & Goal Tracking</p>
+        </div>
+        <button (click)="showForm.set(!showForm())" class="px-5 py-2.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-2xl text-xs font-bold uppercase tracking-widest transition-all border border-indigo-500/20">
+            {{ showForm() ? 'Cancel' : '+ New Review' }}
+        </button>
+    </div>
+
+    <!-- New Review Form -->
+    @if (showForm()) {
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-xl animate-metro-in">
+        <h3 class="text-sm font-bold text-text-primary mb-4">Submit Performance Review</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Staff Member</label>
+                <select [(ngModel)]="formStaffId" class="w-full bg-bg-tertiary border border-border-primary rounded-2xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+                    <option value="" disabled>Select Staff</option>
+                    @for (s of staffList(); track s.id) {
+                        <option [value]="s.id">{{ s.first_name }} {{ s.last_name }} — {{ s.job_title }}</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Score (out of 5)</label>
+                <input type="number" [(ngModel)]="formScore" min="0" max="5" step="0.1" class="w-full bg-bg-tertiary border border-border-primary rounded-2xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-indigo-500/50" />
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Review Period</label>
+                <input type="text" [(ngModel)]="formReviewPeriod" placeholder="e.g. Q1 2026, Annual 2025" class="w-full bg-bg-tertiary border border-border-primary rounded-2xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-indigo-500/50" />
+            </div>
+            <div class="md:col-span-2">
+                <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Comments</label>
+                <textarea [(ngModel)]="formComments" rows="3" class="w-full bg-bg-tertiary border border-border-primary rounded-2xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none"></textarea>
+            </div>
+            <div class="md:col-span-2">
+                <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Strengths</label>
+                <textarea [(ngModel)]="formStrengths" rows="2" class="w-full bg-bg-tertiary border border-border-primary rounded-2xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none"></textarea>
+            </div>
+            <div class="md:col-span-2">
+                <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Areas for Improvement</label>
+                <textarea [(ngModel)]="formAreasForImprovement" rows="2" class="w-full bg-bg-tertiary border border-border-primary rounded-2xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none"></textarea>
+            </div>
+            <div class="md:col-span-2">
+                <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Goals for Next Period</label>
+                <textarea [(ngModel)]="formGoals" rows="2" class="w-full bg-bg-tertiary border border-border-primary rounded-2xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none"></textarea>
+            </div>
+            <div class="md:col-span-2">
+                <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Recommendation</label>
+                <select [(ngModel)]="formRecommendation" class="w-full bg-bg-tertiary border border-border-primary rounded-2xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+                    <option value="PROMOTE">Promote</option>
+                    <option value="RETAIN">Retain (Satisfactory)</option>
+                    <option value="PIP">Performance Improvement Plan (PIP)</option>
+                    <option value="TERMINATE">Terminate</option>
+                </select>
+            </div>
+        </div>
+        <button (click)="submitReview()" class="mt-4 px-6 py-2.5 bg-indigo-500 text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg shadow-indigo-500/20">
+            Submit Review
+        </button>
+    </div>
+    }
+
+    <!-- Staff Selector -->
+    <div class="flex flex-wrap gap-2">
+        @for (s of staffList(); track s.id) {
+            <button (click)="loadReviews(s.id)" class="px-4 py-2 rounded-2xl text-xs font-bold transition-all border"
+                    [ngClass]="selectedStaffId() === s.id ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' : 'bg-bg-tertiary text-text-muted border-border-primary hover:text-text-primary'">
+                {{ s.first_name }} {{ s.last_name }}
+            </button>
+        }
+    </div>
+
+    <!-- Reviews Table -->
+    @if (selectedStaffId()) {
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-xl">
+        <table class="w-full">
+            <thead>
+                <tr class="bg-bg-tertiary/50 border-b border-border-primary">
+                    <th class="text-left px-6 py-4 text-[10px] font-bold text-text-muted uppercase tracking-widest">Period</th>
+                    <th class="text-left px-6 py-4 text-[10px] font-bold text-text-muted uppercase tracking-widest">Score</th>
+                    <th class="text-left px-6 py-4 text-[10px] font-bold text-text-muted uppercase tracking-widest">Feedback</th>
+                    <th class="text-left px-6 py-4 text-[10px] font-bold text-text-muted uppercase tracking-widest">Recommendation</th>
+                    <th class="text-left px-6 py-4 text-[10px] font-bold text-text-muted uppercase tracking-widest">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (review of reviews(); track review.id) {
+                <tr class="border-b border-border-primary/50 hover:bg-bg-tertiary/30 transition-colors">
+                    <td class="px-6 py-4 text-sm text-text-primary">
+                        <div class="font-bold">{{ review.review_period || 'N/A' }}</div>
+                        <div class="text-[10px] text-text-muted">{{ review.review_date | date:'mediumDate' }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="text-lg font-bold" [ngClass]="getScoreColor(review.score)">{{ review.score }}</span>
+                        <span class="text-text-muted text-xs">/5</span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-text-muted max-w-xs">
+                        <div class="truncate font-medium text-text-primary mb-1">Strengths: {{ review.strengths || 'N/A' }}</div>
+                        <div class="truncate text-xs">Areas to improve: {{ review.areas_for_improvement || 'N/A' }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg border"
+                              [ngClass]="{
+                                  'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': review.recommendation === 'PROMOTE',
+                                  'bg-blue-500/10 text-blue-400 border-blue-500/20': review.recommendation === 'RETAIN',
+                                  'bg-amber-500/10 text-amber-400 border-amber-500/20': review.recommendation === 'PIP',
+                                  'bg-rose-500/10 text-rose-400 border-rose-500/20': review.recommendation === 'TERMINATE'
+                              }">
+                            {{ review.recommendation || 'N/A' }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-3 py-1 text-[9px] font-bold uppercase tracking-widest rounded-full border"
+                              [ngClass]="getStatusClasses(review.status)">
+                            {{ review.status === 'EMPLOYEE_REVIEW' ? 'Pending Sign-off' : review.status }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            @if (review.status === 'DRAFT') {
+                            <button (click)="sendForEmployeeReview(review)"
+                                    class="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-all">
+                                Send for Review
+                            </button>
+                            }
+                            @if (review.status === 'EMPLOYEE_REVIEW') {
+                            <button (click)="signingOffId.set(review.id)"
+                                    class="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all">
+                                Sign Off
+                            </button>
+                            }
+                        </div>
+                        <!-- Sign-off panel -->
+                        @if (signingOffId() === review.id) {
+                        <div class="mt-2 flex flex-col gap-2 p-3 rounded-xl bg-bg-tertiary border border-border-primary">
+                            <textarea [value]="employeeComment()" (input)="employeeComment.set($any($event.target).value)"
+                                      rows="2" placeholder="Employee comments (optional)…"
+                                      class="w-full bg-bg-secondary border border-border-primary rounded-lg px-3 py-2 text-xs text-text-primary focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+                            <div class="flex gap-2 justify-end">
+                                <button (click)="signingOffId.set(null)" class="px-3 py-1 text-xs font-bold text-text-muted">Cancel</button>
+                                <button (click)="completeReview(review)" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-500 transition-all">Confirm Sign-off</button>
+                            </div>
+                        </div>
+                        }
+                    </td>
+                </tr>
+                } @empty {
+                <tr>
+                    <td colspan="5" class="px-6 py-10 text-center text-text-muted text-sm">No reviews found for this staff member.</td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    } @else {
+    <div class="text-center py-12 border border-dashed border-border-primary rounded-3xl">
+        <p class="text-text-muted text-sm">Select a staff member above to view their performance history.</p>
+    </div>
+    }
+</div>

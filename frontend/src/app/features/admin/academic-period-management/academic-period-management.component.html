@@ -1,0 +1,323 @@
+<div class="relative min-h-screen">
+    <!-- Premium Background Effects -->
+    <div class="absolute inset-x-0 top-0 h-[600px] overflow-hidden pointer-events-none z-0">
+        <div class="absolute top-0 right-1/4 w-[600px] h-[600px] bg-fuchsia-500/5 blur-[160px] rounded-full"></div>
+        <div class="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-500/5 blur-[140px] rounded-full"></div>
+    </div>
+
+    <div class="flex flex-col gap-8 animate-fade-in p-6 md:p-10 max-w-[1440px] mx-auto relative z-10">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-4">
+            <div>
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="px-3 py-1 bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-400/20 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">Timeline Management</span>
+                </div>
+                <h1 class="text-3xl md:text-5xl font-black tracking-tighter text-text-primary mb-2">
+                    Academic <span class="bg-gradient-to-r from-fuchsia-400 to-indigo-500 bg-clip-text text-transparent">Periods</span>
+                </h1>
+                <p class="text-lg font-medium text-text-muted max-w-2xl">Configure the institutional calendar, define semesters or terms, and manage the active reporting cadence.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                @if(!showForm()) {
+                <button class="group relative overflow-hidden px-6 py-3 bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-bold text-sm uppercase tracking-wider rounded-2xl transition-all active:scale-95 shadow-lg shadow-fuchsia-500/20 flex items-center gap-3" (click)="showForm.set(true)">
+                    <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Define New Period
+                </button>
+                }
+            </div>
+        </header>
+
+        <!-- Form Section -->
+        @if(showForm()) {
+        <div class="bg-bg-secondary/60 backdrop-blur-xl border border-border-primary/50 rounded-[2.5rem] p-8 md:p-10 shadow-2xl animate-fade-in relative overflow-hidden">
+            <div class="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-fuchsia-500/10 to-indigo-500/10 blur-[80px] rounded-full pointer-events-none"></div>
+            
+            <div class="flex items-center gap-4 mb-8 relative z-10">
+                <div class="w-12 h-12 bg-bg-primary rounded-2xl flex items-center justify-center border border-border-primary shadow-inner">
+                    <svg class="text-fuchsia-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                </div>
+                <h2 class="text-2xl font-black text-text-primary tracking-tight">{{ periodForm.value.id ? 'Refine Configuration' : 'Establish Period' }}</h2>
+            </div>
+            
+            <form [formGroup]="periodForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                <div class="flex flex-col gap-2">
+                    <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Period Name</label>
+                    <input type="text" formControlName="name" placeholder="E.g. 2023/2024 Academic Year" class="bg-bg-primary border border-border-primary rounded-2xl px-5 py-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-fuchsia-500/30 focus:border-fuchsia-500 transition-all text-text-primary shadow-inner">
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Structure Type</label>
+                    <div class="relative">
+                        <select formControlName="term_type" class="w-full bg-bg-primary border border-border-primary rounded-2xl px-5 py-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-fuchsia-500/30 focus:border-fuchsia-500 transition-all text-text-primary appearance-none shadow-inner">
+                            <option class="bg-bg-secondary text-text-primary" value="Semester">Semesters (Standard)</option>
+                            <option class="bg-bg-secondary text-text-primary" value="Term">Terms (Trimester)</option>
+                            <option class="bg-bg-secondary text-text-primary" value="Quarter">Quarters</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-5 flex items-center pointer-events-none text-text-muted">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Term Frequency</label>
+                    <input type="number" formControlName="term_count" min="1" max="6" class="bg-bg-primary border border-border-primary rounded-2xl px-5 py-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-fuchsia-500/30 focus:border-fuchsia-500 transition-all text-text-primary shadow-inner">
+                </div>
+
+                <div class="md:col-span-3 flex justify-end gap-4 mt-6 border-t border-border-primary/50 pt-8">
+                    <button type="button" (click)="resetForm()" class="px-6 py-3 bg-bg-primary hover:bg-bg-tertiary border border-border-primary text-text-primary font-bold text-sm rounded-2xl transition-all">Cancel</button>
+                    <button type="submit" class="px-8 py-3 bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-bold text-sm rounded-2xl transition-all shadow-lg shadow-fuchsia-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center" [disabled]="periodForm.invalid || isSubmitting()">
+                        @if(isSubmitting()) {
+                            <div class="w-4 h-4 border-2 border-border-primary border-t-white rounded-full animate-spin mr-2"></div>
+                        }
+                        {{ periodForm.value.id ? 'Update Strategy' : 'Finalize Configuration' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+        }
+
+        <!-- Periods Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+            @for(period of periods(); track period.id) {
+            <div class="bg-bg-secondary/60 backdrop-blur-xl border border-border-primary/50 rounded-[2.5rem] p-8 shadow-2xl transition-all duration-500 hover:-translate-y-2 group relative overflow-hidden" [class.border-emerald-500/50]="period.is_active" [class.shadow-emerald-500/10]="period.is_active">
+                
+                <!-- Active Indicator Glow -->
+                @if(period.is_active) {
+                    <div class="absolute inset-0 bg-emerald-500/5 pointer-events-none"></div>
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 blur-[60px] rounded-full pointer-events-none"></div>
+                }
+                
+                <div class="flex justify-between items-start mb-6 relative z-10">
+                    <div class="flex flex-col">
+                        <h3 class="text-2xl font-black text-text-primary tracking-tight mb-2">{{ period.name }}</h3>
+                        <div class="flex flex-wrap items-center gap-2 mt-1">
+                            <span class="px-3 py-1.5 bg-bg-primary border border-border-primary text-text-primary shadow-sm text-[10px] font-black rounded-xl uppercase tracking-widest">{{ period.term_count }} {{ period.term_type }}s</span>
+                            @if(period.is_active) {
+                                <span class="px-3 py-1.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-black rounded-xl uppercase tracking-widest shadow-sm flex items-center gap-1.5"><div class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div> Active Period</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button (click)="onEdit(period)" class="p-3 rounded-xl bg-bg-primary border border-border-primary text-text-muted hover:text-fuchsia-400 hover:border-fuchsia-400/30 hover:bg-fuchsia-500/10 transition-all opacity-0 group-hover:opacity-100 shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                        <button (click)="onDelete(period.id)" class="p-3 rounded-xl bg-bg-primary border border-border-primary text-text-muted hover:text-red-400 hover:border-red-400/30 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg></button>
+                    </div>
+                </div>
+
+                <div class="relative z-10 border-t border-border-primary/50 pt-6 mt-6">
+                    <p class="text-sm text-text-secondary font-medium leading-relaxed mb-6">
+                        {{ period.is_active ? 'Currently dictating institutional reporting cadence. All live scholastic records are synced to this period.' : 'Standby period. Not currently impacting institutional results.' }}
+                    </p>
+                    
+                    <div class="flex flex-col gap-5">
+                        <div class="flex flex-col gap-2.5">
+                            <span class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Configured Terms</span>
+                            <div class="flex flex-wrap items-center gap-2">
+                                @for(term of period.terms || []; track term.id) {
+                                    <div class="px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black rounded-xl uppercase tracking-widest cursor-help shadow-sm" [title]="term.start_date + ' to ' + term.end_date">
+                                        <span class="opacity-50 mr-1">T{{term.term_number}}</span> {{ term.name }}
+                                    </div>
+                                }
+                                @if ((period.terms || []).length === 0) {
+                                    <span class="text-xs text-text-muted italic px-2 py-1 bg-bg-primary rounded-lg border border-border-primary border-dashed">No terms configured</span>
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-3 mt-2">
+                            <button (click)="openCalendar(period)" class="flex-1 py-3 bg-bg-primary hover:bg-bg-tertiary border border-border-primary text-text-primary text-[11px] font-black rounded-2xl uppercase tracking-widest transition-all shadow-sm">Setup Terms</button>
+                            @if(!period.is_active) {
+                                <button (click)="onActivate(period.id)" class="flex-1 py-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[11px] font-black rounded-2xl uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10"/></svg> Activate</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            } @empty {
+                @if(!isLoading()) {
+                    <div class="lg:col-span-2 xl:col-span-3 py-32 text-center bg-bg-secondary/30 backdrop-blur-md border-2 border-dashed border-border-primary/50 rounded-[3rem]">
+                        <div class="flex flex-col items-center gap-6 max-w-md mx-auto">
+                            <div class="w-24 h-24 rounded-[2rem] bg-bg-primary flex items-center justify-center border border-border-primary shadow-xl rotate-3">
+                                <svg class="text-text-muted opacity-50" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <span class="text-2xl font-black text-text-primary tracking-tight">Timeline Empty</span>
+                                <span class="text-sm text-text-secondary font-medium tracking-tight">Establish your first academic period to enable curriculum tracking and grade reporting.</span>
+                            </div>
+                            <button class="mt-4 px-6 py-3 bg-bg-primary hover:bg-bg-tertiary border border-border-primary text-text-primary font-bold text-sm rounded-2xl transition-all shadow-sm" (click)="showForm.set(true)">Define First Period</button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+        
+        @if(isLoading()) {
+            <div class="fixed inset-0 flex items-center justify-center bg-bg-primary/80 backdrop-blur-sm z-50">
+                <div class="flex flex-col items-center gap-4">
+                    <div class="w-16 h-16 border-4 border-fuchsia-500/20 border-t-fuchsia-500 rounded-full animate-spin"></div>
+                    <span class="text-sm font-black tracking-widest text-text-muted uppercase">Syncing...</span>
+                </div>
+            </div>
+        }
+
+        <!-- Academic Term Calendar Modal -->
+        @if(showCalendar() && selectedPeriod()) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-fade-in bg-bg-primary/80 backdrop-blur-md" (click)="closeCalendar()">
+            <div class="bg-bg-secondary/90 backdrop-blur-xl border border-border-primary/50 rounded-[2.5rem] w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl relative overflow-hidden" (click)="$event.stopPropagation()">
+                <!-- Modal Header -->
+                <div class="p-8 border-b border-border-primary/50 flex items-center justify-between bg-bg-secondary/50 sticky top-0 z-20">
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center border border-indigo-500/20">
+                                <svg class="text-indigo-400" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            </div>
+                            <h2 class="text-2xl font-black text-text-primary tracking-tight">Academic Calendar</h2>
+                        </div>
+                        <p class="text-sm text-text-secondary font-medium ml-13">{{ selectedPeriod()?.name }} - Term Configuration</p>
+                    </div>
+                    <button (click)="closeCalendar()" class="w-12 h-12 bg-bg-primary hover:bg-bg-tertiary border border-border-primary rounded-2xl text-text-muted flex items-center justify-center transition-all active:scale-95 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                </div>
+
+                <div class="p-8 overflow-y-auto flex-1 flex flex-col gap-10">
+                    <!-- Existing Terms Timeline -->
+                    <div class="space-y-5">
+                        <h3 class="text-[11px] font-black text-text-muted uppercase tracking-[0.2em] ml-1 flex items-center gap-3">
+                            Configured Terms 
+                            <span class="px-2.5 py-1 bg-bg-primary border border-border-primary rounded-lg text-text-primary">{{ selectedPeriod()?.terms?.length || 0 }} / {{ selectedPeriod()?.term_count }}</span>
+                        </h3>
+                        @if((selectedPeriod()?.terms?.length || 0) > 0) {
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                @for(term of selectedPeriod()!.terms; track term.id) {
+                                    <div class="p-6 rounded-[1.5rem] bg-bg-primary border shadow-sm flex flex-col gap-5 relative group transition-all"
+                                         [class.border-emerald-500/40]="selectedPeriod()?.current_term === term.term_number"
+                                         [class.border-amber-500/40]="term.is_locked"
+                                         [class.border-border-primary]="selectedPeriod()?.current_term !== term.term_number && !term.is_locked">
+                                        <div class="flex justify-between items-start">
+                                            <div class="flex items-center gap-4">
+                                                <div class="w-12 h-12 rounded-[1rem] flex items-center justify-center text-lg font-black border shadow-inner"
+                                                     [class.bg-gradient-to-br]="true"
+                                                     [class.from-emerald-500/10]="selectedPeriod()?.current_term === term.term_number"
+                                                     [class.to-emerald-500/10]="selectedPeriod()?.current_term === term.term_number"
+                                                     [class.text-emerald-400]="selectedPeriod()?.current_term === term.term_number"
+                                                     [class.border-emerald-500/20]="selectedPeriod()?.current_term === term.term_number"
+                                                     [class.from-indigo-500/10]="selectedPeriod()?.current_term !== term.term_number"
+                                                     [class.to-violet-500/10]="selectedPeriod()?.current_term !== term.term_number"
+                                                     [class.text-indigo-400]="selectedPeriod()?.current_term !== term.term_number"
+                                                     [class.border-indigo-500/20]="selectedPeriod()?.current_term !== term.term_number">
+                                                    T{{ term.term_number }}
+                                                </div>
+                                                <div class="flex flex-col gap-1.5">
+                                                    <span class="text-base font-black text-text-primary">{{ term.name }}</span>
+                                                    <div class="flex items-center gap-1.5">
+                                                        @if(selectedPeriod()?.current_term === term.term_number) {
+                                                            <span class="text-[9px] bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 px-2 py-0.5 rounded-md font-black uppercase tracking-widest flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div> Active</span>
+                                                        }
+                                                        @if(term.is_locked) {
+                                                            <span class="text-[9px] bg-amber-500/20 border border-amber-500/30 text-amber-400 px-2 py-0.5 rounded-md font-black uppercase tracking-widest flex items-center gap-1">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                                                Locked
+                                                            </span>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button (click)="onEditTerm(term)" class="w-9 h-9 bg-bg-secondary border border-border-primary text-text-muted hover:text-indigo-400 hover:border-indigo-400/30 rounded-xl flex items-center justify-center transition-all shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                                                <button (click)="onDeleteTerm(term.id)" class="w-9 h-9 bg-bg-secondary border border-border-primary text-text-muted hover:text-red-400 hover:border-red-400/30 rounded-xl flex items-center justify-center transition-all shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l18 0"></path><path d="M19 6v14a2 2 0 0 1-2 2h-10a2 2 0 0 1-2-2v-14"></path><path d="M8 6v-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between text-[11px] font-black text-text-muted uppercase tracking-widest bg-bg-secondary p-3 rounded-xl border border-border-primary/50">
+                                            <div class="flex items-center gap-2"><svg class="text-indigo-400" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> {{ term.start_date | date:'MMM d, y' }}</div>
+                                            <span class="opacity-50">→</span>
+                                            <div class="flex items-center gap-2"><svg class="text-violet-400" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> {{ term.end_date | date:'MMM d, y' }}</div>
+                                        </div>
+                                        <!-- Action Row -->
+                                        <div class="flex items-center gap-2 pt-1 border-t border-border-primary/50">
+                                            @if(selectedPeriod()?.current_term !== term.term_number) {
+                                                <button (click)="onActivateTerm(term)" class="flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10-10"/></svg>
+                                                    Set Active
+                                                </button>
+                                            } @else {
+                                                <div class="flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl flex items-center justify-center gap-1.5 bg-emerald-500/5 border border-emerald-500/20 text-emerald-600 cursor-default">
+                                                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                                                    Current Term
+                                                </div>
+                                            }
+                                            <button (click)="onToggleTermLock(term)" class="flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5"
+                                                    [class.bg-amber-500/10]="!term.is_locked"
+                                                    [class.hover:bg-amber-500/20]="!term.is_locked"
+                                                    [class.border]="true"
+                                                    [class.border-amber-500/20]="!term.is_locked"
+                                                    [class.text-amber-400]="!term.is_locked"
+                                                    [class.bg-bg-secondary]="term.is_locked"
+                                                    [class.hover:bg-bg-tertiary]="term.is_locked"
+                                                    [class.border-border-primary]="term.is_locked"
+                                                    [class.text-text-muted]="term.is_locked">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                                    @if(term.is_locked) {
+                                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path><line x1="12" y1="16" x2="12" y2="16"></line>
+                                                    } @else {
+                                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                                    }
+                                                </svg>
+                                                {{ term.is_locked ? 'Unlock Term' : 'Lock Term' }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        } @else {
+                            <div class="p-10 bg-bg-primary border border-dashed border-border-primary rounded-[2rem] text-center flex flex-col items-center justify-center gap-3">
+                                <div class="w-12 h-12 bg-bg-secondary rounded-full flex items-center justify-center text-text-muted mb-2 border border-border-primary"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+                                <span class="font-bold text-text-primary">No terms defined</span>
+                                <span class="text-sm text-text-muted max-w-sm">Use the form below to configure the start and end dates for your academic terms.</span>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Add/Edit Term Form -->
+                    <div class="bg-indigo-500/5 border border-indigo-500/20 rounded-[2rem] p-8 mt-auto">
+                        <h3 class="text-sm font-black text-text-primary tracking-tight mb-6 flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-indigo-500"></div>
+                            {{ termForm.value.id ? 'Update Term Configuration' : 'Add New Term' }}
+                        </h3>
+                        <form [formGroup]="termForm" (ngSubmit)="onTermSubmit()" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div class="flex flex-col gap-2">
+                                <label class="text-[10px] font-black text-indigo-400/80 uppercase tracking-widest ml-1">Term Number</label>
+                                <input type="number" formControlName="term_number" class="bg-bg-primary border border-border-primary rounded-2xl px-5 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all text-text-primary shadow-inner" min="1">
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="text-[10px] font-black text-indigo-400/80 uppercase tracking-widest ml-1">Term Name</label>
+                                <input type="text" formControlName="name" placeholder="e.g. First Term" class="bg-bg-primary border border-border-primary rounded-2xl px-5 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all text-text-primary shadow-inner">
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="text-[10px] font-black text-indigo-400/80 uppercase tracking-widest ml-1">Start Date</label>
+                                <input type="date" formControlName="start_date" class="bg-bg-primary border border-border-primary rounded-2xl px-5 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all text-text-primary shadow-inner custom-date-input">
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="text-[10px] font-black text-indigo-400/80 uppercase tracking-widest ml-1">End Date</label>
+                                <input type="date" formControlName="end_date" class="bg-bg-primary border border-border-primary rounded-2xl px-5 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all text-text-primary shadow-inner custom-date-input">
+                            </div>
+                            <div class="md:col-span-2 flex justify-end gap-4 mt-4 pt-4 border-t border-indigo-500/10">
+                                @if(termForm.value.id) {
+                                    <button type="button" (click)="termForm.reset({ term_number: (selectedPeriod()?.terms?.length || 0) + 1 })" class="px-6 py-3 bg-bg-primary border border-border-primary text-text-primary rounded-2xl font-bold text-sm hover:bg-bg-tertiary transition-all">Cancel Edit</button>
+                                }
+                                <button type="submit" [disabled]="termForm.invalid || isSubmitting()" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
+                                    @if(isSubmitting()) {
+                                        <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                                    }
+                                    {{ termForm.value.id ? 'Save Changes' : 'Add Term' }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+</div>

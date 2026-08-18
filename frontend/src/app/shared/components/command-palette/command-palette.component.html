@@ -1,0 +1,44 @@
+@if (isOpen()) {
+<div class="palette-overlay" (click)="close()">
+    <div class="palette-container glass-panel" (click)="$event.stopPropagation()">
+        <div class="palette-header">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="search-icon">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+            </svg>
+            <input #searchInput type="text" placeholder="Search students, teachers, or pages... (Esc to close)"
+                (input)="onSearch($any($event.target).value)" (keydown.esc)="close()"
+                (keydown.arrowdown)="moveSelection(1)" (keydown.arrowup)="moveSelection(-1)"
+                (keydown.enter)="selectItem()">
+        </div>
+
+        <div class="palette-results">
+            @for (result of results(); track result.path; let i = $index) {
+            <div class="result-item" [class.selected]="i === selectedIndex()" (mouseenter)="selectedIndex.set(i)"
+                (click)="navigateTo(result.path)">
+                <span class="result-type badge" [attr.data-type]="result.type">{{ result.type }}</span>
+                <span class="result-title">{{ result.title }}</span>
+                <span class="result-hint">Navigate to page</span>
+            </div>
+            } @empty {
+            @if (query()) {
+            <div class="no-results">No matches found for "{{ query() }}"</div>
+            } @else {
+            <div class="palette-tips">
+                <div class="tip-item">Type to search students, teachers, or navigation links</div>
+                <div class="tip-item"><kbd>↑</kbd> <kbd>↓</kbd> to navigate</div>
+                <div class="tip-item"><kbd>Enter</kbd> to select</div>
+            </div>
+            }
+            }
+        </div>
+
+        <div class="palette-footer">
+            <div class="shortcut"><span>ESC</span> to close</div>
+            <div class="shortcut"><span>RET</span> to select</div>
+        </div>
+    </div>
+</div>
+}

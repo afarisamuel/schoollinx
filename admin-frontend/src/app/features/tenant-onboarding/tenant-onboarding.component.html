@@ -1,0 +1,76 @@
+<div class="p-12 flex justify-center items-center min-h-screen">
+  <div class="max-w-2xl w-full">
+    <header class="mb-12 text-center border-b border-border-primary pb-8">
+      <div class="inline-flex items-center gap-2 mb-4 mx-auto">
+        <span class="px-2 py-0.5 rounded bg-accent-primary/10 border border-accent-primary/20 text-[9px] font-black text-accent-primary uppercase tracking-widest">Global Administrative Hub</span>
+      </div>
+      <h1 class="text-4xl font-black text-white tracking-tighter">Provision <span class="text-accent-primary text-opacity-80">Infrastructure</span></h1>
+      <p class="text-text-secondary mt-3 text-sm leading-relaxed max-w-lg mx-auto">Initialize a new isolated data schema and dispatch administrative credentials.</p>
+    </header>
+
+    @if (errorMessage()) {
+      <div class="mb-8 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold animate-fade-in flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <div class="admin-card">
+      <form [formGroup]="onboardingForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+        <div>
+          <label class="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 pl-1">Organizational Entity</label>
+          <input type="text" formControlName="name" 
+            class="admin-input py-4 text-base" 
+            placeholder="e.g. Apex High School" />
+          @if (onboardingForm.get('name')?.invalid && onboardingForm.get('name')?.touched) {
+            <span class="text-[10px] text-rose-500 font-bold mt-2 ml-1 flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+              Required field
+            </span>
+          }
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 pl-1">Isolated Subdomain Prefix</label>
+          <div class="flex items-center gap-3">
+            <input type="text" formControlName="subdomain" 
+              class="admin-input flex-1 py-4 text-base" 
+              placeholder="e.g. apex" />
+            <span class="text-text-muted font-bold text-sm tracking-wider w-32 border-l border-border-primary pl-4">.schoollinx.com</span>
+          </div>
+          @if (onboardingForm.get('subdomain')?.invalid && onboardingForm.get('subdomain')?.touched) {
+            <span class="text-[10px] text-rose-500 font-bold mt-2 ml-1 flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+              Alphanumeric characters & hyphens only
+            </span>
+          }
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 pl-1">Principal Administrator Email</label>
+          <input type="email" formControlName="admin_email" 
+            class="admin-input py-4 text-base" 
+            placeholder="e.g. director@apex.edu" />
+          @if (onboardingForm.get('admin_email')?.invalid && onboardingForm.get('admin_email')?.touched) {
+            <span class="text-[10px] text-rose-500 font-bold mt-2 ml-1 flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+              Valid email format required
+            </span>
+          }
+        </div>
+
+        <button type="submit" 
+          class="admin-btn-primary py-4 mt-6 text-sm tracking-widest uppercase flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
+          [disabled]="onboardingForm.invalid || isSubmitting()">
+          @if (isSubmitting()) {
+            <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            <span>Provisioning Schema...</span>
+          } @else {
+            <span>Initialize Onboarding Protocol</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+          }
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

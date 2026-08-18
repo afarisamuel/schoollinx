@@ -1,0 +1,195 @@
+<div class="flex flex-col gap-8 animate-fade-in">
+
+    <!-- Header -->
+    <div class="relative overflow-hidden bg-bg-secondary border border-border-primary rounded-[2.5rem] p-10 shadow-2xl">
+        <div class="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 blur-[120px] rounded-full -mr-20 -mt-20 pointer-events-none"></div>
+        <div class="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <div>
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-1 rounded-full bg-emerald-500"></div>
+                    <span class="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400">Live Collection</span>
+                </div>
+                <h1 class="text-3xl md:text-5xl font-black tracking-tighter text-text-primary leading-none">
+                    Daily Fee <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Collection</span>
+                </h1>
+                <p class="text-text-secondary font-medium mt-3">
+                    {{ today | date:'EEEE, MMMM d, y' }} — Collect and log daily fees in real-time.
+                </p>
+            </div>
+
+            <!-- My Stats Card -->
+            <div class="bg-gradient-to-br from-emerald-600 to-teal-600 rounded-3xl p-6 shadow-2xl min-w-[220px]">
+                <p class="text-[10px] font-black text-emerald-100 uppercase tracking-widest">Collected by Me Today</p>
+                <p class="text-4xl font-black text-white mt-1">{{ myTotal() | currency:'GHS':'symbol':'1.2-2' }}</p>
+                <p class="text-[10px] text-emerald-200 mt-2">{{ myCollections().length }} transaction(s)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Pending Bills Table -->
+        <div class="lg:col-span-2 flex flex-col gap-4">
+            <!-- Route Selection -->
+            <div class="flex items-center gap-4 bg-bg-secondary border border-border-primary rounded-2xl p-4">
+                <div class="flex-grow">
+                    <label class="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Select Collection Scope</label>
+                    <select [ngModel]="selectedRouteId()" (ngModelChange)="selectedRouteId.set($event); onRouteSelected()"
+                        class="w-full bg-bg-primary border border-border-primary rounded-xl px-4 py-2 text-sm font-medium text-text-primary focus:outline-none focus:border-emerald-500/50">
+                        <option value="">-- Select a Route --</option>
+                        <option value="walk-ins">Walk-in Students (Canteen Only)</option>
+                        @for (route of routes(); track route.id) {
+                            <option [value]="route.id">{{ route.name }} (Daily: {{ route.daily_fee | currency:'GHS' }})</option>
+                        }
+                    </select>
+                </div>
+                <div class="flex-none pt-5">
+                     <button (click)="generateBills()" [disabled]="isGenerating() || !selectedRouteId()"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-indigo-500/20 active:scale-95">
+                        @if (isGenerating()) {
+                            <span class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            Generating...
+                        } @else {
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                            Generate Bills
+                        }
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="relative group">
+                <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none text-text-muted group-focus-within:text-emerald-400 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                </div>
+                <input type="text" placeholder="Search by student name or ID..."
+                    [value]="searchTerm()"
+                    (input)="searchTerm.set($any($event.target).value)"
+                    class="w-full pl-11 pr-4 py-3.5 bg-bg-secondary border border-border-primary rounded-2xl text-sm font-medium text-text-primary focus:outline-none focus:border-emerald-500/50 transition-all">
+            </div>
+
+            <!-- Loading State -->
+            @if (isLoading()) {
+                <div class="flex flex-col items-center justify-center py-20 bg-bg-secondary border border-border-primary rounded-3xl">
+                    <div class="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p class="text-text-muted text-sm font-bold">Loading pending bills...</p>
+                </div>
+            } @else {
+                <!-- Bills Table -->
+                <div class="bg-bg-secondary border border-border-primary rounded-3xl shadow-xl overflow-hidden">
+                    <div class="flex items-center justify-between px-6 py-4 border-b border-border-primary">
+                        <div>
+                            <h2 class="text-base font-black text-text-primary">Pending Collections</h2>
+                            <p class="text-[10px] text-text-muted uppercase tracking-widest font-bold">{{ filteredBills().length }} students remaining</p>
+                        </div>
+                        <div class="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                            <span class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>
+                            <span class="text-[9px] font-black text-amber-400 uppercase tracking-widest">Awaiting Collection</span>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (bill of filteredBills(); track bill.id) {
+                                <tr class="table-row">
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 flex items-center justify-center text-indigo-400 font-black text-xs border border-indigo-500/20">
+                                                {{ bill.student?.first_name?.charAt(0) }}{{ bill.student?.last_name?.charAt(0) }}
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-text-primary text-sm">{{ bill.student?.first_name }} {{ bill.student?.last_name }}</p>
+                                                <p class="text-[10px] font-mono text-text-muted">{{ bill.student_id | slice:0:8 }}...</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="font-bold text-text-primary">{{ bill.amount | currency:'GHS':'symbol':'1.2-2' }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                            Pending
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button (click)="collect(bill)"
+                                            [disabled]="isCollecting() === bill.id"
+                                            class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-500/20 active:scale-95">
+                                            @if (isCollecting() === bill.id) {
+                                                <span class="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></span>
+                                            } @else {
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                            }
+                                            Collect
+                                        </button>
+                                    </td>
+                                </tr>
+                                } @empty {
+                                <tr>
+                                    <td colspan="4">
+                                        <div class="flex flex-col items-center justify-center py-16 gap-3">
+                                            <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-emerald-400"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                            </div>
+                                            <p class="text-sm font-bold text-text-primary">All bills collected!</p>
+                                            <p class="text-xs text-text-muted">No pending fees remaining for today.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- My Collections Sidebar -->
+        <div class="flex flex-col gap-4">
+            <div class="bg-bg-secondary border border-border-primary rounded-3xl shadow-xl overflow-hidden">
+                <div class="px-6 py-4 border-b border-border-primary">
+                    <h2 class="text-base font-black text-text-primary">My Audit Log</h2>
+                    <p class="text-[10px] text-text-muted uppercase tracking-widest font-bold">Collections made by you today</p>
+                </div>
+                <div class="divide-y divide-border-primary max-h-[500px] overflow-y-auto custom-scrollbar">
+                    @for (bill of myCollections(); track bill.id) {
+                    <div class="flex items-center justify-between px-5 py-3.5">
+                        <div>
+                            <p class="text-sm font-bold text-text-primary">{{ bill.student?.first_name }} {{ bill.student?.last_name }}</p>
+                            <p class="text-[10px] text-text-muted">{{ bill.collected_at | date:'h:mm a' }}</p>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-sm font-black text-emerald-400">{{ bill.amount | currency:'GHS':'symbol':'1.2-2' }}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-emerald-400"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                    </div>
+                    } @empty {
+                    <div class="flex flex-col items-center justify-center py-14 gap-2 opacity-40">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-text-muted"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                        <p class="text-[11px] font-bold text-text-muted uppercase tracking-widest">No collections yet</p>
+                    </div>
+                    }
+                </div>
+                @if (myCollections().length > 0) {
+                <div class="px-6 py-4 border-t border-border-primary bg-emerald-500/5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black text-text-muted uppercase tracking-widest">Total Today</span>
+                        <span class="text-lg font-black text-emerald-400">{{ myTotal() | currency:'GHS':'symbol':'1.2-2' }}</span>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

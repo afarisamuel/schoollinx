@@ -1,0 +1,81 @@
+<div class="p-6 bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <div class="flex items-center justify-between">
+            <h1 class="text-2xl font-bold text-gray-900">Disciplinary Incident Tracking</h1>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Report Form -->
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <h2 class="text-lg font-semibold mb-4 text-gray-800">Log New Incident</h2>
+                <form (ngSubmit)="reportIncident()" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Incident Type</label>
+                        <select [(ngModel)]="newIncident.incident_type" name="incident_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option *ngFor="let type of incidentTypes" [value]="type">{{type}}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Description</label>
+                        <textarea [(ngModel)]="newIncident.description" name="description" required rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Action Taken</label>
+                        <input type="text" [(ngModel)]="newIncident.action_taken" name="action_taken" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Demerit Points</label>
+                        <input type="number" [(ngModel)]="newIncident.points_deducted" name="points_deducted" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    </div>
+                    <button type="submit" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Record Incident
+                    </button>
+                </form>
+            </div>
+
+            <!-- Incidents History -->
+            <div class="md:col-span-2 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div class="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                    <h3 class="text-lg font-medium text-gray-900">Student Incident History</h3>
+                    <span class="text-sm text-gray-500">Showing for Student ID: {{currentStudentId | slice:0:8}}...</span>
+                </div>
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date/Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr *ngFor="let inc of incidents">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{inc.incident_type}}</div>
+                                <div class="text-xs text-gray-500">{{inc.created_at | date:'shortDate'}}</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">{{inc.description}}</div>
+                                <div class="text-xs text-red-600 mt-1" *ngIf="inc.points_deducted > 0">-{{inc.points_deducted}} Points</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                                      [ngClass]="inc.status === 'OPEN' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'">
+                                    {{inc.status}}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button *ngIf="inc.status === 'OPEN'" (click)="resolveIncident(inc.id)" class="text-indigo-600 hover:text-indigo-900">Mark Resolved</button>
+                            </td>
+                        </tr>
+                        <tr *ngIf="incidents.length === 0">
+                            <td colspan="4" class="px-6 py-4 text-center text-gray-500">No disciplinary incidents found for this student.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>

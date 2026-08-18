@@ -1,0 +1,25 @@
+/* Only custom animations — all layout/color is handled by Tailwind */
+
+@keyframes cardIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: none; }
+}
+
+.card-in {
+    opacity: 0;
+    animation: cardIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Progress bar animates from 0 → width on mount */
+@keyframes growBar {
+    from { width: 0; }
+}
+
+.progress-bar {
+    animation: growBar 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Ring stroke transition helper (SVG stroke-dasharray doesn't animate via Tailwind) */
+.ring-stroke {
+    transition: stroke-dasharray 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}

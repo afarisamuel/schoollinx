@@ -1,0 +1,242 @@
+<div class="p-12">
+  <div class="max-w-7xl mx-auto">
+    <header class="mb-12 border-b border-border-primary pb-10 flex justify-between items-end">
+      <div>
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 text-[9px] font-black text-purple-500 uppercase tracking-widest">Partner Program</span>
+        </div>
+        <h1 class="text-5xl font-black text-white tracking-tighter">Affiliate <span class="text-purple-500 text-opacity-80">Network</span></h1>
+        <p class="text-text-secondary mt-3 max-w-xl text-sm leading-relaxed">Manage sales agents, track their school referrals, and monitor commission payouts.</p>
+      </div>
+      <button (click)="openCreateModal()" class="admin-btn-primary px-6 py-3 text-xs tracking-wider flex items-center gap-2 bg-purple-600 hover:bg-purple-500 border-purple-500">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+        ADD AFFILIATE
+      </button>
+    </header>
+
+    <!-- Global Notifications -->
+    <div class="min-h-[4rem] mb-4">
+      @if (successMessage()) {
+        <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold animate-fade-in flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+          <span>{{ successMessage() }}</span>
+        </div>
+      }
+      @if (errorMessage()) {
+        <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold animate-fade-in flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+    </div>
+
+    <div class="admin-card !p-0 overflow-hidden border-border-primary/50 shadow-lg">
+      @if (isLoading()) {
+        <div class="py-24 text-center">
+          <div class="w-10 h-10 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p class="text-xs font-bold text-text-muted uppercase tracking-widest">Loading network...</p>
+        </div>
+      } @else if (affiliates().length === 0) {
+        <div class="py-24 flex flex-col items-center">
+          <div class="w-16 h-16 bg-bg-tertiary rounded-2xl flex items-center justify-center mb-4 text-text-muted/50">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+          </div>
+          <h3 class="text-lg font-black text-white uppercase tracking-tighter">No Affiliates Found</h3>
+          <p class="text-text-muted text-sm mt-1">Add your first sales agent to start building the network.</p>
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-left whitespace-nowrap">
+            <thead class="bg-bg-tertiary/30">
+              <tr>
+                <th class="pl-8 py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Agent Identity</th>
+                <th class="py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Comm. Rate</th>
+                <th class="py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Portfolio</th>
+                <th class="py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Total Earned</th>
+                <th class="py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Status</th>
+                <th class="pr-8 py-4 text-right text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-primary">
+              @for (agent of affiliates(); track agent.id) {
+                <tr class="hover:bg-purple-500/[0.02] transition-colors group" [class.opacity-60]="!agent.is_active">
+                  <td class="pl-8 py-4">
+                    <div class="font-bold text-sm text-white group-hover:text-purple-400 transition-colors">{{ agent.name }}</div>
+                    <div class="text-xs text-text-secondary mt-0.5">{{ agent.email }}</div>
+                  </td>
+                  <td class="py-4 font-mono text-xs text-purple-400">{{ (agent.commission_rate * 100) | number:'1.0-2' }}%</td>
+                  <td class="py-4">
+                    <button (click)="openReferrals(agent)" class="inline-flex items-center gap-1.5 px-3 py-1 bg-bg-tertiary hover:bg-purple-500/10 hover:text-purple-400 text-xs font-bold text-white rounded-lg border border-border-primary transition-all group/btn">
+                      <span>{{ agent.referrals }} Schools</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 opacity-50 group-hover/btn:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                    </button>
+                  </td>
+                  <td class="py-4 text-sm font-black text-emerald-400">GH₵ {{ agent.total_earned | number:'1.2-2' }}</td>
+                  <td class="py-4">
+                    <button (click)="toggleAffiliate(agent.id, agent.is_active)" 
+                      class="px-2.5 py-1 text-[9px] font-black uppercase tracking-widest rounded-md border transition-colors" 
+                      [class]="agent.is_active ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500 hover:text-white' : 'bg-rose-500/10 text-rose-500 border-rose-500/20 hover:bg-rose-500 hover:text-white'">
+                      {{ agent.is_active ? 'ACTIVE' : 'SUSPENDED' }}
+                    </button>
+                  </td>
+                  <td class="pr-8 py-4 text-right">
+                    <div class="flex items-center justify-end gap-2">
+                      <button (click)="openEditModal(agent)" class="w-8 h-8 flex items-center justify-center rounded-lg bg-bg-tertiary text-text-muted hover:text-purple-400 hover:bg-purple-500/10 border border-border-primary transition-all" title="Edit Affiliate">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                      </button>
+                      <button (click)="deleteAffiliate(agent.id)" class="w-8 h-8 flex items-center justify-center rounded-lg bg-bg-tertiary text-text-muted hover:text-rose-500 hover:bg-rose-500/10 border border-border-primary transition-all" title="Delete Affiliate">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+
+<!-- Affiliate Create/Edit Modal -->
+@if (showModal()) {
+<div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md animate-fade-in">
+    <div class="admin-card !p-8 w-full max-w-md animate-scale-in shadow-2xl border-purple-500/20">
+        <h2 class="text-2xl font-black text-white tracking-tighter uppercase mb-6">
+          {{ isEditing() ? 'Edit Partner' : 'New Partner' }}
+        </h2>
+        
+        <form [formGroup]="affiliateForm" (ngSubmit)="submitAffiliate()" class="flex flex-col gap-5">
+            <div>
+                <label class="block text-[9px] font-black text-text-muted uppercase mb-1.5 tracking-widest">Full Name</label>
+                <input type="text" formControlName="name" placeholder="John Doe..."
+                    class="admin-input" [class.border-rose-500]="affiliateForm.get('name')?.invalid && affiliateForm.get('name')?.touched">
+            </div>
+            
+            <div>
+                <label class="block text-[9px] font-black text-text-muted uppercase mb-1.5 tracking-widest">Email Address</label>
+                <input type="email" formControlName="email" placeholder="john@example.com"
+                    class="admin-input" [class.border-rose-500]="affiliateForm.get('email')?.invalid && affiliateForm.get('email')?.touched">
+            </div>
+
+            <div>
+                <label class="block text-[9px] font-black text-text-muted uppercase mb-1.5 tracking-widest">Phone Number (Optional)</label>
+                <input type="text" formControlName="phone" placeholder="+233 54 123 4567" class="admin-input">
+            </div>
+            
+            <div>
+                <label class="block text-[9px] font-black text-text-muted uppercase mb-1.5 tracking-widest">Commission Rate (Decimal 0.0 - 1.0)</label>
+                <input type="number" formControlName="commission_rate" step="0.01" min="0" max="1"
+                    class="admin-input font-mono" [class.border-rose-500]="affiliateForm.get('commission_rate')?.invalid && affiliateForm.get('commission_rate')?.touched">
+                <div class="text-[10px] text-purple-400 mt-1 font-bold">Equivalent to {{ (affiliateForm.get('commission_rate')?.value || 0) * 100 }}% of tenant MRR</div>
+            </div>
+
+            <div>
+                <label class="block text-[9px] font-black text-text-muted uppercase mb-1.5 tracking-widest">Internal Notes</label>
+                <textarea formControlName="notes" rows="2" class="admin-input resize-none" placeholder="Bank details, agreements, etc."></textarea>
+            </div>
+            
+            <div class="flex gap-3 pt-4 mt-2 border-t border-border-primary">
+                <button type="button" (click)="closeModal()"
+                    class="flex-1 py-3 rounded-xl bg-bg-tertiary border border-border-primary text-xs font-bold text-white hover:bg-bg-secondary transition-colors">CANCEL</button>
+                <button type="submit" [disabled]="isSubmitting() || affiliateForm.invalid"
+                    class="flex-1 admin-btn-primary bg-purple-600 hover:bg-purple-500 border-purple-500 py-3 text-xs tracking-wider disabled:opacity-50">
+                    {{ isSubmitting() ? 'SAVING...' : 'SAVE PARTNER' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+}
+
+
+<!-- Referrals Management Modal -->
+@if (showReferralsModal()) {
+<div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md animate-fade-in p-6">
+    <div class="admin-card !p-0 w-full max-w-4xl max-h-[85vh] flex flex-col animate-scale-in shadow-2xl border-purple-500/20 overflow-hidden">
+        
+        <div class="p-6 border-b border-border-primary bg-bg-secondary/50 flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-black text-white tracking-tighter uppercase">{{ selectedAffiliate()?.name }}'s Portfolio</h2>
+            <p class="text-xs text-text-muted mt-1 font-mono">{{ selectedAffiliate()?.email }} &bull; {{ (selectedAffiliate()?.commission_rate || 0) * 100 }}% Comm.</p>
+          </div>
+          <div class="flex items-center gap-3">
+             <button (click)="showAddReferralForm.set(!showAddReferralForm())" class="px-4 py-2 bg-purple-500/10 text-purple-400 text-xs font-black uppercase tracking-widest rounded-lg border border-purple-500/20 hover:bg-purple-500 hover:text-white transition-all">
+               {{ showAddReferralForm() ? 'CANCEL LINK' : '+ LINK SCHOOL' }}
+             </button>
+             <button (click)="closeReferralsModal()" class="w-10 h-10 flex items-center justify-center bg-bg-tertiary border border-border-primary rounded-xl text-text-muted hover:text-white">
+               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+             </button>
+          </div>
+        </div>
+
+        @if (showAddReferralForm()) {
+          <div class="p-6 border-b border-border-primary bg-purple-500/[0.02]">
+            <label class="block text-[10px] font-black text-text-muted uppercase mb-2 tracking-widest">Select Tenant to Link as Referral</label>
+            <div class="flex gap-3">
+              <select class="admin-input flex-1 bg-bg-tertiary font-bold" (change)="onTenantSelect($event)">
+                <option value="">-- Choose an active tenant --</option>
+                @for (t of tenants(); track t.id) {
+                  @if (t.is_active) {
+                    <option [value]="t.id">{{ t.name }} ({{ t.subdomain }})</option>
+                  }
+                }
+              </select>
+              <button (click)="addReferral()" [disabled]="!selectedTenantId()" class="admin-btn-primary px-6 bg-purple-600 border-purple-500 hover:bg-purple-500 disabled:opacity-50 tracking-widest text-xs">LINK</button>
+            </div>
+          </div>
+        }
+
+        <div class="flex-1 overflow-y-auto bg-bg-primary">
+          @if (isLoadingReferrals()) {
+            <div class="py-20 text-center text-text-muted">Loading referrals...</div>
+          } @else if (referrals().length === 0) {
+            <div class="py-20 text-center">
+               <p class="text-sm font-bold text-text-muted">No schools linked to this affiliate yet.</p>
+            </div>
+          } @else {
+            <table class="w-full text-left">
+              <thead class="bg-bg-tertiary/30 sticky top-0">
+                <tr>
+                  <th class="pl-6 py-4 text-[9px] font-bold text-text-muted uppercase tracking-[0.2em]">School</th>
+                  <th class="py-4 text-[9px] font-bold text-text-muted uppercase tracking-[0.2em]">Plan</th>
+                  <th class="py-4 text-[9px] font-bold text-text-muted uppercase tracking-[0.2em]">Linked Date</th>
+                  <th class="py-4 text-[9px] font-bold text-text-muted uppercase tracking-[0.2em]">Commission Value</th>
+                  <th class="pr-6 py-4 text-right text-[9px] font-bold text-text-muted uppercase tracking-[0.2em]">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border-primary">
+                @for (ref of referrals(); track ref.id) {
+                  <tr class="hover:bg-bg-secondary/40">
+                    <td class="pl-6 py-4">
+                      <div class="font-bold text-sm text-white">{{ ref.tenant_name }}</div>
+                      <div class="text-[10px] text-text-muted font-mono mt-0.5">{{ ref.tenant_subdomain }}</div>
+                    </td>
+                    <td class="py-4">
+                      <span class="text-xs font-black text-text-secondary uppercase">{{ ref.tenant_plan || 'BASIC' }}</span>
+                    </td>
+                    <td class="py-4 text-xs font-bold text-text-secondary">{{ ref.created_at | date:'mediumDate' }}</td>
+                    <td class="py-4 font-black text-emerald-400">GH₵ {{ ref.commission_paid | number:'1.2-2' }}</td>
+                    <td class="pr-6 py-4 text-right">
+                      @if (ref.paid_at) {
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase tracking-widest rounded-md">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                          PAID
+                        </span>
+                      } @else {
+                        <button (click)="markPaid(ref.id)" class="px-3 py-1 bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-colors text-[9px] font-black uppercase tracking-widest rounded-md">
+                          MARK PAID
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+    </div>
+</div>
+}

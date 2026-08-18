@@ -1,0 +1,132 @@
+.palette-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    padding-top: 15vh;
+}
+
+.palette-container {
+    width: 100%;
+    max-width: 600px;
+    height: min-content;
+    max-height: 70vh;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: none;
+        opacity: 1;
+    }
+}
+
+.palette-header {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.search-icon {
+    color: rgba(255, 255, 255, 0.5);
+    margin-right: 0.75rem;
+}
+
+input {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.1rem;
+    width: 100%;
+    outline: none;
+}
+
+.palette-results {
+    overflow-y: auto;
+    padding: 0.5rem;
+}
+
+.result-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    gap: 1rem;
+    transition: all 0.2s;
+}
+
+.result-item.selected {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.result-type {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    min-width: 60px;
+    text-align: center;
+}
+
+.result-title {
+    flex: 1;
+    font-weight: 500;
+}
+
+.result-hint {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.4);
+    opacity: 0;
+}
+
+.result-item.selected .result-hint {
+    opacity: 1;
+}
+
+.no-results,
+.palette-tips {
+    padding: 2rem;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.tip-item {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+kbd {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.palette-footer {
+    padding: 0.75rem 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.shortcut span {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 1px 4px;
+    border-radius: 3px;
+    color: white;
+    margin-right: 4px;
+}

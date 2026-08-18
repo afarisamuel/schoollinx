@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-secondary: var(--accent-secondary);
+  
+  --color-border-primary: var(--border-primary);
+  --color-border-secondary: var(--border-secondary);
+
+  --shadow-premium: var(--shadow-main);
+  
+  /* Tailwind v4 maps --radius-* to rounded-* utilities */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+}
+
+:root {
+  /* Admin Neutral Dark Theme (Deep Obsidian) */
+  --bg-primary: #050505;
+  --bg-secondary: #0a0a0a;
+  --bg-tertiary: #111111;
+  --text-primary: #ffffff;
+  --text-secondary: #a3a3a3;
+  --text-muted: #525252;
+  --border-primary: rgba(255, 255, 255, 0.08);
+  --border-secondary: rgba(255, 255, 255, 0.12);
+  --shadow-main: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+  
+  --accent-primary: #6366f1;
+  --accent-secondary: #8b5cf6;
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html, body {
+  @apply bg-bg-primary text-text-primary min-h-screen antialiased;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+@utility animate-fade-in {
+  animation: fadeIn var(--transition-slow) forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Administrative Components */
+@utility admin-card {
+  @apply bg-bg-secondary border border-border-primary shadow-premium rounded-lg p-8;
+}
+
+@utility admin-btn-primary {
+  @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent-primary hover:bg-indigo-500 text-white text-xs font-bold rounded-md shadow-lg shadow-indigo-600/20 transition-all active:scale-[0.98];
+}
+
+@utility admin-input {
+  @apply w-full bg-bg-primary border border-border-primary rounded-md px-4 py-3.5 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/40 focus:border-accent-primary/50 transition-all;
+}

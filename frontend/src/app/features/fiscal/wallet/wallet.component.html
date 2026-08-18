@@ -1,0 +1,168 @@
+<div class="h-full bg-bg-primary p-6 flex flex-col font-sans text-text-primary overflow-y-auto">
+
+  <header class="mb-6 flex justify-between items-end">
+    <div>
+      <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500">Digital Wallet & Canteen</h1>
+      <p class="text-text-secondary mt-1">Manage prepaid balances and cashless transactions</p>
+    </div>
+  </header>
+
+  <!-- Student Selection -->
+  <div class="bg-bg-secondary rounded-2xl p-6 border border-border-primary shadow-xl mb-6 flex flex-col md:flex-row gap-6 items-center">
+    <div class="flex-1 w-full relative">
+      <label class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Select Student</label>
+      <app-student-search-dropdown (studentSelected)="onStudentSelected($event)"></app-student-search-dropdown>
+    </div>
+  </div>
+
+  @if (selectedStudentId()) {
+    @if (isLoading()) {
+      <div class="flex justify-center p-12">
+        <div class="w-10 h-10 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+      </div>
+    } @else {
+      <!-- Bento Grid Layout -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+
+        <!-- Balance Card (Col 4) -->
+        <div class="md:col-span-4 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-3xl p-6 border border-indigo-500/50 shadow-[0_0_40px_-10px_rgba(99,102,241,0.4)] relative overflow-hidden flex flex-col justify-between group">
+          <!-- decorative background element -->
+          <div class="absolute -right-10 -top-10 w-40 h-40 bg-white opacity-5 rounded-full blur-3xl group-hover:opacity-10 transition-opacity"></div>
+          
+          <div>
+            <h3 class="text-indigo-100 font-bold uppercase tracking-widest text-xs mb-1">Available Balance</h3>
+            <p class="text-indigo-200 text-xs">Ready for cashless transactions</p>
+          </div>
+          
+          <div class="mt-8 mb-4">
+            <div class="text-6xl font-black text-white tracking-tighter drop-shadow-md">
+              <span class="text-3xl align-top mr-1 opacity-80">₵</span>{{ balance() | number:'1.2-2' }}
+            </div>
+          </div>
+          
+          <div class="flex justify-between items-center text-indigo-200 text-xs font-medium">
+            <span>Student Wallet</span>
+            <svg class="w-6 h-6 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+          </div>
+        </div>
+
+        <!-- Canteen Point of Sale (Col 8) -->
+        <div class="md:col-span-8 bg-bg-secondary rounded-3xl p-6 border border-border-primary shadow-xl flex flex-col justify-between">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="p-3 bg-indigo-500/10 rounded-xl text-indigo-500">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-text-primary">Canteen Checkout</h3>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Item Description</label>
+              <input type="text" [ngModel]="purchaseItem()" (ngModelChange)="purchaseItem.set($event)" placeholder="e.g. Lunch Combo"
+                     class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-5 py-3.5 text-text-primary focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium placeholder:text-text-muted">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Amount (₵)</label>
+              <input type="number" [ngModel]="purchaseAmount()" (ngModelChange)="purchaseAmount.set($event)" placeholder="0.00"
+                     class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-5 py-3.5 text-text-primary focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium placeholder:text-text-muted text-lg">
+            </div>
+          </div>
+
+          <div class="flex justify-end border-t border-border-primary pt-6 mt-auto">
+            <button (click)="processPurchase()" [disabled]="purchaseLoading() || purchaseAmount() <= 0 || !purchaseItem()"
+                    class="px-8 py-3.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 shadow-[0_0_20px_-5px_rgba(99,102,241,0.5)] active:scale-95">
+              @if (purchaseLoading()) {
+                <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              }
+              Process Payment
+            </button>
+          </div>
+        </div>
+
+        <!-- Manual Top Up (Col 4) -->
+        <div class="md:col-span-4 bg-bg-secondary rounded-3xl p-6 border border-border-primary shadow-xl flex flex-col justify-between hover:border-emerald-500/30 transition-colors group">
+          <div>
+            <div class="flex items-center gap-3 mb-6">
+              <div class="p-3 bg-emerald-500/10 rounded-xl text-emerald-500">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+              </div>
+              <h3 class="text-xl font-bold text-text-primary">Manual Top-Up</h3>
+            </div>
+            
+            <div class="mb-6">
+              <label class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Amount (₵)</label>
+              <input type="number" [ngModel]="topupAmount()" (ngModelChange)="topupAmount.set($event)" placeholder="0.00"
+                     class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-5 py-3.5 text-text-primary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-medium placeholder:text-text-muted text-lg">
+            </div>
+          </div>
+
+          <button (click)="processTopUp()" [disabled]="topupLoading() || topupAmount() <= 0"
+                  class="w-full py-3.5 rounded-xl bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group-hover:shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)]">
+            @if (topupLoading()) {
+              <div class="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+            }
+            Add Funds
+          </button>
+        </div>
+
+        <!-- Transaction History (Col 8) -->
+        <div class="md:col-span-8 bg-bg-secondary rounded-3xl p-6 border border-border-primary shadow-xl flex flex-col">
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-3">
+              <div class="p-3 bg-bg-tertiary rounded-xl text-text-secondary">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              </div>
+              <h3 class="text-xl font-bold text-text-primary">Transaction History</h3>
+            </div>
+            <span class="text-xs font-bold text-text-muted bg-bg-tertiary px-3 py-1.5 rounded-full border border-border-primary">{{ transactions().length }} Records</span>
+          </div>
+          
+          <div class="flex-1 overflow-y-auto max-h-[300px] pr-2 custom-scrollbar">
+            @if (transactions().length === 0) {
+              <div class="flex flex-col items-center justify-center h-full text-text-muted">
+                <svg class="w-12 h-12 mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                <p class="text-sm font-medium">No recent transactions</p>
+              </div>
+            } @else {
+              <div class="space-y-3">
+                @for (tx of transactions(); track tx.id) {
+                  <div class="flex items-center justify-between p-4 rounded-2xl bg-bg-tertiary border border-border-primary hover:bg-bg-tertiary/80 transition-colors">
+                    <div class="flex items-center gap-4">
+                      <div class="w-10 h-10 rounded-full flex items-center justify-center shadow-inner"
+                           [ngClass]="tx.type === 'CREDIT' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'">
+                        @if (tx.type === 'CREDIT') {
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        } @else {
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                        }
+                      </div>
+                      <div>
+                        <p class="font-bold text-text-primary">{{ tx.description }}</p>
+                        <p class="text-xs text-text-secondary">{{ tx.created_at | date:'MMM d, y, h:mm a' }}</p>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <p class="font-black text-lg font-mono tracking-tight" [ngClass]="tx.type === 'CREDIT' ? 'text-emerald-500' : 'text-rose-500'">
+                        {{ tx.type === 'CREDIT' ? '+' : '-' }}₵{{ tx.amount | number:'1.2-2' }}
+                      </p>
+                      <p class="text-[10px] text-text-muted font-bold uppercase tracking-wider">Bal: ₵{{ tx.balance | number:'1.2-2' }}</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+      </div>
+    }
+  } @else {
+    <div class="flex-1 flex flex-col items-center justify-center text-center p-12 bg-bg-secondary border border-border-primary rounded-3xl shadow-inner mt-4">
+      <div class="w-24 h-24 rounded-full bg-bg-tertiary flex items-center justify-center mb-6 shadow-inner border border-border-primary">
+        <svg class="w-12 h-12 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+      </div>
+      <h2 class="text-2xl font-black text-text-primary mb-2">Select a Student to Begin</h2>
+      <p class="text-text-secondary max-w-sm">Use the search bar above to find a student and access their digital wallet and transaction history.</p>
+    </div>
+  }
+</div>

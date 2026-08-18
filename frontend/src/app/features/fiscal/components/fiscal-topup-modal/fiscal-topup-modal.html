@@ -1,0 +1,77 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-bg-primary" (click)="onClose()"></div>
+  <div class="relative w-full max-w-md bg-gray-900 border border-border-primary rounded-3xl p-8 shadow-2xl animate-fade-in-up">
+    <button
+      class="absolute top-6 right-6 text-text-muted hover:text-text-primary transition-colors"
+      (click)="onClose()"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M18 6 6 18" />
+        <path d="m6 6 12 12" />
+      </svg>
+    </button>
+    <h3 class="text-xl font-black text-text-primary mb-2">Top-Up Wallet</h3>
+    <p class="text-sm text-text-muted mb-6">Add prepaid balance to a student's wallet.</p>
+
+    <div class="space-y-5">
+      <div>
+        <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2"
+          >Student ID</label
+        >
+        <app-student-search-dropdown 
+          [(studentId)]="topUpData.student_id"
+          [required]="true"
+        ></app-student-search-dropdown>
+      </div>
+      <div>
+        <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2"
+          >Amount (GHS)</label
+        >
+        <input
+          type="number"
+          [(ngModel)]="topUpData.amount"
+          placeholder="0.00"
+          class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+        />
+      </div>
+      <div>
+        <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2"
+          >Description</label
+        >
+        <input
+          type="text"
+          [(ngModel)]="topUpData.description"
+          placeholder="E.g. Term 2 Prepaid Top-up"
+          class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+        />
+      </div>
+    </div>
+
+    <div class="mt-8 flex gap-3">
+      <button
+        class="flex-1 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-bg-tertiary border border-border-primary text-text-primary hover:bg-bg-tertiary transition-all"
+        (click)="onClose()"
+        [disabled]="toppingUp"
+      >
+        Cancel
+      </button>
+      <button
+        class="flex-1 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-indigo-500 text-white hover:bg-indigo-600 transition-all disabled:opacity-50"
+        (click)="onSubmit()"
+        [disabled]="toppingUp"
+      >
+        {{ toppingUp ? 'Processing...' : 'Top-Up' }}
+      </button>
+    </div>
+  </div>
+</div>

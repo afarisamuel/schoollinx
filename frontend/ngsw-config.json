@@ -1,0 +1,75 @@
+{
+    "$schema": "./node_modules/@angular/service-worker/config/schema.json",
+    "index": "/index.html",
+    "assetGroups": [
+        {
+            "name": "app",
+            "installMode": "prefetch",
+            "resources": {
+                "files": [
+                    "/favicon.ico",
+                    "/index.html",
+                    "/manifest.webmanifest",
+                    "/*.css",
+                    "/*.js"
+                ]
+            }
+        },
+        {
+            "name": "assets",
+            "installMode": "lazy",
+            "updateMode": "prefetch",
+            "resources": {
+                "files": [
+                    "/assets/**",
+                    "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|apple-touch-icon|png|otf|ttf|woff|woff2)"
+                ],
+                "urls": [
+                    "https://fonts.googleapis.com/**",
+                    "https://fonts.gstatic.com/**"
+                ]
+            }
+        }
+    ],
+    "dataGroups": [
+        {
+            "name": "api-freshness",
+            "urls": [
+                "/api/students/**",
+                "/api/grades/**",
+                "/api/attendance/**",
+                "/api/insights/**",
+                "/api/library/**",
+                "/api/fiscal/**",
+                "/api/hr/**",
+                "/api/messages/**",
+                "/api/notifications/**",
+                "/api/campaigns/**"
+            ],
+            "cacheConfig": {
+                "maxSize": 100,
+                "maxAge": "1h",
+                "timeout": "5s",
+                "strategy": "freshness"
+            }
+        },
+        {
+            "name": "api-performance",
+            "urls": [
+                "/api/campuses/**",
+                "/api/subjects/**",
+                "/api/timetables/**",
+                "/api/programs/**",
+                "/api/classes/**",
+                "/api/resources/**",
+                "/api/clubs/**"
+            ],
+            "cacheConfig": {
+                "maxSize": 50,
+                "maxAge": "1d",
+                "timeout": "10s",
+                "strategy": "performance"
+            }
+        }
+    ]
+}

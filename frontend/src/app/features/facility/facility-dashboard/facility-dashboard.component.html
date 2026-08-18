@@ -1,0 +1,234 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div>
+      <h2 class="text-2xl font-black text-text-primary tracking-tight">Facility Management</h2>
+      <p class="text-sm text-text-muted mt-1">Track school assets and manage visitor access</p>
+    </div>
+    <div class="flex gap-3 flex-wrap">
+      <a routerLink="/facility/assets" class="px-5 py-2.5 bg-bg-secondary border border-border-primary text-text-primary rounded-xl font-bold text-sm hover:bg-bg-tertiary transition-colors flex items-center gap-2">
+        Asset Register
+      </a>
+      <a routerLink="/facility/rooms" class="px-5 py-2.5 bg-bg-secondary border border-border-primary text-text-primary rounded-xl font-bold text-sm hover:bg-bg-tertiary transition-colors flex items-center gap-2">
+        Room Booking
+      </a>
+      @if (activeTab() === 'inventory') {
+        <button (click)="showAddInventory.set(true)" class="px-5 py-2.5 bg-indigo-500 text-white rounded-xl font-bold text-sm hover:bg-indigo-600 transition-colors flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+          Add Item
+        </button>
+      }
+      @if (activeTab() === 'visitors') {
+        <button (click)="showCheckIn.set(true)" class="px-5 py-2.5 bg-emerald-500 text-white rounded-xl font-bold text-sm hover:bg-emerald-600 transition-colors flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+          Check In Visitor
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5">
+      <p class="text-[10px] font-black text-text-muted uppercase tracking-widest">Total Items</p>
+      <p class="text-xl md:text-2xl font-black text-text-primary mt-1">{{ inventory().length }}</p>
+    </div>
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5">
+      <p class="text-[10px] font-black text-text-muted uppercase tracking-widest">Total Asset Value</p>
+      <p class="text-xl md:text-2xl font-black text-emerald-400 mt-1">GH₵ {{ totalAssetValue | number:'1.2-2' }}</p>
+    </div>
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5">
+      <p class="text-[10px] font-black text-text-muted uppercase tracking-widest">Active Visitors</p>
+      <p class="text-xl md:text-2xl font-black text-orange-400 mt-1">{{ activeVisitorCount }}</p>
+    </div>
+  </div>
+
+  <!-- Tab Switcher -->
+  <div class="flex gap-1 bg-bg-secondary border border-border-primary rounded-2xl p-1.5 w-fit">
+    <button (click)="switchTab('inventory')" [class]="activeTab() === 'inventory' ? 'bg-indigo-500 text-white shadow-lg' : 'text-text-muted hover:text-white'" class="px-5 py-2 rounded-xl font-bold text-sm transition-all">
+      Inventory
+    </button>
+    <button (click)="switchTab('visitors')" [class]="activeTab() === 'visitors' ? 'bg-indigo-500 text-white shadow-lg' : 'text-text-muted hover:text-white'" class="px-5 py-2 rounded-xl font-bold text-sm transition-all">
+      Visitor Log
+    </button>
+  </div>
+
+  <!-- Inventory Tab -->
+  @if (activeTab() === 'inventory') {
+    @if (isLoading()) {
+      <div class="bg-bg-secondary border border-border-primary rounded-2xl p-12 text-center">
+        <p class="text-text-muted animate-pulse">Loading inventory...</p>
+      </div>
+    } @else if (inventory().length === 0) {
+      <div class="bg-bg-secondary border border-border-primary rounded-2xl p-12 text-center">
+        <div class="w-16 h-16 bg-bg-tertiary rounded-2xl flex items-center justify-center mx-auto mb-4 text-indigo-400">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+        </div>
+        <h3 class="text-lg font-bold text-text-primary">No Inventory Items</h3>
+        <p class="text-text-muted mt-2 text-sm">Add your first item to start tracking school assets.</p>
+      </div>
+    } @else {
+      <div class="bg-bg-secondary border border-border-primary rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto w-full">
+<table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border-primary text-text-muted">
+              <th class="text-left px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Item</th>
+              <th class="text-left px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Category</th>
+              <th class="text-left px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Location</th>
+              <th class="text-right px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Qty</th>
+              <th class="text-right px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Unit Value</th>
+              <th class="text-right px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of inventory(); track item.id) {
+              <tr class="border-b border-border-primary hover:bg-bg-tertiary transition-colors">
+                <td class="px-5 py-3 font-bold text-text-primary">{{ item.name }}</td>
+                <td class="px-5 py-3">
+                  <span class="px-2.5 py-1 bg-indigo-500/10 text-indigo-400 text-xs font-bold rounded-lg">{{ item.category }}</span>
+                </td>
+                <td class="px-5 py-3 text-text-muted">{{ item.location }}</td>
+                <td class="px-5 py-3 text-right font-bold text-text-primary">{{ item.quantity }}</td>
+                <td class="px-5 py-3 text-right text-emerald-400 font-bold">GH₵ {{ item.unit_value | number:'1.2-2' }}</td>
+                <td class="px-5 py-3 text-right">
+                  <button (click)="deleteItem(item.id!)" class="p-1.5 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+</div>
+      </div>
+    }
+  }
+
+  <!-- Visitors Tab -->
+  @if (activeTab() === 'visitors') {
+    @if (visitors().length === 0) {
+      <div class="bg-bg-secondary border border-border-primary rounded-2xl p-12 text-center">
+        <div class="w-16 h-16 bg-bg-tertiary rounded-2xl flex items-center justify-center mx-auto mb-4 text-emerald-400">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+        </div>
+        <h3 class="text-lg font-bold text-text-primary">No Visitors Today</h3>
+        <p class="text-text-muted mt-2 text-sm">The visitor log is empty for today.</p>
+      </div>
+    } @else {
+      <div class="bg-bg-secondary border border-border-primary rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto w-full">
+<table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border-primary text-text-muted">
+              <th class="text-left px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Visitor</th>
+              <th class="text-left px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Phone</th>
+              <th class="text-left px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Purpose</th>
+              <th class="text-left px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Check In</th>
+              <th class="text-left px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Status</th>
+              <th class="text-right px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (visitor of visitors(); track visitor.id) {
+              <tr class="border-b border-border-primary hover:bg-bg-tertiary transition-colors">
+                <td class="px-5 py-3 font-bold text-text-primary">{{ visitor.name }}</td>
+                <td class="px-5 py-3 text-text-muted">{{ visitor.phone }}</td>
+                <td class="px-5 py-3 text-text-muted">{{ visitor.purpose }}</td>
+                <td class="px-5 py-3 text-text-muted">{{ visitor.check_in | date:'shortTime' }}</td>
+                <td class="px-5 py-3">
+                  @if (visitor.check_out) {
+                    <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded-lg">Checked Out</span>
+                  } @else {
+                    <span class="px-2.5 py-1 bg-orange-500/10 text-orange-400 text-xs font-bold rounded-lg flex items-center gap-1.5 w-fit">
+                      <span class="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></span>
+                      On Premises
+                    </span>
+                  }
+                </td>
+                <td class="px-5 py-3 text-right">
+                  @if (!visitor.check_out) {
+                    <button (click)="checkOutVisitor(visitor.id!)" class="px-3 py-1.5 bg-bg-tertiary text-text-muted hover:text-text-primary hover:bg-bg-tertiary rounded-lg text-xs font-bold transition-colors">
+                      Check Out
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+</div>
+      </div>
+    }
+  }
+
+  <!-- Add Inventory Modal -->
+  @if (showAddInventory()) {
+    <div class="fixed inset-0 bg-bg-primary  z-50 flex items-center justify-center p-4" (click)="showAddInventory.set(false)">
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-8 w-full max-w-lg shadow-2xl" (click)="$event.stopPropagation()">
+        <h3 class="text-xl font-black text-text-primary mb-6">Add Inventory Item</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Item Name</label>
+            <input [(ngModel)]="newItem.name" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-indigo-500 transition-colors" placeholder="e.g. Desk Chair">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Category</label>
+              <select [(ngModel)]="newItem.category" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-indigo-500 transition-colors">
+                @for (cat of categories; track cat) {
+                  <option [value]="cat">{{ cat }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Location</label>
+              <input [(ngModel)]="newItem.location" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-indigo-500 transition-colors" placeholder="e.g. Room 204">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Quantity</label>
+              <input [(ngModel)]="newItem.quantity" type="number" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-indigo-500 transition-colors" placeholder="0">
+            </div>
+            <div>
+              <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Unit Value (GH₵)</label>
+              <input [(ngModel)]="newItem.unit_value" type="number" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-indigo-500 transition-colors" placeholder="0.00">
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-3 mt-8 justify-end">
+          <button (click)="showAddInventory.set(false)" class="px-5 py-2.5 bg-bg-tertiary text-text-muted rounded-xl font-bold text-sm hover:text-text-primary hover:bg-bg-tertiary transition-colors">Cancel</button>
+          <button (click)="addInventoryItem()" class="px-5 py-2.5 bg-indigo-500 text-white rounded-xl font-bold text-sm hover:bg-indigo-600 transition-colors">Add Item</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Check In Visitor Modal -->
+  @if (showCheckIn()) {
+    <div class="fixed inset-0 bg-bg-primary  z-50 flex items-center justify-center p-4" (click)="showCheckIn.set(false)">
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-8 w-full max-w-lg shadow-2xl" (click)="$event.stopPropagation()">
+        <h3 class="text-xl font-black text-text-primary mb-6">Register Visitor</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Full Name</label>
+            <input [(ngModel)]="newVisitor.name" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-indigo-500 transition-colors" placeholder="e.g. Kwame Mensah">
+          </div>
+          <div>
+            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Phone Number</label>
+            <input [(ngModel)]="newVisitor.phone" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-indigo-500 transition-colors" placeholder="e.g. 024 XXX XXXX">
+          </div>
+          <div>
+            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Purpose of Visit</label>
+            <input [(ngModel)]="newVisitor.purpose" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-indigo-500 transition-colors" placeholder="e.g. Parent-Teacher meeting">
+          </div>
+        </div>
+        <div class="flex gap-3 mt-8 justify-end">
+          <button (click)="showCheckIn.set(false)" class="px-5 py-2.5 bg-bg-tertiary text-text-muted rounded-xl font-bold text-sm hover:text-text-primary hover:bg-bg-tertiary transition-colors">Cancel</button>
+          <button (click)="checkInVisitor()" class="px-5 py-2.5 bg-emerald-500 text-white rounded-xl font-bold text-sm hover:bg-emerald-600 transition-colors">Check In</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

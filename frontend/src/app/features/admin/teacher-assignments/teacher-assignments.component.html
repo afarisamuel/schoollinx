@@ -1,0 +1,205 @@
+<div class="p-4 md:p-10 flex flex-col h-full overflow-hidden relative">
+    <!-- Header -->
+    <div class="flex justify-between items-end mb-8 relative z-10 w-full shrink-0">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500 tracking-tight">Faculty Allocation Hub</h1>
+            <p class="text-text-muted mt-2 text-sm max-w-2xl font-medium">Draft and finalize class and subject schedules for institutional teaching staff. Select a faculty member to edit their load.</p>
+        </div>
+
+        @if (selectedTeacherId() && hasChanges()) {
+        <div class="flex gap-3 animate-in fade-in zoom-in duration-300">
+            <button (click)="discardChanges()"
+                    [disabled]="isSaving()"
+                    class="px-5 py-2.5 rounded-xl border border-border-secondary hover:bg-bg-tertiary text-sm font-bold text-text-secondary disabled:opacity-50 transition-all">
+                Discard Changes
+            </button>
+            <button (click)="applyChanges()"
+                    [disabled]="isSaving()"
+                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-text-primary text-sm font-bold shadow-lg shadow-indigo-500/25 disabled:opacity-50 flex items-center gap-2 transition-all">
+                @if (isSaving()) {
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-text-primary" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Persisting...
+                } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
+                    Apply Schedule
+                }
+            </button>
+        </div>
+        }
+    </div>
+
+    <!-- Feedback -->
+    @if (errorMsg()) {
+        <div class="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-500 text-sm font-bold rounded-2xl flex items-center gap-3 shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+            {{ errorMsg() }}
+        </div>
+    }
+    @if (successMsg()) {
+        <div class="mb-6 p-4 bg-green-500/10 border border-green-500/20 text-green-500 text-sm font-bold rounded-2xl flex items-center gap-3 shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            {{ successMsg() }}
+        </div>
+    }
+
+    <!-- Split View Container -->
+    <div class="flex-1 flex flex-col lg:flex-row gap-6 min-h-0 overflow-auto lg:overflow-hidden pb-10 lg:pb-0">
+        
+        <!-- Left Sidebar: Teacher Roster -->
+        <div class="w-full lg:w-80 lg:max-h-full max-h-[400px] flex flex-col bg-bg-tertiary border border-border-primary rounded-3xl overflow-hidden shadow-2xl shrink-0">
+            <div class="p-5 border-b border-border-primary space-y-4">
+                <h3 class="text-sm font-black text-text-primary uppercase tracking-widest">Faculty Directory</h3>
+                <div class="relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <input type="text" 
+                           [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+                           placeholder="Search staff..." 
+                           class="w-full bg-bg-secondary border border-border-secondary rounded-xl px-10 py-2.5 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-indigo-500/50 transition-colors">
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1.5">
+                @for (t of filteredTeachers(); track t.id) {
+                    <button (click)="selectTeacher(t.id!)"
+                            class="w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 transition-colors border group relative"
+                            [class.bg-indigo-500/10]="selectedTeacherId() === t.id"
+                            [class.border-indigo-500/30]="selectedTeacherId() === t.id"
+                            [class.border-transparent]="selectedTeacherId() !== t.id"
+                            [class.hover:bg-bg-tertiary]="selectedTeacherId() !== t.id">
+                        
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm shadow-inner shrink-0"
+                             [class.bg-indigo-500]="selectedTeacherId() === t.id"
+                             [class.text-text-primary]="selectedTeacherId() === t.id"
+                             [class.bg-bg-secondary]="selectedTeacherId() !== t.id"
+                             [class.text-text-muted]="selectedTeacherId() !== t.id">
+                            {{ t.first_name[0] }}{{ t.last_name[0] }}
+                        </div>
+                        
+                        <div class="flex flex-col overflow-hidden">
+                            <span class="text-sm font-bold text-text-primary truncate">{{ t.first_name }} {{ t.last_name }}</span>
+                            <span class="text-[10px] text-text-muted truncate uppercase tracking-wider group-hover:text-text-secondary transition-colors">{{ t.email }}</span>
+                        </div>
+
+                        <!-- Draft Indicator -->
+                        @if (selectedTeacherId() === t.id && hasChanges()) {
+                            <div class="absolute right-3 w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>
+                        }
+                    </button>
+                }
+
+                @if (filteredTeachers().length === 0) {
+                    <div class="py-10 text-center text-text-muted text-sm font-medium">
+                        No faculty found.
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Right Main: Allocation Matrix -->
+        <div class="flex-1 flex flex-col bg-bg-tertiary border border-border-primary rounded-3xl shadow-2xl overflow-hidden relative">
+            
+            @if (!selectedTeacherId()) {
+                <div class="absolute inset-0 flex flex-col items-center justify-center p-10 text-center">
+                    <div class="w-20 h-20 bg-bg-tertiary rounded-full flex items-center justify-center mb-6 shadow-inner ring-1 ring-white/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-text-muted"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                    </div>
+                    <h2 class="text-xl font-bold text-text-primary tracking-tight">Select Faculty Member</h2>
+                    <p class="text-text-muted mt-2 text-sm max-w-sm">Choose a teacher from the directory to view and configure their class and subject allocations.</p>
+                </div>
+            } @else {
+                <!-- Grid Header / Meta -->
+                <div class="p-6 border-b border-border-primary flex items-center justify-between shrink-0 bg-bg-secondary/20">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-xl flex items-center justify-center font-black text-indigo-400 border border-indigo-500/20">
+                            {{ activeTeacher()?.first_name?.[0] }}{{ activeTeacher()?.last_name?.[0] }}
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-text-primary">{{ activeTeacher()?.first_name }} {{ activeTeacher()?.last_name }}</h2>
+                            <p class="text-[11px] text-text-muted uppercase tracking-widest font-black mt-1">Allocation Matrix — {{ academicYear() }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 text-xs font-semibold px-4 py-2 bg-bg-tertiary rounded-xl border border-border-secondary shadow-inner">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-md border-2 border-indigo-500 bg-indigo-500/20"></div> Assigned
+                        </div>
+                        <div class="flex items-center gap-2 opacity-50">
+                            <div class="w-3 h-3 rounded-md border-2 border-border-secondary bg-bg-tertiary"></div> Unassigned
+                        </div>
+                        <div class="flex items-center gap-2 opacity-50">
+                            <div class="w-3 h-3 rounded-md border-2 border-amber-500/30 bg-amber-500/10"></div> Draft
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scrollable Matrix -->
+                <div class="flex-1 overflow-auto custom-scrollbar p-6">
+                    <div class="inline-block min-w-full bg-bg-secondary/30 rounded-2xl border border-border-primary outline outline-1 outline-white/5 overflow-hidden ring-1 ring-inset ring-black/20 shadow-2xl">
+                        <div class="overflow-x-auto w-full">
+<table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr>
+                                    <th class="sticky top-0 left-0 z-20 bg-bg-secondary p-4 border-b border-r border-border-primary font-black text-xs text-text-muted uppercase tracking-widest w-48 shadow-[1px_1px_0_rgba(255,255,255,0.05)]">
+                                        Subjects \ Classes
+                                    </th>
+                                    @for (cls of classes(); track cls.id) {
+                                        <th class="sticky top-0 z-10 bg-bg-secondary/95  p-4 border-b border-r border-border-primary font-bold text-xs text-text-primary uppercase tracking-wider min-w-[120px] text-center whitespace-nowrap">
+                                            {{ cls.name }}
+                                        </th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (sub of subjects(); track sub.id) {
+                                    <tr>
+                                        <!-- Subject Sticky Column -->
+                                        <th class="sticky left-0 z-10 bg-bg-secondary/95  p-4 border-b border-r border-border-primary font-bold text-sm text-text-secondary whitespace-nowrap shadow-[1px_0_0_rgba(255,255,255,0.05)]">
+                                            {{ sub.name }}
+                                            <div class="text-[10px] text-text-muted uppercase tracking-wider mt-0.5 font-bold">{{ sub.code }}</div>
+                                        </th>
+                                        
+                                        <!-- Class Cells -->
+                                        @for (cls of classes(); track cls.id) {
+                                            <td class="border-b border-r border-border-primary p-2 bg-transparent hover:bg-bg-tertiary transition-colors relative group"
+                                                (click)="toggleCell(sub.id, cls.id)">
+                                                
+                                                @if (isAssignedToOther(sub.id, cls.id)) {
+                                                    <!-- Occupied by someone else -->
+                                                    <div class="absolute inset-0 flex items-center justify-center">
+                                                        <div class="w-full h-full m-1 rounded-xl bg-red-500/5 flex items-center justify-center opacity-50 group-hover:opacity-100 transition-opacity"
+                                                             [title]="'Assigned to ' + getOtherTeacherName(sub.id, cls.id)">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-red-500/50"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                                        </div>
+                                                    </div>
+                                                } @else {
+                                                    <!-- Toggleable Cell -->
+                                                    <div class="h-10 w-full rounded-xl flex items-center justify-center border-2 transition-all cursor-pointer shadow-sm"
+                                                         [class.border-indigo-500]="isAssignedToSelected(sub.id, cls.id) && !hasChanges()"
+                                                         [class.bg-indigo-500/20]="isAssignedToSelected(sub.id, cls.id) && !hasChanges()"
+                                                         [class.border-amber-500]="isAssignedToSelected(sub.id, cls.id) && hasChanges()"
+                                                         [class.bg-amber-500/10]="isAssignedToSelected(sub.id, cls.id) && hasChanges()"
+                                                         [class.border-border-primary]="!isAssignedToSelected(sub.id, cls.id)"
+                                                         [class.bg-bg-tertiary]="!isAssignedToSelected(sub.id, cls.id)"
+                                                         [class.group-hover:bg-bg-secondary]="!isAssignedToSelected(sub.id, cls.id)">
+                                                        
+                                                        @if (isAssignedToSelected(sub.id, cls.id)) {
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" 
+                                                                [class.text-indigo-400]="!hasChanges()" [class.text-amber-500]="hasChanges()">
+                                                                <polyline points="20 6 9 17 4 12"/>
+                                                            </svg>
+                                                        }
+                                                    </div>
+                                                }
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+

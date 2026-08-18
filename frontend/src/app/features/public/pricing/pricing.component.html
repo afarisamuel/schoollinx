@@ -1,0 +1,83 @@
+<div class="pricing-container flex flex-col items-center justify-center min-h-[60vh] py-20 px-4">
+  <div class="text-center max-w-3xl mb-12 stagger-entry stagger-1">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-sm font-bold border border-indigo-500/20 mb-6">
+      <i class="fas fa-tags"></i> Transparent Pricing
+    </div>
+    <h1 class="text-4xl md:text-6xl font-black text-text-primary tracking-tight mb-6">
+      Pay only for <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">what you use.</span>
+    </h1>
+    <p class="text-lg text-text-secondary leading-relaxed">
+      We believe in fair, predictable pricing. No hidden fees, no complex tiers. 
+      You only pay a flat fee per active student, per term.
+    </p>
+  </div>
+
+  <div class="w-full max-w-lg glass-card rounded-3xl p-8 border border-white/5 shadow-2xl relative overflow-hidden stagger-entry stagger-2 text-center">
+    <!-- Glow effect -->
+    <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl"></div>
+
+    <div class="relative z-10">
+      <i class="fas fa-user-graduate text-5xl text-indigo-400 mb-6 drop-shadow-md"></i>
+      <h3 class="text-2xl font-bold text-text-primary mb-2">Per Student / Per Term</h3>
+      <p class="text-text-muted mb-8">Custom tailored to your school's region and size.</p>
+      
+      <ul class="text-left space-y-4 mb-10 mx-auto max-w-sm">
+        <li class="flex items-start gap-3">
+          <i class="fas fa-check-circle text-green-400 mt-1"></i>
+          <span class="text-text-secondary">Unlimited teachers and admin accounts</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <i class="fas fa-check-circle text-green-400 mt-1"></i>
+          <span class="text-text-secondary">Full access to all modules</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <i class="fas fa-check-circle text-green-400 mt-1"></i>
+          <span class="text-text-secondary">Free onboarding and data migration</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <i class="fas fa-check-circle text-green-400 mt-1"></i>
+          <span class="text-text-secondary">24/7 Priority Support</span>
+        </li>
+      </ul>
+
+      <a routerLink="/contact" class="w-full inline-block py-4 px-6 bg-gradient-to-br from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-text-primary font-black rounded-2xl shadow-xl shadow-indigo-500/20 transition-all active:scale-[0.98]">
+        Get a Custom Quote <i class="fas fa-arrow-right ml-2"></i>
+      </a>
+    </div>
+
+    <!-- ROI Calculator -->
+    <div class="roi-calculator mt-20 bg-slate-900 text-white p-10 rounded-3xl max-w-4xl mx-auto shadow-2xl relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-64 h-64 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 transform translate-x-1/2 -translate-y-1/2"></div>
+      
+      <div class="text-center mb-10 relative z-10">
+        <h3 class="text-3xl font-black mb-4">Calculate Your ROI</h3>
+        <p class="text-slate-400">See how much time and money you can save by switching to School Linx.</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-12 relative z-10">
+        <div class="controls space-y-8">
+          <div>
+            <label class="block text-sm font-bold text-slate-300 mb-4">Number of Students: <span class="text-pink-400 text-xl">{{studentCount}}</span></label>
+            <input type="range" min="100" max="5000" step="50" [(ngModel)]="studentCount" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-300 mb-4">Avg. Admin Hourly Rate ($): <span class="text-pink-400 text-xl">${{hourlyRate}}</span></label>
+            <input type="range" min="10" max="100" step="5" [(ngModel)]="hourlyRate" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+          </div>
+        </div>
+
+        <div class="results bg-slate-800 rounded-2xl p-8 flex flex-col justify-center border border-slate-700">
+          <div class="mb-6">
+            <div class="text-sm text-slate-400 font-semibold mb-1">Time Saved Monthly</div>
+            <div class="text-4xl font-black text-white">{{hoursSavedPerMonth}} <span class="text-lg font-normal text-slate-400">hours</span></div>
+          </div>
+          <div>
+            <div class="text-sm text-slate-400 font-semibold mb-1">Estimated Savings Monthly</div>
+            <div class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-orange-400">${{moneySavedPerMonth | number}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

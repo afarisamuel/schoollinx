@@ -1,0 +1,264 @@
+<!-- ── Header ──────────────────────────────────────────────────────── -->
+<div class="flex items-center justify-between mb-8 gap-4 flex-wrap">
+    <div class="flex items-center gap-4">
+        <button routerLink="/students"
+            class="w-10 h-10 flex items-center justify-center rounded-xl border border-border-primary bg-bg-tertiary text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-all cursor-pointer hover:-translate-x-0.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+            </svg>
+        </button>
+        <div>
+            <h1 class="text-2xl font-black text-text-primary tracking-tight leading-none">Academic Transcript</h1>
+            <p class="text-sm text-text-secondary mt-1">{{ studentName() }}</p>
+        </div>
+    </div>
+    <a [routerLink]="['/students', studentId, 'grades', 'new']"
+        class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-indigo-500 to-indigo-700 text-text-primary rounded-2xl font-bold text-sm shadow-lg shadow-indigo-500/30 hover:-translate-y-0.5 hover:shadow-indigo-500/50 transition-all no-underline">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Add Grade
+    </a>
+</div>
+
+<!-- ── Stats Bar ───────────────────────────────────────────────────── -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+    <div class="flex items-center gap-4 bg-bg-secondary border border-border-primary rounded-2xl px-5 py-4 hover:border-border-secondary transition-all">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-indigo-500/15 text-indigo-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div>
+            <div class="text-2xl font-black tracking-tight leading-none"
+                [class]="stats().avg >= 75 ? 'text-emerald-400' : stats().avg >= 50 ? 'text-amber-400' : 'text-red-400'">
+                {{ stats().avg }}%
+            </div>
+            <div class="text-xs text-text-muted mt-0.5 font-medium uppercase tracking-widest">Avg Score</div>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-4 bg-bg-secondary border border-border-primary rounded-2xl px-5 py-4 hover:border-border-secondary transition-all">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-emerald-500/15 text-emerald-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div>
+            <div class="text-2xl font-black tracking-tight text-emerald-400 leading-none">{{ stats().best | number:'1.0-1' }}%</div>
+            <div class="text-xs text-text-muted mt-0.5 font-medium uppercase tracking-widest">Best Score</div>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-4 bg-bg-secondary border border-border-primary rounded-2xl px-5 py-4 hover:border-border-secondary transition-all">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-purple-500/15 text-purple-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <div>
+            <div class="text-2xl font-black tracking-tight text-text-primary leading-none">{{ stats().total }}</div>
+            <div class="text-xs text-text-muted mt-0.5 font-medium uppercase tracking-widest">Total Records</div>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-4 bg-bg-secondary border border-border-primary rounded-2xl px-5 py-4 hover:border-border-secondary transition-all">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-blue-500/15 text-blue-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div>
+            <div class="text-2xl font-black tracking-tight text-blue-400 leading-none">{{ stats().passing }}/{{ stats().total }}</div>
+            <div class="text-xs text-text-muted mt-0.5 font-medium uppercase tracking-widest">Passing</div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Subject Performance ─────────────────────────────────────────── -->
+@if (subjectBreakdown().length > 0) {
+<div class="bg-bg-secondary border border-border-primary rounded-2xl p-6 mb-6">
+    <h2 class="flex items-center gap-2 text-xs font-bold text-text-muted uppercase tracking-widest mb-5">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="3" width="4" height="18"/><rect x="10" y="8" width="4" height="13"/><rect x="2" y="13" width="4" height="8"/></svg>
+        Performance by Subject
+    </h2>
+    <div class="flex flex-col gap-3.5">
+        @for (sub of subjectBreakdown(); track sub.name) {
+        <div class="grid items-center gap-4" style="grid-template-columns: 150px 1fr 50px 34px;">
+            <span class="text-sm font-semibold text-text-primary truncate">{{ sub.name }}</span>
+            <div class="h-2.5 bg-bg-tertiary rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-1000 ease-out"
+                    [style.width.%]="sub.avg"
+                    [class]="sub.avg >= 75 ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' :
+                              sub.avg >= 50 ? 'bg-gradient-to-r from-amber-500 to-amber-400' :
+                                             'bg-gradient-to-r from-red-600 to-red-400'">
+                </div>
+            </div>
+            <span class="text-sm font-bold text-right"
+                [class]="sub.avg >= 75 ? 'text-emerald-400' : sub.avg >= 50 ? 'text-amber-400' : 'text-red-400'">
+                {{ sub.avg }}%
+            </span>
+            <span class="text-[11px] font-black text-center px-1.5 py-0.5 rounded-md"
+                [class]="sub.avg >= 75 ? 'bg-emerald-500/15 text-emerald-400' :
+                          sub.avg >= 50 ? 'bg-amber-500/15 text-amber-400' :
+                                         'bg-red-500/15 text-red-400'">
+                {{ getGradeLabel(sub.avg) }}
+            </span>
+        </div>
+        }
+    </div>
+</div>
+}
+
+<!-- ── Filters ─────────────────────────────────────────────────────── -->
+<div class="flex items-end gap-4 mb-6 flex-wrap">
+    <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-bold uppercase tracking-widest text-text-muted">Term</label>
+        <select class="bg-bg-tertiary border border-border-primary rounded-xl text-text-primary text-sm font-medium px-3.5 py-2 pr-8 appearance-none cursor-pointer focus:outline-none focus:border-indigo-500/50 min-w-[140px] transition-colors hover:bg-bg-secondary"
+            [value]="selectedTerm()" (change)="selectedTerm.set($any($event.target).value)">
+            <option value="" class="bg-[#1a1b26]">All Terms</option>
+            @for (term of allTerms(); track term) {
+            <option [value]="term" class="bg-[#1a1b26]">{{ term }}</option>
+            }
+        </select>
+    </div>
+    <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-bold uppercase tracking-widest text-text-muted">Category</label>
+        <select class="bg-bg-tertiary border border-border-secondary rounded-xl text-text-primary text-sm font-medium px-3.5 py-2 pr-8 appearance-none cursor-pointer focus:outline-none focus:border-indigo-500/50 min-w-[140px] transition-colors hover:bg-bg-tertiary"
+            [value]="selectedCategory()" (change)="selectedCategory.set($any($event.target).value)">
+            <option value="" class="bg-[#1a1b26]">All Categories</option>
+            @for (cat of categories; track cat) {
+            <option [value]="cat" class="bg-[#1a1b26]">{{ cat }}</option>
+            }
+        </select>
+    </div>
+    <p class="text-sm text-text-muted pb-2 ml-auto">
+        Showing <span class="font-bold text-text-primary">{{ filteredGrades().length }}</span>
+        record{{ filteredGrades().length === 1 ? '' : 's' }}
+    </p>
+</div>
+
+<!-- ── Grades Grid ─────────────────────────────────────────────────── -->
+<div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+
+    <!-- Skeleton loaders -->
+    @if (isLoading()) {
+        @for (i of [1,2,3,4,5,6]; track i) {
+        <div class="h-52 rounded-2xl border border-border-primary animate-pulse bg-bg-secondary"></div>
+        }
+    } @else {
+
+    @for (grade of filteredGrades(); track grade.id) {
+    @let pct = getScorePct(grade);
+
+    <div class="relative flex flex-col gap-3 bg-bg-secondary border border-border-primary rounded-2xl p-5 hover:border-border-secondary hover:-translate-y-0.5 hover:shadow-2xl transition-all duration-200 overflow-hidden group card-in"
+        [style.animation-delay]="($index * 40) + 'ms'">
+
+        <!-- Subtle glow bg -->
+        <div class="absolute -top-8 -right-8 w-32 h-32 rounded-full blur-3xl opacity-10 pointer-events-none transition-opacity group-hover:opacity-20"
+            [class]="pct >= 75 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-500' : 'bg-red-500'"></div>
+
+        <!-- Top row: category tag + score ring -->
+        <div class="flex items-start justify-between">
+            <!-- Category pill -->
+            <span class="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full border"
+                [class]="grade.category === 'ASSIGNMENT' ? 'bg-purple-500/15 text-purple-400 border-purple-500/20' :
+                          grade.category === 'QUIZ'       ? 'bg-blue-500/15   text-blue-400   border-blue-500/20' :
+                          grade.category === 'MIDTERM'    ? 'bg-amber-500/15  text-amber-400  border-amber-500/20' :
+                                                            'bg-indigo-500/15 text-indigo-400 border-indigo-500/20'">
+                <span>{{ getCategoryIcon(grade.category) }}</span>
+                {{ grade.category }}
+            </span>
+
+            <!-- SVG Score Ring -->
+            <div class="relative w-14 h-14 shrink-0">
+                <svg viewBox="0 0 56 56" width="56" height="56" class="-rotate-90">
+                    <circle cx="28" cy="28" r="22" fill="none" stroke-width="5"
+                        class="stroke-white/[0.07]"/>
+                    <circle cx="28" cy="28" r="22" fill="none" stroke-width="5"
+                        [attr.stroke-dasharray]="(pct / 100) * 138.23 + ' 138.23'"
+                        stroke-dashoffset="0"
+                        stroke-linecap="round"
+                        class="ring-stroke transition-all duration-1000"
+                        [class]="pct >= 75 ? 'stroke-emerald-400' : pct >= 50 ? 'stroke-amber-400' : 'stroke-red-400'"/>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center text-sm font-black text-text-primary">
+                    {{ getGradeLabel(pct) }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Subject -->
+        <div class="text-base font-extrabold text-text-primary leading-tight truncate">
+            {{ grade.subject || 'Unknown Subject' }}
+        </div>
+
+        <!-- Score -->
+        <div class="flex items-baseline gap-1.5">
+            <span class="text-2xl md:text-3xl font-black tracking-tight leading-none"
+                [class]="pct >= 75 ? 'text-emerald-400' : pct >= 50 ? 'text-amber-400' : 'text-red-400'">
+                {{ grade.score }}
+            </span>
+            <span class="text-sm text-text-muted font-medium">/ {{ grade.max_score || 100 }}</span>
+            <span class="text-sm font-bold ml-1"
+                [class]="pct >= 75 ? 'text-emerald-400/70' : pct >= 50 ? 'text-amber-400/70' : 'text-red-400/70'">
+                ({{ pct }}%)
+            </span>
+        </div>
+
+        <!-- Term + meta pills -->
+        <div class="flex flex-wrap gap-1.5">
+            <span class="flex items-center gap-1 text-[11px] font-semibold text-text-muted bg-bg-tertiary border border-border-primary px-2.5 py-1 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                {{ grade.term }}
+            </span>
+        </div>
+
+        <!-- Remarks -->
+        @if (grade.remarks) {
+        <p class="text-xs text-text-muted italic leading-relaxed border-l-2 border-border-primary pl-2.5">
+            {{ grade.remarks }}
+        </p>
+        }
+
+        <!-- Progress bar -->
+        <div class="h-1.5 bg-bg-tertiary rounded-full overflow-hidden mt-auto">
+            <div class="h-full rounded-full progress-bar"
+                [style.width.%]="pct"
+                [style.transition-delay]="($index * 40 + 300) + 'ms'"
+                [class]="pct >= 75 ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' :
+                          pct >= 50 ? 'bg-gradient-to-r from-amber-500 to-amber-400' :
+                                     'bg-gradient-to-r from-red-600 to-red-400'">
+            </div>
+        </div>
+
+        <!-- Delete (hover reveal) -->
+        <button (click)="deleteGrade(grade.id)" title="Delete grade"
+            class="absolute top-3.5 right-3.5 w-8 h-8 flex items-center justify-center rounded-xl text-text-muted hover:bg-red-500/15 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100 cursor-pointer border-0 bg-transparent">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+        </button>
+    </div>
+    }
+
+    <!-- Empty state -->
+    @empty {
+    <div class="col-span-full flex flex-col items-center justify-center py-24 gap-4 text-center">
+        <div class="w-20 h-20 rounded-3xl bg-bg-tertiary border border-border-primary flex items-center justify-center text-text-muted">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+        </div>
+        <div>
+            <p class="text-base font-bold text-text-primary mb-1">No records found</p>
+            <p class="text-sm text-text-secondary">No grades match the selected filters for this student.</p>
+        </div>
+        <a [routerLink]="['/students', studentId, 'grades', 'new']"
+            class="flex items-center gap-2 mt-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-text-primary rounded-2xl font-bold text-sm transition-all no-underline">
+            Add First Grade
+        </a>
+    </div>
+    }
+
+    } <!-- /else -->
+</div>
+

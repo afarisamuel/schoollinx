@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password123}
+      POSTGRES_DB: ${POSTGRES_DB:-basic_sms}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ENV=${ENV:-development}
+      - PORT=8080
+      - DATABASE_URL=host=postgres user=${POSTGRES_USER:-postgres} password=${POSTGRES_PASSWORD:-password123} dbname=${POSTGRES_DB:-basic_sms} port=5432 sslmode=disable TimeZone=UTC
+      - JWT_SECRET=${JWT_SECRET:-super_secret_jwt_key_for_compose}
+      - SMTP_HOST=mailhog
+      - SMTP_PORT=1025
+      - SMTP_FROM=noreply@njuases.com
+      - AUTO_MIGRATE=false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  migrate:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["go", "run", "./cmd/migrate", "up"]
+    environment:
+      - DATABASE_URL=host=postgres user=${POSTGRES_USER:-postgres} password=${POSTGRES_PASSWORD:-password123} dbname=${POSTGRES_DB:-basic_sms} port=5432 sslmode=disable TimeZone=UTC
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:

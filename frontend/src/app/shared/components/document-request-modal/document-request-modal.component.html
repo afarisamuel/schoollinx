@@ -1,0 +1,44 @@
+<div class="modal-backdrop animate-fade-in" (click)="close.emit()">
+    <div class="modal-content glass-panel animate-scale-up !max-w-2xl" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>Student Documents & Records</h2>
+            <p class="subtitle">Management center for {{ student?.first_name }} {{ student?.last_name }}</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex gap-4 border-b border-border-primary mb-6 mt-4">
+            <button (click)="activeTab.set('reports')"
+                class="pb-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 outline-none"
+                [class]="activeTab() === 'reports' ? 'text-indigo-400 border-indigo-500' : 'text-text-muted border-transparent hover:text-text-secondary'">
+                📜 Institutional Reports
+            </button>
+            <button (click)="activeTab.set('vault')"
+                class="pb-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 outline-none"
+                [class]="activeTab() === 'vault' ? 'text-indigo-400 border-indigo-500' : 'text-text-muted border-transparent hover:text-text-secondary'">
+                🔒 Digital Vault
+            </button>
+        </div>
+
+        @if (activeTab() === 'reports') {
+        <div class="document-options">
+            @for (option of options; track option.type) {
+            <div class="doc-card" (click)="generate(option.type)">
+                <div class="doc-icon">{{ option.icon }}</div>
+                <div class="doc-info">
+                    <span class="doc-title">{{ option.title }}</span>
+                    <p class="doc-desc">{{ option.description }}</p>
+                </div>
+            </div>
+            }
+        </div>
+        } @else {
+        <div class="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar my-4">
+            <app-document-manager [ownerId]="student?.id || ''" ownerType="STUDENT" />
+        </div>
+        }
+
+        <div class="modal-footer">
+            <button class="btn btn-glass" (click)="close.emit()">Close</button>
+        </div>
+    </div>
+</div>

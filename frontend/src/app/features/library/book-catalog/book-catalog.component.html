@@ -1,0 +1,157 @@
+<div class="flex flex-col gap-8 animate-fade-in p-4 lg:p-8">
+
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-400"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/><path d="M4 20h16"/></svg>
+                </div>
+                <h1 class="text-2xl md:text-3xl font-black text-text-primary tracking-tight">Virtual Library</h1>
+            </div>
+            <p class="text-text-secondary font-medium pl-13">Explore institutional knowledge, books and media resources</p>
+        </div>
+        <div class="flex items-center gap-3">
+            @if (isAdmin()) {
+            <a routerLink="/library/admin"
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-bg-tertiary hover:bg-amber-500/10 border border-border-primary hover:border-amber-500/20 text-text-secondary hover:text-amber-400 text-xs font-bold rounded-xl transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
+                Lending Dashboard
+            </a>
+            <a routerLink="/library/add"
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Add New Title
+            </a>
+            }
+        </div>
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-xl flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div class="relative flex-1">
+            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </div>
+            <input
+                type="text"
+                placeholder="Search by title, author, or ISBN..."
+                (input)="onSearch($event)"
+                class="w-full bg-bg-tertiary border border-border-primary rounded-xl pl-10 pr-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-indigo-500/40 focus:bg-bg-secondary transition-all"
+            >
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-[10px] font-bold text-text-muted uppercase tracking-widest hidden sm:block">Filter:</span>
+            <button class="px-3 py-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black rounded-lg uppercase tracking-wide transition-all hover:bg-indigo-500/20">All</button>
+            <button class="px-3 py-2 bg-bg-tertiary border border-border-primary text-text-muted text-[10px] font-black rounded-lg uppercase tracking-wide transition-all hover:bg-bg-secondary hover:text-text-primary">Available</button>
+            <button class="px-3 py-2 bg-bg-tertiary border border-border-primary text-text-muted text-[10px] font-black rounded-lg uppercase tracking-wide transition-all hover:bg-bg-secondary hover:text-text-primary">On Loan</button>
+        </div>
+    </div>
+
+    <!-- Stats Strip -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="flex flex-col gap-1 p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-xl">
+            <span class="text-[9px] font-bold text-text-muted uppercase tracking-tighter">Total Titles</span>
+            <span class="text-2xl font-black text-text-primary">{{ books().length }}</span>
+        </div>
+        <div class="flex flex-col gap-1 p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-xl">
+            <span class="text-[9px] font-bold text-text-muted uppercase tracking-tighter">Available Now</span>
+            <span class="text-2xl font-black text-emerald-400">{{ availableCount() }}</span>
+        </div>
+        <div class="flex flex-col gap-1 p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-xl">
+            <span class="text-[9px] font-bold text-text-muted uppercase tracking-tighter">On Loan</span>
+            <span class="text-2xl font-black text-amber-400">{{ loanedCount() }}</span>
+        </div>
+        <div class="flex flex-col gap-1 p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-xl">
+            <span class="text-[9px] font-bold text-text-muted uppercase tracking-tighter">Categories</span>
+            <span class="text-2xl font-black text-indigo-400">{{ categoryCount() }}</span>
+        </div>
+    </div>
+
+    <!-- Book Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        @for (book of books(); track book.id) {
+        <div class="group bg-bg-secondary border border-border-primary rounded-3xl shadow-xl overflow-hidden flex flex-col hover:border-indigo-500/30 hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-500/5 transition-all duration-300">
+
+            <!-- Book Cover Area -->
+            <div class="relative h-44 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-amber-500/10 flex items-center justify-center overflow-hidden">
+                <div class="absolute inset-0 bg-[linear-gradient(135deg,transparent_40%,rgba(99,102,241,0.04)_100%)]"></div>
+
+                <!-- Category Badge -->
+                <span class="absolute top-3 left-3 px-2.5 py-1 bg-bg-secondary/80  border border-border-secondary text-[9px] font-black text-text-muted uppercase tracking-widest rounded-lg">{{ book.category }}</span>
+
+                <!-- Availability Badge -->
+                @if (book.available_copies > 0) {
+                <span class="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black text-emerald-400 uppercase rounded-lg">
+                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                    {{ book.available_copies }} Free
+                </span>
+                } @else {
+                <span class="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 bg-red-500/10 border border-red-500/20 text-[9px] font-black text-red-400 uppercase rounded-lg">
+                    <span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                    Loaned
+                </span>
+                }
+
+                <!-- Book Icon -->
+                <div class="flex flex-col items-center gap-2 opacity-20 group-hover:opacity-40 transition-opacity duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6.5 18H20"/></svg>
+                </div>
+            </div>
+
+            <!-- Book Info -->
+            <div class="flex flex-col gap-3 p-5 flex-1">
+                <div class="flex flex-col gap-1">
+                    <h3 class="text-sm font-black text-text-primary leading-snug line-clamp-2">{{ book.title }}</h3>
+                    <p class="text-[11px] text-text-muted font-medium">by {{ book.author }}</p>
+                </div>
+
+                <!-- Copies bar -->
+                <div class="flex flex-col gap-1.5 mt-auto">
+                    <div class="flex items-center justify-between text-[10px] font-bold">
+                        <span class="text-text-muted uppercase tracking-wider">Copies</span>
+                        <span class="text-text-secondary font-mono">{{ book.available_copies }}/{{ book.total_copies }}</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-bg-tertiary rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-700"
+                             [class.bg-emerald-500]="book.available_copies > 0"
+                             [class.bg-red-500]="book.available_copies === 0"
+                             [style.width.%]="(book.available_copies / book.total_copies) * 100">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Footer -->
+            <div class="px-5 pb-5">
+                @if (book.available_copies > 0) {
+                <button
+                    (click)="requestLoan(book)"
+                    class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Request Loan
+                </button>
+                } @else {
+                <button
+                    disabled
+                    class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-bg-tertiary border border-border-primary text-text-muted text-xs font-bold rounded-xl cursor-not-allowed opacity-60">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                    Join Waitlist
+                </button>
+                }
+            </div>
+        </div>
+        } @empty {
+        <!-- Empty State -->
+        <div class="col-span-full flex flex-col items-center justify-center gap-4 py-20 bg-bg-secondary border border-dashed border-border-secondary rounded-3xl">
+            <div class="w-16 h-16 rounded-2xl bg-bg-tertiary border border-border-primary flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-text-muted"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/><path d="M4 20h16"/></svg>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+                <p class="text-sm font-bold text-text-primary">No books found</p>
+                <p class="text-xs text-text-muted">Try adjusting your search or filters</p>
+            </div>
+        </div>
+        }
+    </div>
+</div>

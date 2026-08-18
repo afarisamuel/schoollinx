@@ -1,0 +1,64 @@
+<div class="relative w-full">
+  <!-- Input Field -->
+  <div class="relative group">
+    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <svg class="h-4 w-4 text-text-muted group-focus-within:text-indigo-500 transition-colors" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+      </svg>
+    </div>
+    
+    <!-- We bind the input to 'searchTerm', but if there's no search term and we have a selected student, we show the selected student's name -->
+    <input
+      type="text"
+      [ngModel]="isOpen() ? searchTerm() : selectedStudentName"
+      (ngModelChange)="onSearchChange($event)"
+      (focus)="onInputFocus()"
+      [placeholder]="placeholder"
+      [class]="inputClass + ' pl-9'"
+      [required]="required"
+      [disabled]="disabled"
+      autocomplete="off"
+    />
+    
+    <!-- Clear Selection Button -->
+    @if (studentId && !disabled) {
+      <button 
+        type="button"
+        (click)="studentIdChange.emit(''); searchTerm.set(''); $event.stopPropagation()"
+        class="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-rose-500 transition-colors"
+        title="Clear Selection">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    }
+  </div>
+
+  <!-- Dropdown Panel -->
+  @if (isOpen()) {
+    <div class="absolute z-50 w-full mt-2 bg-bg-tertiary border border-border-primary rounded-xl shadow-2xl max-h-60 overflow-y-auto">
+      @for (student of filteredStudents(); track student.id) {
+        <div 
+          (click)="selectStudent(student)" 
+          class="px-4 py-3 cursor-pointer transition-colors border-b border-border-primary last:border-0 hover:bg-indigo-500/10 flex flex-col gap-1"
+          [class.bg-indigo-500]="student.id === studentId"
+          [class.bg-opacity-10]="student.id === studentId"
+        >
+          <div class="flex justify-between items-center">
+            <p class="text-sm font-bold text-text-primary">{{ student.first_name }} {{ student.last_name }}</p>
+            @if (student.enrollment_num) {
+              <span class="text-[10px] font-black bg-bg-primary px-2 py-0.5 rounded border border-border-primary text-text-secondary">{{ student.enrollment_num }}</span>
+            }
+          </div>
+          <p class="text-[10px] text-text-muted uppercase tracking-widest font-mono">{{ student.id | slice:0:8 }}...</p>
+        </div>
+      }
+      
+      @if (filteredStudents().length === 0) {
+        <div class="px-4 py-6 flex flex-col items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-text-muted opacity-50"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span class="text-xs font-medium text-text-muted">No students found</span>
+        </div>
+      }
+    </div>
+  }
+</div>

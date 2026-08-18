@@ -1,0 +1,158 @@
+<div class="p-12">
+  <div class="max-w-7xl mx-auto">
+    <header class="mb-12 border-b border-border-primary pb-10 flex justify-between items-end">
+      <div>
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-[9px] font-black text-rose-500 uppercase tracking-widest">Global SecOps</span>
+        </div>
+        <h1 class="text-5xl font-black text-white tracking-tighter">Security <span class="text-rose-500 text-opacity-80">Command</span></h1>
+        <p class="text-text-secondary mt-3 max-w-xl text-sm leading-relaxed">Monitor high-risk administrative actions and manage global network access controls.</p>
+      </div>
+    </header>
+
+    <!-- Global Notifications -->
+    <div class="min-h-[4rem] mb-4">
+      @if (successMessage()) {
+        <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold animate-fade-in flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+          <span>{{ successMessage() }}</span>
+        </div>
+      }
+      @if (errorMessage()) {
+        <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold animate-fade-in flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+    </div>
+
+    @if (isLoading()) {
+      <div class="py-24 text-center">
+        <div class="w-10 h-10 border-4 border-rose-500/20 border-t-rose-500 rounded-full animate-spin mx-auto mb-4"></div>
+        <p class="text-xs font-bold text-text-muted uppercase tracking-widest">Loading security context...</p>
+      </div>
+    } @else {
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- High Risk Audit Trail -->
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-black text-white uppercase tracking-widest">Critical Actions Log</h2>
+            <a href="/audit-logs" class="text-xs font-bold text-rose-400 hover:text-rose-300">View All Logs &rarr;</a>
+          </div>
+          
+          <div class="admin-card !p-0 overflow-hidden border-border-primary/50 h-[500px] overflow-y-auto custom-scrollbar">
+            <table class="w-full text-left whitespace-nowrap">
+              <tbody class="divide-y divide-border-primary">
+                @for (log of auditLogs(); track log.id) {
+                  <tr class="hover:bg-rose-500/[0.02] transition-colors">
+                    <td class="pl-6 py-4">
+                      <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded bg-rose-500/10 flex items-center justify-center text-rose-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        </div>
+                        <div>
+                          <div class="font-bold text-sm text-white">{{ log.action }}</div>
+                          <div class="text-[10px] text-text-secondary mt-1 font-mono">By: {{ log.actor_email || 'System' }} | IP: {{ log.metadata?.ip_address || 'Unknown' }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="pr-6 py-4 text-right">
+                      <div class="text-[10px] font-bold text-text-muted">{{ log.created_at | date:'short' }}</div>
+                    </td>
+                  </tr>
+                }
+                @if (auditLogs().length === 0) {
+                  <tr><td colspan="2" class="py-12 text-center text-xs text-text-muted">No high-risk actions detected.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- IP Whitelist -->
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-black text-white uppercase tracking-widest">Network Access Control (IPs)</h2>
+            <button (click)="openAddIpModal()" class="admin-btn-primary bg-rose-600 border-rose-500 hover:bg-rose-500 px-4 py-1.5 text-[10px] tracking-wider flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+              WHITELIST IP
+            </button>
+          </div>
+
+          <div class="admin-card !p-0 overflow-hidden border-border-primary/50 h-[500px] overflow-y-auto custom-scrollbar">
+            <table class="w-full text-left whitespace-nowrap">
+              <thead class="bg-bg-tertiary/30 sticky top-0 backdrop-blur-md z-10">
+                <tr>
+                  <th class="pl-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">IP Address</th>
+                  <th class="py-3 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Context</th>
+                  <th class="pr-6 py-3 text-right text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border-primary">
+                @for (ip of whitelistedIps(); track ip.id) {
+                  <tr class="hover:bg-bg-secondary/40 transition-colors group">
+                    <td class="pl-6 py-4">
+                      <div class="font-bold text-sm text-white font-mono flex items-center gap-2">
+                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                        {{ ip.ip_address }}
+                      </div>
+                    </td>
+                    <td class="py-4">
+                      <div class="text-xs text-text-secondary">{{ ip.description || 'No description provided' }}</div>
+                      <div class="text-[9px] text-text-muted mt-0.5 uppercase tracking-wider">Added by {{ ip.added_by }}</div>
+                    </td>
+                    <td class="pr-6 py-4 text-right">
+                      <button (click)="removeIp(ip.id)" class="opacity-0 group-hover:opacity-100 transition-opacity w-8 h-8 inline-flex items-center justify-center rounded-lg bg-bg-tertiary text-text-muted hover:text-rose-500 hover:bg-rose-500/10 border border-border-primary" title="Revoke Access">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                    </td>
+                  </tr>
+                }
+                @if (whitelistedIps().length === 0) {
+                  <tr><td colspan="3" class="py-12 text-center text-xs text-text-muted">No IPs currently whitelisted. Global access allowed.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Add IP Modal -->
+@if (showAddIpModal()) {
+<div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md animate-fade-in">
+    <div class="admin-card !p-8 w-full max-w-md animate-scale-in shadow-2xl border-rose-500/20">
+        <h2 class="text-2xl font-black text-white tracking-tighter uppercase mb-6">Whitelist IP</h2>
+        
+        <form [formGroup]="ipForm" (ngSubmit)="submitIp()" class="flex flex-col gap-5">
+            <div>
+                <label class="block text-[9px] font-black text-text-muted uppercase mb-1.5 tracking-widest">IPv4 Address</label>
+                <input type="text" formControlName="ip_address" placeholder="192.168.1.1"
+                    class="admin-input font-mono" [class.border-rose-500]="ipForm.get('ip_address')?.invalid && ipForm.get('ip_address')?.touched">
+                @if (ipForm.get('ip_address')?.invalid && ipForm.get('ip_address')?.touched) {
+                  <span class="text-[9px] text-rose-500 mt-1 uppercase tracking-wider block">Invalid IPv4 format</span>
+                }
+            </div>
+            
+            <div>
+                <label class="block text-[9px] font-black text-text-muted uppercase mb-1.5 tracking-widest">Description / Context</label>
+                <input type="text" formControlName="description" placeholder="e.g. Accra HQ Office"
+                    class="admin-input">
+            </div>
+            
+            <div class="flex gap-3 pt-4 mt-2 border-t border-border-primary">
+                <button type="button" (click)="closeAddIpModal()"
+                    class="flex-1 py-3 rounded-xl bg-bg-tertiary border border-border-primary text-xs font-bold text-white hover:bg-bg-secondary transition-colors">CANCEL</button>
+                <button type="submit" [disabled]="isSubmitting() || ipForm.invalid"
+                    class="flex-1 admin-btn-primary bg-rose-600 hover:bg-rose-500 border-rose-500 py-3 text-xs tracking-wider disabled:opacity-50">
+                    {{ isSubmitting() ? 'SAVING...' : 'AUTHORIZE IP' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+}

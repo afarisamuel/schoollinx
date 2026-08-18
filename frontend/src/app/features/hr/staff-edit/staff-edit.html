@@ -1,0 +1,188 @@
+<div class="flex flex-col gap-8 animate-fade-in">
+
+    <!-- Page Header -->
+    <div class="flex items-center gap-4">
+        <a routerLink="/hr/staff" class="p-2.5 hover:bg-bg-tertiary text-text-muted hover:text-text-primary rounded-xl transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        </a>
+        <div class="h-10 w-px bg-bg-tertiary"></div>
+        <div class="flex flex-col gap-1.5">
+            <h1 class="text-xl md:text-2xl font-black tracking-tight text-text-primary">Edit Staff Profile</h1>
+            <p class="text-sm font-medium text-text-secondary">Update professional and financial details</p>
+        </div>
+    </div>
+
+    <form (submit)="saveStaff($event)" class="flex flex-col gap-6" novalidate>
+
+        <!-- SECTION 1: Personal Information -->
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-8 flex flex-col gap-6 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+            <div class="flex items-center gap-3 pb-4 border-b border-border-primary">
+                <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                </div>
+                <div>
+                    <h2 class="text-sm font-black text-text-primary">Personal Info</h2>
+                    <p class="text-[10px] text-text-muted uppercase tracking-widest font-bold">Employee core identity</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
+                
+                <!-- First Name -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">First Name <span class="text-indigo-400">*</span></label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <input type="text" placeholder="e.g. KOFI"
+                            [value]="form().first_name || ''"
+                            (input)="updateForm('first_name', $any($event.target).value)"
+                            class="field-input uppercase border-border-secondary pl-12" required>
+                    </div>
+                </div>
+
+                <!-- Last Name -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Last Name <span class="text-indigo-400">*</span></label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <input type="text" placeholder="e.g. MENSAH"
+                            [value]="form().last_name || ''"
+                            (input)="updateForm('last_name', $any($event.target).value)"
+                            class="field-input uppercase border-border-secondary pl-12" required>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Email Address</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        <input type="email" placeholder="staff@school.edu"
+                            [value]="form().email || ''"
+                            (input)="updateForm('email', $any($event.target).value)"
+                            class="field-input border-border-secondary pl-12">
+                    </div>
+                </div>
+
+                <!-- Phone Number -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Phone Number</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 11.92a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.07 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        <input type="tel" placeholder="e.g. 0244 000 000"
+                            [value]="form().phone_number || ''"
+                            (input)="updateForm('phone_number', $any($event.target).value)"
+                            class="field-input font-mono border-border-secondary pl-12">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SECTION 2: Employment Details -->
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-8 flex flex-col gap-6 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+            <div class="flex items-center gap-3 pb-4 border-b border-border-primary">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                </div>
+                <div>
+                    <h2 class="text-sm font-black text-text-primary">Employment Details</h2>
+                    <p class="text-[10px] text-text-muted uppercase tracking-widest font-bold">Role, Department, and Compensation</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
+                
+                <!-- Job Title -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Job Title <span class="text-emerald-400">*</span></label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                        <input type="text" placeholder="e.g. Head of Science"
+                            [value]="form().job_title || ''"
+                            (input)="updateForm('job_title', $any($event.target).value)"
+                            class="field-input border-border-secondary pl-12" required>
+                    </div>
+                </div>
+
+                <!-- Department -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Department</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        <select class="field-input border-border-secondary pl-12" style="background-color:#0a0f1d"
+                                [value]="form().department || ''"
+                                (change)="updateForm('department', $any($event.target).value)">
+                            <option value="">— Select Department —</option>
+                            @for (dept of departments; track dept) {
+                                <option [value]="dept">{{ dept }}</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Base Salary -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Base Salary (₵) <span class="text-emerald-400">*</span></label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                        <input type="number" placeholder="0.00" min="0" step="0.01"
+                            [value]="form().base_salary || 0"
+                            (input)="updateForm('base_salary', +$any($event.target).value)"
+                            class="field-input border-border-secondary pl-12" required>
+                    </div>
+                </div>
+
+                <!-- Hire Date -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Hire Date <span class="text-emerald-400">*</span></label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                        <input type="date" 
+                            [value]="form().hire_date || ''"
+                            (input)="updateForm('hire_date', $any($event.target).value)"
+                            class="field-input [color-scheme:dark] border-border-secondary pl-12" required>
+                    </div>
+                </div>
+
+                <!-- Bank Account -->
+                <div class="flex flex-col gap-2">
+                    <label class="field-label">Bank Account Number</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                        <input type="text" placeholder="For payroll disbursement"
+                            [value]="form().bank_account || ''"
+                            (input)="updateForm('bank_account', $any($event.target).value)"
+                            class="field-input border-border-secondary pl-12">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Sticky Action Bar -->
+        <div class="sticky bottom-0 z-10 flex items-center justify-between p-4 bg-bg-primary/80 border border-border-primary rounded-2xl shadow-xl mt-4">
+            <div class="flex items-center gap-2 text-xs font-semibold text-text-muted">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                <span>Fields marked <span class="text-indigo-400 font-black">*</span> are required.</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <a routerLink="/hr/staff" class="px-6 py-2.5 bg-bg-tertiary hover:bg-bg-secondary border border-border-secondary text-text-secondary hover:text-text-primary text-sm font-bold rounded-xl transition-all">
+                    Cancel
+                </a>
+                <button type="submit" [disabled]="isSaving()" class="w-full md:w-auto px-8 py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-text-primary text-sm font-bold rounded-2xl shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-3 relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:animate-shimmer"></div>
+                    @if (isSaving()) {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                        <span>Saving Changes...</span>
+                    } @else {
+                        <span>Update Profile</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    }
+                </button>
+            </div>
+        </div>
+    </form>
+</div>

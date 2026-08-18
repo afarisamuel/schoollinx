@@ -1,0 +1,273 @@
+<div class="container mx-auto px-4 py-8 animate-fade-in max-w-7xl">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 relative">
+        <div class="absolute -top-10 -left-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative z-10">
+            <h1 class="text-3xl md:text-4xl font-black tracking-tight text-text-primary mb-2 bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Timetable Manager</h1>
+            <p class="text-text-muted text-lg font-medium">Create and manage weekly class schedules visually</p>
+        </div>
+        <div class="flex items-center gap-4 relative z-10">
+            <div class="relative group">
+                <select [(ngModel)]="selectedClassId" (change)="onClassChange()"
+                    class="appearance-none bg-bg-tertiary/80 backdrop-blur-xl border border-border-secondary rounded-2xl pl-5 pr-12 py-3.5 text-sm font-bold text-text-primary outline-none hover:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer min-w-[200px] shadow-lg group-hover:shadow-[0_0_15px_rgba(99,102,241,0.15)]">
+                    <option value="">Select a Class…</option>
+                    @for (c of classes(); track c.id) {
+                    <option [value]="c.id" class="bg-bg-tertiary text-text-primary">{{ c.name }}</option>
+                    }
+                </select>
+                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted group-hover:text-indigo-400 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+            </div>
+            
+            @if (selectedClassId()) {
+            <button (click)="isAdding.set(true)"
+                class="px-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-2xl shadow-xl shadow-indigo-500/20 transition-all duration-300 flex items-center gap-2 transform active:scale-95 group overflow-hidden relative">
+                <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                <span class="relative z-10 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+                    Add Entry
+                </span>
+            </button>
+            }
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    @if (successMsg()) {
+    <div class="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.1)] rounded-2xl text-emerald-400 text-sm font-bold flex items-center gap-3 animate-slide-in">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        {{ successMsg() }}
+    </div>
+    }
+    @if (errorMsg()) {
+    <div class="mb-6 p-4 bg-rose-500/10 border border-rose-500/30 shadow-[0_0_20px_rgba(244,63,94,0.1)] rounded-2xl text-rose-400 text-sm font-bold flex items-center gap-3 animate-slide-in">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        {{ errorMsg() }}
+    </div>
+    }
+    @if (conflictMsg()) {
+    <div class="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.1)] rounded-2xl text-amber-400 text-sm font-bold flex items-start gap-3 animate-slide-in">
+        <svg class="w-6 h-6 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        <div>
+            <div class="text-base">Scheduling Conflict Detected</div>
+            <div class="text-amber-400/80 font-medium mt-1">{{ conflictMsg() }}</div>
+        </div>
+    </div>
+    }
+
+    @if (!selectedClassId()) {
+    <!-- Empty state -->
+    <div class="flex flex-col items-center justify-center py-32 px-6 text-center bg-bg-tertiary/20 rounded-3xl border border-border-secondary/30 backdrop-blur-sm relative overflow-hidden group hover:border-indigo-500/20 transition-colors duration-500">
+        <div class="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div class="w-24 h-24 bg-white/5 rounded-3xl flex items-center justify-center mb-8 -rotate-3 group-hover:rotate-3 transition-transform duration-500 shadow-xl border border-white/5 relative z-10">
+            <svg class="w-12 h-12 text-text-muted group-hover:text-indigo-400 transition-colors duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <h3 class="text-2xl font-black text-text-primary mb-3 relative z-10">Select a Class</h3>
+        <p class="text-text-muted text-lg max-w-md relative z-10">Choose a class above to view or manage its weekly timetable.</p>
+    </div>
+    } @else {
+    <!-- Timetable Grid -->
+    <div class="bg-bg-tertiary/60 backdrop-blur-xl border border-border-secondary rounded-3xl p-2 md:p-6 shadow-2xl relative overflow-hidden animate-slide-in">
+        <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent pointer-events-none"></div>
+        
+        <div class="overflow-x-auto custom-scrollbar w-full relative z-10 pb-4">
+            <table class="w-full border-collapse min-w-[900px]">
+                <thead>
+                    <tr>
+                        <th class="text-left px-6 py-4 text-xs font-black text-text-muted uppercase tracking-widest w-32 border-b border-border-secondary">Day</th>
+                        <th class="text-left px-6 py-4 text-xs font-black text-text-muted uppercase tracking-widest border-b border-border-secondary">Scheduled Sessions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border-secondary/50">
+                    @for (day of [1,2,3,4,5]; track day; let i = $index) {
+                    <tr class="group/row hover:bg-bg-secondary/50 transition-colors duration-300">
+                        <td class="px-6 py-8 align-top">
+                            <span class="inline-block px-3 py-1 rounded-lg bg-white/5 border border-white/5 text-sm font-bold text-indigo-300 uppercase tracking-wider group-hover/row:border-indigo-500/20 group-hover/row:bg-indigo-500/10 group-hover/row:text-indigo-400 transition-colors">
+                                {{ dayLabel(day) }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-8">
+                            <div class="flex flex-wrap gap-4">
+                                @for (entry of entriesByDay()[day]; track entry.id) {
+                                <div class="group relative flex flex-col gap-1.5 bg-bg-tertiary border border-border-secondary rounded-2xl p-4 min-w-[180px] hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-500/30 transition-all duration-300 overflow-hidden">
+                                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    
+                                    <div class="flex justify-between items-start">
+                                        <span class="text-sm font-bold text-text-primary group-hover:text-indigo-300 transition-colors">
+                                            {{ subjectMap()[entry.subject_id] || entry.subject_id }}
+                                        </span>
+                                        <button (click)="removeEntry(entry.id)" class="w-6 h-6 rounded-md bg-transparent hover:bg-rose-500/15 text-text-muted hover:text-rose-500 flex items-center justify-center transition-colors -mr-1 -mt-1 opacity-0 group-hover:opacity-100 focus:opacity-100" title="Remove Entry">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="flex items-center gap-1.5 text-xs font-semibold text-text-secondary mt-1">
+                                        <svg class="w-3.5 h-3.5 text-indigo-400/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        {{ entry.start_time }} – {{ entry.end_time }}
+                                    </div>
+                                    
+                                    <div class="flex items-center justify-between mt-2 pt-2 border-t border-border-secondary/50">
+                                        <div class="flex items-center gap-1.5 text-xs font-medium text-text-muted">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                            <span class="truncate max-w-[100px]">{{ teacherMap()[entry.teacher_id] || '—' }}</span>
+                                        </div>
+                                        @if (entry.room) {
+                                        <span class="text-[10px] bg-bg-secondary rounded-md px-1.5 py-0.5 text-text-secondary font-bold border border-border-secondary group-hover:border-indigo-500/20">
+                                            {{ entry.room }}
+                                        </span>
+                                        }
+                                    </div>
+                                </div>
+                                }
+                                @if (entriesByDay()[day].length === 0) {
+                                <div class="flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-border-secondary bg-white/5 text-text-muted opacity-60">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <span class="text-sm font-medium">No sessions scheduled</span>
+                                </div>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    }
+
+    <!-- Add Entry Modal -->
+    @if (isAdding()) {
+    <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 animate-fade-in backdrop-blur-sm">
+        <div class="absolute inset-0 bg-bg-primary/60" (click)="isAdding.set(false)"></div>
+        <div class="bg-bg-tertiary w-full max-w-xl rounded-3xl border border-border-secondary shadow-2xl relative z-10 overflow-hidden transform scale-100 transition-all">
+            <!-- Decorative header background -->
+            <div class="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-indigo-600/20 via-purple-600/10 to-transparent"></div>
+            <div class="absolute -top-20 -right-20 w-40 h-40 bg-indigo-500/20 blur-3xl rounded-full"></div>
+            
+            <div class="relative p-8 md:p-10">
+                <div class="flex justify-between items-start mb-8">
+                    <div>
+                        <h2 class="text-2xl font-black text-text-primary tracking-tight mb-1">New Schedule Entry</h2>
+                        <p class="text-sm text-text-muted font-medium">Add a new session to the weekly timetable.</p>
+                    </div>
+                    <button (click)="isAdding.set(false)" class="p-2 rounded-full bg-white/5 hover:bg-rose-500/10 text-text-muted hover:text-rose-400 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <div class="flex flex-col gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Day -->
+                        <div class="flex flex-col gap-1.5 group">
+                            <label class="text-xs font-bold text-text-secondary uppercase tracking-wider">Day of Week</label>
+                            <div class="relative">
+                                <select [(ngModel)]="draft.day_of_week"
+                                    class="w-full appearance-none bg-bg-secondary border border-border-secondary rounded-xl pl-4 pr-10 py-3 text-sm font-semibold text-text-primary outline-none focus:ring-2 focus:ring-indigo-500/50 hover:border-indigo-500/30 transition-all cursor-pointer">
+                                    @for (d of days; track $index) {
+                                    <option [value]="$index + 1" class="bg-bg-tertiary text-text-primary">{{ d }}</option>
+                                    }
+                                </select>
+                                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Room -->
+                        <div class="flex flex-col gap-1.5 group">
+                            <label class="text-xs font-bold text-text-secondary uppercase tracking-wider">Room <span class="text-text-muted font-normal normal-case">(optional)</span></label>
+                            <input type="text" [(ngModel)]="draft.room" placeholder="e.g. Lab A"
+                                class="w-full bg-bg-secondary border border-border-secondary rounded-xl px-4 py-3 text-sm font-semibold text-text-primary placeholder-text-muted/50 outline-none focus:ring-2 focus:ring-indigo-500/50 hover:border-indigo-500/30 transition-all">
+                        </div>
+                    </div>
+
+                    <!-- Subject -->
+                    <div class="flex flex-col gap-1.5 group">
+                        <label class="text-xs font-bold text-text-secondary uppercase tracking-wider">Subject</label>
+                        <div class="relative">
+                            <select [(ngModel)]="draft.subject_id"
+                                class="w-full appearance-none bg-bg-secondary border border-border-secondary rounded-xl pl-4 pr-10 py-3 text-sm font-semibold text-text-primary outline-none focus:ring-2 focus:ring-indigo-500/50 hover:border-indigo-500/30 transition-all cursor-pointer">
+                                <option value="" disabled selected class="text-text-muted">Select Subject…</option>
+                                @for (s of subjects(); track s.id) {
+                                <option [value]="s.id" class="bg-bg-tertiary text-text-primary">{{ s.name }}</option>
+                                }
+                            </select>
+                            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Teacher -->
+                    <div class="flex flex-col gap-1.5 group">
+                        <label class="text-xs font-bold text-text-secondary uppercase tracking-wider">Teacher</label>
+                        <div class="relative">
+                            <select [(ngModel)]="draft.teacher_id"
+                                class="w-full appearance-none bg-bg-secondary border border-border-secondary rounded-xl pl-4 pr-10 py-3 text-sm font-semibold text-text-primary outline-none focus:ring-2 focus:ring-indigo-500/50 hover:border-indigo-500/30 transition-all cursor-pointer">
+                                <option value="" disabled selected class="text-text-muted">Select Teacher…</option>
+                                @for (t of teachers(); track t.id) {
+                                <option [value]="t.id" class="bg-bg-tertiary text-text-primary">{{ t.first_name }} {{ t.last_name }}</option>
+                                }
+                            </select>
+                            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Times -->
+                    <div class="grid grid-cols-2 gap-4 pt-2 border-t border-border-secondary/50">
+                        <div class="flex flex-col gap-1.5 group">
+                            <label class="text-xs font-bold text-text-secondary uppercase tracking-wider flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Start Time
+                            </label>
+                            <div class="relative">
+                                <select [(ngModel)]="draft.start_time"
+                                    class="w-full appearance-none bg-bg-secondary border border-border-secondary rounded-xl pl-4 pr-10 py-3 text-sm font-semibold text-text-primary outline-none focus:ring-2 focus:ring-indigo-500/50 hover:border-indigo-500/30 transition-all cursor-pointer">
+                                    @for (t of timeSlots; track t) {
+                                    <option [value]="t" class="bg-bg-tertiary text-text-primary">{{ t }}</option>
+                                    }
+                                </select>
+                                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-1.5 group">
+                            <label class="text-xs font-bold text-text-secondary uppercase tracking-wider">End Time</label>
+                            <div class="relative">
+                                <select [(ngModel)]="draft.end_time"
+                                    class="w-full appearance-none bg-bg-secondary border border-border-secondary rounded-xl pl-4 pr-10 py-3 text-sm font-semibold text-text-primary outline-none focus:ring-2 focus:ring-indigo-500/50 hover:border-indigo-500/30 transition-all cursor-pointer">
+                                    @for (t of timeSlots; track t) {
+                                    <option [value]="t" class="bg-bg-tertiary text-text-primary">{{ t }}</option>
+                                    }
+                                </select>
+                                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex gap-4 pt-6 mt-2 border-t border-border-secondary/50">
+                        <button type="button" (click)="isAdding.set(false)"
+                            class="flex-1 py-3.5 bg-bg-secondary hover:bg-white/5 text-text-primary font-bold text-sm rounded-xl border border-border-secondary transition-all">Cancel</button>
+                        <button type="button" (click)="addEntry()" [disabled]="isSaving()"
+                            class="flex-[2] py-3.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-95 flex items-center justify-center gap-2">
+                            @if (isSaving()) {
+                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                Saving...
+                            } @else {
+                                Save Entry
+                            }
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+</div>

@@ -1,0 +1,104 @@
+<div class="space-y-8 animate-fade-in">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+        <div>
+            <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">House Championship</h1>
+            <p class="text-text-primary/70 mt-1">Live point standings and rankings</p>
+        </div>
+        <button (click)="loadLeaderboard()" class="px-4 py-2 rounded-xl bg-indigo-500/10 text-indigo-400 font-medium hover:bg-indigo-500/20 transition-colors flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [class.animate-spin]="isLoading()"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+            Refresh
+        </button>
+    </div>
+
+    @if (isLoading() && houses().length === 0) {
+        <div class="h-64 flex items-center justify-center">
+            <div class="w-10 h-10 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+        </div>
+    } @else if (error()) {
+        <div class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-center">
+            {{ error() }}
+        </div>
+    } @else {
+        <!-- Podium View (Top 3) -->
+        <div class="pt-12 pb-8 px-4 flex items-end justify-center gap-2 md:gap-6">
+            @for (house of houses().slice(0, 3); track house.id) {
+                <div class="flex flex-col items-center flex-1 max-w-[140px]" [style.order]="house.rank === 1 ? 2 : (house.rank === 2 ? 1 : 3)">
+                    
+                    <!-- House Avatar / Info -->
+                    <div class="flex flex-col items-center mb-4 transition-transform duration-500 hover:-translate-y-2">
+                        <div class="w-12 h-12 md:w-20 md:h-20 rounded-full shadow-2xl flex items-center justify-center text-2xl md:text-4xl mb-2"
+                             [style.backgroundColor]="house.color + '20'"
+                             [style.color]="house.color"
+                             [style.border]="'2px solid ' + house.color + '50'">
+                             {{ house.crest || '🏠' }}
+                        </div>
+                        <span class="text-xs md:text-sm font-bold text-center text-text-primary">{{ house.name }}</span>
+                        <span class="text-sm md:text-lg font-black mt-1" [style.color]="house.color">{{ house.total_points | number }}</span>
+                    </div>
+
+                    <!-- Pillar -->
+                    <div class="w-full rounded-t-xl bg-gradient-to-t shadow-lg flex flex-col items-center justify-start pt-4 relative overflow-hidden"
+                         [ngClass]="getRankColor(house.rank)"
+                         [ngClass]="getPodiumHeight(house.rank)">
+                         <!-- Glass reflection -->
+                         <div class="absolute inset-0 bg-white/10 w-1/2 skew-x-12 transform -translate-x-full"></div>
+                         <span class="text-3xl md:text-5xl font-black text-white/50">{{ house.rank }}</span>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Leaderboard List -->
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-border-primary bg-bg-tertiary">
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-primary/50 w-24 text-center">Rank</th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-primary/50">House</th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-primary/50 text-right">Members</th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-primary/50 text-right">Total Points</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border-primary">
+                        @for (house of houses(); track house.id) {
+                            <tr class="hover:bg-white/5 transition-colors group">
+                                <td class="px-6 py-4 text-center">
+                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm"
+                                          [ngClass]="{
+                                              'bg-yellow-500/20 text-yellow-500': house.rank === 1,
+                                              'bg-slate-400/20 text-slate-400': house.rank === 2,
+                                              'bg-amber-600/20 text-amber-600': house.rank === 3,
+                                              'text-text-primary/50': house.rank > 3
+                                          }">
+                                        #{{ house.rank }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner"
+                                             [style.backgroundColor]="house.color + '20'"
+                                             [style.color]="house.color">
+                                             {{ house.crest || '🏠' }}
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-text-primary group-hover:text-indigo-400 transition-colors">{{ house.name }}</p>
+                                            <p class="text-xs text-text-primary/50 truncate max-w-[200px] md:max-w-md">{{ house.description }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <span class="text-sm font-medium text-text-primary/70">{{ house.member_count | number }}</span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <span class="text-lg font-bold" [style.color]="house.color">{{ house.total_points | number }}</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

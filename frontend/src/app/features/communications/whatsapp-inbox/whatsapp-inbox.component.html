@@ -1,0 +1,179 @@
+<div class="min-h-screen bg-bg-primary flex flex-col">
+  <!-- Page Header -->
+  <div class="relative px-6 pt-8 pb-6 flex items-center justify-between border-b border-border-primary bg-bg-secondary/50 backdrop-blur-xl">
+    <div class="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-transparent pointer-events-none"></div>
+    <div class="relative z-10 flex items-center gap-4">
+      <!-- WhatsApp brand icon -->
+      <div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-emerald-500/10 border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" class="text-emerald-400">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-2xl font-black text-text-primary tracking-tight">WhatsApp Inbox</h1>
+        <p class="text-xs font-medium text-text-muted mt-0.5">Two-way messaging with parents & guardians</p>
+      </div>
+    </div>
+    <div class="relative z-10 flex items-center gap-3">
+      <span class="flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.8)] animate-pulse"></span>
+        Live Feed
+      </span>
+      <button (click)="loadMessages()" class="p-2.5 rounded-2xl bg-bg-tertiary border border-border-primary text-text-muted hover:text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/30 transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24"/><path d="M21 3v9h-9"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Chat Area -->
+  <div class="flex flex-1 overflow-hidden" style="height: calc(100vh - 120px)">
+
+    <!-- Contact List (Left Pane) -->
+    <div class="w-80 shrink-0 flex flex-col border-r border-border-primary bg-bg-secondary/30 overflow-hidden">
+      <!-- Search -->
+      <div class="p-3 border-b border-border-primary/50">
+        <div class="flex items-center gap-2 bg-bg-tertiary/60 rounded-2xl px-4 py-2.5 border border-border-primary/50">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-text-muted shrink-0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search conversations..." class="bg-transparent text-xs text-text-primary placeholder:text-text-muted outline-none w-full font-medium" />
+        </div>
+      </div>
+
+      <!-- Contact Items -->
+      <div class="flex-1 overflow-y-auto custom-scrollbar">
+        @if (contacts().length === 0) {
+          <div class="flex flex-col items-center justify-center h-full gap-4 text-text-muted px-6 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="opacity-30">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <p class="text-sm font-semibold">No messages yet.</p>
+            <p class="text-xs">Messages from parents will appear here when they reply to your WhatsApp broadcasts.</p>
+          </div>
+        }
+        @for (contact of contacts(); track contact.phone) {
+          <button
+            (click)="selectContact(contact.phone)"
+            class="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-bg-tertiary/80 transition-all border-b border-border-primary/30 text-left group"
+            [class.bg-bg-tertiary]="selectedPhone() === contact.phone"
+            [class.border-l-2]="selectedPhone() === contact.phone"
+            [class.border-l-emerald-500]="selectedPhone() === contact.phone"
+          >
+            <!-- Avatar -->
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/20 flex items-center justify-center shrink-0">
+              <span class="text-xs font-black text-emerald-400">{{ contact.phone.slice(-2) }}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-sm font-bold text-text-primary truncate">{{ contact.phone }}</span>
+                <span class="text-[10px] text-text-muted shrink-0">{{ formatTime(contact.latestMessage.created_at) }}</span>
+              </div>
+              <div class="flex items-center justify-between mt-0.5">
+                <span class="text-xs text-text-muted truncate max-w-[160px]">
+                  @if (contact.latestMessage.direction === 'OUTBOUND') {
+                    <span class="text-emerald-400/70 mr-1">✓</span>
+                  }
+                  {{ contact.latestMessage.content }}
+                </span>
+                @if (contact.unreadCount > 0) {
+                  <span class="shrink-0 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-[9px] font-black text-white shadow-[0_0_8px_rgba(16,185,129,0.5)]">
+                    {{ contact.unreadCount }}
+                  </span>
+                }
+              </div>
+            </div>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Chat Window (Right Pane) -->
+    <div class="flex-1 flex flex-col overflow-hidden bg-bg-primary">
+      @if (!hasConversation) {
+        <!-- Empty state -->
+        <div class="flex flex-col items-center justify-center h-full gap-6 text-text-muted">
+          <div class="w-20 h-20 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shadow-[0_0_40px_rgba(16,185,129,0.1)]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="currentColor" class="text-emerald-400/60">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+            </svg>
+          </div>
+          <div class="text-center">
+            <p class="text-base font-bold text-text-secondary mb-1">Select a conversation</p>
+            <p class="text-sm text-text-muted max-w-xs">Choose a contact on the left to view the full conversation thread and send a reply.</p>
+          </div>
+        </div>
+      }
+
+      @if (hasConversation) {
+        <!-- Chat Header -->
+        <div class="px-6 py-4 border-b border-border-primary flex items-center justify-between bg-bg-secondary/40 backdrop-blur-xl shrink-0">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/20 flex items-center justify-center">
+              <span class="text-xs font-black text-emerald-400">{{ selectedPhone()?.slice(-2) }}</span>
+            </div>
+            <div>
+              <p class="text-sm font-black text-text-primary">{{ selectedPhone() }}</p>
+              <p class="text-[10px] text-emerald-400 font-bold">WhatsApp</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="p-2 rounded-xl bg-bg-tertiary border border-border-primary text-text-muted hover:text-text-primary transition-all" title="Call">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3 custom-scrollbar" id="chat-messages">
+          @for (msg of selectedConversation(); track msg.id) {
+            <div class="flex" [class.justify-end]="msg.direction === 'OUTBOUND'" [class.justify-start]="msg.direction === 'INBOUND'">
+              <div
+                class="max-w-sm px-4 py-2.5 rounded-2xl text-sm font-medium leading-relaxed shadow-sm"
+                [class.bg-emerald-600]="msg.direction === 'OUTBOUND'"
+                [class.text-white]="msg.direction === 'OUTBOUND'"
+                [class.rounded-br-sm]="msg.direction === 'OUTBOUND'"
+                [class.bg-bg-secondary]="msg.direction === 'INBOUND'"
+                [class.text-text-primary]="msg.direction === 'INBOUND'"
+                [class.border]="msg.direction === 'INBOUND'"
+                [class.border-border-primary]="msg.direction === 'INBOUND'"
+                [class.rounded-bl-sm]="msg.direction === 'INBOUND'"
+              >
+                {{ msg.content }}
+                <div class="flex items-center justify-end gap-1 mt-1">
+                  <span class="text-[9px] opacity-60">{{ formatTime(msg.created_at) }}</span>
+                  @if (msg.direction === 'OUTBOUND') {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-70"><path d="M20 6 9 17l-5-5"/></svg>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Message Input -->
+        <div class="px-4 py-3 border-t border-border-primary bg-bg-secondary/50 backdrop-blur-xl shrink-0">
+          <div class="flex items-end gap-3 bg-bg-tertiary rounded-3xl px-4 py-2 border border-border-primary focus-within:border-emerald-500/40 transition-colors">
+            <textarea
+              [(ngModel)]="newMessageText"
+              (keydown)="onKeydown($event)"
+              placeholder="Type a message…"
+              rows="1"
+              class="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none resize-none leading-relaxed py-2 custom-scrollbar"
+              style="max-height: 120px;"
+            ></textarea>
+            <button
+              (click)="sendMessage()"
+              [disabled]="!newMessageText.trim() || isSending()"
+              class="mb-1 p-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-all shrink-0 shadow-[0_0_12px_rgba(16,185,129,0.3)] hover:shadow-[0_0_16px_rgba(16,185,129,0.4)]"
+            >
+              @if (isSending()) {
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="animate-spin"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24"/><path d="M21 3v9h-9"/></svg>
+              } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+              }
+            </button>
+          </div>
+          <p class="text-[10px] text-text-muted text-center mt-2">Press <kbd class="font-mono bg-bg-primary px-1 py-0.5 rounded text-text-secondary border border-border-primary">Enter</kbd> to send · <kbd class="font-mono bg-bg-primary px-1 py-0.5 rounded text-text-secondary border border-border-primary">Shift+Enter</kbd> for new line</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

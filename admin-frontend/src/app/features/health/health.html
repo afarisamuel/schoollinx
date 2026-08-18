@@ -1,0 +1,173 @@
+<div class="p-12">
+  <div class="max-w-7xl mx-auto">
+    <header class="mb-12 border-b border-border-primary pb-10 flex justify-between items-end">
+      <div>
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black text-emerald-500 uppercase tracking-widest">Platform Infrastructure</span>
+        </div>
+        <h1 class="text-5xl font-black text-white tracking-tighter">System <span class="text-emerald-500 text-opacity-80">Health</span></h1>
+        <p class="text-text-secondary mt-3 max-w-xl text-sm leading-relaxed">Monitor core services, manage global feature toggles, and handle tenant support escalations.</p>
+      </div>
+      <button (click)="loadData()" class="admin-btn-primary bg-emerald-600 border-emerald-500 hover:bg-emerald-500 px-6 py-3 text-xs tracking-wider flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+        REFRESH STATUS
+      </button>
+    </header>
+
+    <!-- Global Notifications -->
+    <div class="min-h-[4rem] mb-4">
+      @if (successMessage()) {
+        <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold animate-fade-in flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+          <span>{{ successMessage() }}</span>
+        </div>
+      }
+      @if (errorMessage()) {
+        <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold animate-fade-in flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+    </div>
+
+    @if (isLoading()) {
+      <div class="py-24 text-center">
+        <div class="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4"></div>
+        <p class="text-xs font-bold text-text-muted uppercase tracking-widest">Running diagnostics...</p>
+      </div>
+    } @else {
+      <!-- Row 1: Health & Configs -->
+      <div class="grid grid-cols-2 gap-8 mb-8">
+        
+        <!-- Service Status Grid -->
+        <div>
+          <h2 class="text-sm font-black text-white uppercase tracking-widest mb-4">Core Services</h2>
+          <div class="grid grid-cols-2 gap-4">
+            
+            <div class="admin-card !p-5 flex items-center justify-between border-border-primary/50">
+              <div class="flex items-center gap-3">
+                <div class="w-2 h-2 rounded-full" [ngClass]="healthStatus().database === 'Operational' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]'"></div>
+                <span class="text-xs font-bold text-white tracking-wider">PostgreSQL DB</span>
+              </div>
+              <span class="text-[10px] font-black uppercase tracking-widest" [ngClass]="healthStatus().database === 'Operational' ? 'text-emerald-500' : 'text-rose-500'">{{ healthStatus().database }}</span>
+            </div>
+
+            <div class="admin-card !p-5 flex items-center justify-between border-border-primary/50">
+              <div class="flex items-center gap-3">
+                <div class="w-2 h-2 rounded-full" [ngClass]="healthStatus().paystack === 'Operational' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]'"></div>
+                <span class="text-xs font-bold text-white tracking-wider">Paystack</span>
+              </div>
+              <span class="text-[10px] font-black uppercase tracking-widest" [ngClass]="healthStatus().paystack === 'Operational' ? 'text-emerald-500' : 'text-rose-500'">{{ healthStatus().paystack }}</span>
+            </div>
+
+            <div class="admin-card !p-5 flex items-center justify-between border-border-primary/50">
+              <div class="flex items-center gap-3">
+                <div class="w-2 h-2 rounded-full" [ngClass]="healthStatus().hubtel === 'Operational' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]'"></div>
+                <span class="text-xs font-bold text-white tracking-wider">Hubtel SMS</span>
+              </div>
+              <span class="text-[10px] font-black uppercase tracking-widest" [ngClass]="healthStatus().hubtel === 'Operational' ? 'text-emerald-500' : 'text-rose-500'">{{ healthStatus().hubtel }}</span>
+            </div>
+
+            <div class="admin-card !p-5 flex items-center justify-between border-border-primary/50">
+              <div class="flex items-center gap-3">
+                <div class="w-2 h-2 rounded-full" [ngClass]="healthStatus().aws_s3 === 'Operational' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]'"></div>
+                <span class="text-xs font-bold text-white tracking-wider">AWS S3</span>
+              </div>
+              <span class="text-[10px] font-black uppercase tracking-widest" [ngClass]="healthStatus().aws_s3 === 'Operational' ? 'text-emerald-500' : 'text-rose-500'">{{ healthStatus().aws_s3 }}</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Global Toggles -->
+        <div>
+          <h2 class="text-sm font-black text-white uppercase tracking-widest mb-4">Global Feature Toggles</h2>
+          <div class="admin-card !p-0 overflow-hidden border-border-primary/50">
+            <table class="w-full text-left whitespace-nowrap">
+              <tbody class="divide-y divide-border-primary">
+                @for (config of configs(); track config.key) {
+                  <tr class="hover:bg-emerald-500/[0.02] transition-colors">
+                    <td class="pl-6 py-4">
+                      <div class="font-bold text-sm text-white">{{ config.key }}</div>
+                    </td>
+                    <td class="pr-6 py-4 text-right">
+                      <button (click)="toggleConfig(config)" 
+                        class="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-md transition-all border"
+                        [ngClass]="config.value === 'true' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500 hover:text-white' : 'bg-bg-tertiary text-text-muted border-border-primary hover:bg-white hover:text-bg-primary'">
+                        {{ config.value === 'true' ? 'ENABLED' : 'DISABLED' }}
+                      </button>
+                    </td>
+                  </tr>
+                }
+                @if (configs().length === 0) {
+                  <tr><td colspan="2" class="py-10 text-center text-xs text-text-muted">No feature toggles configured.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Support Tickets -->
+      <h2 class="text-sm font-black text-white uppercase tracking-widest mb-4">Support Escalations</h2>
+      <div class="admin-card !p-0 overflow-hidden border-border-primary/50 shadow-lg mb-12">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left whitespace-nowrap">
+            <thead class="bg-bg-tertiary/30">
+              <tr>
+                <th class="pl-8 py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Tenant / ID</th>
+                <th class="py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Issue</th>
+                <th class="py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Priority</th>
+                <th class="py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Status</th>
+                <th class="pr-8 py-4 text-right text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-primary">
+              @for (ticket of tickets(); track ticket.id) {
+                <tr class="hover:bg-emerald-500/[0.02] transition-colors group" [class.opacity-50]="ticket.status === 'RESOLVED'">
+                  <td class="pl-8 py-4">
+                    <div class="font-bold text-sm text-white group-hover:text-emerald-400 transition-colors">{{ ticket.tenant?.name || 'Unknown Tenant' }}</div>
+                    <div class="text-[10px] text-text-secondary mt-0.5 font-mono">ID: {{ ticket.id.substring(0,8) }}</div>
+                  </td>
+                  <td class="py-4">
+                    <div class="font-bold text-sm text-white">{{ ticket.subject }}</div>
+                    <div class="text-xs text-text-secondary mt-0.5 truncate max-w-xs" [title]="ticket.description">{{ ticket.description }}</div>
+                  </td>
+                  <td class="py-4">
+                    <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest"
+                      [ngClass]="{
+                        'bg-rose-500/10 border border-rose-500/20 text-rose-500': ticket.priority === 'CRITICAL' || ticket.priority === 'HIGH' || ticket.priority === 'URGENT',
+                        'bg-amber-500/10 border border-amber-500/20 text-amber-500': ticket.priority === 'MEDIUM',
+                        'bg-emerald-500/10 border border-emerald-500/20 text-emerald-500': ticket.priority === 'LOW' || !ticket.priority
+                      }">
+                      {{ ticket.priority || 'LOW' }}
+                    </span>
+                  </td>
+                  <td class="py-4">
+                    <span class="text-[10px] font-black tracking-widest uppercase"
+                      [ngClass]="ticket.status === 'RESOLVED' ? 'text-emerald-500' : 'text-amber-500'">
+                      {{ ticket.status }}
+                    </span>
+                  </td>
+                  <td class="pr-8 py-4 text-right">
+                    @if (ticket.status !== 'RESOLVED') {
+                      <button (click)="resolveTicket(ticket.id)" class="px-3 py-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 transition-colors text-[9px] font-black uppercase tracking-widest rounded-md">
+                        MARK RESOLVED
+                      </button>
+                    } @else {
+                      <span class="text-[10px] font-bold text-text-muted">CLOSED</span>
+                    }
+                  </td>
+                </tr>
+              }
+              @if (tickets().length === 0) {
+                <tr><td colspan="5" class="py-12 text-center text-sm text-text-muted">No support tickets found.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,83 @@
+<div class="page-container animate-fade-in">
+    <div class="page-header">
+        <div>
+            <h1>My Learning Path</h1>
+            <p class="subtitle">Personalized AI-driven academic recommendations based on your unique trajectory.</p>
+        </div>
+        <button class="btn btn-outline" (click)="refreshInsights()" [disabled]="isGenerating()">
+            @if (isGenerating()) {
+            <span class="spinner-small"></span> Recalculating...
+            } @else {
+            <i class="fas fa-sync-alt"></i> Refresh Insights
+            }
+        </button>
+    </div>
+
+    @if (isLoading()) {
+    <div class="loading-state glass-panel">
+        <div class="spinner"></div>
+        <p class="mt-4 text-muted">Analyzing thousands of data points to build your path...</p>
+    </div>
+    } @else if (learningPath()) {
+    <div class="dashboard-grid">
+        <!-- Strategic Overview -->
+        <div class="glass-panel overview-panel" style="grid-column: 1 / -1;">
+            <div class="overview-header">
+                <div class="overview-icon text-primary">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <div>
+                    <h2>Path Generated: {{ learningPath()!.generated_at | date:'medium' }}</h2>
+                    <p class="text-sm text-muted m-0">Review your customized subject recommendations below. These
+                        insights are powered by your historical GPA and foundational competencies.</p>
+                </div>
+            </div>
+        </div>
+
+        @for (rec of learningPath()!.recommendations; track rec.id) {
+        <div class="glass-panel insight-card" [class.enrichment-card]="rec.is_enrichment">
+            <div class="insight-header">
+                <h3 class="m-0 text-lg">{{ rec.subject_name }}</h3>
+                <div class="confidence-badge" [class.high]="rec.confidence_score >= 0.8"
+                    [class.medium]="rec.confidence_score < 0.8">
+                    {{ rec.confidence_score | percent:'1.0-0' }} Match
+                </div>
+            </div>
+
+            <div class="insight-body">
+                <div class="rationale-box">
+                    <i class="fas"
+                        [ngClass]="rec.is_enrichment ? 'fa-life-ring text-warning' : 'fa-rocket text-success'"></i>
+                    <p class="m-0 text-sm lh-relaxed">{{ rec.rationale }}</p>
+                </div>
+            </div>
+
+            <div class="insight-footer">
+                <span class="badge badge-outline">{{ rec.category }}</span>
+                @if (rec.is_enrichment) {
+                <span class="badge badge-warning ml-2">Foundational Support</span>
+                } @else {
+                <span class="badge badge-success ml-2">Advanced Placement</span>
+                }
+            </div>
+        </div>
+        }
+
+        @if (learningPath()!.recommendations.length === 0) {
+        <div class="glass-panel text-center" style="grid-column: 1 / -1; padding: 4rem 2rem;">
+            <i class="fas fa-check-circle text-success text-2xl md:text-3xl mb-4"></i>
+            <h3>Optimal Trajectory</h3>
+            <p class="text-muted">You are currently on an optimal path. The AI engine does not have any immediate
+                structural recommendations at this time.</p>
+        </div>
+        }
+    </div>
+    } @else {
+    <div class="glass-panel text-center" style="padding: 4rem 2rem;">
+        <i class="fas fa-exclamation-triangle text-warning text-2xl md:text-3xl mb-4"></i>
+        <h3>No Insights Found</h3>
+        <p class="text-muted mb-4">You have not generated your personalized learning path yet.</p>
+        <button class="btn btn-primary btn-lg" (click)="refreshInsights()">Generate My Path Now</button>
+    </div>
+    }
+</div>

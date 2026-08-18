@@ -1,0 +1,127 @@
+<div class="p-12">
+  <div class="max-w-7xl mx-auto">
+    <header class="mb-12 border-b border-border-primary pb-10 flex justify-between items-end">
+      <div>
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-[9px] font-black text-blue-500 uppercase tracking-widest">Global Overview</span>
+        </div>
+        <h1 class="text-5xl font-black text-white tracking-tighter">Command <span class="text-blue-500 text-opacity-80">Center</span></h1>
+        <p class="text-text-secondary mt-3 max-w-xl text-sm leading-relaxed">High-level system metrics and recent tenant activity across the entire platform.</p>
+      </div>
+    </header>
+
+    @if (isLoading()) {
+      <div class="py-24 text-center">
+        <div class="w-10 h-10 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+        <p class="text-xs font-bold text-text-muted uppercase tracking-widest">Loading dashboard...</p>
+      </div>
+    } @else {
+      <!-- Top KPIs -->
+      <div class="grid grid-cols-4 gap-6 mb-12">
+        <!-- Total Tenants -->
+        <div class="admin-card !p-6 flex flex-col justify-between group hover:border-blue-500/30 transition-colors">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Total Schools</span>
+            <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+            </div>
+          </div>
+          <div>
+            <div class="text-4xl font-black text-white tracking-tighter">{{ stats()?.totalTenants || 0 }}</div>
+            <div class="text-[10px] text-text-muted mt-2 font-mono group-hover:text-blue-400 transition-colors">Active instances</div>
+          </div>
+        </div>
+
+        <!-- Total Users -->
+        <div class="admin-card !p-6 flex flex-col justify-between group hover:border-purple-500/30 transition-colors">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Total Users</span>
+            <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+            </div>
+          </div>
+          <div>
+            <div class="text-4xl font-black text-white tracking-tighter">{{ stats()?.totalUsers | number }}</div>
+            <div class="text-[10px] text-text-muted mt-2 font-mono group-hover:text-purple-400 transition-colors">Across all roles</div>
+          </div>
+        </div>
+
+        <!-- Active Sessions -->
+        <div class="admin-card !p-6 flex flex-col justify-between group hover:border-emerald-500/30 transition-colors">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Active Sessions</span>
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+            </div>
+          </div>
+          <div>
+            <div class="text-4xl font-black text-white tracking-tighter">{{ stats()?.activeSessions || 0 }}</div>
+            <div class="text-[10px] text-text-muted mt-2 font-mono group-hover:text-emerald-400 transition-colors">Real-time online</div>
+          </div>
+        </div>
+
+        <!-- System Health -->
+        <div class="admin-card !p-6 flex flex-col justify-between group hover:border-emerald-500/30 transition-colors">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">System Health</span>
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+          </div>
+          <div>
+            <div class="text-4xl font-black text-emerald-400 tracking-tighter uppercase">{{ stats()?.systemHealth || 'UNKNOWN' }}</div>
+            <div class="text-[10px] text-text-muted mt-2 font-mono">All services operational</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Tenants Table -->
+      <h2 class="text-sm font-black text-white uppercase tracking-widest mb-4">Recent Deployments</h2>
+      <div class="admin-card !p-0 overflow-hidden border-border-primary/50 shadow-lg">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left whitespace-nowrap">
+            <thead class="bg-bg-tertiary/30">
+              <tr>
+                <th class="pl-8 py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">School Name</th>
+                <th class="py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Subdomain</th>
+                <th class="py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Plan</th>
+                <th class="py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Storage</th>
+                <th class="py-4 text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-primary">
+              @for (tenant of recentTenants(); track tenant.id) {
+                <tr class="hover:bg-blue-500/[0.02] transition-colors group">
+                  <td class="pl-8 py-4">
+                    <div class="font-bold text-sm text-white group-hover:text-blue-400 transition-colors">{{ tenant.name }}</div>
+                    <div class="text-xs text-text-secondary mt-0.5">{{ tenant.subdomain }}</div>
+                  </td>
+                  <td class="py-4 font-mono text-xs text-text-muted">{{ tenant.subdomain }}</td>
+                  <td class="py-4">
+                    <span class="px-2 py-0.5 rounded bg-bg-tertiary border border-border-primary text-[9px] font-black text-text-secondary uppercase tracking-widest">
+                      {{ tenant.subscription_plan }}
+                    </span>
+                  </td>
+                  <td class="py-4">
+                    <div class="flex items-center gap-2 w-32">
+                      <div class="h-1.5 flex-1 bg-bg-tertiary rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-500 rounded-full" [style.width]="tenant.storage_limit_gb ? ((tenant.storage_used_mb / (tenant.storage_limit_gb * 1024)) * 100) + '%' : '0%'"></div>
+                      </div>
+                      <span class="text-[10px] font-mono text-text-muted">{{ (tenant.storage_used_mb / 1024) | number:'1.1-1' }}GB</span>
+                    </div>
+                  </td>
+                  <td class="py-4">
+                    <span class="px-2.5 py-1 text-[9px] font-black uppercase tracking-widest rounded-md" 
+                      [ngClass]="tenant.is_active ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'">
+                      {{ tenant.is_active ? 'ACTIVE' : 'SUSPENDED' }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  </div>
+</div>

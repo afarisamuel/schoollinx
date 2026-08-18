@@ -1,0 +1,248 @@
+basePath: /api
+definitions:
+  domain.Role:
+    enum:
+    - ECOPOWER_ADMIN
+    - ADMIN
+    - TEACHER
+    - STUDENT
+    - GUARDIAN
+    - LIBRARIAN
+    - ACCOUNTANT
+    - BURSAR
+    - HR_MANAGER
+    - LOGISTICS_MANAGER
+    - OPERATIONS_MANAGER
+    - HEADMASTER
+    - CLERK
+    - NURSE
+    - IT_ADMIN
+    type: string
+    x-enum-varnames:
+    - RoleEcopowerAdmin
+    - RoleAdmin
+    - RoleTeacher
+    - RoleStudent
+    - RoleGuardian
+    - RoleLibrarian
+    - RoleAccountant
+    - RoleBursar
+    - RoleHRManager
+    - RoleLogisticsManager
+    - RoleOperationsManager
+    - RoleHeadmaster
+    - RoleClerk
+    - RoleNurse
+    - RoleITAdmin
+  handler.LoginRequest:
+    properties:
+      identifier:
+        type: string
+      password:
+        type: string
+    required:
+    - identifier
+    - password
+    type: object
+  handler.SetupPasswordRequest:
+    properties:
+      new_password:
+        minLength: 8
+        type: string
+      token:
+        type: string
+    required:
+    - new_password
+    - token
+    type: object
+  handler.SignupRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      phone_number:
+        type: string
+      role:
+        $ref: '#/definitions/domain.Role'
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - role
+    - username
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Professional High School Management System Backend API.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: School Linx Reporting System API
+  version: "1.0"
+paths:
+  /auth/change-password:
+    post:
+      description: Allows logged-in users to change their password
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Change Password
+      tags:
+      - auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Allows users (Admin, Teacher, Student, Guardian) to log in with
+        their credentials.
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Authenticate user and returns JWT
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      description: Revokes the current JWT
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Logout
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      description: Issues a new JWT if the current one is valid
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Refresh Token
+      tags:
+      - auth
+  /auth/setup-password:
+    post:
+      consumes:
+      - application/json
+      description: Sets the initial password for a new admin using a setup token.
+      parameters:
+      - description: Setup details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.SetupPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Complete admin account setup
+      tags:
+      - auth
+  /auth/signup:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account with the specified role.
+      parameters:
+      - description: Signup details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.SignupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - auth
+swagger: "2.0"

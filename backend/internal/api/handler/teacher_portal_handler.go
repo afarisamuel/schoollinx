@@ -1,0 +1,354 @@
+package handler
+
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/user/high-school-management/backend/internal/domain"
+	"github.com/user/high-school-management/backend/internal/infrastructure/pdf"
+)
+
+// TeacherPortalHandler provides self-service endpoints for authenticated Teachers.
+type TeacherPortalHandler struct {
+	portalUseCase domain.TeacherPortalUseCase
+	evalRepo      domain.TerminalEvaluationRepository
+}
+
+func NewTeacherPortalHandler(
+	rg *gin.RouterGroup,
+	portalUseCase domain.TeacherPortalUseCase,
+	evalRepo domain.TerminalEvaluationRepository,
+) {
+	h := &TeacherPortalHandler{
+		portalUseCase: portalUseCase,
+		evalRepo:      evalRepo,
+	}
+
+	portal := rg.Group("/teacher-portal")
+	portal.GET("/my-classes", h.GetMyClasses)
+	portal.GET("/my-classes/:class_id/students", h.GetClassStudents)
+	portal.POST("/my-classes/:class_id/grades", h.BulkSubmitGrades)
+	portal.GET("/my-classes/:class_id/grades", h.GetClassGrades)
+
+	// Phase 18 Features
+	portal.GET("/my-classes/:class_id/weights", h.GetClassWeights)
+	portal.PUT("/my-classes/:class_id/weights", h.UpdateClassWeights)
+	portal.GET("/my-classes/:class_id/gpa", h.GetClassGPA)
+	portal.POST("/my-classes/:class_id/curve", h.CurveGrades)
+	portal.GET("/grades/:grade_id/history", h.GetGradeHistory)
+	portal.POST("/my-classes/:class_id/grades/import", h.ImportGradesCSV)
+	portal.GET("/my-classes/:class_id/grades/export", h.ExportGradesPDF)
+	
+	// Evaluations
+	portal.GET("/my-classes/:class_id/students/:student_id/evaluations", h.GetStudentEvaluation)
+	portal.PUT("/my-classes/:class_id/students/:student_id/evaluations", h.UpdateStudentEvaluation)
+}
+
+// GetMyClasses returns all classes the currently logged-in teacher is assigned to teach.
+func (h *TeacherPortalHandler) GetMyClasses(c *gin.Context) {
+	val, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+		return
+	}
+	userID := val.(uuid.UUID)
+
+	teacher, assignments, err := h.portalUseCase.GetMyClasses(c.Request.Context(), userID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "teacher profile not found for this user"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"teacher":     teacher,
+		"assignments": assignments,
+	})
+}
+
+// GetClassStudents returns all enrolled students for a specific class.
+func (h *TeacherPortalHandler) GetClassStudents(c *gin.Context) {
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID format"})
+		return
+	}
+	students, err := h.portalUseCase.GetClassStudents(c.Request.Context(), classID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, students)
+}
+
+// GetClassGrades returns all grades recorded for a specific class.
+func (h *TeacherPortalHandler) GetClassGrades(c *gin.Context) {
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID format"})
+		return
+	}
+	grades, err := h.portalUseCase.GetClassGrades(c.Request.Context(), classID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, grades)
+}
+
+// GetClassWeights returns configured weight thresholds for a given class.
+func (h *TeacherPortalHandler) GetClassWeights(c *gin.Context) {
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID format"})
+		return
+	}
+	weights, err := h.portalUseCase.GetClassWeights(c.Request.Context(), classID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, weights)
+}
+
+// UpdateClassWeights bulk upserts category weights for a class.
+func (h *TeacherPortalHandler) UpdateClassWeights(c *gin.Context) {
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID format"})
+		return
+	}
+	var weights []domain.GradeWeight
+	if err := c.ShouldBindJSON(&weights); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.portalUseCase.UpdateClassWeights(c.Request.Context(), classID, weights); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update weights"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "weights successfully updated"})
+}
+
+// GetClassGPA retrieves auto-calculated weighted GPA averages across all class students.
+func (h *TeacherPortalHandler) GetClassGPA(c *gin.Context) {
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID format"})
+		return
+	}
+	gpaList, err := h.portalUseCase.GetClassGPA(c.Request.Context(), classID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gpaList)
+}
+
+// CurveGrades exposes the curve/scale methodology tool for normalizing challenging scores.
+func (h *TeacherPortalHandler) CurveGrades(c *gin.Context) {
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID format"})
+		return
+	}
+	var req struct {
+		Term   string  `json:"term" binding:"required"`
+		Method string  `json:"method" binding:"required"`
+		Factor float64 `json:"factor"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.portalUseCase.CurveGrades(c.Request.Context(), classID, req.Term, req.Method, req.Factor); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "grades curved successfully"})
+}
+
+// GetGradeHistory returns the chronological tracking events for an individual score.
+func (h *TeacherPortalHandler) GetGradeHistory(c *gin.Context) {
+	gradeID, err := uuid.Parse(c.Param("grade_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid grade ID format"})
+		return
+	}
+	history, err := h.portalUseCase.GetGradeHistory(c.Request.Context(), gradeID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, history)
+}
+
+// BulkSubmitGrades accepts an array of grade entries for batch insertion/upsertion.
+func (h *TeacherPortalHandler) BulkSubmitGrades(c *gin.Context) {
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID format"})
+		return
+	}
+
+	val, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+		return
+	}
+	editorID := val.(uuid.UUID)
+
+	var entries []domain.Grade
+	if err := c.ShouldBindJSON(&entries); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	saved, err := h.portalUseCase.BulkSubmitGrades(c.Request.Context(), classID, editorID, entries)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "grades saved successfully",
+		"count":   len(saved),
+		"grades":  saved,
+	})
+}
+
+// ImportGradesCSV enables bulk ingestion from a teacher-provided CSV file.
+func (h *TeacherPortalHandler) ImportGradesCSV(c *gin.Context) {
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID format"})
+		return
+	}
+
+	val, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+		return
+	}
+	editorID := val.(uuid.UUID)
+
+	file, _, err := c.Request.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to read file: " + err.Error()})
+		return
+	}
+	defer file.Close()
+
+	imported, failures, warnings, err := h.portalUseCase.ImportGrades(c.Request.Context(), classID, editorID, file)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":  "CSV import completed",
+		"imported": imported,
+		"failures": failures,
+		"warnings": warnings,
+	})
+}
+
+// ExportGradesPDF creates a downloadable PDF summary of the entire term's gradebook.
+func (h *TeacherPortalHandler) ExportGradesPDF(c *gin.Context) {
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID format"})
+		return
+	}
+	term := c.Query("term")
+	if term == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "term query parameter is required"})
+		return
+	}
+
+	class, students, gpas, err := h.portalUseCase.GetClassForExport(c.Request.Context(), classID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=gradebook-%s-%s.pdf", classID.String(), term))
+	c.Header("Content-Type", "application/pdf")
+
+	svc := pdf.NewPDFService()
+	if err := svc.GenerateGradebookReport(c.Writer, class, term, students, gpas); err != nil {
+		// Output Stream broken
+		return
+	}
+}
+
+// --- TeacherAssignmentHandler for completeness ---
+
+type TeacherAssignmentHandler struct {
+	teacherRepo domain.TeacherRepository
+}
+
+func NewTeacherAssignmentHandler(rg *gin.RouterGroup, repo domain.TeacherRepository) {
+	h := &TeacherAssignmentHandler{teacherRepo: repo}
+
+	a := rg.Group("/teacher-assignments")
+	a.GET("", h.ListAll)
+	a.POST("", h.Assign)
+	a.POST("/bulk", h.BulkAssign)
+	a.DELETE("/:id", h.Unassign)
+}
+
+func (h *TeacherAssignmentHandler) ListAll(c *gin.Context) {
+	assignments, err := h.teacherRepo.GetAllAssignments(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, assignments)
+}
+
+func (h *TeacherAssignmentHandler) Assign(c *gin.Context) {
+	var a domain.TeacherClassAssignment
+	if err := c.ShouldBindJSON(&a); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := h.teacherRepo.AssignToClass(c.Request.Context(), &a); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, a)
+}
+
+func (h *TeacherAssignmentHandler) BulkAssign(c *gin.Context) {
+	var assignments []domain.TeacherClassAssignment
+	if err := c.ShouldBindJSON(&assignments); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := h.teacherRepo.BulkAssignToClass(c.Request.Context(), assignments); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"message": "Bulk assignments successful", "count": len(assignments)})
+}
+
+func (h *TeacherAssignmentHandler) Unassign(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid assignment ID format"})
+		return
+	}
+	if err := h.teacherRepo.UnassignFromClass(c.Request.Context(), id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "assignment removed"})
+}
