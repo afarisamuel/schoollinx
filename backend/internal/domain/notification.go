@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 )
 
 type NotificationType string
@@ -16,14 +17,14 @@ const (
 
 type Notification struct {
 	TenantBase
-	ID        uuid.UUID        `json:"id"`
-	UserID    uuid.UUID        `json:"user_id"`
-	Type      NotificationType `json:"type"`
-	Title     string           `json:"title"`
-	Message   string           `json:"message"`
-	Read      bool             `json:"read"`
-	CreatedAt time.Time        `json:"created_at"`
-	Data      interface{}      `json:"data,omitempty"`
+	ID        uuid.UUID        `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	UserID    uuid.UUID        `json:"user_id" gorm:"type:uuid;index;not null"`
+	Type      NotificationType `json:"type" gorm:"type:varchar(50);not null"`
+	Title     string           `json:"title" gorm:"not null"`
+	Message   string           `json:"message" gorm:"not null"`
+	Read      bool             `json:"read" gorm:"default:false"`
+	CreatedAt time.Time        `json:"created_at" gorm:"autoCreateTime;index"`
+	Data      datatypes.JSON   `json:"data,omitempty" gorm:"type:jsonb"`
 }
 
 type NotificationUseCase interface {

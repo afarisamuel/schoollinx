@@ -21,6 +21,7 @@ func NewTenantProfileHandler(r *gin.RouterGroup, db *gorm.DB, uc usecase.TenantU
 	r.GET("/tenant/profile", h.GetProfile)
 	r.PUT("/tenant/payment-config", h.UpdatePaymentConfig)
 	r.POST("/tenant/subscription/pay", h.InitializeSubscriptionPayment)
+	r.POST("/tenant/subscription/verify/:reference", h.VerifySubscriptionPayment)
 	r.GET("/tenant/subscription/history", h.GetSubscriptionHistory)
 }
 
@@ -180,6 +181,27 @@ func (h *TenantProfileHandler) GetSubscriptionHistory(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, history)
+}
+
+func (h *TenantProfileHandler) VerifySubscriptionPayment(c *gin.Context) {
+	tenantID, exists := middleware.GetTenantIDFromContext(c.Request.Context())
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tenant context not found"})
+		return
+	}
+
+	reference := c.Param("reference")
+	if reference == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "reference is required"})
+		return
+	}
+
+	if err := h.uc.VerifySubscriptionPayment(c.Request.Context(), tenantID.String(), reference); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Payment verified"})
 }
 
 

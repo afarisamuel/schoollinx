@@ -42,12 +42,8 @@ func (a *App) Bootstrap() {
 
 	a.DB = infrastructure.ConnectDB(a.Config)
 
-	// Run migrations automatically at startup
-	sqlDB, err := a.DB.DB()
-	if err != nil {
-		logger.Fatal("Failed to get sql.DB for migrations", err)
-	}
-	if err := infrastructure.RunMigrations(sqlDB, a.Config.DatabaseURL); err != nil {
+	// Always run GORM AutoMigrate on startup to keep schema in sync with domain models
+	if err := infrastructure.RunMigrations(a.DB); err != nil {
 		logger.Fatal("Database migration failed", err)
 	}
 
@@ -86,11 +82,11 @@ func (a *App) setupRoutes() {
 	// Auth Handlers (Tenant-scoped, for school frontends)
 	authGroup := a.Router.Group("/api/auth")
 	authGroup.Use(middleware.TenantMiddleware(a.DB))
-	handler.NewAuthHandler(authGroup, repos.User, repos.Tenant, repos.Blacklist, usecases.Audit, a.Config)
+	handler.NewAuthHandler(authGroup, repos.User, repos.Tenant, repos.Blacklist, usecases.Audit, infra.SMTP, a.Config)
 
 	// System Auth (No tenant middleware — for the super admin portal)
 	sysAuthGroup := a.Router.Group("/api/system/auth")
-	handler.NewAuthHandler(sysAuthGroup, repos.User, repos.Tenant, repos.Blacklist, usecases.Audit, a.Config)
+	handler.NewAuthHandler(sysAuthGroup, repos.User, repos.Tenant, repos.Blacklist, usecases.Audit, infra.SMTP, a.Config)
 
 	// Webhooks (Public/Signature Verified)
 	webhookGroup := a.Router.Group("/api/webhooks")

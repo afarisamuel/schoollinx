@@ -90,7 +90,7 @@ func (r *attendanceRepository) GetAttendanceStats(ctx context.Context) (map[stri
 		Status string
 		Count  int
 	}
-	err := r.db.WithContext(ctx).Table("attendances").Select("status, count(*) as count").Group("status").Scan(&results).Error
+	err := r.db.WithContext(ctx).Model(&domain.Attendance{}).Select("status, count(*) as count").Group("status").Scan(&results).Error
 	if err != nil {
 		return stats, err
 	}
@@ -107,7 +107,7 @@ func (r *attendanceRepository) GetStudentAttendanceStats(ctx context.Context) ([
 		return results, nil
 	}
 
-	err := r.db.WithContext(ctx).Table("attendances").
+	err := r.db.WithContext(ctx).Model(&domain.Attendance{}).
 		Select("student_id, count(case when status = 'Present' then 1 end) as present, count(*) as total").
 		Group("student_id").
 		Scan(&results).Error

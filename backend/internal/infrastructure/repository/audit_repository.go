@@ -15,7 +15,6 @@ type auditRepository struct {
 
 func NewAuditRepository(db *gorm.DB) domain.AuditRepository {
 	repo := &auditRepository{db: db}
-	repo.SeedInitialLogs() // Seed if empty for "real data" experience
 	return repo
 }
 

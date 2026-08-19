@@ -17,6 +17,7 @@ import (
 	"github.com/user/high-school-management/backend/pkg/utils"
 	"go.uber.org/zap"
 	"github.com/pquerna/otp/totp"
+	"github.com/user/high-school-management/backend/internal/infrastructure/mailer"
 )
 
 type AuthHandler struct {
@@ -25,6 +26,16 @@ type AuthHandler struct {
 	blacklistRepo domain.TokenBlacklistRepository
 	auditUC       domain.AuditUseCase
 	cfg           *config.Config
+	mailer        mailer.MailService
+}
+
+type ForgotPasswordRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+type ResetPasswordRequest struct {
+	Token       string `json:"token" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required,min=8"`
 }
 
 type LoginRequest struct {
@@ -50,12 +61,13 @@ type ChangePasswordRequest struct {
 	NewPassword string `json:"new_password" binding:"required,min=8"`
 }
 
-func NewAuthHandler(r *gin.RouterGroup, userRepo domain.UserRepository, tenantRepo domain.TenantRepository, blacklistRepo domain.TokenBlacklistRepository, auditUC domain.AuditUseCase, cfg *config.Config) {
+func NewAuthHandler(r *gin.RouterGroup, userRepo domain.UserRepository, tenantRepo domain.TenantRepository, blacklistRepo domain.TokenBlacklistRepository, auditUC domain.AuditUseCase, mailService mailer.MailService, cfg *config.Config) {
 	h := &AuthHandler{
 		userRepo:      userRepo,
 		tenantRepo:    tenantRepo,
 		blacklistRepo: blacklistRepo,
 		auditUC:       auditUC,
+		mailer:        mailService,
 		cfg:           cfg,
 	}
 
@@ -67,6 +79,8 @@ func NewAuthHandler(r *gin.RouterGroup, userRepo domain.UserRepository, tenantRe
 	// Strict limiter for setup token to prevent brute forcing
 	setupLimiter := middleware.NewRateLimiter(5, 5).Middleware()
 	r.POST("/setup-password", setupLimiter, h.SetupPassword)
+	r.POST("/forgot-password", limiter, h.ForgotPassword)
+	r.POST("/reset-password", setupLimiter, h.ResetPassword)
 
 	// Protected endpoints for token management
 	authGroup := r.Group("/")
@@ -595,4 +609,118 @@ func (h *AuthHandler) ChangePassword(c *gin.Context) {
 	})
 
 	c.JSON(http.StatusOK, gin.H{"message": "Password changed successfully"})
+}
+
+// @Summary      Forgot Password
+// @Description  Requests a password reset link to be sent via email
+// @Tags         auth
+// @Produce      json
+// @Success      200      {object}  map[string]string
+// @Router       /auth/forgot-password [post]
+func (h *AuthHandler) ForgotPassword(c *gin.Context) {
+	var req ForgotPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	user, err := h.userRepo.GetByIdentifier(c.Request.Context(), req.Email)
+	if err != nil {
+		// Silent fail to prevent email enumeration
+		c.JSON(http.StatusOK, gin.H{"message": "If an account with that email exists, a password reset link has been sent."})
+		return
+	}
+
+	token := uuid.New().String()
+	expiresAt := time.Now().Add(1 * time.Hour)
+
+	user.ResetToken = &token
+	user.ResetTokenExpiresAt = &expiresAt
+
+	if err := h.userRepo.Update(c.Request.Context(), user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process request"})
+		return
+	}
+
+	var resetLink string
+	tenantSubdomain, exists := c.Get("tenantSubdomain")
+	if exists && tenantSubdomain != "" {
+		// Tenant portal
+		resetLink = "https://" + tenantSubdomain.(string) + ".schoollinx.com/reset-password?token=" + token
+	} else {
+		// Admin portal
+		resetLink = "https://admin.schoollinx.com/reset-password?token=" + token
+	}
+
+	subject := "Reset Your Password - School Linx"
+	htmlBody := "<h1>Password Reset Request</h1><p>You requested a password reset. Click the link below to set a new password:</p><p><a href=\"" + resetLink + "\">Reset Password</a></p><p>This link will expire in 1 hour.</p>"
+
+	decryptedEmail, err := encryption.DecryptDeterministic(string(user.Email), "")
+	if err == nil && decryptedEmail != "" {
+		go func() {
+			if h.mailer != nil {
+				h.mailer.SendBulkHTML(context.Background(), subject, htmlBody, []string{decryptedEmail})
+			}
+		}()
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "If an account with that email exists, a password reset link has been sent."})
+}
+
+// @Summary      Reset Password
+// @Description  Sets a new password using a reset token
+// @Tags         auth
+// @Produce      json
+// @Success      200      {object}  map[string]string
+// @Router       /auth/reset-password [post]
+func (h *AuthHandler) ResetPassword(c *gin.Context) {
+	var req ResetPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	user, err := h.userRepo.GetByResetToken(c.Request.Context(), req.Token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired reset token"})
+		return
+	}
+
+	if user.ResetTokenExpiresAt != nil && user.ResetTokenExpiresAt.Before(time.Now()) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Reset token has expired"})
+		return
+	}
+
+	if !validatePassword(req.NewPassword) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character."})
+		return
+	}
+
+	hashedPassword, err := utils.HashPassword(req.NewPassword)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to secure password"})
+		return
+	}
+
+	user.Password = hashedPassword
+	user.ResetToken = nil
+	user.ResetTokenExpiresAt = nil
+	user.MustChangePassword = false
+
+	if err := h.userRepo.Update(c.Request.Context(), user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
+		return
+	}
+
+	h.auditUC.Log(c.Request.Context(), &domain.AuditLog{
+		UserID:     user.ID,
+		UserEmail:  string(user.Email),
+		Action:     domain.ActionUpdate,
+		EntityType: "USER_PASSWORD",
+		EntityID:   user.ID.String(),
+		Changes:    "Password reset via email token",
+		IPAddress:  c.ClientIP(),
+	})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password has been reset successfully. You can now log in."})
 }

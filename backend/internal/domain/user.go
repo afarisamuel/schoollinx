@@ -41,6 +41,8 @@ type User struct {
 	MustChangePassword  bool                                     `json:"must_change_password" gorm:"default:false"`
 	SetupToken          *string                                  `json:"-" gorm:"index"`
 	SetupTokenExpiresAt *time.Time                               `json:"-"`
+	ResetToken          *string                                  `json:"-" gorm:"index"`
+	ResetTokenExpiresAt *time.Time                               `json:"-"`
 	TwoFactorEnabled    bool                                     `json:"two_factor_enabled" gorm:"default:false"`
 	TwoFactorSecret     *encryption.DeterministicEncryptedString `json:"-"`
 	CustomPermissions   pq.StringArray                           `json:"custom_permissions" gorm:"type:text[]"`
@@ -63,6 +65,7 @@ type UserRepository interface {
 	GetByIdentifier(ctx context.Context, identifier string) (*User, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*User, error)
 	GetBySetupToken(ctx context.Context, token string) (*User, error)
+	GetByResetToken(ctx context.Context, token string) (*User, error)
 	Create(ctx context.Context, user *User) error
 	Update(ctx context.Context, user *User) error
 }

@@ -51,6 +51,7 @@ type PaystackService interface {
 	InitializeTransaction(email string, amount float64, reference string) (authorizationURL string, err error)
 	VerifyWebhookSignature(payload []byte, signature string) bool
 	CreateSubaccount(businessName, settlementBank, accountNumber string, percentageCharge float64) (string, error)
+	VerifyTransaction(reference string) (status string, err error)
 
 	// Tenant-specific overrides
 	InitializeTransactionWithKey(email string, amount float64, reference string, secretKey string) (authorizationURL string, err error)

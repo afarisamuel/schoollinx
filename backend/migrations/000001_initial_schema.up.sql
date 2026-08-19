@@ -68,6 +68,8 @@ CREATE TABLE IF NOT EXISTS users (
     must_change_password    BOOLEAN NOT NULL DEFAULT FALSE,
     setup_token             TEXT,
     setup_token_expires_at  TIMESTAMPTZ,
+    reset_token             VARCHAR,
+    reset_token_expires_at  TIMESTAMPTZ,
     two_factor_enabled      BOOLEAN NOT NULL DEFAULT FALSE,
     two_factor_secret       TEXT,
     deleted_at              TIMESTAMPTZ,

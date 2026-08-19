@@ -146,3 +146,39 @@ func (s *paystackService) CreateSubaccount(businessName, settlementBank, account
 
 	return result.Data.SubaccountCode, nil
 }
+
+func (s *paystackService) VerifyTransaction(reference string) (string, error) {
+	url := fmt.Sprintf("https://api.paystack.co/transaction/verify/%s", reference)
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.config.PaystackSecretKey))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Status  bool   `json:"status"`
+		Message string `json:"message"`
+		Data    struct {
+			Status string `json:"status"` // "success", "failed", "abandoned", "pending"
+		} `json:"data"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	if !result.Status {
+		return "", fmt.Errorf("paystack verification failed: %s", result.Message)
+	}
+
+	return result.Data.Status, nil
+}

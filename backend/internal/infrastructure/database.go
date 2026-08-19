@@ -63,84 +63,155 @@ func ValidateSchemaName(name string) error {
 	return nil
 }
 
+// GlobalModels are tables that live in the shared public schema.
+// These are platform-wide and not scoped to any tenant.
+var GlobalModels = []interface{}{
+	&domain.Tenant{},
+	&domain.RevokedToken{},
+	&domain.PaymentTransaction{},
+	&domain.PaymentWebhookLog{},
+	&domain.TenantSubscriptionPayment{},
+	&domain.ScanEvent{},
+	&domain.SystemAnnouncement{},
+	&domain.SystemConfig{},
+	&domain.SystemSecurityIP{},
+	&domain.SystemAuditLog{},
+	&domain.Affiliate{},
+	&domain.AffiliateReferral{},
+	&domain.ContactSubmission{},
+	&domain.Newsletter{},
+	&domain.NewsletterSubscriber{},
+	&domain.SupportTicket{},
+	&domain.PlatformInvoice{},
+	&domain.TelemetryEvent{},
+	&domain.HardwareLease{},
+	&domain.WhitelistedIP{},
+	&domain.SmsLedger{},
+}
+
+// TenantModels are tables created inside each tenant's own schema.
 var TenantModels = []interface{}{
+	// Core identity & staff
 	&domain.User{},
-	&domain.Student{},
+	&domain.StaffProfile{},
 	&domain.Teacher{},
 	&domain.Department{},
+	// Students
+	&domain.Student{},
+	&domain.Guardian{},
+	&domain.AlumniProfile{},
+	&domain.StudentPortfolio{},
+	&domain.PortfolioAchievement{},
+	// Academic structure
+	&domain.ScholasticLevel{},
+	&domain.AcademicPeriod{},
+	&domain.AcademicTerm{},
 	&domain.Class{},
 	&domain.Subject{},
-	&domain.Grade{},
-	&domain.Attendance{},
-	&domain.Campaign{},
-	&domain.CampaignLog{},
-	&domain.Conversation{},
-	&domain.Message{},
 	&domain.TeacherClassAssignment{},
+	&domain.TimetableEntry{},
+	// Attendance
+	&domain.Attendance{},
+	&domain.StaffAttendance{},
+	// Grades & assessments
+	&domain.Grade{},
 	&domain.GradeWeight{},
 	&domain.GradeLog{},
 	&domain.ClassTermLock{},
 	&domain.AcademicInsight{},
-	&domain.LibraryBook{},
-	&domain.LibraryLoan{},
-	&domain.Resource{},
-	&domain.Booking{},
-	&domain.AlumniProfile{},
-	&domain.Guardian{},
-	&domain.FiscalRecord{},
-	&domain.Club{},
-	&domain.ClubMember{},
-	&domain.Event{},
-	&domain.TimetableEntry{},
 	&domain.AcademicAssignment{},
-	&domain.AuditLog{},
-	&domain.AcademicPeriod{},
-	&domain.AcademicTerm{},
-	&domain.ScholasticLevel{},
 	&domain.Homework{},
-	&domain.HealthRecord{},
-	&domain.BehaviorLog{},
-	&domain.PerformanceReview{},
-	&domain.ProfessionalDevelopment{},
-	&domain.ExamSession{},
-	&domain.InvigilationDuty{},
-	&domain.DeductionType{},
-	&domain.AllowanceType{},
-	&domain.TaxBracket{},
-	&domain.TransportRoute{},
-	&domain.BusAssignment{},
-	&domain.MealPlan{},
-	&domain.CanteenSubscription{},
-	&domain.InventoryItem{},
-	&domain.VisitorLog{},
-	&domain.FeeStructure{},
-	&domain.WalletTransaction{},
-	&domain.ScanEvent{},
-	&domain.StaffProfile{},
-	&domain.PayrollRecord{},
-	&domain.LeaveRequest{},
-	&domain.LeaveBalance{},
-	&domain.StaffAttendance{},
-	&domain.PerformanceReview{},
-	&domain.ProfessionalDevelopment{},
-	&domain.OnboardingChecklist{},
-	&domain.Document{},
-	&domain.Donation{},
+	&domain.HomeworkSubmission{},
+	// Exams & CBT
 	&domain.Exam{},
 	&domain.ExamSchedule{},
 	&domain.ExamResult{},
-	&domain.StudentPortfolio{},
-	&domain.PortfolioAchievement{},
-	&domain.Notice{},
-	&domain.Reminder{},
-	&domain.MeetingSlot{},
-	&domain.MeetingBooking{},
+	&domain.ExamSession{},
+	&domain.InvigilationDuty{},
+	&domain.CBTQuiz{},
+	&domain.CBTQuestion{},
+	&domain.CBTQuestionBank{},
+	&domain.CBTAttempt{},
+	&domain.CBTAnswer{},
+	// Report cards & terminal
+	&domain.ReportCard{},
+	&domain.ReportCardTemplate{},
+	&domain.TerminalEvaluation{},
+	&domain.YearEndResult{},
+	// Health & welfare
+	&domain.HealthRecord{},
+	&domain.BehaviorLog{},
+	&domain.DisciplinaryIncident{},
+	&domain.InterventionPlan{},
+	// HR & payroll
+	&domain.PerformanceReview{},
+	&domain.ProfessionalDevelopment{},
+	&domain.PayrollRecord{},
+	&domain.DeductionType{},
+	&domain.AllowanceType{},
+	&domain.TaxBracket{},
+	&domain.LeaveRequest{},
+	&domain.LeaveBalance{},
+	&domain.OnboardingChecklist{},
+	&domain.Document{},
+	// Finance
+	&domain.FiscalRecord{},
+	&domain.FeeStructure{},
+	&domain.WalletTransaction{},
+	&domain.DailyBill{},
 	&domain.Budget{},
 	&domain.Expenditure{},
 	&domain.ExpenseClaim{},
+	&domain.Donation{},
+	&domain.Scholarship{},
+	// Inventory & procurement
+	&domain.InventoryItem{},
+	&domain.StockItem{},
+	&domain.StockMovement{},
+	&domain.Supplier{},
+	&domain.PurchaseOrder{},
+	&domain.POLineItem{},
+	// Library
+	&domain.LibraryBook{},
+	&domain.LibraryLoan{},
+	// Transport
+	&domain.TransportRoute{},
+	&domain.RouteStop{},
+	&domain.BusAssignment{},
+	&domain.BusLocation{},
+	// Catering
+	&domain.MealPlan{},
+	&domain.CanteenSubscription{},
+	// Facilities & rooms
+	&domain.Resource{},
+	&domain.Room{},
+	&domain.Booking{},
 	&domain.RoomBooking{},
 	&domain.FacilityUsageLog{},
-	&domain.DailyBill{},
+	// Events & communication
+	&domain.Campaign{},
+	&domain.CampaignLog{},
+	&domain.Event{},
+	&domain.Notice{},
+	&domain.Reminder{},
+	&domain.Notification{},
+	&domain.Conversation{},
+	&domain.Message{},
+	&domain.WhatsAppMessage{},
+	&domain.SubjectRecommendation{},
+	&domain.MeetingSlot{},
+	&domain.MeetingBooking{},
+	// Clubs & houses
+	&domain.Club{},
+	&domain.ClubMember{},
+	&domain.House{},
+	&domain.HouseMember{},
+	&domain.HousePointEntry{},
+	// Visitors & security
+	&domain.VisitorLog{},
+	&domain.ScanEvent{},
+	// Audit
+	&domain.AuditLog{},
 }
 
 var globalDatabaseURL string
@@ -172,7 +243,7 @@ func ConnectDB(cfg *config.Config) *gorm.DB {
 	sqlDB.SetConnMaxLifetime(5 * time.Minute)
 
 	if cfg.AutoMigrate {
-		log.Println("WARNING: AUTO_MIGRATE is set to true but has been deprecated. Use 'go run ./cmd/migrate up' instead.")
+		log.Println("INFO: AUTO_MIGRATE flag is set (note: GORM AutoMigrate now runs unconditionally on startup).")
 	}
 
 	log.Println("Database connected successfully")
@@ -189,10 +260,5 @@ func MigrateTenantSchema(db *gorm.DB, schemaName string) error {
 		return err
 	}
 
-	sqlDB, err := db.DB()
-	if err != nil {
-		return err
-	}
-
-	return runMigrationsForSchema(sqlDB, schemaName, globalDatabaseURL)
+	return RunTenantMigrations(db, schemaName)
 }

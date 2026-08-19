@@ -25,6 +25,10 @@ func CORSMiddleware(db *gorm.DB) gin.HandlerFunc {
 			}
 		}
 
+		if !isAllowed && strings.HasPrefix(origin, "http://localhost:") {
+			isAllowed = true
+		}
+
 		// Strictly verify .schoollinx.com subdomains against the database (Gap #11)
 		if !isAllowed && strings.HasSuffix(origin, ".schoollinx.com") && origin != "https://schoollinx.com" {
 			// Extract subdomain (e.g., https://tenant1.schoollinx.com -> tenant1)

@@ -64,6 +64,15 @@ func (r *userRepository) GetBySetupToken(ctx context.Context, token string) (*do
 	return &user, nil
 }
 
+func (r *userRepository) GetByResetToken(ctx context.Context, token string) (*domain.User, error) {
+	var user domain.User
+	err := r.db.WithContext(ctx).Where("reset_token = ?", token).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 func (r *userRepository) Create(ctx context.Context, user *domain.User) error {
 	return r.db.WithContext(ctx).Create(user).Error
 }

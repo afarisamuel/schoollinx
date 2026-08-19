@@ -29,6 +29,7 @@ type TenantUseCase interface {
 	UpdateBilling(ctx context.Context, id string, req BillingUpdateReq) error
 	InitializeSubscriptionPayment(ctx context.Context, tenantID string, payerEmail string, studentCount int) (string, error)
 	GetSubscriptionHistory(ctx context.Context, tenantID string) ([]domain.TenantSubscriptionPayment, error)
+	VerifySubscriptionPayment(ctx context.Context, tenantID string, reference string) error
 	ImpersonateTenant(ctx context.Context, id string) (string, error)
 	ResetTenantData(ctx context.Context, id string) error
 	ExportTenantData(ctx context.Context, id string) ([]byte, error)
@@ -593,3 +594,39 @@ func (u *tenantUseCase) UpdatePaymentConfig(ctx context.Context, id string, req 
 	}
 	return nil
 }
+
+func (u *tenantUseCase) VerifySubscriptionPayment(ctx context.Context, tenantID string, reference string) error {
+	// Call Paystack to verify the transaction using the platform key
+	status, err := u.paystackSvc.VerifyTransaction(reference)
+	if err != nil {
+		return fmt.Errorf("failed to verify payment with provider: %w", err)
+	}
+
+	switch status {
+	case "success":
+		// Find the subscription payment record and update it
+		var payment domain.TenantSubscriptionPayment
+		if err := u.db.Where("reference = ? AND tenant_id = ?", reference, tenantID).First(&payment).Error; err != nil {
+			return fmt.Errorf("payment record not found: %w", err)
+		}
+		if payment.Status != "SUCCESS" {
+			payment.Status = "SUCCESS"
+			if err := u.db.Save(&payment).Error; err != nil {
+				return fmt.Errorf("failed to update payment status: %w", err)
+			}
+		}
+	case "pending":
+		return fmt.Errorf("payment is still pending — please complete it on Paystack and try again")
+	default:
+		// failed, abandoned, etc.
+		var payment domain.TenantSubscriptionPayment
+		if err := u.db.Where("reference = ? AND tenant_id = ?", reference, tenantID).First(&payment).Error; err == nil {
+			payment.Status = "FAILED"
+			u.db.Save(&payment)
+		}
+		return fmt.Errorf("payment was not successful (status: %s)", status)
+	}
+
+	return nil
+}
+
