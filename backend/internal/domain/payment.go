@@ -42,6 +42,7 @@ type PaymentRepository interface {
 	GetTransactionByReference(tenantID, reference string) (*PaymentTransaction, error)
 	GetTransactionByReferenceOnly(reference string) (*PaymentTransaction, error)
 	UpdateTransactionStatus(tenantID, reference string, status PaymentStatus) error
+	GetSubscriptionPaymentByReference(reference string) (*TenantSubscriptionPayment, error)
 	UpdateSubscriptionPaymentStatus(reference string, status string) error
 	LogWebhook(log *PaymentWebhookLog) error
 }

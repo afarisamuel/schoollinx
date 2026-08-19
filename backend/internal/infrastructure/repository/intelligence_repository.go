@@ -49,11 +49,11 @@ func (r *intelligenceRepository) GetAggregateKPIs(ctx context.Context) (*domain.
 		TotalAmount float64
 	}
 	var rev revResult
-	r.db.WithContext(ctx).Table("fiscal_records").Select("SUM(amount) as total_amount").Where("status = ?", "PAID").Scan(&rev)
+	r.db.WithContext(ctx).Model(&domain.FiscalRecord{}).Select("SUM(amount) as total_amount").Where("status = ?", "PAID").Scan(&rev)
 	kpis.TotalRevenue = rev.TotalAmount
 
 	// 6. Active Library Loans
-	r.db.WithContext(ctx).Table("library_loans").Where("status = ?", "BORROWED").Count(&kpis.LibraryLoans)
+	r.db.WithContext(ctx).Model(&domain.LibraryLoan{}).Where("status = ?", "BORROWED").Count(&kpis.LibraryLoans)
 
 	// 7. Active Academic Session Data
 	var activePeriod domain.AcademicPeriod

@@ -614,6 +614,20 @@ func (u *tenantUseCase) VerifySubscriptionPayment(ctx context.Context, tenantID 
 			if err := u.db.Save(&payment).Error; err != nil {
 				return fmt.Errorf("failed to update payment status: %w", err)
 			}
+			
+			// Extend the tenant's billing due date by 4 months (approx 1 term)
+			var tenant domain.Tenant
+			if err := u.db.First(&tenant, "id = ?", tenantID).Error; err == nil {
+				now := time.Now()
+				if tenant.BillingDueDate != nil && tenant.BillingDueDate.After(now) {
+					newDate := tenant.BillingDueDate.AddDate(0, 4, 0)
+					tenant.BillingDueDate = &newDate
+				} else {
+					newDate := now.AddDate(0, 4, 0)
+					tenant.BillingDueDate = &newDate
+				}
+				u.db.Save(&tenant)
+			}
 		}
 	case "pending":
 		return fmt.Errorf("payment is still pending — please complete it on Paystack and try again")

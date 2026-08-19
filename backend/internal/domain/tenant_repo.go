@@ -15,4 +15,5 @@ type TenantRepository interface {
 	GetAll(ctx context.Context) ([]Tenant, error)
 	GetBySetupToken(ctx context.Context, token string) (*Tenant, error)
 	UpdateStatus(ctx context.Context, id uuid.UUID, isActive bool) error
+	Update(ctx context.Context, tenant *Tenant) error
 }

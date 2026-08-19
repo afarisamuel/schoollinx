@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"github.com/user/high-school-management/backend/internal/api/middleware"
@@ -19,6 +22,8 @@ type TenantProfileHandler struct {
 func NewTenantProfileHandler(r *gin.RouterGroup, db *gorm.DB, uc usecase.TenantUseCase) {
 	h := &TenantProfileHandler{db: db, uc: uc}
 	r.GET("/tenant/profile", h.GetProfile)
+	r.PUT("/tenant/profile", h.UpdateProfile)
+	r.POST("/tenant/profile/logo", h.UploadLogo)
 	r.PUT("/tenant/payment-config", h.UpdatePaymentConfig)
 	r.POST("/tenant/subscription/pay", h.InitializeSubscriptionPayment)
 	r.POST("/tenant/subscription/verify/:reference", h.VerifySubscriptionPayment)
@@ -107,6 +112,102 @@ func (h *TenantProfileHandler) GetProfile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, t)
+}
+
+func (h *TenantProfileHandler) UpdateProfile(c *gin.Context) {
+	tenantID, exists := middleware.GetTenantIDFromContext(c.Request.Context())
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tenant context not found"})
+		return
+	}
+
+	var req struct {
+		Name           string `json:"name"`
+		Address        string `json:"address"`
+		ContactNumbers string `json:"contact_numbers"`
+		Email          string `json:"email"`
+		LogoURL        string `json:"logo_url"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	var t domain.Tenant
+	if err := h.db.Where("id = ?", tenantID).First(&t).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Tenant not found"})
+		return
+	}
+
+	// Only update provided (non-empty) fields
+	if req.Name != "" {
+		t.Name = req.Name
+	}
+	if req.Address != "" {
+		t.Address = req.Address
+	}
+	if req.ContactNumbers != "" {
+		t.ContactNumbers = req.ContactNumbers
+	}
+	if req.Email != "" {
+		t.Email = req.Email
+	}
+	// Logo URL can be explicitly set (even to clear it by passing empty)
+	t.LogoURL = req.LogoURL
+
+	if err := h.db.Save(&t).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
+		return
+	}
+
+	c.JSON(http.StatusOK, t)
+}
+
+func (h *TenantProfileHandler) UploadLogo(c *gin.Context) {
+	tenantID, exists := middleware.GetTenantIDFromContext(c.Request.Context())
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tenant context not found"})
+		return
+	}
+
+	file, err := c.FormFile("logo")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No file is received"})
+		return
+	}
+
+	// Validate file type
+	ext := filepath.Ext(file.Filename)
+	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Only JPG and PNG files are allowed"})
+		return
+	}
+
+	// Create uploads directory if it doesn't exist
+	uploadDir := "./uploads/logos"
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create upload directory"})
+		return
+	}
+
+	// Save file with unique name
+	fileName := fmt.Sprintf("%s%s", tenantID, ext)
+	filePath := filepath.Join(uploadDir, fileName)
+
+	if err := c.SaveUploadedFile(file, filePath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
+		return
+	}
+
+	// Construct URL
+	host := c.Request.Host
+	scheme := "http"
+	if c.Request.TLS != nil {
+		scheme = "https"
+	}
+	fileURL := fmt.Sprintf("%s://%s/uploads/logos/%s", scheme, host, fileName)
+
+	c.JSON(http.StatusOK, gin.H{"url": fileURL})
 }
 
 func (h *TenantProfileHandler) UpdatePaymentConfig(c *gin.Context) {

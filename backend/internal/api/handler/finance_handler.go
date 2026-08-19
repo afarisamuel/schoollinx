@@ -23,6 +23,24 @@ func NewFinanceHandler(r *gin.RouterGroup, db *gorm.DB) {
 	r.GET("/tenant-health", h.GetTenantHealth)
 }
 
+func (h *FinanceHandler) calculateMonthlyRevenue(t domain.Tenant) float64 {
+	if t.FixedPriceOverride > 0 {
+		return t.FixedPriceOverride
+	}
+
+	var studentCount int64
+	if t.SchemaName != "" && t.SchemaName != "public" {
+		// Attempt to count active students; if table doesn't exist or errors, it defaults to 0
+		h.db.Table(t.SchemaName + ".students").Count(&studentCount)
+	}
+
+	monthly := (t.PerStudentPerTermRate * float64(studentCount)) / 4
+	if t.DiscountPercentage > 0 {
+		monthly = monthly * (1 - (t.DiscountPercentage / 100))
+	}
+	return monthly
+}
+
 // GetOverview returns a comprehensive financial overview.
 func (h *FinanceHandler) GetOverview(c *gin.Context) {
 	var tenants []domain.Tenant
@@ -59,16 +77,11 @@ func (h *FinanceHandler) GetOverview(c *gin.Context) {
 			continue
 		}
 
-		monthly := 0.0
-		if t.FixedPriceOverride > 0 {
-			monthly = t.FixedPriceOverride
-		} else {
-			monthly = (t.PerStudentPerTermRate * 100) / 4
+		if !t.IsActive {
+			continue
 		}
-		if t.DiscountPercentage > 0 {
-			monthly = monthly * (1 - (t.DiscountPercentage / 100))
-		}
-		mrr += monthly
+
+		mrr += h.calculateMonthlyRevenue(t)
 	}
 	arr = mrr * 12
 
@@ -136,16 +149,7 @@ func (h *FinanceHandler) GetRevenueByPlan(c *gin.Context) {
 
 		planMap[plan].Count++
 
-		monthly := 0.0
-		if t.FixedPriceOverride > 0 {
-			monthly = t.FixedPriceOverride
-		} else {
-			monthly = (t.PerStudentPerTermRate * 100) / 4
-		}
-		if t.DiscountPercentage > 0 {
-			monthly = monthly * (1 - (t.DiscountPercentage / 100))
-		}
-		planMap[plan].Revenue += monthly
+		planMap[plan].Revenue += h.calculateMonthlyRevenue(t)
 	}
 
 	result := make([]*PlanData, 0, len(planMap))
@@ -185,15 +189,7 @@ func (h *FinanceHandler) GetTenantHealth(c *gin.Context) {
 
 	result := make([]TenantHealth, 0, len(tenants))
 	for _, t := range tenants {
-		monthly := 0.0
-		if t.FixedPriceOverride > 0 {
-			monthly = t.FixedPriceOverride
-		} else {
-			monthly = (t.PerStudentPerTermRate * 100) / 4
-		}
-		if t.DiscountPercentage > 0 {
-			monthly = monthly * (1 - (t.DiscountPercentage / 100))
-		}
+		monthly := h.calculateMonthlyRevenue(t)
 
 		storagePct := 0.0
 		if t.StorageLimitGB > 0 {
@@ -244,18 +240,8 @@ func (h *FinanceHandler) GetMRR(c *gin.Context) {
 		if !tenant.IsActive {
 			continue
 		}
-		monthly := 0.0
-		if tenant.FixedPriceOverride > 0 {
-			monthly = tenant.FixedPriceOverride
-		} else {
-			monthly = (tenant.PerStudentPerTermRate * 100) / 4
-		}
-
-		if tenant.DiscountPercentage > 0 {
-			monthly = monthly * (1 - (tenant.DiscountPercentage / 100))
-		}
-
-		mrr += monthly
+		
+		mrr += h.calculateMonthlyRevenue(tenant)
 	}
 
 	arr = mrr * 12

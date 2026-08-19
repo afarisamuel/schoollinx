@@ -66,3 +66,7 @@ func (r *tenantRepository) GetBySetupToken(ctx context.Context, token string) (*
 
 	return nil, gorm.ErrRecordNotFound
 }
+
+func (r *tenantRepository) Update(ctx context.Context, tenant *domain.Tenant) error {
+	return r.db.WithContext(ctx).Save(tenant).Error
+}

@@ -294,8 +294,8 @@ func (r *gradeRepository) GetGradeDistribution(ctx context.Context) (map[string]
 		Count        int
 	}
 	
-	query := `
-		SELECT 
+	if err := r.db.WithContext(ctx).Model(&domain.Grade{}).
+		Select(`
 			CASE 
 				WHEN (score / NULLIF(max_score, 0)) * 100 >= 90 THEN 'A'
 				WHEN (score / NULLIF(max_score, 0)) * 100 >= 80 THEN 'B'
@@ -304,11 +304,9 @@ func (r *gradeRepository) GetGradeDistribution(ctx context.Context) (map[string]
 				ELSE 'F'
 			END as grade_bracket,
 			COUNT(*) as count
-		FROM grades
-		GROUP BY grade_bracket
-	`
-	
-	if err := r.db.WithContext(ctx).Raw(query).Scan(&results).Error; err != nil {
+		`).
+		Group("grade_bracket").
+		Scan(&results).Error; err != nil {
 		return distribution, err
 	}
 	

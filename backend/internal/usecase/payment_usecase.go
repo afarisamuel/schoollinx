@@ -144,6 +144,24 @@ func (u *paymentUseCase) HandlePaystackWebhook(ctx context.Context, payload []by
 			if err := u.paymentRepo.UpdateSubscriptionPaymentStatus(reference, "SUCCESS"); err != nil {
 				return fmt.Errorf("failed to update subscription payment status: %w", err)
 			}
+			
+			// Extend the tenant's billing due date by 4 months
+			sub, err := u.paymentRepo.GetSubscriptionPaymentByReference(reference)
+			if err == nil {
+				tenant, err := u.tenantRepo.GetByID(ctx, sub.TenantID)
+				if err == nil {
+					now := time.Now()
+					if tenant.BillingDueDate != nil && tenant.BillingDueDate.After(now) {
+						newDate := tenant.BillingDueDate.AddDate(0, 4, 0)
+						tenant.BillingDueDate = &newDate
+					} else {
+						newDate := now.AddDate(0, 4, 0)
+						tenant.BillingDueDate = &newDate
+					}
+					// Use TenantRepository to save the updated tenant
+					u.tenantRepo.Update(ctx, tenant)
+				}
+			}
 		}
 		return nil
 	}

@@ -51,3 +51,12 @@ func (r *paymentRepository) UpdateSubscriptionPaymentStatus(reference string, st
 		Update("status", status).Error
 }
 
+func (r *paymentRepository) GetSubscriptionPaymentByReference(reference string) (*domain.TenantSubscriptionPayment, error) {
+	var sub domain.TenantSubscriptionPayment
+	err := r.db.Table("public.tenant_subscription_payments").Where("reference = ?", reference).First(&sub).Error
+	if err != nil {
+		return nil, err
+	}
+	return &sub, nil
+}
+

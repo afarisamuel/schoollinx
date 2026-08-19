@@ -54,7 +54,38 @@ func NewStudentHandler(r *gin.RouterGroup, uc domain.StudentUseCase) {
 		api.GET("/import/template", middleware.RoleMiddleware(domain.RoleAdmin), handler.GetImportTemplate)
 		api.POST("/import", middleware.RoleMiddleware(domain.RoleAdmin), handler.Import)
 		api.POST("/promote", middleware.RoleMiddleware(domain.RoleAdmin), handler.Promote)
+		api.PATCH("/:id/rfid", middleware.RoleMiddleware(domain.RoleAdmin), handler.AssignRFID)
 	}
+}
+
+func (h *StudentHandler) AssignRFID(c *gin.Context) {
+	var req struct {
+		RFIDToken string `json:"rfid_token"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid student ID"})
+		return
+	}
+
+	student, err := h.studentUseCase.GetStudentByID(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Student not found"})
+		return
+	}
+
+	student.RFIDToken = req.RFIDToken
+	if err := h.studentUseCase.UpdateStudent(c.Request.Context(), student); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to assign RFID token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "RFID token assigned", "student_id": id, "rfid_token": req.RFIDToken})
 }
 
 func (h *StudentHandler) Create(c *gin.Context) {

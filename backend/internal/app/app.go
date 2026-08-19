@@ -97,6 +97,9 @@ func (a *App) setupRoutes() {
 	publicGroup := a.Router.Group("/api/public")
 	handler.NewPublicTenantHandler(publicGroup, a.DB)
 
+	// Static file serving for uploads (Logos, etc.)
+	a.Router.Static("/uploads", "./uploads")
+
 	// API Routes
 	api := a.Router.Group("/api")
 
