@@ -157,6 +157,12 @@
                                           [ngClass]="event.processed ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'">
                                         {{ event.processed ? '✓ Attendance Marked' : '⏳ Pending Mapping' }}
                                     </span>
+                                    @if (!event.processed) {
+                                        <button (click)="openLinkModal(event.rfid_token)" class="ml-3 text-[9px] font-black text-indigo-400 hover:text-indigo-300 uppercase tracking-widest bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 px-2 py-0.5 rounded transition-colors inline-flex items-center gap-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                                            Link Student
+                                        </button>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -291,6 +297,65 @@
             <div class="flex gap-4 mt-7">
                 <button (click)="showRegistration.set(false)" class="btn-secondary flex-1 py-3.5">Cancel</button>
                 <button (click)="registerDevice()" class="btn-primary flex-1 py-3.5" [disabled]="!newDevice.name || !newDevice.ip_address">Provision</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Link Student Modal -->
+@if (showLinkModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div class="absolute inset-0" (click)="showLinkModal.set(false)"></div>
+        <div class="bg-bg-tertiary border border-border-secondary rounded-3xl p-8 w-full max-w-md shadow-2xl relative z-10 overflow-hidden">
+            <div class="absolute -top-16 -right-16 w-40 h-40 bg-indigo-500/15 blur-3xl rounded-full pointer-events-none"></div>
+
+            <button (click)="showLinkModal.set(false)" class="absolute top-6 right-6 p-1.5 rounded-full hover:bg-white/10 text-text-muted hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+
+            <h2 class="text-xl font-black text-text-primary mb-1">Link Student</h2>
+            <p class="text-sm text-text-muted mb-7">Associate biometric token <span class="font-mono bg-bg-secondary px-1 rounded text-text-primary">{{linkRfidToken()}}</span> with a student.</p>
+
+            <div class="space-y-5 relative z-10">
+                <div class="flex flex-col gap-1.5">
+                    <label class="field-label">Search Student</label>
+                    <div class="input-wrapper">
+                        <input type="text" [(ngModel)]="linkStudentSearch" class="field-input" placeholder="Name or Enrollment ID...">
+                    </div>
+                </div>
+                
+                <div class="flex flex-col gap-1.5">
+                    <label class="field-label">Select Student</label>
+                    <div class="input-wrapper">
+                        <select [(ngModel)]="linkStudentId" class="field-input appearance-none pr-10 cursor-pointer" size="4" style="height: auto; min-height: 120px;">
+                            @for (s of filteredStudents(); track s.id) {
+                            <option [value]="s.id" class="p-2 border-b border-border-secondary hover:bg-bg-secondary">{{ s.first_name }} {{ s.last_name }} ({{ s.enrollment_num || 'N/A' }})</option>
+                            }
+                            @if (filteredStudents().length === 0) {
+                            <option disabled class="p-2 text-text-muted italic text-center">No matching students found.</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                
+                @if (linkFeedback()) {
+                <div class="p-3 rounded-xl text-sm font-semibold flex items-center gap-2 border"
+                     [ngClass]="linkFeedback()!.ok ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'">
+                    {{ linkFeedback()!.msg }}
+                </div>
+                }
+            </div>
+
+            <div class="flex gap-4 mt-7">
+                <button (click)="showLinkModal.set(false)" class="btn-secondary flex-1 py-3.5">Cancel</button>
+                <button (click)="submitLinkStudent()" class="btn-primary flex-1 py-3.5" [disabled]="!linkStudentId() || isLinking()">
+                    @if (isLinking()) {
+                        <svg class="animate-spin h-4 w-4 inline-block mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        Linking...
+                    } @else {
+                        Link Student
+                    }
+                </button>
             </div>
         </div>
     </div>

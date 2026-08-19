@@ -1,12 +1,23 @@
-:root {
+:host {
   --bg-primary: #ffffff;
   --bg-secondary: #f8fafc;
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-muted: #64748b;
   --border-light: rgba(0, 0, 0, 0.05);
+  --nav-blur-bg: rgba(255, 255, 255, 0.85);
   --brand-pink: #ec4899;
   --brand-orange: #f97316;
+}
+
+:host-context(.dark) {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --border-light: rgba(255, 255, 255, 0.1);
+  --nav-blur-bg: rgba(15, 23, 42, 0.85);
 }
 
 /* Custom Scrollbar */
@@ -55,9 +66,9 @@ main {
 .nav-bar.scrolled {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--nav-blur-bg);
   border-bottom: 1px solid var(--border-light);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
 
@@ -96,7 +107,7 @@ main {
   font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .nav-links {
@@ -107,7 +118,7 @@ main {
 
 .nav-link {
   padding: 0.5rem 1rem;
-  color: #475569;
+  color: var(--text-secondary);
   text-decoration: none;
   font-size: 0.95rem;
   font-weight: 600;
@@ -116,7 +127,7 @@ main {
   cursor: pointer;
 }
 
-.nav-link:hover { color: #0f172a; background: rgba(0,0,0,0.03); }
+.nav-link:hover { color: var(--text-primary); background: var(--border-light); }
 
 .nav-cta-btn {
   margin-left: auto;
@@ -139,9 +150,9 @@ main {
 
 /* ── FOOTER ───────────────────────────────────── */
 .footer {
-  border-top: 1px solid rgba(0,0,0,0.05);
+  border-top: 1px solid var(--border-light);
   padding: 3rem 0;
-  background: #f8fafc;
+  background: var(--bg-secondary);
 }
 
 .footer-logo {
@@ -167,7 +178,7 @@ main {
   position: fixed;
   bottom: 0; left: 0; right: 0;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--nav-blur-bg);
   backdrop-filter: blur(10px);
   border-top: 1px solid var(--border-light);
   z-index: 99;

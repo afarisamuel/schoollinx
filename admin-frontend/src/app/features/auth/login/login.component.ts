@@ -1,11 +1,11 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterModule],
   templateUrl: './login.component.html',
   styles: []
 })
@@ -38,7 +38,7 @@ export class LoginComponent {
         this.router.navigate([returnUrl]);
       },
       error: (err) => {
-        this.errorMessage = err?.message || err?.error?.error || 'Authentication failed. Please check your credentials.';
+        this.errorMessage = err?.error?.error || 'Authentication failed. Please check your credentials.';
         this.isSubmitting = false;
       }
     });

@@ -93,18 +93,17 @@ export class MainLayoutComponent implements OnInit {
     // Update layout state on route changes
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
-      .subscribe((e: NavigationEnd) => {
+      .subscribe(() => {
         this.updateLayoutState();
-        // Show back button everywhere except the root dashboard
-        const url = e.urlAfterRedirects || e.url;
-        this.canGoBack.set(url !== '/dashboard' && url !== '/');
       });
   }
 
   private updateLayoutState() {
     const url = this.router.url;
-    
-    // Update current route title
+
+    // Set back-button visibility based on current URL
+    this.canGoBack.set(url !== '/dashboard' && url !== '/');
+
     if (url.includes('dashboard')) this.currentRouteTitle.set('Institutional Dashboard');
     else if (url.includes('students')) this.currentRouteTitle.set('Student Registry');
     else if (url.includes('program-management')) this.currentRouteTitle.set('Curriculum Management');

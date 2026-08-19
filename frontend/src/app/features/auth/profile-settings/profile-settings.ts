@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 
+import { TenantProfileService } from '../../../core/infrastructure/tenant-profile.service';
+
 @Component({
   selector: 'app-profile-settings',
   standalone: true,
@@ -12,6 +14,7 @@ import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 })
 export class ProfileSettings implements OnInit {
   private authService = inject(AuthService);
+  private tenantProfileService = inject(TenantProfileService);
   private sanitizer = inject(DomSanitizer);
   private cdr = inject(ChangeDetectorRef);
 
@@ -28,6 +31,7 @@ export class ProfileSettings implements OnInit {
     this.authService.currentUser$.subscribe(u => {
       this.user = u;
     });
+    this.loadTenantProfile();
   }
 
   enable2FA() {
@@ -70,6 +74,89 @@ export class ProfileSettings implements OnInit {
       error: (err) => {
         this.error = err.error?.error || 'Invalid verification code';
         this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // Tenant Profile Settings
+  tenantProfile: any = null;
+  savingProfile: boolean = false;
+  profileSuccess: string = '';
+  profileError: string = '';
+
+  loadTenantProfile() {
+    this.tenantProfileService.getProfile().subscribe({
+      next: (profile) => {
+        this.tenantProfile = profile;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Failed to load tenant profile', err);
+      }
+    });
+  }
+
+  onLogoSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        this.profileError = 'Image exceeds maximum size of 2MB.';
+        this.cdr.detectChanges();
+        return;
+      }
+      this.savingProfile = true;
+      this.profileError = '';
+      this.tenantProfileService.uploadLogo(file).subscribe({
+        next: (res) => {
+          this.tenantProfile.logo_url = res.url;
+          this.savingProfile = false;
+          this.profileSuccess = 'Logo uploaded successfully! Remember to Save Changes.';
+          this.cdr.detectChanges();
+          
+          setTimeout(() => {
+            this.profileSuccess = '';
+            this.cdr.detectChanges();
+          }, 3000);
+        },
+        error: (err) => {
+          this.profileError = err.error?.error || 'Failed to upload logo';
+          this.savingProfile = false;
+          this.cdr.detectChanges();
+        }
+      });
+    }
+  }
+
+  updateProfile() {
+    if (!this.tenantProfile) return;
+    
+    this.savingProfile = true;
+    this.profileSuccess = '';
+    this.profileError = '';
+    
+    this.tenantProfileService.updateProfile({
+      name: this.tenantProfile.name,
+      address: this.tenantProfile.address,
+      contact_numbers: this.tenantProfile.contact_numbers,
+      email: this.tenantProfile.email,
+      logo_url: this.tenantProfile.logo_url
+    }).subscribe({
+      next: (updatedProfile) => {
+        this.tenantProfile = updatedProfile;
+        this.profileSuccess = 'School profile updated successfully!';
+        this.savingProfile = false;
+        this.cdr.detectChanges();
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          this.profileSuccess = '';
+          this.cdr.detectChanges();
+        }, 3000);
+      },
+      error: (err) => {
+        this.profileError = err.error?.error || 'Failed to update school profile';
+        this.savingProfile = false;
         this.cdr.detectChanges();
       }
     });

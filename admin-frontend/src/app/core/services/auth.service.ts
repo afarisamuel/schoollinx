@@ -71,6 +71,18 @@ export class AuthService {
     );
   }
 
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/forgot-password`, { email }, {
+      headers: this.getSubdomainHeader()
+    });
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/reset-password`, { token, new_password: newPassword }, {
+      headers: this.getSubdomainHeader()
+    });
+  }
+
   private setSession(authResult: LoginResponse) {
     localStorage.setItem('admin_token', authResult.token);
     localStorage.setItem('admin_user', JSON.stringify(authResult.user));

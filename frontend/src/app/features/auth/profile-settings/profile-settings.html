@@ -1,86 +1,240 @@
-<div class="max-w-3xl mx-auto p-4 md:p-8 animate-fade-in">
-    <div class="mb-8">
-        <h1 class="text-2xl font-black text-text-primary tracking-tight">Security Settings</h1>
-        <p class="text-text-muted font-medium mt-1">Manage your account security and authentication methods.</p>
+<div class="max-w-4xl mx-auto p-4 md:p-8 animate-fade-in pb-24">
+    <!-- Header Section with Gradient -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-900/40 via-bg-secondary to-slate-900/60 border border-white/5 shadow-2xl p-8 mb-8">
+        <div class="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-indigo-500/20 blur-[80px] rounded-full pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 -mb-16 -ml-16 w-64 h-64 bg-rose-500/10 blur-[80px] rounded-full pointer-events-none"></div>
+        
+        <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div>
+                <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70 tracking-tight mb-2">Settings & Security</h1>
+                <p class="text-text-muted font-medium max-w-xl text-sm leading-relaxed">Manage your account security, authentication methods, and configure your institution's public profile information.</p>
+            </div>
+            
+            <div class="flex items-center gap-4 bg-bg-primary/50 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/5 shadow-inner">
+                <div class="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                    <i class="fas fa-shield-alt text-indigo-400"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-text-muted uppercase tracking-widest mb-0.5">Account Status</p>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-sm font-bold text-emerald-400">Secure</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- School Profile Section -->
+    <div *ngIf="user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN'" class="bg-bg-secondary/60 backdrop-blur-xl border border-border-primary rounded-3xl p-1 shadow-xl mb-8 relative group transition-all duration-500 hover:border-white/10 hover:shadow-rose-500/5">
+        <div class="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent rounded-3xl pointer-events-none"></div>
+        
+        <div class="p-6 md:p-8 relative z-10">
+            <div class="flex items-start justify-between mb-8">
+                <div class="flex gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500/20 to-orange-500/20 flex items-center justify-center border border-rose-500/30 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                        <i class="fas fa-school text-xl text-rose-400"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-text-primary tracking-tight">Institution Profile</h2>
+                        <p class="text-sm text-text-muted mt-1 max-w-xl leading-relaxed">
+                            These details appear on official reports, receipts, and the parent portal interface.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div *ngIf="profileSuccess" class="mb-8 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl flex items-center gap-3 animate-fade-in shadow-lg shadow-emerald-500/5">
+                <i class="fas fa-check-circle text-xl animate-bounce"></i>
+                <span class="font-medium text-sm">{{ profileSuccess }}</span>
+            </div>
+
+            <div *ngIf="profileError" class="mb-8 p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center gap-3 animate-fade-in shadow-lg shadow-rose-500/5">
+                <i class="fas fa-exclamation-circle text-xl"></i>
+                <span class="font-medium text-sm">{{ profileError }}</span>
+            </div>
+
+            <div *ngIf="tenantProfile" class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                <!-- Left Column (Form) -->
+                <div class="lg:col-span-3 space-y-5">
+                    <div class="group/input">
+                        <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2 group-hover/input:text-rose-400 transition-colors">School Name</label>
+                        <input type="text" [(ngModel)]="tenantProfile.name" class="w-full px-5 py-3.5 bg-bg-primary/50 border border-border-primary rounded-xl text-sm text-text-primary focus:bg-bg-primary focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all shadow-inner" placeholder="e.g. Lincoln High School">
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="group/input">
+                            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2 group-hover/input:text-rose-400 transition-colors">Contact Numbers</label>
+                            <input type="text" [(ngModel)]="tenantProfile.contact_numbers" class="w-full px-5 py-3.5 bg-bg-primary/50 border border-border-primary rounded-xl text-sm text-text-primary focus:bg-bg-primary focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all shadow-inner" placeholder="+1 (555) 123-4567">
+                        </div>
+                        <div class="group/input">
+                            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2 group-hover/input:text-rose-400 transition-colors">Contact Email</label>
+                            <input type="email" [(ngModel)]="tenantProfile.email" class="w-full px-5 py-3.5 bg-bg-primary/50 border border-border-primary rounded-xl text-sm text-text-primary focus:bg-bg-primary focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all shadow-inner" placeholder="info@school.edu">
+                        </div>
+                    </div>
+                    
+                    <div class="group/input">
+                        <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2 group-hover/input:text-rose-400 transition-colors">Physical Address</label>
+                        <textarea [(ngModel)]="tenantProfile.address" rows="3" class="w-full px-5 py-3.5 bg-bg-primary/50 border border-border-primary rounded-xl text-sm text-text-primary focus:bg-bg-primary focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all shadow-inner resize-none leading-relaxed" placeholder="123 Education Drive, City, State"></textarea>
+                    </div>
+                </div>
+
+                <!-- Right Column (Logo) -->
+                <div class="lg:col-span-2">
+                    <div class="bg-bg-primary/30 rounded-2xl p-5 border border-border-primary h-full flex flex-col justify-between">
+                        <div>
+                            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-4 flex items-center justify-between">
+                                <span>Institution Logo</span>
+                                <span class="px-2 py-0.5 bg-bg-secondary rounded text-[9px] border border-border-primary">Max 2MB</span>
+                            </label>
+                            
+                            <div class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-border-primary hover:border-rose-500/50 rounded-xl bg-bg-primary/50 transition-colors relative group cursor-pointer overflow-hidden">
+                                <input type="file" (change)="onLogoSelected($event)" accept="image/png, image/jpeg" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" title="Click to upload">
+                                
+                                <ng-container *ngIf="tenantProfile.logo_url; else noLogo">
+                                    <div class="w-32 h-32 rounded-lg bg-white/5 flex items-center justify-center p-2 mb-4 relative z-10">
+                                        <img [src]="tenantProfile.logo_url" alt="Logo Preview" class="w-full h-full object-contain drop-shadow-xl" (error)="tenantProfile.logo_url = ''" />
+                                    </div>
+                                    <span class="text-xs font-medium text-rose-400 group-hover:text-rose-300 flex items-center gap-2">
+                                        <i class="fas fa-upload"></i> Change Logo
+                                    </span>
+                                </ng-container>
+                                
+                                <ng-template #noLogo>
+                                    <div class="w-16 h-16 rounded-full bg-bg-secondary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner">
+                                        <i class="fas fa-image text-2xl text-text-muted group-hover:text-rose-400 transition-colors"></i>
+                                    </div>
+                                    <p class="text-sm font-bold text-text-primary mb-1">Upload Logo</p>
+                                    <p class="text-[10px] text-text-muted text-center max-w-[150px]">Click or drag & drop<br>PNG, JPG up to 2MB</p>
+                                </ng-template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Area -->
+            <div *ngIf="tenantProfile" class="pt-8 mt-8 border-t border-white/5 flex justify-end">
+                <button (click)="updateProfile()" [disabled]="savingProfile" class="group relative px-8 py-3.5 bg-gradient-to-r from-rose-500 to-orange-500 text-white font-bold rounded-xl overflow-hidden shadow-lg shadow-rose-500/25 transition-all hover:shadow-rose-500/40 hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none">
+                    <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+                    <span class="relative flex items-center gap-2">
+                        <i class="fas fa-save" *ngIf="!savingProfile"></i>
+                        <i class="fas fa-spinner fa-spin" *ngIf="savingProfile"></i>
+                        Save Profile Changes
+                    </span>
+                </button>
+            </div>
+            
+            <!-- Loading state -->
+            <div *ngIf="!tenantProfile" class="py-12 flex flex-col items-center justify-center gap-4">
+                <div class="w-10 h-10 rounded-full border-2 border-rose-500/20 border-t-rose-500 animate-spin shadow-[0_0_15px_rgba(244,63,94,0.5)]"></div>
+                <p class="text-sm font-bold text-text-muted animate-pulse">Loading institution profile...</p>
+            </div>
+        </div>
     </div>
 
     <!-- 2FA Section -->
-    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+    <div class="bg-bg-secondary/60 backdrop-blur-xl border border-border-primary rounded-3xl p-1 shadow-xl relative group transition-all duration-500 hover:border-white/10 hover:shadow-indigo-500/5">
+        <div class="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent rounded-3xl pointer-events-none"></div>
         
-        <div class="flex items-start justify-between mb-6">
-            <div>
-                <h2 class="text-lg font-bold text-text-primary flex items-center gap-2">
-                    <i class="fas fa-shield-alt text-indigo-400"></i> Two-Factor Authentication
-                </h2>
-                <p class="text-sm text-text-muted mt-1 max-w-xl">
-                    Add an extra layer of security to your account. When enabled, you'll need to enter a code from your authenticator app (like Google Authenticator or Authy) when logging in.
-                </p>
-            </div>
-            <div class="flex-shrink-0 ml-4">
-                <span *ngIf="user?.two_factor_enabled" class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-bold uppercase tracking-widest rounded-full border border-emerald-500/20 flex items-center gap-1">
-                    <i class="fas fa-check-circle"></i> Enabled
-                </span>
-                <span *ngIf="!user?.two_factor_enabled" class="px-3 py-1 bg-text-muted/10 text-text-muted text-xs font-bold uppercase tracking-widest rounded-full border border-border-primary flex items-center gap-1">
-                    Disabled
-                </span>
-            </div>
-        </div>
-
-        <!-- Success Message -->
-        <div *ngIf="success" class="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl flex items-center gap-3">
-            <i class="fas fa-check-circle text-lg"></i>
-            <span class="font-medium">{{ success }}</span>
-        </div>
-
-        <!-- Error Message -->
-        <div *ngIf="error" class="mb-6 p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center gap-3">
-            <i class="fas fa-exclamation-circle text-lg"></i>
-            <span class="font-medium">{{ error }}</span>
-        </div>
-
-        <!-- Enable Button (Initial State) -->
-        <div *ngIf="!user?.two_factor_enabled && !qrCodeVisible" class="pt-4 border-t border-border-primary border-dashed">
-            <button (click)="enable2FA()" [disabled]="loading" class="px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-2">
-                <i class="fas fa-lock" *ngIf="!loading"></i>
-                <i class="fas fa-spinner fa-spin" *ngIf="loading"></i>
-                Set up 2FA
-            </button>
-        </div>
-
-        <!-- QR Code Setup Flow -->
-        <div *ngIf="qrCodeVisible" class="pt-6 border-t border-border-primary border-dashed animate-fade-in">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                
-                <!-- Step 1: QR -->
-                <div class="flex flex-col items-center justify-center p-6 bg-white rounded-2xl border-4 border-border-primary">
-                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">1. Scan QR Code</p>
-                    <img [src]="qrCodeImageUrl" alt="2FA QR Code" width="200" height="200" class="rounded-lg" />
+        <div class="p-6 md:p-8 relative z-10">
+            <div class="flex items-start justify-between mb-8">
+                <div class="flex gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center border border-indigo-500/30 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                        <i class="fas fa-fingerprint text-xl text-indigo-400"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-text-primary tracking-tight">Two-Factor Authentication</h2>
+                        <p class="text-sm text-text-muted mt-1 max-w-xl leading-relaxed">
+                            Add an extra layer of security. Require a time-based code from your authenticator app when logging in.
+                        </p>
+                    </div>
                 </div>
+                
+                <div class="flex-shrink-0">
+                    <div *ngIf="user?.two_factor_enabled" class="px-4 py-1.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-widest rounded-full border border-emerald-500/20 flex items-center gap-1.5 shadow-[0_0_10px_rgba(52,211,153,0.1)]">
+                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div> Enabled
+                    </div>
+                    <div *ngIf="!user?.two_factor_enabled" class="px-4 py-1.5 bg-text-muted/10 text-text-muted text-[10px] font-bold uppercase tracking-widest rounded-full border border-border-primary flex items-center gap-1.5">
+                        <div class="w-1.5 h-1.5 rounded-full bg-text-muted"></div> Disabled
+                    </div>
+                </div>
+            </div>
 
-                <!-- Step 2: Verify -->
-                <div class="flex flex-col justify-center gap-4">
-                    <p class="text-xs font-bold text-text-muted uppercase tracking-widest">2. Verify Code</p>
-                    <p class="text-sm text-text-secondary">Scan the QR code with your authenticator app and enter the 6-digit code below to verify setup.</p>
+            <!-- Messages -->
+            <div *ngIf="success" class="mb-8 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl flex items-center gap-3 animate-fade-in shadow-lg shadow-emerald-500/5">
+                <i class="fas fa-shield-check text-xl"></i>
+                <span class="font-medium text-sm">{{ success }}</span>
+            </div>
+
+            <div *ngIf="error" class="mb-8 p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center gap-3 animate-fade-in shadow-lg shadow-rose-500/5">
+                <i class="fas fa-exclamation-triangle text-xl"></i>
+                <span class="font-medium text-sm">{{ error }}</span>
+            </div>
+
+            <!-- Enable Button (Initial State) -->
+            <div *ngIf="!user?.two_factor_enabled && !qrCodeVisible" class="pt-6 border-t border-white/5 flex">
+                <button (click)="enable2FA()" [disabled]="loading" class="group relative px-8 py-3.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold rounded-xl overflow-hidden shadow-lg shadow-indigo-500/25 transition-all hover:shadow-indigo-500/40 hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none">
+                    <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+                    <span class="relative flex items-center gap-2">
+                        <i class="fas fa-lock" *ngIf="!loading"></i>
+                        <i class="fas fa-spinner fa-spin" *ngIf="loading"></i>
+                        Set up 2FA Security
+                    </span>
+                </button>
+            </div>
+
+            <!-- QR Code Setup Flow -->
+            <div *ngIf="qrCodeVisible" class="pt-8 mt-4 border-t border-white/5 animate-fade-in">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                     
-                    <div class="mt-2">
-                        <input type="text" [(ngModel)]="verificationCode" maxlength="6"
-                            class="w-full px-5 py-4 bg-bg-primary border border-border-primary rounded-xl text-text-primary focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors tracking-[0.5em] text-center font-mono text-2xl"
-                            placeholder="••••••" />
+                    <!-- Step 1: QR -->
+                    <div class="flex flex-col items-center">
+                        <div class="w-full flex items-center gap-3 mb-6">
+                            <div class="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs font-bold border border-indigo-500/30">1</div>
+                            <h3 class="text-sm font-bold text-text-primary uppercase tracking-wider">Scan QR Code</h3>
+                        </div>
+                        <div class="p-4 bg-white rounded-3xl shadow-[0_0_30px_rgba(99,102,241,0.15)] transform transition-transform hover:scale-105 duration-300 border-4 border-indigo-500/10">
+                            <img [src]="qrCodeImageUrl" alt="2FA QR Code" width="220" height="220" class="rounded-xl" />
+                        </div>
+                        <p class="text-xs text-text-muted mt-6 text-center max-w-[250px]">Open Google Authenticator or Authy and scan this code.</p>
                     </div>
 
-                    <button (click)="verify2FA()" [disabled]="loading || verificationCode.length !== 6" 
-                        class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2">
-                        <i class="fas fa-check" *ngIf="!loading"></i>
-                        <i class="fas fa-spinner fa-spin" *ngIf="loading"></i>
-                        Verify & Enable
-                    </button>
-                    
-                    <button (click)="qrCodeVisible = false; error = ''" [disabled]="loading" class="w-full py-2 text-text-muted hover:text-text-primary text-sm font-bold transition-colors">
-                        Cancel Setup
-                    </button>
+                    <!-- Step 2: Verify -->
+                    <div class="flex flex-col">
+                        <div class="w-full flex items-center gap-3 mb-6">
+                            <div class="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs font-bold border border-indigo-500/30">2</div>
+                            <h3 class="text-sm font-bold text-text-primary uppercase tracking-wider">Verify Code</h3>
+                        </div>
+                        
+                        <p class="text-sm text-text-secondary mb-6 leading-relaxed">Enter the 6-digit code generated by your app to confirm setup.</p>
+                        
+                        <div class="mb-6">
+                            <input type="text" [(ngModel)]="verificationCode" maxlength="6"
+                                class="w-full px-6 py-5 bg-bg-primary/50 border border-border-primary rounded-2xl text-text-primary focus:bg-bg-primary focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all tracking-[0.7em] text-center font-mono text-3xl shadow-inner placeholder-text-muted/30"
+                                placeholder="000000" />
+                        </div>
+
+                        <div class="flex flex-col gap-3 mt-auto">
+                            <button (click)="verify2FA()" [disabled]="loading || verificationCode.length !== 6" 
+                                class="w-full py-4 bg-gradient-to-r from-emerald-400 to-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/25 transition-all hover:shadow-emerald-500/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-2 group overflow-hidden relative">
+                                <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+                                <span class="relative flex items-center gap-2">
+                                    <i class="fas fa-shield-check" *ngIf="!loading"></i>
+                                    <i class="fas fa-spinner fa-spin" *ngIf="loading"></i>
+                                    Verify & Enable
+                                </span>
+                            </button>
+                            
+                            <button (click)="qrCodeVisible = false; error = ''" [disabled]="loading" class="w-full py-3 text-text-muted hover:text-text-primary text-sm font-bold transition-colors rounded-xl hover:bg-white/5">
+                                Cancel Setup
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
+        </div>
     </div>
 </div>

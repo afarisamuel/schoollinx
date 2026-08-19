@@ -59,6 +59,10 @@ export class StudentService {
         return this.http.put<Student>(`${this.apiUrl}/${id}`, student);
     }
 
+    linkStudentRFID(id: string, rfidToken: string): Observable<any> {
+        return this.http.patch(`${this.apiUrl}/${id}/rfid`, { rfid_token: rfidToken });
+    }
+
     printTerminalReport(studentId: string, periodId: string, termId: string): Observable<Blob> {
         return this.http.get(`/api/reports/students/${studentId}/terminal?period_id=${periodId}&term_id=${termId}`, { responseType: 'blob' });
     }

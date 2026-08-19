@@ -1,6 +1,27 @@
 /* ===== Student Registry — Premium UI ===== */
 
-/* Entry animations */
+:host {
+    display: block;
+    --card-bg: rgba(0, 0, 0, 0.02);
+    --card-border: rgba(0, 0, 0, 0.07);
+    --card-border-hover: rgba(0, 0, 0, 0.12);
+    --card-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.12);
+    --input-bg: rgba(0, 0, 0, 0.03);
+    --input-border: rgba(0, 0, 0, 0.1);
+    --text-muted: rgba(0, 0, 0, 0.4);
+    --text-primary-alpha: rgba(0, 0, 0, 0.75);
+}
+
+:host-context(.dark) {
+    --card-bg: rgba(255, 255, 255, 0.02);
+    --card-border: rgba(255, 255, 255, 0.07);
+    --card-border-hover: rgba(255, 255, 255, 0.14);
+    --card-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.4);
+    --input-bg: rgba(255, 255, 255, 0.03);
+    --input-border: rgba(255, 255, 255, 0.08);
+    --text-muted: rgba(255, 255, 255, 0.35);
+    --text-primary-alpha: rgba(255, 255, 255, 0.75);
+}/* Entry animations */
 @keyframes fadeSlideUp {
     from { opacity: 0; transform: translateY(24px) scale(0.98); filter: blur(4px); }
     to   { opacity: 1; transform: none; filter: blur(0); }
@@ -33,10 +54,10 @@
 
 /* Glass search input */
 .search-glass {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--input-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--input-border);
     transition: all 0.3s ease;
 }
 
@@ -48,10 +69,10 @@
 
 /* Glass select */
 .glass-select {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--input-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--input-border);
     transition: all 0.3s ease;
     appearance: none;
     -webkit-appearance: none;
@@ -66,12 +87,12 @@
 
 /* Student card premium styling */
 .student-card-inner {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--card-bg);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    border: 1px solid var(--card-border);
     box-shadow: 
-        0 4px 24px -8px rgba(0,0,0,0.4),
+        var(--card-shadow),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
     transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     position: relative;
@@ -90,9 +111,9 @@
 
 .student-card-inner:hover {
     transform: translateY(-6px) scale(1.01);
-    border-color: rgba(255, 255, 255, 0.14);
+    border-color: var(--card-border-hover);
     box-shadow: 
-        0 20px 44px -12px rgba(0,0,0,0.6), 
+        0 20px 44px -12px rgba(0,0,0,0.2), 
         0 0 30px rgba(99, 102, 241, 0.12),
         inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
@@ -110,32 +131,32 @@
 
 /* Stat cards */
 .stat-card {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--card-bg);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    border: 1px solid var(--card-border);
     box-shadow: 
-        0 2px 16px -4px rgba(0,0,0,0.3),
+        var(--card-shadow),
         inset 0 1px 0 rgba(255, 255, 255, 0.06);
     transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .stat-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: var(--card-border-hover);
 }
 
 /* Action buttons */
 .btn-ghost {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
     backdrop-filter: blur(8px);
     transition: all 0.25s ease;
 }
 
 .btn-ghost:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.15);
+    background: var(--card-border);
+    border-color: var(--card-border-hover);
     transform: translateY(-1px);
 }
 
@@ -159,14 +180,14 @@
 
 /* Pagination pill */
 .page-pill {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
     transition: all 0.2s ease;
 }
 
 .page-pill:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.07);
-    border-color: rgba(255, 255, 255, 0.15);
+    background: var(--card-border);
+    border-color: var(--card-border-hover);
 }
 
 .page-pill.active {
@@ -185,8 +206,8 @@
 .view-toggle {
     display: inline-flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
     border-radius: 14px;
     padding: 4px;
     gap: 2px;
@@ -204,14 +225,14 @@
     border-radius: 10px;
     border: none;
     background: transparent;
-    color: rgba(255, 255, 255, 0.35);
+    color: var(--text-muted);
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .view-toggle__btn:hover:not(.active) {
-    color: rgba(255, 255, 255, 0.7);
-    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary-alpha);
+    background: var(--card-border);
 }
 
 .view-toggle__btn.active {
@@ -222,12 +243,12 @@
 
 /* ===== Premium Table ===== */
 .student-table-wrap {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--card-bg);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    border: 1px solid var(--card-border);
     box-shadow: 
-        0 4px 32px -8px rgba(0,0,0,0.5),
+        var(--card-shadow),
         inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
@@ -245,9 +266,9 @@
     font-weight: 900;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.35);
-    background: rgba(255, 255, 255, 0.025);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    color: var(--text-muted);
+    background: var(--input-bg);
+    border-bottom: 1px solid var(--card-border);
     white-space: nowrap;
     position: sticky;
     top: 0;
@@ -259,7 +280,7 @@
 
 /* Table rows */
 .student-table tbody tr {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid var(--card-border);
     transition: background 0.2s ease;
 }
 
@@ -277,7 +298,7 @@
     padding: 12px 16px;
     vertical-align: middle;
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--text-primary-alpha);
 }
 
 .student-table tbody td:first-child { padding-left: 20px; }
@@ -319,9 +340,9 @@
 }
 
 .table-pill.slate {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.5);
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text-muted);
 }
 
 /* Table action buttons */
@@ -334,13 +355,13 @@
     border-radius: 8px;
     border: none;
     background: transparent;
-    color: rgba(255, 255, 255, 0.3);
+    color: var(--text-muted);
     cursor: pointer;
     transition: all 0.2s ease;
     text-decoration: none;
 }
 
 .table-action-btn:hover {
-    background: rgba(255, 255, 255, 0.07);
-    color: rgba(255, 255, 255, 0.8);
+    background: var(--card-border);
+    color: var(--text-primary-alpha);
 }

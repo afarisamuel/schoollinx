@@ -32,6 +32,16 @@ export class TenantProfileService {
     return this.http.get<TenantProfile>('/api/tenant/profile');
   }
 
+  updateProfile(profile: Partial<TenantProfile>): Observable<TenantProfile> {
+    return this.http.put<TenantProfile>('/api/tenant/profile', profile);
+  }
+
+  uploadLogo(file: File): Observable<{ url: string }> {
+    const formData = new FormData();
+    formData.append('logo', file);
+    return this.http.post<{ url: string }>('/api/tenant/profile/logo', formData);
+  }
+
   updatePaymentConfig(publicKey: string, secretKey: string): Observable<any> {
     return this.http.put('/api/tenant/payment-config', {
       paystack_public_key: publicKey,

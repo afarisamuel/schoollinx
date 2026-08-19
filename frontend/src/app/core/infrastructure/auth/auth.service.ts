@@ -82,6 +82,18 @@ export class AuthService {
         });
     }
 
+    forgotPassword(email: string): Observable<any> {
+        return this.http.post<any>('/api/auth/forgot-password', { email }, {
+            headers: this.getSubdomainHeader()
+        });
+    }
+
+    resetPassword(token: string, newPassword: string): Observable<any> {
+        return this.http.post<any>('/api/auth/reset-password', { token, new_password: newPassword }, {
+            headers: this.getSubdomainHeader()
+        });
+    }
+
     changePassword(oldPassword: string, newPassword: string): Observable<any> {
         return this.http.post<any>('/api/auth/change-password', { old_password: oldPassword, new_password: newPassword }, { 
             headers: this.getSubdomainHeader() 

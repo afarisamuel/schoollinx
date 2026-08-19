@@ -1,7 +1,8 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ExitIntentPopup } from '../../components/exit-intent-popup/exit-intent-popup';
+import { TenantProfileService, TenantProfile } from '../../../core/infrastructure/tenant-profile.service';
 
 @Component({
     selector: 'app-public-layout',
@@ -11,15 +12,24 @@ import { ExitIntentPopup } from '../../components/exit-intent-popup/exit-intent-
     styleUrl: './public-layout.component.css'
 })
 export class PublicLayoutComponent implements OnInit {
+    private tenantProfileService = inject(TenantProfileService);
+    tenantProfile = signal<TenantProfile | null>(null);
+    
     currentYear = new Date().getFullYear();
     isScrolled = false;
     isDark = false;
+    isMobileMenuOpen = false;
 
     ngOnInit() {
         // Respect user's saved preference; public site defaults to light
         const saved = localStorage.getItem('public-theme');
         this.isDark = saved === 'dark';
         this.applyTheme();
+        
+        this.tenantProfileService.getProfile().subscribe({
+            next: (profile) => this.tenantProfile.set(profile),
+            error: () => {}
+        });
     }
 
     @HostListener('window:scroll', [])
@@ -33,11 +43,17 @@ export class PublicLayoutComponent implements OnInit {
         this.applyTheme();
     }
 
+    toggleMobileMenu() {
+        this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    }
+
     private applyTheme() {
         const html = document.documentElement;
         if (this.isDark) {
+            html.classList.add('dark');
             html.classList.remove('light-mode');
         } else {
+            html.classList.remove('dark');
             html.classList.add('light-mode');
         }
     }

@@ -1,7 +1,36 @@
-<div class="min-h-screen bg-bg-primary text-text-primary flex antialiased">
+<div class="min-h-screen bg-bg-primary text-text-primary flex flex-col md:flex-row antialiased relative">
+  
+  <!-- Mobile Header -->
+  <header class="md:hidden flex items-center justify-between p-4 bg-bg-secondary border-b border-border-primary z-40 relative">
+    <div class="flex items-center space-x-3 group cursor-pointer" routerLink="/">
+        <div class="w-8 h-8 rounded-lg bg-accent-primary flex items-center justify-center shadow-lg shadow-accent-primary/20">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+        </div>
+        <span class="text-lg font-bold tracking-tight text-white leading-tight">ECOPOWER</span>
+    </div>
+    <button (click)="toggleMenu()" class="text-text-muted hover:text-text-primary focus:outline-none">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        @if (!isMobileMenuOpen) {
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        }
+        @if (isMobileMenuOpen) {
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        }
+      </svg>
+    </button>
+  </header>
+
+  <!-- Sidebar Overlay -->
+  @if (isMobileMenuOpen) {
+    <div class="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm" (click)="toggleMenu()"></div>
+  }
+
   <!-- Sidebar -->
-  <aside class="w-72 bg-bg-secondary/50 border-r border-border-primary flex flex-col backdrop-blur-2xl transition-all duration-300">
-    <div class="p-8">
+  <aside [class.-translate-x-full]="!isMobileMenuOpen"
+         class="fixed md:relative z-50 h-full w-72 bg-bg-secondary/50 border-r border-border-primary flex flex-col backdrop-blur-2xl transition-transform duration-300 md:translate-x-0">
+    <div class="p-8 overflow-y-auto flex-1 custom-scrollbar">
       <div class="flex items-center space-x-3 mb-10 group cursor-pointer" routerLink="/">
         <div class="w-10 h-10 rounded-xl bg-accent-primary flex items-center justify-center shadow-lg shadow-accent-primary/20 group-hover:scale-105 transition-transform duration-300">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -76,7 +105,7 @@
       </nav>
     </div>
 
-    <div class="mt-auto p-8 border-t border-border-primary bg-bg-secondary/30">
+    <div class="mt-auto shrink-0 p-8 border-t border-border-primary bg-bg-secondary/30">
       <div class="flex items-center space-x-3 mb-6">
         <div class="w-8 h-8 rounded-full bg-bg-tertiary border border-border-primary flex items-center justify-center text-[10px] font-bold text-accent-primary">AD</div>
         <div class="flex flex-col">
@@ -92,7 +121,7 @@
   </aside>
 
   <!-- Main Content -->
-  <main class="flex-1 overflow-y-auto bg-gradient-to-br from-bg-primary via-bg-primary to-bg-secondary">
+  <main class="flex-1 overflow-y-auto bg-gradient-to-br from-bg-primary via-bg-primary to-bg-secondary relative z-0">
     <router-outlet></router-outlet>
   </main>
 </div>

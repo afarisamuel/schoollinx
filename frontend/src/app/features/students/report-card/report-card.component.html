@@ -22,19 +22,18 @@
 
   <div *ngIf="!isLoading && student" class="bg-white text-gray-900 rounded-2xl p-10 shadow-2xl print:shadow-none print:p-0 relative overflow-hidden">
     <!-- Watermark logo for print -->
-    <div *ngIf="tenantProfile?.logo_url"
-         class="absolute inset-0 flex items-center justify-center pointer-events-none z-0"
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0"
          aria-hidden="true">
-      <img [src]="tenantProfile!.logo_url!"
+      <img [src]="tenantProfile?.logo_url || 'assets/images/app-icon.png'"
            class="w-80 h-80 object-contain opacity-[0.07] select-none"
-           alt="school watermark" />
+           alt="school watermark"
+           (error)="$event.target.src='assets/images/app-icon.png'" />
     </div>
 
     <!-- Report Header -->
     <div class="relative z-10 border-b-4 border-indigo-600 pb-6 mb-8 flex items-center gap-6">
-      <div class="w-20 h-20 bg-indigo-100 rounded-2xl flex items-center justify-center overflow-hidden">
-        <img *ngIf="tenantProfile?.logo_url" [src]="tenantProfile!.logo_url!" alt="School Logo" class="w-full h-full object-contain" />
-        <svg *ngIf="!tenantProfile?.logo_url" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      <div class="w-20 h-20 bg-indigo-100 rounded-2xl flex items-center justify-center overflow-hidden p-1">
+        <img [src]="tenantProfile?.logo_url || 'assets/images/app-icon.png'" alt="School Logo" class="w-full h-full object-contain" (error)="$event.target.src='assets/images/app-icon.png'" />
       </div>
       <div>
         <h1 class="text-xl md:text-2xl font-black uppercase tracking-tight">{{ tenantProfile?.name || 'SCHOOL NAME' }}</h1>

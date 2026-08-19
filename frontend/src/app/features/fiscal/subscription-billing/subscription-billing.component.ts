@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -33,6 +33,25 @@ export class SubscriptionBillingComponent implements OnInit {
   // Payment modal
   showPayModal = signal(false);
   payerEmail = signal('');
+
+  // Term payment status (derived from history + billing_due_date)
+  termPaymentStatus = computed<'PAID' | 'PENDING' | 'OVERDUE'>(() => {
+    const profile = this.tenantProfile();
+    const entries = this.history();
+    // If there's a PENDING payment, show pending
+    if (entries.some(e => e.status === 'PENDING')) return 'PENDING';
+    // If billing_due_date exists and is in the future, we're paid
+    if (profile?.billing_due_date) {
+      const due = new Date(profile.billing_due_date);
+      if (due > new Date()) return 'PAID';
+    }
+    return 'OVERDUE';
+  });
+
+  latestPayment = computed(() => {
+    const entries = this.history();
+    return entries.find(e => e.status === 'SUCCESS' || e.status === 'PAID') ?? null;
+  });
 
   // Payment Config
   paystackPublicKey = signal('');
@@ -145,11 +164,26 @@ export class SubscriptionBillingComponent implements OnInit {
       next: (res) => {
         this.isPaymentLoading.set(false);
         window.open(res.authorization_url, '_blank');
+        this.dialog.alert('Please click Verify Payment in the table once you have completed the payment in the new tab.', 'Payment Started', 'info');
+        this.loadHistory(); // Reload to show the pending payment
       },
       error: (err) => {
         this.isPaymentLoading.set(false);
         const msg = err.error?.error || 'Failed to initialize payment.';
         this.dialog.alert(msg, 'Payment Error', 'danger');
+      }
+    });
+  }
+
+  verifyPayment(reference: string) {
+    this.http.post(`/api/tenant/subscription/verify/${reference}`, {}).subscribe({
+      next: () => {
+        this.dialog.alert('Payment verified successfully!', 'Success', 'success');
+        this.loadHistory();
+      },
+      error: (err) => {
+        const msg = err.error?.error || 'Failed to verify payment.';
+        this.dialog.alert(msg, 'Verification Error', 'danger');
       }
     });
   }

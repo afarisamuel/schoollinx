@@ -1,5 +1,5 @@
 export const environment = {
-    production: true,
-    apiUrl: 'https://api.schoollinx.com/api',
-    appUrl: 'https://schoollinx.com'
+    production: false,
+    apiUrl: 'http://localhost:8080/api',
+    appUrl: 'http://localhost:6222'
 };
