@@ -82,24 +82,27 @@ cd "$APP_DIR"
 
 echo -e "${YELLOW}Phase 3: Build and Deploy${NC}"
 
+# Capture the resolved PATH so sudo -u preserves it
+RESOLVED_PATH="$PATH"
+
 echo -e "${YELLOW}Installing dependencies...${NC}"
-sudo -u $USER npm ci
+sudo -u $USER env PATH="$RESOLVED_PATH" npm ci
 
 echo -e "${YELLOW}Building the Angular SSR application...${NC}"
-sudo -u $USER npm run build -- --configuration production
+sudo -u $USER env PATH="$RESOLVED_PATH" npm run build -- --configuration production
 
 echo -e "${YELLOW}Phase 4: PM2 Service Setup${NC}"
 
 # Stop old PM2 process if exists
-sudo -u $USER pm2 stop $APP_NAME || true
+sudo -u $USER env PATH="$RESOLVED_PATH" pm2 stop $APP_NAME || true
 
 echo -e "${YELLOW}Starting SSR server with PM2...${NC}"
 # Based on Angular 21 package.json
-sudo -u $USER pm2 start dist/frontend/server/server.mjs --name $APP_NAME
+sudo -u $USER env PATH="$RESOLVED_PATH" pm2 start dist/frontend/server/server.mjs --name $APP_NAME
 
 # Save PM2 process list and configure startup
-sudo -u $USER pm2 save
-env PATH=$PATH:/usr/bin pm2 startup systemd -u $USER --hp /home/$USER || true
+sudo -u $USER env PATH="$RESOLVED_PATH" pm2 save
+env PATH="$RESOLVED_PATH" pm2 startup systemd -u $USER --hp /home/$USER || true
 
 echo -e "${YELLOW}Phase 5: Nginx Configuration${NC}"
 

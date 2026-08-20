@@ -80,11 +80,14 @@ chown -R $USER:$GROUP "$BUILD_DIR"
 
 cd "$BUILD_DIR"
 
+# Capture the resolved PATH so sudo -u preserves it
+RESOLVED_PATH="$PATH"
+
 echo -e "${YELLOW}Installing dependencies...${NC}"
-sudo -u $USER npm ci
+sudo -u $USER env PATH="$RESOLVED_PATH" npm ci
 
 echo -e "${YELLOW}Building the Admin Angular SPA...${NC}"
-sudo -u $USER npm run build -- --configuration production
+sudo -u $USER env PATH="$RESOLVED_PATH" npm run build -- --configuration production
 
 echo -e "${YELLOW}Phase 3: Deploy to Web Directory${NC}"
 
