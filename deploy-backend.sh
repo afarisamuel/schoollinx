@@ -201,10 +201,20 @@ if [ "$SETUP_SSL" = "y" ]; then
     read -p "Enter your API domain (e.g. api.yourdomain.com): " DOMAIN
     
     mkdir -p /etc/nginx/ssl/$DOMAIN
-    echo "Please paste your Cloudflare Origin Certificate (Ctrl+D to save):"
-    cat > /etc/nginx/ssl/$DOMAIN/cert.pem
-    echo "Please paste your Cloudflare Private Key (Ctrl+D to save):"
-    cat > /etc/nginx/ssl/$DOMAIN/key.pem
+    
+    if [ ! -f "/etc/nginx/ssl/$DOMAIN/cert.pem" ]; then
+        echo "Please paste your Cloudflare Origin Certificate (Ctrl+D to save):"
+        cat > /etc/nginx/ssl/$DOMAIN/cert.pem
+    else
+        echo -e "${GREEN}✓ Cloudflare Origin Certificate already exists${NC}"
+    fi
+    
+    if [ ! -f "/etc/nginx/ssl/$DOMAIN/key.pem" ]; then
+        echo "Please paste your Cloudflare Private Key (Ctrl+D to save):"
+        cat > /etc/nginx/ssl/$DOMAIN/key.pem
+    else
+        echo -e "${GREEN}✓ Cloudflare Private Key already exists${NC}"
+    fi
     
     cat << EOF > /etc/nginx/sites-available/$APP_NAME
 server {
@@ -212,7 +222,7 @@ server {
     server_name api.$DOMAIN;
     
     # Block IP-based access
-    if (\$host ~* ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$) {
+    if (\$host ~* "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$") {
         return 444;
     }
     
@@ -224,7 +234,7 @@ server {
     server_name api.$DOMAIN;
 
     # Block IP-based access
-    if (\$host ~* ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$) {
+    if (\$host ~* "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$") {
         return 444;
     }
 
@@ -248,7 +258,7 @@ server {
     server_name _;
     
     # Block IP-based access
-    if (\$host ~* ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$) {
+    if (\$host ~* "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$") {
         return 444;
     }
     

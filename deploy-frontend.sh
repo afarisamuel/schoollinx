@@ -83,10 +83,20 @@ if [ "$SETUP_SSL" = "y" ]; then
     read -p "Enter your domain (e.g. yourdomain.com): " DOMAIN
     
     mkdir -p /etc/nginx/ssl/$DOMAIN
-    echo "Please paste your Cloudflare Origin Certificate (Ctrl+D to save):"
-    cat > /etc/nginx/ssl/$DOMAIN/cert.pem
-    echo "Please paste your Cloudflare Private Key (Ctrl+D to save):"
-    cat > /etc/nginx/ssl/$DOMAIN/key.pem
+    
+    if [ ! -f "/etc/nginx/ssl/$DOMAIN/cert.pem" ]; then
+        echo "Please paste your Cloudflare Origin Certificate (Ctrl+D to save):"
+        cat > /etc/nginx/ssl/$DOMAIN/cert.pem
+    else
+        echo -e "${GREEN}✓ Cloudflare Origin Certificate already exists${NC}"
+    fi
+    
+    if [ ! -f "/etc/nginx/ssl/$DOMAIN/key.pem" ]; then
+        echo "Please paste your Cloudflare Private Key (Ctrl+D to save):"
+        cat > /etc/nginx/ssl/$DOMAIN/key.pem
+    else
+        echo -e "${GREEN}✓ Cloudflare Private Key already exists${NC}"
+    fi
     
     cat << EOF > /etc/nginx/sites-available/$APP_NAME
 # Block hq subdomain - reserved for admin-frontend app
