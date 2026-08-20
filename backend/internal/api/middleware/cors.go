@@ -17,6 +17,7 @@ func CORSMiddleware(db *gorm.DB) gin.HandlerFunc {
 			"https://admin.schoollinx.com",
 			"https://hq.schoollinx.com",
 			"https://schoollinx.com",
+			"https://www.schoollinx.com",
 			"https://*.schoollinx.com",
 		}
 
