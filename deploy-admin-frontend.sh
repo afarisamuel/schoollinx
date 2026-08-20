@@ -90,7 +90,7 @@ server {
 
 server {
     listen 443 ssl http2;
-    server_name $DOMAIN www.$DOMAIN;
+    server_name hq.$DOMAIN;
 
     root $WEB_DIR;
     index index.html;

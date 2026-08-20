@@ -89,6 +89,18 @@ if [ "$SETUP_SSL" = "y" ]; then
     cat > /etc/nginx/ssl/$DOMAIN/key.pem
     
     cat << EOF > /etc/nginx/sites-available/$APP_NAME
+# Block hq subdomain - reserved for admin-frontend app
+server {
+    listen 80;
+    listen 443 ssl http2;
+    server_name hq.$DOMAIN;
+
+    ssl_certificate /etc/nginx/ssl/$DOMAIN/cert.pem;
+    ssl_certificate_key /etc/nginx/ssl/$DOMAIN/key.pem;
+
+    return 444; # Drop connection - hq is reserved for admin-frontend
+}
+
 server {
     listen 80;
     server_name $DOMAIN *.$DOMAIN;
@@ -114,6 +126,14 @@ server {
 EOF
 else
     cat << EOF > /etc/nginx/sites-available/$APP_NAME
+# Block hq subdomain - reserved for admin-frontend app
+server {
+    listen 80;
+    server_name hq.*;
+
+    return 444; # Drop connection - hq is reserved for admin-frontend
+}
+
 server {
     listen 80;
     server_name _;

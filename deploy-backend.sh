@@ -10,6 +10,11 @@ APP_DIR="/opt/basic-sms/backend"
 USER="softivite"
 GROUP="www-data"
 
+# Database Configuration (set these before running the script)
+DB_NAME=""
+DB_USER=""
+DB_PASSWORD=""
+
 # Colors
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -33,11 +38,11 @@ echo -e "${YELLOW}Phase 1: System Setup${NC}"
 # Ensure Go is installed (if not installed)
 if ! command -v go &> /dev/null
 then
-    echo -e "${YELLOW}Go is not installed. Installing Go 1.22...${NC}"
-    wget -q https://go.dev/dl/go1.22.0.linux-amd64.tar.gz
+    echo -e "${YELLOW}Go is not installed. Installing Go 1.24.5...${NC}"
+    wget -q https://go.dev/dl/go1.24.5.linux-amd64.tar.gz
     rm -rf /usr/local/go
-    tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz
-    rm go1.22.0.linux-amd64.tar.gz
+    tar -C /usr/local -xzf go1.24.5.linux-amd64.tar.gz
+    rm go1.24.5.linux-amd64.tar.gz
     export PATH=$PATH:/usr/local/go/bin
     echo "export PATH=\$PATH:/usr/local/go/bin" >> /etc/profile
     echo -e "${GREEN}Go installed successfully.${NC}"
@@ -69,10 +74,12 @@ echo "   2) No - Skip database creation"
 read -p "   Enter choice [1-2]: " DB_SETUP_CHOICE
 
 if [ "$DB_SETUP_CHOICE" = "1" ]; then
-    read -p "Enter Database Name (e.g. sms): " DB_NAME
-    read -p "Enter Database User: " DB_USER
-    read -s -p "Enter Database Password: " DB_PASSWORD
-    echo ""
+    [ -z "$DB_NAME" ] && read -p "Enter Database Name (e.g. sms): " DB_NAME
+    [ -z "$DB_USER" ] && read -p "Enter Database User: " DB_USER
+    if [ -z "$DB_PASSWORD" ]; then
+        read -s -p "Enter Database Password: " DB_PASSWORD
+        echo ""
+    fi
     
     echo -e "${YELLOW}Creating PostgreSQL database...${NC}"
     sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;" || echo "Database already exists"
@@ -202,7 +209,7 @@ if [ "$SETUP_SSL" = "y" ]; then
     cat << EOF > /etc/nginx/sites-available/$APP_NAME
 server {
     listen 80;
-    server_name $DOMAIN *.$DOMAIN;
+    server_name api.$DOMAIN;
     
     # Block IP-based access
     if (\$host ~* ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$) {
@@ -214,7 +221,7 @@ server {
 
 server {
     listen 443 ssl http2;
-    server_name $DOMAIN *.$DOMAIN;
+    server_name api.$DOMAIN;
 
     # Block IP-based access
     if (\$host ~* ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$) {
