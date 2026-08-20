@@ -15,6 +15,10 @@ DB_NAME=""
 DB_USER=""
 DB_PASSWORD=""
 
+# Cloudflare Cache Purge (optional - fill in to auto-purge on deploy)
+CF_ZONE_ID=""
+CF_API_TOKEN=""
+
 # Colors
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -61,7 +65,7 @@ chown -R $USER:$GROUP "$APP_DIR"
 
 echo -e "${YELLOW}Copying files to $APP_DIR...${NC}"
 # Assuming we run this from the project root
-cp -r backend/* "$APP_DIR/"
+cp -a backend/. "$APP_DIR/"
 chown -R $USER:$GROUP "$APP_DIR"
 
 cd "$APP_DIR"
@@ -276,6 +280,23 @@ fi
 
 ln -sf /etc/nginx/sites-available/$APP_NAME /etc/nginx/sites-enabled/
 systemctl restart nginx
+
+# Purge Cloudflare cache if credentials are set
+if [ -n "$CF_ZONE_ID" ] && [ -n "$CF_API_TOKEN" ]; then
+    echo -e "${YELLOW}Purging Cloudflare cache...${NC}"
+    CF_RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/purge_cache" \
+        -H "Authorization: Bearer $CF_API_TOKEN" \
+        -H "Content-Type: application/json" \
+        --data '{"purge_everything":true}')
+    if echo "$CF_RESPONSE" | grep -q '"success":true'; then
+        echo -e "${GREEN}✓ Cloudflare cache purged successfully${NC}"
+    else
+        echo -e "${RED}⚠ Cloudflare purge may have failed: $CF_RESPONSE${NC}"
+    fi
+else
+    echo -e "${YELLOW}⚠ Cloudflare credentials not set — skipping cache purge${NC}"
+    echo -e "${YELLOW}  Set CF_ZONE_ID and CF_API_TOKEN in this script to enable auto-purge${NC}"
+fi
 
 echo -e "${GREEN}Backend Deployment completed successfully!${NC}"
 echo -e "${BLUE}Check status with: sudo systemctl status $APP_NAME${NC}"
