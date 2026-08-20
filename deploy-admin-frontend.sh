@@ -40,6 +40,17 @@ then
     echo -e "${GREEN}Node.js installed successfully.${NC}"
 fi
 
+# Ensure npm/node are in PATH (sudo may not inherit the user's PATH)
+export PATH=$PATH:/usr/bin:/usr/local/bin
+# Also source profile in case node was installed via nodesource
+[ -f /etc/profile.d/nodejs.sh ] && source /etc/profile.d/nodejs.sh || true
+
+# Verify npm is accessible
+if ! command -v npm &> /dev/null; then
+    echo -e "${RED}npm not found after Node installation. Please check your Node.js setup.${NC}"
+    exit 1
+fi
+
 echo -e "${YELLOW}Installing Nginx...${NC}"
 apt-get update
 apt-get install -y nginx
