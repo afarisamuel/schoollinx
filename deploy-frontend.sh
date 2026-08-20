@@ -85,6 +85,11 @@ echo -e "${YELLOW}Phase 3: Build and Deploy${NC}"
 # Capture the resolved PATH so sudo -u preserves it
 RESOLVED_PATH="$PATH"
 
+# Fix npm cache ownership in case previous root runs left root-owned files
+if [ -d "/home/$USER/.npm" ]; then
+    chown -R $USER:$USER "/home/$USER/.npm"
+fi
+
 echo -e "${YELLOW}Installing dependencies...${NC}"
 sudo -u $USER env PATH="$RESOLVED_PATH" npm ci
 
