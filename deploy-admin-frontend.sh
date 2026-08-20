@@ -8,7 +8,7 @@ set -e
 APP_NAME="basic-sms-admin"
 BUILD_DIR="/opt/basic-sms/admin-build"
 WEB_DIR="/var/www/admin-frontend"
-USER="afari"
+USER="softivite"
 GROUP="www-data"
 
 # Colors

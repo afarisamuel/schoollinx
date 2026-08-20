@@ -7,7 +7,7 @@ set -e
 # Configuration
 APP_NAME="basic-sms-frontend"
 APP_DIR="/opt/basic-sms/frontend"
-USER="afari"
+USER="softivite"
 GROUP="www-data"
 
 # Colors
