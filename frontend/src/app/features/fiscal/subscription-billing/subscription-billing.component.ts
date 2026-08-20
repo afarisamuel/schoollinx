@@ -241,7 +241,7 @@ export class SubscriptionBillingComponent implements OnInit {
     }
 
     this.isSavingConfig.set(true);
-    this.tenantProfileService.updatePaymentConfig(pub, sec).subscribe({
+    this.tenantProfileService.updatePaymentConfig(pub, sec, 'PAYSTACK').subscribe({
       next: () => {
         this.isSavingConfig.set(false);
         this.configSaved.set(true);
