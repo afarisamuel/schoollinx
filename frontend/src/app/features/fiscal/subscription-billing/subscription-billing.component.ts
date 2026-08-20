@@ -157,15 +157,16 @@ export class SubscriptionBillingComponent implements OnInit {
 
   initiatePayment(tenantId: string, payerEmail: string, studentCount: number) {
     this.isPaymentLoading.set(true);
-    this.http.post<{ authorization_url: string }>(
+    this.http.post<{ authorization_url: string; reference: string }>(
       `/api/tenant/subscription/pay`,
       { payer_email: payerEmail, student_count: studentCount }
     ).subscribe({
       next: (res) => {
         this.isPaymentLoading.set(false);
         window.open(res.authorization_url, '_blank');
-        this.dialog.alert('Please click Verify Payment in the table once you have completed the payment in the new tab.', 'Payment Started', 'info');
+        this.dialog.alert('We are waiting for you to complete the payment in the new tab. Please do not close this window.', 'Payment Started', 'info');
         this.loadHistory(); // Reload to show the pending payment
+        this.pollVerification(res.reference);
       },
       error: (err) => {
         this.isPaymentLoading.set(false);
@@ -173,6 +174,34 @@ export class SubscriptionBillingComponent implements OnInit {
         this.dialog.alert(msg, 'Payment Error', 'danger');
       }
     });
+  }
+
+  pollVerification(reference: string, attempts = 0) {
+    if (attempts > 30) {
+      this.dialog.alert('Payment verification timed out. Please click "Verify" manually in the history table when you have completed payment.', 'Timeout', 'warning');
+      return;
+    }
+    
+    // Poll every 5 seconds
+    setTimeout(() => {
+      this.http.post(`/api/tenant/subscription/verify/${reference}`, {}).subscribe({
+        next: () => {
+          this.dialog.alert('Payment completed and verified successfully!', 'Success', 'success');
+          this.loadHistory();
+          this.loadTenantProfile(); // update billing due date
+        },
+        error: (err) => {
+          // If 400 with "payment not successful yet", we keep polling
+          const msg = err.error?.error || '';
+          if (msg.includes('success') === false) {
+             this.pollVerification(reference, attempts + 1);
+          } else {
+             // Other error
+             this.dialog.alert('Verification failed. You can try verifying manually from the table.', 'Verification Error', 'danger');
+          }
+        }
+      });
+    }, 5000);
   }
 
   verifyPayment(reference: string) {

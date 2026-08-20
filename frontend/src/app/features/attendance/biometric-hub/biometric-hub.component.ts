@@ -39,7 +39,8 @@ export class BiometricHubComponent implements OnInit, OnDestroy {
 
   // Device registration
   showRegistration = signal<boolean>(false);
-  newDevice = { name: '', type: 'FACIAL', ip_address: '', location: '' };
+  editingDeviceId = signal<string | null>(null);
+  newDevice = { id: '', name: '', type: 'FACIAL', ip_address: '', location: '' };
 
   // Manual scan test
   showScanTest  = signal<boolean>(false);
@@ -67,6 +68,7 @@ export class BiometricHubComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit()    { 
+    this.loadDevices();
     this.startPolling();
     this.startStatusChecker();
     this.loadStudents();
@@ -80,6 +82,13 @@ export class BiometricHubComponent implements OnInit, OnDestroy {
     this.studentService.getStudents().subscribe({
       next: (students) => this.allStudents.set(students),
       error: () => console.error('Failed to load students for linking')
+    });
+  }
+
+  loadDevices() {
+    this.attendanceService.getDevices().subscribe({
+      next: (devices) => this.devices.set(devices || []),
+      error: () => console.error('Failed to load biometric devices')
     });
   }
 
@@ -124,20 +133,51 @@ export class BiometricHubComponent implements OnInit, OnDestroy {
     });
   }
 
+  openRegisterModal() {
+    this.editingDeviceId.set(null);
+    this.newDevice = { id: 'DEV-' + Math.random().toString(36).substring(2, 7).toUpperCase(), name: '', type: 'FACIAL', ip_address: '', location: '' };
+    this.showRegistration.set(true);
+  }
+
+  openEditModal(device: BiometricDevice) {
+    this.editingDeviceId.set(device.id);
+    this.newDevice = { id: device.id, name: device.name, type: device.type, ip_address: device.ip_address, location: device.location };
+    this.showRegistration.set(true);
+  }
+
   registerDevice() {
     if (!this.newDevice.name || !this.newDevice.ip_address) return;
-    const device: BiometricDevice = {
-      id: 'DEV-' + Math.random().toString(36).substring(2, 7).toUpperCase(),
-      name: this.newDevice.name,
-      type: this.newDevice.type as BiometricDevice['type'],
-      ip_address: this.newDevice.ip_address,
-      status: 'ONLINE',
-      last_ping: new Date(),
-      location: this.newDevice.location
+    const devicePayload: Partial<BiometricDevice> = {
+      ...this.newDevice,
+      type: this.newDevice.type as BiometricDevice['type']
     };
-    this.devices.update(d => [...d, device]);
-    this.showRegistration.set(false);
-    this.newDevice = { name: '', type: 'FACIAL', ip_address: '', location: '' };
+
+    if (this.editingDeviceId()) {
+      this.attendanceService.updateDevice(this.editingDeviceId()!, devicePayload).subscribe({
+        next: () => {
+          this.loadDevices();
+          this.showRegistration.set(false);
+        },
+        error: (err) => console.error('Failed to update device', err)
+      });
+    } else {
+      this.attendanceService.registerDevice(devicePayload).subscribe({
+        next: () => {
+          this.loadDevices();
+          this.showRegistration.set(false);
+        },
+        error: (err) => console.error('Failed to register device', err)
+      });
+    }
+  }
+
+  deleteDevice(id: string) {
+    if (confirm('Are you sure you want to delete this terminal?')) {
+      this.attendanceService.deleteDevice(id).subscribe({
+        next: () => this.loadDevices(),
+        error: (err) => console.error('Failed to delete device', err)
+      });
+    }
   }
 
   submitManualScan() {

@@ -15,14 +15,15 @@ export class SignupComponent {
   private http = inject(HttpClient);
 
   currentStep = signal(1);
-  totalSteps = 3;
+  totalSteps = 4;
 
   form = {
     name: '',
     subdomain: '',
     admin_email: '',
     admin_password: '',
-    confirm_password: ''
+    confirm_password: '',
+    subscription_plan: 'BASIC'
   };
 
   showPassword = false;
@@ -36,7 +37,8 @@ export class SignupComponent {
   steps = [
     { number: 1, label: 'School', icon: 'school' },
     { number: 2, label: 'Account', icon: 'account' },
-    { number: 3, label: 'Review', icon: 'review' }
+    { number: 3, label: 'Plan', icon: 'plan' },
+    { number: 4, label: 'Review', icon: 'review' }
   ];
 
   progressWidth = computed(() => `${((this.currentStep() - 1) / (this.totalSteps - 1)) * 100}%`);
@@ -63,6 +65,10 @@ export class SignupComponent {
     );
   }
 
+  get step3Valid(): boolean {
+    return this.form.subscription_plan !== '';
+  }
+
   nextStep() {
     if (this.currentStep() === 1 && !this.step1Valid) {
       this.errorMessage.set('Please fill in all school details.');
@@ -76,6 +82,10 @@ export class SignupComponent {
       } else {
         this.errorMessage.set('Please complete all account details.');
       }
+      return;
+    }
+    if (this.currentStep() === 3 && !this.step3Valid) {
+      this.errorMessage.set('Please select a subscription plan.');
       return;
     }
     this.errorMessage.set(null);
@@ -99,7 +109,8 @@ export class SignupComponent {
       name: this.form.name,
       subdomain: this.form.subdomain,
       admin_email: this.form.admin_email,
-      admin_password: this.form.admin_password
+      admin_password: this.form.admin_password,
+      subscription_plan: this.form.subscription_plan
     };
 
     this.http.post('/api/public/tenants/register', payload).subscribe({

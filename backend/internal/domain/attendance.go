@@ -48,3 +48,16 @@ func (s *ScanEvent) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	return
 }
+
+// BiometricDevice represents a registered hardware terminal
+type BiometricDevice struct {
+	TenantBase
+	ID        string    `json:"id" gorm:"primaryKey;type:varchar(50)"`
+	Name      string    `json:"name" gorm:"not null"`
+	Type      string    `json:"type" gorm:"not null"` // FACIAL, FINGERPRINT, RFID
+	IPAddress string    `json:"ip_address" gorm:"not null"`
+	Location  string    `json:"location"`
+	Status    string    `json:"status" gorm:"not null;default:'OFFLINE'"`
+	LastPing  time.Time `json:"last_ping"`
+}
+

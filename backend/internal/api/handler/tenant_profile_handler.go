@@ -24,6 +24,7 @@ func NewTenantProfileHandler(r *gin.RouterGroup, db *gorm.DB, uc usecase.TenantU
 	r.GET("/tenant/profile", h.GetProfile)
 	r.PUT("/tenant/profile", h.UpdateProfile)
 	r.POST("/tenant/profile/logo", h.UploadLogo)
+	r.POST("/tenant/profile/headmaster-signature", h.UploadHeadmasterSignature)
 	r.PUT("/tenant/payment-config", h.UpdatePaymentConfig)
 	r.POST("/tenant/subscription/pay", h.InitializeSubscriptionPayment)
 	r.POST("/tenant/subscription/verify/:reference", h.VerifySubscriptionPayment)
@@ -122,11 +123,12 @@ func (h *TenantProfileHandler) UpdateProfile(c *gin.Context) {
 	}
 
 	var req struct {
-		Name           string `json:"name"`
-		Address        string `json:"address"`
-		ContactNumbers string `json:"contact_numbers"`
-		Email          string `json:"email"`
-		LogoURL        string `json:"logo_url"`
+		Name                   string `json:"name"`
+		Address                string `json:"address"`
+		ContactNumbers         string `json:"contact_numbers"`
+		Email                  string `json:"email"`
+		LogoURL                string `json:"logo_url"`
+		HeadmasterSignatureURL string `json:"headmaster_signature_url"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
@@ -154,6 +156,7 @@ func (h *TenantProfileHandler) UpdateProfile(c *gin.Context) {
 	}
 	// Logo URL can be explicitly set (even to clear it by passing empty)
 	t.LogoURL = req.LogoURL
+	t.HeadmasterSignatureURL = req.HeadmasterSignatureURL
 
 	if err := h.db.Save(&t).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
@@ -210,6 +213,53 @@ func (h *TenantProfileHandler) UploadLogo(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"url": fileURL})
 }
 
+func (h *TenantProfileHandler) UploadHeadmasterSignature(c *gin.Context) {
+	tenantID, exists := middleware.GetTenantIDFromContext(c.Request.Context())
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tenant context not found"})
+		return
+	}
+
+	file, err := c.FormFile("signature")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No file is received"})
+		return
+	}
+
+	// Validate file type
+	ext := filepath.Ext(file.Filename)
+	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Only JPG and PNG files are allowed"})
+		return
+	}
+
+	// Create uploads directory if it doesn't exist
+	uploadDir := "./uploads/signatures/headmaster"
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create upload directory"})
+		return
+	}
+
+	// Save file with unique name
+	fileName := fmt.Sprintf("%s%s", tenantID, ext)
+	filePath := filepath.Join(uploadDir, fileName)
+
+	if err := c.SaveUploadedFile(file, filePath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
+		return
+	}
+
+	// Construct URL
+	host := c.Request.Host
+	scheme := "http"
+	if c.Request.TLS != nil {
+		scheme = "https"
+	}
+	fileURL := fmt.Sprintf("%s://%s/uploads/signatures/headmaster/%s", scheme, host, fileName)
+
+	c.JSON(http.StatusOK, gin.H{"url": fileURL})
+}
+
 func (h *TenantProfileHandler) UpdatePaymentConfig(c *gin.Context) {
 	tenantID, exists := middleware.GetTenantIDFromContext(c.Request.Context())
 	if !exists {
@@ -259,13 +309,16 @@ func (h *TenantProfileHandler) InitializeSubscriptionPayment(c *gin.Context) {
 		return
 	}
 
-	authURL, err := h.uc.InitializeSubscriptionPayment(c.Request.Context(), tenantID.String(), req.PayerEmail, req.StudentCount)
+	authURL, reference, err := h.uc.InitializeSubscriptionPayment(c.Request.Context(), tenantID.String(), req.PayerEmail, req.StudentCount)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"authorization_url": authURL})
+	c.JSON(http.StatusOK, gin.H{
+		"authorization_url": authURL,
+		"reference": reference,
+	})
 }
 
 func (h *TenantProfileHandler) GetSubscriptionHistory(c *gin.Context) {

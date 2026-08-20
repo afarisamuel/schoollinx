@@ -15,6 +15,7 @@ export interface TenantProfile {
   storage_used_mb?: number;
   billing_due_date?: string;
   logo_url?: string;
+  headmaster_signature_url?: string;
   address?: string;
   contact_numbers?: string;
   email?: string;
@@ -32,6 +33,11 @@ export class TenantProfileService {
     return this.http.get<TenantProfile>('/api/tenant/profile');
   }
 
+  /** No auth required — safe to call from public-facing pages. */
+  getPublicInfo(): Observable<{ name: string; subdomain: string; logo_url: string }> {
+    return this.http.get<{ name: string; subdomain: string; logo_url: string }>('/api/public/tenant-info');
+  }
+
   updateProfile(profile: Partial<TenantProfile>): Observable<TenantProfile> {
     return this.http.put<TenantProfile>('/api/tenant/profile', profile);
   }
@@ -40,6 +46,12 @@ export class TenantProfileService {
     const formData = new FormData();
     formData.append('logo', file);
     return this.http.post<{ url: string }>('/api/tenant/profile/logo', formData);
+  }
+
+  uploadHeadmasterSignature(file: File): Observable<{ url: string }> {
+    const formData = new FormData();
+    formData.append('signature', file);
+    return this.http.post<{ url: string }>('/api/tenant/profile/headmaster-signature', formData);
   }
 
   updatePaymentConfig(publicKey: string, secretKey: string): Observable<any> {

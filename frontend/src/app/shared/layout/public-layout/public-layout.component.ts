@@ -2,7 +2,7 @@ import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ExitIntentPopup } from '../../components/exit-intent-popup/exit-intent-popup';
-import { TenantProfileService, TenantProfile } from '../../../core/infrastructure/tenant-profile.service';
+import { TenantProfileService } from '../../../core/infrastructure/tenant-profile.service';
 
 @Component({
     selector: 'app-public-layout',
@@ -13,7 +13,7 @@ import { TenantProfileService, TenantProfile } from '../../../core/infrastructur
 })
 export class PublicLayoutComponent implements OnInit {
     private tenantProfileService = inject(TenantProfileService);
-    tenantProfile = signal<TenantProfile | null>(null);
+    tenantProfile = signal<{ name: string; subdomain: string; logo_url: string } | null>(null);
     
     currentYear = new Date().getFullYear();
     isScrolled = false;
@@ -26,8 +26,8 @@ export class PublicLayoutComponent implements OnInit {
         this.isDark = saved === 'dark';
         this.applyTheme();
         
-        this.tenantProfileService.getProfile().subscribe({
-            next: (profile) => this.tenantProfile.set(profile),
+        this.tenantProfileService.getPublicInfo().subscribe({
+            next: (info) => this.tenantProfile.set(info),
             error: () => {}
         });
     }

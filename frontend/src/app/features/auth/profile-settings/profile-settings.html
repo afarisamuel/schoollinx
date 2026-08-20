@@ -80,9 +80,10 @@
                     </div>
                 </div>
 
-                <!-- Right Column (Logo) -->
-                <div class="lg:col-span-2">
-                    <div class="bg-bg-primary/30 rounded-2xl p-5 border border-border-primary h-full flex flex-col justify-between">
+                <!-- Right Column (Logo + Signature) -->
+                <div class="lg:col-span-2 space-y-5">
+                    <!-- Logo Upload -->
+                    <div class="bg-bg-primary/30 rounded-2xl p-5 border border-border-primary flex flex-col">
                         <div>
                             <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-4 flex items-center justify-between">
                                 <span>Institution Logo</span>
@@ -93,7 +94,7 @@
                                 <input type="file" (change)="onLogoSelected($event)" accept="image/png, image/jpeg" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" title="Click to upload">
                                 
                                 <ng-container *ngIf="tenantProfile.logo_url; else noLogo">
-                                    <div class="w-32 h-32 rounded-lg bg-white/5 flex items-center justify-center p-2 mb-4 relative z-10">
+                                    <div class="w-24 h-24 rounded-lg bg-white/5 flex items-center justify-center p-2 mb-3 relative z-10">
                                         <img [src]="tenantProfile.logo_url" alt="Logo Preview" class="w-full h-full object-contain drop-shadow-xl" (error)="tenantProfile.logo_url = ''" />
                                     </div>
                                     <span class="text-xs font-medium text-rose-400 group-hover:text-rose-300 flex items-center gap-2">
@@ -102,11 +103,42 @@
                                 </ng-container>
                                 
                                 <ng-template #noLogo>
-                                    <div class="w-16 h-16 rounded-full bg-bg-secondary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner">
-                                        <i class="fas fa-image text-2xl text-text-muted group-hover:text-rose-400 transition-colors"></i>
+                                    <div class="w-12 h-12 rounded-full bg-bg-secondary flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-inner">
+                                        <i class="fas fa-image text-xl text-text-muted group-hover:text-rose-400 transition-colors"></i>
                                     </div>
                                     <p class="text-sm font-bold text-text-primary mb-1">Upload Logo</p>
-                                    <p class="text-[10px] text-text-muted text-center max-w-[150px]">Click or drag & drop<br>PNG, JPG up to 2MB</p>
+                                    <p class="text-[10px] text-text-muted text-center max-w-[150px]">PNG, JPG up to 2MB</p>
+                                </ng-template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Headmaster Signature Upload -->
+                    <div class="bg-bg-primary/30 rounded-2xl p-5 border border-border-primary flex flex-col">
+                        <div>
+                            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-4 flex items-center justify-between">
+                                <span>Headmaster Signature</span>
+                                <span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded text-[9px] border border-amber-500/20">Used on Reports</span>
+                            </label>
+                            
+                            <div class="flex flex-col items-center justify-center p-5 border-2 border-dashed border-border-primary hover:border-amber-500/50 rounded-xl bg-bg-primary/50 transition-colors relative group cursor-pointer overflow-hidden">
+                                <input type="file" (change)="onHeadmasterSignatureSelected($event)" accept="image/png, image/jpeg" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" title="Click to upload">
+                                
+                                <ng-container *ngIf="tenantProfile.headmaster_signature_url; else noSig">
+                                    <div class="w-full h-16 flex items-center justify-center mb-3 relative z-10 bg-white/5 rounded-lg p-2">
+                                        <img [src]="tenantProfile.headmaster_signature_url" alt="Signature Preview" class="h-full object-contain drop-shadow-md" (error)="tenantProfile.headmaster_signature_url = ''" />
+                                    </div>
+                                    <span class="text-xs font-medium text-amber-400 group-hover:text-amber-300 flex items-center gap-2">
+                                        <i class="fas fa-upload"></i> Change Signature
+                                    </span>
+                                </ng-container>
+                                
+                                <ng-template #noSig>
+                                    <div class="w-12 h-12 rounded-full bg-bg-secondary flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-inner">
+                                        <i class="fas fa-signature text-xl text-text-muted group-hover:text-amber-400 transition-colors"></i>
+                                    </div>
+                                    <p class="text-sm font-bold text-text-primary mb-1">Upload Signature</p>
+                                    <p class="text-[10px] text-text-muted text-center max-w-[150px]">PNG with transparent background recommended</p>
                                 </ng-template>
                             </div>
                         </div>
@@ -130,6 +162,97 @@
             <div *ngIf="!tenantProfile" class="py-12 flex flex-col items-center justify-center gap-4">
                 <div class="w-10 h-10 rounded-full border-2 border-rose-500/20 border-t-rose-500 animate-spin shadow-[0_0_15px_rgba(244,63,94,0.5)]"></div>
                 <p class="text-sm font-bold text-text-muted animate-pulse">Loading institution profile...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teacher Profile Section -->
+    <div *ngIf="user?.role === 'TEACHER'" class="bg-bg-secondary/60 backdrop-blur-xl border border-border-primary rounded-3xl p-1 shadow-xl mb-8 relative group transition-all duration-500 hover:border-white/10 hover:shadow-blue-500/5">
+        <div class="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent rounded-3xl pointer-events-none"></div>
+        
+        <div class="p-6 md:p-8 relative z-10">
+            <div class="flex items-start justify-between mb-8">
+                <div class="flex gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center border border-blue-500/30 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                        <i class="fas fa-chalkboard-teacher text-xl text-blue-400"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-text-primary tracking-tight">Teacher Profile</h2>
+                        <p class="text-sm text-text-muted mt-1 max-w-xl leading-relaxed">
+                            Manage your personal details and upload your signature for official documents.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div *ngIf="teacherSuccess" class="mb-8 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl flex items-center gap-3 animate-fade-in shadow-lg shadow-emerald-500/5">
+                <i class="fas fa-check-circle text-xl animate-bounce"></i>
+                <span class="font-medium text-sm">{{ teacherSuccess }}</span>
+            </div>
+
+            <div *ngIf="teacherError" class="mb-8 p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center gap-3 animate-fade-in shadow-lg shadow-rose-500/5">
+                <i class="fas fa-exclamation-circle text-xl"></i>
+                <span class="font-medium text-sm">{{ teacherError }}</span>
+            </div>
+
+            <div *ngIf="teacherProfile" class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                <!-- Left Column (Info) -->
+                <div class="lg:col-span-3 space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="group/input">
+                            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2">First Name</label>
+                            <div class="w-full px-5 py-3.5 bg-bg-primary/30 border border-border-primary rounded-xl text-sm text-text-muted cursor-not-allowed">{{ teacherProfile.first_name }}</div>
+                        </div>
+                        <div class="group/input">
+                            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2">Last Name</label>
+                            <div class="w-full px-5 py-3.5 bg-bg-primary/30 border border-border-primary rounded-xl text-sm text-text-muted cursor-not-allowed">{{ teacherProfile.last_name }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="group/input">
+                        <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2">Subject / Specialization</label>
+                        <div class="w-full px-5 py-3.5 bg-bg-primary/30 border border-border-primary rounded-xl text-sm text-text-muted cursor-not-allowed">{{ teacherProfile.subject || 'N/A' }}</div>
+                    </div>
+                </div>
+
+                <!-- Right Column (Signature) -->
+                <div class="lg:col-span-2">
+                    <div class="bg-bg-primary/30 rounded-2xl p-5 border border-border-primary flex flex-col h-full justify-center">
+                        <div>
+                            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-4 flex items-center justify-between">
+                                <span>Digital Signature</span>
+                                <span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded text-[9px] border border-blue-500/20">Used on Reports</span>
+                            </label>
+                            
+                            <div class="flex flex-col items-center justify-center p-5 border-2 border-dashed border-border-primary hover:border-blue-500/50 rounded-xl bg-bg-primary/50 transition-colors relative group cursor-pointer overflow-hidden">
+                                <input type="file" (change)="onTeacherSignatureSelected($event)" accept="image/png, image/jpeg" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" title="Click to upload">
+                                
+                                <ng-container *ngIf="teacherProfile.signature_url; else noTeacherSig">
+                                    <div class="w-full h-16 flex items-center justify-center mb-3 relative z-10 bg-white/5 rounded-lg p-2">
+                                        <img [src]="teacherProfile.signature_url" alt="Signature Preview" class="h-full object-contain drop-shadow-md" (error)="teacherProfile.signature_url = ''" />
+                                    </div>
+                                    <span class="text-xs font-medium text-blue-400 group-hover:text-blue-300 flex items-center gap-2">
+                                        <i class="fas fa-upload"></i> Change Signature
+                                    </span>
+                                </ng-container>
+                                
+                                <ng-template #noTeacherSig>
+                                    <div class="w-12 h-12 rounded-full bg-bg-secondary flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-inner">
+                                        <i class="fas fa-signature text-xl text-text-muted group-hover:text-blue-400 transition-colors"></i>
+                                    </div>
+                                    <p class="text-sm font-bold text-text-primary mb-1">Upload Signature</p>
+                                    <p class="text-[10px] text-text-muted text-center max-w-[150px]">PNG with transparent background recommended</p>
+                                </ng-template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div *ngIf="!teacherProfile" class="py-12 flex flex-col items-center justify-center gap-4">
+                <div class="w-10 h-10 rounded-full border-2 border-blue-500/20 border-t-blue-500 animate-spin shadow-[0_0_15px_rgba(59,130,246,0.5)]"></div>
+                <p class="text-sm font-bold text-text-muted animate-pulse">Loading teacher profile...</p>
             </div>
         </div>
     </div>

@@ -27,6 +27,12 @@ func NewAttendanceHandler(r *gin.RouterGroup, useCase domain.AttendanceUseCase) 
 		// Hardware APIs (Biometrics)
 		g.POST("/hardware/scan", h.ProcessHardwareScan)
 		g.GET("/hardware/scans", middleware.RoleMiddleware(domain.RoleAdmin), h.GetRecentScanEvents)
+
+		// Device Management
+		g.GET("/hardware/devices", middleware.RoleMiddleware(domain.RoleAdmin), h.GetDevices)
+		g.POST("/hardware/devices", middleware.RoleMiddleware(domain.RoleAdmin), h.RegisterDevice)
+		g.PUT("/hardware/devices/:id", middleware.RoleMiddleware(domain.RoleAdmin), h.UpdateDevice)
+		g.DELETE("/hardware/devices/:id", middleware.RoleMiddleware(domain.RoleAdmin), h.DeleteDevice)
 	}
 }
 
@@ -204,4 +210,55 @@ func (h *AttendanceHandler) GetRecentScanEvents(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, results)
+}
+
+func (h *AttendanceHandler) GetDevices(c *gin.Context) {
+	devices, err := h.useCase.GetDevices(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, devices)
+}
+
+func (h *AttendanceHandler) RegisterDevice(c *gin.Context) {
+	var req domain.BiometricDevice
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.useCase.RegisterDevice(c.Request.Context(), &req); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, req)
+}
+
+func (h *AttendanceHandler) UpdateDevice(c *gin.Context) {
+	id := c.Param("id")
+	var req domain.BiometricDevice
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	req.ID = id
+
+	if err := h.useCase.UpdateDevice(c.Request.Context(), &req); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, req)
+}
+
+func (h *AttendanceHandler) DeleteDevice(c *gin.Context) {
+	id := c.Param("id")
+	if err := h.useCase.DeleteDevice(c.Request.Context(), id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Device deleted successfully"})
 }

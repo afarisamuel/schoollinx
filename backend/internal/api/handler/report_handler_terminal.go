@@ -82,12 +82,22 @@ func (h *ReportHandler) GenerateTerminalReportHandler(c *gin.Context) {
 
 	eval, _ := h.evalRepo.GetByStudentAndTerm(ctx, studentID, periodID, termID)
 
+	// Look up the class teacher for this student
+	var classTeacher *domain.Teacher
+	if student.ClassID != nil {
+		class, err := h.classRepo.GetByID(ctx, *student.ClassID)
+		if err == nil && class != nil && class.TeacherID != nil {
+			classTeacher, _ = h.teacherRepo.GetByID(ctx, *class.TeacherID)
+		}
+	}
+
 	// Mock attendance for now, ideally fetch from attendance repo
 	attendance := map[string]int{"present": 50, "absent": 2}
 
 	data := pdf.TerminalReportData{
 		Student:        student,
 		Tenant:         tenant,
+		ClassTeacher:   classTeacher,
 		Grades:         grades,
 		Evaluation:     eval,
 		Attendance:     attendance,

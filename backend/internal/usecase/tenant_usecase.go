@@ -27,7 +27,7 @@ type TenantUseCase interface {
 	ResendSetupEmail(ctx context.Context, id string) error
 	CreateTenantAdmin(ctx context.Context, id string, req CreateTenantAdminReq) error
 	UpdateBilling(ctx context.Context, id string, req BillingUpdateReq) error
-	InitializeSubscriptionPayment(ctx context.Context, tenantID string, payerEmail string, studentCount int) (string, error)
+	InitializeSubscriptionPayment(ctx context.Context, tenantID string, payerEmail string, studentCount int) (string, string, error)
 	GetSubscriptionHistory(ctx context.Context, tenantID string) ([]domain.TenantSubscriptionPayment, error)
 	VerifySubscriptionPayment(ctx context.Context, tenantID string, reference string) error
 	ImpersonateTenant(ctx context.Context, id string) (string, error)
@@ -135,6 +135,7 @@ type OnboardTenantReq struct {
 	Subdomain     string `json:"subdomain" binding:"required"`
 	AdminEmail    string `json:"admin_email" binding:"required,email"`
 	AdminPassword string `json:"admin_password"` // Optional — when provided, skip the setup-token email flow
+	SubscriptionPlan string `json:"subscription_plan"`
 }
 
 func (u *tenantUseCase) OnboardTenant(ctx context.Context, req OnboardTenantReq) (*domain.Tenant, error) {
@@ -144,10 +145,14 @@ func (u *tenantUseCase) OnboardTenant(ctx context.Context, req OnboardTenantReq)
 
 	schemaName := fmt.Sprintf("tenant_%s", req.Subdomain)
 	tenant := &domain.Tenant{
-		Name:       req.Name,
-		Subdomain:  req.Subdomain,
-		SchemaName: schemaName,
-		IsActive:   true,
+		Name:         req.Name,
+		Subdomain:    req.Subdomain,
+		SchemaName:   schemaName,
+		IsActive:     true,
+		SubscriptionPlan: req.SubscriptionPlan,
+	}
+	if tenant.SubscriptionPlan == "" {
+		tenant.SubscriptionPlan = "BASIC"
 	}
 
 	// Prepare admin credentials outside the transaction
@@ -427,27 +432,27 @@ func (u *tenantUseCase) ExportTenantData(ctx context.Context, id string) ([]byte
 }
 
 // InitializeSubscriptionPayment calculates the term subscription cost and returns a Paystack checkout URL.
-func (u *tenantUseCase) InitializeSubscriptionPayment(ctx context.Context, tenantID string, payerEmail string, studentCount int) (string, error) {
+func (u *tenantUseCase) InitializeSubscriptionPayment(ctx context.Context, tenantID string, payerEmail string, studentCount int) (string, string, error) {
 	if u.paystackSvc == nil {
-		return "", fmt.Errorf("payment provider not configured")
+		return "", "", fmt.Errorf("payment provider not configured")
 	}
 
 	uid, err := uuid.Parse(tenantID)
 	if err != nil {
-		return "", fmt.Errorf("invalid tenant ID: %w", err)
+		return "", "", fmt.Errorf("invalid tenant ID: %w", err)
 	}
 
 	tenant, err := u.repo.GetByID(ctx, uid)
 	if err != nil {
-		return "", fmt.Errorf("tenant not found: %w", err)
+		return "", "", fmt.Errorf("tenant not found: %w", err)
 	}
 
 	if tenant.PerStudentPerTermRate <= 0 {
-		return "", fmt.Errorf("subscription rate has not been configured for this tenant")
+		return "", "", fmt.Errorf("subscription rate has not been configured for this tenant")
 	}
 
 	if studentCount <= 0 {
-		return "", fmt.Errorf("student count must be greater than zero")
+		return "", "", fmt.Errorf("student count must be greater than zero")
 	}
 
 	totalAmount := tenant.PerStudentPerTermRate * float64(studentCount)
@@ -455,7 +460,7 @@ func (u *tenantUseCase) InitializeSubscriptionPayment(ctx context.Context, tenan
 
 	authURL, err := u.paystackSvc.InitializeTransaction(payerEmail, totalAmount, reference)
 	if err != nil {
-		return "", fmt.Errorf("failed to initialize subscription payment: %w", err)
+		return "", "", fmt.Errorf("failed to initialize subscription payment: %w", err)
 	}
 
 	subPayment := &domain.TenantSubscriptionPayment{
@@ -478,7 +483,8 @@ func (u *tenantUseCase) InitializeSubscriptionPayment(ctx context.Context, tenan
 		zap.Float64("amount", totalAmount),
 		zap.String("reference", reference),
 	)
-	return authURL, nil
+
+	return authURL, reference, nil
 }
 
 func (u *tenantUseCase) GetSubscriptionHistory(ctx context.Context, tenantID string) ([]domain.TenantSubscriptionPayment, error) {

@@ -194,3 +194,29 @@ func (u *AttendanceUseCase) GetRecentScanEvents(ctx context.Context, limit int) 
 	}
 	return enriched, nil
 }
+
+func (u *AttendanceUseCase) RegisterDevice(ctx context.Context, device *domain.BiometricDevice) error {
+	device.Status = "ONLINE"
+	device.LastPing = time.Now()
+	return u.repo.RegisterDevice(ctx, device)
+}
+
+func (u *AttendanceUseCase) UpdateDevice(ctx context.Context, device *domain.BiometricDevice) error {
+	existing, err := u.repo.GetDeviceByID(ctx, device.ID)
+	if err != nil {
+		return err
+	}
+	existing.Name = device.Name
+	existing.Type = device.Type
+	existing.IPAddress = device.IPAddress
+	existing.Location = device.Location
+	return u.repo.UpdateDevice(ctx, existing)
+}
+
+func (u *AttendanceUseCase) DeleteDevice(ctx context.Context, id string) error {
+	return u.repo.DeleteDevice(ctx, id)
+}
+
+func (u *AttendanceUseCase) GetDevices(ctx context.Context) ([]domain.BiometricDevice, error) {
+	return u.repo.GetDevices(ctx)
+}

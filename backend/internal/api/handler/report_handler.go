@@ -11,12 +11,14 @@ import (
 )
 
 type ReportHandler struct {
-	pdfService  *pdf.PDFService
-	studentRepo domain.StudentRepository
-	gradeRepo   domain.GradeRepository
+	pdfService   *pdf.PDFService
+	studentRepo  domain.StudentRepository
+	gradeRepo    domain.GradeRepository
 	tenantRepo   domain.TenantRepository
 	evalRepo     domain.TerminalEvaluationRepository
 	academicRepo domain.AcademicPeriodRepository
+	teacherRepo  domain.TeacherRepository
+	classRepo    domain.ClassRepository
 }
 
 func NewReportHandler(
@@ -27,6 +29,8 @@ func NewReportHandler(
 	tenantRepo domain.TenantRepository,
 	evalRepo domain.TerminalEvaluationRepository,
 	academicRepo domain.AcademicPeriodRepository,
+	teacherRepo domain.TeacherRepository,
+	classRepo domain.ClassRepository,
 ) {
 	h := &ReportHandler{
 		pdfService:   ps,
@@ -35,6 +39,8 @@ func NewReportHandler(
 		tenantRepo:   tenantRepo,
 		evalRepo:     evalRepo,
 		academicRepo: academicRepo,
+		teacherRepo:  teacherRepo,
+		classRepo:    classRepo,
 	}
 
 	g := r.Group("/reports")

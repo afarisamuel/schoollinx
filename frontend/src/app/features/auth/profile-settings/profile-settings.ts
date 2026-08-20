@@ -5,6 +5,8 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 
 import { TenantProfileService } from '../../../core/infrastructure/tenant-profile.service';
+import { TeacherPortalService } from '../../../core/infrastructure/teacher/teacher-portal.service';
+import { TeacherService } from '../../../core/infrastructure/teacher/teacher.service';
 
 @Component({
   selector: 'app-profile-settings',
@@ -27,11 +29,32 @@ export class ProfileSettings implements OnInit {
   error: string = '';
   success: string = '';
 
+  // Teacher Profile Settings
+  private teacherPortalService = inject(TeacherPortalService);
+  private teacherService = inject(TeacherService);
+  teacherProfile: any = null;
+  savingTeacherProfile: boolean = false;
+  teacherSuccess: string = '';
+  teacherError: string = '';
+
   ngOnInit(): void {
     this.authService.currentUser$.subscribe(u => {
       this.user = u;
+      if (this.user?.role === 'TEACHER') {
+        this.loadTeacherProfile();
+      }
     });
     this.loadTenantProfile();
+  }
+
+  loadTeacherProfile() {
+    this.teacherPortalService.getMyClasses().subscribe({
+      next: (res) => {
+        this.teacherProfile = res.teacher;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Failed to load teacher profile', err)
+    });
   }
 
   enable2FA() {
@@ -128,6 +151,33 @@ export class ProfileSettings implements OnInit {
     }
   }
 
+  onHeadmasterSignatureSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        this.profileError = 'Signature image exceeds maximum size of 2MB.';
+        this.cdr.detectChanges();
+        return;
+      }
+      this.savingProfile = true;
+      this.profileError = '';
+      this.tenantProfileService.uploadHeadmasterSignature(file).subscribe({
+        next: (res) => {
+          this.tenantProfile.headmaster_signature_url = res.url;
+          this.savingProfile = false;
+          this.profileSuccess = 'Signature uploaded! Remember to Save Changes.';
+          this.cdr.detectChanges();
+          setTimeout(() => { this.profileSuccess = ''; this.cdr.detectChanges(); }, 3000);
+        },
+        error: (err) => {
+          this.profileError = err.error?.error || 'Failed to upload headmaster signature';
+          this.savingProfile = false;
+          this.cdr.detectChanges();
+        }
+      });
+    }
+  }
+
   updateProfile() {
     if (!this.tenantProfile) return;
     
@@ -140,7 +190,8 @@ export class ProfileSettings implements OnInit {
       address: this.tenantProfile.address,
       contact_numbers: this.tenantProfile.contact_numbers,
       email: this.tenantProfile.email,
-      logo_url: this.tenantProfile.logo_url
+      logo_url: this.tenantProfile.logo_url,
+      headmaster_signature_url: this.tenantProfile.headmaster_signature_url,
     }).subscribe({
       next: (updatedProfile) => {
         this.tenantProfile = updatedProfile;
@@ -160,5 +211,32 @@ export class ProfileSettings implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  onTeacherSignatureSelected(event: any) {
+    const file = event.target.files[0];
+    if (file && this.teacherProfile?.id) {
+      if (file.size > 2 * 1024 * 1024) {
+        this.teacherError = 'Signature image exceeds maximum size of 2MB.';
+        this.cdr.detectChanges();
+        return;
+      }
+      this.savingTeacherProfile = true;
+      this.teacherError = '';
+      this.teacherService.uploadSignature(this.teacherProfile.id, file).subscribe({
+        next: (res) => {
+          this.teacherProfile.signature_url = res.url;
+          this.savingTeacherProfile = false;
+          this.teacherSuccess = 'Signature uploaded successfully!';
+          this.cdr.detectChanges();
+          setTimeout(() => { this.teacherSuccess = ''; this.cdr.detectChanges(); }, 3000);
+        },
+        error: (err) => {
+          this.teacherError = err.error?.error || 'Failed to upload signature';
+          this.savingTeacherProfile = false;
+          this.cdr.detectChanges();
+        }
+      });
+    }
   }
 }

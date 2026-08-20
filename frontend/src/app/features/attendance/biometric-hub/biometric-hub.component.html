@@ -30,7 +30,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10"/><path d="M12 22C6.477 22 2 17.523 2 12"/><path d="M22 12c0 5.523-4.477 10-10 10"/><path d="M12 7a5 5 0 1 0 5 5"/></svg>
                         Simulate Scan
                     </button>
-                    <button (click)="showRegistration.set(true)" class="btn-primary flex items-center gap-2 px-5 py-3">
+                    <button (click)="openRegisterModal()" class="btn-primary flex items-center gap-2 px-5 py-3">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         Register Device
                     </button>
@@ -68,10 +68,18 @@
                                     <p class="text-[10px] font-bold text-text-muted uppercase tracking-widest">{{ device.type }} · {{ device.id }}</p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
-                                 [ngClass]="device.status === 'ONLINE' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'">
-                                <span class="w-1.5 h-1.5 rounded-full" [ngClass]="device.status === 'ONLINE' ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'"></span>
-                                {{ device.status }}
+                            <div class="flex items-center gap-2">
+                                <button (click)="openEditModal(device)" class="p-2 text-text-muted hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition-colors" title="Edit Device">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                                </button>
+                                <button (click)="deleteDevice(device.id)" class="p-2 text-text-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" title="Delete Device">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                </button>
+                                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
+                                     [ngClass]="device.status === 'ONLINE' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'">
+                                    <span class="w-1.5 h-1.5 rounded-full" [ngClass]="device.status === 'ONLINE' ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'"></span>
+                                    {{ device.status }}
+                                </div>
                             </div>
                         </div>
 
@@ -263,8 +271,12 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
 
-            <h2 class="text-xl font-black text-text-primary mb-1">Register Terminal</h2>
-            <p class="text-sm text-text-muted mb-7">Provision a new biometric scanner onto the network.</p>
+            <h2 class="text-xl font-black text-text-primary mb-1">
+                {{ editingDeviceId() ? 'Edit Terminal' : 'Register Terminal' }}
+            </h2>
+            <p class="text-sm text-text-muted mb-7">
+                {{ editingDeviceId() ? 'Update the details for this biometric scanner.' : 'Provision a new biometric scanner onto the network.' }}
+            </p>
 
             <div class="space-y-5 relative z-10">
                 <div class="flex flex-col gap-1.5">
@@ -296,7 +308,9 @@
 
             <div class="flex gap-4 mt-7">
                 <button (click)="showRegistration.set(false)" class="btn-secondary flex-1 py-3.5">Cancel</button>
-                <button (click)="registerDevice()" class="btn-primary flex-1 py-3.5" [disabled]="!newDevice.name || !newDevice.ip_address">Provision</button>
+                <button (click)="registerDevice()" class="btn-primary flex-1 py-3.5" [disabled]="!newDevice.name || !newDevice.ip_address">
+                    {{ editingDeviceId() ? 'Update' : 'Provision' }}
+                </button>
             </div>
         </div>
     </div>

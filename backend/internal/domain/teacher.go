@@ -23,6 +23,7 @@ type Teacher struct {
 	StaffProfileID *uuid.UUID                              `json:"staff_profile_id" gorm:"type:uuid"`
 	StaffProfile   *StaffProfile                           `json:"staff_profile,omitempty" gorm:"foreignKey:StaffProfileID"`
 	CanCollectFees bool                                    `json:"can_collect_fees" gorm:"default:false"`
+	SignatureURL   string                                  `json:"signature_url"`
 	CreatedAt      time.Time                               `json:"created_at"`
 	UpdatedAt      time.Time                               `json:"updated_at"`
 }

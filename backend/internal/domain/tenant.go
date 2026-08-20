@@ -35,7 +35,8 @@ type Tenant struct {
 	Address          string    `json:"address"`
 	ContactNumbers   string    `json:"contact_numbers"`
 	Email            string    `json:"email"`
-	LogoURL          string    `json:"logo_url"`
+	LogoURL                string    `json:"logo_url"`
+	HeadmasterSignatureURL string    `json:"headmaster_signature_url"`
 
 	// Integration
 	PaystackPublicKey      string                           `json:"paystack_public_key"`

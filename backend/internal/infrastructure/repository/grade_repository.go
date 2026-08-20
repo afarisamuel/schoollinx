@@ -322,31 +322,20 @@ func (r *gradeRepository) GetGradeDistribution(ctx context.Context) (map[string]
 func (r *gradeRepository) GetStudentGradeAverages(ctx context.Context) ([]domain.StudentGradeAverage, error) {
 	var results []domain.StudentGradeAverage
 	
-	query := `
-		SELECT 
-			student_id, 
-			AVG((score / NULLIF(max_score, 0)) * 100) as average
-		FROM grades
-		GROUP BY student_id
-	`
-	
-	err := r.db.WithContext(ctx).Raw(query).Scan(&results).Error
+	err := r.db.WithContext(ctx).Model(&domain.Grade{}).
+		Select("student_id, AVG((score / NULLIF(max_score, 0)) * 100) as average").
+		Group("student_id").
+		Scan(&results).Error
 	return results, err
 }
 
 func (r *gradeRepository) GetStudentGradeTrajectory(ctx context.Context, studentID uuid.UUID) ([]domain.GradeTrajectoryPoint, error) {
 	var results []domain.GradeTrajectoryPoint
 	
-	query := `
-		SELECT 
-			subject, 
-			created_at as date,
-			(score / NULLIF(max_score, 0)) * 100 as score
-		FROM grades
-		WHERE student_id = ?
-		ORDER BY created_at ASC
-	`
-	
-	err := r.db.WithContext(ctx).Raw(query, studentID).Scan(&results).Error
+	err := r.db.WithContext(ctx).Model(&domain.Grade{}).
+		Select("subject, created_at as date, (score / NULLIF(max_score, 0)) * 100 as score").
+		Where("student_id = ?", studentID).
+		Order("created_at ASC").
+		Scan(&results).Error
 	return results, err
 }

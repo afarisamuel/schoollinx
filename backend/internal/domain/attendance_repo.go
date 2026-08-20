@@ -27,6 +27,13 @@ type AttendanceRepository interface {
 	LogScanEvent(ctx context.Context, scan *ScanEvent) error
 	GetRecentScanEvents(ctx context.Context, limit int) ([]ScanEvent, error)
 
+	// Biometric Device Management
+	RegisterDevice(ctx context.Context, device *BiometricDevice) error
+	UpdateDevice(ctx context.Context, device *BiometricDevice) error
+	DeleteDevice(ctx context.Context, id string) error
+	GetDevices(ctx context.Context) ([]BiometricDevice, error)
+	GetDeviceByID(ctx context.Context, id string) (*BiometricDevice, error)
+
 	GetAttendanceStats(ctx context.Context) (map[string]int, error)
 	GetStudentAttendanceStats(ctx context.Context) ([]StudentAttendanceStat, error)
 }
@@ -47,4 +54,10 @@ type AttendanceUseCase interface {
 	// Hardware Integration
 	ProcessHardwareScan(ctx context.Context, deviceID, rfidToken string) error
 	GetRecentScanEvents(ctx context.Context, limit int) ([]EnrichedScanEvent, error)
+
+	// Hardware Device Management
+	RegisterDevice(ctx context.Context, device *BiometricDevice) error
+	UpdateDevice(ctx context.Context, device *BiometricDevice) error
+	DeleteDevice(ctx context.Context, id string) error
+	GetDevices(ctx context.Context) ([]BiometricDevice, error)
 }

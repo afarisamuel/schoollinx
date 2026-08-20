@@ -146,7 +146,7 @@ func (a *App) setupRoutes() {
 	handler.NewDailyBillHandler(api, usecases.DailyBill, repos.Teacher)
 	handler.NewLibraryHandler(api, usecases.Library)
 	handler.NewExtracurricularHandler(api, usecases.Extra)
-	handler.NewReportHandler(api, infra.PDF, repos.Student, repos.Grade, repos.Tenant, repos.TerminalEvaluation, repos.AcademicPeriod)
+	handler.NewReportHandler(api, infra.PDF, repos.Student, repos.Grade, repos.Tenant, repos.TerminalEvaluation, repos.AcademicPeriod, repos.Teacher, repos.Class)
 	handler.NewAcademicPeriodHandler(api, usecases.AcademicPeriod)
 	handler.NewScholasticLevelHandler(api, usecases.Scholastic)
 	handler.NewWelfareHandler(api, usecases.Welfare)

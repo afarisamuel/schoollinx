@@ -113,6 +113,8 @@ var TenantModels = []interface{}{
 	// Attendance
 	&domain.Attendance{},
 	&domain.StaffAttendance{},
+	&domain.ScanEvent{},
+	&domain.BiometricDevice{},
 	// Grades & assessments
 	&domain.Grade{},
 	&domain.GradeWeight{},

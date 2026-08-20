@@ -57,4 +57,10 @@ export class TeacherService {
     resetPassword(id: string): Observable<{ message: string; password: string }> {
         return this.http.post<{ message: string; password: string }>(`${this.apiUrl}/${id}/reset-password`, {});
     }
+
+    uploadSignature(id: string, file: File): Observable<{ url: string }> {
+        const formData = new FormData();
+        formData.append('signature', file);
+        return this.http.post<{ url: string }>(`${this.apiUrl}/${id}/signature`, formData);
+    }
 }

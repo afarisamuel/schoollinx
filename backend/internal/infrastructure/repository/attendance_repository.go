@@ -113,3 +113,30 @@ func (r *attendanceRepository) GetStudentAttendanceStats(ctx context.Context) ([
 		Scan(&results).Error
 	return results, err
 }
+
+func (r *attendanceRepository) RegisterDevice(ctx context.Context, device *domain.BiometricDevice) error {
+	return r.db.WithContext(ctx).Create(device).Error
+}
+
+func (r *attendanceRepository) UpdateDevice(ctx context.Context, device *domain.BiometricDevice) error {
+	return r.db.WithContext(ctx).Save(device).Error
+}
+
+func (r *attendanceRepository) DeleteDevice(ctx context.Context, id string) error {
+	return r.db.WithContext(ctx).Delete(&domain.BiometricDevice{}, "id = ?", id).Error
+}
+
+func (r *attendanceRepository) GetDevices(ctx context.Context) ([]domain.BiometricDevice, error) {
+	var devices []domain.BiometricDevice
+	err := r.db.WithContext(ctx).Find(&devices).Error
+	return devices, err
+}
+
+func (r *attendanceRepository) GetDeviceByID(ctx context.Context, id string) (*domain.BiometricDevice, error) {
+	var device domain.BiometricDevice
+	err := r.db.WithContext(ctx).First(&device, "id = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &device, nil
+}

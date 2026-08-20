@@ -89,6 +89,37 @@ func (s *PDFService) drawWatermark(pdf *gofpdf.Fpdf, logoURL string) {
 	pdf.SetAlpha(1.0, "Normal")
 }
 
+func (s *PDFService) drawSignature(pdf *gofpdf.Fpdf, url string, imgName string, x, y, w float64) {
+	if url == "" {
+		return
+	}
+
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Get(url)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		if resp != nil {
+			resp.Body.Close()
+		}
+		return
+	}
+	defer resp.Body.Close()
+
+	imgType := ""
+	if strings.HasSuffix(strings.ToLower(url), ".png") || strings.Contains(resp.Header.Get("Content-Type"), "png") {
+		imgType = "PNG"
+	} else if strings.HasSuffix(strings.ToLower(url), ".jpg") || strings.HasSuffix(strings.ToLower(url), ".jpeg") || strings.Contains(resp.Header.Get("Content-Type"), "jpeg") {
+		imgType = "JPG"
+	} else {
+		imgType = "JPG"
+	}
+
+	opt := gofpdf.ImageOptions{ImageType: imgType, ReadDpi: false}
+	pdf.RegisterImageOptionsReader(imgName, opt, resp.Body)
+
+	// Keep aspect ratio: set h to 0
+	pdf.ImageOptions(imgName, x, y, w, 0, false, opt, 0, "")
+}
+
 func (s *PDFService) drawTranscript(pdf *gofpdf.Fpdf, student *domain.Student, grades []domain.Grade, attendanceStats map[string]int) {
 	s.drawHeader(pdf, "Official Academic Transcript")
 	s.drawStudentSection(pdf, student)

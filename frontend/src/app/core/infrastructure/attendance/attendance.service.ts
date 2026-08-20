@@ -14,6 +14,16 @@ export interface ScanEvent {
     student_name?: string;
 }
 
+export interface BiometricDevice {
+    id: string;
+    name: string;
+    type: 'FINGERPRINT' | 'FACIAL' | 'RFID';
+    ip_address: string;
+    status: 'ONLINE' | 'OFFLINE';
+    last_ping: Date;
+    location: string;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -50,5 +60,21 @@ export class AttendanceService {
 
     getRecentScanEvents(): Observable<ScanEvent[]> {
         return this.http.get<ScanEvent[]>(`${this.apiUrl}/hardware/scans`);
+    }
+
+    getDevices(): Observable<BiometricDevice[]> {
+        return this.http.get<BiometricDevice[]>(`${this.apiUrl}/hardware/devices`);
+    }
+
+    registerDevice(device: Partial<BiometricDevice>): Observable<BiometricDevice> {
+        return this.http.post<BiometricDevice>(`${this.apiUrl}/hardware/devices`, device);
+    }
+
+    updateDevice(id: string, device: Partial<BiometricDevice>): Observable<BiometricDevice> {
+        return this.http.put<BiometricDevice>(`${this.apiUrl}/hardware/devices/${id}`, device);
+    }
+
+    deleteDevice(id: string): Observable<any> {
+        return this.http.delete(`${this.apiUrl}/hardware/devices/${id}`);
     }
 }
