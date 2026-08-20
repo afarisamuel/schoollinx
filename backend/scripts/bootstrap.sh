@@ -39,12 +39,10 @@ if ! command -v python3 &>/dev/null; then
   echo "Error: python3 is required but not found." >&2
   exit 1
 fi
-pip3 uninstall bcrypt py-bcrypt
+pip3 uninstall -y --break-system-packages bcrypt py-bcrypt || true
 python3 -c "import bcrypt" 2>/dev/null || {
   echo "Installing bcrypt Python package..."
-  
-
-  pip3 install --quiet bcrypt
+  pip3 install --quiet --break-system-packages bcrypt
 }
 
 # ---- Encryption key (must match the Go app) ----
@@ -81,7 +79,7 @@ print(bcrypt.hashpw(pw, bcrypt.gensalt(rounds=14)).decode())
 # ---- Ensure cryptography package is available ----
 python3 -c "from cryptography.hazmat.primitives.ciphers.aead import AESGCM" 2>/dev/null || {
   echo "Installing cryptography Python package..."
-  pip3 install --quiet cryptography
+  pip3 install --quiet --break-system-packages cryptography
 }
 
 # ============================================================
