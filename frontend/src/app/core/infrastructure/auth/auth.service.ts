@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { User, Role } from '../../domain/user.model';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
@@ -45,7 +46,7 @@ export class AuthService {
     }
 
     login(identifier: string, password: string): Observable<any> {
-        return this.http.post<any>('/api/auth/login', { identifier, password }, { 
+        return this.http.post<any>(`${environment.apiUrl}/auth/login`, { identifier, password }, { 
             headers: this.getSubdomainHeader() 
         });
     }
@@ -55,47 +56,47 @@ export class AuthService {
             ...this.getSubdomainHeader(),
             'Authorization': `Bearer ${pendingToken}`
         };
-        return this.http.post<any>('/api/auth/2fa/login', { token }, { headers });
+        return this.http.post<any>(`${environment.apiUrl}/auth/2fa/login`, { token }, { headers });
     }
 
     setup2FA(): Observable<any> {
-        return this.http.post<any>('/api/auth/2fa/setup', {}, {
+        return this.http.post<any>(`${environment.apiUrl}/auth/2fa/setup`, {}, {
             headers: this.getSubdomainHeader()
         });
     }
 
     verify2FA(token: string): Observable<any> {
-        return this.http.post<any>('/api/auth/2fa/verify', { token }, {
+        return this.http.post<any>(`${environment.apiUrl}/auth/2fa/verify`, { token }, {
             headers: this.getSubdomainHeader()
         });
     }
 
     signup(data: any): Observable<any> {
-        return this.http.post<any>('/api/auth/signup', data, { 
+        return this.http.post<any>(`${environment.apiUrl}/auth/signup`, data, { 
             headers: this.getSubdomainHeader() 
         });
     }
 
     setupPassword(token: string, newPassword: string): Observable<any> {
-        return this.http.post<any>('/api/auth/setup-password', { token, new_password: newPassword }, { 
+        return this.http.post<any>(`${environment.apiUrl}/auth/setup-password`, { token, new_password: newPassword }, { 
             headers: this.getSubdomainHeader() 
         });
     }
 
     forgotPassword(email: string): Observable<any> {
-        return this.http.post<any>('/api/auth/forgot-password', { email }, {
+        return this.http.post<any>(`${environment.apiUrl}/auth/forgot-password`, { email }, {
             headers: this.getSubdomainHeader()
         });
     }
 
     resetPassword(token: string, newPassword: string): Observable<any> {
-        return this.http.post<any>('/api/auth/reset-password', { token, new_password: newPassword }, {
+        return this.http.post<any>(`${environment.apiUrl}/auth/reset-password`, { token, new_password: newPassword }, {
             headers: this.getSubdomainHeader()
         });
     }
 
     changePassword(oldPassword: string, newPassword: string): Observable<any> {
-        return this.http.post<any>('/api/auth/change-password', { old_password: oldPassword, new_password: newPassword }, { 
+        return this.http.post<any>(`${environment.apiUrl}/auth/change-password`, { old_password: oldPassword, new_password: newPassword }, { 
             headers: this.getSubdomainHeader() 
         });
     }

@@ -2,6 +2,7 @@ import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpEvent } from '@angul
 import { Observable } from 'rxjs';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { environment } from '../../../environments/environment';
 
 export const tenantInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> => {
     const platformId = inject(PLATFORM_ID);
@@ -12,6 +13,14 @@ export const tenantInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, 
     // we can explicitly attach the tenant context to ensure the backend identifies the correct tenant.
     
     let clonedReq = req;
+
+    // Rewrite relative API URLs to absolute API URLs
+    if (req.url.startsWith('/api')) {
+        clonedReq = req.clone({
+            url: `${environment.apiUrl}${req.url.substring(4)}`
+        });
+        req = clonedReq; // Important: Update req so subsequent clones use the new URL
+    }
 
     if (isBrowser) {
         // Attempt to extract the subdomain from the current window location
