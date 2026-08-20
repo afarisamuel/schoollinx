@@ -15,6 +15,7 @@ func CORSMiddleware(db *gorm.DB) gin.HandlerFunc {
 			"http://localhost:4200",
 			"http://localhost:6222",
 			"https://admin.schoollinx.com",
+			"https://hq.schoollinx.com",
 		}
 
 		isAllowed := false

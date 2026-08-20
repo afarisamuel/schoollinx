@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-signup',
@@ -113,7 +114,7 @@ export class SignupComponent {
       subscription_plan: this.form.subscription_plan
     };
 
-    this.http.post('/api/public/tenants/register', payload).subscribe({
+    this.http.post(`${environment.apiUrl}/public/tenants/register`, payload).subscribe({
       next: () => {
         this.isSubmitting.set(false);
         this.isSuccess.set(true);

@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 interface StaffProfile {
     id: string;
@@ -49,7 +50,7 @@ export class ProfessionalDevelopment implements OnInit {
     }
 
     loadStaff() {
-        this.http.get<StaffProfile[]>('/api/hr/staff').subscribe({
+        this.http.get<StaffProfile[]>(`${environment.apiUrl}/hr/staff`).subscribe({
             next: (data) => {
                 this.staffList.set(data || []);
                 this.loading.set(false);
@@ -61,7 +62,7 @@ export class ProfessionalDevelopment implements OnInit {
     loadRecords(staffId: string) {
         this.selectedStaffId.set(staffId);
         this.loading.set(true);
-        this.http.get<ProfDev[]>(`/api/hr/development/${staffId}`).subscribe({
+        this.http.get<ProfDev[]>(`${environment.apiUrl}/hr/development/${staffId}`).subscribe({
             next: (data) => {
                 this.records.set(data || []);
                 this.loading.set(false);
@@ -80,7 +81,7 @@ export class ProfessionalDevelopment implements OnInit {
             status: this.formStatus
         };
 
-        this.http.post('/api/hr/development', record).subscribe({
+        this.http.post(`${environment.apiUrl}/hr/development`, record).subscribe({
             next: () => {
                 this.showForm.set(false);
                 this.formCourseName = '';

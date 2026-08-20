@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface TenantProfile {
   id: string;
@@ -54,8 +55,8 @@ export class TenantProfileService {
     return this.http.post<{ url: string }>('/api/tenant/profile/headmaster-signature', formData);
   }
 
-  updatePaymentConfig(publicKey: string, secretKey: string): Observable<any> {
-    return this.http.put('/api/tenant/payment-config', {
+  updatePaymentConfig(publicKey: string, secretKey: string, provider: 'PAYSTACK'): Observable<any> {
+    return this.http.put(`${environment.apiUrl}/tenant/payment-config`, {
       paystack_public_key: publicKey,
       paystack_secret_key: secretKey
     });
