@@ -100,10 +100,18 @@ echo -e "${YELLOW}Phase 4: PM2 Service Setup${NC}"
 
 # Stop old PM2 process if exists
 sudo -u $USER env PATH="$RESOLVED_PATH" pm2 stop $APP_NAME || true
+sudo -u $USER env PATH="$RESOLVED_PATH" pm2 delete $APP_NAME || true
+
+# Verify the build output exists before starting PM2
+SSR_SERVER="$APP_DIR/dist/frontend/server/server.mjs"
+if [ ! -f "$SSR_SERVER" ]; then
+    echo -e "${RED}Build output not found at $SSR_SERVER${NC}"
+    echo -e "${RED}The Angular build may have failed. Check the output above.${NC}"
+    exit 1
+fi
 
 echo -e "${YELLOW}Starting SSR server with PM2...${NC}"
-# Based on Angular 21 package.json
-sudo -u $USER env PATH="$RESOLVED_PATH" pm2 start dist/frontend/server/server.mjs --name $APP_NAME
+sudo -u $USER env PATH="$RESOLVED_PATH" pm2 start "$SSR_SERVER" --name $APP_NAME
 
 # Save PM2 process list and configure startup
 sudo -u $USER env PATH="$RESOLVED_PATH" pm2 save

@@ -96,9 +96,16 @@ sudo -u $USER env PATH="$RESOLVED_PATH" npm run build -- --configuration product
 
 echo -e "${YELLOW}Phase 3: Deploy to Web Directory${NC}"
 
+# Verify the build output exists before deploying
+SPA_DIST="dist/admin-frontend/browser"
+if [ ! -d "$SPA_DIST" ]; then
+    echo -e "${RED}Build output not found at $SPA_DIST${NC}"
+    echo -e "${RED}The Angular build may have failed. Check the output above.${NC}"
+    exit 1
+fi
+
 mkdir -p "$WEB_DIR"
-# Assuming Angular 21 builds to dist/admin-frontend/browser
-cp -r dist/admin-frontend/browser/* "$WEB_DIR/"
+cp -r "$SPA_DIST"/* "$WEB_DIR/"
 chown -R $GROUP:$GROUP "$WEB_DIR"
 chmod -R 755 "$WEB_DIR"
 
