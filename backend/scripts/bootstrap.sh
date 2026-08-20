@@ -20,7 +20,7 @@ if [ -f "$BACKEND_DIR/.env" ]; then
 fi
 
 # ---- Parse DB connection from DATABASE_URL ----
-DB_URL="${DATABASE_URL:-host=localhost user=postgres password=gentechco dbname=hsm port=5432 sslmode=disable}"
+DB_URL="${DATABASE_URL:-host=localhost user=softivite password=softivite419 dbname=schoollinxdb port=5432 sslmode=disable}"
 
 parse_dsn_field() {
   echo "$DB_URL" | grep -oP "${1}=\K[^ ]+" || echo "$2"
