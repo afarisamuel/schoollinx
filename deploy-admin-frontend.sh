@@ -89,7 +89,7 @@ if [ -d "/home/$USER/.npm" ]; then
 fi
 
 echo -e "${YELLOW}Installing dependencies...${NC}"
-sudo -u $USER env PATH="$RESOLVED_PATH" npm ci
+sudo -u $USER env PATH="$RESOLVED_PATH" npm ci --legacy-peer-deps
 
 echo -e "${YELLOW}Building the Admin Angular SPA...${NC}"
 sudo -u $USER env PATH="$RESOLVED_PATH" npm run build -- --configuration production
