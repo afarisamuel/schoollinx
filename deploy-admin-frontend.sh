@@ -40,16 +40,30 @@ then
     echo -e "${GREEN}Node.js installed successfully.${NC}"
 fi
 
-# Ensure npm/node are in PATH (sudo may not inherit the user's PATH)
-export PATH=$PATH:/usr/bin:/usr/local/bin
-# Also source profile in case node was installed via nodesource
-[ -f /etc/profile.d/nodejs.sh ] && source /etc/profile.d/nodejs.sh || true
+# Ensure npm/node are in PATH when running under sudo
+# sudo strips the user PATH, so we need to find node/npm manually
+export PATH=$PATH:/usr/bin:/usr/local/bin:/snap/bin
 
-# Verify npm is accessible
+# Check common nvm install locations for the invoking user
+SUDO_USER_HOME=$(getent passwd "${SUDO_USER:-$USER}" | cut -d: -f6)
+for NVM_DIR in "$SUDO_USER_HOME/.nvm" "/root/.nvm"; do
+    if [ -d "$NVM_DIR" ]; then
+        NVM_NODE=$(ls "$NVM_DIR/versions/node" 2>/dev/null | sort -V | tail -1)
+        [ -n "$NVM_NODE" ] && export PATH="$NVM_DIR/versions/node/$NVM_NODE/bin:$PATH"
+        break
+    fi
+done
+
+# Verify npm is now accessible
 if ! command -v npm &> /dev/null; then
-    echo -e "${RED}npm not found after Node installation. Please check your Node.js setup.${NC}"
+    echo -e "${RED}npm not found. Node.js may be installed via nvm for a specific user.${NC}"
+    echo -e "${YELLOW}Please install Node.js system-wide first:${NC}"
+    echo "  curl -fsSL https://deb.nodesource.com/setup_20.x | bash -"
+    echo "  apt-get install -y nodejs"
     exit 1
 fi
+
+echo -e "${GREEN}✓ Node $(node -v) / npm $(npm -v) found at $(which npm)${NC}"
 
 echo -e "${YELLOW}Installing Nginx...${NC}"
 apt-get update
