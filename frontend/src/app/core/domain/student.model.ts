@@ -38,6 +38,7 @@ export interface Student {
     class_name?: string;
     class?: any; // Class
     level?: number;
+    prepaid_balance?: number;
     academic_year?: string;
     status?: string;
 

@@ -203,6 +203,24 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Prepaid Daily Wallet (Canteen / Bus / Daily Fees) -->
+                                <div class="flex items-center justify-between p-3.5 bg-emerald-500/5 rounded-2xl border border-emerald-500/20 mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                                            <i class="fas fa-wallet text-xs"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-[9px] font-bold text-text-muted uppercase tracking-wider">Daily Fees Wallet</div>
+                                            <div class="text-sm font-mono font-black text-emerald-400">
+                                                GH₵{{ (walletMap()[student.id || ''] || 0) | number:'1.2-2' }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button (click)="openTopUp(student)" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold rounded-xl transition-all shadow-md shadow-emerald-600/20 active:scale-95 cursor-pointer flex items-center gap-1">
+                                        <i class="fas fa-plus text-[9px]"></i> Top-Up
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Actions -->
@@ -320,6 +338,9 @@
                                     </td>
                                     <td class="py-4 text-right pr-2">
                                         <div class="flex items-center justify-end gap-2">
+                                            <button (click)="openTopUp({ id: w.student_id, first_name: w.student_name, last_name: '' })" class="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1">
+                                                <i class="fas fa-wallet text-[9px]"></i> Wallet (GH₵{{ (walletMap()[w.student_id] || 0) | number:'1.2-2' }})
+                                            </button>
                                             @if (w.balance_due > 0) {
                                                 <button (click)="payWard(w.student_id, w.student_name)" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all cursor-pointer">
                                                     Pay Now
@@ -691,6 +712,87 @@
                         <p class="font-bold">No notices for parents at this time.</p>
                     </div>
                 }
+            </div>
+        }
+
+        <!-- ── WALLET TOP-UP MODAL ─────────────────────────────────────────── -->
+        @if (showTopUpModal()) {
+            <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
+                <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
+                    <div class="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/10 blur-[80px] rounded-full pointer-events-none"></div>
+
+                    <div class="flex items-center justify-between pb-4 mb-6 border-b border-border-primary">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                                <i class="fas fa-wallet text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-black text-text-primary">Top-Up Daily Wallet</h3>
+                                <p class="text-[11px] text-text-muted">For {{ topUpStudentName() }}</p>
+                            </div>
+                        </div>
+                        <button (click)="closeTopUp()" class="p-2 hover:bg-bg-tertiary rounded-xl text-text-muted hover:text-text-primary transition-colors cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Current Balance Info -->
+                    <div class="bg-bg-tertiary/60 border border-border-secondary rounded-2xl p-4 mb-6 flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-bold text-text-muted uppercase tracking-wider">Current Wallet Balance</p>
+                            <p class="text-xl font-mono font-black text-emerald-400 mt-0.5">
+                                GH₵ {{ (walletMap()[topUpStudentID()] || 0) | number:'1.2-2' }}
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-black rounded-lg border border-emerald-500/20 uppercase">Auto-Deductions Active</span>
+                            <p class="text-[9px] text-text-muted mt-1">Canteen, Bus, Day services</p>
+                        </div>
+                    </div>
+
+                    <!-- Quick Amount Selector -->
+                    <div class="mb-5">
+                        <label class="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-2">Choose Amount</label>
+                        <div class="grid grid-cols-4 gap-2">
+                            @for (amt of [20, 50, 100, 200]; track amt) {
+                                <button type="button" (click)="topUpAmount.set(amt)"
+                                        [class.bg-emerald-600]="topUpAmount() === amt"
+                                        [class.text-white]="topUpAmount() === amt"
+                                        [class.border-emerald-500]="topUpAmount() === amt"
+                                        class="py-2.5 px-3 rounded-xl border border-border-primary bg-bg-tertiary hover:bg-bg-secondary text-xs font-black transition-all text-center cursor-pointer">
+                                    GH₵{{ amt }}
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Custom Amount Input -->
+                    <div class="mb-5">
+                        <label class="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-2">Custom Amount (GH₵)</label>
+                        <input type="number" min="1" [(ngModel)]="topUpAmount" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-3 text-base font-mono font-bold text-text-primary focus:border-emerald-500 focus:outline-none">
+                    </div>
+
+                    <!-- Purpose Note -->
+                    <div class="mb-6">
+                        <label class="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-2">Note / Purpose</label>
+                        <input type="text" [(ngModel)]="topUpNote" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-2.5 text-xs text-text-primary focus:border-emerald-500 focus:outline-none" placeholder="Daily Canteen & Transport">
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center gap-3">
+                        <button type="button" (click)="closeTopUp()" class="flex-1 py-3 bg-bg-tertiary hover:bg-bg-secondary border border-border-primary rounded-xl text-xs font-bold text-text-secondary transition-all cursor-pointer">
+                            Cancel
+                        </button>
+                        <button type="button" (click)="submitTopUp()" [disabled]="isSubmittingTopUp() || topUpAmount() <= 0" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-all shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer">
+                            @if (isSubmittingTopUp()) {
+                                <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                Processing...
+                            } @else {
+                                Top-Up GH₵{{ topUpAmount() | number:'1.2-2' }}
+                            }
+                        </button>
+                    </div>
+                </div>
             </div>
         }
 

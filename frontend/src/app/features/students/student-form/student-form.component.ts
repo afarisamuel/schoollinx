@@ -189,28 +189,35 @@ export class StudentFormComponent implements OnInit {
             ? this.studentService.updateStudent(this.studentId, formData as Student)
             : this.studentService.createStudent(formData as Student);
 
+        const returnRoute = this.isEditMode && this.studentId
+            ? ['/students/details', this.studentId]
+            : ['/students'];
+
         operation.subscribe({
             next: (savedStudent: any) => {
-                if (this.selectedFile && savedStudent?.id) {
+                const targetId = savedStudent?.id || this.studentId;
+                const finalRoute = this.isEditMode && targetId ? ['/students/details', targetId] : returnRoute;
+
+                if (this.selectedFile && targetId) {
                     this.documentService.upload(this.selectedFile, {
-                        owner_id: savedStudent.id,
+                        owner_id: targetId,
                         owner_type: 'STUDENT',
                         category: 'IDENTITY'
                     }).subscribe({
                         next: (doc) => {
                             savedStudent.photo_url = `/api/documents/${doc.id}/download`;
-                            this.studentService.updateStudent(savedStudent.id, savedStudent).subscribe({
-                                next: () => this.router.navigate(['/students']),
+                            this.studentService.updateStudent(targetId, savedStudent).subscribe({
+                                next: () => this.router.navigate(finalRoute),
                                 error: () => { this.isSubmitting = false; }
                             });
                         },
                         error: () => {
                             this.isSubmitting = false;
-                            this.router.navigate(['/students']);
+                            this.router.navigate(finalRoute);
                         }
                     });
                 } else {
-                    this.router.navigate(['/students']);
+                    this.router.navigate(finalRoute);
                 }
             },
             error: () => { this.isSubmitting = false; }

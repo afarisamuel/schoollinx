@@ -83,6 +83,15 @@ export class ParentDashboard implements OnInit {
     // Attendance per student
     attendanceMap = signal<Record<string, AttendanceSummary>>({});
 
+    // Prepaid Wallet per student (for daily fees)
+    walletMap = signal<Record<string, number>>({});
+    showTopUpModal = signal(false);
+    topUpStudentID = signal('');
+    topUpStudentName = signal('');
+    topUpAmount = signal<number>(50);
+    topUpNote = signal('Daily Canteen & Transport');
+    isSubmittingTopUp = signal(false);
+
     ngOnInit() {
         this.loadAll();
     }
@@ -106,9 +115,12 @@ export class ParentDashboard implements OnInit {
                     this.bookingStudentID.set(res.profile.students[0].id || '');
                 }
 
-                // Load attendance for each student
+                // Load attendance & wallet for each student
                 res.profile?.students?.forEach(s => {
-                    if (s.id) this.loadAttendance(s.id);
+                    if (s.id) {
+                        this.loadAttendance(s.id);
+                        this.loadWallet(s.id);
+                    }
                 });
 
                 // Preload family ledger and pickup pass
@@ -287,5 +299,53 @@ export class ParentDashboard implements OnInit {
 
         const firstWard = wards[0];
         this.payWard(firstWard.student_id, firstWard.student_name);
+    }
+
+    loadWallet(studentId: string) {
+        this.fiscalService.getWalletInfo(studentId).pipe(
+            catchError(() => of({ balance: 0, transactions: [] }))
+        ).subscribe(w => {
+            this.walletMap.update(map => ({ ...map, [studentId]: w?.balance || 0 }));
+        });
+    }
+
+    openTopUp(student: any, amount: number = 50) {
+        const id = student.id || student.student_id;
+        if (!id) return;
+        this.topUpStudentID.set(id);
+        const name = student.student_name || `${student.first_name || ''} ${student.last_name || ''}`.trim() || 'Student';
+        this.topUpStudentName.set(name);
+        this.topUpAmount.set(amount);
+        this.showTopUpModal.set(true);
+    }
+
+    closeTopUp() {
+        this.showTopUpModal.set(false);
+    }
+
+    submitTopUp() {
+        const studentId = this.topUpStudentID();
+        const amount = this.topUpAmount();
+        const note = this.topUpNote();
+        if (!studentId || amount <= 0) return;
+
+        this.isSubmittingTopUp.set(true);
+        this.fiscalService.topUpWallet(studentId, amount, note).subscribe({
+            next: () => {
+                this.isSubmittingTopUp.set(false);
+                this.showTopUpModal.set(false);
+                this.dialog.alert(
+                    `Wallet for ${this.topUpStudentName()} has been credited with GH₵${amount.toFixed(2)}. Daily fees (canteen, bus, etc.) will automatically deduct from this balance!`,
+                    'Top-Up Successful',
+                    'success'
+                );
+                this.loadWallet(studentId);
+                this.loadFamilyLedger();
+            },
+            error: (err) => {
+                this.isSubmittingTopUp.set(false);
+                this.dialog.alert(err.error?.error || 'Failed to complete top up', 'Top-Up Failed', 'error');
+            }
+        });
     }
 }

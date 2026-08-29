@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/domain"
 )
 
@@ -17,9 +18,9 @@ func NewPortfolioHandler(api *gin.RouterGroup, uc domain.PortfolioUseCase) {
 	students := api.Group("/students")
 	{
 		students.GET("/:id/portfolio", h.GetPortfolio)
-		students.PUT("/:id/portfolio", h.SavePortfolio)
-		students.POST("/:id/portfolio/achievements", h.AddAchievement)
-		students.DELETE("/:id/portfolio/achievements/:achievementId", h.DeleteAchievement)
+		students.PUT("/:id/portfolio", middleware.RoleMiddleware(domain.RoleAdmin, domain.RoleTeacher), h.SavePortfolio)
+		students.POST("/:id/portfolio/achievements", middleware.RoleMiddleware(domain.RoleAdmin, domain.RoleTeacher), h.AddAchievement)
+		students.DELETE("/:id/portfolio/achievements/:achievementId", middleware.RoleMiddleware(domain.RoleAdmin, domain.RoleTeacher), h.DeleteAchievement)
 	}
 }
 

@@ -71,6 +71,13 @@ export class StudentDetailComponent implements OnInit {
     portfolio = signal<StudentPortfolio | null>(null);
     classes = signal<any[]>([]);
     behaviorLogs = signal<BehaviorLog[]>([]);
+    walletInfo = signal<{ balance: number; transactions: any[] } | null>(null);
+
+    // Wallet Top-Up State
+    showTopUpModal = signal(false);
+    topUpAmount = signal<number>(50);
+    topUpNote = signal<string>('Daily Fees & Services');
+    isSubmittingTopUp = signal(false);
 
     // Behavior logging state
     loggingBehavior = signal(false);
@@ -177,6 +184,7 @@ export class StudentDetailComponent implements OnInit {
                 forkJoin({
                     fiscal: this.fiscalService.getStudentFiscalStatus(id).pipe(catchError(() => of({ balance: 0, records: [] }))),
                     dailyBills: this.fiscalService.getStudentDailyBills(id).pipe(catchError(() => of({ bills: [] }))),
+                    wallet: this.fiscalService.getWalletInfo(id).pipe(catchError(() => of({ balance: 0, transactions: [] }))),
                     grades: this.gradeService.getGradesForStudent(id).pipe(catchError(() => of([]))),
                     trajectory: this.gradeService.getStudentGradeTrajectory(id).pipe(catchError(() => of([]))),
                     attendance: this.attendanceService.getStudentAttendance(id).pipe(catchError(() => of([]))),
@@ -188,6 +196,7 @@ export class StudentDetailComponent implements OnInit {
                         this.fiscalBalance.set(res.fiscal?.balance || 0);
                         this.fiscalRecords.set(res.fiscal?.records || []);
                         this.dailyBills.set(res.dailyBills?.bills || []);
+                        this.walletInfo.set(res.wallet);
                         this.grades.set(res.grades || []);
                         
                         // Process trajectory data for ngx-charts
@@ -341,6 +350,39 @@ export class StudentDetailComponent implements OnInit {
                 this.welfareService.deleteBehavior(logId).subscribe({
                     next: () => this.welfareService.getStudentBehavior(id).subscribe(logs => this.behaviorLogs.set(logs))
                 });
+            }
+        });
+    }
+
+    openTopUpModal(amount?: number) {
+        if (amount) this.topUpAmount.set(amount);
+        this.showTopUpModal.set(true);
+    }
+
+    closeTopUpModal() {
+        this.showTopUpModal.set(false);
+    }
+
+    submitTopUp() {
+        const studentId = this.student()?.id;
+        const amount = this.topUpAmount();
+        const note = this.topUpNote();
+        if (!studentId || amount <= 0) return;
+
+        this.isSubmittingTopUp.set(true);
+        this.fiscalService.topUpWallet(studentId, amount, note).subscribe({
+            next: () => {
+                this.isSubmittingTopUp.set(false);
+                this.showTopUpModal.set(false);
+                this.dialog.alert(`Wallet successfully topped up with GH₵${amount.toFixed(2)}! Daily fee deductions will automatically draw from this balance.`, 'Top-Up Successful', 'success');
+                // Refresh wallet info, balance, and daily bills
+                this.fiscalService.getWalletInfo(studentId).subscribe(w => this.walletInfo.set(w));
+                this.studentService.getStudent(studentId).subscribe(s => this.student.set(s));
+                this.fiscalService.getStudentDailyBills(studentId).subscribe(res => this.dailyBills.set(res.bills || []));
+            },
+            error: (err) => {
+                this.isSubmittingTopUp.set(false);
+                this.dialog.alert(err.error?.error || 'Failed to top up wallet', 'Top-Up Error', 'error');
             }
         });
     }

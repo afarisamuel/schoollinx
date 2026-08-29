@@ -140,6 +140,10 @@ export class FiscalService {
         });
     }
 
+    getWalletInfo(studentId: string): Observable<{ balance: number; transactions: any[] }> {
+        return this.http.get<{ balance: number; transactions: any[] }>(`${this.apiUrl}/wallet/${studentId}`);
+    }
+
     createFee(record: Partial<FiscalRecord>): Observable<FiscalRecord> {
         return this.http.post<FiscalRecord>(`${this.apiUrl}/records`, record);
     }

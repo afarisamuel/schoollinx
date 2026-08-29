@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,6 +23,32 @@ func NewDailyBillUseCase(billRepo domain.DailyBillRepository, studentRepo domain
 		studentRepo:   studentRepo,
 		fiscalRepo:    fiscalRepo,
 		logisticsRepo: logisticsRepo,
+	}
+}
+
+func (u *dailyBillUseCase) processBillWithWallet(ctx context.Context, student *domain.Student, amount float64, today time.Time, category string) domain.DailyBill {
+	status := domain.DailyBillPending
+	var collectedAt *time.Time
+	if student.PrepaidBalance >= amount && amount > 0 {
+		now := time.Now()
+		student.PrepaidBalance -= amount
+		_ = u.studentRepo.Update(ctx, student)
+		_ = u.fiscalRepo.CreateWalletTransaction(ctx, &domain.WalletTransaction{
+			StudentID:   student.ID,
+			Type:        domain.WalletTransactionDebit,
+			Amount:      amount,
+			Balance:     student.PrepaidBalance,
+			Description: fmt.Sprintf("Daily Fee Auto-Deduction (%s)", category),
+		})
+		status = domain.DailyBillPaid
+		collectedAt = &now
+	}
+	return domain.DailyBill{
+		StudentID:   student.ID,
+		Amount:      amount,
+		Date:        today,
+		Status:      status,
+		CollectedAt: collectedAt,
 	}
 }
 
@@ -45,12 +72,8 @@ func (u *dailyBillUseCase) GenerateDailyBills(ctx context.Context, amount float6
 
 	bills := make([]domain.DailyBill, 0, len(students))
 	for _, s := range students {
-		bills = append(bills, domain.DailyBill{
-			StudentID: s.ID,
-			Amount:    amount,
-			Date:      today,
-			Status:    domain.DailyBillPending,
-		})
+		st := s
+		bills = append(bills, u.processBillWithWallet(ctx, &st, amount, today, "Daily Attendance & Services"))
 	}
 
 	if err := u.billRepo.BulkCreate(ctx, bills); err != nil {
@@ -160,7 +183,7 @@ func (u *dailyBillUseCase) GenerateDailyBillsForRoute(ctx context.Context, route
 			categoryNames = append(categoryNames, string(fee.Category))
 		}
 	}
-	
+
 	totalAmount := selectedRoute.DailyFee + standardDailyAmount
 	categoryNames = append(categoryNames, "Transport")
 
@@ -169,7 +192,7 @@ func (u *dailyBillUseCase) GenerateDailyBillsForRoute(ctx context.Context, route
 	if err != nil {
 		return 0, 0, nil, err
 	}
-	
+
 	if len(assignments) == 0 {
 		return 0, totalAmount, categoryNames, nil
 	}
@@ -185,15 +208,26 @@ func (u *dailyBillUseCase) GenerateDailyBillsForRoute(ctx context.Context, route
 		existingMap[b.StudentID] = true
 	}
 
+	studentMap := make(map[uuid.UUID]*domain.Student)
+	allStudents, _ := u.studentRepo.GetAll(ctx)
+	for i := range allStudents {
+		studentMap[allStudents[i].ID] = &allStudents[i]
+	}
+
 	var bills []domain.DailyBill
 	for _, a := range assignments {
 		if !existingMap[a.StudentID] {
-			bills = append(bills, domain.DailyBill{
-				StudentID: a.StudentID,
-				Amount:    totalAmount,
-				Date:      today,
-				Status:    domain.DailyBillPending,
-			})
+			st := studentMap[a.StudentID]
+			if st != nil {
+				bills = append(bills, u.processBillWithWallet(ctx, st, totalAmount, today, strings.Join(categoryNames, ", ")))
+			} else {
+				bills = append(bills, domain.DailyBill{
+					StudentID: a.StudentID,
+					Amount:    totalAmount,
+					Date:      today,
+					Status:    domain.DailyBillPending,
+				})
+			}
 		}
 	}
 
@@ -223,7 +257,7 @@ func (u *dailyBillUseCase) GenerateDailyBillsForWalkIns(ctx context.Context, per
 	if err != nil {
 		return 0, 0, nil, err
 	}
-	
+
 	if len(students) == 0 {
 		return 0, standardDailyAmount, categoryNames, nil
 	}
@@ -241,12 +275,8 @@ func (u *dailyBillUseCase) GenerateDailyBillsForWalkIns(ctx context.Context, per
 	var bills []domain.DailyBill
 	for _, s := range students {
 		if !existingMap[s.ID] {
-			bills = append(bills, domain.DailyBill{
-				StudentID: s.ID,
-				Amount:    standardDailyAmount,
-				Date:      today,
-				Status:    domain.DailyBillPending,
-			})
+			st := s
+			bills = append(bills, u.processBillWithWallet(ctx, &st, standardDailyAmount, today, strings.Join(categoryNames, ", ")))
 		}
 	}
 
@@ -274,7 +304,7 @@ func (u *dailyBillUseCase) GetPendingBillsByRoute(ctx context.Context, routeID u
 	if err != nil {
 		return nil, err
 	}
-	
+
 	studentMap := make(map[uuid.UUID]bool)
 	for _, a := range assignments {
 		studentMap[a.StudentID] = true
@@ -300,7 +330,7 @@ func (u *dailyBillUseCase) GetPendingBillsForWalkIns(ctx context.Context) ([]dom
 	if err != nil {
 		return nil, err
 	}
-	
+
 	studentMap := make(map[uuid.UUID]bool)
 	for _, s := range students {
 		studentMap[s.ID] = true

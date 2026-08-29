@@ -42,7 +42,7 @@ func NewStudentHandler(r *gin.RouterGroup, uc domain.StudentUseCase) {
 		api.GET("/:id", middleware.RoleMiddleware(domain.RoleAdmin, domain.RoleTeacher, domain.RoleGuardian, domain.RoleStudent), handler.GetByID)
 		api.GET("/:id/timeline", middleware.RoleMiddleware(domain.RoleAdmin, domain.RoleTeacher, domain.RoleGuardian, domain.RoleStudent), handler.GetTimeline)
 		api.GET("", middleware.RoleMiddleware(domain.RoleAdmin, domain.RoleTeacher), handler.GetAll)
-		api.PUT("/:id", middleware.RoleMiddleware(domain.RoleAdmin), handler.Update)
+		api.PUT("/:id", middleware.RoleMiddleware(domain.RoleAdmin, domain.RoleTeacher), handler.Update)
 		api.DELETE("/:id", middleware.RoleMiddleware(domain.RoleAdmin), handler.Delete)
 		api.DELETE("", middleware.RoleMiddleware(domain.RoleAdmin), handler.BulkDelete)
 		api.POST("/bulk-delete", middleware.RoleMiddleware(domain.RoleAdmin), handler.BulkDeletePost)
