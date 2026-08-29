@@ -22,14 +22,14 @@ func NewPaystackService(cfg *config.Config) domain.PaystackService {
 }
 
 func (s *paystackService) InitializeTransaction(email string, amount float64, reference string) (string, error) {
-	return s.InitializeTransactionWithOptions(email, amount, reference, s.config.PaystackSecretKey, "")
+	return s.InitializeTransactionWithOptions(email, amount, reference, s.config.PaystackSecretKey, "", "")
 }
 
-func (s *paystackService) InitializeTransactionWithKey(email string, amount float64, reference string, secretKey string) (string, error) {
-	return s.InitializeTransactionWithOptions(email, amount, reference, secretKey, "")
+func (s *paystackService) InitializeTransactionWithKey(email string, amount float64, reference string, secretKey string, callbackURL string) (string, error) {
+	return s.InitializeTransactionWithOptions(email, amount, reference, secretKey, "", callbackURL)
 }
 
-func (s *paystackService) InitializeTransactionWithOptions(email string, amount float64, reference string, secretKey string, subaccountCode string) (string, error) {
+func (s *paystackService) InitializeTransactionWithOptions(email string, amount float64, reference string, secretKey string, subaccountCode string, callbackURL string) (string, error) {
 	if secretKey == "" {
 		secretKey = s.config.PaystackSecretKey
 	}
@@ -41,6 +41,10 @@ func (s *paystackService) InitializeTransactionWithOptions(email string, amount 
 		"amount":    int(amount * 100),
 		"reference": reference,
 		"currency":  "GHS",
+	}
+
+	if callbackURL != "" {
+		payload["callback_url"] = callbackURL
 	}
 
 	if subaccountCode != "" {
@@ -221,6 +225,13 @@ func (s *paystackService) CreateSubaccount(businessName, settlementBank, account
 }
 
 func (s *paystackService) VerifyTransaction(reference string) (string, error) {
+	return s.VerifyTransactionWithKey(reference, s.config.PaystackSecretKey)
+}
+
+func (s *paystackService) VerifyTransactionWithKey(reference string, secretKey string) (string, error) {
+	if secretKey == "" {
+		secretKey = s.config.PaystackSecretKey
+	}
 	url := fmt.Sprintf("https://api.paystack.co/transaction/verify/%s", reference)
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -228,7 +239,7 @@ func (s *paystackService) VerifyTransaction(reference string) (string, error) {
 		return "", fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.config.PaystackSecretKey))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", secretKey))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

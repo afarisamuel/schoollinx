@@ -165,9 +165,11 @@ func (a *App) setupRoutes() {
 	// Authenticated Payment Routes
 	api.POST("/payments/initialize", paymentHandler.InitializePayment)
 	api.POST("/payments/initialize-wallet-topup", paymentHandler.InitializeWalletTopUp)
+	api.GET("/payments/verify/:reference", paymentHandler.VerifyPayment)
 
 	// Public Routes
 	public := a.Router.Group("/api/public")
+	public.GET("/payments/verify/:reference", paymentHandler.VerifyPayment)
 	// 10 requests per hour per IP for onboarding
 	publicRateLimiter := middleware.NewIPRateLimiter(10, time.Hour)
 	public.Use(publicRateLimiter.Middleware())

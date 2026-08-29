@@ -33,6 +33,7 @@ func (h *PaymentHandler) InitializePayment(c *gin.Context) {
 	var req struct {
 		FiscalRecordID string  `json:"fiscal_record_id"`
 		Amount         float64 `json:"amount"` // Optional, if 0 it will default to full amount
+		CallbackURL    string  `json:"callback_url"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -52,7 +53,15 @@ func (h *PaymentHandler) InitializePayment(c *gin.Context) {
 		return
 	}
 
-	authURL, err := h.paymentUseCase.InitializePayment(c.Request.Context(), tenantID.(uuid.UUID).String(), uid, fiscalRecordUUID, req.Amount)
+	callbackURL := req.CallbackURL
+	if callbackURL == "" {
+		origin := c.GetHeader("Origin")
+		if origin != "" {
+			callbackURL = origin + "/parents?tab=billing"
+		}
+	}
+
+	authURL, err := h.paymentUseCase.InitializePayment(c.Request.Context(), tenantID.(uuid.UUID).String(), uid, fiscalRecordUUID, req.Amount, callbackURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -71,9 +80,10 @@ func (h *PaymentHandler) InitializeWalletTopUp(c *gin.Context) {
 	}
 
 	var req struct {
-		StudentID string  `json:"student_id" binding:"required"`
-		Amount    float64 `json:"amount" binding:"required,gt=0"`
-		Email     string  `json:"email"`
+		StudentID   string  `json:"student_id" binding:"required"`
+		Amount      float64 `json:"amount" binding:"required,gt=0"`
+		Email       string  `json:"email"`
+		CallbackURL string  `json:"callback_url"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -87,7 +97,15 @@ func (h *PaymentHandler) InitializeWalletTopUp(c *gin.Context) {
 		return
 	}
 
-	authURL, err := h.paymentUseCase.InitializeWalletTopUp(c.Request.Context(), tenantID.(uuid.UUID).String(), studentUUID, req.Email, req.Amount)
+	callbackURL := req.CallbackURL
+	if callbackURL == "" {
+		origin := c.GetHeader("Origin")
+		if origin != "" {
+			callbackURL = origin + "/parents?tab=billing"
+		}
+	}
+
+	authURL, err := h.paymentUseCase.InitializeWalletTopUp(c.Request.Context(), tenantID.(uuid.UUID).String(), studentUUID, req.Email, req.Amount, callbackURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -95,6 +113,33 @@ func (h *PaymentHandler) InitializeWalletTopUp(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"authorization_url": authURL,
+	})
+}
+
+func (h *PaymentHandler) VerifyPayment(c *gin.Context) {
+	var tenantID string
+	if tID, exists := c.Get("tenantID"); exists && tID != nil {
+		if u, ok := tID.(uuid.UUID); ok {
+			tenantID = u.String()
+		}
+	}
+
+	reference := c.Param("reference")
+	if reference == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing transaction reference"})
+		return
+	}
+
+	tx, err := h.paymentUseCase.VerifyPayment(c.Request.Context(), tenantID, reference)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "Payment verified successfully",
+		"data":    tx,
 	})
 }
 

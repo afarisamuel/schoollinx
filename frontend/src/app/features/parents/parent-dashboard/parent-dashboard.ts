@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { forkJoin, catchError, of } from 'rxjs';
 import { CommunicationService, Notice, MeetingSlot, MeetingBooking } from '../../../core/infrastructure/communication/communication.service';
@@ -10,6 +10,7 @@ import { FiscalService } from '../../../core/infrastructure/fiscal/fiscal.servic
 import { PaymentService } from '../../../core/infrastructure/payment/payment.service';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 import { Student, Guardian, AbsenceRequest, FamilyLedgerSummary, PickupPass } from '../../../core/domain/student.model';
+import { ToastService } from '../../../shared/ui/toast/toast.service';
 
 interface AttendanceSummary {
     total: number;
@@ -18,8 +19,6 @@ interface AttendanceSummary {
     late: number;
     percentage: number;
 }
-
-import { ToastService } from '../../../shared/ui/toast/toast.service';
 
 @Component({
     selector: 'app-parent-dashboard',
@@ -35,6 +34,8 @@ export class ParentDashboard implements OnInit {
     private paymentService = inject(PaymentService);
     private dialog = inject(DialogService);
     private toast = inject(ToastService);
+    private router = inject(Router);
+    private route = inject(ActivatedRoute);
 
     profile = signal<Guardian | null>(null);
     loading = signal<boolean>(true);
@@ -98,6 +99,30 @@ export class ParentDashboard implements OnInit {
 
     ngOnInit() {
         this.loadAll();
+        this.checkPaymentReturn();
+    }
+
+    private checkPaymentReturn() {
+        this.route.queryParams.subscribe(params => {
+            const ref = params['reference'] || params['trxref'];
+            if (ref) {
+                this.toast.info('Verifying payment status...', 'Payment Verification');
+                this.paymentService.verifyPayment(ref).subscribe({
+                    next: () => {
+                        this.toast.success('Payment verified successfully! Your balance has been updated.', 'Payment Successful');
+                        this.activeTab.set('billing');
+                        this.loadFamilyLedger();
+                        this.profile()?.students?.forEach(s => {
+                            if (s.id) this.loadWallet(s.id);
+                        });
+                        this.router.navigate([], { queryParams: { tab: 'billing' }, replaceUrl: true });
+                    },
+                    error: () => {
+                        this.router.navigate([], { queryParams: { tab: 'billing' }, replaceUrl: true });
+                    }
+                });
+            }
+        });
     }
 
     loadAll() {
@@ -277,7 +302,8 @@ export class ParentDashboard implements OnInit {
                     'Pay Now'
                 ).subscribe(confirmed => {
                     if (confirmed) {
-                        this.paymentService.initializePayment(pending.id, amt).subscribe({
+                        const callbackUrl = `${window.location.origin}/parents?tab=billing`;
+                        this.paymentService.initializePayment(pending.id, amt, callbackUrl).subscribe({
                             next: (payRes) => {
                                 window.location.href = payRes.authorization_url;
                             },
@@ -337,8 +363,9 @@ export class ParentDashboard implements OnInit {
 
         if (this.topUpMethod() === 'paystack') {
             const payerEmail = this.profile()?.email || '';
+            const callbackUrl = `${window.location.origin}/parents?tab=billing`;
             this.toast.info('Connecting to Paystack checkout...', 'Paystack Checkout');
-            this.paymentService.initializeWalletTopUp(studentId, amount, payerEmail).subscribe({
+            this.paymentService.initializeWalletTopUp(studentId, amount, payerEmail, callbackUrl).subscribe({
                 next: (payRes) => {
                     this.isSubmittingTopUp.set(false);
                     this.showTopUpModal.set(false);

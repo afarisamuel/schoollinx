@@ -88,13 +88,14 @@ type PaystackService interface {
 	VerifyWebhookSignature(payload []byte, signature string) bool
 	CreateSubaccount(businessName, settlementBank, accountNumber string, percentageCharge float64) (string, error)
 	VerifyTransaction(reference string) (status string, err error)
+	VerifyTransactionWithKey(reference string, secretKey string) (status string, err error)
 
 	// Bank Resolution and Subaccount features
 	GetBanks(country string) ([]PaystackBank, error)
 	ResolveAccount(accountNumber, bankCode string) (*PaystackResolvedAccount, error)
-	InitializeTransactionWithOptions(email string, amount float64, reference string, secretKey string, subaccountCode string) (authorizationURL string, err error)
+	InitializeTransactionWithOptions(email string, amount float64, reference string, secretKey string, subaccountCode string, callbackURL string) (authorizationURL string, err error)
 
 	// Tenant-specific overrides
-	InitializeTransactionWithKey(email string, amount float64, reference string, secretKey string) (authorizationURL string, err error)
+	InitializeTransactionWithKey(email string, amount float64, reference string, secretKey string, callbackURL string) (authorizationURL string, err error)
 	VerifyWebhookSignatureWithKey(payload []byte, signature string, secretKey string) bool
 }

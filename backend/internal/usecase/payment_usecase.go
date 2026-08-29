@@ -11,8 +11,9 @@ import (
 )
 
 type PaymentUseCase interface {
-	InitializePayment(ctx context.Context, tenantID string, payerID uuid.UUID, fiscalRecordID uuid.UUID, amount float64) (string, error)
-	InitializeWalletTopUp(ctx context.Context, tenantID string, studentID uuid.UUID, payerEmail string, amount float64) (string, error)
+	InitializePayment(ctx context.Context, tenantID string, payerID uuid.UUID, fiscalRecordID uuid.UUID, amount float64, callbackURL string) (string, error)
+	InitializeWalletTopUp(ctx context.Context, tenantID string, studentID uuid.UUID, payerEmail string, amount float64, callbackURL string) (string, error)
+	VerifyPayment(ctx context.Context, tenantID string, reference string) (*domain.PaymentTransaction, error)
 	HandlePaystackWebhook(ctx context.Context, payload []byte, signature string) error
 }
 
@@ -46,7 +47,7 @@ func NewPaymentUseCase(
 	return uc
 }
 
-func (u *paymentUseCase) InitializePayment(ctx context.Context, tenantID string, payerID uuid.UUID, fiscalRecordID uuid.UUID, amount float64) (string, error) {
+func (u *paymentUseCase) InitializePayment(ctx context.Context, tenantID string, payerID uuid.UUID, fiscalRecordID uuid.UUID, amount float64, callbackURL string) (string, error) {
 	// 1. Get the invoice
 	record, err := u.fiscalRepo.GetByID(ctx, fiscalRecordID)
 	if err != nil {
@@ -85,18 +86,23 @@ func (u *paymentUseCase) InitializePayment(ctx context.Context, tenantID string,
 		return "", fmt.Errorf("failed to fetch tenant: %w", err)
 	}
 
+	// Ensure callbackURL uses the tenant subdomain if not provided
+	if callbackURL == "" && tenant.Subdomain != "" {
+		callbackURL = fmt.Sprintf("https://%s.schoollinx.com/parents?tab=billing", tenant.Subdomain)
+	}
+
 	var authURL string
 	secretKey := string(tenant.PaystackSecretKey) // Decrypted automatically by GORM
 
 	if secretKey != "" {
 		// Use Tenant's Direct Key
-		authURL, err = u.paystackSvc.InitializeTransactionWithKey(email, amountToPay, reference, secretKey)
+		authURL, err = u.paystackSvc.InitializeTransactionWithKey(email, amountToPay, reference, secretKey, callbackURL)
 	} else if tenant.PaystackSubaccountCode != "" {
 		// Route fees directly into the school's Paystack Subaccount!
-		authURL, err = u.paystackSvc.InitializeTransactionWithOptions(email, amountToPay, reference, "", tenant.PaystackSubaccountCode)
+		authURL, err = u.paystackSvc.InitializeTransactionWithOptions(email, amountToPay, reference, "", tenant.PaystackSubaccountCode, callbackURL)
 	} else {
 		// Fallback to Platform's Key
-		authURL, err = u.paystackSvc.InitializeTransaction(email, amountToPay, reference)
+		authURL, err = u.paystackSvc.InitializeTransactionWithOptions(email, amountToPay, reference, "", "", callbackURL)
 	}
 
 	if err != nil {
@@ -121,7 +127,7 @@ func (u *paymentUseCase) InitializePayment(ctx context.Context, tenantID string,
 	return authURL, nil
 }
 
-func (u *paymentUseCase) InitializeWalletTopUp(ctx context.Context, tenantID string, studentID uuid.UUID, payerEmail string, amount float64) (string, error) {
+func (u *paymentUseCase) InitializeWalletTopUp(ctx context.Context, tenantID string, studentID uuid.UUID, payerEmail string, amount float64, callbackURL string) (string, error) {
 	if amount <= 0 {
 		return "", fmt.Errorf("top-up amount must be greater than zero")
 	}
@@ -141,16 +147,21 @@ func (u *paymentUseCase) InitializeWalletTopUp(ctx context.Context, tenantID str
 
 	reference := fmt.Sprintf("TOPUP-%s-%d", studentID.String()[:8], time.Now().Unix())
 
+	// Ensure callbackURL uses the tenant subdomain if not provided
+	if callbackURL == "" && tenant.Subdomain != "" {
+		callbackURL = fmt.Sprintf("https://%s.schoollinx.com/parents?tab=billing", tenant.Subdomain)
+	}
+
 	var authURL string
 	secretKey := string(tenant.PaystackSecretKey)
 
 	if secretKey != "" {
-		authURL, err = u.paystackSvc.InitializeTransactionWithKey(payerEmail, amount, reference, secretKey)
+		authURL, err = u.paystackSvc.InitializeTransactionWithKey(payerEmail, amount, reference, secretKey, callbackURL)
 	} else if tenant.PaystackSubaccountCode != "" {
 		// Route wallet top-up directly into the school's Paystack Subaccount!
-		authURL, err = u.paystackSvc.InitializeTransactionWithOptions(payerEmail, amount, reference, "", tenant.PaystackSubaccountCode)
+		authURL, err = u.paystackSvc.InitializeTransactionWithOptions(payerEmail, amount, reference, "", tenant.PaystackSubaccountCode, callbackURL)
 	} else {
-		authURL, err = u.paystackSvc.InitializeTransaction(payerEmail, amount, reference)
+		authURL, err = u.paystackSvc.InitializeTransactionWithOptions(payerEmail, amount, reference, "", "", callbackURL)
 	}
 
 	if err != nil {
@@ -171,6 +182,86 @@ func (u *paymentUseCase) InitializeWalletTopUp(ctx context.Context, tenantID str
 	}
 
 	return authURL, nil
+}
+
+func (u *paymentUseCase) VerifyPayment(ctx context.Context, tenantID string, reference string) (*domain.PaymentTransaction, error) {
+	tx, err := u.paymentRepo.GetTransactionByReferenceOnly(reference)
+	if err != nil || tx == nil {
+		return nil, fmt.Errorf("transaction not found")
+	}
+
+	// Idempotent: If already marked paid, return immediately
+	if tx.Status == domain.PaymentStatusPaid {
+		return tx, nil
+	}
+
+	tenantUUID, _ := uuid.Parse(tx.TenantID)
+	tenant, err := u.tenantRepo.GetByID(ctx, tenantUUID)
+	if err != nil || tenant == nil {
+		return nil, fmt.Errorf("tenant not found")
+	}
+
+	secretKey := string(tenant.PaystackSecretKey)
+	var status string
+	if secretKey != "" {
+		status, err = u.paystackSvc.VerifyTransactionWithKey(reference, secretKey)
+	} else {
+		status, err = u.paystackSvc.VerifyTransaction(reference)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("paystack verification failed: %w", err)
+	}
+
+	if status != "success" {
+		return tx, fmt.Errorf("payment status is: %s", status)
+	}
+
+	// 1. Mark transaction as PAID
+	if err := u.paymentRepo.UpdateTransactionStatus(tx.TenantID, reference, domain.PaymentStatusPaid); err != nil {
+		return nil, fmt.Errorf("failed to update transaction status: %w", err)
+	}
+	tx.Status = domain.PaymentStatusPaid
+
+	// 2. Credit student's daily wallet if wallet top-up
+	if (len(reference) >= 6 && reference[:6] == "TOPUP-") || (tx.StudentID != nil && *tx.StudentID != uuid.Nil) {
+		var targetStudentID uuid.UUID
+		if tx.StudentID != nil && *tx.StudentID != uuid.Nil {
+			targetStudentID = *tx.StudentID
+		} else if tx.FiscalRecordID != nil && *tx.FiscalRecordID != uuid.Nil {
+			targetStudentID = *tx.FiscalRecordID
+		}
+
+		if u.studentRepo != nil && targetStudentID != uuid.Nil {
+			student, err := u.studentRepo.GetByID(ctx, targetStudentID)
+			if err == nil && student != nil {
+				student.PrepaidBalance += tx.Amount
+				_ = u.studentRepo.Update(ctx, student)
+				_ = u.fiscalRepo.CreateWalletTransaction(ctx, &domain.WalletTransaction{
+					StudentID:   student.ID,
+					Type:        domain.WalletTransactionCredit,
+					Amount:      tx.Amount,
+					Balance:     student.PrepaidBalance,
+					Description: fmt.Sprintf("Online Paystack Top-Up (%s)", reference),
+				})
+			}
+		}
+		return tx, nil
+	}
+
+	// 3. Update invoice if regular fee payment
+	if tx.FiscalRecordID != nil && *tx.FiscalRecordID != uuid.Nil {
+		invoice, err := u.fiscalRepo.GetByID(ctx, *tx.FiscalRecordID)
+		if err == nil && invoice != nil {
+			invoice.AmountPaid += tx.Amount
+			if invoice.AmountPaid >= invoice.Amount {
+				invoice.Status = domain.PaymentStatusPaid
+			}
+			_ = u.fiscalRepo.Update(ctx, invoice)
+		}
+	}
+
+	return tx, nil
 }
 
 func (u *paymentUseCase) HandlePaystackWebhook(ctx context.Context, payload []byte, signature string) error {
