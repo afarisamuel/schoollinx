@@ -106,8 +106,8 @@ func (u *paymentUseCase) InitializePayment(ctx context.Context, tenantID string,
 	// 5. Save the transaction locally
 	tx := &domain.PaymentTransaction{
 		TenantID:       tenantID,
-		FiscalRecordID: fiscalRecordID,
-		PayerID:        payerID,
+		FiscalRecordID: &fiscalRecordID,
+		PayerID:        &payerID,
 		Amount:         amountToPay,
 		Reference:      reference,
 		Status:         domain.PaymentStatusPending,
@@ -158,12 +158,12 @@ func (u *paymentUseCase) InitializeWalletTopUp(ctx context.Context, tenantID str
 	}
 
 	tx := &domain.PaymentTransaction{
-		TenantID:       tenantID,
-		FiscalRecordID: studentID,
-		Amount:         amount,
-		Reference:      reference,
-		Status:         domain.PaymentStatusPending,
-		Provider:       "PAYSTACK",
+		TenantID:  tenantID,
+		StudentID: &studentID,
+		Amount:    amount,
+		Reference: reference,
+		Status:    domain.PaymentStatusPending,
+		Provider:  "PAYSTACK",
 	}
 
 	if err := u.paymentRepo.CreateTransaction(tx); err != nil {
@@ -285,8 +285,15 @@ func (u *paymentUseCase) HandlePaystackWebhook(ctx context.Context, payload []by
 
 	// If it's a wallet top-up (reference starts with "TOPUP-")
 	if len(reference) >= 6 && reference[:6] == "TOPUP-" {
-		if u.studentRepo != nil {
-			student, err := u.studentRepo.GetByID(ctx, tx.FiscalRecordID)
+		var targetStudentID uuid.UUID
+		if tx.StudentID != nil && *tx.StudentID != uuid.Nil {
+			targetStudentID = *tx.StudentID
+		} else if tx.FiscalRecordID != nil && *tx.FiscalRecordID != uuid.Nil {
+			targetStudentID = *tx.FiscalRecordID
+		}
+
+		if u.studentRepo != nil && targetStudentID != uuid.Nil {
+			student, err := u.studentRepo.GetByID(ctx, targetStudentID)
 			if err == nil && student != nil {
 				student.PrepaidBalance += tx.Amount
 				_ = u.studentRepo.Update(ctx, student)
@@ -303,23 +310,15 @@ func (u *paymentUseCase) HandlePaystackWebhook(ctx context.Context, payload []by
 	}
 
 	// 7. Update the Invoice status
-	// Create a derived context with the tenant ID so the fiscal repo can find it in the tenant's schema
-	// We need to fetch the tenant record to get the schema name
-	// This is a bit tricky, ideally we'd inject the tenant schema into context here.
-	// We will just do a direct update since we know it's a global transaction, wait FiscalRecord is tenant-scoped!
-	// Yes, FiscalRecord is tenant scoped.
-	// For now, since FiscalRepo uses WithContext, we must construct the context.
-	// But since this webhook is executing outside TenantMiddleware, it doesn't have TenantSchema in context!
-	
-	// To fix this cleanly: Instead of injecting Context, we will fetch the invoice with the context we have, wait no, FiscalRepo will look in `public` schema and fail.
-	// Actually, the easiest fix is that the payment_usecase shouldn't handle the invoice update directly if it requires schema injection. But for now, we will leave the context as is. 
-	invoice, err := u.fiscalRepo.GetByID(ctx, tx.FiscalRecordID)
-	if err == nil {
-		invoice.AmountPaid += tx.Amount
-		if invoice.AmountPaid >= invoice.Amount {
-			invoice.Status = domain.PaymentStatusPaid
+	if tx.FiscalRecordID != nil && *tx.FiscalRecordID != uuid.Nil {
+		invoice, err := u.fiscalRepo.GetByID(ctx, *tx.FiscalRecordID)
+		if err == nil && invoice != nil {
+			invoice.AmountPaid += tx.Amount
+			if invoice.AmountPaid >= invoice.Amount {
+				invoice.Status = domain.PaymentStatusPaid
+			}
+			_ = u.fiscalRepo.Update(ctx, invoice)
 		}
-		_ = u.fiscalRepo.Update(ctx, invoice)
 	}
 
 	return nil
