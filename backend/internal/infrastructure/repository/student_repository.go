@@ -101,6 +101,7 @@ func (r *studentRepository) Update(ctx context.Context, student *domain.Student)
 		"academic_year":         student.AcademicYear,
 		"photo_url":             student.PhotoURL,
 		"rfid_token":            student.RFIDToken,
+		"prepaid_balance":       student.PrepaidBalance,
 	}
 
 	// enrollment_num has a UNIQUE constraint — only update it when non-empty

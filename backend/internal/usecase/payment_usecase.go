@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/domain"
 )
 
@@ -217,6 +218,11 @@ func (u *paymentUseCase) VerifyPayment(ctx context.Context, tenantID string, ref
 		return tx, fmt.Errorf("payment status is: %s", status)
 	}
 
+	// Inject tenant context so GORM targets the correct tenant schema
+	tenantCtx := context.WithValue(ctx, middleware.TenantIDKey, tenant.ID)
+	tenantCtx = context.WithValue(tenantCtx, middleware.TenantSchemaKey, tenant.SchemaName)
+	tenantCtx = context.WithValue(tenantCtx, middleware.TenantNameKey, tenant.Name)
+
 	// 1. Mark transaction as PAID
 	if err := u.paymentRepo.UpdateTransactionStatus(tx.TenantID, reference, domain.PaymentStatusPaid); err != nil {
 		return nil, fmt.Errorf("failed to update transaction status: %w", err)
@@ -233,11 +239,11 @@ func (u *paymentUseCase) VerifyPayment(ctx context.Context, tenantID string, ref
 		}
 
 		if u.studentRepo != nil && targetStudentID != uuid.Nil {
-			student, err := u.studentRepo.GetByID(ctx, targetStudentID)
+			student, err := u.studentRepo.GetByID(tenantCtx, targetStudentID)
 			if err == nil && student != nil {
 				student.PrepaidBalance += tx.Amount
-				_ = u.studentRepo.Update(ctx, student)
-				_ = u.fiscalRepo.CreateWalletTransaction(ctx, &domain.WalletTransaction{
+				_ = u.studentRepo.Update(tenantCtx, student)
+				_ = u.fiscalRepo.CreateWalletTransaction(tenantCtx, &domain.WalletTransaction{
 					StudentID:   student.ID,
 					Type:        domain.WalletTransactionCredit,
 					Amount:      tx.Amount,
@@ -251,13 +257,13 @@ func (u *paymentUseCase) VerifyPayment(ctx context.Context, tenantID string, ref
 
 	// 3. Update invoice if regular fee payment
 	if tx.FiscalRecordID != nil && *tx.FiscalRecordID != uuid.Nil {
-		invoice, err := u.fiscalRepo.GetByID(ctx, *tx.FiscalRecordID)
+		invoice, err := u.fiscalRepo.GetByID(tenantCtx, *tx.FiscalRecordID)
 		if err == nil && invoice != nil {
 			invoice.AmountPaid += tx.Amount
 			if invoice.AmountPaid >= invoice.Amount {
 				invoice.Status = domain.PaymentStatusPaid
 			}
-			_ = u.fiscalRepo.Update(ctx, invoice)
+			_ = u.fiscalRepo.Update(tenantCtx, invoice)
 		}
 	}
 
@@ -374,6 +380,11 @@ func (u *paymentUseCase) HandlePaystackWebhook(ctx context.Context, payload []by
 		return fmt.Errorf("failed to update transaction status: %w", err)
 	}
 
+	// Inject tenant context so GORM targets the correct tenant schema
+	tenantCtx := context.WithValue(ctx, middleware.TenantIDKey, tenant.ID)
+	tenantCtx = context.WithValue(tenantCtx, middleware.TenantSchemaKey, tenant.SchemaName)
+	tenantCtx = context.WithValue(tenantCtx, middleware.TenantNameKey, tenant.Name)
+
 	// If it's a wallet top-up (reference starts with "TOPUP-")
 	if len(reference) >= 6 && reference[:6] == "TOPUP-" {
 		var targetStudentID uuid.UUID
@@ -384,11 +395,11 @@ func (u *paymentUseCase) HandlePaystackWebhook(ctx context.Context, payload []by
 		}
 
 		if u.studentRepo != nil && targetStudentID != uuid.Nil {
-			student, err := u.studentRepo.GetByID(ctx, targetStudentID)
+			student, err := u.studentRepo.GetByID(tenantCtx, targetStudentID)
 			if err == nil && student != nil {
 				student.PrepaidBalance += tx.Amount
-				_ = u.studentRepo.Update(ctx, student)
-				_ = u.fiscalRepo.CreateWalletTransaction(ctx, &domain.WalletTransaction{
+				_ = u.studentRepo.Update(tenantCtx, student)
+				_ = u.fiscalRepo.CreateWalletTransaction(tenantCtx, &domain.WalletTransaction{
 					StudentID:   student.ID,
 					Type:        domain.WalletTransactionCredit,
 					Amount:      tx.Amount,
@@ -402,13 +413,13 @@ func (u *paymentUseCase) HandlePaystackWebhook(ctx context.Context, payload []by
 
 	// 7. Update the Invoice status
 	if tx.FiscalRecordID != nil && *tx.FiscalRecordID != uuid.Nil {
-		invoice, err := u.fiscalRepo.GetByID(ctx, *tx.FiscalRecordID)
+		invoice, err := u.fiscalRepo.GetByID(tenantCtx, *tx.FiscalRecordID)
 		if err == nil && invoice != nil {
 			invoice.AmountPaid += tx.Amount
 			if invoice.AmountPaid >= invoice.Amount {
 				invoice.Status = domain.PaymentStatusPaid
 			}
-			_ = u.fiscalRepo.Update(ctx, invoice)
+			_ = u.fiscalRepo.Update(tenantCtx, invoice)
 		}
 	}
 
