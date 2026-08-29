@@ -54,7 +54,7 @@ func setupTenantSchema(db *gorm.DB) {
 		// For raw string joins, we can attempt a basic replacement if it matches a known table,
 		// but GORM's Preload/Joins for associations generally pass through db.Statement.Schema
 		// which means Preloads WILL be correctly prefixed as long as context is propagated.
-		// However, to ensure raw string joins don't leak, we append the schema to the join expression 
+		// However, to ensure raw string joins don't leak, we append the schema to the join expression
 		// if it's a simple raw JOIN string without a schema.
 		if expr, ok := join.Expression.(clause.Expr); ok {
 			sql := expr.SQL

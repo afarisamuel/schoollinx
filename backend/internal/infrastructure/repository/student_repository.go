@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/domain"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -183,6 +185,12 @@ func (r *studentRepository) GetAlumni(ctx context.Context) ([]domain.Student, er
 // AppendGuardian adds a guardian to the student's many2many association (student_guardians join table).
 // The guardian must already be saved in the guardians table before calling this.
 func (r *studentRepository) AppendGuardian(ctx context.Context, studentID uuid.UUID, guardian *domain.Guardian) error {
-	student := &domain.Student{ID: studentID}
-	return r.db.WithContext(ctx).Model(student).Association("Guardians").Append(guardian)
+	tbl := "student_guardians"
+	if schema, ok := middleware.GetTenantSchemaFromContext(ctx); ok && schema != "" && schema != "public" {
+		tbl = fmt.Sprintf(`"%s"."student_guardians"`, schema)
+	}
+	return r.db.WithContext(ctx).Exec(
+		fmt.Sprintf("INSERT INTO %s (guardian_id, student_id) VALUES (?, ?) ON CONFLICT (guardian_id, student_id) DO NOTHING", tbl),
+		guardian.ID, studentID,
+	).Error
 }
