@@ -4,6 +4,28 @@ import { Observable } from 'rxjs';
 
 export type DocumentType = 'TRANSCRIPT' | 'ENROLLMENT_CERTIFICATE' | 'CONDUCT_REPORT';
 
+export interface TranscriptVerificationResult {
+    valid: boolean;
+    verification_hash?: string;
+    status?: string;
+    overall_score?: number;
+    attendance_rate?: number;
+    generated_at?: string;
+    message?: string;
+}
+
+export interface CompetencyEvaluationItem {
+    id: string;
+    rubric_id: string;
+    score: number;
+    teacher_note?: string;
+    rubric?: {
+        name: string;
+        domain: string;
+        description?: string;
+    };
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -29,5 +51,29 @@ export class ReportService {
         link.download = filename;
         link.click();
         window.URL.revokeObjectURL(url);
+    }
+
+    // Milestone 1: Verifiable Transcripts & Hash Verification
+    verifyTranscript(hash: string): Observable<TranscriptVerificationResult> {
+        return this.http.get<TranscriptVerificationResult>(`${this.apiUrl}/verify/${hash}`);
+    }
+
+    // Milestone 1: Competencies (CBE / NaCCA)
+    getCompetencyEvaluations(studentId: string, periodId?: string): Observable<CompetencyEvaluationItem[]> {
+        const url = periodId 
+            ? `${this.apiUrl}/competencies/students/${studentId}?period_id=${periodId}`
+            : `${this.apiUrl}/competencies/students/${studentId}`;
+        return this.http.get<CompetencyEvaluationItem[]>(url);
+    }
+
+    // Milestone 1: AI Report Card Remarks
+    generateAIRemarks(payload: {
+        student_name: string;
+        gpa: number;
+        attendance_pct: number;
+        top_subject?: string;
+        low_subject?: string;
+    }): Observable<{ remarks: string }> {
+        return this.http.post<{ remarks: string }>(`${this.apiUrl}/ai-remarks`, payload);
     }
 }

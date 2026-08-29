@@ -75,6 +75,13 @@ type HomeworkRepository interface {
 	GradeSubmission(ctx context.Context, submissionID uuid.UUID, score float64, feedback string) error
 }
 
+type HomeworkSimilarityMatch struct {
+	StudentAID     uuid.UUID `json:"student_a_id"`
+	StudentBID     uuid.UUID `json:"student_b_id"`
+	SimilarityRate float64   `json:"similarity_rate"`
+	IsFlagged      bool      `json:"is_flagged"`
+}
+
 type HomeworkUseCase interface {
 	CreateHomework(ctx context.Context, homework *Homework) error
 	GetHomeworkByID(ctx context.Context, id uuid.UUID) (*Homework, error)
@@ -87,4 +94,5 @@ type HomeworkUseCase interface {
 	GradeAssignment(ctx context.Context, submissionID uuid.UUID, score float64, feedback string) error
 	GetStudentSubmission(ctx context.Context, homeworkID, studentID uuid.UUID) (*HomeworkSubmission, error)
 	GetHomeworkSubmissions(ctx context.Context, homeworkID uuid.UUID) ([]HomeworkSubmission, error)
+	CheckSubmissionsSimilarity(ctx context.Context, homeworkID uuid.UUID) ([]HomeworkSimilarityMatch, error)
 }

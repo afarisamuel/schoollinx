@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/user/high-school-management/backend/internal/domain"
@@ -61,4 +62,82 @@ func (u *homeworkUseCase) GetStudentSubmission(ctx context.Context, homeworkID, 
 
 func (u *homeworkUseCase) GetHomeworkSubmissions(ctx context.Context, homeworkID uuid.UUID) ([]domain.HomeworkSubmission, error) {
 	return u.repo.GetSubmissionsForHomework(ctx, homeworkID)
+}
+
+func (u *homeworkUseCase) CheckSubmissionsSimilarity(ctx context.Context, homeworkID uuid.UUID) ([]domain.HomeworkSimilarityMatch, error) {
+	submissions, err := u.repo.GetSubmissionsForHomework(ctx, homeworkID)
+	if err != nil {
+		return nil, err
+	}
+
+	var matches []domain.HomeworkSimilarityMatch
+	n := len(submissions)
+
+	// Compare pairs of submissions that have text content
+	for i := 0; i < n; i++ {
+		subA := submissions[i]
+		wordsA := extractWordSet(subA.Content)
+		if len(wordsA) < 5 {
+			continue // Skip very short answers
+		}
+
+		for j := i + 1; j < n; j++ {
+			subB := submissions[j]
+			wordsB := extractWordSet(subB.Content)
+			if len(wordsB) < 5 {
+				continue
+			}
+
+			// Jaccard similarity = intersection / union
+			intersection := 0
+			for w := range wordsA {
+				if wordsB[w] {
+					intersection++
+				}
+			}
+
+			union := len(wordsA)
+			for w := range wordsB {
+				if !wordsA[w] {
+					union++
+				}
+			}
+
+			if union == 0 {
+				continue
+			}
+
+			similarity := float64(intersection) / float64(union)
+			if similarity >= 0.30 { // Report noticeable overlaps
+				matches = append(matches, domain.HomeworkSimilarityMatch{
+					StudentAID:     subA.StudentID,
+					StudentBID:     subB.StudentID,
+					SimilarityRate: similarity,
+					IsFlagged:      similarity >= 0.70,
+				})
+			}
+		}
+	}
+
+	return matches, nil
+}
+
+func extractWordSet(text string) map[string]bool {
+	set := make(map[string]bool)
+	var current strings.Builder
+
+	for _, ch := range strings.ToLower(text) {
+		if (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9') {
+			current.WriteRune(ch)
+		} else {
+			if current.Len() > 2 { // Ignore 1-2 letter stop words
+				set[current.String()] = true
+			}
+			current.Reset()
+		}
+	}
+	if current.Len() > 2 {
+		set[current.String()] = true
+	}
+	return set
 }

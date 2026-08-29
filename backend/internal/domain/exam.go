@@ -41,17 +41,29 @@ func (e *Exam) BeforeCreate(tx *gorm.DB) (err error) {
 
 type ExamSchedule struct {
 	TenantBase
-	ID        uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
-	ExamID    uuid.UUID `json:"exam_id" gorm:"type:uuid;not null"`
-	ClassID   uuid.UUID `json:"class_id" gorm:"type:uuid;not null"`
-	Class     *Class    `json:"class,omitempty" gorm:"foreignKey:ClassID"`
-	Subject   string    `json:"subject" gorm:"not null"`
-	Date      time.Time `json:"date" gorm:"not null"`
-	StartTime string    `json:"start_time"` // e.g., "09:00"
-	EndTime   string    `json:"end_time"`   // e.g., "11:00"
-	MaxScore  float32   `json:"max_score" gorm:"default:100"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID            uuid.UUID  `json:"id" gorm:"type:uuid;primaryKey"`
+	ExamID        uuid.UUID  `json:"exam_id" gorm:"type:uuid;not null"`
+	ClassID       uuid.UUID  `json:"class_id" gorm:"type:uuid;not null"`
+	Class         *Class     `json:"class,omitempty" gorm:"foreignKey:ClassID"`
+	Subject       string     `json:"subject" gorm:"not null"`
+	Room          string     `json:"room"`
+	InvigilatorID *uuid.UUID `json:"invigilator_id"`
+	Date          time.Time  `json:"date" gorm:"not null"`
+	StartTime     string     `json:"start_time"` // e.g., "09:00"
+	EndTime       string     `json:"end_time"`   // e.g., "11:00"
+	MaxScore      float32    `json:"max_score" gorm:"default:100"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+}
+
+type ExamConflict struct {
+	Type        string    `json:"type"` // "CLASS_DOUBLE_BOOKING", "INVIGILATOR_CONFLICT", "ROOM_CONFLICT"
+	Date        time.Time `json:"date"`
+	StartTime   string    `json:"start_time"`
+	EndTime     string    `json:"end_time"`
+	ScheduleA   uuid.UUID `json:"schedule_a"`
+	ScheduleB   uuid.UUID `json:"schedule_b"`
+	Description string    `json:"description"`
 }
 
 func (es *ExamSchedule) BeforeCreate(tx *gorm.DB) (err error) {
@@ -106,4 +118,5 @@ type ExamUseCase interface {
 	
 	SubmitResults(ctx context.Context, scheduleID uuid.UUID, results []ExamResult) error
 	GetScheduleResults(ctx context.Context, scheduleID uuid.UUID) ([]ExamResult, error)
+	CheckConflicts(ctx context.Context, examID uuid.UUID) ([]ExamConflict, error)
 }

@@ -141,6 +141,10 @@ var TenantModels = []interface{}{
 	&domain.ReportCardTemplate{},
 	&domain.TerminalEvaluation{},
 	&domain.YearEndResult{},
+	&domain.CompetencyRubric{},
+	&domain.CompetencyEvaluation{},
+	&domain.IEPPlan{},
+	&domain.IEPMilestone{},
 	// Health & welfare
 	&domain.HealthRecord{},
 	&domain.BehaviorLog{},

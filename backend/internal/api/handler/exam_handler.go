@@ -29,6 +29,7 @@ func (h *ExamHandler) RegisterRoutes(api *gin.RouterGroup, middleware ...gin.Han
 		
 		exams.POST("/:id/schedules", h.AddSchedule)
 		exams.GET("/:id/schedules", h.GetSchedules)
+		exams.GET("/:id/conflicts", h.CheckConflicts)
 		
 		exams.POST("/schedules/:scheduleId/results", h.SubmitResults)
 		exams.GET("/schedules/:scheduleId/results", h.GetResults)
@@ -181,4 +182,25 @@ func (h *ExamHandler) GetResults(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, results)
+}
+
+func (h *ExamHandler) CheckConflicts(c *gin.Context) {
+	examID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid exam ID format"})
+		return
+	}
+
+	conflicts, err := h.useCase.CheckConflicts(c.Request.Context(), examID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check exam conflicts"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"exam_id":        examID,
+		"conflict_count": len(conflicts),
+		"conflicts":      conflicts,
+		"has_conflicts":  len(conflicts) > 0,
+	})
 }

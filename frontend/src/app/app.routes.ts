@@ -30,6 +30,11 @@ export const publicRoutes: Routes = [
         path: 'signup',
         loadComponent: () => import('./features/public/signup/signup').then(m => m.SignupComponent)
     },
+    {
+        path: 'verify/transcript/:hash',
+        loadComponent: () => import('./features/public/transcript-verify/transcript-verify.component').then(m => m.TranscriptVerifyComponent),
+        title: 'Verifiable Document Registry'
+    },
     { path: '**', redirectTo: '' }
 ];
 
@@ -52,6 +57,11 @@ export const tenantRoutes: Routes = [
                 path: 'profile',
                 loadComponent: () => import('./features/auth/profile-settings/profile-settings').then(c => c.ProfileSettings),
                 title: 'Security Settings'
+            },
+            {
+                path: 'verify/transcript/:hash',
+                loadComponent: () => import('./features/public/transcript-verify/transcript-verify.component').then(m => m.TranscriptVerifyComponent),
+                title: 'Verifiable Document Registry'
             },
             // Feature Routes
             {

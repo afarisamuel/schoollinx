@@ -30,6 +30,7 @@ func NewHomeworkHandler(r *gin.RouterGroup, useCase domain.HomeworkUseCase) {
 		g.GET("/:id/submissions", middleware.RoleMiddleware(domain.RoleAdmin, domain.RoleTeacher), h.GetSubmissions)
 		g.GET("/:id/submissions/student/:student_id", middleware.RoleMiddleware(domain.RoleAdmin, domain.RoleTeacher, domain.RoleStudent, domain.RoleGuardian), h.GetStudentSubmission)
 		g.PUT("/submissions/:submission_id/grade", middleware.RoleMiddleware(domain.RoleAdmin, domain.RoleTeacher), h.Grade)
+		g.POST("/:id/check-similarity", middleware.RoleMiddleware(domain.RoleAdmin, domain.RoleTeacher), h.CheckSimilarity)
 	}
 }
 
@@ -215,4 +216,35 @@ func (h *HomeworkHandler) Grade(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Submission graded successfully"})
+}
+
+func (h *HomeworkHandler) CheckSimilarity(c *gin.Context) {
+	hwID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid homework ID"})
+		return
+	}
+
+	matches, err := h.useCase.CheckSubmissionsSimilarity(c.Request.Context(), hwID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check submissions similarity"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"homework_id":   hwID,
+		"comparisons":   len(matches),
+		"flagged_count": countFlagged(matches),
+		"matches":       matches,
+	})
+}
+
+func countFlagged(matches []domain.HomeworkSimilarityMatch) int {
+	c := 0
+	for _, m := range matches {
+		if m.IsFlagged {
+			c++
+		}
+	}
+	return c
 }
