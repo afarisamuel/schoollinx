@@ -93,6 +93,59 @@ export class TeacherPortalService {
     updateStudentEvaluation(classId: string, studentId: string, evalData: any): Observable<any> {
         return this.http.put(`${this.api}/my-classes/${classId}/students/${studentId}/evaluations`, evalData);
     }
+
+    // Classroom Mastery Suite (Phase 1-3)
+    getSeatingChart(classId: string): Observable<any> {
+        return this.http.get<any>(`${this.api}/my-classes/${classId}/seating`);
+    }
+
+    saveSeatingChart(classId: string, chart: any): Observable<any> {
+        return this.http.post<any>(`${this.api}/my-classes/${classId}/seating`, chart);
+    }
+
+    getLessonPlans(classId: string): Observable<any[]> {
+        return this.http.get<any[]>(`${this.api}/my-classes/${classId}/lesson-plans`);
+    }
+
+    createLessonPlan(classId: string, plan: any): Observable<any> {
+        return this.http.post<any>(`${this.api}/my-classes/${classId}/lesson-plans`, plan);
+    }
+
+    updateLessonPlan(id: string, plan: any): Observable<any> {
+        return this.http.put<any>(`${this.api}/lesson-plans/${id}`, plan);
+    }
+
+    getRubrics(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.api}/rubrics`);
+    }
+
+    createRubric(rubric: any): Observable<any> {
+        return this.http.post<any>(`${this.api}/rubrics`, rubric);
+    }
+
+    createSickbayReferral(referral: any): Observable<any> {
+        return this.http.post<any>(`${this.api}/sickbay-referrals`, referral);
+    }
+
+    getClassReferrals(classId: string): Observable<any[]> {
+        return this.http.get<any[]>(`${this.api}/my-classes/${classId}/sickbay-referrals`);
+    }
+
+    getClassResources(classId: string): Observable<any[]> {
+        return this.http.get<any[]>(`${this.api}/my-classes/${classId}/resources`);
+    }
+
+    createResource(classId: string, res: any): Observable<any> {
+        return this.http.post<any>(`${this.api}/my-classes/${classId}/resources`, res);
+    }
+
+    awardHousePoints(payload: { house_id: string; student_id: string; points: number; reason: string }): Observable<any> {
+        return this.http.post<any>('/api/houses/points', payload);
+    }
+
+    markAttendanceSweep(classId: string, date: string, entries: { student_id: string; status: string }[]): Observable<any> {
+        return this.http.post<any>('/api/attendance/bulk', { class_id: classId, date, entries });
+    }
 }
 
 @Injectable({ providedIn: 'root' })

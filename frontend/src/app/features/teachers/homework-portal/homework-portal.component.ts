@@ -36,6 +36,26 @@ export class HomeworkPortalComponent implements OnInit {
   submissions: HomeworkSubmission[] = [];
   isLoadingSubmissions = false;
 
+  // Phase 2: SpeedGrader Suite
+  speedGraderActive = false;
+  activeSubmission: HomeworkSubmission | null = null;
+  blindGradingMode = false;
+
+  // Criteria Rubric State
+  rubricScores = {
+    content: 35,
+    methodology: 35,
+    presentation: 20
+  };
+
+  commentBank = [
+    'Exemplary conceptual understanding and clear logical steps 🌟',
+    'Good attempt, but review your calculation steps carefully 💡',
+    'Well structured analysis with persuasive conclusions 👍',
+    'Please show all rough working and formulas used ✍️',
+    'Submitted punctually with outstanding neatness ✅'
+  ];
+
   formData: Partial<Homework> = {
     title: '',
     description: '',
@@ -204,10 +224,47 @@ export class HomeworkPortalComponent implements OnInit {
         sub.status = 'GRADED';
         sub.score = parsedScore;
         sub.feedback = feedback;
+        if (this.speedGraderActive) {
+          this.closeSpeedGrader();
+        }
       },
       error: () => {
         this.dialog.alert('Failed to grade submission.', 'Error', 'error').subscribe();
       }
     });
+  }
+
+  // SpeedGrader Methods
+  openSpeedGrader(sub: HomeworkSubmission) {
+    this.activeSubmission = sub;
+    this.speedGraderActive = true;
+    this.rubricScores = {
+      content: Math.min(40, Math.round((sub.score || 80) * 0.4)),
+      methodology: Math.min(40, Math.round((sub.score || 80) * 0.4)),
+      presentation: Math.min(20, Math.round((sub.score || 80) * 0.2))
+    };
+  }
+
+  closeSpeedGrader() {
+    this.speedGraderActive = false;
+    this.activeSubmission = null;
+  }
+
+  getRubricTotal(): number {
+    return this.rubricScores.content + this.rubricScores.methodology + this.rubricScores.presentation;
+  }
+
+  toggleBlindGrading() {
+    this.blindGradingMode = !this.blindGradingMode;
+  }
+
+  getMaskedStudentId(id: string): string {
+    if (!this.blindGradingMode) return id;
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = ((hash << 5) - hash) + id.charCodeAt(i);
+      hash |= 0;
+    }
+    return `Candidate #${Math.abs(hash).toString(16).toUpperCase().substring(0, 6)}`;
   }
 }

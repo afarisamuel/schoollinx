@@ -146,9 +146,15 @@
           <h3 class="text-lg font-black text-text-primary tracking-tight">Student Submissions</h3>
           <p class="text-xs text-text-secondary mt-1">{{ selectedHomework?.title }}</p>
         </div>
-        <button (click)="closeSubmissions()" class="w-8 h-8 flex items-center justify-center bg-bg-primary hover:bg-white text-text-muted hover:text-text-primary border border-border-primary rounded-xl transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
+        <div class="flex items-center gap-3">
+          <button (click)="toggleBlindGrading()" class="px-3.5 py-1.5 rounded-xl border text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer"
+                  [ngClass]="blindGradingMode ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/30' : 'bg-bg-primary text-text-muted border-border-primary hover:text-text-primary'">
+            <i class="fas fa-user-secret"></i> {{ blindGradingMode ? 'Blind Mode: ON' : 'Blind Mode: OFF' }}
+          </button>
+          <button (click)="closeSubmissions()" class="w-8 h-8 flex items-center justify-center bg-bg-primary hover:bg-white text-text-muted hover:text-text-primary border border-border-primary rounded-xl transition-colors cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
       </div>
       
       <div class="p-8 overflow-y-auto custom-scrollbar">
@@ -164,7 +170,7 @@
            <div *ngFor="let sub of submissions" class="bg-bg-tertiary border border-border-primary rounded-2xl p-6 shadow-sm">
               <div class="flex justify-between items-start mb-4">
                  <div>
-                    <h4 class="text-sm font-bold text-text-primary">Student ID: <span class="font-mono text-indigo-400">{{ sub.student_id }}</span></h4>
+                    <h4 class="text-sm font-bold text-text-primary">Candidate: <span class="font-mono text-indigo-400">{{ getMaskedStudentId(sub.student_id) }}</span></h4>
                     <p class="text-[10px] text-text-muted uppercase tracking-widest mt-1">Submitted: {{ sub.submitted_at | date:'medium' }}</p>
                  </div>
                  <span class="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg border"
@@ -194,11 +200,151 @@
                     <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Feedback</label>
                     <input type="text" #feedbackInput [value]="sub.feedback || ''" class="w-full bg-bg-secondary border border-border-primary rounded-lg px-3 py-2 text-sm font-medium text-text-primary focus:outline-none focus:border-indigo-500" placeholder="Optional feedback...">
                  </div>
-                 <button (click)="gradeSubmission(sub, scoreInput.value, feedbackInput.value)" class="mt-5 px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg text-xs font-black uppercase tracking-widest transition-colors shadow-lg shadow-indigo-500/25">
-                    Grade
-                 </button>
+                  <button (click)="gradeSubmission(sub, scoreInput.value, feedbackInput.value)" class="mt-5 px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg text-xs font-black uppercase tracking-widest transition-colors shadow-lg shadow-indigo-500/25 cursor-pointer">
+                     Grade
+                  </button>
+                  <button (click)="openSpeedGrader(sub)" class="mt-5 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-lg text-xs font-black uppercase tracking-widest transition-colors flex items-center gap-1.5 cursor-pointer">
+                     <i class="fas fa-columns"></i> SpeedGrader
+                  </button>
+               </div>
+            </div>
+         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SPEEDGRADER SPLIT-SCREEN STUDIO MODAL ── -->
+  <div *ngIf="speedGraderActive && activeSubmission" class="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-6 bg-black/80 backdrop-blur-md animate-fade-in">
+    <div class="bg-bg-secondary border border-border-primary rounded-[2.5rem] shadow-2xl w-full max-w-6xl h-[92vh] flex flex-col overflow-hidden animate-scale-in">
+      <!-- SpeedGrader Header -->
+      <div class="px-8 py-5 border-b border-border-primary flex justify-between items-center bg-bg-tertiary/60 shrink-0">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg">
+             <i class="fas fa-bolt"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-black uppercase tracking-wider text-indigo-400">SpeedGrader Studio</span>
+              <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-bg-secondary border border-border-primary text-text-muted">
+                {{ getMaskedStudentId(activeSubmission.student_id) }}
+              </span>
+            </div>
+            <h3 class="text-base font-black text-text-primary truncate">{{ selectedHomework?.title }}</h3>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl text-right">
+            <span class="text-[9px] font-black uppercase tracking-widest text-text-muted block">Rubric Score</span>
+            <span class="text-xl font-black text-indigo-400">{{ getRubricTotal() }}<span class="text-xs text-text-muted">/100</span></span>
+          </div>
+          <button (click)="closeSpeedGrader()" class="w-9 h-9 rounded-xl bg-bg-primary hover:bg-white text-text-muted hover:text-text-primary border border-border-primary flex items-center justify-center transition-colors cursor-pointer">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Split-Screen Workspace -->
+      <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+        <!-- Left Pane: Student Submission Document / Text -->
+        <div class="lg:col-span-7 p-6 md:p-8 overflow-y-auto border-r border-border-primary custom-scrollbar bg-bg-primary/40 space-y-5">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Submission Content</span>
+            <span class="text-xs text-text-muted">Submitted {{ activeSubmission.submitted_at | date:'medium' }}</span>
+          </div>
+
+          <div class="p-6 bg-bg-secondary border border-border-primary rounded-3xl min-h-[300px] leading-relaxed text-sm text-text-primary whitespace-pre-wrap selection:bg-indigo-500 selection:text-white">
+            {{ activeSubmission.content || 'No text submitted directly. Please check attached file below.' }}
+          </div>
+
+          <div *ngIf="activeSubmission.file_url" class="p-5 bg-indigo-500/5 border border-indigo-500/20 rounded-3xl flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg">
+                <i class="fas fa-paperclip"></i>
               </div>
-           </div>
+              <div>
+                <h4 class="text-xs font-black text-text-primary">Attached Solution Document</h4>
+                <p class="text-[10px] text-text-muted truncate max-w-xs">{{ activeSubmission.file_url }}</p>
+              </div>
+            </div>
+            <a [href]="activeSubmission.file_url" target="_blank" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-md">
+              Download File
+            </a>
+          </div>
+        </div>
+
+        <!-- Right Pane: Interactive Rubrics & Comment Bank -->
+        <div class="lg:col-span-5 p-6 md:p-8 overflow-y-auto custom-scrollbar flex flex-col justify-between space-y-6 bg-bg-secondary">
+          <div class="space-y-6">
+            <!-- Criteria Rubric Sliders -->
+            <div>
+              <h4 class="text-xs font-black uppercase tracking-widest text-text-primary mb-4 flex items-center gap-2">
+                <i class="fas fa-tasks text-indigo-400"></i> Interactive Scoring Rubric
+              </h4>
+              <div class="space-y-4">
+                <!-- Dimension 1 -->
+                <div class="p-3.5 bg-bg-tertiary border border-border-primary rounded-2xl">
+                  <div class="flex justify-between items-center text-xs font-bold mb-2">
+                    <span class="text-text-primary">Concept & Understanding</span>
+                    <span class="font-black text-indigo-400">{{ rubricScores.content }}/40</span>
+                  </div>
+                  <input type="range" [(ngModel)]="rubricScores.content" min="0" max="40" class="w-full accent-indigo-500 cursor-pointer">
+                </div>
+
+                <!-- Dimension 2 -->
+                <div class="p-3.5 bg-bg-tertiary border border-border-primary rounded-2xl">
+                  <div class="flex justify-between items-center text-xs font-bold mb-2">
+                    <span class="text-text-primary">Working & Methodology</span>
+                    <span class="font-black text-indigo-400">{{ rubricScores.methodology }}/40</span>
+                  </div>
+                  <input type="range" [(ngModel)]="rubricScores.methodology" min="0" max="40" class="w-full accent-indigo-500 cursor-pointer">
+                </div>
+
+                <!-- Dimension 3 -->
+                <div class="p-3.5 bg-bg-tertiary border border-border-primary rounded-2xl">
+                  <div class="flex justify-between items-center text-xs font-bold mb-2">
+                    <span class="text-text-primary">Neatness & Punctuality</span>
+                    <span class="font-black text-indigo-400">{{ rubricScores.presentation }}/20</span>
+                  </div>
+                  <input type="range" [(ngModel)]="rubricScores.presentation" min="0" max="20" class="w-full accent-indigo-500 cursor-pointer">
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Comment Bank -->
+            <div>
+              <h4 class="text-xs font-black uppercase tracking-widest text-text-primary mb-2 flex items-center gap-2">
+                <i class="fas fa-comment-dots text-amber-400"></i> Comment Bank Snippets
+              </h4>
+              <p class="text-[10px] text-text-muted mb-3">Click any snippet to append it to your feedback.</p>
+              <div class="flex flex-wrap gap-1.5">
+                <button *ngFor="let comment of commentBank"
+                        (click)="speedFeedback.value = speedFeedback.value ? (speedFeedback.value + ' ' + comment) : comment"
+                        class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-bg-tertiary hover:bg-indigo-500/10 text-text-secondary hover:text-indigo-300 border border-border-primary transition-all text-left cursor-pointer">
+                  {{ comment }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Feedback Box -->
+            <div>
+              <label class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Teacher Feedback</label>
+              <textarea #speedFeedback [value]="activeSubmission.feedback || ''" rows="3"
+                        class="w-full bg-bg-tertiary border border-border-primary rounded-2xl p-3 text-xs text-text-primary focus:outline-none focus:border-indigo-500 resize-none"
+                        placeholder="Write detailed remarks or choose snippets above..."></textarea>
+            </div>
+          </div>
+
+          <!-- Commit Grade Button -->
+          <div class="pt-4 border-t border-border-primary flex items-center justify-between">
+            <button (click)="closeSpeedGrader()" class="px-5 py-2.5 text-xs font-bold text-text-muted hover:text-text-primary cursor-pointer">
+              Cancel
+            </button>
+            <button (click)="gradeSubmission(activeSubmission, getRubricTotal().toString(), speedFeedback.value)"
+                    class="px-8 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-600/30 transition-all cursor-pointer flex items-center gap-2">
+              <i class="fas fa-check-circle"></i> Commit Rubric Grade
+            </button>
+          </div>
         </div>
       </div>
     </div>

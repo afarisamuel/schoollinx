@@ -224,6 +224,13 @@ var TenantModels = []interface{}{
 	&domain.Hostel{},
 	&domain.HostelRoom{},
 	&domain.BedAllocation{},
+	// Teacher Portal Suite
+	&domain.SeatingChart{},
+	&domain.LessonPlan{},
+	&domain.GradingRubric{},
+	&domain.RubricCriterion{},
+	&domain.SickbayReferral{},
+	&domain.TeacherResource{},
 	// Visitors & security
 	&domain.VisitorLog{},
 	&domain.ScanEvent{},

@@ -16,6 +16,7 @@ type teacherPortalUseCase struct {
 	gradeRepo   domain.GradeRepository
 	classRepo   domain.ClassRepository
 	subjectRepo domain.SubjectRepository
+	portalRepo  domain.TeacherPortalRepository
 }
 
 func NewTeacherPortalUseCase(
@@ -24,6 +25,7 @@ func NewTeacherPortalUseCase(
 	gradeRepo domain.GradeRepository,
 	classRepo domain.ClassRepository,
 	subjectRepo domain.SubjectRepository,
+	portalRepo domain.TeacherPortalRepository,
 ) domain.TeacherPortalUseCase {
 	return &teacherPortalUseCase{
 		teacherRepo: teacherRepo,
@@ -31,6 +33,7 @@ func NewTeacherPortalUseCase(
 		gradeRepo:   gradeRepo,
 		classRepo:   classRepo,
 		subjectRepo: subjectRepo,
+		portalRepo:  portalRepo,
 	}
 }
 
@@ -227,4 +230,49 @@ func (u *teacherPortalUseCase) GetClassForExport(ctx context.Context, classID uu
 		return nil, nil, nil, errors.New("failed to calculate GPAs")
 	}
 	return class, students, gpas, nil
+}
+
+// Classroom Mastery Suite (Phase 1-3)
+func (u *teacherPortalUseCase) GetSeatingChart(ctx context.Context, classID uuid.UUID) (*domain.SeatingChart, error) {
+	return u.portalRepo.GetSeatingChart(ctx, classID)
+}
+
+func (u *teacherPortalUseCase) SaveSeatingChart(ctx context.Context, chart *domain.SeatingChart) error {
+	return u.portalRepo.SaveSeatingChart(ctx, chart)
+}
+
+func (u *teacherPortalUseCase) GetLessonPlans(ctx context.Context, teacherID, classID uuid.UUID) ([]domain.LessonPlan, error) {
+	return u.portalRepo.GetLessonPlans(ctx, teacherID, classID)
+}
+
+func (u *teacherPortalUseCase) CreateLessonPlan(ctx context.Context, plan *domain.LessonPlan) error {
+	return u.portalRepo.CreateLessonPlan(ctx, plan)
+}
+
+func (u *teacherPortalUseCase) UpdateLessonPlan(ctx context.Context, plan *domain.LessonPlan) error {
+	return u.portalRepo.UpdateLessonPlan(ctx, plan)
+}
+
+func (u *teacherPortalUseCase) GetRubrics(ctx context.Context) ([]domain.GradingRubric, error) {
+	return u.portalRepo.GetRubrics(ctx)
+}
+
+func (u *teacherPortalUseCase) CreateRubric(ctx context.Context, rubric *domain.GradingRubric) error {
+	return u.portalRepo.CreateRubric(ctx, rubric)
+}
+
+func (u *teacherPortalUseCase) CreateSickbayReferral(ctx context.Context, referral *domain.SickbayReferral) error {
+	return u.portalRepo.CreateSickbayReferral(ctx, referral)
+}
+
+func (u *teacherPortalUseCase) GetClassReferrals(ctx context.Context, classID uuid.UUID) ([]domain.SickbayReferral, error) {
+	return u.portalRepo.GetClassReferrals(ctx, classID)
+}
+
+func (u *teacherPortalUseCase) CreateResource(ctx context.Context, res *domain.TeacherResource) error {
+	return u.portalRepo.CreateResource(ctx, res)
+}
+
+func (u *teacherPortalUseCase) GetClassResources(ctx context.Context, classID uuid.UUID) ([]domain.TeacherResource, error) {
+	return u.portalRepo.GetClassResources(ctx, classID)
 }

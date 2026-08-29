@@ -70,6 +70,7 @@ type Repositories struct {
 	Tracking       domain.TrackingRepository
 	CampusOps      domain.CampusOpsRepository
 	Hostel         domain.HostelRepository
+	TeacherPortal  domain.TeacherPortalRepository
 }
 
 type UseCases struct {
@@ -186,6 +187,7 @@ func initRepositories(db *gorm.DB) *Repositories {
 		Tracking:       repository.NewTrackingRepository(db),
 		CampusOps:      repository.NewCampusOpsRepository(db),
 		Hostel:         repository.NewHostelRepository(db),
+		TeacherPortal:  repository.NewTeacherPortalRepository(db),
 	}
 }
 
@@ -226,7 +228,7 @@ func initUseCases(repos *Repositories, infra *Infrastructure, db *gorm.DB, cfg *
 		Facility:       usecase.NewFacilityUseCase(repos.Facility),
 		Payment:        usecase.NewPaymentUseCase(repos.Payment, repos.Fiscal, repos.User, repos.Tenant, infra.Paystack, repos.Student),
 		Document:       usecase.NewDocumentUseCase(repos.Document, "./storage/uploads"),
-		TeacherPortal:  usecase.NewTeacherPortalUseCase(repos.Teacher, repos.Student, repos.Grade, repos.Class, repos.Subject),
+		TeacherPortal:  usecase.NewTeacherPortalUseCase(repos.Teacher, repos.Student, repos.Grade, repos.Class, repos.Subject, repos.TeacherPortal),
 		HR:             usecase.NewHRUseCase(repos.HR, infra.PDF),
 		Exam:           usecase.NewExamUseCase(repos.Exam),
 		Portfolio:      usecase.NewPortfolioUseCase(repos.Portfolio),

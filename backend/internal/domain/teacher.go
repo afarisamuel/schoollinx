@@ -106,4 +106,17 @@ type TeacherPortalUseCase interface {
 	BulkSubmitGrades(ctx context.Context, classID uuid.UUID, editorID uuid.UUID, entries []Grade) ([]Grade, error)
 	ImportGrades(ctx context.Context, classID uuid.UUID, editorID uuid.UUID, fileReader interface{}) (int, []string, []string, error)
 	GetClassForExport(ctx context.Context, classID uuid.UUID) (*Class, []Student, []GradeWeightedGPA, error)
+
+	// Classroom Mastery Suite (Phase 1-3)
+	GetSeatingChart(ctx context.Context, classID uuid.UUID) (*SeatingChart, error)
+	SaveSeatingChart(ctx context.Context, chart *SeatingChart) error
+	GetLessonPlans(ctx context.Context, teacherID, classID uuid.UUID) ([]LessonPlan, error)
+	CreateLessonPlan(ctx context.Context, plan *LessonPlan) error
+	UpdateLessonPlan(ctx context.Context, plan *LessonPlan) error
+	GetRubrics(ctx context.Context) ([]GradingRubric, error)
+	CreateRubric(ctx context.Context, rubric *GradingRubric) error
+	CreateSickbayReferral(ctx context.Context, referral *SickbayReferral) error
+	GetClassReferrals(ctx context.Context, classID uuid.UUID) ([]SickbayReferral, error)
+	CreateResource(ctx context.Context, res *TeacherResource) error
+	GetClassResources(ctx context.Context, classID uuid.UUID) ([]TeacherResource, error)
 }

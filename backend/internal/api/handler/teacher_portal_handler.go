@@ -44,6 +44,19 @@ func NewTeacherPortalHandler(
 	// Evaluations
 	portal.GET("/my-classes/:class_id/students/:student_id/evaluations", h.GetStudentEvaluation)
 	portal.PUT("/my-classes/:class_id/students/:student_id/evaluations", h.UpdateStudentEvaluation)
+
+	// Classroom Mastery Suite (Phase 1-3)
+	portal.GET("/my-classes/:class_id/seating", h.GetSeatingChart)
+	portal.POST("/my-classes/:class_id/seating", h.SaveSeatingChart)
+	portal.GET("/my-classes/:class_id/lesson-plans", h.GetLessonPlans)
+	portal.POST("/my-classes/:class_id/lesson-plans", h.CreateLessonPlan)
+	portal.PUT("/lesson-plans/:id", h.UpdateLessonPlan)
+	portal.GET("/rubrics", h.GetRubrics)
+	portal.POST("/rubrics", h.CreateRubric)
+	portal.POST("/sickbay-referrals", h.CreateSickbayReferral)
+	portal.GET("/my-classes/:class_id/sickbay-referrals", h.GetClassReferrals)
+	portal.GET("/my-classes/:class_id/resources", h.GetClassResources)
+	portal.POST("/my-classes/:class_id/resources", h.CreateResource)
 }
 
 // GetMyClasses returns all classes the currently logged-in teacher is assigned to teach.
@@ -287,6 +300,188 @@ func (h *TeacherPortalHandler) ExportGradesPDF(c *gin.Context) {
 		// Output Stream broken
 		return
 	}
+}
+
+// Classroom Mastery Suite (Phase 1-3)
+
+func (h *TeacherPortalHandler) GetSeatingChart(c *gin.Context) {
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID"})
+		return
+	}
+	chart, err := h.portalUseCase.GetSeatingChart(c.Request.Context(), classID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if chart == nil {
+		c.JSON(http.StatusOK, gin.H{"layout_json": "[]", "rows": 5, "columns": 6})
+		return
+	}
+	c.JSON(http.StatusOK, chart)
+}
+
+func (h *TeacherPortalHandler) SaveSeatingChart(c *gin.Context) {
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID"})
+		return
+	}
+	var chart domain.SeatingChart
+	if err := c.ShouldBindJSON(&chart); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	chart.ClassID = classID
+	if err := h.portalUseCase.SaveSeatingChart(c.Request.Context(), &chart); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, chart)
+}
+
+func (h *TeacherPortalHandler) GetLessonPlans(c *gin.Context) {
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID"})
+		return
+	}
+	plans, err := h.portalUseCase.GetLessonPlans(c.Request.Context(), uuid.Nil, classID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, plans)
+}
+
+func (h *TeacherPortalHandler) CreateLessonPlan(c *gin.Context) {
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID"})
+		return
+	}
+	var plan domain.LessonPlan
+	if err := c.ShouldBindJSON(&plan); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	plan.ClassID = classID
+	if val, exists := c.Get("userID"); exists {
+		plan.TeacherID = val.(uuid.UUID)
+	}
+	if err := h.portalUseCase.CreateLessonPlan(c.Request.Context(), &plan); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, plan)
+}
+
+func (h *TeacherPortalHandler) UpdateLessonPlan(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid plan ID"})
+		return
+	}
+	var plan domain.LessonPlan
+	if err := c.ShouldBindJSON(&plan); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	plan.ID = id
+	if err := h.portalUseCase.UpdateLessonPlan(c.Request.Context(), &plan); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, plan)
+}
+
+func (h *TeacherPortalHandler) GetRubrics(c *gin.Context) {
+	rubrics, err := h.portalUseCase.GetRubrics(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, rubrics)
+}
+
+func (h *TeacherPortalHandler) CreateRubric(c *gin.Context) {
+	var rubric domain.GradingRubric
+	if err := c.ShouldBindJSON(&rubric); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := h.portalUseCase.CreateRubric(c.Request.Context(), &rubric); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, rubric)
+}
+
+func (h *TeacherPortalHandler) CreateSickbayReferral(c *gin.Context) {
+	var referral domain.SickbayReferral
+	if err := c.ShouldBindJSON(&referral); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if val, exists := c.Get("userID"); exists {
+		referral.TeacherID = val.(uuid.UUID)
+	}
+	if err := h.portalUseCase.CreateSickbayReferral(c.Request.Context(), &referral); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, referral)
+}
+
+func (h *TeacherPortalHandler) GetClassReferrals(c *gin.Context) {
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID"})
+		return
+	}
+	referrals, err := h.portalUseCase.GetClassReferrals(c.Request.Context(), classID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, referrals)
+}
+
+func (h *TeacherPortalHandler) GetClassResources(c *gin.Context) {
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID"})
+		return
+	}
+	resources, err := h.portalUseCase.GetClassResources(c.Request.Context(), classID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, resources)
+}
+
+func (h *TeacherPortalHandler) CreateResource(c *gin.Context) {
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID"})
+		return
+	}
+	var res domain.TeacherResource
+	if err := c.ShouldBindJSON(&res); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	res.ClassID = classID
+	if val, exists := c.Get("userID"); exists {
+		res.TeacherID = val.(uuid.UUID)
+	}
+	if err := h.portalUseCase.CreateResource(c.Request.Context(), &res); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, res)
 }
 
 // --- TeacherAssignmentHandler for completeness ---
