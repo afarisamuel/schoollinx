@@ -40,6 +40,7 @@ export class DashboardComponent implements OnInit {
   isGuardian = computed(() => this.authService.currentUserValue?.role === 'GUARDIAN');
   isStudent = computed(() => this.authService.currentUserValue?.role === 'STUDENT');
   canCollectFees = signal<boolean>(false);
+  teacherClassesCount = signal<number>(0);
 
   // Drag and Drop Widgets
   isEditMode = signal(false);
@@ -86,6 +87,7 @@ export class DashboardComponent implements OnInit {
         this.teacherService.getMyClasses().subscribe({
           next: data => {
             this.canCollectFees.set(data.teacher?.can_collect_fees || false);
+            this.teacherClassesCount.set(data.assignments?.length || 0);
           },
           error: () => {}
         });
