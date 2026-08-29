@@ -47,6 +47,10 @@ func (r *guardianRepository) GetLinkedStudents(ctx context.Context, guardianID u
 func (r *guardianRepository) GetAll(ctx context.Context) ([]domain.Guardian, error) {
 	var guardians []domain.Guardian
 	err := r.db.WithContext(ctx).Preload("Students").Order("created_at DESC").Find(&guardians).Error
+	if err != nil {
+		// Fallback query without Order("created_at DESC") if created_at column has not been added to this tenant schema yet
+		err = r.db.WithContext(ctx).Preload("Students").Find(&guardians).Error
+	}
 	return guardians, err
 }
 

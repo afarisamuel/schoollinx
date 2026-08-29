@@ -322,7 +322,7 @@
                   <th class="w-10">
                     <label class="flex items-center justify-center cursor-pointer">
                       <input type="checkbox" [checked]="isAllSelected()" (change)="toggleAll()" class="sr-only peer">
-                      <div class="w-4 h-4 rounded border-2 border-white/15 bg-white/5 peer-checked:bg-indigo-600 peer-checked:border-indigo-500 flex items-center justify-center transition-all">
+                      <div class="w-4 h-4 rounded border-2 border-white/30 bg-white/5 hover:border-indigo-400 peer-checked:bg-indigo-600 peer-checked:border-indigo-500 flex items-center justify-center transition-all">
                         @if (isAllSelected()) {
                           <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><path d="M20 6L9 17l-5-5"/></svg>
                         }
@@ -347,7 +347,7 @@
                     <td>
                       <label class="flex items-center justify-center cursor-pointer" (click)="$event.stopPropagation()">
                         <input type="checkbox" [checked]="selectedIds().has(student.id!)" (change)="toggleSelection(student.id!)" class="sr-only peer">
-                        <div class="w-4 h-4 rounded border-2 border-white/15 bg-white/5 peer-checked:bg-indigo-600 peer-checked:border-indigo-500 flex items-center justify-center transition-all">
+                        <div class="w-4 h-4 rounded border-2 border-white/30 bg-white/5 hover:border-indigo-400 peer-checked:bg-indigo-600 peer-checked:border-indigo-500 flex items-center justify-center transition-all">
                           @if (selectedIds().has(student.id!)) {
                             <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><path d="M20 6L9 17l-5-5"/></svg>
                           }
@@ -383,7 +383,7 @@
 
                     <!-- Enrollment num -->
                     <td>
-                      <span class="text-[10px] font-black text-text-muted uppercase tracking-widest">
+                      <span class="text-xs font-mono font-bold text-slate-300 tracking-wider">
                         {{ student.enrollment_num || '—' }}
                       </span>
                     </td>
@@ -392,21 +392,21 @@
                     <td>
                       @if (student.level) {
                         <span class="table-pill indigo">{{ getLevelName(student.level) }}</span>
-                      } @else { <span class="text-text-muted">—</span> }
+                      } @else { <span class="text-slate-500 font-bold">—</span> }
                     </td>
 
                     <!-- Class -->
                     <td>
-                      @if (student.class?.name || student.class_id) {
-                        <span class="table-pill purple">{{ student.class?.name || getClassName(student.class_id) }}</span>
-                      } @else { <span class="text-text-muted">—</span> }
+                      @if (student.class?.name || student.class_name || student.class_id) {
+                        <span class="table-pill purple">{{ student.class?.name || student.class_name || getClassName(student.class_id) }}</span>
+                      } @else { <span class="text-slate-500 font-bold">—</span> }
                     </td>
 
                     <!-- Residence -->
                     <td>
                       @if (student.placed_residence_type) {
                         <span class="table-pill slate">{{ student.placed_residence_type }}</span>
-                      } @else { <span class="text-text-muted">—</span> }
+                      } @else { <span class="text-slate-500 font-bold">—</span> }
                     </td>
 
                     <!-- Status -->
@@ -415,11 +415,11 @@
                         <span class="w-1.5 h-1.5 rounded-full flex-shrink-0"
                           [class.bg-emerald-400]="student.status === 'active' || !student.status"
                           [class.bg-amber-400]="student.status && student.status !== 'active' && student.status !== 'graduated' && student.status !== 'withdrawn'"
-                          [class.bg-text-muted]="student.status === 'graduated' || student.status === 'withdrawn'"></span>
+                          [class.bg-slate-500]="student.status === 'graduated' || student.status === 'withdrawn'"></span>
                         <span class="text-[10px] font-black uppercase tracking-widest"
                           [class.text-emerald-400]="student.status === 'active' || !student.status"
                           [class.text-amber-400]="student.status && student.status !== 'active' && student.status !== 'graduated' && student.status !== 'withdrawn'"
-                          [class.text-text-muted]="student.status === 'graduated' || student.status === 'withdrawn'">
+                          [class.text-slate-400]="student.status === 'graduated' || student.status === 'withdrawn'">
                           {{ student.status || 'Active' }}
                         </span>
                       </div>
@@ -427,17 +427,17 @@
 
                     <!-- Actions -->
                     <td>
-                      <div class="flex items-center justify-end gap-1">
-                        <a [routerLink]="['/students/details', student.id]" class="table-action-btn" title="View">
+                      <div class="flex items-center justify-end gap-1.5">
+                        <a [routerLink]="['/students/details', student.id]" class="table-action-btn view" title="View Profile">
                           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                         </a>
-                        <button class="table-action-btn" [routerLink]="['/students/edit', student.id]" title="Edit">
+                        <button class="table-action-btn edit" [routerLink]="['/students/edit', student.id]" title="Edit Student">
                           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                         </button>
-                        <button class="table-action-btn" (click)="openDocumentModal(student)" title="Docs">
+                        <button class="table-action-btn docs" (click)="openDocumentModal(student)" title="Documents & Reports">
                           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
                         </button>
-                        <button class="table-action-btn text-rose-500/60 hover:text-rose-400 hover:bg-rose-500/10" (click)="deleteStudent(student.id!)" title="Delete">
+                        <button class="table-action-btn delete" (click)="deleteStudent(student.id!)" title="Delete Student">
                           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                         </button>
                       </div>

@@ -99,6 +99,7 @@ var TenantModels = []interface{}{
 	// Students
 	&domain.Student{},
 	&domain.Guardian{},
+	&domain.AbsenceRequest{},
 	&domain.AlumniProfile{},
 	&domain.StudentPortfolio{},
 	&domain.PortfolioAchievement{},

@@ -41,42 +41,56 @@ func RunTenantMigrations(db *gorm.DB, schemaName string) error {
 		return fmt.Errorf("failed to create schema %s: %w", schemaName, err)
 	}
 
-	// Create a new session to ensure search_path only affects this transaction/session
-	session := db.Session(&gorm.Session{})
-	
-	if err := session.Exec("SET search_path TO " + schemaName).Error; err != nil {
-		return fmt.Errorf("failed to set search path for %s: %w", schemaName, err)
-	}
+	// Run within a transaction so GORM pins a single connection,
+	// ensuring SET search_path strictly applies to all AutoMigrate operations.
+	return db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec("SET search_path TO " + schemaName).Error; err != nil {
+			return fmt.Errorf("failed to set search path for %s: %w", schemaName, err)
+		}
 
-	if err := session.AutoMigrate(TenantModels...); err != nil {
-		return fmt.Errorf("failed to auto migrate models for %s: %w", schemaName, err)
-	}
+		if err := tx.AutoMigrate(TenantModels...); err != nil {
+			return fmt.Errorf("failed to auto migrate models for %s: %w", schemaName, err)
+		}
 
-	// Reset search path
-	if err := session.Exec("SET search_path TO public").Error; err != nil {
-		return fmt.Errorf("failed to reset search path: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 func getTenantSchemas(db *gorm.DB) ([]string, error) {
-	// Ensure the tenants table exists before querying
+	schemaMap := make(map[string]bool)
+
+	// 1. From public.tenants table
 	var count int64
-	err := db.Table("information_schema.tables").
+	_ = db.Table("information_schema.tables").
 		Where("table_schema = ? AND table_name = ?", "public", "tenants").
 		Count(&count).Error
-	if err != nil {
-		return nil, err
-	}
-	if count == 0 {
-		return nil, nil // No tenants yet
+
+	if count > 0 {
+		var tenantSchemas []string
+		_ = db.Table("public.tenants").
+			Where("schema_name IS NOT NULL AND schema_name != ''").
+			Pluck("schema_name", &tenantSchemas).Error
+		for _, s := range tenantSchemas {
+			if s != "" {
+				schemaMap[s] = true
+			}
+		}
 	}
 
-	var schemas []string
-	err = db.Table("tenants").
-		Where("schema_name IS NOT NULL AND is_active = true").
-		Pluck("schema_name", &schemas).Error
+	// 2. Discover all tenant schemas directly from PostgreSQL (e.g. tenant_great, tenant_kwame)
+	var dbSchemas []string
+	_ = db.Raw("SELECT schema_name FROM information_schema.schemata WHERE schema_name LIKE 'tenant_%'").
+		Pluck("schema_name", &dbSchemas).Error
+	for _, s := range dbSchemas {
+		if s != "" {
+			schemaMap[s] = true
+		}
+	}
 
-	return schemas, err
+	schemas := make([]string, 0, len(schemaMap))
+	for s := range schemaMap {
+		schemas = append(schemas, s)
+	}
+
+	return schemas, nil
 }

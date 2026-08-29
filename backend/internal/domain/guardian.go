@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/user/high-school-management/backend/pkg/encryption"
@@ -21,6 +22,8 @@ type Guardian struct {
 	IsPrimary    bool                                    `json:"is_primary" gorm:"default:true"`
 	CanPickup    bool                                    `json:"can_pickup" gorm:"default:true"`
 	PickupCode   string                                  `json:"pickup_code" gorm:"type:varchar(20)"`
+	CreatedAt    time.Time                               `json:"created_at"`
+	UpdatedAt    time.Time                               `json:"updated_at"`
 	// Students linked to this guardian
 	Students []*Student `json:"students,omitempty" gorm:"many2many:student_guardians;"`
 }
