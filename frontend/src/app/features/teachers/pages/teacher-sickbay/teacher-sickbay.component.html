@@ -1,0 +1,138 @@
+<div class="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
+  <app-teacher-subnav></app-teacher-subnav>
+
+  <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-400 flex items-center justify-center text-xl">
+        <i class="fas fa-clinic-medical"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-black text-text-primary">Campus Infirmary & Sickbay Referrals</h1>
+        <p class="text-xs text-text-muted">Direct clinical handover tickets dispatched from classroom to health bay.</p>
+      </div>
+    </div>
+
+    @if (assignments().length > 0) {
+      <div class="flex items-center gap-3">
+        <label class="text-[10px] font-black uppercase text-text-muted">Class:</label>
+        <select [ngModel]="selectedAssignment()" (ngModelChange)="selectAssignment($event)"
+                class="px-4 py-2 bg-bg-tertiary border border-border-primary rounded-2xl text-xs font-bold text-text-primary focus:outline-none focus:border-rose-500">
+          @for (a of assignments(); track a.id) {
+            <option [ngValue]="a">{{ a.class?.name }} • {{ a.subject?.name || 'Subject' }}</option>
+          }
+        </select>
+      </div>
+    }
+  </header>
+
+  @if (assignments().length === 0) {
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-12 text-center space-y-3">
+      <div class="w-16 h-16 rounded-3xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-2xl mx-auto">
+        <i class="fas fa-clinic-medical"></i>
+      </div>
+      <h2 class="text-lg font-black text-text-primary">No Classes Assigned</h2>
+      <p class="text-xs text-text-muted max-w-md mx-auto">
+        Sickbay student referral tickets require assigned classrooms. Please contact your school administrator to assign your classes.
+      </p>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Create Referral -->
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 shadow-sm space-y-5">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-black text-text-primary">Issue Sickbay Ticket</h2>
+            <p class="text-xs text-text-muted">Disclose health symptoms for infirmary admission.</p>
+          </div>
+          <span class="px-3 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-xl text-[10px] font-black uppercase tracking-wider">
+            Clinical Handover
+          </span>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Student *</label>
+            <select [ngModel]="referralStudentId()" (ngModelChange)="referralStudentId.set($event)"
+                    class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary focus:outline-none focus:border-rose-500">
+              @for (st of students(); track st.id) {
+                <option [value]="st.id">{{ st.first_name }} {{ st.last_name }} ({{ st.admission_number || 'Enrolled' }})</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Clinical Severity *</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" (click)="referralSeverity.set('NORMAL')"
+                      class="py-2.5 rounded-xl text-xs font-black uppercase transition-all cursor-pointer border"
+                      [ngClass]="referralSeverity() === 'NORMAL' ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-bg-tertiary text-text-muted border-border-primary'">
+                Normal
+              </button>
+              <button type="button" (click)="referralSeverity.set('URGENT')"
+                      class="py-2.5 rounded-xl text-xs font-black uppercase transition-all cursor-pointer border"
+                      [ngClass]="referralSeverity() === 'URGENT' ? 'bg-amber-500 text-black border-amber-400' : 'bg-bg-tertiary text-text-muted border-border-primary'">
+                Urgent
+              </button>
+              <button type="button" (click)="referralSeverity.set('EMERGENCY')"
+                      class="py-2.5 rounded-xl text-xs font-black uppercase transition-all cursor-pointer border"
+                      [ngClass]="referralSeverity() === 'EMERGENCY' ? 'bg-rose-600 text-white border-rose-500' : 'bg-bg-tertiary text-text-muted border-border-primary'">
+                Emergency
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Observed Symptoms *</label>
+            <textarea [ngModel]="referralSymptoms()" (ngModelChange)="referralSymptoms.set($event)" rows="3"
+                      placeholder="e.g. Student complains of acute abdominal pain, nausea, and fever since 2nd period..."
+                      class="w-full px-4 py-3 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary resize-none focus:outline-none focus:border-rose-500"></textarea>
+          </div>
+
+          <button (click)="sendTicket()" [disabled]="isSubmitting()"
+                  class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-rose-600/20 cursor-pointer flex items-center justify-center gap-2">
+            <i class="fas fa-paper-plane"></i> Dispatch Referral Ticket to Sickbay
+          </button>
+        </div>
+      </div>
+
+      <!-- Referral Log -->
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 shadow-sm space-y-5">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-black text-text-primary">Clinical Admission History</h2>
+            <p class="text-xs text-text-muted">Tickets logged for this class.</p>
+          </div>
+          <span class="px-2.5 py-1 bg-bg-tertiary rounded-xl text-xs font-bold text-text-muted">
+            {{ referrals().length }} {{ referrals().length === 1 ? 'Ticket' : 'Tickets' }}
+          </span>
+        </div>
+
+        <div class="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
+          @for (ref of referrals(); track ref.id) {
+            <div class="p-5 bg-bg-tertiary border border-border-primary rounded-2xl space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border"
+                      [ngClass]="ref.severity === 'EMERGENCY' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : ref.severity === 'URGENT' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'">
+                  {{ ref.severity }}
+                </span>
+                <span class="text-[10px] text-text-muted">{{ ref.created_at | date:'mediumDate' }} • {{ ref.created_at | date:'shortTime' }}</span>
+              </div>
+              <div class="font-bold text-xs text-text-primary">{{ ref.symptoms }}</div>
+              <div class="flex items-center justify-between text-[10px] text-text-muted pt-1 border-t border-border-primary/50">
+                <span>Status: <strong class="text-text-primary">{{ ref.status }}</strong></span>
+                @if (ref.nurse_notes) {
+                  <span class="text-emerald-400 font-bold">Nurse Notes Added</span>
+                }
+              </div>
+            </div>
+          } @empty {
+            <div class="py-20 text-center text-text-muted border border-dashed border-border-primary rounded-2xl bg-bg-tertiary">
+              <i class="fas fa-heartbeat text-3xl opacity-20 block mb-2"></i>
+              <span class="text-xs font-bold">No sickbay referral tickets on record.</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

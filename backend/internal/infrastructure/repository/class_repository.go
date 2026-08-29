@@ -79,3 +79,18 @@ func (r *classRepository) IsLocked(ctx context.Context, classID uuid.UUID, term 
 	}
 	return lock.IsLocked, nil
 }
+
+func (r *classRepository) GetClassesForTeacher(ctx context.Context, userID uuid.UUID) ([]domain.Class, error) {
+	var classes []domain.Class
+	err := r.db.WithContext(ctx).
+		Distinct("classes.*").
+		Joins("LEFT JOIN teacher_class_assignments tca ON tca.class_id = classes.id").
+		Joins("LEFT JOIN teachers t ON (t.id = tca.teacher_id OR t.id = classes.teacher_id)").
+		Where("t.user_id = ?", userID).
+		Preload("ScholasticLevel").
+		Find(&classes).Error
+	if err != nil {
+		return nil, err
+	}
+	return classes, nil
+}

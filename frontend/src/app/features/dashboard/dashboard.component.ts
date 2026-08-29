@@ -53,17 +53,21 @@ export class DashboardComponent implements OnInit {
   ];
   defaultTeacherWidgets = [
     'teacher-portal',
-    'teacher-homework',
-    'teacher-cbt',
+    'teacher-timetable',
     'teacher-lessons',
     'teacher-seating',
+    'teacher-homework',
+    'teacher-cbt',
+    'teacher-cover',
+    'teacher-consultations',
+    'teacher-conduct',
     'teacher-sickbay',
-    'teacher-widgets',
+    'teacher-notices',
     'teacher-ai',
+    'teacher-hr',
     'student-registry',
     'attendance',
     'house-cup',
-    'teacher-hr',
     'daily-collection'
   ];
 

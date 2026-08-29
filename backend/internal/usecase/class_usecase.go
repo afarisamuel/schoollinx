@@ -27,6 +27,9 @@ func (u *classUseCase) GetAllClasses(ctx context.Context) ([]domain.Class, error
 	return u.classRepo.GetAll(ctx)
 }
 
+func (u *classUseCase) GetClassesForTeacher(ctx context.Context, userID uuid.UUID) ([]domain.Class, error) {
+	return u.classRepo.GetClassesForTeacher(ctx, userID)
+}
 
 func (u *classUseCase) UpdateClass(ctx context.Context, class *domain.Class) error {
 	return u.classRepo.Update(ctx, class)

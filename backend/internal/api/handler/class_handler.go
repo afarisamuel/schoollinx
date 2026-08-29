@@ -31,6 +31,24 @@ func NewClassHandler(r *gin.RouterGroup, cuc domain.ClassUseCase, cr domain.Clas
 }
 
 func (h *ClassHandler) ListClasses(c *gin.Context) {
+	role, exists := c.Get("role")
+	if exists && role == domain.RoleTeacher {
+		userIDVal, uExists := c.Get("userID")
+		if uExists {
+			userID := userIDVal.(uuid.UUID)
+			classes, err := h.classUseCase.GetClassesForTeacher(c.Request.Context(), userID)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			if classes == nil {
+				classes = []domain.Class{}
+			}
+			c.JSON(http.StatusOK, classes)
+			return
+		}
+	}
+
 	classes, err := h.classUseCase.GetAllClasses(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

@@ -56,12 +56,14 @@ type ClassRepository interface {
 	GetLocks(ctx context.Context, classID uuid.UUID) ([]ClassTermLock, error)
 	UpsertLock(ctx context.Context, lock *ClassTermLock) error
 	IsLocked(ctx context.Context, classID uuid.UUID, term string) (bool, error)
+	GetClassesForTeacher(ctx context.Context, userID uuid.UUID) ([]Class, error)
 }
 
 type ClassUseCase interface {
 	CreateClass(ctx context.Context, class *Class) error
 	GetClassByID(ctx context.Context, id uuid.UUID) (*Class, error)
 	GetAllClasses(ctx context.Context) ([]Class, error)
+	GetClassesForTeacher(ctx context.Context, userID uuid.UUID) ([]Class, error)
 	UpdateClass(ctx context.Context, class *Class) error
 	DeleteClass(ctx context.Context, id uuid.UUID) error
 }

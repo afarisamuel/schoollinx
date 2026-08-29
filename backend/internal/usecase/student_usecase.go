@@ -140,6 +140,10 @@ func (u *studentUseCase) GetAllStudentsPaginated(ctx context.Context, query doma
 	return u.studentRepo.GetAllPaginated(ctx, query)
 }
 
+func (u *studentUseCase) GetStudentsForTeacherPaginated(ctx context.Context, userID uuid.UUID, query domain.PaginationQuery) (int64, []domain.Student, error) {
+	return u.studentRepo.GetStudentsForTeacherPaginated(ctx, userID, query)
+}
+
 func (u *studentUseCase) UpdateStudent(ctx context.Context, student *domain.Student) error {
 	// Only process guardian changes if the payload includes guardian data.
 	if len(student.Guardians) > 0 {

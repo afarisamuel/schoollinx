@@ -86,6 +86,32 @@ func (r *studentRepository) GetAllPaginated(ctx context.Context, query domain.Pa
 	return count, students, nil
 }
 
+func (r *studentRepository) GetStudentsForTeacherPaginated(ctx context.Context, userID uuid.UUID, query domain.PaginationQuery) (int64, []domain.Student, error) {
+	var count int64
+	var students []domain.Student
+
+	db := r.db.WithContext(ctx).Model(&domain.Student{}).
+		Where("class_id IN (?)",
+			r.db.Table("classes").
+				Select("classes.id").
+				Joins("LEFT JOIN teacher_class_assignments tca ON tca.class_id = classes.id").
+				Joins("LEFT JOIN teachers t ON (t.id = tca.teacher_id OR t.id = classes.teacher_id)").
+				Where("t.user_id = ?", userID),
+		)
+
+	if err := db.Count(&count).Error; err != nil {
+		return 0, nil, err
+	}
+
+	if err := db.Preload("User").Preload("Class").Preload("Guardians").
+		Offset(query.GetOffset()).
+		Limit(query.Limit).
+		Find(&students).Error; err != nil {
+		return 0, nil, err
+	}
+	return count, students, nil
+}
+
 func (r *studentRepository) Update(ctx context.Context, student *domain.Student) error {
 	fields := map[string]interface{}{
 		"first_name":            student.FirstName,

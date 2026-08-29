@@ -1,0 +1,148 @@
+<div class="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
+  <app-teacher-subnav></app-teacher-subnav>
+
+  <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-400 flex items-center justify-center text-xl">
+        <i class="fas fa-clipboard-list"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-black text-text-primary">Classroom Behaviour & Conduct Log</h1>
+        <p class="text-xs text-text-muted">Record disciplinary merits and infractions directly synchronized to student records.</p>
+      </div>
+    </div>
+
+    @if (assignments().length > 0) {
+      <div class="flex items-center gap-3">
+        <label class="text-[10px] font-black uppercase text-text-muted">Class:</label>
+        <select [ngModel]="selectedAssignment()" (ngModelChange)="selectAssignment($event)"
+                class="px-4 py-2 bg-bg-tertiary border border-border-primary rounded-2xl text-xs font-bold text-text-primary focus:outline-none focus:border-orange-500">
+          @for (a of assignments(); track a.id) {
+            <option [ngValue]="a">{{ a.class?.name }} • {{ a.subject?.name || 'Subject' }}</option>
+          }
+        </select>
+      </div>
+    }
+  </header>
+
+  @if (assignments().length === 0) {
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-12 text-center space-y-3">
+      <div class="w-16 h-16 rounded-3xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-2xl mx-auto">
+        <i class="fas fa-clipboard-list"></i>
+      </div>
+      <h2 class="text-lg font-black text-text-primary">No Classes Assigned</h2>
+      <p class="text-xs text-text-muted max-w-md mx-auto">
+        Student conduct incident tracking requires assigned classrooms. Please contact your school administrator to assign your classes.
+      </p>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Create Incident -->
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 shadow-sm space-y-5">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-black text-text-primary">Log Conduct Record</h2>
+            <p class="text-xs text-text-muted">Record classroom behaviour note or commendable merit.</p>
+          </div>
+          <span class="px-3 py-1 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-xl text-[10px] font-black uppercase tracking-wider">
+            Conduct
+          </span>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Student *</label>
+            <select [ngModel]="selectedStudentId()" (ngModelChange)="selectedStudentId.set($event)"
+                    class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary focus:outline-none focus:border-orange-500">
+              @for (st of students(); track st.id) {
+                <option [value]="st.id">{{ st.first_name }} {{ st.last_name }} ({{ st.admission_number || 'Enrolled' }})</option>
+              }
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Incident Type</label>
+              <select [ngModel]="incidentType()" (ngModelChange)="incidentType.set($event)"
+                      class="w-full px-3.5 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary">
+                <option value="DISRUPTIVE_BEHAVIOUR">Disruptive Behaviour</option>
+                <option value="UNPREPARED_FOR_CLASS">Unprepared for Class</option>
+                <option value="CHRONIC_LATENESS">Chronic Lateness</option>
+                <option value="HOMEWORK_DEFICIT">Homework Deficit</option>
+                <option value="UNIFORM_VIOLATION">Uniform Violation</option>
+                <option value="OUTSTANDING_CITIZENSHIP">Outstanding Merit (+)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Action Taken</label>
+              <select [ngModel]="actionTaken()" (ngModelChange)="actionTaken.set($event)"
+                      class="w-full px-3.5 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary">
+                <option value="VERBAL_WARNING">Verbal Warning</option>
+                <option value="CLASSROOM_DETENTION">Classroom Detention</option>
+                <option value="PARENT_NOTIFICATION">Parent Notification</option>
+                <option value="HEAD_TEACHER_REFERRAL">Referred to Head Teacher</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Context & Description *</label>
+            <textarea [ngModel]="description()" (ngModelChange)="description.set($event)" rows="3"
+                      placeholder="Describe the incident or merit in detail..."
+                      class="w-full px-4 py-3 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary resize-none focus:outline-none focus:border-orange-500"></textarea>
+          </div>
+
+          <div class="flex items-center justify-between p-3 bg-bg-tertiary rounded-2xl border border-border-primary">
+            <span class="text-xs font-bold text-text-primary">Discipline / Demerit Points</span>
+            <div class="flex items-center gap-2">
+              <input type="number" min="0" max="50" [ngModel]="pointsDeducted()" (ngModelChange)="pointsDeducted.set($event)"
+                     class="w-16 px-2.5 py-1 bg-bg-secondary border border-border-primary rounded-xl text-xs font-bold text-center text-amber-400" />
+              <span class="text-[10px] text-text-muted font-bold">pts</span>
+            </div>
+          </div>
+
+          <button (click)="submitIncident()" [disabled]="isSubmitting()"
+                  class="w-full py-3 bg-orange-500 hover:bg-orange-400 text-black rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-500/20 cursor-pointer flex items-center justify-center gap-2">
+            <i class="fas fa-save"></i> Save Conduct Log
+          </button>
+        </div>
+      </div>
+
+      <!-- Recent Incidents -->
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 shadow-sm space-y-5">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-black text-text-primary">Classroom Conduct Log</h2>
+            <p class="text-xs text-text-muted">Recorded disciplinary history.</p>
+          </div>
+          <span class="px-2.5 py-1 bg-bg-tertiary rounded-xl text-xs font-bold text-text-muted">
+            {{ incidents().length }} {{ incidents().length === 1 ? 'Record' : 'Records' }}
+          </span>
+        </div>
+
+        <div class="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
+          @for (inc of incidents(); track inc.id) {
+            <div class="p-5 bg-bg-tertiary border border-border-primary rounded-2xl space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-lg text-[10px] font-black uppercase tracking-wider">
+                  {{ inc.incident_type }}
+                </span>
+                <span class="text-[10px] text-text-muted">{{ inc.incident_date | date:'mediumDate' }}</span>
+              </div>
+              <div class="font-bold text-xs text-text-primary">{{ inc.description }}</div>
+              <div class="flex items-center justify-between text-[10px] text-text-muted pt-1 border-t border-border-primary/50">
+                <span>Action: <strong class="text-text-primary">{{ inc.action_taken }}</strong></span>
+                <span class="text-amber-400 font-bold">-{{ inc.points_deducted }} pts</span>
+              </div>
+            </div>
+          } @empty {
+            <div class="py-20 text-center text-text-muted border border-dashed border-border-primary rounded-2xl bg-bg-tertiary">
+              <i class="fas fa-shield-alt text-3xl opacity-20 block mb-2"></i>
+              <span class="text-xs font-bold">No conduct incidents recorded for this class.</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

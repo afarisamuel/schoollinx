@@ -112,6 +112,7 @@ export class MainLayoutComponent implements OnInit {
     this.canGoBack.set(url !== '/dashboard' && url !== '/' && url !== '/parents' && url !== '/portal');
 
     if (url.includes('parents')) this.currentRouteTitle.set('Parent Portal');
+    else if (url.includes('teachers')) this.currentRouteTitle.set('Faculty Workspace');
     else if (url.includes('portal')) this.currentRouteTitle.set('Student Portal');
     else if (url.includes('dashboard')) this.currentRouteTitle.set('Institutional Dashboard');
     else if (url.includes('students')) this.currentRouteTitle.set('Student Registry');

@@ -1,0 +1,225 @@
+<div class="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
+  <app-teacher-subnav></app-teacher-subnav>
+
+  <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl">
+        <i class="fas fa-chair"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-black text-text-primary">2D Interactive Classroom Seating Chart</h1>
+        <p class="text-xs text-text-muted">Visual desk layout, rapid roll-call sweeper, and student micro-action hub.</p>
+      </div>
+    </div>
+
+    @if (assignments().length > 0) {
+      <div class="flex items-center gap-3">
+        <label class="text-[10px] font-black uppercase text-text-muted">Class:</label>
+        <select [ngModel]="selectedAssignment()" (ngModelChange)="selectAssignment($event)"
+                class="px-4 py-2 bg-bg-tertiary border border-border-primary rounded-2xl text-xs font-bold text-text-primary focus:outline-none focus:border-purple-500">
+          @for (a of assignments(); track a.id) {
+            <option [ngValue]="a">{{ a.class?.name }} • {{ a.subject?.name || 'Subject' }}</option>
+          }
+        </select>
+      </div>
+    }
+  </header>
+
+  @if (assignments().length === 0) {
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-12 text-center space-y-3">
+      <div class="w-16 h-16 rounded-3xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-2xl mx-auto">
+        <i class="fas fa-chair"></i>
+      </div>
+      <h2 class="text-lg font-black text-text-primary">No Classes Assigned</h2>
+      <p class="text-xs text-text-muted max-w-md mx-auto">
+        Classroom seating charts and roll-call tools require assigned classrooms. Please contact your school administrator to assign your classes.
+      </p>
+    </div>
+  } @else {
+    <!-- Controls & Roll-Call Bar -->
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Live Roll-Call:</span>
+        <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl text-xs font-black">
+          {{ attendanceSummary().present }} Present
+        </span>
+        <span class="px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl text-xs font-black">
+          {{ attendanceSummary().late }} Late
+        </span>
+        <span class="px-3 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-xl text-xs font-black">
+          {{ attendanceSummary().absent }} Absent
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button (click)="markAllPresent()"
+                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-sm">
+          <i class="fas fa-check-double"></i> Mark All Present
+        </button>
+        <button (click)="shuffleDesks()"
+                class="px-4 py-2 bg-bg-tertiary hover:bg-bg-primary text-text-primary rounded-xl text-xs font-bold border border-border-primary flex items-center gap-2 cursor-pointer">
+          <i class="fas fa-random"></i> Shuffle
+        </button>
+        <button (click)="saveLayout()"
+                class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-sm">
+          <i class="fas fa-save"></i> Save Arrangement
+        </button>
+      </div>
+    </div>
+
+    <!-- Classroom Seating Grid -->
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-black text-text-primary">Interactive Classroom Grid</h2>
+          <p class="text-xs text-text-muted">Desks facing the front chalkboard. Tap desks to adjust attendance or trigger micro-actions.</p>
+        </div>
+        <div class="px-6 py-2 bg-bg-tertiary border border-border-primary rounded-full text-xs font-black uppercase tracking-widest text-indigo-400 flex items-center gap-2">
+          <i class="fas fa-chalkboard"></i> Front / Teacher's Podium
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        @for (desk of seatingDesks(); track desk.desk) {
+          @let st = getStudentById(desk.studentId);
+          @let att = st ? quickAttendanceMap()[st.id] : null;
+
+          <div class="p-4 bg-bg-tertiary/80 border border-border-primary rounded-2xl relative transition-all hover:border-purple-500/40">
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2 py-0.5 bg-bg-secondary text-[9px] font-black uppercase tracking-wider rounded text-text-muted">
+                Desk #{{ desk.desk }}
+              </span>
+            </div>
+
+            @if (st) {
+              <div class="flex items-center gap-2.5 mb-3">
+                <div class="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-black text-sm shrink-0">
+                  {{ st.first_name[0] }}
+                </div>
+                <div class="min-w-0">
+                  <div class="font-black text-xs text-text-primary truncate">{{ st.first_name }} {{ st.last_name }}</div>
+                  <div class="text-[9px] text-text-muted truncate">{{ st.admission_number || 'Enrolled' }}</div>
+                </div>
+              </div>
+
+              <!-- Roll-Call Selector -->
+              <div class="grid grid-cols-4 gap-1 p-1 bg-bg-secondary rounded-xl border border-border-primary">
+                <button (click)="setAttendanceStatus(st.id, 'PRESENT')"
+                        class="py-1 text-[9px] font-black rounded transition-all cursor-pointer"
+                        [ngClass]="att === 'PRESENT' ? 'bg-emerald-500 text-black' : 'text-text-muted hover:text-text-primary'">P</button>
+                <button (click)="setAttendanceStatus(st.id, 'LATE')"
+                        class="py-1 text-[9px] font-black rounded transition-all cursor-pointer"
+                        [ngClass]="att === 'LATE' ? 'bg-amber-500 text-black' : 'text-text-muted hover:text-text-primary'">L</button>
+                <button (click)="setAttendanceStatus(st.id, 'EXCUSED')"
+                        class="py-1 text-[9px] font-black rounded transition-all cursor-pointer"
+                        [ngClass]="att === 'EXCUSED' ? 'bg-indigo-500 text-white' : 'text-text-muted hover:text-text-primary'">E</button>
+                <button (click)="setAttendanceStatus(st.id, 'ABSENT')"
+                        class="py-1 text-[9px] font-black rounded transition-all cursor-pointer"
+                        [ngClass]="att === 'ABSENT' ? 'bg-rose-500 text-white' : 'text-text-muted hover:text-text-primary'">A</button>
+              </div>
+
+              <!-- Micro-Actions -->
+              <div class="mt-2 flex items-center justify-between gap-1.5 pt-1.5 border-t border-border-primary/50">
+                <button (click)="openSickbayModal(st)" title="Sickbay Ticket"
+                        class="flex-1 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg text-[9px] font-bold flex items-center justify-center gap-1 cursor-pointer">
+                  <i class="fas fa-clinic-medical text-[8px]"></i> Sickbay
+                </button>
+                <button (click)="openConductModal(st)" title="Log Conduct Note"
+                        class="flex-1 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 rounded-lg text-[9px] font-bold flex items-center justify-center gap-1 cursor-pointer">
+                  <i class="fas fa-clipboard-list text-[8px]"></i> Conduct
+                </button>
+              </div>
+            } @else {
+              <div class="py-7 text-center text-text-muted">
+                <i class="fas fa-chair text-xl opacity-30 block mb-1"></i>
+                <span class="text-[10px] font-bold">Unoccupied</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Conduct Modal -->
+  @if (conductStudent()) {
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl w-full max-w-lg shadow-2xl p-6 md:p-8 space-y-5">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-black text-text-primary">Log Conduct Note</h3>
+          <button (click)="conductStudent.set(null)" class="text-text-muted hover:text-text-primary cursor-pointer"><i class="fas fa-times"></i></button>
+        </div>
+        <p class="text-xs text-text-muted">Student: <strong>{{ conductStudent().first_name }} {{ conductStudent().last_name }}</strong></p>
+
+        <div class="space-y-3">
+          <div>
+            <label class="text-[10px] font-black uppercase text-text-muted block mb-1">Incident Type</label>
+            <select [ngModel]="incidentType()" (ngModelChange)="incidentType.set($event)"
+                    class="w-full px-3.5 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary">
+              <option value="DISRUPTIVE_BEHAVIOUR">Disruptive Behaviour</option>
+              <option value="UNPREPARED_FOR_CLASS">Unprepared for Class</option>
+              <option value="CHRONIC_LATENESS">Lateness</option>
+              <option value="OUTSTANDING_CITIZENSHIP">Outstanding Merit (+)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] font-black uppercase text-text-muted block mb-1">Action Taken</label>
+            <select [ngModel]="incidentAction()" (ngModelChange)="incidentAction.set($event)"
+                    class="w-full px-3.5 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary">
+              <option value="VERBAL_WARNING">Verbal Warning</option>
+              <option value="CLASSROOM_DETENTION">Detention</option>
+              <option value="PARENT_NOTIFICATION">Parent Notified</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] font-black uppercase text-text-muted block mb-1">Description *</label>
+            <textarea [ngModel]="incidentDesc()" (ngModelChange)="incidentDesc.set($event)" rows="3"
+                      placeholder="Describe what occurred..."
+                      class="w-full px-4 py-3 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary resize-none"></textarea>
+          </div>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button (click)="conductStudent.set(null)" class="flex-1 py-2.5 rounded-xl border border-border-primary text-text-muted text-xs font-bold">Cancel</button>
+          <button (click)="submitConductIncident()" [disabled]="isReportingIncident()" class="flex-1 py-2.5 bg-amber-500 text-black rounded-xl text-xs font-black uppercase">Save Incident</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Sickbay Modal -->
+  @if (sickbayStudent()) {
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl w-full max-w-lg shadow-2xl p-6 md:p-8 space-y-5">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-black text-text-primary">Disclose Sickbay Ticket</h3>
+          <button (click)="sickbayStudent.set(null)" class="text-text-muted hover:text-text-primary cursor-pointer"><i class="fas fa-times"></i></button>
+        </div>
+        <p class="text-xs text-text-muted">Student: <strong>{{ sickbayStudent().first_name }} {{ sickbayStudent().last_name }}</strong></p>
+
+        <div class="space-y-3">
+          <div>
+            <label class="text-[10px] font-black uppercase text-text-muted block mb-1">Severity</label>
+            <select [ngModel]="sickbaySeverity()" (ngModelChange)="sickbaySeverity.set($event)"
+                    class="w-full px-3.5 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary">
+              <option value="NORMAL">Normal / Observation</option>
+              <option value="URGENT">Urgent Care Required</option>
+              <option value="EMERGENCY">Emergency Critical</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] font-black uppercase text-text-muted block mb-1">Observed Symptoms *</label>
+            <textarea [ngModel]="sickbaySymptoms()" (ngModelChange)="sickbaySymptoms.set($event)" rows="3"
+                      placeholder="e.g. High fever, acute stomach pain, dizziness..."
+                      class="w-full px-4 py-3 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary resize-none"></textarea>
+          </div>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button (click)="sickbayStudent.set(null)" class="flex-1 py-2.5 rounded-xl border border-border-primary text-text-muted text-xs font-bold">Cancel</button>
+          <button (click)="submitSickbay()" [disabled]="isSendingSickbay()" class="flex-1 py-2.5 bg-rose-500 text-white rounded-xl text-xs font-black uppercase">Send to Nurse</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

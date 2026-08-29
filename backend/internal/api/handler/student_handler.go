@@ -145,6 +145,26 @@ func (h *StudentHandler) GetTimeline(c *gin.Context) {
 
 func (h *StudentHandler) GetAll(c *gin.Context) {
 	query := domain.ParsePagination(c)
+
+	role, exists := c.Get("role")
+	if exists && role == domain.RoleTeacher {
+		userIDVal, uExists := c.Get("userID")
+		if uExists {
+			userID := userIDVal.(uuid.UUID)
+			totalCount, students, err := h.studentUseCase.GetStudentsForTeacherPaginated(c.Request.Context(), userID, query)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			if students == nil {
+				students = []domain.Student{}
+			}
+			response := domain.NewPaginatedResponse(students, totalCount, query)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+	}
+
 	totalCount, students, err := h.studentUseCase.GetAllStudentsPaginated(c.Request.Context(), query)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

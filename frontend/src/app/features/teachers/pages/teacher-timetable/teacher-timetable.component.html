@@ -1,0 +1,66 @@
+<div class="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
+  <app-teacher-subnav></app-teacher-subnav>
+
+  <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl">
+        <i class="fas fa-calendar-alt"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-black text-text-primary">Master Teaching Schedule</h1>
+        <p class="text-xs text-text-muted">Weekly timetable matrix and period breakdown across all assigned classrooms.</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button (click)="loadData()" class="px-4 py-2 bg-bg-tertiary hover:bg-bg-primary text-text-primary rounded-xl text-xs font-bold border border-border-primary flex items-center gap-2 cursor-pointer">
+        <i class="fas fa-sync-alt" [class.fa-spin]="isLoading()"></i> Refresh
+      </button>
+      <button onclick="window.print()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-md shadow-indigo-600/20">
+        <i class="fas fa-print"></i> Print Schedule
+      </button>
+    </div>
+  </header>
+
+  @if (isLoading()) {
+    <div class="py-20 flex justify-center items-center text-indigo-500">
+      <i class="fas fa-spinner fa-spin text-3xl"></i>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+      @for (day of daysOfWeek; track day.id) {
+        @let entries = getEntriesForDay(day.id);
+
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-4 md:p-5 flex flex-col min-h-[380px]">
+          <div class="flex items-center justify-between pb-3 border-b border-border-primary mb-4">
+            <span class="text-xs font-black uppercase tracking-wider text-text-primary">{{ day.name }}</span>
+            <span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded-full text-[10px] font-black">
+              {{ entries.length }} {{ entries.length === 1 ? 'Period' : 'Periods' }}
+            </span>
+          </div>
+
+          <div class="space-y-3 flex-1">
+            @for (entry of entries; track entry.id) {
+              <div class="p-3.5 bg-bg-tertiary/70 border border-border-primary rounded-2xl space-y-2 transition-all hover:border-blue-500/40">
+                <div class="flex items-center justify-between text-[10px] font-black text-text-muted">
+                  <span class="text-blue-400">Period {{ entry.period_number }}</span>
+                  <span>{{ entry.start_time }} - {{ entry.end_time }}</span>
+                </div>
+                <div class="font-black text-xs text-text-primary">{{ entry.subject?.name || 'Class Session' }}</div>
+                <div class="flex items-center justify-between text-[10px] text-text-muted">
+                  <span class="flex items-center gap-1"><i class="fas fa-users text-[8px]"></i> {{ entry.class?.name || 'Assigned' }}</span>
+                  <span class="flex items-center gap-1"><i class="fas fa-map-marker-alt text-[8px]"></i> {{ entry.room || 'Room' }}</span>
+                </div>
+              </div>
+            } @empty {
+              <div class="py-16 text-center text-text-muted border border-dashed border-border-primary/50 rounded-2xl bg-bg-tertiary/30 my-auto">
+                <i class="fas fa-mug-hot text-2xl opacity-20 block mb-2"></i>
+                <span class="text-[11px] font-bold">No Teaching Periods</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
