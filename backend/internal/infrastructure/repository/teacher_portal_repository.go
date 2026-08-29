@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -112,4 +113,28 @@ func (r *teacherPortalRepository) GetClassResources(ctx context.Context, classID
 	var res []domain.TeacherResource
 	err := r.db.WithContext(ctx).Where("class_id = ?", classID).Order("created_at DESC").Find(&res).Error
 	return res, err
+}
+
+// Teacher Cover Requests (Feature 37)
+func (r *teacherPortalRepository) CreateCoverRequest(ctx context.Context, req *domain.TeacherCoverRequest) error {
+	if req.ID == uuid.Nil {
+		req.ID = uuid.New()
+	}
+	return r.db.WithContext(ctx).Create(req).Error
+}
+
+func (r *teacherPortalRepository) GetCoverRequests(ctx context.Context) ([]domain.TeacherCoverRequest, error) {
+	var requests []domain.TeacherCoverRequest
+	err := r.db.WithContext(ctx).Order("cover_date ASC, period_number ASC").Find(&requests).Error
+	return requests, err
+}
+
+func (r *teacherPortalRepository) ClaimCoverRequest(ctx context.Context, id, coverTeacherID uuid.UUID) error {
+	return r.db.WithContext(ctx).Model(&domain.TeacherCoverRequest{}).
+		Where("id = ? AND status = 'REQUESTED'", id).
+		Updates(map[string]interface{}{
+			"cover_teacher_id": coverTeacherID,
+			"status":           "CLAIMED",
+			"updated_at":       time.Now(),
+		}).Error
 }

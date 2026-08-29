@@ -119,4 +119,7 @@ type TeacherPortalUseCase interface {
 	GetClassReferrals(ctx context.Context, classID uuid.UUID) ([]SickbayReferral, error)
 	CreateResource(ctx context.Context, res *TeacherResource) error
 	GetClassResources(ctx context.Context, classID uuid.UUID) ([]TeacherResource, error)
+	CreateCoverRequest(ctx context.Context, req *TeacherCoverRequest) error
+	GetCoverRequests(ctx context.Context) ([]TeacherCoverRequest, error)
+	ClaimCoverRequest(ctx context.Context, id, coverTeacherID uuid.UUID) error
 }

@@ -127,6 +127,11 @@
                     [ngClass]="activeTab() === 'timetable' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20' : 'bg-bg-secondary text-text-muted hover:text-text-primary border border-border-primary'">
                 <i class="fas fa-calendar-alt text-xs text-blue-400"></i> Timetable
             </button>
+            <button (click)="activeTab.set('cover-board'); loadCoverRequests()"
+                    class="px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shrink-0"
+                    [ngClass]="activeTab() === 'cover-board' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20' : 'bg-bg-secondary text-text-muted hover:text-text-primary border border-border-primary'">
+                <i class="fas fa-people-arrows text-xs text-amber-400"></i> Cover Board
+            </button>
             <button (click)="activeTab.set('consultations'); loadConsultations()"
                     class="px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shrink-0"
                     [ngClass]="activeTab() === 'consultations' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20' : 'bg-bg-secondary text-text-muted hover:text-text-primary border border-border-primary'">
@@ -346,6 +351,18 @@
                                         <button (click)="setAttendanceStatus(st.id, 'ABSENT')"
                                                 class="py-1 text-[9px] font-black rounded transition-all cursor-pointer"
                                                 [ngClass]="att === 'ABSENT' ? 'bg-rose-500 text-white' : 'text-text-muted hover:text-text-primary'">A</button>
+                                    </div>
+
+                                    <!-- Desk Micro-Actions: Sickbay & Conduct -->
+                                    <div class="mt-2 flex items-center justify-between gap-1.5 pt-1.5 border-t border-border-primary/50">
+                                        <button (click)="openSickbayModal(st)" title="Sickbay Referral Ticket"
+                                                class="flex-1 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg text-[9px] font-bold flex items-center justify-center gap-1 cursor-pointer">
+                                            <i class="fas fa-clinic-medical text-[8px]"></i> Sickbay
+                                        </button>
+                                        <button (click)="openConductModal(st)" title="Log Conduct Incident"
+                                                class="flex-1 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 rounded-lg text-[9px] font-bold flex items-center justify-center gap-1 cursor-pointer">
+                                            <i class="fas fa-clipboard-list text-[8px]"></i> Conduct
+                                        </button>
                                     </div>
                                 } @else {
                                     <div class="py-6 text-center text-text-muted">
@@ -652,6 +669,110 @@
                             </div>
                         </div>
                     }
+                </div>
+            </div>
+        }
+
+        <!-- ── TAB: TEACHER SUBSTITUTION & COVER BOARD (Feature 37) ── -->
+        @if (activeTab() === 'cover-board') {
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Request Period Cover Form -->
+                <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 shadow-xl space-y-5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-black text-text-primary">Request Period Cover</h3>
+                            <p class="text-xs text-text-muted">Post a substitution cover request when you are absent or attending an official engagement.</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-lg">
+                            <i class="fas fa-hand-holding-heart"></i>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Date of Absence *</label>
+                                <input type="date" [ngModel]="newCoverDate()" (ngModelChange)="newCoverDate.set($event)"
+                                       class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary focus:outline-none focus:border-indigo-500" />
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Period Number *</label>
+                                <input type="number" min="1" max="10" [ngModel]="newCoverPeriod()" (ngModelChange)="newCoverPeriod.set($event)"
+                                       class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Reason for Absence *</label>
+                            <input type="text" [ngModel]="newCoverReason()" (ngModelChange)="newCoverReason.set($event)"
+                                   placeholder="e.g. Official WAEC marking conference, medical appointment"
+                                   class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary focus:outline-none focus:border-indigo-500" />
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Lesson / Handover Notes for Covering Teacher *</label>
+                            <textarea [ngModel]="newCoverHandover()" (ngModelChange)="newCoverHandover.set($event)" rows="3"
+                                      placeholder="Specify classwork to be set (e.g. Core Math Workbook Page 45, exercises 1-10 to be supervised)..."
+                                      class="w-full px-4 py-3 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary resize-none focus:outline-none focus:border-indigo-500"></textarea>
+                        </div>
+
+                        <button (click)="submitCoverRequest()" [disabled]="isSubmittingCover()"
+                                class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-black rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-amber-500/20 cursor-pointer flex items-center justify-center gap-2">
+                            <i class="fas fa-paper-plane"></i> Post Cover Request to Faculty Board
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Faculty Cover Board Stream -->
+                <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 shadow-xl space-y-5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-black text-text-primary">Faculty Cover Board</h3>
+                            <p class="text-xs text-text-muted">Open substitution requests from fellow educators looking for period relief.</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-lg">
+                            <i class="fas fa-users-cog"></i>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
+                        @for (req of coverRequests(); track req.id) {
+                            <div class="p-5 bg-bg-tertiary border border-border-primary rounded-2xl space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-lg text-[10px] font-black uppercase tracking-wider">
+                                            Period {{ req.period_number }} • {{ req.cover_date | date:'mediumDate' }}
+                                        </span>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border"
+                                          [ngClass]="req.status === 'CLAIMED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'">
+                                        {{ req.status }}
+                                    </span>
+                                </div>
+
+                                <div>
+                                    <h4 class="font-bold text-xs text-text-primary">{{ req.reason }}</h4>
+                                    @if (req.handover_notes) {
+                                        <p class="text-[11px] text-text-muted mt-1 bg-bg-secondary p-2 rounded-xl border border-border-primary/50">
+                                            <strong class="text-text-primary">Handover:</strong> {{ req.handover_notes }}
+                                        </p>
+                                    }
+                                </div>
+
+                                @if (req.status === 'REQUESTED' && req.requester_id !== teacher()?.id) {
+                                    <button (click)="claimCover(req)"
+                                            class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow cursor-pointer flex items-center justify-center gap-1.5">
+                                        <i class="fas fa-check-circle"></i> Volunteer to Cover This Period
+                                    </button>
+                                }
+                            </div>
+                        } @empty {
+                            <div class="py-16 text-center text-text-muted border border-dashed border-border-primary rounded-2xl bg-bg-tertiary">
+                                <i class="fas fa-calendar-check text-3xl opacity-20 block mb-2"></i>
+                                <span class="text-xs font-bold">No substitution requests currently posted.</span>
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
         }
@@ -1245,6 +1366,83 @@
                     <button class="px-6 py-2.5 rounded-xl border border-border-primary text-text-primary text-xs font-bold hover:bg-bg-secondary transition-colors" (click)="closeEvaluation()">Cancel</button>
                     <button class="px-6 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-black rounded-xl shadow-md transition-colors" (click)="saveEvaluation()" [disabled]="isEvalSaving() || isEvalLoading()">
                         {{ isEvalSaving() ? 'Saving...' : 'Save Evaluation' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- ── STUDENT CONDUCT INCIDENT MODAL (Feature 19) ── -->
+    @if (conductStudent()) {
+        <div class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div class="bg-bg-secondary border border-border-primary rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden space-y-6 p-6 md:p-8">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-lg">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-black text-text-primary">Log Conduct Incident</h3>
+                            <p class="text-xs text-text-muted">{{ conductStudent()?.first_name }} {{ conductStudent()?.last_name }} ({{ conductStudent()?.admission_number || 'Enrolled' }})</p>
+                        </div>
+                    </div>
+                    <button (click)="closeConductModal()" class="w-8 h-8 rounded-full bg-bg-tertiary text-text-muted hover:text-text-primary flex items-center justify-center cursor-pointer">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Incident Type</label>
+                            <select [ngModel]="incidentType()" (ngModelChange)="incidentType.set($event)"
+                                    class="w-full px-3.5 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary focus:outline-none focus:border-amber-500">
+                                <option value="DISRUPTIVE_BEHAVIOUR">Disruptive Behaviour</option>
+                                <option value="UNPREPARED_FOR_CLASS">Unprepared / Missing Materials</option>
+                                <option value="CHRONIC_LATENESS">Chronic Lateness</option>
+                                <option value="HOMEWORK_DEFICIT">Homework Deficit</option>
+                                <option value="UNIFORM_VIOLATION">Uniform Violation</option>
+                                <option value="ACADEMIC_DISHONESTY">Academic Dishonesty</option>
+                                <option value="OUTSTANDING_CITIZENSHIP">Outstanding Citizenship (Merit)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Action Taken</label>
+                            <select [ngModel]="incidentAction()" (ngModelChange)="incidentAction.set($event)"
+                                    class="w-full px-3.5 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary focus:outline-none focus:border-amber-500">
+                                <option value="VERBAL_WARNING">Verbal Warning</option>
+                                <option value="CLASSROOM_DETENTION">Classroom Detention</option>
+                                <option value="PARENT_NOTIFICATION">Guardian Notified</option>
+                                <option value="HEAD_TEACHER_REFERRAL">Referred to Head Teacher</option>
+                                <option value="COUNSELOR_REFERRAL">Referred to School Counselor</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Incident Description & Context *</label>
+                        <textarea [ngModel]="incidentDesc()" (ngModelChange)="incidentDesc.set($event)" rows="3"
+                                  placeholder="Describe the behavioral incident or merit in detail..."
+                                  class="w-full px-4 py-3 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary resize-none focus:outline-none focus:border-amber-500"></textarea>
+                    </div>
+
+                    <div class="flex items-center justify-between p-3 bg-bg-tertiary rounded-2xl border border-border-primary">
+                        <span class="text-xs font-bold text-text-primary">Discipline / Demerit Points</span>
+                        <div class="flex items-center gap-2">
+                            <input type="number" min="0" max="50" [ngModel]="incidentPoints()" (ngModelChange)="incidentPoints.set($event)"
+                                   class="w-16 px-2.5 py-1 bg-bg-secondary border border-border-primary rounded-xl text-xs font-bold text-center text-amber-400" />
+                            <span class="text-[10px] text-text-muted font-bold">pts</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 pt-2">
+                    <button (click)="closeConductModal()" class="flex-1 py-3 rounded-2xl border border-border-primary text-text-muted hover:text-text-primary text-xs font-bold transition-all cursor-pointer">
+                        Cancel
+                    </button>
+                    <button (click)="submitConductIncident()" [disabled]="isReportingIncident()"
+                            class="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-black rounded-2xl text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-amber-500/20 cursor-pointer flex items-center justify-center gap-2">
+                        <i class="fas fa-save"></i> Save Conduct Log
                     </button>
                 </div>
             </div>

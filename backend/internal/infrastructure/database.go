@@ -231,6 +231,7 @@ var TenantModels = []interface{}{
 	&domain.RubricCriterion{},
 	&domain.SickbayReferral{},
 	&domain.TeacherResource{},
+	&domain.TeacherCoverRequest{},
 	// Visitors & security
 	&domain.VisitorLog{},
 	&domain.ScanEvent{},

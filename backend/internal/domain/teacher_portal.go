@@ -93,6 +93,23 @@ type TeacherResource struct {
 	CreatedAt   time.Time  `json:"created_at"`
 }
 
+// TeacherCoverRequest represents a substitution cover request (Feature 37)
+type TeacherCoverRequest struct {
+	TenantBase
+	ID             uuid.UUID  `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	RequesterID    uuid.UUID  `json:"requester_id" gorm:"type:uuid;not null;index"`
+	CoverTeacherID *uuid.UUID `json:"cover_teacher_id,omitempty" gorm:"type:uuid;index"`
+	ClassID        uuid.UUID  `json:"class_id" gorm:"type:uuid;not null;index"`
+	SubjectID      uuid.UUID  `json:"subject_id" gorm:"type:uuid;not null;index"`
+	CoverDate      time.Time  `json:"cover_date" gorm:"not null"`
+	PeriodNumber   int        `json:"period_number" gorm:"not null"`
+	Reason         string     `json:"reason" gorm:"type:text"`
+	HandoverNotes  string     `json:"handover_notes" gorm:"type:text"`
+	Status         string     `json:"status" gorm:"default:'REQUESTED'"` // REQUESTED, CLAIMED, COMPLETED
+	CreatedAt      time.Time  `json:"created_at"`
+	UpdatedAt      time.Time  `json:"updated_at"`
+}
+
 type TeacherPortalRepository interface {
 	// Seating Charts
 	GetSeatingChart(ctx context.Context, classID uuid.UUID) (*SeatingChart, error)
@@ -114,4 +131,9 @@ type TeacherPortalRepository interface {
 	// Teacher Resources
 	CreateResource(ctx context.Context, res *TeacherResource) error
 	GetClassResources(ctx context.Context, classID uuid.UUID) ([]TeacherResource, error)
+
+	// Teacher Substitution / Cover Requests (Feature 37)
+	CreateCoverRequest(ctx context.Context, req *TeacherCoverRequest) error
+	GetCoverRequests(ctx context.Context) ([]TeacherCoverRequest, error)
+	ClaimCoverRequest(ctx context.Context, id, coverTeacherID uuid.UUID) error
 }

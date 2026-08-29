@@ -276,3 +276,15 @@ func (u *teacherPortalUseCase) CreateResource(ctx context.Context, res *domain.T
 func (u *teacherPortalUseCase) GetClassResources(ctx context.Context, classID uuid.UUID) ([]domain.TeacherResource, error) {
 	return u.portalRepo.GetClassResources(ctx, classID)
 }
+
+func (u *teacherPortalUseCase) CreateCoverRequest(ctx context.Context, req *domain.TeacherCoverRequest) error {
+	return u.portalRepo.CreateCoverRequest(ctx, req)
+}
+
+func (u *teacherPortalUseCase) GetCoverRequests(ctx context.Context) ([]domain.TeacherCoverRequest, error) {
+	return u.portalRepo.GetCoverRequests(ctx)
+}
+
+func (u *teacherPortalUseCase) ClaimCoverRequest(ctx context.Context, id, coverTeacherID uuid.UUID) error {
+	return u.portalRepo.ClaimCoverRequest(ctx, id, coverTeacherID)
+}

@@ -173,6 +173,19 @@ export class TeacherPortalService {
     getTeacherTimetable(teacherId: string): Observable<any[]> {
         return this.http.get<any[]>(`/api/timetable/teacher/${teacherId}`);
     }
+
+    // Teacher Cover / Substitution (Feature 37)
+    getCoverRequests(): Observable<any[]> {
+        return this.http.get<any[]>('/api/teacher-portal/cover-requests');
+    }
+
+    createCoverRequest(payload: any): Observable<any> {
+        return this.http.post<any>('/api/teacher-portal/cover-requests', payload);
+    }
+
+    claimCoverRequest(id: string, coverTeacherId: string): Observable<any> {
+        return this.http.put<any>(`/api/teacher-portal/cover-requests/${id}/claim`, { cover_teacher_id: coverTeacherId });
+    }
 }
 
 @Injectable({ providedIn: 'root' })

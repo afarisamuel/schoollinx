@@ -57,6 +57,11 @@ func NewTeacherPortalHandler(
 	portal.GET("/my-classes/:class_id/sickbay-referrals", h.GetClassReferrals)
 	portal.GET("/my-classes/:class_id/resources", h.GetClassResources)
 	portal.POST("/my-classes/:class_id/resources", h.CreateResource)
+
+	// Teacher Substitution / Cover Requests (Feature 37)
+	portal.GET("/cover-requests", h.GetCoverRequests)
+	portal.POST("/cover-requests", h.CreateCoverRequest)
+	portal.PUT("/cover-requests/:id/claim", h.ClaimCoverRequest)
 }
 
 // GetMyClasses returns all classes the currently logged-in teacher is assigned to teach.
@@ -546,4 +551,59 @@ func (h *TeacherAssignmentHandler) Unassign(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "assignment removed"})
+}
+
+// Teacher Cover Requests (Feature 37)
+func (h *TeacherPortalHandler) CreateCoverRequest(c *gin.Context) {
+	var req domain.TeacherCoverRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	if err := h.portalUseCase.CreateCoverRequest(c.Request.Context(), &req); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create cover request"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, req)
+}
+
+func (h *TeacherPortalHandler) GetCoverRequests(c *gin.Context) {
+	requests, err := h.portalUseCase.GetCoverRequests(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch cover requests"})
+		return
+	}
+
+	c.JSON(http.StatusOK, requests)
+}
+
+func (h *TeacherPortalHandler) ClaimCoverRequest(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid cover request ID"})
+		return
+	}
+
+	var body struct {
+		CoverTeacherID string `json:"cover_teacher_id"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cover teacher ID required"})
+		return
+	}
+
+	coverTeacherID, err := uuid.Parse(body.CoverTeacherID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
+		return
+	}
+
+	if err := h.portalUseCase.ClaimCoverRequest(c.Request.Context(), id, coverTeacherID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to claim cover request"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "CLAIMED"})
 }

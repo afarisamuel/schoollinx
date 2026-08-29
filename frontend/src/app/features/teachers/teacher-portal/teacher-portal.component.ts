@@ -9,6 +9,7 @@ import {
 } from '../../../core/infrastructure/teacher/teacher-portal.service';
 import { ClassService } from '../../../core/infrastructure/curriculum/class.service';
 import { AcademicPeriodService } from '../../../core/infrastructure/academic-period/academic-period.service';
+import { CampusOpsService } from '../../../core/infrastructure/campus-ops/campus-ops.service';
 import { ToastService } from '../../../shared/ui/toast/toast.service';
 
 @Component({
@@ -23,6 +24,7 @@ export class TeacherPortalComponent implements OnInit {
     private classService = inject(ClassService);
     private idbService = inject(IdbService);
     private periodService = inject(AcademicPeriodService);
+    private campusOps = inject(CampusOpsService);
     public toast = inject(ToastService);
 
     teacher = signal<any>(null);
@@ -62,7 +64,7 @@ export class TeacherPortalComponent implements OnInit {
     columnCount = signal(3);
 
     // Classroom Mastery Suite (Phase 1-5)
-    activeTab = signal<'gradebook' | 'seating' | 'lessons' | 'resources' | 'sickbay' | 'widgets' | 'timetable' | 'consultations' | 'notices' | 'ai-copilot' | 'hr-vault'>('gradebook');
+    activeTab = signal<'gradebook' | 'seating' | 'lessons' | 'resources' | 'sickbay' | 'widgets' | 'timetable' | 'cover-board' | 'consultations' | 'notices' | 'ai-copilot' | 'hr-vault'>('gradebook');
 
     // Seating Chart (Feature 2)
     seatingRows = signal(4);
@@ -149,6 +151,22 @@ export class TeacherPortalComponent implements OnInit {
         { id: 4, name: 'Thursday' },
         { id: 5, name: 'Friday' }
     ];
+
+    // Teacher Cover / Substitution Board (Feature 37)
+    coverRequests = signal<any[]>([]);
+    newCoverDate = signal(new Date().toISOString().slice(0, 10));
+    newCoverPeriod = signal(1);
+    newCoverReason = signal('');
+    newCoverHandover = signal('');
+    isSubmittingCover = signal(false);
+
+    // Student Conduct Incident Modal (Feature 19)
+    conductStudent = signal<any>(null);
+    incidentType = signal('DISRUPTIVE_BEHAVIOUR');
+    incidentDesc = signal('');
+    incidentAction = signal('VERBAL_WARNING');
+    incidentPoints = signal(5);
+    isReportingIncident = signal(false);
 
     // Phase 19: Term Locks & Export
     isTermLocked = signal(false);
@@ -767,6 +785,15 @@ export class TeacherPortalComponent implements OnInit {
         });
     }
 
+    openSickbayModal(student?: any) {
+        if (student?.id) {
+            this.referralStudentId.set(student.id);
+        }
+        this.referralSymptoms.set('');
+        this.referralSeverity.set('NORMAL');
+        this.isSickbayModalOpen.set(true);
+    }
+
     sendSickbayTicket() {
         if (!this.referralStudentId() || !this.referralSymptoms()) {
             this.toast.error('Select student and enter observed symptoms.');
@@ -971,6 +998,107 @@ export class TeacherPortalComponent implements OnInit {
 
     getEntriesForDay(dayOfWeek: number) {
         return this.timetableEntries().filter(e => e.day_of_week === dayOfWeek);
+    }
+
+    // Teacher Cover / Substitution Methods (Feature 37)
+    loadCoverRequests() {
+        this.portalService.getCoverRequests().subscribe({
+            next: (reqs) => this.coverRequests.set(reqs || []),
+            error: () => {}
+        });
+    }
+
+    submitCoverRequest() {
+        const teacherId = this.teacher()?.id;
+        const assignment = this.selectedAssignment();
+        if (!teacherId || !assignment) {
+            this.toast.error('Please select an active class session first.');
+            return;
+        }
+        if (!this.newCoverReason()) {
+            this.toast.error('Please enter a reason for the absence/cover request.');
+            return;
+        }
+        this.isSubmittingCover.set(true);
+        const payload = {
+            requester_id: teacherId,
+            class_id: assignment.class_id,
+            subject_id: assignment.subject_id || assignment.subject?.id,
+            cover_date: this.newCoverDate(),
+            period_number: Number(this.newCoverPeriod()),
+            reason: this.newCoverReason(),
+            handover_notes: this.newCoverHandover()
+        };
+        this.portalService.createCoverRequest(payload).subscribe({
+            next: () => {
+                this.isSubmittingCover.set(false);
+                this.newCoverReason.set('');
+                this.newCoverHandover.set('');
+                this.toast.success('Cover request posted to faculty board.', 'Cover Requested');
+                this.loadCoverRequests();
+            },
+            error: () => {
+                this.isSubmittingCover.set(false);
+                this.toast.error('Failed to post cover request.');
+            }
+        });
+    }
+
+    claimCover(req: any) {
+        const teacherId = this.teacher()?.id;
+        if (!teacherId) return;
+        this.portalService.claimCoverRequest(req.id, teacherId).subscribe({
+            next: () => {
+                this.toast.success('You have successfully volunteered to cover this period!', 'Period Claimed');
+                this.loadCoverRequests();
+            },
+            error: () => {
+                this.toast.error('Failed to claim period cover.');
+            }
+        });
+    }
+
+    // Student Conduct Incident Modal (Feature 19)
+    openConductModal(student: any) {
+        this.conductStudent.set(student);
+        this.incidentDesc.set('');
+        this.incidentType.set('DISRUPTIVE_BEHAVIOUR');
+        this.incidentAction.set('VERBAL_WARNING');
+        this.incidentPoints.set(5);
+    }
+
+    closeConductModal() {
+        this.conductStudent.set(null);
+    }
+
+    submitConductIncident() {
+        const student = this.conductStudent();
+        const teacher = this.teacher();
+        if (!student || !this.incidentDesc()) {
+            this.toast.error('Please describe what occurred.');
+            return;
+        }
+        this.isReportingIncident.set(true);
+        this.campusOps.reportIncident({
+            student_id: student.id,
+            reported_by_id: teacher?.id,
+            incident_date: new Date().toISOString().slice(0, 10),
+            incident_type: this.incidentType(),
+            description: this.incidentDesc(),
+            action_taken: this.incidentAction(),
+            points_deducted: this.incidentPoints(),
+            status: 'PENDING'
+        }).subscribe({
+            next: () => {
+                this.isReportingIncident.set(false);
+                this.toast.success(`Behavior note logged for ${student.first_name} ${student.last_name}.`, 'Incident Logged');
+                this.closeConductModal();
+            },
+            error: () => {
+                this.isReportingIncident.set(false);
+                this.toast.error('Failed to record conduct incident.');
+            }
+        });
     }
 
     back() {
