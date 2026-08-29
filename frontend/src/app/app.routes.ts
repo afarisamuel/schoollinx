@@ -63,6 +63,10 @@ export const tenantRoutes: Routes = [
                 loadChildren: () => import('./features/teachers/teacher.routes').then(m => m.teacherRoutes)
             },
             {
+                path: 'guardians',
+                loadChildren: () => import('./features/guardians/guardian.routes').then(m => m.guardianRoutes)
+            },
+            {
                 path: 'analytics',
                 loadChildren: () => import('./features/analytics/analytics.routes').then(m => m.analyticsRoutes)
             },

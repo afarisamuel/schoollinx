@@ -43,6 +43,7 @@ export interface MeetingBooking {
     reason?: string;
     status?: string;
     slot?: MeetingSlot;
+    created_at?: string;
 }
 
 export interface WhatsAppMessage {

@@ -11,6 +11,7 @@ type InstitutionalKPI struct {
 	TenantBase
 	TotalStudents       int64   `json:"total_students"`
 	TotalTeachers       int64   `json:"total_teachers"`
+	TotalGuardians      int64   `json:"total_guardians"`
 	AverageGPA          float64 `json:"average_gpa"`
 	AverageAttendance   float64 `json:"average_attendance"`
 	TotalRevenue        float64 `json:"total_revenue"`

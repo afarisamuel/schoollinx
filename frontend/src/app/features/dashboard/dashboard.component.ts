@@ -42,7 +42,7 @@ export class DashboardComponent implements OnInit {
   isEditMode = signal(false);
   activeWidgets = signal<string[]>([]);
   defaultAdminWidgets = [
-    'strategic-core', 'student-registry', 'faculty-staff', 'academic-hub',
+    'strategic-core', 'student-registry', 'faculty-staff', 'guardians', 'academic-hub',
     'attendance', 'classes', 'biometrics', 'hr', 'operations-hub',
     'financial-ledger', 'at-risk', 'intelligence-hub', 'executive-dashboard',
     'connectivity-hub', 'library', 'clubs', 'messages', 'settings-hub'

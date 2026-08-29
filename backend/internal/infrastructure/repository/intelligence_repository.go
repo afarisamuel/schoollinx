@@ -26,6 +26,9 @@ func (r *intelligenceRepository) GetAggregateKPIs(ctx context.Context) (*domain.
 	// 2. Total Teachers
 	r.db.WithContext(ctx).Model(&domain.Teacher{}).Count(&kpis.TotalTeachers)
 
+	// 2b. Total Guardians
+	r.db.WithContext(ctx).Model(&domain.Guardian{}).Count(&kpis.TotalGuardians)
+
 	// 3. Average GPA
 	type gpaResult struct {
 		AvgValue float64

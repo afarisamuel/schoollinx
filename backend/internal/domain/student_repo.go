@@ -10,6 +10,7 @@ type StudentRepository interface {
 	Create(ctx context.Context, student *Student) error
 	BulkUpsert(ctx context.Context, students []Student, batchSize int) error
 	GetByID(ctx context.Context, id uuid.UUID) (*Student, error)
+	GetByEnrollmentNumber(ctx context.Context, enrollmentNum string) (*Student, error)
 	GetAll(ctx context.Context) ([]Student, error)
 	GetAllPaginated(ctx context.Context, query PaginationQuery) (int64, []Student, error)
 	Update(ctx context.Context, student *Student) error

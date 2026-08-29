@@ -1,0 +1,578 @@
+<div class="p-6 md:p-10 animate-fade-in text-text-primary">
+  
+  <!-- Page Header -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl md:text-3xl font-black tracking-tight text-text-primary">Guardian & Parent Registry</h1>
+        <span class="px-3 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-bold rounded-full">
+          {{ totalGuardians() }} Registered
+        </span>
+      </div>
+      <p class="text-sm text-text-muted mt-1">Manage parent profiles, credentials, and ward relationships across the institution</p>
+    </div>
+
+    <div class="flex items-center gap-2 flex-wrap w-full md:w-auto">
+      <button (click)="openAbsenceModal()" class="px-4 py-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer">
+        <i class="fas fa-calendar-times"></i>
+        <span>Absence Requests</span>
+      </button>
+
+      <button (click)="openImportModal()" class="px-4 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer">
+        <i class="fas fa-file-csv text-emerald-400"></i>
+        <span>Import CSV</span>
+      </button>
+
+      <button (click)="sendPortalInvites()" [disabled]="isSendingInvites()" class="px-4 py-2.5 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/20 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50">
+        <i class="fas fa-paper-plane"></i>
+        <span>{{ isSendingInvites() ? 'Sending...' : 'Send Invites' }}</span>
+      </button>
+
+      <button (click)="openAddModal()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>Add Guardian</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Metric Row -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+    <!-- Total Guardians -->
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm relative overflow-hidden group">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Total Guardians</span>
+        <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-lg">
+          <i class="fas fa-user-friends"></i>
+        </div>
+      </div>
+      <div class="text-3xl font-black text-text-primary">{{ totalGuardians() }}</div>
+      <p class="text-xs text-text-muted mt-1">Institutional parent database</p>
+    </div>
+
+    <!-- Active Portals -->
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm relative overflow-hidden group">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Portal Accounts</span>
+        <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+      </div>
+      <div class="flex items-baseline gap-2">
+        <span class="text-3xl font-black text-emerald-400">{{ activePortals() }}</span>
+        <span class="text-xs text-text-muted font-bold">provisioned</span>
+      </div>
+      <p class="text-xs text-text-muted mt-1">Able to access mobile & parent portal</p>
+    </div>
+
+    <!-- Linked Students -->
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm relative overflow-hidden group">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Linked Wards</span>
+        <div class="w-10 h-10 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-lg">
+          <i class="fas fa-graduation-cap"></i>
+        </div>
+      </div>
+      <div class="text-3xl font-black text-purple-400">{{ totalLinkedWards() }}</div>
+      <p class="text-xs text-text-muted mt-1">Students connected to parents</p>
+    </div>
+  </div>
+
+  <!-- Search and Filters Bar -->
+  <div class="bg-bg-secondary border border-border-primary rounded-2xl p-4 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm">
+    <div class="relative w-full md:w-96">
+      <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input
+        type="text"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+        placeholder="Search by guardian name, phone, email, ward..."
+        class="w-full pl-11 pr-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-indigo-500 transition-colors"
+      />
+    </div>
+
+    <div class="flex items-center gap-3 w-full md:w-auto">
+      <span class="text-xs font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Relationship:</span>
+      <select
+        [ngModel]="selectedRelationship()"
+        (ngModelChange)="selectedRelationship.set($event)"
+        class="bg-bg-tertiary border border-border-primary text-text-primary text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 transition-colors w-full md:w-auto font-medium"
+      >
+        <option value="all">All Relationships</option>
+        @for (r of relationships; track r) {
+          <option [value]="r">{{ r }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="flex flex-col items-center justify-center py-20 bg-bg-secondary border border-border-primary rounded-3xl">
+      <div class="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
+      <p class="text-text-muted font-bold text-sm">Loading guardians and linked wards...</p>
+    </div>
+  } @else {
+
+    <!-- Empty State -->
+    @if (filteredGuardians().length === 0) {
+      <div class="flex flex-col items-center justify-center py-20 px-4 bg-bg-secondary border border-border-primary rounded-3xl text-center">
+        <div class="w-16 h-16 rounded-3xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-2xl mb-4">
+          <i class="fas fa-user-plus"></i>
+        </div>
+        <h3 class="text-lg font-black text-text-primary mb-1">No Guardians Found</h3>
+        <p class="text-sm text-text-muted max-w-sm mb-6">
+          {{ searchQuery() ? 'No guardians matched your search query.' : 'There are no guardians registered in the system yet. Add your first guardian to provision portal access.' }}
+        </p>
+        <button (click)="openAddModal()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm rounded-2xl shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all">
+          <i class="fas fa-plus"></i> Add New Guardian
+        </button>
+      </div>
+    } @else {
+      <!-- Guardians Table -->
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-border-primary bg-bg-tertiary/40 text-[11px] font-black uppercase tracking-wider text-text-muted">
+                <th class="py-4 px-6">Guardian Name</th>
+                <th class="py-4 px-6">Contact Details</th>
+                <th class="py-4 px-6">Relationship</th>
+                <th class="py-4 px-6">Portal Access</th>
+                <th class="py-4 px-6">Linked Students (Wards)</th>
+                <th class="py-4 px-6 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-primary/50 text-sm">
+              @for (guardian of filteredGuardians(); track guardian.id) {
+                <tr class="hover:bg-bg-tertiary/30 transition-colors group">
+                  
+                  <!-- Name & Avatar -->
+                  <td class="py-4 px-6">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 border border-indigo-500/20 flex items-center justify-center font-black text-indigo-400 text-sm shrink-0">
+                        {{ guardian.first_name.charAt(0) }}{{ guardian.last_name.charAt(0) }}
+                      </div>
+                      <div>
+                        <a [routerLink]="['/guardians', guardian.id]" class="font-black text-text-primary hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                          {{ guardian.first_name }} {{ guardian.last_name }}
+                          <i class="fas fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                        </a>
+                        @if (guardian.address) {
+                          <span class="text-xs text-text-muted truncate max-w-xs block">{{ guardian.address }}</span>
+                        }
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Contact Details -->
+                  <td class="py-4 px-6">
+                    <div class="space-y-0.5">
+                      @if (guardian.phone_number) {
+                        <div class="flex items-center gap-1.5 text-xs text-text-primary font-medium">
+                          <i class="fas fa-phone-alt text-[10px] text-text-muted"></i>
+                          <span>{{ guardian.phone_number }}</span>
+                        </div>
+                      }
+                      @if (guardian.email) {
+                        <div class="flex items-center gap-1.5 text-xs text-text-muted">
+                          <i class="fas fa-envelope text-[10px] text-text-muted"></i>
+                          <span class="truncate max-w-[200px]">{{ guardian.email }}</span>
+                        </div>
+                      }
+                    </div>
+                  </td>
+
+                  <!-- Relationship -->
+                  <td class="py-4 px-6">
+                    <span class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-bold">
+                      {{ guardian.relationship || 'Parent' }}
+                    </span>
+                  </td>
+
+                  <!-- Portal Access -->
+                  <td class="py-4 px-6">
+                    @if (guardian.user_id) {
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-lg">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Active Account
+                      </span>
+                    } @else {
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold rounded-lg">
+                        Pending Setup
+                      </span>
+                    }
+                  </td>
+
+                  <!-- Linked Wards -->
+                  <td class="py-4 px-6">
+                    @if (guardian.students && guardian.students.length > 0) {
+                      <div class="flex flex-wrap gap-1.5 items-center">
+                        @for (student of guardian.students; track student.id) {
+                          <a [routerLink]="['/students/details', student.id]" 
+                             class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-bg-tertiary hover:bg-indigo-500/10 border border-border-primary hover:border-indigo-500/30 rounded-lg text-xs font-bold text-text-primary hover:text-indigo-400 transition-colors"
+                             [title]="'View ' + student.first_name + '\'s profile'">
+                            <i class="fas fa-child text-[10px] text-indigo-400"></i>
+                            <span>{{ student.first_name }} {{ student.last_name }}</span>
+                            @if (student.class?.name) {
+                              <span class="text-[10px] text-text-muted font-normal">({{ student.class?.name }})</span>
+                            }
+                          </a>
+                        }
+                      </div>
+                    } @else {
+                      <span class="text-xs text-text-muted font-medium italic">No students linked yet</span>
+                    }
+                  </td>
+
+                  <!-- Actions -->
+                  <td class="py-4 px-6 text-right">
+                    <div class="flex items-center justify-end gap-2">
+                      <a [routerLink]="['/guardians', guardian.id]" 
+                         class="px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-xl text-xs font-bold transition-colors flex items-center gap-1"
+                         title="Manage linked students and details">
+                        <i class="fas fa-link text-[10px]"></i> Manage Wards
+                      </a>
+
+                      @if (guardian.user_id) {
+                        <button (click)="resetPassword(guardian)" 
+                                class="w-8 h-8 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 flex items-center justify-center transition-colors cursor-pointer"
+                                title="Reset portal password">
+                          <i class="fas fa-key text-xs"></i>
+                        </button>
+                      }
+
+                      <button (click)="deleteGuardian(guardian)" 
+                              class="w-8 h-8 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 flex items-center justify-center transition-colors cursor-pointer"
+                              title="Delete guardian">
+                        <i class="fas fa-trash-alt text-xs"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  }
+
+  <!-- ADD GUARDIAN MODAL -->
+  @if (showAddModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl w-full max-w-xl p-6 md:p-8 shadow-2xl animate-fade-in my-8 max-h-[90vh] overflow-y-auto custom-scrollbar">
+        
+        <div class="flex items-center justify-between pb-4 border-b border-border-primary mb-6">
+          <div>
+            <h2 class="text-xl font-black text-text-primary">Add New Guardian</h2>
+            <p class="text-xs text-text-muted mt-0.5">Creates a parent profile and provisions Parent Portal credentials automatically</p>
+          </div>
+          <button (click)="closeAddModal()" class="w-8 h-8 rounded-full bg-bg-tertiary text-text-muted hover:text-text-primary flex items-center justify-center transition-colors">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <form [formGroup]="guardianForm" (ngSubmit)="submitAddGuardian()" class="space-y-4">
+          
+          <!-- Name Fields -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">First Name *</label>
+              <input type="text" formControlName="first_name" placeholder="e.g., David"
+                     class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500 transition-colors" />
+              @if (guardianForm.get('first_name')?.invalid && guardianForm.get('first_name')?.touched) {
+                <span class="text-xs text-rose-400 mt-1 block">First name is required.</span>
+              }
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Last Name *</label>
+              <input type="text" formControlName="last_name" placeholder="e.g., Mensah"
+                     class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500 transition-colors" />
+              @if (guardianForm.get('last_name')?.invalid && guardianForm.get('last_name')?.touched) {
+                <span class="text-xs text-rose-400 mt-1 block">Last name is required.</span>
+              }
+            </div>
+          </div>
+
+          <!-- Contact Fields -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Phone Number *</label>
+              <input type="tel" formControlName="phone_number" placeholder="e.g., 0244123456"
+                     class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500 transition-colors" />
+              @if (guardianForm.get('phone_number')?.invalid && guardianForm.get('phone_number')?.touched) {
+                <span class="text-xs text-rose-400 mt-1 block">Phone number is required.</span>
+              }
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Email Address</label>
+              <input type="email" formControlName="email" placeholder="e.g., parent@example.com"
+                     class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500 transition-colors" />
+              <span class="text-[10px] text-text-muted mt-1 block">Login details and alerts will be emailed here.</span>
+            </div>
+          </div>
+
+          <!-- Relationship & Gender -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Relationship to Student *</label>
+              <select formControlName="relationship"
+                      class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500 transition-colors font-medium">
+                @for (r of relationships; track r) {
+                  <option [value]="r">{{ r }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Gender</label>
+              <select formControlName="gender"
+                      class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500 transition-colors font-medium">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Residential Address -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Residential Address</label>
+            <input type="text" formControlName="address" placeholder="e.g., House 42, Ring Road Central, Accra"
+                   class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500 transition-colors" />
+          </div>
+
+          <!-- Link Initial Ward / Student (Optional) -->
+          <div class="pt-2 border-t border-border-primary/50">
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">
+              Link First Student / Ward (Optional)
+            </label>
+            @if (selectedInitialStudent()) {
+              <div class="flex items-center justify-between p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+                <div class="flex items-center gap-2.5">
+                  <i class="fas fa-user-graduate text-indigo-400"></i>
+                  <span class="text-sm font-bold text-text-primary">
+                    {{ selectedInitialStudent()?.first_name }} {{ selectedInitialStudent()?.last_name }}
+                  </span>
+                  @if (selectedInitialStudent()?.enrollment_num) {
+                    <span class="text-xs text-text-muted">({{ selectedInitialStudent()?.enrollment_num }})</span>
+                  }
+                </div>
+                <button type="button" (click)="clearInitialStudent()" class="text-xs text-rose-400 hover:text-rose-300 font-bold">
+                  Remove
+                </button>
+              </div>
+            } @else {
+              <app-student-search-dropdown
+                placeholder="Search student by name or ID to link..."
+                (studentSelected)="onStudentSelected($event)"
+              ></app-student-search-dropdown>
+              <span class="text-[10px] text-text-muted mt-1 block">You can also link more students after creating the guardian.</span>
+            }
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center justify-end gap-3 pt-4 border-t border-border-primary">
+            <button type="button" (click)="closeAddModal()" class="px-5 py-2.5 bg-bg-tertiary hover:bg-bg-tertiary/70 text-text-primary font-bold text-sm rounded-xl transition-colors">
+              Cancel
+            </button>
+            <button type="submit" [disabled]="isSubmitting()"
+                    class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all disabled:opacity-50">
+              @if (isSubmitting()) {
+                <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <span>Provisioning Account...</span>
+              } @else {
+                <i class="fas fa-check"></i>
+                <span>Create & Provision Portal</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- NEW CREDENTIALS MODAL -->
+  @if (newCredentials()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+      <div class="bg-bg-secondary border border-emerald-500/30 rounded-3xl w-full max-w-md p-6 md:p-8 shadow-2xl text-center relative overflow-hidden animate-fade-in">
+        
+        <div class="w-16 h-16 bg-emerald-500/10 text-emerald-400 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-emerald-500/20 text-2xl">
+          <i class="fas fa-check-circle"></i>
+        </div>
+
+        <h2 class="text-xl font-black text-text-primary">Parent Portal Provisioned!</h2>
+        <p class="text-xs text-text-muted mt-1 mb-6">
+          Guardian account for <strong>{{ newCredentials()?.guardian?.first_name }} {{ newCredentials()?.guardian?.last_name }}</strong> is active.
+        </p>
+
+        <!-- Credentials Box -->
+        <div class="bg-bg-tertiary border border-border-primary rounded-2xl p-4 mb-6 text-left space-y-3 font-mono">
+          <div>
+            <span class="text-[10px] uppercase font-bold text-text-muted tracking-wider block font-sans">Login Username / Email</span>
+            <span class="text-sm font-bold text-text-primary select-all">{{ newCredentials()?.username }}</span>
+          </div>
+
+          @if (newCredentials()?.temp_password) {
+            <div>
+              <span class="text-[10px] uppercase font-bold text-text-muted tracking-wider block font-sans">Temporary Password</span>
+              <span class="text-sm font-black text-emerald-400 select-all bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                {{ newCredentials()?.temp_password }}
+              </span>
+            </div>
+          }
+
+          <div>
+            <span class="text-[10px] uppercase font-bold text-text-muted tracking-wider block font-sans">Portal URL</span>
+            <span class="text-xs text-indigo-400 select-all font-sans">/login</span>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <button (click)="copyCredentials()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all">
+            <i class="fas" [class.fa-check]="copied()" [class.fa-copy]="!copied()"></i>
+            <span>{{ copied() ? 'Credentials Copied to Clipboard!' : 'Copy Portal Credentials' }}</span>
+          </button>
+
+          <button (click)="closeCredentialsModal()" class="w-full py-2.5 bg-bg-tertiary hover:bg-bg-tertiary/70 text-text-muted hover:text-text-primary font-bold text-xs rounded-xl transition-colors">
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- BULK IMPORT MODAL -->
+  @if (showImportModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl w-full max-w-lg p-6 md:p-8 shadow-2xl animate-fade-in">
+        <div class="flex items-center justify-between pb-4 border-b border-border-primary mb-6">
+          <div>
+            <h2 class="text-xl font-black text-text-primary">Bulk Import Guardians</h2>
+            <p class="text-xs text-text-muted mt-0.5">Upload CSV file to import parents and link wards in bulk</p>
+          </div>
+          <button (click)="closeImportModal()" class="w-8 h-8 rounded-full bg-bg-tertiary text-text-muted hover:text-text-primary flex items-center justify-center transition-colors">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="space-y-4 mb-6">
+          <div class="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center justify-between">
+            <div>
+              <h4 class="text-xs font-bold text-indigo-300">Need the template format?</h4>
+              <p class="text-[11px] text-text-muted">Includes columns: first_name, last_name, phone_number, email, relationship, student_enrollment_num</p>
+            </div>
+            <button (click)="downloadTemplate()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5">
+              <i class="fas fa-download"></i> Download CSV
+            </button>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">Select CSV File</label>
+            <input type="file" accept=".csv" (change)="onFileSelected($event)"
+                   class="w-full text-xs text-text-muted file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 file:cursor-pointer" />
+          </div>
+
+          @if (selectedImportFile()) {
+            <div class="p-3 bg-bg-tertiary rounded-xl border border-border-primary text-xs flex items-center justify-between">
+              <span class="font-bold text-text-primary">{{ selectedImportFile()!.name }}</span>
+              <span class="text-text-muted font-mono">{{ (selectedImportFile()!.size / 1024) | number:'1.1-1' }} KB</span>
+            </div>
+          }
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-border-primary">
+          <button (click)="closeImportModal()" class="px-5 py-2.5 bg-bg-tertiary hover:bg-bg-tertiary/70 text-text-primary font-bold text-xs rounded-xl">
+            Cancel
+          </button>
+          <button (click)="submitImport()" [disabled]="!selectedImportFile() || isImporting()"
+                  class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 flex items-center gap-2 disabled:opacity-50">
+            @if (isImporting()) {
+              <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              <span>Importing Guardians...</span>
+            } @else {
+              <i class="fas fa-upload"></i>
+              <span>Start Ingestion</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ABSENCE REQUESTS REVIEW MODAL -->
+  @if (showAbsenceModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl w-full max-w-3xl p-6 md:p-8 shadow-2xl animate-fade-in my-8 max-h-[90vh] overflow-y-auto custom-scrollbar">
+        <div class="flex items-center justify-between pb-4 border-b border-border-primary mb-6">
+          <div>
+            <h2 class="text-xl font-black text-text-primary">Parent Leave & Absence Requests</h2>
+            <p class="text-xs text-text-muted mt-0.5">Review and approve applications submitted by parents</p>
+          </div>
+          <button (click)="closeAbsenceModal()" class="w-8 h-8 rounded-full bg-bg-tertiary text-text-muted hover:text-text-primary flex items-center justify-center transition-colors">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        @if (isLoadingAbsences()) {
+          <div class="py-16 text-center text-text-muted font-bold text-sm">
+            <div class="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+            Loading leave applications...
+          </div>
+        } @else {
+          <div class="space-y-4">
+            @for (req of allAbsenceRequests(); track req.id) {
+              <div class="p-5 bg-bg-tertiary border border-border-primary rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2">
+                    <h4 class="font-black text-text-primary text-sm">
+                      {{ req.student ? (req.student.first_name + ' ' + req.student.last_name) : 'Student' }}
+                    </h4>
+                    <span class="px-2 py-0.5 text-[9px] font-black uppercase rounded"
+                          [ngClass]="{
+                            'bg-amber-500/10 text-amber-400': req.status === 'PENDING',
+                            'bg-emerald-500/10 text-emerald-400': req.status === 'APPROVED',
+                            'bg-rose-500/10 text-rose-400': req.status === 'REJECTED'
+                          }">
+                      {{ req.status }}
+                    </span>
+                  </div>
+                  <p class="text-xs text-text-muted">
+                    Parent: <strong>{{ req.guardian ? (req.guardian.first_name + ' ' + req.guardian.last_name) : 'Guardian' }}</strong> &bull; Reason: {{ req.reason }}
+                  </p>
+                  <p class="text-xs text-indigo-400 font-mono">
+                    {{ req.start_date }} to {{ req.end_date }}
+                  </p>
+                  @if (req.notes) {
+                    <p class="text-xs text-text-secondary italic">"{{ req.notes }}"</p>
+                  }
+                </div>
+
+                @if (req.status === 'PENDING' && req.id) {
+                  <div class="flex items-center gap-2 shrink-0">
+                    <button (click)="reviewAbsence(req.id!, 'APPROVED')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1">
+                      <i class="fas fa-check"></i> Approve
+                    </button>
+                    <button (click)="reviewAbsence(req.id!, 'REJECTED')" class="px-3 py-1.5 bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white rounded-xl text-xs font-bold flex items-center gap-1 transition-colors">
+                      <i class="fas fa-times"></i> Decline
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+            @empty {
+              <div class="py-16 text-center text-text-muted border border-dashed border-border-primary rounded-2xl">
+                <p class="font-bold text-xs">No pending or historical absence requests.</p>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="flex justify-end pt-6 border-t border-border-primary mt-6">
+          <button (click)="closeAbsenceModal()" class="px-5 py-2.5 bg-bg-tertiary text-text-primary font-bold text-xs rounded-xl">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

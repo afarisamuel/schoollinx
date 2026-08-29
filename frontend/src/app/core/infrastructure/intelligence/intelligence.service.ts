@@ -5,6 +5,7 @@ import { Observable, map } from 'rxjs';
 export interface InstitutionalKPI {
     total_students: number;
     total_teachers: number;
+    total_guardians?: number;
     average_gpa: number;
     average_attendance: number;
     total_revenue: number;

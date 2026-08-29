@@ -1,31 +1,15 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
-import { catchError, of } from 'rxjs';
+import { forkJoin, catchError, of } from 'rxjs';
 import { CommunicationService, Notice, MeetingSlot, MeetingBooking } from '../../../core/infrastructure/communication/communication.service';
-
-interface Student {
-    id: string;
-    first_name: string;
-    last_name: string;
-    enrollment_num: string;
-    status: string;
-    level: number;
-    class_name?: string;
-}
-
-interface GuardianProfile {
-    id: string;
-    first_name: string;
-    last_name: string;
-    email: string;
-    phone_number: string;
-    relationship: string;
-    students: Student[];
-}
+import { GuardianService } from '../../../core/infrastructure/guardian/guardian.service';
+import { AttendanceService } from '../../../core/infrastructure/attendance/attendance.service';
+import { FiscalService } from '../../../core/infrastructure/fiscal/fiscal.service';
+import { PaymentService } from '../../../core/infrastructure/payment/payment.service';
+import { DialogService } from '../../../shared/ui/dialog/dialog.service';
+import { Student, Guardian, AbsenceRequest, FamilyLedgerSummary, PickupPass } from '../../../core/domain/student.model';
 
 interface AttendanceSummary {
     total: number;
@@ -42,14 +26,48 @@ interface AttendanceSummary {
     templateUrl: './parent-dashboard.html'
 })
 export class ParentDashboard implements OnInit {
-    private http = inject(HttpClient);
     private commService = inject(CommunicationService);
+    private guardianService = inject(GuardianService);
+    private attendanceService = inject(AttendanceService);
+    private fiscalService = inject(FiscalService);
+    private paymentService = inject(PaymentService);
+    private dialog = inject(DialogService);
 
-    profile = signal<GuardianProfile | null>(null);
+    profile = signal<Guardian | null>(null);
     loading = signal<boolean>(true);
     error = signal<string>('');
 
-    activeTab = signal<'overview' | 'notices' | 'meetings'>('overview');
+    // Tabs
+    activeTab = signal<'overview' | 'billing' | 'pickup' | 'absence' | 'meetings' | 'notices'>('overview');
+
+    // Multi-Ward Switcher
+    selectedWardID = signal<string>('all');
+    displayedStudents = computed(() => {
+        const p = this.profile();
+        if (!p || !p.students) return [];
+        if (this.selectedWardID() === 'all') return p.students;
+        return p.students.filter(s => s.id === this.selectedWardID());
+    });
+
+    // Family Ledger & Sibling Billing
+    familyLedger = signal<FamilyLedgerSummary | null>(null);
+    loadingLedger = signal(false);
+
+    // Digital Pickup Pass
+    pickupPass = signal<PickupPass | null>(null);
+    loadingPass = signal(false);
+
+    // Absence Requests
+    absenceRequests = signal<AbsenceRequest[]>([]);
+    loadingAbsences = signal(false);
+    absenceStudentID = signal<string>('');
+    absenceStartDate = signal<string>('');
+    absenceEndDate = signal<string>('');
+    absenceReason = signal<string>('Medical');
+    absenceNotes = signal<string>('');
+    isSubmittingAbsence = signal(false);
+    absenceSuccess = signal(false);
+    absenceError = signal('');
 
     // Notices
     notices = signal<Notice[]>([]);
@@ -72,7 +90,7 @@ export class ParentDashboard implements OnInit {
     loadAll() {
         this.loading.set(true);
         forkJoin({
-            profile: this.http.get<GuardianProfile>('/api/guardians/profile'),
+            profile: this.guardianService.getProfile(),
             notices: this.commService.getNotices('PARENTS').pipe(catchError(() => of([]))),
             bookings: this.commService.getBookingsByGuardian('me').pipe(catchError(() => of([])))
         }).subscribe({
@@ -82,8 +100,21 @@ export class ParentDashboard implements OnInit {
                 this.myBookings.set(res.bookings as MeetingBooking[]);
                 this.loading.set(false);
 
+                // Set default student for absence and booking if wards exist
+                if (res.profile?.students?.length) {
+                    this.absenceStudentID.set(res.profile.students[0].id || '');
+                    this.bookingStudentID.set(res.profile.students[0].id || '');
+                }
+
                 // Load attendance for each student
-                res.profile.students?.forEach(s => this.loadAttendance(s.id));
+                res.profile?.students?.forEach(s => {
+                    if (s.id) this.loadAttendance(s.id);
+                });
+
+                // Preload family ledger and pickup pass
+                this.loadFamilyLedger();
+                this.loadPickupPass();
+                this.loadAbsenceRequests();
             },
             error: () => {
                 this.error.set('Could not load your profile. Please try again.');
@@ -92,14 +123,25 @@ export class ParentDashboard implements OnInit {
         });
     }
 
+    selectWard(wardId: string) {
+        this.selectedWardID.set(wardId);
+        if (wardId !== 'all') {
+            this.absenceStudentID.set(wardId);
+            this.bookingStudentID.set(wardId);
+        }
+    }
+
     loadAttendance(studentId: string) {
-        this.http.get<any[]>(`/api/attendance/student/${studentId}?limit=30`).pipe(
+        this.attendanceService.getStudentAttendance(studentId).pipe(
             catchError(() => of([]))
         ).subscribe(records => {
             const total = records.length;
-            const present = records.filter(r => r.status === 'PRESENT').length;
-            const absent = records.filter(r => r.status === 'ABSENT').length;
-            const late = records.filter(r => r.status === 'LATE').length;
+            const present = records.filter(r => (r.status as string).toUpperCase() === 'PRESENT').length;
+            const absent = records.filter(r => (r.status as string).toUpperCase() === 'ABSENT').length;
+            const late = records.filter(r => {
+                const s = (r.status as string).toUpperCase();
+                return s === 'LATE' || s === 'TARDY';
+            }).length;
             const pct = total > 0 ? Math.round((present / total) * 100) : 0;
 
             this.attendanceMap.update(m => ({
@@ -109,7 +151,67 @@ export class ParentDashboard implements OnInit {
         });
     }
 
-    setTab(tab: 'overview' | 'notices' | 'meetings') {
+    loadFamilyLedger() {
+        this.loadingLedger.set(true);
+        this.guardianService.getMyFamilyLedger().pipe(
+            catchError(() => of(null))
+        ).subscribe(ledger => {
+            this.familyLedger.set(ledger);
+            this.loadingLedger.set(false);
+        });
+    }
+
+    loadPickupPass() {
+        this.loadingPass.set(true);
+        this.guardianService.getMyPickupPass().pipe(
+            catchError(() => of(null))
+        ).subscribe(pass => {
+            this.pickupPass.set(pass);
+            this.loadingPass.set(false);
+        });
+    }
+
+    loadAbsenceRequests() {
+        this.loadingAbsences.set(true);
+        this.guardianService.getMyAbsenceRequests().pipe(
+            catchError(() => of([]))
+        ).subscribe(reqs => {
+            this.absenceRequests.set(reqs);
+            this.loadingAbsences.set(false);
+        });
+    }
+
+    submitAbsence() {
+        if (!this.absenceStudentID() || !this.absenceStartDate() || !this.absenceEndDate() || !this.absenceReason()) {
+            this.absenceError.set('Please fill out all required fields.');
+            return;
+        }
+
+        this.isSubmittingAbsence.set(true);
+        this.absenceError.set('');
+
+        this.guardianService.submitAbsenceRequest({
+            student_id: this.absenceStudentID(),
+            start_date: this.absenceStartDate(),
+            end_date: this.absenceEndDate(),
+            reason: this.absenceReason(),
+            notes: this.absenceNotes()
+        }).subscribe({
+            next: (created) => {
+                this.isSubmittingAbsence.set(false);
+                this.absenceSuccess.set(true);
+                this.absenceNotes.set('');
+                this.loadAbsenceRequests();
+                setTimeout(() => this.absenceSuccess.set(false), 4000);
+            },
+            error: (err) => {
+                this.isSubmittingAbsence.set(false);
+                this.absenceError.set(err?.error?.error || 'Failed to submit absence request.');
+            }
+        });
+    }
+
+    setTab(tab: 'overview' | 'billing' | 'pickup' | 'absence' | 'meetings' | 'notices') {
         this.activeTab.set(tab);
     }
 
@@ -141,5 +243,49 @@ export class ParentDashboard implements OnInit {
 
     getAttendance(studentId: string): AttendanceSummary {
         return this.attendanceMap()[studentId] || { total: 0, present: 0, absent: 0, late: 0, percentage: 0 };
+    }
+
+    payWard(studentId: string, studentName: string) {
+        this.fiscalService.getStudentFiscalStatus(studentId).subscribe({
+            next: (res) => {
+                const pending = res.records?.find(r => r.status !== 'PAID' && ((r.balance_due || 0) > 0 || (r.amount - (r.amount_paid || 0)) > 0));
+                if (!pending) {
+                    this.dialog.alert(`No pending fee invoices found for ${studentName}.`, 'Fees Settled', 'info');
+                    return;
+                }
+                const amt = pending.balance_due || (pending.amount - (pending.amount_paid || 0));
+                this.dialog.confirm(
+                    `Proceed to pay GH₵ ${amt.toFixed(2)} for ${studentName} via Paystack?`,
+                    'Online Fee Payment',
+                    'info',
+                    'Pay Now'
+                ).subscribe(confirmed => {
+                    if (confirmed) {
+                        this.paymentService.initializePayment(pending.id, amt).subscribe({
+                            next: (payRes) => {
+                                window.location.href = payRes.authorization_url;
+                            },
+                            error: (err) => {
+                                this.dialog.alert(err.error?.error || 'Failed to initialize Paystack checkout.', 'Payment Error', 'error');
+                            }
+                        });
+                    }
+                });
+            },
+            error: () => {
+                this.dialog.alert('Failed to retrieve fee records for this student.', 'Error', 'error');
+            }
+        });
+    }
+
+    payFamilyBalance() {
+        const wards = this.familyLedger()?.wards?.filter(w => w.balance_due > 0) || [];
+        if (wards.length === 0) {
+            this.dialog.alert('All family fees are fully settled! No outstanding balance.', 'Fees Settled', 'success');
+            return;
+        }
+
+        const firstWard = wards[0];
+        this.payWard(firstWard.student_id, firstWard.student_name);
     }
 }

@@ -49,6 +49,14 @@ func (r *studentRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.
 	return &student, nil
 }
 
+func (r *studentRepository) GetByEnrollmentNumber(ctx context.Context, enrollmentNum string) (*domain.Student, error) {
+	var student domain.Student
+	if err := r.db.WithContext(ctx).Preload("User").Preload("Class").Preload("Guardians").First(&student, "enrollment_num = ?", enrollmentNum).Error; err != nil {
+		return nil, err
+	}
+	return &student, nil
+}
+
 func (r *studentRepository) GetAll(ctx context.Context) ([]domain.Student, error) {
 	var students []domain.Student
 	if err := r.db.WithContext(ctx).Preload("User").Preload("Class").Preload("Guardians").Find(&students).Error; err != nil {
