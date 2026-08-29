@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { filter } from 'rxjs/operators';
 import { ParentStateService } from '../../../core/infrastructure/parent/parent-state.service';
 
 @Component({
@@ -11,6 +12,9 @@ import { ParentStateService } from '../../../core/infrastructure/parent/parent-s
 })
 export class ParentShell implements OnInit {
     state = inject(ParentStateService);
+    private router = inject(Router);
+
+    isOverviewPage = signal(true);
 
     navItems = [
         { path: '/parents', label: 'Overview', icon: 'fa-home', exact: true },
@@ -35,5 +39,17 @@ export class ParentShell implements OnInit {
 
     ngOnInit() {
         this.state.bootstrap();
+        this.checkRoute(this.router.url);
+
+        this.router.events
+            .pipe(filter(e => e instanceof NavigationEnd))
+            .subscribe((e: any) => {
+                this.checkRoute(e.urlAfterRedirects || e.url);
+            });
+    }
+
+    private checkRoute(url: string) {
+        const clean = url.split('?')[0].replace(/\/$/, '');
+        this.isOverviewPage.set(clean === '/parents' || clean === '');
     }
 }

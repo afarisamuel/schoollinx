@@ -1,90 +1,45 @@
-<div class="max-w-[1440px] mx-auto p-2 md:p-6 animate-fade-in pb-24 text-text-primary">
+<div class="relative min-h-[calc(100vh-96px)] bg-bg-primary text-text-primary font-sans overflow-x-hidden">
 
-    <!-- Smart Alerts -->
-    @if (state.smartAlerts().length > 0) {
-        <div class="mb-5 space-y-2">
-            @for (alert of state.smartAlerts(); track $index) {
-                <div class="flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium"
-                     [ngClass]="{
-                       'bg-rose-500/10 border-rose-500/20 text-rose-300': alert.type === 'danger',
-                       'bg-indigo-500/10 border-indigo-500/20 text-indigo-300': alert.type === 'info',
-                       'bg-amber-500/10 border-amber-500/20 text-amber-300': alert.type === 'warning'
-                     }">
-                    <i class="fas fa-circle-info text-xs"></i>
-                    <span>{{ alert.message }}</span>
-                </div>
-            }
-        </div>
-    }
+    <!-- Premium Background Effects (matching Administrator Dashboard) -->
+    <div class="absolute inset-x-0 top-0 h-[800px] overflow-hidden pointer-events-none z-0">
+        <div class="absolute -top-[10%] left-[10%] w-[800px] h-[800px] bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent blur-[140px] rounded-full"></div>
+        <div class="absolute top-[20%] right-[5%] w-[600px] h-[600px] bg-gradient-to-bl from-blue-500/10 via-teal-500/5 to-transparent blur-[120px] rounded-full"></div>
+        <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,#000_70%,transparent_100%)]"></div>
+    </div>
 
-    <!-- Welcome Profile Banner -->
-    @if (state.profile(); as p) {
-        <div class="p-5 md:p-6 bg-gradient-to-br from-indigo-600/20 via-purple-600/10 to-bg-secondary border border-indigo-500/20 rounded-2xl mb-6 relative overflow-hidden">
-            <div class="absolute -right-10 -top-10 w-48 h-48 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
-            <div class="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/30 to-purple-600/30 border border-indigo-500/30 flex items-center justify-center text-indigo-300 text-xl font-black shrink-0">
-                        {{ p.first_name[0] }}{{ p.last_name[0] }}
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-3 flex-wrap">
-                            <h2 class="text-lg md:text-xl font-black text-text-primary">{{ p.first_name }} {{ p.last_name }}</h2>
-                            <span class="px-2.5 py-0.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold rounded-full">{{ p.relationship }}</span>
-                        </div>
-                        <p class="text-xs text-text-muted mt-0.5">{{ p.email || 'No email' }} &bull; {{ p.phone_number }}</p>
-                        <div class="flex flex-wrap items-center gap-3 mt-2 text-xs">
-                            <span class="flex items-center gap-1.5 font-bold text-text-secondary">
-                                <i class="fas fa-user-graduate text-indigo-400"></i>
-                                {{ p.students ? p.students.length : 0 }} Registered Ward(s)
+    <!-- Subpage Navigation Bar (Only displayed on subpages, NOT on overview) -->
+    @if (!isOverviewPage()) {
+        <div class="relative z-20 px-4 md:px-8 pt-6 pb-2">
+            <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-2">
+                <a routerLink="/parents"
+                   class="px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0 bg-bg-tertiary text-text-muted hover:text-text-primary hover:bg-bg-secondary border border-border-primary">
+                    <i class="fas fa-arrow-left text-[10px]"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <div class="h-5 w-px bg-border-primary mx-1 shrink-0"></div>
+
+                @for (item of navItems.slice(1); track item.path) {
+                    <a [routerLink]="item.path"
+                       routerLinkActive="bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                       class="px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0 text-text-muted hover:text-text-primary hover:bg-bg-tertiary/50">
+                        <i class="fas {{ item.icon }} text-[10px]"></i>
+                        <span>{{ item.label }}</span>
+                        @if (item.badge && item.badge() > 0) {
+                            <span class="ml-1 px-1.5 py-0.2 text-[9px] font-black rounded-full"
+                                  [ngClass]="item.badgeClass || 'bg-indigo-500/20 text-indigo-400'">
+                                {{ item.badge() }}
                             </span>
-                            @if (state.totalWalletBalance() > 0) {
-                                <span class="flex items-center gap-1.5 font-bold text-emerald-400">
-                                    <i class="fas fa-wallet"></i>
-                                    GH₵{{ state.totalWalletBalance() | number:'1.2-2' }} Total Wallet
-                                </span>
-                            }
-                            @if (p.pickup_code) {
-                                <span class="flex items-center gap-1.5 font-mono text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-lg border border-purple-500/20 text-[11px]">
-                                    <i class="fas fa-shield-alt"></i> Pass Code: {{ p.pickup_code }}
-                                </span>
-                            }
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <a routerLink="/parents/pickup" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
-                        <i class="fas fa-qrcode"></i> Pickup Pass
+                        }
                     </a>
-                    <a routerLink="/parents/finance" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
-                        <i class="fas fa-wallet"></i> Wallet / Fees
-                    </a>
-                </div>
+                }
             </div>
         </div>
     }
 
-    <!-- ── HORIZONTAL NAVIGATION BAR (SEPARATE PAGES) ───────────────── -->
-    <div class="flex flex-wrap gap-1.5 border-b border-border-primary pb-3 mb-6 overflow-x-auto custom-scrollbar">
-        @for (item of navItems; track item.path) {
-            <a [routerLink]="item.path"
-               routerLinkActive="bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-               [routerLinkActiveOptions]="{exact: item.exact ?? false}"
-               class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0 text-text-muted hover:text-text-primary hover:bg-bg-tertiary/50">
-                <i class="fas {{ item.icon }} text-[11px]"></i>
-                <span>{{ item.label }}</span>
-                @if (item.badge && item.badge() > 0) {
-                    <span class="ml-1 px-1.5 py-0.5 text-[9px] font-black rounded-full"
-                          [ngClass]="item.badgeClass || 'bg-indigo-500/20 text-indigo-400'">
-                        {{ item.badge() }}
-                    </span>
-                }
-            </a>
-        }
+    <!-- Page Content -->
+    <div class="relative z-10">
+        <router-outlet />
     </div>
 
-    <!-- ── PAGE CONTENT OUTLET ──────────────────────────────────────── -->
-    <main class="w-full">
-        <router-outlet />
-    </main>
 </div>
