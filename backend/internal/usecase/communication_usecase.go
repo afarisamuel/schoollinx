@@ -79,6 +79,10 @@ func (u *communicationUseCase) GetBookingsByGuardian(ctx context.Context, guardi
 	return u.repo.GetBookingsByGuardian(ctx, guardianID)
 }
 
+func (u *communicationUseCase) GetBookingsByTeacher(ctx context.Context, teacherID uuid.UUID) ([]domain.MeetingBooking, error) {
+	return u.repo.GetBookingsByTeacher(ctx, teacherID)
+}
+
 func (u *communicationUseCase) ReceiveWhatsAppWebhook(ctx context.Context, payload map[string]interface{}) error {
 	// Simple generic parser for a mock webhook payload or typical format
 	// Extract sender phone, content

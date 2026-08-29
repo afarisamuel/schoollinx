@@ -80,6 +80,17 @@ func (r *communicationRepository) GetBookingsByGuardian(ctx context.Context, gua
 	return bookings, err
 }
 
+func (r *communicationRepository) GetBookingsByTeacher(ctx context.Context, teacherID uuid.UUID) ([]domain.MeetingBooking, error) {
+	var bookings []domain.MeetingBooking
+	err := r.db.WithContext(ctx).
+		Joins("JOIN meeting_slots ON meeting_slots.id = meeting_bookings.meeting_slot_id").
+		Where("meeting_slots.teacher_id = ?", teacherID).
+		Preload("Slot").
+		Order("meeting_bookings.created_at DESC").
+		Find(&bookings).Error
+	return bookings, err
+}
+
 func (r *communicationRepository) SaveWhatsAppMessage(ctx context.Context, msg *domain.WhatsAppMessage) error {
 	return r.db.WithContext(ctx).Save(msg).Error
 }

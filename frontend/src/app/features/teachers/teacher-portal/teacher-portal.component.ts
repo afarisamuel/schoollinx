@@ -62,7 +62,7 @@ export class TeacherPortalComponent implements OnInit {
     columnCount = signal(3);
 
     // Classroom Mastery Suite (Phase 1-5)
-    activeTab = signal<'gradebook' | 'seating' | 'lessons' | 'resources' | 'sickbay' | 'widgets' | 'ai-copilot' | 'hr-vault'>('gradebook');
+    activeTab = signal<'gradebook' | 'seating' | 'lessons' | 'resources' | 'sickbay' | 'widgets' | 'consultations' | 'notices' | 'ai-copilot' | 'hr-vault'>('gradebook');
 
     // Seating Chart (Feature 2)
     seatingRows = signal(4);
@@ -124,6 +124,21 @@ export class TeacherPortalComponent implements OnInit {
     leaveEndDate = signal('');
     leaveReason = signal('');
     isSubmittingLeave = signal(false);
+
+    // Parent Consultations State (Feature 20)
+    meetingSlots = signal<any[]>([]);
+    teacherBookings = signal<any[]>([]);
+    newSlotDate = signal(new Date().toISOString().slice(0, 10));
+    newSlotStart = signal('15:00');
+    newSlotEnd = signal('15:30');
+    isCreatingSlot = signal(false);
+
+    // Classroom Announcements / Notices State (Feature 26)
+    classNotices = signal<any[]>([]);
+    newNoticeTitle = signal('');
+    newNoticeContent = signal('');
+    newNoticeTarget = signal('ALL');
+    isCreatingNotice = signal(false);
 
     // Phase 19: Term Locks & Export
     isTermLocked = signal(false);
@@ -861,6 +876,77 @@ export class TeacherPortalComponent implements OnInit {
             this.leaveReason.set('');
             this.toast.success('Leave application submitted to HR department for approval.', 'Leave Submitted');
         }, 800);
+    }
+
+    // Parent Consultations Methods (Feature 20)
+    loadConsultations() {
+        const teacherId = this.teacher()?.id;
+        if (!teacherId) return;
+        this.portalService.getTeacherMeetingSlots(teacherId).subscribe({
+            next: (s) => this.meetingSlots.set(s || []),
+            error: () => {}
+        });
+        this.portalService.getTeacherBookings(teacherId).subscribe({
+            next: (b) => this.teacherBookings.set(b || []),
+            error: () => {}
+        });
+    }
+
+    createConsultationSlot() {
+        const teacherId = this.teacher()?.id;
+        if (!teacherId) return;
+        this.isCreatingSlot.set(true);
+        const payload = {
+            teacher_id: teacherId,
+            date: this.newSlotDate(),
+            start_time: this.newSlotStart(),
+            end_time: this.newSlotEnd()
+        };
+        this.portalService.createMeetingSlot(payload).subscribe({
+            next: () => {
+                this.isCreatingSlot.set(false);
+                this.toast.success('Consultation time slot published to parent portal.', 'Slot Created');
+                this.loadConsultations();
+            },
+            error: () => {
+                this.isCreatingSlot.set(false);
+                this.toast.error('Failed to create consultation slot.');
+            }
+        });
+    }
+
+    // Classroom Announcements Methods (Feature 26)
+    loadNotices() {
+        this.portalService.getNotices().subscribe({
+            next: (n) => this.classNotices.set(n || []),
+            error: () => {}
+        });
+    }
+
+    postNotice() {
+        if (!this.newNoticeTitle() || !this.newNoticeContent()) {
+            this.toast.error('Please enter announcement title and message content.');
+            return;
+        }
+        this.isCreatingNotice.set(true);
+        const payload = {
+            title: this.newNoticeTitle(),
+            content: this.newNoticeContent(),
+            target: this.newNoticeTarget()
+        };
+        this.portalService.createNotice(payload).subscribe({
+            next: () => {
+                this.isCreatingNotice.set(false);
+                this.newNoticeTitle.set('');
+                this.newNoticeContent.set('');
+                this.toast.success('Classroom bulletin announcement broadcasted.', 'Notice Published');
+                this.loadNotices();
+            },
+            error: () => {
+                this.isCreatingNotice.set(false);
+                this.toast.error('Failed to post announcement.');
+            }
+        });
     }
 
     back() {

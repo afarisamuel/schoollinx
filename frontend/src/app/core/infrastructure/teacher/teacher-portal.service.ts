@@ -146,6 +146,28 @@ export class TeacherPortalService {
     markAttendanceSweep(classId: string, date: string, entries: { student_id: string; status: string }[]): Observable<any> {
         return this.http.post<any>('/api/attendance/bulk', { class_id: classId, date, entries });
     }
+
+    // Parent Consultations & Availability (Feature 20)
+    getTeacherMeetingSlots(teacherId: string): Observable<any[]> {
+        return this.http.get<any[]>(`/api/communication/meeting-slots/${teacherId}`);
+    }
+
+    createMeetingSlot(payload: { teacher_id: string; date: string; start_time: string; end_time: string }): Observable<any> {
+        return this.http.post<any>('/api/communication/meeting-slots', payload);
+    }
+
+    getTeacherBookings(teacherId: string): Observable<any[]> {
+        return this.http.get<any[]>(`/api/communication/meeting-bookings/teacher/${teacherId}`);
+    }
+
+    // Classroom Announcements (Feature 26)
+    getNotices(): Observable<any[]> {
+        return this.http.get<any[]>('/api/communication/notices');
+    }
+
+    createNotice(notice: { title: string; content: string; target: string }): Observable<any> {
+        return this.http.post<any>('/api/communication/notices', notice);
+    }
 }
 
 @Injectable({ providedIn: 'root' })

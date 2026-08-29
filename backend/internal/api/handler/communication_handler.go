@@ -26,6 +26,7 @@ func NewCommunicationHandler(api *gin.RouterGroup, uc domain.CommunicationUseCas
 		comm.GET("/meeting-slots/:teacherID", h.GetMeetingSlots)
 		comm.POST("/meeting-bookings", h.BookMeeting)
 		comm.GET("/meeting-bookings/guardian/:guardianID", h.GetBookingsByGuardian)
+		comm.GET("/meeting-bookings/teacher/:teacherID", h.GetBookingsByTeacher)
 
 		comm.POST("/whatsapp/webhook", h.ReceiveWhatsAppWebhook)
 		comm.POST("/whatsapp/send", h.SendWhatsAppMessage)
@@ -178,6 +179,21 @@ func (h *CommunicationHandler) GetBookingsByGuardian(c *gin.Context) {
 		}
 	}
 	bookings, err := h.useCase.GetBookingsByGuardian(c.Request.Context(), guardianID)
+	if err != nil || bookings == nil {
+		c.JSON(http.StatusOK, []domain.MeetingBooking{})
+		return
+	}
+	c.JSON(http.StatusOK, bookings)
+}
+
+func (h *CommunicationHandler) GetBookingsByTeacher(c *gin.Context) {
+	param := c.Param("teacherID")
+	teacherID, err := uuid.Parse(param)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
+		return
+	}
+	bookings, err := h.useCase.GetBookingsByTeacher(c.Request.Context(), teacherID)
 	if err != nil || bookings == nil {
 		c.JSON(http.StatusOK, []domain.MeetingBooking{})
 		return

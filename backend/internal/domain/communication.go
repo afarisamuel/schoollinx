@@ -106,6 +106,7 @@ type CommunicationRepository interface {
 	GetMeetingSlotsByTeacher(ctx context.Context, teacherID uuid.UUID) ([]MeetingSlot, error)
 	BookMeeting(ctx context.Context, booking *MeetingBooking) error
 	GetBookingsByGuardian(ctx context.Context, guardianID uuid.UUID) ([]MeetingBooking, error)
+	GetBookingsByTeacher(ctx context.Context, teacherID uuid.UUID) ([]MeetingBooking, error)
 
 	SaveWhatsAppMessage(ctx context.Context, msg *WhatsAppMessage) error
 	GetWhatsAppMessages(ctx context.Context, limit int, offset int) ([]WhatsAppMessage, error)
@@ -129,6 +130,7 @@ type CommunicationUseCase interface {
 	GetMeetingSlotsByTeacher(ctx context.Context, teacherID uuid.UUID) ([]MeetingSlot, error)
 	BookMeeting(ctx context.Context, booking *MeetingBooking) error
 	GetBookingsByGuardian(ctx context.Context, guardianID uuid.UUID) ([]MeetingBooking, error)
+	GetBookingsByTeacher(ctx context.Context, teacherID uuid.UUID) ([]MeetingBooking, error)
 
 	ReceiveWhatsAppWebhook(ctx context.Context, payload map[string]interface{}) error
 	SendWhatsAppMessage(ctx context.Context, phone string, content string) error
