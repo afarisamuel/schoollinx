@@ -50,7 +50,21 @@ export class DashboardComponent implements OnInit {
     'financial-ledger', 'at-risk', 'intelligence-hub', 'executive-dashboard',
     'connectivity-hub', 'library', 'clubs', 'messages', 'settings-hub'
   ];
-  defaultTeacherWidgets = ['student-registry', 'attendance', 'teacher-portal', 'daily-collection'];
+  defaultTeacherWidgets = [
+    'teacher-portal',
+    'teacher-homework',
+    'teacher-cbt',
+    'teacher-lessons',
+    'teacher-seating',
+    'teacher-sickbay',
+    'teacher-widgets',
+    'teacher-ai',
+    'student-registry',
+    'attendance',
+    'house-cup',
+    'teacher-hr',
+    'daily-collection'
+  ];
 
   ngOnInit() {
     if (this.isBrowser) {
@@ -69,23 +83,44 @@ export class DashboardComponent implements OnInit {
       if (this.isAdmin()) {
         this.loadAdminInsights();
       } else if (this.isTeacher()) {
-        this.teacherService.getMyClasses().subscribe(data => {
-          this.canCollectFees.set(data.teacher?.can_collect_fees || false);
+        this.teacherService.getMyClasses().subscribe({
+          next: data => {
+            this.canCollectFees.set(data.teacher?.can_collect_fees || false);
+          },
+          error: () => {}
         });
       }
     }
   }
 
   private loadCommonData() {
-    this.intelligenceService.getKPIs().subscribe(data => this.kpis.set(data));
-    this.analyticsService.getAttendanceStats().subscribe(data => this.attendanceStats.set(data));
-    this.analyticsService.getGradeDistribution().subscribe(data => this.gradeDistribution.set(data));
+    this.intelligenceService.getKPIs().subscribe({
+      next: data => this.kpis.set(data),
+      error: () => {}
+    });
+    this.analyticsService.getAttendanceStats().subscribe({
+      next: data => this.attendanceStats.set(data),
+      error: () => {}
+    });
+    this.analyticsService.getGradeDistribution().subscribe({
+      next: data => this.gradeDistribution.set(data),
+      error: () => {}
+    });
   }
 
   private loadAdminInsights() {
-    this.insightsService.getAtRiskStudents().subscribe(data => this.atRiskStudents.set(data));
-    this.intelligenceService.getRetentionRisks().subscribe(data => this.retentionRisks.set(data));
-    this.intelligenceService.getCourseDemand().subscribe(data => this.courseDemands.set(data));
+    this.insightsService.getAtRiskStudents().subscribe({
+      next: data => this.atRiskStudents.set(data),
+      error: () => {}
+    });
+    this.intelligenceService.getRetentionRisks().subscribe({
+      next: data => this.retentionRisks.set(data),
+      error: () => {}
+    });
+    this.intelligenceService.getCourseDemand().subscribe({
+      next: data => this.courseDemands.set(data),
+      error: () => {}
+    });
   }
 
   private initializeWidgets() {
@@ -131,7 +166,10 @@ export class DashboardComponent implements OnInit {
   }
 
   getWidgetClass(widgetId: string): string {
-    const wideWidgets = ['academic-hub', 'operations-hub', 'financial-ledger', 'connectivity-hub', 'settings-hub', 'teacher-portal'];
+    const wideWidgets = [
+      'academic-hub', 'operations-hub', 'financial-ledger', 'connectivity-hub', 'settings-hub', 
+      'teacher-portal', 'teacher-homework', 'teacher-cbt', 'teacher-ai'
+    ];
     const largeWidgets = ['strategic-core', 'intelligence-hub'];
     if (wideWidgets.includes(widgetId)) {
       return 'bento-wide';

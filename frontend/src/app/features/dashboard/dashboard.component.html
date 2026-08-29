@@ -445,10 +445,174 @@
                                     <div class="bento-icon">
                                         <svg width="28" height="28" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
                                     </div>
+                                    <span class="px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">Core Suite</span>
                                 </div>
                                 <div class="mt-auto">
-                                    <h3 class="text-xl font-bold text-text-primary mb-1">Teacher Gradebook</h3>
-                                    <p class="text-xs text-text-primary/60 font-medium">Classes & Grading</p>
+                                    <h3 class="text-xl font-bold text-text-primary mb-1">Classroom Mastery</h3>
+                                    <p class="text-xs text-text-primary/60 font-medium">Gradebook, Seating & Syllabus</p>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+
+                @case ('teacher-homework') {
+                    @if (isTeacher()) {
+                        <a routerLink="/teachers/homework" class="bento-card h-full theme-purple" [class.pointer-events-none]="isEditMode()">
+                            <div class="bento-content">
+                                <div class="flex justify-between items-start">
+                                    <div class="bento-icon">
+                                        <svg width="28" height="28" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                    </div>
+                                    <span class="px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20">SpeedGrader</span>
+                                </div>
+                                <div class="mt-auto">
+                                    <h3 class="text-xl font-bold text-text-primary mb-1">Homework & SpeedGrader</h3>
+                                    <p class="text-xs text-text-primary/60 font-medium">Interactive Rubrics & Blind Grading</p>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+
+                @case ('teacher-cbt') {
+                    @if (isTeacher() || isAdmin()) {
+                        <a routerLink="/teachers/cbt-builder" class="bento-card h-full theme-rose" [class.pointer-events-none]="isEditMode()">
+                            <div class="bento-content">
+                                <div class="flex justify-between items-start">
+                                    <div class="bento-icon">
+                                        <svg width="28" height="28" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                                    </div>
+                                    <span class="px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">Examinations</span>
+                                </div>
+                                <div class="mt-auto">
+                                    <h3 class="text-xl font-bold text-text-primary mb-1">CBT Online Exam Builder</h3>
+                                    <p class="text-xs text-text-primary/60 font-medium">Digital Quizzes & Question Bank</p>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+
+                @case ('teacher-lessons') {
+                    @if (isTeacher()) {
+                        <a routerLink="/teachers/portal" class="bento-card h-full theme-indigo" [class.pointer-events-none]="isEditMode()">
+                            <div class="bento-content">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="bento-icon">
+                                        <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                                    </div>
+                                </div>
+                                <div class="mt-auto">
+                                    <h3 class="text-lg font-bold text-text-primary">Lesson Schemes</h3>
+                                    <p class="text-xs text-text-primary/60 font-medium">Curriculum Syllabus</p>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+
+                @case ('teacher-seating') {
+                    @if (isTeacher()) {
+                        <a routerLink="/teachers/portal" class="bento-card h-full theme-emerald" [class.pointer-events-none]="isEditMode()">
+                            <div class="bento-content">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="bento-icon">
+                                        <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                                    </div>
+                                </div>
+                                <div class="mt-auto">
+                                    <h3 class="text-lg font-bold text-text-primary">Seating Chart</h3>
+                                    <p class="text-xs text-text-primary/60 font-medium">2D Desk Grid & Roll-Call</p>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+
+                @case ('teacher-sickbay') {
+                    @if (isTeacher()) {
+                        <a routerLink="/teachers/portal" class="bento-card h-full theme-rose" [class.pointer-events-none]="isEditMode()">
+                            <div class="bento-content">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="bento-icon">
+                                        <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                                    </div>
+                                </div>
+                                <div class="mt-auto">
+                                    <h3 class="text-lg font-bold text-text-primary">Sickbay Referrals</h3>
+                                    <p class="text-xs text-text-primary/60 font-medium">Infirmary Triage Tickets</p>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+
+                @case ('teacher-widgets') {
+                    @if (isTeacher()) {
+                        <a routerLink="/teachers/portal" class="bento-card h-full theme-amber" [class.pointer-events-none]="isEditMode()">
+                            <div class="bento-content">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="bento-icon">
+                                        <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    </div>
+                                </div>
+                                <div class="mt-auto">
+                                    <h3 class="text-lg font-bold text-text-primary">Classroom Widgets</h3>
+                                    <p class="text-xs text-text-primary/60 font-medium">Timer & Student Randomizer</p>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+
+                @case ('teacher-ai') {
+                    @if (isTeacher()) {
+                        <a routerLink="/teachers/portal" class="bento-card h-full theme-cyan" [class.pointer-events-none]="isEditMode()">
+                            <div class="bento-content">
+                                <div class="flex justify-between items-start">
+                                    <div class="bento-icon">
+                                        <svg width="28" height="28" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                                    </div>
+                                    <span class="px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">AI Co-Pilot</span>
+                                </div>
+                                <div class="mt-auto">
+                                    <h3 class="text-xl font-bold text-text-primary mb-1">AI Pedagogical Co-Pilot</h3>
+                                    <p class="text-xs text-text-primary/60 font-medium">Curriculum Quiz Generator & Report Drafter</p>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+
+                @case ('house-cup') {
+                    <a routerLink="/house-points" class="bento-card h-full theme-amber" [class.pointer-events-none]="isEditMode()">
+                        <div class="bento-content">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="bento-icon">
+                                    <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                                </div>
+                            </div>
+                            <div class="mt-auto">
+                                <h3 class="text-lg font-bold text-text-primary">House Championship</h3>
+                                <p class="text-xs text-text-primary/60 font-medium">Leaderboard & Merits</p>
+                            </div>
+                        </div>
+                    </a>
+                }
+
+                @case ('teacher-hr') {
+                    @if (isTeacher()) {
+                        <a routerLink="/teachers/portal" class="bento-card h-full theme-blue" [class.pointer-events-none]="isEditMode()">
+                            <div class="bento-content">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="bento-icon">
+                                        <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="11" y2="16"/></svg>
+                                    </div>
+                                </div>
+                                <div class="mt-auto">
+                                    <h3 class="text-lg font-bold text-text-primary">HR & Payslips</h3>
+                                    <p class="text-xs text-text-primary/60 font-medium">Leave & Ghana SSNIT</p>
                                 </div>
                             </div>
                         </a>

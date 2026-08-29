@@ -18,15 +18,20 @@ func NewIntelligenceHandler(r *gin.RouterGroup, iuc domain.IntelligenceUseCase) 
 		intelligenceUseCase: iuc,
 	}
 
-	// Strictly restricted to ADMIN role
 	api := r.Group("/intelligence")
-	api.Use(middleware.RoleMiddleware(domain.RoleAdmin))
 	{
-		api.GET("/kpis", h.GetKPIs)
-		api.GET("/predictions/retention", h.GetRetentionRisks)
-		api.GET("/predictions/demand", h.GetCourseDemand)
-		api.GET("/export", h.ExportExecutiveSummary)
-		api.POST("/interventions/generate", h.GenerateInterventions)
+		// Institutional KPIs visible to both Admins and Teachers
+		api.GET("/kpis", middleware.RoleMiddleware(domain.RoleAdmin, domain.RoleTeacher), h.GetKPIs)
+
+		// Advanced predictive analytics strictly restricted to ADMIN
+		adminGroup := api.Group("")
+		adminGroup.Use(middleware.RoleMiddleware(domain.RoleAdmin))
+		{
+			adminGroup.GET("/predictions/retention", h.GetRetentionRisks)
+			adminGroup.GET("/predictions/demand", h.GetCourseDemand)
+			adminGroup.GET("/export", h.ExportExecutiveSummary)
+			adminGroup.POST("/interventions/generate", h.GenerateInterventions)
+		}
 	}
 }
 
