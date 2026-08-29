@@ -33,6 +33,8 @@ export class SignupComponent {
   isSubmitting = signal(false);
   isSuccess = signal(false);
   errorMessage = signal<string | null>(null);
+  subdomainError = signal<string | null>(null);
+  subdomainTouched = signal(false);
   currentYear = new Date().getFullYear();
 
   steps = [
@@ -49,13 +51,40 @@ export class SignupComponent {
     if (!this.form.subdomain && this.form.name) {
       this.form.subdomain = this.form.name
         .toLowerCase()
-        .replace(/[^a-z0-9]/g, '')
+        .replace(/[^a-z]/g, '')   // letters only — no numbers, no special chars
         .substring(0, 20);
+      this.validateSubdomain(this.form.subdomain);
     }
   }
 
+  // Real-time subdomain validator: lowercase letters only
+  validateSubdomain(value: string) {
+    this.subdomainTouched.set(true);
+    if (!value || value.trim().length === 0) {
+      this.subdomainError.set(null);
+      return;
+    }
+    if (/[0-9]/.test(value)) {
+      this.subdomainError.set('Numbers are not allowed in the subdomain.');
+      return;
+    }
+    if (/[^a-z]/.test(value)) {
+      this.subdomainError.set('Only lowercase letters are allowed — no special characters.');
+      return;
+    }
+    if (value.length < 3) {
+      this.subdomainError.set('Subdomain must be at least 3 characters.');
+      return;
+    }
+    this.subdomainError.set(null);
+  }
+
   get step1Valid(): boolean {
-    return this.form.name.trim().length > 0 && this.form.subdomain.trim().length > 0;
+    return (
+      this.form.name.trim().length > 0 &&
+      this.form.subdomain.trim().length >= 3 &&
+      this.subdomainError() === null
+    );
   }
 
   get step2Valid(): boolean {
