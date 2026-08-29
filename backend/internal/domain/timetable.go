@@ -44,6 +44,8 @@ type TimetableUseCase interface {
 	AutoGenerateExamSchedule(ctx context.Context, academicPeriodID uuid.UUID) error
 	GetExamSchedule(ctx context.Context, classID uuid.UUID) ([]ExamSession, error)
 	RemoveEntry(ctx context.Context, id uuid.UUID) error
+	GetClassTimetable(ctx context.Context, classID uuid.UUID) ([]TimetableEntry, error)
+	GetTeacherTimetable(ctx context.Context, teacherID uuid.UUID) ([]TimetableEntry, error)
 }
 
 // ExamSession represents a scheduled exam block

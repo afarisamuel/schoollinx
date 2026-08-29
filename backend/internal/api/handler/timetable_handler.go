@@ -21,6 +21,7 @@ func NewTimetableHandler(r *gin.RouterGroup, uc *usecase.TimetableUseCase) {
 		g.POST("", h.AddEntry)
 		g.DELETE("/:id", h.RemoveEntry)
 		g.GET("/class/:id", h.GetClassTimetable)
+		g.GET("/teacher/:id", h.GetTeacherTimetable)
 		g.POST("/exam/generate", h.GenerateExamSchedule)
 		g.GET("/exam/class/:id", h.GetExamSchedule)
 	}
@@ -52,6 +53,21 @@ func (h *TimetableHandler) GetClassTimetable(c *gin.Context) {
 		return
 	}
 	entries, err := h.useCase.GetClassTimetable(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, entries)
+}
+
+func (h *TimetableHandler) GetTeacherTimetable(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid teacher ID format"})
+		return
+	}
+	entries, err := h.useCase.GetTeacherTimetable(c.Request.Context(), id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -168,6 +168,11 @@ export class TeacherPortalService {
     createNotice(notice: { title: string; content: string; target: string }): Observable<any> {
         return this.http.post<any>('/api/communication/notices', notice);
     }
+
+    // Weekly Timetable & Schedule (Feature 35)
+    getTeacherTimetable(teacherId: string): Observable<any[]> {
+        return this.http.get<any[]>(`/api/timetable/teacher/${teacherId}`);
+    }
 }
 
 @Injectable({ providedIn: 'root' })

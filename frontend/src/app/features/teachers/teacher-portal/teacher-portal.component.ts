@@ -62,7 +62,7 @@ export class TeacherPortalComponent implements OnInit {
     columnCount = signal(3);
 
     // Classroom Mastery Suite (Phase 1-5)
-    activeTab = signal<'gradebook' | 'seating' | 'lessons' | 'resources' | 'sickbay' | 'widgets' | 'consultations' | 'notices' | 'ai-copilot' | 'hr-vault'>('gradebook');
+    activeTab = signal<'gradebook' | 'seating' | 'lessons' | 'resources' | 'sickbay' | 'widgets' | 'timetable' | 'consultations' | 'notices' | 'ai-copilot' | 'hr-vault'>('gradebook');
 
     // Seating Chart (Feature 2)
     seatingRows = signal(4);
@@ -139,6 +139,16 @@ export class TeacherPortalComponent implements OnInit {
     newNoticeContent = signal('');
     newNoticeTarget = signal('ALL');
     isCreatingNotice = signal(false);
+
+    // Timetable & Weekly Schedule (Feature 35)
+    timetableEntries = signal<any[]>([]);
+    daysOfWeek = [
+        { id: 1, name: 'Monday' },
+        { id: 2, name: 'Tuesday' },
+        { id: 3, name: 'Wednesday' },
+        { id: 4, name: 'Thursday' },
+        { id: 5, name: 'Friday' }
+    ];
 
     // Phase 19: Term Locks & Export
     isTermLocked = signal(false);
@@ -947,6 +957,20 @@ export class TeacherPortalComponent implements OnInit {
                 this.toast.error('Failed to post announcement.');
             }
         });
+    }
+
+    // Weekly Timetable Methods (Feature 35)
+    loadTimetable() {
+        const teacherId = this.teacher()?.id;
+        if (!teacherId) return;
+        this.portalService.getTeacherTimetable(teacherId).subscribe({
+            next: (entries) => this.timetableEntries.set(entries || []),
+            error: () => {}
+        });
+    }
+
+    getEntriesForDay(dayOfWeek: number) {
+        return this.timetableEntries().filter(e => e.day_of_week === dayOfWeek);
     }
 
     back() {

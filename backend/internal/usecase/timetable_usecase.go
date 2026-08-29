@@ -63,6 +63,10 @@ func (u *TimetableUseCase) GetClassTimetable(ctx context.Context, classID uuid.U
 	return u.repo.GetByClass(ctx, classID)
 }
 
+func (u *TimetableUseCase) GetTeacherTimetable(ctx context.Context, teacherID uuid.UUID) ([]domain.TimetableEntry, error) {
+	return u.repo.GetByTeacher(ctx, teacherID)
+}
+
 func (u *TimetableUseCase) RemoveEntry(ctx context.Context, id uuid.UUID) error {
 	return u.repo.Delete(ctx, id)
 }
