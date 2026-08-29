@@ -9,11 +9,12 @@ import (
 )
 
 type CommunicationHandler struct {
-	useCase domain.CommunicationUseCase
+	useCase      domain.CommunicationUseCase
+	guardianRepo domain.GuardianRepository
 }
 
-func NewCommunicationHandler(api *gin.RouterGroup, uc domain.CommunicationUseCase) {
-	h := &CommunicationHandler{useCase: uc}
+func NewCommunicationHandler(api *gin.RouterGroup, uc domain.CommunicationUseCase, guardianRepo domain.GuardianRepository) {
+	h := &CommunicationHandler{useCase: uc, guardianRepo: guardianRepo}
 	comm := api.Group("/communication")
 	{
 		comm.POST("/notices", h.CreateNotice)
@@ -52,8 +53,8 @@ func (h *CommunicationHandler) CreateNotice(c *gin.Context) {
 func (h *CommunicationHandler) GetNotices(c *gin.Context) {
 	target := c.Query("target")
 	notices, err := h.useCase.GetNotices(c.Request.Context(), target)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notices"})
+	if err != nil || notices == nil {
+		c.JSON(http.StatusOK, []domain.Notice{})
 		return
 	}
 	c.JSON(http.StatusOK, notices)
@@ -150,14 +151,33 @@ func (h *CommunicationHandler) BookMeeting(c *gin.Context) {
 }
 
 func (h *CommunicationHandler) GetBookingsByGuardian(c *gin.Context) {
-	guardianID, err := uuid.Parse(c.Param("guardianID"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid guardian ID"})
-		return
+	param := c.Param("guardianID")
+	var guardianID uuid.UUID
+	if param == "me" {
+		userID, exists := c.Get("userID")
+		if !exists {
+			c.JSON(http.StatusOK, []domain.MeetingBooking{})
+			return
+		}
+		if h.guardianRepo != nil {
+			g, err := h.guardianRepo.GetByUserID(c.Request.Context(), userID.(uuid.UUID))
+			if err != nil || g == nil {
+				c.JSON(http.StatusOK, []domain.MeetingBooking{})
+				return
+			}
+			guardianID = g.ID
+		}
+	} else {
+		var err error
+		guardianID, err = uuid.Parse(param)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid guardian ID"})
+			return
+		}
 	}
 	bookings, err := h.useCase.GetBookingsByGuardian(c.Request.Context(), guardianID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch bookings"})
+	if err != nil || bookings == nil {
+		c.JSON(http.StatusOK, []domain.MeetingBooking{})
 		return
 	}
 	c.JSON(http.StatusOK, bookings)

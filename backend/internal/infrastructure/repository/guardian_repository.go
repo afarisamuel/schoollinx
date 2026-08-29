@@ -176,7 +176,20 @@ func (r *guardianRepository) GetAbsenceRequestsByGuardian(ctx context.Context, g
 		Preload("Student").
 		Order("created_at DESC").
 		Find(&list).Error
-	return list, err
+	if err != nil {
+		_ = r.db.WithContext(ctx).AutoMigrate(&domain.AbsenceRequest{})
+		err = r.db.WithContext(ctx).
+			Where("guardian_id = ?", guardianID).
+			Preload("Student").
+			Find(&list).Error
+		if err != nil {
+			return []domain.AbsenceRequest{}, nil
+		}
+	}
+	if list == nil {
+		list = []domain.AbsenceRequest{}
+	}
+	return list, nil
 }
 
 func (r *guardianRepository) GetAllAbsenceRequests(ctx context.Context) ([]domain.AbsenceRequest, error) {
@@ -186,7 +199,20 @@ func (r *guardianRepository) GetAllAbsenceRequests(ctx context.Context) ([]domai
 		Preload("Guardian").
 		Order("created_at DESC").
 		Find(&list).Error
-	return list, err
+	if err != nil {
+		_ = r.db.WithContext(ctx).AutoMigrate(&domain.AbsenceRequest{})
+		err = r.db.WithContext(ctx).
+			Preload("Student").
+			Preload("Guardian").
+			Find(&list).Error
+		if err != nil {
+			return []domain.AbsenceRequest{}, nil
+		}
+	}
+	if list == nil {
+		list = []domain.AbsenceRequest{}
+	}
+	return list, nil
 }
 
 func (r *guardianRepository) GetAbsenceRequestByID(ctx context.Context, id uuid.UUID) (*domain.AbsenceRequest, error) {

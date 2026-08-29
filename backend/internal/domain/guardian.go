@@ -60,6 +60,8 @@ type AbsenceRequest struct {
 	Status      AbsenceStatus `json:"status" gorm:"type:varchar(20);default:'PENDING';not null"`
 	ReviewedBy  *uuid.UUID    `json:"reviewed_by,omitempty" gorm:"type:uuid"`
 	ReviewNotes string        `json:"review_notes,omitempty"`
+	CreatedAt   time.Time     `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt   time.Time     `json:"updated_at" gorm:"autoUpdateTime"`
 }
 
 func (ar *AbsenceRequest) BeforeCreate(tx *gorm.DB) (err error) {
