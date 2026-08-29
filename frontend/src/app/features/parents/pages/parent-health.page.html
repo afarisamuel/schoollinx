@@ -82,6 +82,49 @@
                 </div>
             }
 
+            <!-- Feature 17: Campus Sickbay & Infirmary Electronic Medical Records (EMR) -->
+            <div class="p-4 bg-bg-tertiary/70 border border-border-primary rounded-xl mb-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-xs font-black text-rose-400 flex items-center gap-2">
+                        <i class="fas fa-clinic-medical"></i> Campus Sickbay EMR & Dispensary Visits
+                    </h4>
+                    <span class="text-[10px] text-text-muted font-bold">Campus Nurse Logbook</span>
+                </div>
+
+                @if ((sickbayMap()[student.id || ''] || []).length > 0) {
+                    <div class="space-y-3">
+                        @for (visit of sickbayMap()[student.id || ''] || []; track visit.id) {
+                            <div class="p-3.5 bg-bg-secondary border border-border-primary rounded-xl">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-xs text-text-primary">{{ visit.symptoms }}</span>
+                                        @if (visit.fever_alert || (visit.temperature_celsius >= 38.0)) {
+                                            <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse">
+                                                Fever Alert ({{ visit.temperature_celsius }}°C)
+                                            </span>
+                                        } @else if (visit.temperature_celsius) {
+                                            <span class="px-2 py-0.5 text-[9px] font-bold rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
+                                                {{ visit.temperature_celsius }}°C
+                                            </span>
+                                        }
+                                    </div>
+                                    <span class="text-[10px] text-text-muted font-mono">{{ visit.created_at | date:'mediumDate' }}</span>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-text-muted">
+                                    <div><strong class="text-text-primary">Diagnosis:</strong> {{ visit.diagnosis || 'Observation' }}</div>
+                                    <div><strong class="text-text-primary">Medication:</strong> {{ visit.medication_given || 'Rest & Hydration' }}</div>
+                                    <div><strong class="text-text-primary">Attending:</strong> {{ visit.attending_nurse }}</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                } @else {
+                    <div class="py-4 text-center text-text-muted text-xs border border-dashed border-border-primary rounded-xl">
+                        <i class="fas fa-check-circle text-emerald-400 mr-1.5"></i> No clinic or infirmary visits recorded this term. Ward is healthy!
+                    </div>
+                }
+            </div>
+
             <!-- Absence Timeline -->
             @if (studentAbsences.length > 0) {
                 <div>

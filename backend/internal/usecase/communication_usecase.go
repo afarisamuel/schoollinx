@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -182,4 +183,63 @@ func (u *communicationUseCase) SendBirthdayGreetings(ctx context.Context) (int, 
 	}
 
 	return sentCount, nil
+}
+
+// Emergency Broadcast (Feature 24)
+func (u *communicationUseCase) DispatchEmergencyBroadcast(ctx context.Context, broadcast *domain.EmergencyBroadcast) error {
+	if broadcast.CreatedAt.IsZero() {
+		broadcast.CreatedAt = time.Now()
+	}
+
+	// 1. Gather recipients based on target audience
+	var phones []string
+	if broadcast.TargetAudience == "ALL" || broadcast.TargetAudience == "PARENTS" {
+		parents, err := u.guardians.GetAll(ctx)
+		if err == nil {
+			for _, p := range parents {
+				phone := string(p.PhoneNumber)
+				if phone != "" {
+					phones = append(phones, phone)
+				}
+			}
+		}
+	}
+	if broadcast.TargetAudience == "ALL" || broadcast.TargetAudience == "TEACHERS" || broadcast.TargetAudience == "STAFF" {
+		teachers, err := u.teachers.GetAll(ctx)
+		if err == nil {
+			for _, t := range teachers {
+				phone := string(t.PhoneNumber)
+				if phone != "" {
+					phones = append(phones, phone)
+				}
+			}
+		}
+	}
+
+	broadcast.RecipientsCount = len(phones)
+	if err := u.repo.CreateEmergencyBroadcast(ctx, broadcast); err != nil {
+		return err
+	}
+
+	// 2. Publish urgent in-app school notice
+	_ = u.repo.CreateNotice(ctx, &domain.Notice{
+		ID:        uuid.New(),
+		Title:     fmt.Sprintf("[%s] %s", broadcast.Severity, broadcast.Title),
+		Content:   broadcast.Message,
+		Target:    broadcast.TargetAudience,
+		IsActive:  true,
+		CreatedAt: time.Now(),
+	})
+
+	// 3. Dispatch multi-channel SMS blast
+	if len(phones) > 0 {
+		smsMsg := fmt.Sprintf("[%s ALERT] %s: %s", broadcast.Severity, broadcast.Title, broadcast.Message)
+		_ = u.sms.SendSMS(ctx, "EMERGENCY", phones, smsMsg)
+	}
+
+	return nil
+}
+
+func (u *communicationUseCase) GetEmergencyBroadcasts(ctx context.Context) ([]domain.EmergencyBroadcast, error) {
+	return u.repo.GetEmergencyBroadcasts(ctx)
 }

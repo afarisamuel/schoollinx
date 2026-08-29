@@ -85,15 +85,22 @@ func (u *hrUseCase) GenerateMonthlyPayroll(ctx context.Context, month, year int)
 		}
 
 		totalDeductions := 0.0
-		for _, dt := range deductionTypes {
-			amt := 0.0
-			if dt.RateType == "PERCENTAGE" {
-				amt = staff.BaseSalary * (dt.Rate / 100.0)
-			} else { // FIXED
-				amt = dt.Rate
+		if len(deductionTypes) == 0 {
+			// Statutory default: Ghana SSNIT Tier 1 Employee Contribution (5.5%)
+			ssnit := staff.BaseSalary * 0.055
+			totalDeductions += ssnit
+			deductionsBreakdown["SSNIT Tier 1 (5.5%)"] = ssnit
+		} else {
+			for _, dt := range deductionTypes {
+				amt := 0.0
+				if dt.RateType == "PERCENTAGE" {
+					amt = staff.BaseSalary * (dt.Rate / 100.0)
+				} else { // FIXED
+					amt = dt.Rate
+				}
+				totalDeductions += amt
+				deductionsBreakdown[dt.Name] = amt
 			}
-			totalDeductions += amt
-			deductionsBreakdown[dt.Name] = amt
 		}
 
 		taxableIncome := staff.BaseSalary + totalAllowances - totalDeductions

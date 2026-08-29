@@ -69,6 +69,7 @@ type Repositories struct {
 	Procurement    domain.ProcurementRepository
 	Tracking       domain.TrackingRepository
 	CampusOps      domain.CampusOpsRepository
+	Hostel         domain.HostelRepository
 }
 
 type UseCases struct {
@@ -119,6 +120,7 @@ type UseCases struct {
 	Tracking       *usecase.TrackingUseCase
 	Notification   domain.NotificationUseCase
 	CampusOps      domain.CampusOpsUseCase
+	Hostel         domain.HostelUseCase
 }
 
 func initInfrastructure(cfg *config.Config) *Infrastructure {
@@ -183,6 +185,7 @@ func initRepositories(db *gorm.DB) *Repositories {
 		Procurement:    repository.NewProcurementRepository(db),
 		Tracking:       repository.NewTrackingRepository(db),
 		CampusOps:      repository.NewCampusOpsRepository(db),
+		Hostel:         repository.NewHostelRepository(db),
 	}
 }
 
@@ -239,5 +242,6 @@ func initUseCases(repos *Repositories, infra *Infrastructure, db *gorm.DB, cfg *
 		Tracking:       usecase.NewTrackingUseCase(repos.Tracking),
 		Notification:   notifUC,
 		CampusOps:      usecase.NewCampusOpsUseCase(repos.CampusOps),
+		Hostel:         usecase.NewHostelUseCase(repos.Hostel, repos.Student),
 	}
 }

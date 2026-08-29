@@ -78,6 +78,9 @@ type FiscalRecord struct {
 	TermName    string               `json:"term_name" gorm:"type:varchar(100)"` // Active term at time of generation
 	Breakdown   []FeeBreakdownItem   `json:"breakdown" gorm:"serializer:json"`   // JSON breakdown of included fees
 	Status      PaymentStatus        `json:"status" gorm:"default:PENDING"`
+	Currency    string               `json:"currency" gorm:"type:varchar(10);default:'GHS'"`
+	ExchangeRate float64             `json:"exchange_rate" gorm:"default:1.0"`
+	ForeignAmount float64            `json:"foreign_amount" gorm:"default:0"`
 	DueDate     time.Time            `json:"due_date"`
 	PaidAt      *time.Time           `json:"paid_at,omitempty"`
 	CreatedAt   time.Time            `json:"created_at"`
@@ -169,6 +172,12 @@ type FiscalRepository interface {
 	GetScholarshipsByStudent(ctx context.Context, studentID uuid.UUID) ([]Scholarship, error)
 	GetActiveScholarships(ctx context.Context) ([]Scholarship, error)
 	UpdateScholarship(ctx context.Context, scholarship *Scholarship) error
+
+	// Installments
+	CreateInstallmentAgreement(ctx context.Context, agreement *InstallmentAgreement) error
+	GetInstallmentAgreementsByStudent(ctx context.Context, studentID uuid.UUID) ([]InstallmentAgreement, error)
+	GetInstallmentMilestoneByID(ctx context.Context, id uuid.UUID) (*InstallmentMilestone, error)
+	UpdateInstallmentMilestone(ctx context.Context, id uuid.UUID, amountPaid float64, status string) error
 }
 
 type FinancialRecommendation struct {
@@ -230,6 +239,14 @@ type FiscalUseCase interface {
 
 	// Debt Ageing
 	GetDebtAgeing(ctx context.Context) (*DebtAgeingReport, error)
+
+	// Installments, Disounts & Multi-Currency
+	CreateInstallmentAgreement(ctx context.Context, studentID, recordID uuid.UUID, milestones []InstallmentMilestone) (*InstallmentAgreement, error)
+	GetStudentInstallments(ctx context.Context, studentID uuid.UUID) ([]InstallmentAgreement, error)
+	PayInstallmentMilestone(ctx context.Context, milestoneID uuid.UUID, amount float64) error
+	CalculateSiblingDiscount(ctx context.Context, studentID uuid.UUID, customBase *float64) (*SiblingDiscountCalculation, error)
+	SetBaselineTuition(ctx context.Context, amount float64) error
+	GetExchangeRates(ctx context.Context) (map[string]float64, error)
 }
 
 // Donation represents a financial contribution from an Alumni or external sponsor
@@ -387,3 +404,59 @@ type YearEndResult struct {
 	ScholarshipsRevoked int     `json:"scholarships_revoked"`
 	Message             string  `json:"message"`
 }
+
+// Milestone 2 Models
+
+// InstallmentAgreement allows parents to break tuition into scheduled milestone payments
+type InstallmentAgreement struct {
+	TenantBase
+	ID             uuid.UUID              `json:"id" gorm:"type:uuid;primaryKey"`
+	StudentID      uuid.UUID              `json:"student_id" gorm:"type:uuid;index;not null"`
+	Student        *Student               `json:"student,omitempty" gorm:"foreignKey:StudentID"`
+	FiscalRecordID uuid.UUID              `json:"fiscal_record_id" gorm:"type:uuid;not null"`
+	TotalAmount    float64                `json:"total_amount" gorm:"not null"`
+	AmountPaid     float64                `json:"amount_paid" gorm:"default:0"`
+	Status         string                 `json:"status" gorm:"default:'ACTIVE'"` // ACTIVE, COMPLETED, DEFAULTED
+	PenaltyPct     float64                `json:"penalty_pct" gorm:"default:0"`
+	Milestones     []InstallmentMilestone `json:"milestones,omitempty" gorm:"foreignKey:AgreementID"`
+	CreatedAt      time.Time              `json:"created_at"`
+	UpdatedAt      time.Time              `json:"updated_at"`
+}
+
+func (ia *InstallmentAgreement) BeforeCreate(tx *gorm.DB) (err error) {
+	if ia.ID == uuid.Nil {
+		ia.ID = uuid.New()
+	}
+	return
+}
+
+type InstallmentMilestone struct {
+	TenantBase
+	ID          uuid.UUID  `json:"id" gorm:"type:uuid;primaryKey"`
+	AgreementID uuid.UUID  `json:"agreement_id" gorm:"type:uuid;index;not null"`
+	Index       int        `json:"index" gorm:"not null"` // 1, 2, 3...
+	Title       string     `json:"title"`                 // e.g. "Term Registration (40%)"
+	Amount      float64    `json:"amount" gorm:"not null"`
+	AmountPaid  float64    `json:"amount_paid" gorm:"default:0"`
+	DueDate     time.Time  `json:"due_date" gorm:"not null"`
+	Status      string     `json:"status" gorm:"default:'PENDING'"` // PENDING, PAID, OVERDUE
+	PaidAt      *time.Time `json:"paid_at"`
+}
+
+func (im *InstallmentMilestone) BeforeCreate(tx *gorm.DB) (err error) {
+	if im.ID == uuid.Nil {
+		im.ID = uuid.New()
+	}
+	return
+}
+
+type SiblingDiscountCalculation struct {
+	StudentID       uuid.UUID `json:"student_id"`
+	ChildOrder      int       `json:"child_order"` // 1st, 2nd, 3rd...
+	OriginalFee     float64   `json:"original_fee"`
+	DiscountPct     float64   `json:"discount_pct"`
+	DiscountAmount  float64   `json:"discount_amount"`
+	FinalFee        float64   `json:"final_fee"`
+	Reason          string    `json:"reason"`
+}
+

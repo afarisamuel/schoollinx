@@ -69,6 +69,27 @@
                         <option value="Other">Other Personal Reason</option>
                     </select>
                 </div>
+
+                @if (reason() === 'Medical' || reason() === 'Illness') {
+                    <div class="p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-xl">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-xs font-bold text-indigo-400 flex items-center gap-1.5">
+                                <i class="fas fa-file-medical"></i> Doctor's Note / Medical Proof
+                            </label>
+                            @if (medicalNoteFile()) {
+                                <span class="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                                    <i class="fas fa-check-circle"></i> Attached
+                                </span>
+                            }
+                        </div>
+                        <input type="file" (change)="onFileSelected($event)" accept="image/*,application/pdf"
+                               class="text-xs text-text-muted file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer" />
+                        @if (medicalNoteFile()) {
+                            <div class="text-[10px] font-mono text-text-muted mt-1 truncate">File: {{ medicalNoteFile() }}</div>
+                        }
+                    </div>
+                }
+
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Additional Notes</label>
                     <textarea [ngModel]="notes()" (ngModelChange)="notes.set($event)" rows="3"
@@ -108,6 +129,11 @@
                         <div class="flex items-center gap-3 text-xs text-text-muted">
                             <span><i class="fas fa-calendar text-indigo-400 mr-1"></i>{{ req.start_date }} → {{ req.end_date }}</span>
                         </div>
+                        @if (req.notes && req.notes.includes('Medical Document Attached')) {
+                            <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] font-bold">
+                                <i class="fas fa-file-medical"></i> Medical Certificate Attached
+                            </div>
+                        }
                         @if (req.notes) {
                             <p class="text-[10px] text-text-muted mt-2 italic bg-bg-secondary p-2 rounded-lg border border-border-primary/50">"{{ req.notes }}"</p>
                         }

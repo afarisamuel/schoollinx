@@ -275,6 +275,34 @@ export class FiscalService {
     }> {
         return this.http.post<any>(`${this.apiUrl}/year-end/rollover`, { new_period_id: newPeriodId });
     }
+
+    // Milestone 2: Installments, Sibling Discounts & Multi-Currency
+    getInstallmentAgreements(studentId: string): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/installments/student/${studentId}`);
+    }
+
+    payInstallmentMilestone(milestoneId: string, amount: number): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/installments/milestones/${milestoneId}/pay`, { amount });
+    }
+
+    getSiblingDiscount(studentId: string, baseTuition?: number): Observable<any> {
+        const url = baseTuition 
+            ? `${this.apiUrl}/discounts/sibling/${studentId}?base_tuition=${baseTuition}`
+            : `${this.apiUrl}/discounts/sibling/${studentId}`;
+        return this.http.get<any>(url);
+    }
+
+    setBaselineTuition(amount: number): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/baseline-tuition`, { amount });
+    }
+
+    getLiveExchangeRates(): Observable<Record<string, number>> {
+        return this.http.get<Record<string, number>>(`${this.apiUrl}/rates`);
+    }
+
+    canteenPOSCharge(payload: { student_id: string; amount: number; item_name: string }): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/canteen/pos-charge`, payload);
+    }
 }
 
 export type DailyBillStatus = 'PENDING' | 'PAID' | 'OVERDUE';

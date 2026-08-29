@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ParentStateService } from '../../../core/infrastructure/parent/parent-state.service';
+import { ParentPortalService } from '../../../core/infrastructure/parent/parent-portal.service';
 
 @Component({
     selector: 'app-parent-activities',
@@ -8,8 +9,37 @@ import { ParentStateService } from '../../../core/infrastructure/parent/parent-s
     imports: [CommonModule],
     templateUrl: './parent-activities.page.html'
 })
-export class ParentActivitiesPage {
+export class ParentActivitiesPage implements OnInit {
     state = inject(ParentStateService);
+    private portalService = inject(ParentPortalService);
+
+    houseLeaderboard = signal<any[]>([]);
+    studentHouseMap = signal<Record<string, any>>({});
+
+    ngOnInit() {
+        this.loadHouseData();
+    }
+
+    loadHouseData() {
+        this.portalService.getHouseLeaderboard().subscribe({
+            next: (houses) => this.houseLeaderboard.set(houses || []),
+            error: () => {}
+        });
+
+        const students = this.state.profile()?.students || [];
+        for (const s of students) {
+            if (s.id) {
+                this.portalService.getStudentHouse(s.id).subscribe({
+                    next: (house) => {
+                        if (house) {
+                            this.studentHouseMap.update(m => ({ ...m, [s.id!]: house }));
+                        }
+                    },
+                    error: () => {}
+                });
+            }
+        }
+    }
 
     getAchievements(attPct: number, gpa: number, absences: number, hwCount: number) {
         const badges = [];

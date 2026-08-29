@@ -66,6 +66,11 @@ export const PARENT_ROUTES: Routes = [
                 title: 'Parent Portal - Settings'
             },
             {
+                path: 'transport',
+                loadComponent: () => import('./pages/parent-transport.page').then(c => c.ParentTransportPage),
+                title: 'Parent Portal - Live Bus GPS'
+            },
+            {
                 path: 'bus-tracker',
                 loadComponent: () => import('./bus-tracker/bus-tracker.component').then(c => c.BusTrackerComponent),
                 title: 'Live Bus Tracker'

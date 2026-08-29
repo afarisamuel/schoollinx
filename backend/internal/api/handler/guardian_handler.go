@@ -31,6 +31,7 @@ func NewGuardianHandler(r *gin.RouterGroup, guc domain.GuardianUseCase, auc doma
 		api.GET("/child/:student_id/academics", h.GetChildAcademics)
 		api.GET("/family-ledger", h.GetMyFamilyLedger)
 		api.GET("/pickup-pass", h.GetMyPickupPass)
+		api.POST("/pickup-pass/otp", h.GeneratePickupOTP)
 		api.GET("/absence-requests", h.GetMyAbsenceRequests)
 		api.POST("/absence-requests", h.SubmitAbsenceRequest)
 	}
@@ -41,6 +42,7 @@ func NewGuardianHandler(r *gin.RouterGroup, guc domain.GuardianUseCase, auc doma
 	{
 		adminApi.GET("", h.GetAllGuardians)
 		adminApi.GET("/profile", h.GetProfile) // fallback compatibility
+		adminApi.POST("/verify-pickup-otp", h.VerifyPickupOTP)
 		adminApi.GET("/absence-requests", h.GetAllAbsenceRequests)
 		adminApi.POST("/absence-requests/:id/review", h.ReviewAbsenceRequest)
 		adminApi.POST("/import", h.ImportGuardians)
@@ -474,5 +476,60 @@ func (h *GuardianHandler) SendPortalInvites(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": fmt.Sprintf("Sent %d portal onboarding invitations successfully", sent),
 		"count":   sent,
+	})
+}
+
+func (h *GuardianHandler) GeneratePickupOTP(c *gin.Context) {
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	userID, ok := userIDVal.(uuid.UUID)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	var req struct {
+		StudentID      uuid.UUID `json:"student_id" binding:"required"`
+		CollectorName  string    `json:"collector_name" binding:"required"`
+		CollectorPhone string    `json:"collector_phone" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	otp, err := h.guardianUseCase.GeneratePickupOTP(c.Request.Context(), userID, req.StudentID, req.CollectorName, req.CollectorPhone)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, otp)
+}
+
+func (h *GuardianHandler) VerifyPickupOTP(c *gin.Context) {
+	var req struct {
+		OTP string `json:"otp" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "OTP is required"})
+		return
+	}
+
+	otp, err := h.guardianUseCase.VerifyAndRedeemPickupOTP(c.Request.Context(), req.OTP)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"valid":          true,
+		"message":        "Gate pass verified. Child pickup authorized.",
+		"collector_name": otp.CollectorName,
+		"student_id":     otp.StudentID,
+		"used_at":        otp.UsedAt,
 	})
 }

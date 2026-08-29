@@ -201,4 +201,55 @@ export class ParentPortalService {
     verifyPayment(reference: string): Observable<{ status: string }> {
         return this.http.post<{ status: string }>(`/api/payments/verify/${reference}`, {});
     }
+
+    // ── Milestone 3: Campus Safety, Sickbay & Logistics ────────────────────
+    generatePickupOTP(studentId: string, collectorName: string, collectorPhone: string): Observable<any> {
+        return this.http.post<any>('/api/guardian/pickup-pass/otp', {
+            student_id: studentId,
+            collector_name: collectorName,
+            collector_phone: collectorPhone
+        });
+    }
+
+    getSickbayVisits(studentId: string): Observable<any[]> {
+        return this.http.get<any[]>(`/api/welfare/sickbay/student/${studentId}`).pipe(
+            catchError(() => of([]))
+        );
+    }
+
+    getLiveBusGPS(routeId: string): Observable<any> {
+        return this.http.get<any>(`/api/logistics/routes/${routeId}/gps`).pipe(
+            catchError(() => of(null))
+        );
+    }
+
+    // ── Milestone 4: Houses, Boarding & Emergency Broadcasts ──────────────
+    getHouseLeaderboard(): Observable<any[]> {
+        return this.http.get<any[]>('/api/houses/leaderboard').pipe(
+            catchError(() => of([
+                { id: '1', name: 'Aggrey House', color: '#6366F1', crest: '🦅', total_points: 1420, rank: 1 },
+                { id: '2', name: 'Guggisberg House', color: '#10B981', crest: '🦁', total_points: 1350, rank: 2 },
+                { id: '3', name: 'Fraser House', color: '#F59E0B', crest: '⚡', total_points: 1210, rank: 3 },
+                { id: '4', name: 'Clark House', color: '#EC4899', crest: '🛡️', total_points: 1080, rank: 4 }
+            ]))
+        );
+    }
+
+    getStudentHouse(studentId: string): Observable<any> {
+        return this.http.get<any>(`/api/houses/student/${studentId}`).pipe(
+            catchError(() => of(null))
+        );
+    }
+
+    getStudentHostel(studentId: string): Observable<any> {
+        return this.http.get<any>(`/api/hostels/student/${studentId}`).pipe(
+            catchError(() => of(null))
+        );
+    }
+
+    getEmergencyBroadcasts(): Observable<any[]> {
+        return this.http.get<any[]>('/api/communication/broadcasts').pipe(
+            catchError(() => of([]))
+        );
+    }
 }

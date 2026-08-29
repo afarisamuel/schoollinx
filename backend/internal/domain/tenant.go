@@ -31,11 +31,15 @@ type Tenant struct {
 	// Feature Flags stored as JSON
 	FeatureFlags          string    `json:"feature_flags" gorm:"type:jsonb;default:'{}'"`
 	
-	// School Configuration Profile
-	Address          string    `json:"address"`
-	ContactNumbers   string    `json:"contact_numbers"`
-	Email            string    `json:"email"`
+	// School Configuration Profile & White-Label Branding (Feature 25)
+	Address                string    `json:"address"`
+	ContactNumbers         string    `json:"contact_numbers"`
+	Email                  string    `json:"email"`
 	LogoURL                string    `json:"logo_url"`
+	FaviconURL             string    `json:"favicon_url"`
+	Motto                  string    `json:"motto"`
+	PrimaryColorHex        string    `json:"primary_color_hex" gorm:"default:'#6366F1'"`
+	SecondaryColorHex      string    `json:"secondary_color_hex" gorm:"default:'#8B5CF6'"`
 	HeadmasterSignatureURL string    `json:"headmaster_signature_url"`
 
 	// Integration

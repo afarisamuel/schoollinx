@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ParentStateService } from '../../../core/infrastructure/parent/parent-state.service';
+import { ParentPortalService } from '../../../core/infrastructure/parent/parent-portal.service';
 
 @Component({
     selector: 'app-parent-health',
@@ -8,8 +9,29 @@ import { ParentStateService } from '../../../core/infrastructure/parent/parent-s
     imports: [CommonModule],
     templateUrl: './parent-health.page.html'
 })
-export class ParentHealthPage {
+export class ParentHealthPage implements OnInit {
     state = inject(ParentStateService);
+    private portalService = inject(ParentPortalService);
+
+    sickbayMap = signal<Record<string, any[]>>({});
+
+    ngOnInit() {
+        this.loadSickbayHistory();
+    }
+
+    loadSickbayHistory() {
+        const students = this.state.profile()?.students || [];
+        for (const s of students) {
+            if (s.id) {
+                this.portalService.getSickbayVisits(s.id).subscribe({
+                    next: (visits) => {
+                        this.sickbayMap.update(m => ({ ...m, [s.id!]: visits || [] }));
+                    },
+                    error: () => {}
+                });
+            }
+        }
+    }
 
     approvedDays(): number {
         return this.state.absenceRequests()

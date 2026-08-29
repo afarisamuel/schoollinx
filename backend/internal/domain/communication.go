@@ -110,6 +110,10 @@ type CommunicationRepository interface {
 	SaveWhatsAppMessage(ctx context.Context, msg *WhatsAppMessage) error
 	GetWhatsAppMessages(ctx context.Context, limit int, offset int) ([]WhatsAppMessage, error)
 	GetWhatsAppMessagesByPhone(ctx context.Context, phone string) ([]WhatsAppMessage, error)
+
+	// Emergency Broadcast (Feature 24)
+	CreateEmergencyBroadcast(ctx context.Context, broadcast *EmergencyBroadcast) error
+	GetEmergencyBroadcasts(ctx context.Context) ([]EmergencyBroadcast, error)
 }
 
 type CommunicationUseCase interface {
@@ -131,6 +135,10 @@ type CommunicationUseCase interface {
 	GetWhatsAppMessages(ctx context.Context) ([]WhatsAppMessage, error)
 
 	SendBirthdayGreetings(ctx context.Context) (int, error)
+
+	// Emergency Broadcast (Feature 24)
+	DispatchEmergencyBroadcast(ctx context.Context, broadcast *EmergencyBroadcast) error
+	GetEmergencyBroadcasts(ctx context.Context) ([]EmergencyBroadcast, error)
 }
 
 type WhatsAppMessage struct {
@@ -150,5 +158,19 @@ func (w *WhatsAppMessage) BeforeCreate(tx *gorm.DB) error {
 		w.ID = uuid.New()
 	}
 	return nil
+}
+
+// EmergencyBroadcast represents a school-wide or target audience multi-channel alert (Feature 24)
+type EmergencyBroadcast struct {
+	TenantBase
+	ID              uuid.UUID `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	Title           string    `json:"title" gorm:"not null"`
+	Message         string    `json:"message" gorm:"not null"`
+	Severity        string    `json:"severity" gorm:"default:'URGENT'"` // INFO, WARNING, URGENT, CRITICAL
+	TargetAudience  string    `json:"target_audience"`                  // ALL, PARENTS, TEACHERS, STAFF
+	Channels        string    `json:"channels"`                         // "SMS,EMAIL,IN_APP"
+	SentBy          string    `json:"sent_by"`
+	RecipientsCount int       `json:"recipients_count"`
+	CreatedAt       time.Time `json:"created_at"`
 }
 

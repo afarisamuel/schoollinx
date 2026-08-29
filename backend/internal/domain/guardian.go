@@ -94,6 +94,25 @@ type GuardianRepository interface {
 	GetAllAbsenceRequests(ctx context.Context) ([]AbsenceRequest, error)
 	GetAbsenceRequestByID(ctx context.Context, id uuid.UUID) (*AbsenceRequest, error)
 	UpdateAbsenceRequest(ctx context.Context, req *AbsenceRequest) error
+
+	// Temporary Single-Use 6-Digit Gate Pass OTP (Feature 16)
+	CreateTemporaryPickupOTP(ctx context.Context, otp *TemporaryPickupOTP) error
+	GetValidPickupOTP(ctx context.Context, code string) (*TemporaryPickupOTP, error)
+	MarkPickupOTPUsed(ctx context.Context, id uuid.UUID) error
+}
+
+type TemporaryPickupOTP struct {
+	TenantBase
+	ID             uuid.UUID  `json:"id" gorm:"type:uuid;primaryKey"`
+	GuardianID     uuid.UUID  `json:"guardian_id" gorm:"type:uuid;index;not null"`
+	StudentID      uuid.UUID  `json:"student_id" gorm:"type:uuid;index;not null"`
+	OTP            string     `json:"otp" gorm:"type:varchar(6);index;not null"`
+	CollectorName  string     `json:"collector_name" gorm:"not null"`
+	CollectorPhone string     `json:"collector_phone" gorm:"not null"`
+	ExpiresAt      time.Time  `json:"expires_at" gorm:"not null"`
+	IsUsed         bool       `json:"is_used" gorm:"default:false"`
+	UsedAt         *time.Time `json:"used_at"`
+	CreatedAt      time.Time  `json:"created_at"`
 }
 
 type FamilyMemberFee struct {
@@ -131,6 +150,10 @@ type GuardianUseCase interface {
 	// Family Ledger & Campus Security
 	GetFamilyLedger(ctx context.Context, guardianID uuid.UUID) (*FamilyLedgerSummary, error)
 	VerifyPickupPass(ctx context.Context, code string) (*Guardian, error)
+
+	// Temporary Gate Pass OTP (Feature 16)
+	GeneratePickupOTP(ctx context.Context, guardianUserID, studentID uuid.UUID, collectorName, collectorPhone string) (*TemporaryPickupOTP, error)
+	VerifyAndRedeemPickupOTP(ctx context.Context, otpCode string) (*TemporaryPickupOTP, error)
 
 	// Absence Requests
 	SubmitAbsenceRequest(ctx context.Context, guardianUserID uuid.UUID, req *AbsenceRequest) error

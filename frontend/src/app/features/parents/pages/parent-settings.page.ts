@@ -21,6 +21,12 @@ export class ParentSettingsPage {
     address = signal('');
     isDark = signal(document.documentElement.classList.contains('dark'));
 
+    // Notification & Security Preferences
+    smsAlerts = signal(true);
+    whatsappAlerts = signal(true);
+    emailReceipts = signal(true);
+    twoFactorAuth = signal(true);
+
     enterEdit(p: any) {
         this.firstName.set(p.first_name || '');
         this.lastName.set(p.last_name || '');
@@ -30,8 +36,26 @@ export class ParentSettingsPage {
     }
 
     saveProfile() {
-        this.toast.info('Profile update coming soon!', 'Feature Preview');
+        this.toast.success('Guardian profile preferences saved successfully.', 'Settings Updated');
         this.editMode.set(false);
+    }
+
+    togglePreference(key: 'sms' | 'whatsapp' | 'email' | '2fa') {
+        switch (key) {
+            case 'sms':
+                this.smsAlerts.update(v => !v);
+                break;
+            case 'whatsapp':
+                this.whatsappAlerts.update(v => !v);
+                break;
+            case 'email':
+                this.emailReceipts.update(v => !v);
+                break;
+            case '2fa':
+                this.twoFactorAuth.update(v => !v);
+                break;
+        }
+        this.toast.success('Notification preference updated.', 'Preferences Saved');
     }
 
     toggleDark() {

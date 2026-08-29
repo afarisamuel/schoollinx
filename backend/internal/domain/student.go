@@ -74,12 +74,15 @@ func (s *Student) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 type AlumniProfile struct {
-	UpdatedAt     time.Time `json:"updated_at"`
-	HigherEd      string    `json:"higher_ed"`
-	CurrentCareer string    `json:"current_career"`
-	LinkedInURL   string    `json:"linkedin_url"`
-	ID            uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
-	StudentID     uuid.UUID `json:"student_id" gorm:"type:uuid;unique;not null"`
+	UpdatedAt              time.Time `json:"updated_at"`
+	HigherEd               string    `json:"higher_ed"`
+	CurrentCareer          string    `json:"current_career"`
+	LinkedInURL            string    `json:"linkedin_url"`
+	AvailableForMentorship bool      `json:"available_for_mentorship" gorm:"default:false"`
+	MentorshipField        string    `json:"mentorship_field"`
+	EndowmentPledged       float64   `json:"endowment_pledged" gorm:"default:0"`
+	ID                     uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
+	StudentID              uuid.UUID `json:"student_id" gorm:"type:uuid;unique;not null"`
 	TenantBase
 }
 

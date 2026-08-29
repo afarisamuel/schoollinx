@@ -3,10 +3,13 @@ package usecase
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"math/big"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/user/high-school-management/backend/internal/domain"
@@ -380,4 +383,49 @@ func (u *guardianUseCase) SendPortalInvites(ctx context.Context) (int, error) {
 	}
 
 	return sent, nil
+}
+
+// Temporary Pickup OTP (Feature 16)
+func (u *guardianUseCase) GeneratePickupOTP(ctx context.Context, guardianUserID, studentID uuid.UUID, collectorName, collectorPhone string) (*domain.TemporaryPickupOTP, error) {
+	guardian, err := u.guardianRepo.GetByUserID(ctx, guardianUserID)
+	if err != nil || guardian == nil {
+		return nil, fmt.Errorf("guardian profile not found: %w", err)
+	}
+
+	// Generate secure 6-digit numeric OTP
+	n, err := rand.Int(rand.Reader, big.NewInt(900000))
+	if err != nil {
+		return nil, err
+	}
+	code := fmt.Sprintf("%06d", n.Int64()+100000)
+
+	otp := &domain.TemporaryPickupOTP{
+		ID:             uuid.New(),
+		GuardianID:     guardian.ID,
+		StudentID:      studentID,
+		OTP:            code,
+		CollectorName:  collectorName,
+		CollectorPhone: collectorPhone,
+		ExpiresAt:      time.Now().Add(4 * time.Hour), // 4-hour active window
+		IsUsed:         false,
+	}
+
+	if err := u.guardianRepo.CreateTemporaryPickupOTP(ctx, otp); err != nil {
+		return nil, err
+	}
+
+	return otp, nil
+}
+
+func (u *guardianUseCase) VerifyAndRedeemPickupOTP(ctx context.Context, otpCode string) (*domain.TemporaryPickupOTP, error) {
+	otp, err := u.guardianRepo.GetValidPickupOTP(ctx, otpCode)
+	if err != nil || otp == nil {
+		return nil, errors.New("invalid or expired gate pass OTP")
+	}
+
+	if err := u.guardianRepo.MarkPickupOTPUsed(ctx, otp.ID); err != nil {
+		return nil, err
+	}
+
+	return otp, nil
 }

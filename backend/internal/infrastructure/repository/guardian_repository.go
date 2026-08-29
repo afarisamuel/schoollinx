@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/user/high-school-management/backend/internal/api/middleware"
@@ -225,4 +226,30 @@ func (r *guardianRepository) GetAbsenceRequestByID(ctx context.Context, id uuid.
 
 func (r *guardianRepository) UpdateAbsenceRequest(ctx context.Context, req *domain.AbsenceRequest) error {
 	return r.db.WithContext(ctx).Save(req).Error
+}
+
+// Temporary Pickup OTP
+func (r *guardianRepository) CreateTemporaryPickupOTP(ctx context.Context, otp *domain.TemporaryPickupOTP) error {
+	if otp.ID == uuid.Nil {
+		otp.ID = uuid.New()
+	}
+	return r.db.WithContext(ctx).Create(otp).Error
+}
+
+func (r *guardianRepository) GetValidPickupOTP(ctx context.Context, code string) (*domain.TemporaryPickupOTP, error) {
+	var otp domain.TemporaryPickupOTP
+	now := time.Now()
+	err := r.db.WithContext(ctx).Where("otp = ? AND is_used = false AND expires_at > ?", code, now).First(&otp).Error
+	if err != nil {
+		return nil, err
+	}
+	return &otp, nil
+}
+
+func (r *guardianRepository) MarkPickupOTPUsed(ctx context.Context, id uuid.UUID) error {
+	now := time.Now()
+	return r.db.WithContext(ctx).Model(&domain.TemporaryPickupOTP{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"is_used": true,
+		"used_at": &now,
+	}).Error
 }

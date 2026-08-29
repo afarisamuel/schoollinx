@@ -43,9 +43,21 @@ export class ToastService {
     let cleanTitle = title;
 
     // Sanitize technical internal errors into standard friendly messages
-    if (type === 'error' && this.isTechnicalError(cleanMessage)) {
-      cleanTitle = 'Server Error';
-      cleanMessage = 'A server error occurred. Please try again later.';
+    if (type === 'error') {
+      const lower = cleanMessage.toLowerCase();
+      if (lower.includes('not found') || lower.includes('404') || lower.includes('no record') || lower.includes('record not found')) {
+        cleanTitle = 'Not Found';
+        cleanMessage = 'The requested resource or record could not be found.';
+      } else if (lower.includes('unauthorized') || lower.includes('forbidden') || lower.includes('401') || lower.includes('403') || lower.includes('jwt') || lower.includes('token')) {
+        cleanTitle = 'Access Denied';
+        cleanMessage = 'You are not authorized to perform this action. Please log in.';
+      } else if (lower.includes('network') || lower.includes('fetch') || lower.includes('timeout') || lower.includes('connection')) {
+        cleanTitle = 'Connection Issue';
+        cleanMessage = 'Unable to connect to the server. Please check your network connection.';
+      } else if (this.isTechnicalError(cleanMessage) || lower.includes('500') || lower.includes('server error') || lower.includes('internal server') || lower.includes('bad gateway')) {
+        cleanTitle = 'Server Error';
+        cleanMessage = 'A server error occurred. Please try again later.';
+      }
     }
 
     const defaultTitle = {

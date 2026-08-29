@@ -88,3 +88,16 @@ func (u *facilityUseCase) LogFacilityUsage(ctx context.Context, log *domain.Faci
 func (u *facilityUseCase) GetResourceHeatmap(ctx context.Context) ([]domain.ResourceHeatmap, error) {
 	return u.repo.GetResourceHeatmap(ctx)
 }
+
+// Barcode Asset Checkouts (Feature 19)
+func (u *facilityUseCase) CheckoutAsset(ctx context.Context, checkout *domain.AssetCheckout) error {
+	return u.repo.CreateAssetCheckout(ctx, checkout)
+}
+
+func (u *facilityUseCase) ReturnAsset(ctx context.Context, checkoutID uuid.UUID, condition string) error {
+	return u.repo.UpdateAssetReturn(ctx, checkoutID, condition, time.Now())
+}
+
+func (u *facilityUseCase) GetActiveCheckouts(ctx context.Context) ([]domain.AssetCheckout, error) {
+	return u.repo.GetActiveAssetCheckouts(ctx)
+}

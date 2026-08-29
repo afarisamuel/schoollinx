@@ -21,6 +21,8 @@ func NewLogisticsHandler(r *gin.RouterGroup, usecase domain.LogisticsUseCase) {
 		// Transport
 		logistics.GET("/routes", handler.GetRoutes)
 		logistics.POST("/routes", handler.AddRoute)
+		logistics.GET("/routes/:id/gps", handler.GetLiveRouteGPS)
+		logistics.POST("/routes/:id/gps", handler.UpdateBusGPS)
 		logistics.GET("/transport/student/:studentId", handler.GetStudentTransport)
 		logistics.POST("/transport/assign", handler.AssignTransport)
 
@@ -128,4 +130,46 @@ func (h *LogisticsHandler) SubscribeCanteen(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, sub)
+}
+
+func (h *LogisticsHandler) GetLiveRouteGPS(c *gin.Context) {
+	routeID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid route ID"})
+		return
+	}
+	route, err := h.logisticsUseCase.GetRouteByID(c.Request.Context(), routeID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, route)
+}
+
+func (h *LogisticsHandler) UpdateBusGPS(c *gin.Context) {
+	routeID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid route ID"})
+		return
+	}
+
+	var req struct {
+		Lat      float64 `json:"lat" binding:"required"`
+		Lng      float64 `json:"lng" binding:"required"`
+		Speed    float64 `json:"speed"`
+		Heading  float64 `json:"heading"`
+		NextStop string  `json:"next_stop"`
+		ETA      int     `json:"eta"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.logisticsUseCase.UpdateBusGPS(c.Request.Context(), routeID, req.Lat, req.Lng, req.Speed, req.Heading, req.NextStop, req.ETA); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "GPS ping recorded successfully"})
 }

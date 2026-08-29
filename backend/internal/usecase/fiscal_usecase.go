@@ -3,14 +3,24 @@ package usecase
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"math"
+	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/domain"
 	"github.com/user/high-school-management/backend/internal/infrastructure/pdf"
+)
+
+var (
+	ratesCacheMu   sync.RWMutex
+	cachedRates    map[string]float64
+	ratesFetchedAt time.Time
 )
 
 type fiscalUseCase struct {
@@ -793,3 +803,233 @@ func (u *fiscalUseCase) PerformYearEndRollover(ctx context.Context, newPeriodID 
 	)
 	return result, nil
 }
+
+// Milestone 2 Features
+
+func (u *fiscalUseCase) CreateInstallmentAgreement(ctx context.Context, studentID, recordID uuid.UUID, milestones []domain.InstallmentMilestone) (*domain.InstallmentAgreement, error) {
+	record, err := u.fiscalRepo.GetByID(ctx, recordID)
+	if err != nil {
+		return nil, fmt.Errorf("fiscal record not found: %w", err)
+	}
+
+	agreement := &domain.InstallmentAgreement{
+		ID:             uuid.New(),
+		StudentID:      studentID,
+		FiscalRecordID: recordID,
+		TotalAmount:    record.Amount,
+		AmountPaid:     0,
+		Status:         "ACTIVE",
+		PenaltyPct:     5.0, // Default 5% late penalty
+	}
+
+	if err := u.fiscalRepo.CreateInstallmentAgreement(ctx, agreement); err != nil {
+		return nil, err
+	}
+
+	// Persist milestones
+	for i, m := range milestones {
+		m.ID = uuid.New()
+		m.AgreementID = agreement.ID
+		m.Index = i + 1
+		m.Status = "PENDING"
+		m.AmountPaid = 0
+		agreement.Milestones = append(agreement.Milestones, m)
+	}
+
+	return agreement, nil
+}
+
+func (u *fiscalUseCase) GetStudentInstallments(ctx context.Context, studentID uuid.UUID) ([]domain.InstallmentAgreement, error) {
+	return u.fiscalRepo.GetInstallmentAgreementsByStudent(ctx, studentID)
+}
+
+func (u *fiscalUseCase) PayInstallmentMilestone(ctx context.Context, milestoneID uuid.UUID, amount float64) error {
+	m, err := u.fiscalRepo.GetInstallmentMilestoneByID(ctx, milestoneID)
+	if err != nil {
+		return fmt.Errorf("milestone not found: %w", err)
+	}
+
+	newPaid := m.AmountPaid + amount
+	status := m.Status
+	if newPaid >= m.Amount {
+		status = "PAID"
+	}
+
+	return u.fiscalRepo.UpdateInstallmentMilestone(ctx, milestoneID, newPaid, status)
+}
+
+func (u *fiscalUseCase) CalculateSiblingDiscount(ctx context.Context, studentID uuid.UUID, customBase *float64) (*domain.SiblingDiscountCalculation, error) {
+	student, err := u.studentRepo.GetByID(ctx, studentID)
+	if err != nil {
+		return nil, fmt.Errorf("student not found: %w", err)
+	}
+
+	// 1. Determine baseline tuition dynamically (from custom parameter, active FeeStructure, or student invoice)
+	baseTuition := 0.0
+	if customBase != nil && *customBase > 0 {
+		baseTuition = *customBase
+	} else if activePeriod, err := u.academicRepo.GetActive(ctx); err == nil && activePeriod != nil {
+		structures, _ := u.fiscalRepo.GetFeeStructuresByPeriod(ctx, activePeriod.ID)
+		for _, fs := range structures {
+			if fs.Category == domain.CategoryTuition || fs.Category == domain.CategoryTermFee {
+				baseTuition += fs.Amount
+			}
+		}
+	}
+
+	// Fallback to student's pending tuition record if not set in fee structure
+	if baseTuition == 0 {
+		records, _ := u.fiscalRepo.GetPendingByStudent(ctx, studentID)
+		for _, r := range records {
+			if r.Category == domain.CategoryTuition || r.Category == domain.CategoryTermFee {
+				baseTuition = r.Amount
+				break
+			}
+		}
+	}
+
+	// Fallback default only if the school hasn't configured any fee structure yet
+	if baseTuition == 0 {
+		baseTuition = 2500.0
+	}
+
+	childOrder := 1
+	allStudents, err := u.studentRepo.GetAll(ctx)
+	if err == nil {
+		phoneA := string(student.FatherPhone)
+		if phoneA == "" {
+			phoneA = string(student.MotherPhone)
+		}
+		if phoneA == "" {
+			phoneA = string(student.GuardianPhone)
+		}
+
+		if phoneA != "" {
+			count := 0
+			for _, s := range allStudents {
+				p := string(s.FatherPhone)
+				if p == "" {
+					p = string(s.MotherPhone)
+				}
+				if p == "" {
+					p = string(s.GuardianPhone)
+				}
+				if p == phoneA {
+					count++
+					if s.ID == studentID {
+						childOrder = count
+					}
+				}
+			}
+		}
+	}
+
+	discountPct := 0.0
+	reason := "Standard 1st Ward Rate"
+
+	if childOrder == 2 {
+		discountPct = 10.0
+		reason = "2nd Ward Sibling Discount (10% Off)"
+	} else if childOrder >= 3 {
+		discountPct = 20.0
+		reason = fmt.Sprintf("%dth Ward Multi-Sibling Discount (20% Off)", childOrder)
+	}
+
+	discountAmount := (baseTuition * discountPct) / 100.0
+	finalFee := baseTuition - discountAmount
+
+	return &domain.SiblingDiscountCalculation{
+		StudentID:      studentID,
+		ChildOrder:     childOrder,
+		OriginalFee:    baseTuition,
+		DiscountPct:    discountPct,
+		DiscountAmount: discountAmount,
+		FinalFee:       finalFee,
+		Reason:         reason,
+	}, nil
+}
+
+func (u *fiscalUseCase) SetBaselineTuition(ctx context.Context, amount float64) error {
+	if amount <= 0 {
+		return fmt.Errorf("baseline tuition must be greater than zero")
+	}
+
+	activePeriod, err := u.academicRepo.GetActive(ctx)
+	if err != nil || activePeriod == nil {
+		return fmt.Errorf("no active academic period found to set tuition baseline: %w", err)
+	}
+
+	isTermFee := true
+	structure := &domain.FeeStructure{
+		AcademicPeriodID: activePeriod.ID,
+		Category:         domain.CategoryTuition,
+		Amount:           amount,
+		Frequency:        domain.FrequencyTermly,
+		IsTermFee:        &isTermFee,
+	}
+
+	return u.fiscalRepo.SaveFeeStructure(ctx, structure)
+}
+
+func (u *fiscalUseCase) GetExchangeRates(ctx context.Context) (map[string]float64, error) {
+	ratesCacheMu.RLock()
+	if cachedRates != nil && time.Since(ratesFetchedAt) < 1*time.Hour {
+		rates := make(map[string]float64, len(cachedRates))
+		for k, v := range cachedRates {
+			rates[k] = v
+		}
+		ratesCacheMu.RUnlock()
+		return rates, nil
+	}
+	ratesCacheMu.RUnlock()
+
+	// Live API lookup from exchangerate-api
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Get("https://api.exchangerate-api.com/v4/latest/USD")
+	if err != nil {
+		ratesCacheMu.RLock()
+		if cachedRates != nil {
+			rates := cachedRates
+			ratesCacheMu.RUnlock()
+			return rates, nil
+		}
+		ratesCacheMu.RUnlock()
+		return map[string]float64{
+			"GHS": 1.0,
+			"USD": 15.55,
+			"GBP": 19.80,
+			"EUR": 16.90,
+			"NGN": 0.011,
+		}, nil
+	}
+	defer resp.Body.Close()
+
+	var apiResp struct {
+		Rates map[string]float64 `json:"rates"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
+		return map[string]float64{"GHS": 1.0, "USD": 15.55, "GBP": 19.80, "EUR": 16.90, "NGN": 0.011}, nil
+	}
+
+	ghsRate := apiResp.Rates["GHS"]
+	if ghsRate <= 0 {
+		ghsRate = 15.55
+	}
+
+	liveRates := map[string]float64{
+		"GHS": 1.0,
+		"USD": math.Round(ghsRate*100) / 100,
+		"GBP": math.Round((1.0/apiResp.Rates["GBP"])*ghsRate*100) / 100,
+		"EUR": math.Round((1.0/apiResp.Rates["EUR"])*ghsRate*100) / 100,
+		"NGN": math.Round((ghsRate/apiResp.Rates["NGN"])*10000) / 10000,
+	}
+
+	ratesCacheMu.Lock()
+	cachedRates = liveRates
+	ratesFetchedAt = time.Now()
+	ratesCacheMu.Unlock()
+
+	return liveRates, nil
+}
+
+

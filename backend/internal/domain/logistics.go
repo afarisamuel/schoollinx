@@ -9,16 +9,23 @@ import (
 
 // TransportRoute represents a school bus route
 type TransportRoute struct {
-	ID           uuid.UUID `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
-	Name         string    `json:"name" gorm:"not null"`
-	DriverName   string    `json:"driver_name"`
-	DriverPhone  string    `json:"driver_phone"`
-	VehicleInfo  string    `json:"vehicle_info"`
-	VehiclePlate string    `json:"vehicle_plate"`
-	Capacity     int       `json:"capacity" gorm:"default:0"`
-	IsActive     bool      `json:"is_active" gorm:"default:true"`
-	DailyFee     float64   `json:"daily_fee"`
-	CreatedAt    time.Time `json:"created_at"`
+	ID                     uuid.UUID  `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	Name                   string     `json:"name" gorm:"not null"`
+	DriverName             string     `json:"driver_name"`
+	DriverPhone            string     `json:"driver_phone"`
+	VehicleInfo            string     `json:"vehicle_info"`
+	VehiclePlate           string     `json:"vehicle_plate"`
+	Capacity               int        `json:"capacity" gorm:"default:0"`
+	IsActive               bool       `json:"is_active" gorm:"default:true"`
+	DailyFee               float64    `json:"daily_fee"`
+	CurrentLat             float64    `json:"current_lat" gorm:"default:0"`
+	CurrentLng             float64    `json:"current_lng" gorm:"default:0"`
+	SpeedKmh               float64    `json:"speed_kmh" gorm:"default:0"`
+	HeadingDeg             float64    `json:"heading_deg" gorm:"default:0"`
+	NextStopName           string     `json:"next_stop_name"`
+	EstimatedArrivalMins   int        `json:"estimated_arrival_mins" gorm:"default:0"`
+	LastPingAt             *time.Time `json:"last_ping_at"`
+	CreatedAt              time.Time  `json:"created_at"`
 }
 
 // RouteStop is a named pickup/dropoff point on a route
@@ -63,7 +70,9 @@ type CanteenSubscription struct {
 type LogisticsRepository interface {
 	// Transport
 	GetRoutes(ctx context.Context) ([]TransportRoute, error)
+	GetRouteByID(ctx context.Context, id uuid.UUID) (*TransportRoute, error)
 	CreateRoute(ctx context.Context, route *TransportRoute) error
+	UpdateRouteGPS(ctx context.Context, routeID uuid.UUID, lat, lng, speed, heading float64, nextStop string, eta int) error
 	AssignBus(ctx context.Context, assignment *BusAssignment) error
 	GetStudentTransport(ctx context.Context, studentID uuid.UUID) (*BusAssignment, error)
 	GetAssignmentsByRoute(ctx context.Context, routeID uuid.UUID) ([]BusAssignment, error)
@@ -79,7 +88,9 @@ type LogisticsRepository interface {
 type LogisticsUseCase interface {
 	// Transport
 	GetAllRoutes(ctx context.Context) ([]TransportRoute, error)
+	GetRouteByID(ctx context.Context, id uuid.UUID) (*TransportRoute, error)
 	AddRoute(ctx context.Context, route *TransportRoute) error
+	UpdateBusGPS(ctx context.Context, routeID uuid.UUID, lat, lng, speed, heading float64, nextStop string, eta int) error
 	AssignStudentToBus(ctx context.Context, assignment *BusAssignment) error
 	GetTransportForStudent(ctx context.Context, studentID uuid.UUID) (*BusAssignment, error)
 

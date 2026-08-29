@@ -26,6 +26,11 @@ func NewFacilityHandler(r *gin.RouterGroup, usecase domain.FacilityUseCase) {
 		facility.PUT("/inventory/:id", handler.UpdateAsset)
 		facility.DELETE("/inventory/:id", handler.DeleteInventory)
 
+		// Asset Checkouts (Feature 19)
+		facility.POST("/assets/checkout", handler.CheckoutAsset)
+		facility.POST("/assets/return", handler.ReturnAsset)
+		facility.GET("/assets/active-checkouts", handler.GetActiveCheckouts)
+
 		// Visitors
 		facility.GET("/visitors", handler.GetVisitors)
 		facility.POST("/visitors/check-in", handler.CheckInVisitor)
@@ -267,4 +272,45 @@ func (h *FacilityHandler) GetResourceHeatmap(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, heatmap)
+}
+
+func (h *FacilityHandler) CheckoutAsset(c *gin.Context) {
+	var checkout domain.AssetCheckout
+	if err := c.ShouldBindJSON(&checkout); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := h.facilityUseCase.CheckoutAsset(c.Request.Context(), &checkout); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, checkout)
+}
+
+func (h *FacilityHandler) ReturnAsset(c *gin.Context) {
+	var req struct {
+		CheckoutID uuid.UUID `json:"checkout_id" binding:"required"`
+		Condition  string    `json:"condition"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if req.Condition == "" {
+		req.Condition = "GOOD"
+	}
+	if err := h.facilityUseCase.ReturnAsset(c.Request.Context(), req.CheckoutID, req.Condition); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Asset returned successfully"})
+}
+
+func (h *FacilityHandler) GetActiveCheckouts(c *gin.Context) {
+	checkouts, err := h.facilityUseCase.GetActiveCheckouts(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, checkouts)
 }

@@ -18,9 +18,11 @@ func NewWelfareHandler(r *gin.RouterGroup, usecase domain.WelfareUseCase) {
 
 	welfare := r.Group("/welfare")
 	{
-		// Health
+		// Health & Sickbay EMR
 		welfare.GET("/health/student/:studentId", handler.GetHealth)
 		welfare.PUT("/health", handler.UpdateHealth)
+		welfare.GET("/sickbay/student/:studentId", handler.GetSickbayVisits)
+		welfare.POST("/sickbay/visits", handler.RecordSickbayVisit)
 
 		// Behavior
 		welfare.GET("/behavior/student/:studentId", handler.GetBehavior)
@@ -104,4 +106,31 @@ func (h *WelfareHandler) DeleteBehavior(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "log deleted successfully"})
+}
+
+func (h *WelfareHandler) GetSickbayVisits(c *gin.Context) {
+	studentID, err := uuid.Parse(c.Param("studentId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid student ID format"})
+		return
+	}
+	visits, err := h.welfareUseCase.GetStudentSickbayVisits(c.Request.Context(), studentID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, visits)
+}
+
+func (h *WelfareHandler) RecordSickbayVisit(c *gin.Context) {
+	var visit domain.SickbayVisit
+	if err := c.ShouldBindJSON(&visit); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := h.welfareUseCase.RecordSickbayVisit(c.Request.Context(), &visit); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, visit)
 }

@@ -21,9 +21,18 @@ export class ParentAbsencePage implements OnInit {
     endDate = signal('');
     reason = signal('Medical');
     notes = signal('');
+    medicalNoteFile = signal<string | null>(null);
     submitting = signal(false);
     success = signal(false);
     errorMsg = signal('');
+
+    onFileSelected(event: any) {
+        const file = event.target?.files?.[0];
+        if (file) {
+            this.medicalNoteFile.set(file.name);
+            this.toast.success(`Attached medical note: ${file.name}`, 'File Attached');
+        }
+    }
 
     ngOnInit() {
         const students = this.state.profile()?.students || [];
@@ -53,12 +62,16 @@ export class ParentAbsencePage implements OnInit {
         this.submitting.set(true);
         this.errorMsg.set('');
 
+        const fullNotes = this.medicalNoteFile()
+            ? `[Medical Document Attached: ${this.medicalNoteFile()}] ${this.notes()}`.trim()
+            : this.notes();
+
         this.api.submitAbsenceRequest({
             student_id: this.studentId(),
             start_date: this.startDate(),
             end_date: this.endDate(),
             reason: this.reason(),
-            notes: this.notes(),
+            notes: fullNotes,
             status: 'PENDING'
         }).subscribe({
             next: () => {
@@ -67,6 +80,7 @@ export class ParentAbsencePage implements OnInit {
                 this.startDate.set('');
                 this.endDate.set('');
                 this.notes.set('');
+                this.medicalNoteFile.set(null);
                 this.state.reloadAbsences();
                 setTimeout(() => this.success.set(false), 5000);
             },

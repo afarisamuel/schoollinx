@@ -1,10 +1,37 @@
 <div class="max-w-[1400px] mx-auto p-4 md:p-8 animate-fade-in pb-24">
     <div class="mb-7">
-        <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-sky-400 mb-1">School Notices</h1>
-        <p class="text-text-muted text-sm">Official announcements and communications from school administration.</p>
+        <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-sky-400 mb-1">School Notices & Broadcasts</h1>
+        <p class="text-text-muted text-sm">Official announcements, emergency campus alerts, and multi-channel administrative dispatches.</p>
     </div>
 
-    <!-- Filter -->
+    <!-- Feature 24: Emergency Broadcasts & Priority Campus Alerts -->
+    @if (emergencyBroadcasts().length > 0) {
+        <div class="mb-8 space-y-4">
+            <h2 class="text-xs font-black uppercase tracking-widest text-rose-400 flex items-center gap-2">
+                <i class="fas fa-exclamation-triangle animate-pulse"></i> Priority Campus Emergency Broadcasts
+            </h2>
+            @for (b of emergencyBroadcasts(); track b.id) {
+                <div class="p-6 bg-rose-500/10 border-2 border-rose-500/30 rounded-3xl relative overflow-hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                        <div class="flex items-center gap-3">
+                            <span class="px-3 py-1 bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-black uppercase tracking-widest rounded-full">
+                                {{ b.severity }}
+                            </span>
+                            <span class="text-xs text-text-muted flex items-center gap-1.5">
+                                <i class="fas fa-broadcast-tower text-rose-400"></i>
+                                Multi-Channel: {{ b.channels || 'SMS • In-App' }}
+                            </span>
+                        </div>
+                        <span class="text-xs font-mono text-text-muted">{{ b.created_at | date:'medium' }}</span>
+                    </div>
+                    <h3 class="text-lg font-black text-text-primary mb-2">{{ b.title }}</h3>
+                    <p class="text-sm text-text-secondary leading-relaxed">{{ b.message }}</p>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Notice Filter Tabs -->
     <div class="flex flex-wrap gap-2 mb-5">
         @for (f of ['ALL', 'PARENTS', 'STUDENTS', 'STAFF']; track f) {
             <button (click)="filter.set(f)"

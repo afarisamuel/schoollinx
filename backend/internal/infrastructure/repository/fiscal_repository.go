@@ -267,3 +267,41 @@ func (r *fiscalRepository) GetActiveScholarships(ctx context.Context) ([]domain.
 func (r *fiscalRepository) UpdateScholarship(ctx context.Context, scholarship *domain.Scholarship) error {
 	return r.db.WithContext(ctx).Save(scholarship).Error
 }
+
+// Installment Agreements
+func (r *fiscalRepository) CreateInstallmentAgreement(ctx context.Context, agreement *domain.InstallmentAgreement) error {
+	if agreement.ID == uuid.Nil {
+		agreement.ID = uuid.New()
+	}
+	return r.db.WithContext(ctx).Create(agreement).Error
+}
+
+func (r *fiscalRepository) GetInstallmentAgreementsByStudent(ctx context.Context, studentID uuid.UUID) ([]domain.InstallmentAgreement, error) {
+	var agreements []domain.InstallmentAgreement
+	err := r.db.WithContext(ctx).Preload("Milestones").
+		Where("student_id = ?", studentID).
+		Order("created_at DESC").Find(&agreements).Error
+	return agreements, err
+}
+
+func (r *fiscalRepository) GetInstallmentMilestoneByID(ctx context.Context, id uuid.UUID) (*domain.InstallmentMilestone, error) {
+	var m domain.InstallmentMilestone
+	err := r.db.WithContext(ctx).First(&m, "id = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &m, nil
+}
+
+func (r *fiscalRepository) UpdateInstallmentMilestone(ctx context.Context, id uuid.UUID, amountPaid float64, status string) error {
+	updates := map[string]interface{}{
+		"amount_paid": amountPaid,
+		"status":      status,
+	}
+	if status == "PAID" {
+		now := time.Now()
+		updates["paid_at"] = &now
+	}
+	return r.db.WithContext(ctx).Model(&domain.InstallmentMilestone{}).Where("id = ?", id).Updates(updates).Error
+}
+

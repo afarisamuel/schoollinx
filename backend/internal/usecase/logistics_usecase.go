@@ -21,8 +21,16 @@ func (u *logisticsUseCase) GetAllRoutes(ctx context.Context) ([]domain.Transport
 	return u.repo.GetRoutes(ctx)
 }
 
+func (u *logisticsUseCase) GetRouteByID(ctx context.Context, id uuid.UUID) (*domain.TransportRoute, error) {
+	return u.repo.GetRouteByID(ctx, id)
+}
+
 func (u *logisticsUseCase) AddRoute(ctx context.Context, route *domain.TransportRoute) error {
 	return u.repo.CreateRoute(ctx, route)
+}
+
+func (u *logisticsUseCase) UpdateBusGPS(ctx context.Context, routeID uuid.UUID, lat, lng, speed, heading float64, nextStop string, eta int) error {
+	return u.repo.UpdateRouteGPS(ctx, routeID, lat, lng, speed, heading, nextStop, eta)
 }
 
 func (u *logisticsUseCase) AssignStudentToBus(ctx context.Context, assignment *domain.BusAssignment) error {

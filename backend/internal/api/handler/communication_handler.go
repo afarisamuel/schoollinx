@@ -33,6 +33,8 @@ func NewCommunicationHandler(api *gin.RouterGroup, uc domain.CommunicationUseCas
 
 		comm.POST("/birthdays/trigger", h.TriggerBirthdays)
 		comm.POST("/emergency/lockdown", h.TriggerLockdown)
+		comm.POST("/broadcast", h.DispatchEmergencyBroadcast)
+		comm.GET("/broadcasts", h.GetEmergencyBroadcasts)
 	}
 }
 
@@ -231,4 +233,37 @@ func (h *CommunicationHandler) TriggerBirthdays(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Birthday greetings sent successfully", "count": count})
+}
+
+func (h *CommunicationHandler) DispatchEmergencyBroadcast(c *gin.Context) {
+	var broadcast domain.EmergencyBroadcast
+	if err := c.ShouldBindJSON(&broadcast); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid broadcast payload"})
+		return
+	}
+	if broadcast.Title == "" || broadcast.Message == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Broadcast title and message are required"})
+		return
+	}
+	if broadcast.Severity == "" {
+		broadcast.Severity = "URGENT"
+	}
+	if broadcast.TargetAudience == "" {
+		broadcast.TargetAudience = "ALL"
+	}
+
+	if err := h.useCase.DispatchEmergencyBroadcast(c.Request.Context(), &broadcast); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, broadcast)
+}
+
+func (h *CommunicationHandler) GetEmergencyBroadcasts(c *gin.Context) {
+	broadcasts, err := h.useCase.GetEmergencyBroadcasts(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, broadcasts)
 }

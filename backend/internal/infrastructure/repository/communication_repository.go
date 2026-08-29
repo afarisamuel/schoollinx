@@ -95,3 +95,17 @@ func (r *communicationRepository) GetWhatsAppMessagesByPhone(ctx context.Context
 	err := r.db.WithContext(ctx).Where("phone_number = ?", phone).Order("created_at ASC").Find(&messages).Error
 	return messages, err
 }
+
+// Emergency Broadcast (Feature 24)
+func (r *communicationRepository) CreateEmergencyBroadcast(ctx context.Context, broadcast *domain.EmergencyBroadcast) error {
+	if broadcast.ID == uuid.Nil {
+		broadcast.ID = uuid.New()
+	}
+	return r.db.WithContext(ctx).Create(broadcast).Error
+}
+
+func (r *communicationRepository) GetEmergencyBroadcasts(ctx context.Context) ([]domain.EmergencyBroadcast, error) {
+	var broadcasts []domain.EmergencyBroadcast
+	err := r.db.WithContext(ctx).Order("created_at DESC").Find(&broadcasts).Error
+	return broadcasts, err
+}

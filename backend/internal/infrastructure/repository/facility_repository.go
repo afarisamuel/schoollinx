@@ -40,7 +40,31 @@ func (r *facilityRepository) UpdateInventoryQuantity(ctx context.Context, id uui
 }
 
 func (r *facilityRepository) DeleteInventoryItem(ctx context.Context, id uuid.UUID) error {
-	return r.db.WithContext(ctx).Delete(&domain.InventoryItem{}, id).Error
+	return r.db.WithContext(ctx).Delete(&domain.InventoryItem{}, "id = ?", id).Error
+}
+
+// Barcode Asset Checkouts (Feature 19)
+func (r *facilityRepository) CreateAssetCheckout(ctx context.Context, checkout *domain.AssetCheckout) error {
+	if checkout.ID == uuid.Nil {
+		checkout.ID = uuid.New()
+	}
+	if checkout.CheckedOutAt.IsZero() {
+		checkout.CheckedOutAt = time.Now()
+	}
+	return r.db.WithContext(ctx).Create(checkout).Error
+}
+
+func (r *facilityRepository) UpdateAssetReturn(ctx context.Context, checkoutID uuid.UUID, condition string, returnedAt time.Time) error {
+	return r.db.WithContext(ctx).Model(&domain.AssetCheckout{}).Where("id = ?", checkoutID).Updates(map[string]interface{}{
+		"returned_at": &returnedAt,
+		"condition":   condition,
+	}).Error
+}
+
+func (r *facilityRepository) GetActiveAssetCheckouts(ctx context.Context) ([]domain.AssetCheckout, error) {
+	var checkouts []domain.AssetCheckout
+	err := r.db.WithContext(ctx).Where("returned_at IS NULL").Order("due_date ASC").Find(&checkouts).Error
+	return checkouts, err
 }
 
 // Visitors

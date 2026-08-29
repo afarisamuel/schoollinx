@@ -4,19 +4,77 @@
         <p class="text-text-muted text-sm">Badges, performance streaks, and extracurricular activity for each ward.</p>
     </div>
 
+    <!-- Feature 20: Gamified Student House Cup Leaderboard -->
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 mb-8 relative overflow-hidden">
+        <div class="absolute -right-20 -top-20 w-80 h-80 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-2xl">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-black text-text-primary">Annual Campus House Cup Championship</h2>
+                    <p class="text-xs text-text-muted">Live points awarded for academic merits, athletic triumphs, and campus discipline.</p>
+                </div>
+            </div>
+            <span class="px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-black rounded-full flex items-center gap-1.5 w-fit">
+                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> Term Standings Active
+            </span>
+        </div>
+
+        <!-- 4-House Bento Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            @for (house of houseLeaderboard(); track house.id; let idx = $index) {
+                <div class="p-4 bg-bg-tertiary/70 border border-border-primary rounded-2xl relative overflow-hidden transition-all hover:border-amber-500/30">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-2xl">{{ house.crest || '🛡️' }}</span>
+                        <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded"
+                              [ngClass]="idx === 0 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
+                                         idx === 1 ? 'bg-slate-400/20 text-slate-300 border border-slate-400/30' :
+                                         idx === 2 ? 'bg-amber-700/20 text-amber-600 border border-amber-700/30' :
+                                         'bg-bg-secondary text-text-muted border border-border-primary'">
+                            Rank #{{ idx + 1 }}
+                        </span>
+                    </div>
+                    <div class="font-black text-sm text-text-primary mb-1">{{ house.name }}</div>
+                    <div class="text-xl font-mono font-black text-amber-400 mb-2">
+                        {{ house.total_points | number }} <span class="text-[10px] text-text-muted font-normal font-sans">pts</span>
+                    </div>
+                    <!-- Accent color bar -->
+                    <div class="h-1.5 rounded-full bg-bg-secondary overflow-hidden">
+                        <div class="h-full rounded-full" [style.background-color]="house.color || '#6366F1'" [style.width.%]="85 - (idx * 15)"></div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
     @for (student of state.profile()?.students || []; track student.id) {
         @let att = state.attendanceMap()[student.id || ''] || {total:0,present:0,absent:0,late:0,percentage:0};
         @let gpa = state.gpaMap()[student.id || ''] || 0;
         @let hw = state.homeworkMap()[student.id || ''] || [];
         @let badges = getAchievements(att.percentage, gpa, att.absent, hw.length);
+        @let wardHouse = studentHouseMap()[student.id || ''];
 
-        <div class="border border-border-primary rounded-2xl overflow-hidden mb-6">
-            <div class="px-5 py-4 border-b border-border-primary flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-black text-lg">{{ student.first_name[0] }}</div>
-                <div>
-                    <h2 class="font-black text-text-primary text-lg">{{ student.first_name }} {{ student.last_name }}</h2>
-                    <p class="text-[10px] text-text-muted">{{ student.class_name }}</p>
+        <div class="border border-border-primary rounded-2xl overflow-hidden mb-6 bg-bg-secondary">
+            <div class="px-5 py-4 border-b border-border-primary flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-black text-lg">{{ student.first_name[0] }}</div>
+                    <div>
+                        <h2 class="font-black text-text-primary text-lg">{{ student.first_name }} {{ student.last_name }}</h2>
+                        <p class="text-[10px] text-text-muted">{{ student.class_name }}</p>
+                    </div>
                 </div>
+                @if (wardHouse) {
+                    <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-bg-tertiary border border-border-primary">
+                        <span class="text-base">{{ wardHouse.crest || '🛡️' }}</span>
+                        <div class="text-right">
+                            <span class="text-[9px] text-text-muted uppercase tracking-wider font-bold block">Assigned House</span>
+                            <span class="text-xs font-black text-text-primary">{{ wardHouse.name }}</span>
+                        </div>
+                    </div>
+                }
             </div>
 
             <div class="p-5 space-y-6">

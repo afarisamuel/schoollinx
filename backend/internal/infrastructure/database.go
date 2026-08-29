@@ -99,6 +99,7 @@ var TenantModels = []interface{}{
 	// Students
 	&domain.Student{},
 	&domain.Guardian{},
+	&domain.TemporaryPickupOTP{},
 	&domain.AbsenceRequest{},
 	&domain.AlumniProfile{},
 	&domain.StudentPortfolio{},
@@ -147,6 +148,7 @@ var TenantModels = []interface{}{
 	&domain.IEPMilestone{},
 	// Health & welfare
 	&domain.HealthRecord{},
+	&domain.SickbayVisit{},
 	&domain.BehaviorLog{},
 	&domain.DisciplinaryIncident{},
 	&domain.InterventionPlan{},
@@ -171,8 +173,11 @@ var TenantModels = []interface{}{
 	&domain.ExpenseClaim{},
 	&domain.Donation{},
 	&domain.Scholarship{},
+	&domain.InstallmentAgreement{},
+	&domain.InstallmentMilestone{},
 	// Inventory & procurement
 	&domain.InventoryItem{},
+	&domain.AssetCheckout{},
 	&domain.StockItem{},
 	&domain.StockMovement{},
 	&domain.Supplier{},
@@ -208,12 +213,17 @@ var TenantModels = []interface{}{
 	&domain.SubjectRecommendation{},
 	&domain.MeetingSlot{},
 	&domain.MeetingBooking{},
+	&domain.EmergencyBroadcast{},
 	// Clubs & houses
 	&domain.Club{},
 	&domain.ClubMember{},
 	&domain.House{},
 	&domain.HouseMember{},
 	&domain.HousePointEntry{},
+	// Boarding & Hostels
+	&domain.Hostel{},
+	&domain.HostelRoom{},
+	&domain.BedAllocation{},
 	// Visitors & security
 	&domain.VisitorLog{},
 	&domain.ScanEvent{},

@@ -79,6 +79,21 @@ type ResourceHeatmap struct {
 	Utilization int    `json:"utilization"` // percentage 0-100
 }
 
+// AssetCheckout tracks student or teacher barcode loans (Feature 19)
+type AssetCheckout struct {
+	ID           uuid.UUID  `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	AssetTag     string     `json:"asset_tag" gorm:"not null;index"`
+	ItemName     string     `json:"item_name" gorm:"not null"`
+	BorrowerID   uuid.UUID  `json:"borrower_id" gorm:"type:uuid;not null;index"`
+	BorrowerName string     `json:"borrower_name"`
+	BorrowerRole string     `json:"borrower_role" gorm:"default:'STUDENT'"` // STUDENT, TEACHER
+	CheckedOutAt time.Time  `json:"checked_out_at"`
+	DueDate      time.Time  `json:"due_date"`
+	ReturnedAt   *time.Time `json:"returned_at"`
+	Condition    string     `json:"condition" gorm:"default:'GOOD'"` // GOOD, FAIR, DAMAGED
+	CreatedAt    time.Time  `json:"created_at"`
+}
+
 type FacilityRepository interface {
 	// Inventory / Assets
 	GetInventoryItems(ctx context.Context) ([]InventoryItem, error)
@@ -86,6 +101,11 @@ type FacilityRepository interface {
 	UpdateInventoryItem(ctx context.Context, item *InventoryItem) error
 	UpdateInventoryQuantity(ctx context.Context, id uuid.UUID, quantity int) error
 	DeleteInventoryItem(ctx context.Context, id uuid.UUID) error
+
+	// Barcode Asset Checkouts (Feature 19)
+	CreateAssetCheckout(ctx context.Context, checkout *AssetCheckout) error
+	UpdateAssetReturn(ctx context.Context, checkoutID uuid.UUID, condition string, returnedAt time.Time) error
+	GetActiveAssetCheckouts(ctx context.Context) ([]AssetCheckout, error)
 
 	// Visitors
 	GetVisitorLogs(ctx context.Context, date time.Time) ([]VisitorLog, error)
@@ -112,6 +132,11 @@ type FacilityUseCase interface {
 	UpdateAsset(ctx context.Context, item *InventoryItem) error
 	AdjustInventory(ctx context.Context, id uuid.UUID, quantity int) error
 	RemoveInventoryItem(ctx context.Context, id uuid.UUID) error
+
+	// Barcode Asset Checkouts (Feature 19)
+	CheckoutAsset(ctx context.Context, checkout *AssetCheckout) error
+	ReturnAsset(ctx context.Context, checkoutID uuid.UUID, condition string) error
+	GetActiveCheckouts(ctx context.Context) ([]AssetCheckout, error)
 
 	// Visitors
 	GetDailyVisitors(ctx context.Context, date time.Time) ([]VisitorLog, error)

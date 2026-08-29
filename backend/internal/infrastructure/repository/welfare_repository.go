@@ -58,5 +58,19 @@ func (r *welfareRepository) CreateBehaviorLog(ctx context.Context, log *domain.B
 }
 
 func (r *welfareRepository) DeleteBehaviorLog(ctx context.Context, id uuid.UUID) error {
-	return r.db.WithContext(ctx).Delete(&domain.BehaviorLog{}, id).Error
+	return r.db.WithContext(ctx).Delete(&domain.BehaviorLog{}, "id = ?", id).Error
+}
+
+// Sickbay EMR (Feature 17)
+func (r *welfareRepository) CreateSickbayVisit(ctx context.Context, visit *domain.SickbayVisit) error {
+	if visit.ID == uuid.Nil {
+		visit.ID = uuid.New()
+	}
+	return r.db.WithContext(ctx).Create(visit).Error
+}
+
+func (r *welfareRepository) GetSickbayVisitsByStudent(ctx context.Context, studentID uuid.UUID) ([]domain.SickbayVisit, error) {
+	var visits []domain.SickbayVisit
+	err := r.db.WithContext(ctx).Where("student_id = ?", studentID).Order("created_at DESC").Find(&visits).Error
+	return visits, err
 }

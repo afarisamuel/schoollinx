@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -59,6 +60,15 @@ func NewFiscalHandler(r *gin.RouterGroup, fuc domain.FiscalUseCase) {
 		// Year-End Rollover
 		g.GET("/year-end/summary", h.GetYearEndSummary)
 		g.POST("/year-end/rollover", h.PerformYearEndRollover)
+
+		// Milestone 2: Installments, Sibling Discounts & Multi-Currency
+		g.POST("/installments", h.CreateInstallmentAgreement)
+		g.GET("/installments/student/:student_id", h.GetStudentInstallments)
+		g.POST("/installments/milestones/:id/pay", h.PayInstallmentMilestone)
+		g.GET("/discounts/sibling/:student_id", h.CalculateSiblingDiscount)
+		g.POST("/baseline-tuition", h.SetBaselineTuition)
+		g.GET("/rates", h.GetExchangeRates)
+		g.POST("/canteen/pos-charge", h.CanteenPOSCharge)
 	}
 }
 
@@ -570,4 +580,136 @@ func (h *FiscalHandler) PerformYearEndRollover(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, result)
+}
+
+func (h *FiscalHandler) CreateInstallmentAgreement(c *gin.Context) {
+	var req struct {
+		StudentID      uuid.UUID                    `json:"student_id" binding:"required"`
+		FiscalRecordID uuid.UUID                    `json:"fiscal_record_id" binding:"required"`
+		Milestones     []domain.InstallmentMilestone `json:"milestones" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	agreement, err := h.fiscalUseCase.CreateInstallmentAgreement(c.Request.Context(), req.StudentID, req.FiscalRecordID, req.Milestones)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, agreement)
+}
+
+func (h *FiscalHandler) GetStudentInstallments(c *gin.Context) {
+	studentID, err := uuid.Parse(c.Param("student_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid student ID"})
+		return
+	}
+
+	agreements, err := h.fiscalUseCase.GetStudentInstallments(c.Request.Context(), studentID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, agreements)
+}
+
+func (h *FiscalHandler) PayInstallmentMilestone(c *gin.Context) {
+	milestoneID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid milestone ID"})
+		return
+	}
+
+	var req struct {
+		Amount float64 `json:"amount" binding:"required,gt=0"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.fiscalUseCase.PayInstallmentMilestone(c.Request.Context(), milestoneID, req.Amount); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Milestone installment payment recorded"})
+}
+
+func (h *FiscalHandler) CalculateSiblingDiscount(c *gin.Context) {
+	studentID, err := uuid.Parse(c.Param("student_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid student ID"})
+		return
+	}
+
+	var customBase *float64
+	if baseStr := c.Query("base_tuition"); baseStr != "" {
+		if v, err := strconv.ParseFloat(baseStr, 64); err == nil && v > 0 {
+			customBase = &v
+		}
+	}
+
+	discount, err := h.fiscalUseCase.CalculateSiblingDiscount(c.Request.Context(), studentID, customBase)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, discount)
+}
+
+func (h *FiscalHandler) SetBaselineTuition(c *gin.Context) {
+	var req struct {
+		Amount float64 `json:"amount" binding:"required,gt=0"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.fiscalUseCase.SetBaselineTuition(c.Request.Context(), req.Amount); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Baseline tuition updated successfully",
+		"amount":  req.Amount,
+	})
+}
+
+func (h *FiscalHandler) GetExchangeRates(c *gin.Context) {
+	rates, err := h.fiscalUseCase.GetExchangeRates(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, rates)
+}
+
+func (h *FiscalHandler) CanteenPOSCharge(c *gin.Context) {
+	var req struct {
+		StudentID uuid.UUID `json:"student_id" binding:"required"`
+		Amount    float64   `json:"amount" binding:"required,gt=0"`
+		ItemName  string    `json:"item_name" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.fiscalUseCase.ProcessCanteenPurchase(c.Request.Context(), req.StudentID, req.Amount, req.ItemName); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success":   true,
+		"message":   "POS charge successful",
+		"item_name": req.ItemName,
+		"amount":    req.Amount,
+	})
 }

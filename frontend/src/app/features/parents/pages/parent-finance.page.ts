@@ -1,8 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ParentStateService } from '../../../core/infrastructure/parent/parent-state.service';
 import { ParentPortalService } from '../../../core/infrastructure/parent/parent-portal.service';
+import { FiscalService } from '../../../core/infrastructure/fiscal/fiscal.service';
 import { PaymentService } from '../../../core/infrastructure/payment/payment.service';
 import { ToastService } from '../../../shared/ui/toast/toast.service';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
@@ -13,13 +14,30 @@ import { DialogService } from '../../../shared/ui/dialog/dialog.service';
     imports: [CommonModule, FormsModule],
     templateUrl: './parent-finance.page.html'
 })
-export class ParentFinancePage {
+export class ParentFinancePage implements OnInit {
     state = inject(ParentStateService);
     private api = inject(ParentPortalService);
+    private fiscalService = inject(FiscalService);
     private paymentService = inject(PaymentService);
     private toast = inject(ToastService);
     private dialog = inject(DialogService);
 
+    // Multi-Currency State
+    selectedCurrency = signal<'GHS' | 'USD' | 'GBP' | 'EUR'>('GHS');
+    exchangeRates = signal<Record<string, number>>({
+        GHS: 1.0,
+        USD: 15.55,
+        GBP: 19.80,
+        EUR: 16.90
+    });
+
+    // Installment Agreements
+    installmentsMap = signal<Record<string, any[]>>({});
+
+    // Sibling Discount Savings
+    siblingDiscounts = signal<Record<string, any>>({});
+
+    // Top-up Modal State
     showTopUpModal = signal(false);
     topUpId = signal('');
     topUpName = signal('');
@@ -28,6 +46,60 @@ export class ParentFinancePage {
     topUpMethod = signal<'paystack' | 'direct'>('paystack');
     submitting = signal(false);
     readonly quickAmounts = [20, 50, 100, 200, 500];
+
+    ngOnInit() {
+        this.loadLiveExchangeRates();
+        this.loadMilestoneData();
+    }
+
+    loadLiveExchangeRates() {
+        this.fiscalService.getLiveExchangeRates().subscribe({
+            next: (rates) => {
+                if (rates) {
+                    this.exchangeRates.set(rates);
+                }
+            },
+            error: () => {
+                // Fallback cached rates maintained
+            }
+        });
+    }
+
+    loadMilestoneData() {
+        const students = this.state.profile()?.students || [];
+        for (const s of students) {
+            if (s.id) {
+                this.fiscalService.getInstallmentAgreements(s.id).subscribe({
+                    next: (agreements) => {
+                        this.installmentsMap.update(m => ({ ...m, [s.id!]: agreements }));
+                    }
+                });
+
+                this.fiscalService.getSiblingDiscount(s.id).subscribe({
+                    next: (discount) => {
+                        this.siblingDiscounts.update(m => ({ ...m, [s.id!]: discount }));
+                    }
+                });
+            }
+        }
+    }
+
+    formatMoney(amountInGhs: number): string {
+        const curr = this.selectedCurrency();
+        const rate = this.exchangeRates()[curr] || 1.0;
+        const symbols: Record<string, string> = { GHS: 'GH₵', USD: '$', GBP: '£', EUR: '€' };
+        const sym = symbols[curr] || 'GH₵';
+
+        if (curr === 'GHS') {
+            return `${sym}${amountInGhs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+        const converted = amountInGhs / rate;
+        return `${sym}${converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    setCurrency(curr: 'GHS' | 'USD' | 'GBP' | 'EUR') {
+        this.selectedCurrency.set(curr);
+    }
 
     openTopUp(studentId: string, name: string) {
         this.topUpId.set(studentId);
@@ -92,6 +164,22 @@ export class ParentFinancePage {
         const wards = this.state.familyLedger()?.wards?.filter(w => w.balance_due > 0) || [];
         if (!wards.length) { this.dialog.alert('All fees are settled!', 'Settled', 'success'); return; }
         this.payWard(wards[0].student_id, wards[0].student_name);
+    }
+
+    payMilestone(milestoneId: string, amount: number, studentName: string) {
+        this.dialog.confirm(`Proceed with installment payment of GH₵${amount.toFixed(2)} for ${studentName}?`, 'Installment Milestone', 'info', 'Pay Installment').subscribe(ok => {
+            if (!ok) return;
+            this.fiscalService.payInstallmentMilestone(milestoneId, amount).subscribe({
+                next: () => {
+                    this.toast.success('Installment payment recorded.', 'Payment Successful');
+                    this.loadMilestoneData();
+                    this.state.reloadLedger();
+                },
+                error: () => {
+                    this.toast.error('Payment processing failed.', 'Error');
+                }
+            });
+        });
     }
 
     downloadReceipt(studentId: string) {

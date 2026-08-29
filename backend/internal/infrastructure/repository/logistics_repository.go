@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -25,6 +26,28 @@ func (r *logisticsRepository) GetRoutes(ctx context.Context) ([]domain.Transport
 		return nil, err
 	}
 	return routes, nil
+}
+
+func (r *logisticsRepository) GetRouteByID(ctx context.Context, id uuid.UUID) (*domain.TransportRoute, error) {
+	var route domain.TransportRoute
+	if err := r.db.WithContext(ctx).First(&route, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+	return &route, nil
+}
+
+func (r *logisticsRepository) UpdateRouteGPS(ctx context.Context, routeID uuid.UUID, lat, lng, speed, heading float64, nextStop string, eta int) error {
+	now := time.Now()
+	updates := map[string]interface{}{
+		"current_lat":            lat,
+		"current_lng":            lng,
+		"speed_kmh":              speed,
+		"heading_deg":            heading,
+		"next_stop_name":         nextStop,
+		"estimated_arrival_mins": eta,
+		"last_ping_at":           &now,
+	}
+	return r.db.WithContext(ctx).Model(&domain.TransportRoute{}).Where("id = ?", routeID).Updates(updates).Error
 }
 
 func (r *logisticsRepository) CreateRoute(ctx context.Context, route *domain.TransportRoute) error {

@@ -1,21 +1,90 @@
-<div class="max-w-lg mx-auto p-4 md:p-8 animate-fade-in pb-24">
+<div class="max-w-2xl mx-auto p-4 md:p-8 animate-fade-in pb-24">
+
+    <!-- Header -->
     <div class="mb-7">
-        <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-1">Pickup Pass</h1>
-        <p class="text-text-muted text-sm">Present this digital pass at the school gate to collect your ward.</p>
+        <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-1">Gate Pass & Pickup Authorization</h1>
+        <p class="text-text-muted text-sm">Permanent biometric pass and single-use 6-digit OTPs for drivers, uncles, and trusted relatives.</p>
     </div>
 
+    <!-- Feature 16: Third-Party Single-Use 6-Digit Gate Pass OTP Generator -->
+    <div class="bg-gradient-to-br from-indigo-950/40 via-bg-secondary to-bg-secondary border border-indigo-500/30 rounded-3xl p-6 mb-7 relative overflow-hidden">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg shrink-0">
+                <i class="fas fa-key"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-black text-text-primary">Third-Party Pickup Pass (Single-Use OTP)</h3>
+                <p class="text-xs text-text-muted">Need a driver, aunt, or friend to collect your child? Generate a secure 6-digit gate code.</p>
+            </div>
+        </div>
+
+        @if (activeOtp(); as otp) {
+            <!-- Active OTP Display Card -->
+            <div class="p-5 bg-bg-tertiary/80 border border-indigo-500/40 rounded-2xl mb-4 text-center animate-fade-in">
+                <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400 block mb-1">
+                    <i class="fas fa-shield-alt mr-1"></i> Authorized Single-Use Pass Active
+                </span>
+                <div class="text-3xl sm:text-4xl font-mono font-black tracking-widest text-text-primary py-2 text-indigo-300">
+                    {{ otp.otp }}
+                </div>
+                <div class="text-xs text-text-muted mb-4">
+                    Collector: <span class="font-bold text-text-primary">{{ otp.collector_name }}</span> ({{ otp.collector_phone }})
+                    <br>
+                    <span class="text-amber-400 font-medium text-[11px]"><i class="fas fa-clock mr-1"></i> Valid for 4 hours at the security gate</span>
+                </div>
+                <div class="flex items-center justify-center gap-2">
+                    <button (click)="shareOtpWhatsApp(otp.otp, otp.collector_name)"
+                            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                        <i class="fab fa-whatsapp"></i> Send via WhatsApp
+                    </button>
+                    <button (click)="copyOtp(otp.otp)"
+                            class="px-4 py-2 bg-bg-secondary border border-border-primary hover:bg-bg-tertiary text-text-primary rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                        <i class="fas fa-copy"></i> Copy Code
+                    </button>
+                    <button (click)="activeOtp.set(null)"
+                            class="px-3 py-2 bg-bg-secondary border border-border-primary hover:bg-rose-500/20 text-rose-400 rounded-xl text-xs font-bold transition-all cursor-pointer">
+                        Dismiss
+                    </button>
+                </div>
+            </div>
+        }
+
+        <!-- Generate Buttons Per Ward -->
+        <div class="space-y-2">
+            <span class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-1">Generate Gate Code For:</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                @for (student of state.profile()?.students || []; track student.id) {
+                    <button (click)="openOtpModal(student.id || '')"
+                            class="p-3 bg-bg-tertiary/70 border border-border-primary hover:border-indigo-500/40 rounded-xl flex items-center justify-between text-left transition-all cursor-pointer group">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-xs">
+                                {{ student.first_name[0] }}
+                            </div>
+                            <span class="text-xs font-bold text-text-primary group-hover:text-indigo-400 transition-colors">{{ student.first_name }} {{ student.last_name }}</span>
+                        </div>
+                        <span class="text-[11px] text-indigo-400 font-bold flex items-center gap-1">
+                            <span>Get Code</span>
+                            <i class="fas fa-chevron-right text-[9px]"></i>
+                        </span>
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Permanent Guardian Biometric Pass (Existing) -->
     @if (state.profile(); as p) {
-        <div class="bg-gradient-to-b from-bg-secondary to-bg-tertiary border-2 border-purple-500/30 rounded-2xl p-6 md:p-8 relative overflow-hidden">
+        <div class="bg-gradient-to-b from-bg-secondary to-bg-tertiary border-2 border-purple-500/30 rounded-3xl p-6 md:p-8 relative overflow-hidden">
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
             <!-- Header -->
             <div class="flex items-center justify-between pb-5 border-b border-border-primary/60 mb-5">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-xl">
-                        <i class="fas fa-shield-alt"></i>
+                        <i class="fas fa-id-badge"></i>
                     </div>
                     <div>
-                        <h3 class="text-base font-black text-text-primary">Campus Pickup Pass</h3>
+                        <h3 class="text-base font-black text-text-primary">Permanent Guardian Pass</h3>
                         <p class="text-[10px] uppercase font-bold tracking-widest text-purple-400">School Linx &bull; Authorized Exit</p>
                     </div>
                 </div>
@@ -33,15 +102,15 @@
                     <h4 class="text-base font-black text-text-primary">{{ p.first_name }} {{ p.last_name }}</h4>
                     <p class="text-xs text-text-muted">{{ p.relationship }} &bull; {{ p.phone_number }}</p>
                     <span class="inline-block mt-1 text-[10px] font-bold text-emerald-400">
-                        <i class="fas fa-check mr-1"></i> Authorized for Collection
+                        <i class="fas fa-check mr-1"></i> Authorized Primary Collector
                     </span>
                 </div>
             </div>
 
             <!-- QR Visual -->
             <div class="bg-white p-5 rounded-xl flex flex-col items-center justify-center mb-5">
-                <div class="w-40 h-40 bg-white flex items-center justify-center border-4 border-dashed border-gray-200 rounded-xl mb-3">
-                    <svg class="w-32 h-32" viewBox="0 0 100 100" fill="none">
+                <div class="w-36 h-36 bg-white flex items-center justify-center border-4 border-dashed border-gray-200 rounded-xl mb-2">
+                    <svg class="w-28 h-28" viewBox="0 0 100 100" fill="none">
                         <rect width="100" height="100" fill="white"/>
                         <rect x="5" y="5" width="30" height="30" fill="black"/>
                         <rect x="10" y="10" width="20" height="20" fill="white"/>
@@ -58,46 +127,77 @@
                         <rect x="65" y="45" width="10" height="10" fill="black"/>
                         <rect x="80" y="60" width="15" height="8" fill="black"/>
                         <rect x="45" y="75" width="10" height="20" fill="black"/>
-                        <rect x="65" y="75" width="30" height="20" fill="black"/>
                     </svg>
                 </div>
-                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Gate Security Code</span>
-                <span class="text-2xl font-black font-mono text-gray-900 tracking-widest select-all mt-1">{{ p.pickup_code || 'SL-GATE' }}</span>
+                <div class="font-mono text-xs font-bold text-gray-700 tracking-widest">
+                    ID: {{ p.pickup_code || 'CODE-849201' }}
+                </div>
             </div>
 
             <!-- Actions -->
-            <div class="flex gap-2 mb-5">
-                <button (click)="sharePass(p)" class="flex-1 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl cursor-pointer flex items-center justify-center gap-2">
+            <div class="flex gap-2">
+                <button (click)="sharePass(p)"
+                        class="flex-1 py-2.5 bg-bg-secondary border border-border-primary hover:bg-bg-tertiary text-text-primary rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer">
                     <i class="fas fa-share-alt"></i> Share Pass
                 </button>
-                <button (click)="printPass()" class="flex-1 py-2.5 bg-bg-tertiary hover:bg-bg-primary border border-border-primary text-text-primary font-bold text-xs rounded-xl cursor-pointer flex items-center justify-center gap-2">
+                <button (click)="printPass()"
+                        class="flex-1 py-2.5 bg-bg-secondary border border-border-primary hover:bg-bg-tertiary text-text-primary rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer">
                     <i class="fas fa-print"></i> Print Pass
                 </button>
             </div>
+        </div>
+    }
 
-            <!-- Authorized Wards -->
-            <div>
-                <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted block mb-2">Authorized Wards ({{ p.students?.length || 0 }}):</span>
-                <div class="space-y-2">
-                    @for (s of p.students || []; track s.id) {
-                        <div class="p-3 bg-bg-primary rounded-xl border border-border-primary flex items-center justify-between">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs font-black">{{ s.first_name[0] }}</div>
-                                <div>
-                                    <h5 class="text-xs font-black text-text-primary">{{ s.first_name }} {{ s.last_name }}</h5>
-                                    <p class="text-[10px] text-text-muted">{{ s.class_name }} &bull; {{ s.enrollment_num }}</p>
-                                </div>
-                            </div>
-                            <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[9px] font-bold rounded border border-emerald-500/20">Authorized</span>
-                        </div>
-                    }
+</div>
+
+<!-- Third-Party Pickup Delegation Modal -->
+@if (showOtpModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div class="w-full max-w-md bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-border-primary">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-sm">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <h3 class="text-base font-black text-text-primary">Delegate Third-Party Pickup</h3>
+                </div>
+                <button (click)="showOtpModal.set(false)" class="text-text-muted hover:text-text-primary cursor-pointer">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <p class="text-xs text-text-muted">
+                The designated collector will receive an official SMS and can show this 6-digit OTP code at the campus security checkpoint.
+            </p>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-1">Collector Full Name</label>
+                    <input type="text" [(ngModel)]="collectorName" placeholder="e.g. Uncle Kwame or Driver Samuel"
+                           class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-text-primary text-sm font-medium focus:outline-none focus:border-indigo-500" />
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-1">Collector Phone Number</label>
+                    <input type="tel" [(ngModel)]="collectorPhone" placeholder="e.g. 0244123456"
+                           class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-text-primary text-sm font-medium focus:outline-none focus:border-indigo-500" />
                 </div>
             </div>
 
-            <p class="text-[10px] text-text-muted text-center mt-4">
-                <i class="fas fa-info-circle mr-1"></i>
-                Present this pass or mention code <strong>{{ p.pickup_code }}</strong> to gate security.
-            </p>
+            <div class="flex gap-2 pt-2">
+                <button (click)="showOtpModal.set(false)"
+                        class="flex-1 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-xs font-bold text-text-muted hover:text-text-primary transition-all cursor-pointer">
+                    Cancel
+                </button>
+                <button (click)="generateOTP(); showOtpModal.set(false)" [disabled]="generating()"
+                        class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50">
+                    @if (generating()) {
+                        <i class="fas fa-spinner fa-spin"></i> Generating...
+                    } @else {
+                        <i class="fas fa-key"></i> Generate Gate Code
+                    }
+                </button>
+            </div>
         </div>
-    }
-</div>
+    </div>
+}

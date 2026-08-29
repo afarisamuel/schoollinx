@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 
@@ -81,4 +82,42 @@ func (u *welfareUseCase) LogBehaviorEvent(ctx context.Context, log *domain.Behav
 
 func (u *welfareUseCase) RemoveBehaviorEvent(ctx context.Context, id uuid.UUID) error {
 	return u.repo.DeleteBehaviorLog(ctx, id)
+}
+
+// Sickbay EMR (Feature 17)
+func (u *welfareUseCase) RecordSickbayVisit(ctx context.Context, visit *domain.SickbayVisit) error {
+	if visit.TemperatureCelsius >= 38.0 {
+		visit.FeverAlert = true
+	}
+	if err := u.repo.CreateSickbayVisit(ctx, visit); err != nil {
+		return err
+	}
+
+	// If FeverAlert or ParentNotified requested, send instant SMS alert to guardians
+	if visit.FeverAlert || visit.ParentNotified {
+		student, err := u.students.GetByID(ctx, visit.StudentID)
+		if err == nil && student != nil {
+			guardians, err := u.guardians.GetForStudent(ctx, student.ID)
+			if err == nil {
+				var phones []string
+				for _, g := range guardians {
+					phone := string(g.PhoneNumber)
+					if phone != "" {
+						phones = append(phones, phone)
+					}
+				}
+				if len(phones) > 0 {
+					alertMsg := fmt.Sprintf("SICKBAY NOTICE: %s attended the campus clinic (Temp: %.1f°C). Symptoms: %s. Care provided by %s.",
+						string(student.FirstName), visit.TemperatureCelsius, visit.Symptoms, visit.AttendingNurse)
+					_ = u.sms.SendSMS(ctx, "SICKBAY", phones, alertMsg)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func (u *welfareUseCase) GetStudentSickbayVisits(ctx context.Context, studentID uuid.UUID) ([]domain.SickbayVisit, error) {
+	return u.repo.GetSickbayVisitsByStudent(ctx, studentID)
 }

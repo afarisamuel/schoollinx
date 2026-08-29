@@ -160,6 +160,7 @@ func (a *App) setupRoutes() {
 	handler.NewExamHandler(usecases.Exam).RegisterRoutes(api)
 	handler.NewPortfolioHandler(api, usecases.Portfolio)
 	handler.NewCampusOpsHandler(api, usecases.CampusOps)
+	handler.NewHostelHandler(api, usecases.Hostel)
 	handler.NewCommunicationHandler(api, usecases.Communication, repos.Guardian)
 
 	// Authenticated Payment Routes

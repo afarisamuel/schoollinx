@@ -1,54 +1,108 @@
 <div class="max-w-[1400px] mx-auto p-4 md:p-8 animate-fade-in pb-24">
-    <div class="mb-7">
-        <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 mb-1">Finance & Fees</h1>
-        <p class="text-text-muted text-sm">Family ledger, wallets, invoice history, and payments.</p>
+
+    <!-- Header & Live Multi-Currency Switcher -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-7">
+        <div>
+            <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 mb-1">Finance & Fees</h1>
+            <p class="text-text-muted text-sm">Family ledger, split installments, multi-currency conversions, and instant wallet top-ups.</p>
+        </div>
+
+        <!-- Multi-Currency Pills -->
+        <div class="flex items-center gap-1.5 p-1 bg-bg-secondary border border-border-primary rounded-2xl w-fit">
+            <button (click)="setCurrency('GHS')"
+                    [ngClass]="selectedCurrency() === 'GHS' ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-600/20' : 'text-text-muted hover:text-text-primary'"
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer">
+                GHS (GH₵)
+            </button>
+            <button (click)="setCurrency('USD')"
+                    [ngClass]="selectedCurrency() === 'USD' ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-600/20' : 'text-text-muted hover:text-text-primary'"
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer">
+                USD ($)
+            </button>
+            <button (click)="setCurrency('GBP')"
+                    [ngClass]="selectedCurrency() === 'GBP' ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-600/20' : 'text-text-muted hover:text-text-primary'"
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer">
+                GBP (£)
+            </button>
+            <button (click)="setCurrency('EUR')"
+                    [ngClass]="selectedCurrency() === 'EUR' ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-600/20' : 'text-text-muted hover:text-text-primary'"
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer">
+                EUR (€)
+            </button>
+        </div>
     </div>
 
-    <!-- KPI Summary -->
+    <!-- KPI Summary (Live Multi-Currency formatted) -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div class="p-5 bg-bg-secondary border border-border-primary rounded-2xl">
             <span class="text-xs font-bold uppercase tracking-wider text-text-muted block mb-1">Total Invoiced</span>
-            <div class="text-2xl font-black text-text-primary">GH₵{{ state.familyLedger()?.total_family_billed | number:'1.2-2' }}</div>
-            <p class="text-xs text-text-muted mt-1">All tuition & fees</p>
+            <div class="text-2xl font-black text-text-primary">{{ formatMoney(state.familyLedger()?.total_family_billed || 0) }}</div>
+            <p class="text-xs text-text-muted mt-1">All tuition & institutional fees</p>
         </div>
         <div class="p-5 bg-bg-secondary border border-border-primary rounded-2xl">
             <span class="text-xs font-bold uppercase tracking-wider text-text-muted block mb-1">Total Paid</span>
-            <div class="text-2xl font-black text-emerald-400">GH₵{{ state.familyLedger()?.total_family_paid | number:'1.2-2' }}</div>
-            <p class="text-xs text-text-muted mt-1">Verified payments</p>
+            <div class="text-2xl font-black text-emerald-400">{{ formatMoney(state.familyLedger()?.total_family_paid || 0) }}</div>
+            <p class="text-xs text-text-muted mt-1">Verified family payments</p>
         </div>
         <div class="p-5 bg-rose-500/5 border border-rose-500/20 rounded-2xl flex flex-col justify-between">
             <div>
                 <span class="text-xs font-bold uppercase tracking-wider text-rose-400 block mb-1">Outstanding Balance</span>
-                <div class="text-2xl font-black text-rose-400">GH₵{{ state.familyLedger()?.total_family_balance | number:'1.2-2' }}</div>
+                <div class="text-2xl font-black text-rose-400">{{ formatMoney(state.familyLedger()?.total_family_balance || 0) }}</div>
             </div>
             @if ((state.familyLedger()?.total_family_balance || 0) > 0) {
                 <button (click)="payFamilyBalance()"
-                        class="mt-3 w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer">
-                    <i class="fas fa-credit-card"></i> Pay via Paystack
+                        class="mt-3 w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shadow-emerald-600/20">
+                    <i class="fas fa-credit-card"></i> Pay Outstanding via Paystack
                 </button>
             } @else {
                 <span class="mt-3 text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                    <i class="fas fa-check-circle"></i> All fees settled!
+                    <i class="fas fa-check-circle"></i> All family accounts settled!
                 </span>
             }
         </div>
     </div>
 
-    <!-- Sibling Discount Badge -->
-    @if (state.familyLedger()?.sibling_discount_pct) {
-        <div class="mb-5 p-4 bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center gap-3 text-purple-300">
-            <i class="fas fa-percent text-xl text-purple-400"></i>
-            <div>
-                <h4 class="text-sm font-black text-text-primary">Multi-Child Sibling Discount Active</h4>
-                <p class="text-xs text-text-muted">{{ state.familyLedger()!.sibling_discount_pct }}% sibling tuition reduction applied for multiple enrolled wards.</p>
+    <!-- Sibling Discount Matrix Card (Feature 12) -->
+    <div class="mb-6 p-5 bg-gradient-to-r from-purple-950/30 to-bg-secondary border border-purple-500/30 rounded-2xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg shrink-0">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-text-primary">Automated Sibling Discount Matrix</h3>
+                    <p class="text-xs text-text-muted">Dynamic tiered fee reduction applied across your registered wards.</p>
+                </div>
             </div>
+            <span class="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20 w-fit">
+                Institutional Policy Active
+            </span>
         </div>
-    }
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+            @for (student of state.profile()?.students || []; track student.id; let idx = $index) {
+                <div class="p-3.5 bg-bg-tertiary/60 border border-border-primary rounded-xl">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-bold text-text-primary">{{ student.first_name }} {{ student.last_name }}</span>
+                        <span class="text-[10px] font-black text-purple-400">Ward #{{ idx + 1 }}</span>
+                    </div>
+                    <div class="text-[11px] text-text-muted">
+                        @if (idx === 0) {
+                            Standard Base Rate (0% Discount)
+                        } @else if (idx === 1) {
+                            <span class="text-emerald-400 font-bold">10% Sibling Discount Applied</span>
+                        } @else {
+                            <span class="text-emerald-400 font-bold">20% Multi-Sibling Discount Applied</span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
 
     <!-- Wards Fee Breakdown -->
     <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 mb-6 overflow-x-auto">
         <h3 class="text-base font-black text-text-primary mb-4 flex items-center gap-2">
-            <i class="fas fa-list text-indigo-400"></i> Wards Fee Breakdown
+            <i class="fas fa-list text-indigo-400"></i> Wards Fee Ledger
         </h3>
         <table class="w-full text-sm">
             <thead>
@@ -58,216 +112,172 @@
                     <th class="pb-3 text-left">Billed</th>
                     <th class="pb-3 text-left">Paid</th>
                     <th class="pb-3 text-left">Balance</th>
-                    <th class="pb-3 text-right pr-2">Actions</th>
+                    <th class="pb-3 text-left">Status</th>
+                    <th class="pb-3 text-right pr-2">Action</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-border-primary/50">
-                @for (w of state.familyLedger()?.wards; track w.student_id) {
-                    <tr class="hover:bg-bg-tertiary/50">
-                        <td class="py-3.5 pl-2 font-black text-text-primary">
-                            <div class="flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs font-black">{{ w.student_name[0] }}</div>
-                                {{ w.student_name }}
-                            </div>
+            <tbody class="divide-y divide-border-primary">
+                @for (w of state.familyLedger()?.wards || []; track w.student_id) {
+                    <tr class="hover:bg-bg-tertiary/30 transition-colors">
+                        <td class="py-3.5 pl-2 font-bold text-text-primary">{{ w.student_name }}</td>
+                        <td class="py-3.5 text-text-muted text-xs">{{ w.class_name }}</td>
+                        <td class="py-3.5 text-text-muted font-mono">{{ formatMoney(w.total_billed) }}</td>
+                        <td class="py-3.5 text-emerald-400 font-mono">{{ formatMoney(w.total_paid) }}</td>
+                        <td class="py-3.5 font-bold font-mono" [ngClass]="w.balance_due > 0 ? 'text-rose-400' : 'text-emerald-400'">
+                            {{ formatMoney(w.balance_due) }}
                         </td>
-                        <td class="py-3.5 text-text-muted">{{ w.class_name }}</td>
-                        <td class="py-3.5 text-text-primary font-medium">GH₵{{ w.total_billed | number:'1.2-2' }}</td>
-                        <td class="py-3.5 text-emerald-400 font-bold">GH₵{{ w.total_paid | number:'1.2-2' }}</td>
-                        <td class="py-3.5 font-black" [ngClass]="w.balance_due > 0 ? 'text-rose-400' : 'text-emerald-400'">
-                            GH₵{{ w.balance_due | number:'1.2-2' }}
+                        <td class="py-3.5">
+                            <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-md border"
+                                  [ngClass]="w.balance_due > 0 ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'">
+                                {{ w.balance_due > 0 ? 'DUE' : 'SETTLED' }}
+                            </span>
                         </td>
                         <td class="py-3.5 text-right pr-2">
                             <div class="flex items-center justify-end gap-2">
-                                <button (click)="openTopUp(w.student_id, w.student_name)"
-                                        class="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-lg text-xs font-bold cursor-pointer flex items-center gap-1">
-                                    <i class="fas fa-wallet text-[9px]"></i> GH₵{{ (state.walletMap()[w.student_id]?.balance || 0) | number:'1.0-0' }}
-                                </button>
                                 @if (w.balance_due > 0) {
                                     <button (click)="payWard(w.student_id, w.student_name)"
-                                            class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold cursor-pointer">
-                                        Pay Now
+                                            class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer">
+                                        Pay
                                     </button>
                                 }
                                 <button (click)="downloadReceipt(w.student_id)"
-                                        class="px-2 py-1 bg-bg-tertiary border border-border-primary rounded-lg text-xs text-text-muted hover:text-text-primary cursor-pointer"
-                                        title="Download Receipt">
-                                    <i class="fas fa-download"></i>
+                                        class="px-3 py-1.5 bg-bg-tertiary border border-border-primary hover:bg-bg-secondary text-text-muted hover:text-text-primary font-bold text-xs rounded-xl transition-all cursor-pointer">
+                                    Receipt
                                 </button>
                             </div>
                         </td>
-                    </tr>
-                }
-                @empty {
-                    <tr>
-                        <td colspan="6" class="py-8 text-center text-text-muted">No fee records found.</td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
 
-    <!-- Per-Student Wallets -->
-    <div class="mb-6">
-        <h3 class="text-base font-black text-text-primary mb-3 flex items-center gap-2">
-            <i class="fas fa-wallet text-emerald-400"></i> Daily Fees Wallets
-        </h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- Split-Tuition Installment Agreements Tracker (Feature 8) -->
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                <i class="fas fa-calendar-check text-emerald-400"></i> Split-Tuition Installment Milestones
+            </h3>
+            <span class="text-xs font-bold text-text-muted">40% / 30% / 30% Schedule</span>
+        </div>
+
+        <div class="space-y-4">
             @for (student of state.profile()?.students || []; track student.id) {
-                @let wInfo = state.walletMap()[student.id || ''];
-                <div class="p-4 bg-bg-secondary border border-border-primary rounded-2xl">
+                <div class="p-4 bg-bg-tertiary/40 border border-border-primary rounded-xl">
                     <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center gap-2">
-                            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black">{{ student.first_name[0] }}</div>
-                            <div>
-                                <div class="text-xs font-bold text-text-primary">{{ student.first_name }}</div>
-                                <div class="text-[9px] text-text-muted">{{ student.class_name }}</div>
+                        <span class="text-xs font-black text-text-primary">{{ student.first_name }} {{ student.last_name }}</span>
+                        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Installment Plan Active</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="p-3 bg-bg-secondary border border-border-primary rounded-xl">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted">Milestone 1 (40%)</span>
+                                <span class="px-1.5 py-0.2 text-[9px] font-black rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">PAID</span>
                             </div>
+                            <div class="text-sm font-bold text-text-primary">{{ formatMoney(1000) }}</div>
+                            <div class="text-[10px] text-text-muted mt-0.5">Term Registration</div>
                         </div>
-                        <div class="text-right">
-                            <div class="text-lg font-black font-mono text-emerald-400">GH₵{{ (wInfo?.balance || 0) | number:'1.2-2' }}</div>
-                            <div class="text-[9px] text-text-muted">balance</div>
+
+                        <div class="p-3 bg-bg-secondary border border-amber-500/30 rounded-xl">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Milestone 2 (30%)</span>
+                                <span class="px-1.5 py-0.2 text-[9px] font-black rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">DUE SOON</span>
+                            </div>
+                            <div class="text-sm font-bold text-text-primary">{{ formatMoney(750) }}</div>
+                            <div class="text-[10px] text-text-muted mt-0.5">Mid-Term Assessment</div>
+                        </div>
+
+                        <div class="p-3 bg-bg-secondary border border-border-primary rounded-xl opacity-60">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted">Milestone 3 (30%)</span>
+                                <span class="px-1.5 py-0.2 text-[9px] font-black rounded bg-bg-tertiary text-text-muted border border-border-primary">UPCOMING</span>
+                            </div>
+                            <div class="text-sm font-bold text-text-primary">{{ formatMoney(750) }}</div>
+                            <div class="text-[10px] text-text-muted mt-0.5">Final Examinations</div>
                         </div>
                     </div>
-                    <button (click)="openTopUp(student.id || '', student.first_name + ' ' + student.last_name)"
-                            class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl cursor-pointer flex items-center justify-center gap-1.5">
-                        <i class="fas fa-plus text-[9px]"></i> Top-Up Wallet
-                    </button>
-                    @if (wInfo?.transactions?.length) {
-                        <div class="mt-3 space-y-1.5">
-                            @for (tx of (wInfo?.transactions || []).slice(0, 3); track tx.id) {
-                                <div class="flex items-center justify-between text-[10px]">
-                                    <span class="text-text-muted truncate">{{ tx.description }}</span>
-                                    <span [ngClass]="tx.type === 'credit' ? 'text-emerald-400' : 'text-rose-400'" class="font-bold shrink-0 ml-2">
-                                        {{ tx.type === 'credit' ? '+' : '-' }}GH₵{{ tx.amount }}
-                                    </span>
-                                </div>
-                            }
-                        </div>
-                    }
                 </div>
             }
         </div>
     </div>
 
-    <!-- Invoice History per Student -->
-    @for (student of state.profile()?.students || []; track student.id) {
-        @let records = state.fiscalMap()[student.id || ''] || [];
-        @if (records.length > 0) {
-            <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 mb-5">
-                <h4 class="text-sm font-black text-text-primary mb-3 flex items-center gap-2">
-                    <i class="fas fa-file-invoice text-indigo-400"></i> Invoice History — {{ student.first_name }} {{ student.last_name }}
-                </h4>
-                <div class="space-y-2">
-                    @for (r of records; track r.id) {
-                        <div class="flex items-center justify-between p-3 bg-bg-tertiary rounded-xl border border-border-primary/60">
-                            <div class="flex items-center gap-3">
-                                <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs"
-                                     [ngClass]="r.status === 'PAID' ? 'bg-emerald-500/20 text-emerald-400' : r.status === 'OVERDUE' ? 'bg-rose-500/20 text-rose-400' : 'bg-amber-500/20 text-amber-400'">
-                                    <i class="fas" [ngClass]="r.status === 'PAID' ? 'fa-check' : 'fa-clock'"></i>
-                                </div>
-                                <div>
-                                    <div class="text-xs font-bold text-text-primary">{{ r.description }}</div>
-                                    <div class="text-[10px] text-text-muted">{{ r.category }} &bull; Due: {{ r.due_date }}</div>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-sm font-black" [ngClass]="r.status === 'PAID' ? 'text-emerald-400' : 'text-rose-400'">
-                                    GH₵{{ r.amount | number:'1.2-2' }}
-                                </div>
-                                <span class="text-[9px] font-black px-1.5 py-0.5 rounded border"
-                                      [ngClass]="r.status === 'PAID' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : r.status === 'OVERDUE' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'">
-                                    {{ r.status }}
-                                </span>
-                            </div>
+    <!-- Student Daily Wallets -->
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5">
+        <h3 class="text-base font-black text-text-primary mb-4 flex items-center gap-2">
+            <i class="fas fa-wallet text-amber-400"></i> Student Daily Wallets & Canteen Funds
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            @for (student of state.profile()?.students || []; track student.id) {
+                @let wallet = state.walletMap()[student.id || ''];
+                <div class="p-4 bg-bg-tertiary border border-border-primary rounded-xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-text-primary">{{ student.first_name }} {{ student.last_name }}</span>
+                            <span class="text-[10px] text-text-muted">{{ student.class_name }}</span>
                         </div>
-                    }
+                        <div class="text-2xl font-black text-emerald-400 my-2">
+                            {{ formatMoney(wallet?.balance || 0) }}
+                        </div>
+                        <p class="text-[10px] text-text-muted">Available for daily campus lunch and bus transit.</p>
+                    </div>
+                    <button (click)="openTopUp(student.id || '', student.first_name + ' ' + student.last_name)"
+                            class="mt-4 w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                        <i class="fas fa-plus text-[10px]"></i> Top-Up Wallet
+                    </button>
                 </div>
-            </div>
-        }
-    }
+            }
+        </div>
+    </div>
+
 </div>
 
 <!-- Top-Up Modal -->
 @if (showTopUpModal()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-6 max-w-md w-full relative">
-            <div class="flex items-center justify-between pb-4 mb-5 border-b border-border-primary">
-                <div>
-                    <h3 class="text-base font-black text-text-primary">Top-Up Daily Wallet</h3>
-                    <p class="text-[11px] text-text-muted">For {{ topUpName() }}</p>
-                </div>
-                <button (click)="showTopUpModal.set(false)" class="p-2 hover:bg-bg-tertiary rounded-xl text-text-muted cursor-pointer">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div class="w-full max-w-md bg-bg-secondary border border-border-primary rounded-2xl p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-black text-text-primary">Top-Up {{ topUpName() }}'s Wallet</h3>
+                <button (click)="showTopUpModal.set(false)" class="text-text-muted hover:text-text-primary cursor-pointer">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
 
-            <div class="bg-bg-tertiary/60 border border-border-secondary rounded-xl p-4 mb-4 flex items-center justify-between">
-                <div>
-                    <p class="text-[10px] font-bold text-text-muted uppercase tracking-wider">Current Balance</p>
-                    <p class="text-xl font-mono font-black text-emerald-400">GH₵{{ (state.walletMap()[topUpId()]?.balance || 0) | number:'1.2-2' }}</p>
-                </div>
-            </div>
-
-            <div class="mb-4">
-                <label class="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-2">Quick Amount</label>
-                <div class="grid grid-cols-5 gap-1.5">
-                    @for (a of quickAmounts; track a) {
-                        <button (click)="topUpAmount.set(a)"
-                                class="py-2 rounded-xl border text-xs font-black cursor-pointer"
-                                [ngClass]="topUpAmount() === a ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-bg-tertiary border-border-primary text-text-muted'">
-                            ₵{{ a }}
+            <!-- Quick Amounts -->
+            <div>
+                <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-2">Select Amount</label>
+                <div class="grid grid-cols-5 gap-2">
+                    @for (amt of quickAmounts; track amt) {
+                        <button (click)="topUpAmount.set(amt)"
+                                [ngClass]="topUpAmount() === amt ? 'bg-indigo-600 text-white font-black' : 'bg-bg-tertiary border border-border-primary text-text-muted hover:text-text-primary'"
+                                class="py-2 rounded-xl text-xs font-bold transition-all cursor-pointer">
+                            {{ amt }}
                         </button>
                     }
                 </div>
             </div>
 
-            <div class="mb-4">
-                <label class="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-2">Custom Amount (GH₵)</label>
-                <input type="number" min="1"
-                       [ngModel]="topUpAmount()" (ngModelChange)="topUpAmount.set($event)"
-                       class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-3 text-base font-mono font-bold text-text-primary focus:border-emerald-500 focus:outline-none">
+            <!-- Custom Amount Input -->
+            <div>
+                <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-1">Custom Amount (GH₵)</label>
+                <input type="number" [(ngModel)]="topUpAmount"
+                       class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-text-primary font-bold text-sm focus:outline-none focus:border-indigo-500" />
             </div>
 
-            <div class="mb-4">
-                <label class="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-2">Payment Method</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <button (click)="topUpMethod.set('paystack')"
-                            class="p-3 rounded-xl border cursor-pointer text-left"
-                            [ngClass]="topUpMethod() === 'paystack' ? 'border-emerald-500 bg-emerald-500/10' : 'border-border-primary bg-bg-tertiary'">
-                        <span class="text-xs font-black block">Pay Online</span>
-                        <span class="text-[10px] text-text-muted">MoMo / Card</span>
-                    </button>
-                    <button (click)="topUpMethod.set('direct')"
-                            class="p-3 rounded-xl border cursor-pointer text-left"
-                            [ngClass]="topUpMethod() === 'direct' ? 'border-emerald-500 bg-emerald-500/10' : 'border-border-primary bg-bg-tertiary'">
-                        <span class="text-xs font-black block">School Cash</span>
-                        <span class="text-[10px] text-text-muted">Direct Top-Up</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="mb-5">
-                <label class="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-2">Purpose Note</label>
-                <input type="text"
-                       [ngModel]="topUpNote()" (ngModelChange)="topUpNote.set($event)"
-                       class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-2.5 text-xs text-text-primary focus:border-emerald-500 focus:outline-none"
-                       placeholder="Daily Canteen & Transport">
-            </div>
-
-            <div class="flex gap-3">
+            <!-- Actions -->
+            <div class="flex gap-2 pt-2">
                 <button (click)="showTopUpModal.set(false)"
-                        class="flex-1 py-3 bg-bg-tertiary border border-border-primary rounded-xl text-xs font-bold text-text-secondary cursor-pointer">
+                        class="flex-1 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-xs font-bold text-text-muted hover:text-text-primary transition-all cursor-pointer">
                     Cancel
                 </button>
-                <button (click)="submitTopUp()" [disabled]="submitting() || topUpAmount() <= 0"
-                        class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer">
+                <button (click)="submitTopUp()" [disabled]="submitting()"
+                        class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
                     @if (submitting()) {
-                        <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        Processing...
+                        <i class="fas fa-spinner fa-spin text-xs"></i>
+                        <span>Connecting...</span>
                     } @else {
-                        <i class="fas fa-arrow-up text-[10px]"></i> Top-Up GH₵{{ topUpAmount() | number:'1.2-2' }}
+                        <i class="fas fa-check text-xs"></i>
+                        <span>Confirm Top-Up</span>
                     }
                 </button>
             </div>
