@@ -14,12 +14,12 @@ func NewPaymentRepository(db *gorm.DB) domain.PaymentRepository {
 }
 
 func (r *paymentRepository) CreateTransaction(tx *domain.PaymentTransaction) error {
-	return r.db.Create(tx).Error
+	return r.db.Table("public.payment_transactions").Create(tx).Error
 }
 
 func (r *paymentRepository) GetTransactionByReference(tenantID, reference string) (*domain.PaymentTransaction, error) {
 	var tx domain.PaymentTransaction
-	err := r.db.Where("tenant_id = ? AND reference = ?", tenantID, reference).First(&tx).Error
+	err := r.db.Table("public.payment_transactions").Where("tenant_id = ? AND reference = ?", tenantID, reference).First(&tx).Error
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (r *paymentRepository) GetTransactionByReference(tenantID, reference string
 
 func (r *paymentRepository) GetTransactionByReferenceOnly(reference string) (*domain.PaymentTransaction, error) {
 	var tx domain.PaymentTransaction
-	err := r.db.Where("reference = ?", reference).First(&tx).Error
+	err := r.db.Table("public.payment_transactions").Where("reference = ?", reference).First(&tx).Error
 	if err != nil {
 		return nil, err
 	}
@@ -36,13 +36,13 @@ func (r *paymentRepository) GetTransactionByReferenceOnly(reference string) (*do
 }
 
 func (r *paymentRepository) UpdateTransactionStatus(tenantID, reference string, status domain.PaymentStatus) error {
-	return r.db.Model(&domain.PaymentTransaction{}).
+	return r.db.Table("public.payment_transactions").
 		Where("tenant_id = ? AND reference = ?", tenantID, reference).
 		Update("status", status).Error
 }
 
 func (r *paymentRepository) LogWebhook(log *domain.PaymentWebhookLog) error {
-	return r.db.Create(log).Error
+	return r.db.Table("public.payment_webhook_logs").Create(log).Error
 }
 
 func (r *paymentRepository) UpdateSubscriptionPaymentStatus(reference string, status string) error {

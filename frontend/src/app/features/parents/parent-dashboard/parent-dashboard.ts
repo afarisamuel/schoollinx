@@ -344,10 +344,8 @@ export class ParentDashboard implements OnInit {
                     this.showTopUpModal.set(false);
                     window.location.href = payRes.authorization_url;
                 },
-                error: (err) => {
+                error: () => {
                     this.isSubmittingTopUp.set(false);
-                    const msg = err.error?.error || 'Failed to initialize Paystack checkout.';
-                    this.toast.error(msg, 'Payment Error');
                 }
             });
             return;

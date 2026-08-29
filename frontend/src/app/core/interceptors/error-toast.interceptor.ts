@@ -4,6 +4,38 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ToastService } from '../../shared/ui/toast/toast.service';
 
+function isTechnicalError(msg: string): boolean {
+  if (!msg) return false;
+  const lower = msg.toLowerCase();
+  return (
+    lower.includes('sqlstate') ||
+    lower.includes('error:') ||
+    lower.includes('pq:') ||
+    lower.includes('violates') ||
+    lower.includes('foreign key') ||
+    lower.includes('constraint') ||
+    lower.includes('syntax error') ||
+    lower.includes('relation ') ||
+    lower.includes('table ') ||
+    lower.includes('column ') ||
+    lower.includes('gorm query error') ||
+    lower.includes('database error') ||
+    lower.includes('panic') ||
+    lower.includes('connection refused')
+  );
+}
+
+function extractCleanErrorMessage(error: HttpErrorResponse): string {
+  const raw = error.error?.error || error.error?.message;
+  if (raw && typeof raw === 'string' && !isTechnicalError(raw)) {
+    // If it's a short, readable human message (e.g. "Account verification failed")
+    if (raw.length > 0 && raw.length < 120) {
+      return raw;
+    }
+  }
+  return '';
+}
+
 export const errorToastInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> => {
   const toastService = inject(ToastService);
 
@@ -14,7 +46,7 @@ export const errorToastInterceptor: HttpInterceptorFn = (req: HttpRequest<unknow
         return throwError(() => error);
       }
 
-      // Ignore 401 (auth redirect) and 402 (billing lock)
+      // Ignore 401 (auth redirect handled by auth guard) and 402 (billing lock)
       if (error.status === 401 || error.status === 402) {
         return throwError(() => error);
       }
@@ -24,33 +56,35 @@ export const errorToastInterceptor: HttpInterceptorFn = (req: HttpRequest<unknow
         return throwError(() => error);
       }
 
-      // Extract and humanize error message
-      let message = 'An unexpected error occurred. Please try again.';
-      let title = 'Request Failed';
+      let title = 'Server Error';
+      let message = 'An unexpected server error occurred. Please try again.';
+
+      const cleanMsg = extractCleanErrorMessage(error);
 
       if (error.status === 0) {
-        message = 'Cannot connect to server. Please check your internet connection.';
         title = 'Network Offline';
-      } else if (error.error?.error) {
-        const raw = typeof error.error.error === 'string' ? error.error.error : JSON.stringify(error.error.error);
-        if (raw.includes('SQLSTATE') || raw.includes('ERROR: column')) {
-          message = 'A temporary database error occurred. The system has automatically fallen back.';
-          title = 'System Notice';
-        } else {
-          message = raw;
-        }
-      } else if (error.error?.message) {
-        message = typeof error.error.message === 'string' ? error.error.message : JSON.stringify(error.error.message);
-      } else if (error.message) {
-        message = error.message;
-      }
-
-      if (error.status === 403) {
+        message = 'Cannot connect to server. Please check your internet connection.';
+      } else if (error.status === 400) {
+        title = 'Invalid Request';
+        message = cleanMsg || 'Please check the information provided and try again.';
+      } else if (error.status === 403) {
         title = 'Access Denied';
+        message = 'You do not have permission to perform this action.';
+      } else if (error.status === 404) {
+        title = 'Not Found';
+        message = cleanMsg || 'The requested resource was not found.';
       } else if (error.status === 409) {
         title = 'Conflict';
-      } else if (error.status >= 500 && title !== 'System Notice') {
+        message = cleanMsg || 'This record conflicts with existing data.';
+      } else if (error.status === 422) {
+        title = 'Validation Error';
+        message = cleanMsg || 'Please verify the submitted data and try again.';
+      } else if (error.status >= 500) {
         title = 'Server Error';
+        message = 'A server error occurred. Please try again later.';
+      } else if (cleanMsg) {
+        title = 'Request Failed';
+        message = cleanMsg;
       }
 
       toastService.error(message, title);

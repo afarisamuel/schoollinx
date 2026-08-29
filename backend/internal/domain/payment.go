@@ -27,6 +27,10 @@ type PaymentTransaction struct {
 	Payer        *User         `json:"payer,omitempty" gorm:"foreignKey:PayerID"`
 }
 
+func (PaymentTransaction) TableName() string {
+	return "public.payment_transactions"
+}
+
 // PaymentWebhookLog records raw incoming webhooks for debugging and idempotency
 type PaymentWebhookLog struct {
 	ID        uuid.UUID `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
@@ -35,6 +39,10 @@ type PaymentWebhookLog struct {
 	Event     string    `json:"event" gorm:"type:varchar(100);not null"`
 	Payload   string    `json:"payload" gorm:"type:jsonb"`
 	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
+}
+
+func (PaymentWebhookLog) TableName() string {
+	return "public.payment_webhook_logs"
 }
 
 // PaymentRepository interface for interacting with payment data

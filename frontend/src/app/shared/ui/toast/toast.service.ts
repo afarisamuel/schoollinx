@@ -16,9 +16,38 @@ export interface Toast {
 })
 export class ToastService {
   toasts = signal<Toast[]>([]);
+  private recentToasts = new Map<string, number>();
+
+  private isTechnicalError(msg: string): boolean {
+    if (!msg) return false;
+    const lower = msg.toLowerCase();
+    return (
+      lower.includes('sqlstate') ||
+      lower.includes('error:') ||
+      lower.includes('pq:') ||
+      lower.includes('violates foreign key') ||
+      lower.includes('violates') ||
+      lower.includes('constraint') ||
+      lower.includes('syntax error') ||
+      lower.includes('relation ') ||
+      lower.includes('table ') ||
+      lower.includes('column ') ||
+      lower.includes('database error') ||
+      lower.includes('gorm query error') ||
+      lower.includes('panic')
+    );
+  }
 
   show(message: string, type: ToastType = 'info', title?: string, duration: number = 4000) {
-    const id = 'toast_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+    let cleanMessage = message || '';
+    let cleanTitle = title;
+
+    // Sanitize technical internal errors into standard friendly messages
+    if (type === 'error' && this.isTechnicalError(cleanMessage)) {
+      cleanTitle = 'Server Error';
+      cleanMessage = 'A server error occurred. Please try again later.';
+    }
+
     const defaultTitle = {
       success: 'Success',
       error: 'Error',
@@ -26,13 +55,26 @@ export class ToastService {
       info: 'Notice'
     }[type];
 
+    const finalTitle = cleanTitle || defaultTitle;
+
+    // Prevent duplicate toast if the exact same message was shown in the last 2 seconds
+    const dedupKey = `${type}:${finalTitle}:${cleanMessage}`;
+    const now = Date.now();
+    const lastShown = this.recentToasts.get(dedupKey);
+    if (lastShown && now - lastShown < 2000) {
+      return '';
+    }
+    this.recentToasts.set(dedupKey, now);
+
+    const id = 'toast_' + Math.random().toString(36).substring(2, 9) + '_' + now;
+
     const toast: Toast = {
       id,
       type,
-      title: title || defaultTitle,
-      message,
+      title: finalTitle,
+      message: cleanMessage,
       duration,
-      timestamp: Date.now()
+      timestamp: now
     };
 
     // Keep maximum 4 toasts visible at a time
@@ -51,7 +93,7 @@ export class ToastService {
     return this.show(message, 'success', title, duration);
   }
 
-  error(message: string, title: string = 'Action Failed', duration: number = 5000) {
+  error(message: string, title: string = 'Error', duration: number = 5000) {
     return this.show(message, 'error', title, duration);
   }
 
