@@ -22,10 +22,17 @@ func NewPaystackService(cfg *config.Config) domain.PaystackService {
 }
 
 func (s *paystackService) InitializeTransaction(email string, amount float64, reference string) (string, error) {
-	return s.InitializeTransactionWithKey(email, amount, reference, s.config.PaystackSecretKey)
+	return s.InitializeTransactionWithOptions(email, amount, reference, s.config.PaystackSecretKey, "")
 }
 
 func (s *paystackService) InitializeTransactionWithKey(email string, amount float64, reference string, secretKey string) (string, error) {
+	return s.InitializeTransactionWithOptions(email, amount, reference, secretKey, "")
+}
+
+func (s *paystackService) InitializeTransactionWithOptions(email string, amount float64, reference string, secretKey string, subaccountCode string) (string, error) {
+	if secretKey == "" {
+		secretKey = s.config.PaystackSecretKey
+	}
 	url := "https://api.paystack.co/transaction/initialize"
 
 	// Paystack expects amount in pesewas/kobo
@@ -34,7 +41,10 @@ func (s *paystackService) InitializeTransactionWithKey(email string, amount floa
 		"amount":    int(amount * 100),
 		"reference": reference,
 		"currency":  "GHS",
-		// "callback_url": "https://frontend-url/payment/callback", // Can set this in Paystack dashboard
+	}
+
+	if subaccountCode != "" {
+		payload["subaccount"] = subaccountCode
 	}
 
 	jsonPayload, err := json.Marshal(payload)
@@ -56,10 +66,6 @@ func (s *paystackService) InitializeTransactionWithKey(email string, amount floa
 		return "", fmt.Errorf("failed to send request: %w", err)
 	}
 	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("paystack returned status: %d", resp.StatusCode)
-	}
 
 	var result struct {
 		Status  bool   `json:"status"`
@@ -94,6 +100,77 @@ func (s *paystackService) VerifyWebhookSignatureWithKey(payload []byte, signatur
 	return hmac.Equal([]byte(expectedSignature), []byte(signature))
 }
 
+func (s *paystackService) GetBanks(country string) ([]domain.PaystackBank, error) {
+	if country == "" {
+		country = "ghana"
+	}
+	url := fmt.Sprintf("https://api.paystack.co/bank?country=%s&perPage=100", country)
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.config.PaystackSecretKey))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch banks from paystack: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Status  bool                  `json:"status"`
+		Message string                `json:"message"`
+		Data    []domain.PaystackBank `json:"data"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode paystack banks response: %w", err)
+	}
+
+	if !result.Status {
+		return nil, fmt.Errorf("paystack returned error: %s", result.Message)
+	}
+
+	return result.Data, nil
+}
+
+func (s *paystackService) ResolveAccount(accountNumber, bankCode string) (*domain.PaystackResolvedAccount, error) {
+	url := fmt.Sprintf("https://api.paystack.co/bank/resolve?account_number=%s&bank_code=%s", accountNumber, bankCode)
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.config.PaystackSecretKey))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve account: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Status  bool                            `json:"status"`
+		Message string                          `json:"message"`
+		Data    *domain.PaystackResolvedAccount `json:"data"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode resolve response: %w", err)
+	}
+
+	if !result.Status {
+		return nil, fmt.Errorf("%s", result.Message)
+	}
+
+	return result.Data, nil
+}
+
 func (s *paystackService) CreateSubaccount(businessName, settlementBank, accountNumber string, percentageCharge float64) (string, error) {
 	url := "https://api.paystack.co/subaccount"
 
@@ -124,10 +201,6 @@ func (s *paystackService) CreateSubaccount(businessName, settlementBank, account
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-		return "", fmt.Errorf("paystack returned status: %d", resp.StatusCode)
-	}
-
 	var result struct {
 		Status  bool   `json:"status"`
 		Message string `json:"message"`
@@ -141,7 +214,7 @@ func (s *paystackService) CreateSubaccount(businessName, settlementBank, account
 	}
 
 	if !result.Status {
-		return "", fmt.Errorf("paystack subaccount creation failed: %s", result.Message)
+		return "", fmt.Errorf("%s", result.Message)
 	}
 
 	return result.Data.SubaccountCode, nil

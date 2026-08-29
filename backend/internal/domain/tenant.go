@@ -42,6 +42,9 @@ type Tenant struct {
 	PaystackPublicKey      string                           `json:"paystack_public_key"`
 	PaystackSecretKey      encryption.EncryptedString       `json:"-" gorm:"type:text"`
 	PaystackSubaccountCode string                           `json:"paystack_subaccount_code"`
+	PaystackBankName       string                           `json:"paystack_bank_name"`
+	PaystackAccountNumber  string                           `json:"paystack_account_number"`
+	PaystackAccountName    string                           `json:"paystack_account_name"`
 	
 	
 	// Academic / Grading Configuration

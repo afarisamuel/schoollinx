@@ -163,6 +163,7 @@ func (a *App) setupRoutes() {
 
 	// Authenticated Payment Routes
 	api.POST("/payments/initialize", paymentHandler.InitializePayment)
+	api.POST("/payments/initialize-wallet-topup", paymentHandler.InitializeWalletTopUp)
 
 	// Public Routes
 	public := a.Router.Group("/api/public")

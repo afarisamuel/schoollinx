@@ -62,6 +62,41 @@ export class TenantProfileService {
     });
   }
 
+  getPaystackCountries(): Observable<PaystackCountry[]> {
+    return this.http.get<PaystackCountry[]>('/api/tenant/paystack/countries');
+  }
+
+  getPaystackBanks(country: string = 'ghana'): Observable<PaystackBank[]> {
+    return this.http.get<PaystackBank[]>(`/api/tenant/paystack/banks?country=${encodeURIComponent(country)}`);
+  }
+
+  resolvePaystackAccount(accountNumber: string, bankCode: string): Observable<PaystackResolvedAccount> {
+    return this.http.post<PaystackResolvedAccount>('/api/tenant/paystack/resolve-account', {
+      account_number: accountNumber,
+      bank_code: bankCode
+    });
+  }
+
+  createPaystackSubaccount(data: {
+    country: string;
+    business_name: string;
+    settlement_bank: string;
+    bank_name: string;
+    account_number: string;
+    account_name: string;
+    percentage_charge?: number;
+  }): Observable<any> {
+    return this.http.post('/api/tenant/paystack/subaccount', data);
+  }
+
+  getPaystackSubaccount(): Observable<TenantSubaccountConfig> {
+    return this.http.get<TenantSubaccountConfig>('/api/tenant/paystack/subaccount');
+  }
+
+  removePaystackSubaccount(): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>('/api/tenant/paystack/subaccount');
+  }
+
   getSubscriptionHistory(): Observable<TenantSubscriptionPayment[]> {
     return this.http.get<TenantSubscriptionPayment[]>('/api/tenant/subscription/history');
   }
@@ -69,6 +104,42 @@ export class TenantProfileService {
   getActiveAnnouncements(): Observable<SystemAnnouncement[]> {
     return this.http.get<SystemAnnouncement[]>('/api/public/announcements');
   }
+}
+
+export interface PaystackCountry {
+  name: string;
+  code: string;
+  currency: string;
+  currency_sign: string;
+}
+
+export interface PaystackBank {
+  id: number;
+  name: string;
+  slug: string;
+  code: string;
+  longcode: string;
+  gateway?: string;
+  active: boolean;
+  country: string;
+  currency: string;
+  type: string;
+}
+
+export interface PaystackResolvedAccount {
+  account_number: string;
+  account_name: string;
+  bank_id?: number;
+}
+
+export interface TenantSubaccountConfig {
+  has_subaccount: boolean;
+  subaccount_code: string;
+  bank_name: string;
+  account_number: string;
+  account_name: string;
+  has_custom_keys: boolean;
+  paystack_public_key: string;
 }
 
 export interface SystemAnnouncement {

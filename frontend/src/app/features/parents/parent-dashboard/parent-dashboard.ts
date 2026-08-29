@@ -19,6 +19,8 @@ interface AttendanceSummary {
     percentage: number;
 }
 
+import { ToastService } from '../../../shared/ui/toast/toast.service';
+
 @Component({
     selector: 'app-parent-dashboard',
     standalone: true,
@@ -32,6 +34,7 @@ export class ParentDashboard implements OnInit {
     private fiscalService = inject(FiscalService);
     private paymentService = inject(PaymentService);
     private dialog = inject(DialogService);
+    private toast = inject(ToastService);
 
     profile = signal<Guardian | null>(null);
     loading = signal<boolean>(true);
@@ -90,6 +93,7 @@ export class ParentDashboard implements OnInit {
     topUpStudentName = signal('');
     topUpAmount = signal<number>(50);
     topUpNote = signal('Daily Canteen & Transport');
+    topUpMethod = signal<'paystack' | 'direct'>('paystack');
     isSubmittingTopUp = signal(false);
 
     ngOnInit() {
@@ -330,21 +334,40 @@ export class ParentDashboard implements OnInit {
         if (!studentId || amount <= 0) return;
 
         this.isSubmittingTopUp.set(true);
+
+        if (this.topUpMethod() === 'paystack') {
+            const payerEmail = this.profile()?.email || '';
+            this.toast.info('Connecting to Paystack checkout...', 'Paystack Checkout');
+            this.paymentService.initializeWalletTopUp(studentId, amount, payerEmail).subscribe({
+                next: (payRes) => {
+                    this.isSubmittingTopUp.set(false);
+                    this.showTopUpModal.set(false);
+                    window.location.href = payRes.authorization_url;
+                },
+                error: (err) => {
+                    this.isSubmittingTopUp.set(false);
+                    const msg = err.error?.error || 'Failed to initialize Paystack checkout.';
+                    this.toast.error(msg, 'Payment Error');
+                }
+            });
+            return;
+        }
+
         this.fiscalService.topUpWallet(studentId, amount, note).subscribe({
             next: () => {
                 this.isSubmittingTopUp.set(false);
                 this.showTopUpModal.set(false);
-                this.dialog.alert(
-                    `Wallet for ${this.topUpStudentName()} has been credited with GH₵${amount.toFixed(2)}. Daily fees (canteen, bus, etc.) will automatically deduct from this balance!`,
-                    'Top-Up Successful',
-                    'success'
+                this.toast.success(
+                    `Wallet for ${this.topUpStudentName()} credited with GH₵${amount.toFixed(2)}`,
+                    'Top-Up Successful'
                 );
                 this.loadWallet(studentId);
                 this.loadFamilyLedger();
             },
             error: (err) => {
                 this.isSubmittingTopUp.set(false);
-                this.dialog.alert(err.error?.error || 'Failed to complete top up', 'Top-Up Failed', 'error');
+                const msg = err.error?.error || 'Failed to complete top up';
+                this.toast.error(msg, 'Top-Up Failed');
             }
         });
     }

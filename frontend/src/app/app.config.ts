@@ -8,6 +8,7 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { tenantInterceptor } from './core/interceptors/tenant.interceptor';
+import { errorToastInterceptor } from './core/interceptors/error-toast.interceptor';
 import { provideServiceWorker } from '@angular/service-worker';
 import { isDevMode } from '@angular/core';
 
@@ -18,7 +19,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(activeRoutes),
     provideAnimations(),
-    provideHttpClient(withFetch(), withInterceptors([tenantInterceptor, authInterceptor])),
+    provideHttpClient(withFetch(), withInterceptors([tenantInterceptor, authInterceptor, errorToastInterceptor])),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000'

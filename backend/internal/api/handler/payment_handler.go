@@ -63,6 +63,41 @@ func (h *PaymentHandler) InitializePayment(c *gin.Context) {
 	})
 }
 
+func (h *PaymentHandler) InitializeWalletTopUp(c *gin.Context) {
+	tenantID, exists := c.Get("tenantID")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing tenant context"})
+		return
+	}
+
+	var req struct {
+		StudentID string  `json:"student_id" binding:"required"`
+		Amount    float64 `json:"amount" binding:"required,gt=0"`
+		Email     string  `json:"email"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "student_id and amount are required"})
+		return
+	}
+
+	studentUUID, err := uuid.Parse(req.StudentID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid student ID"})
+		return
+	}
+
+	authURL, err := h.paymentUseCase.InitializeWalletTopUp(c.Request.Context(), tenantID.(uuid.UUID).String(), studentUUID, req.Email, req.Amount)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"authorization_url": authURL,
+	})
+}
+
 // HandleWebhook receives events from Paystack
 func (h *PaymentHandler) HandleWebhook(c *gin.Context) {
 	payload, err := io.ReadAll(c.Request.Body)

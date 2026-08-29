@@ -47,12 +47,43 @@ type PaymentRepository interface {
 	LogWebhook(log *PaymentWebhookLog) error
 }
 
+type PaystackBank struct {
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	Slug     string `json:"slug"`
+	Code     string `json:"code"`
+	Longcode string `json:"longcode"`
+	Gateway  string `json:"gateway"`
+	Active   bool   `json:"active"`
+	Country  string `json:"country"`
+	Currency string `json:"currency"`
+	Type     string `json:"type"`
+}
+
+type PaystackResolvedAccount struct {
+	AccountNumber string `json:"account_number"`
+	AccountName   string `json:"account_name"`
+	BankID        int    `json:"bank_id,omitempty"`
+}
+
+type PaystackCountry struct {
+	Name         string `json:"name"`
+	Code         string `json:"code"`
+	Currency     string `json:"currency"`
+	CurrencySign string `json:"currency_sign"`
+}
+
 // PaystackService defines external API interactions
 type PaystackService interface {
 	InitializeTransaction(email string, amount float64, reference string) (authorizationURL string, err error)
 	VerifyWebhookSignature(payload []byte, signature string) bool
 	CreateSubaccount(businessName, settlementBank, accountNumber string, percentageCharge float64) (string, error)
 	VerifyTransaction(reference string) (status string, err error)
+
+	// Bank Resolution and Subaccount features
+	GetBanks(country string) ([]PaystackBank, error)
+	ResolveAccount(accountNumber, bankCode string) (*PaystackResolvedAccount, error)
+	InitializeTransactionWithOptions(email string, amount float64, reference string, secretKey string, subaccountCode string) (authorizationURL string, err error)
 
 	// Tenant-specific overrides
 	InitializeTransactionWithKey(email string, amount float64, reference string, secretKey string) (authorizationURL string, err error)

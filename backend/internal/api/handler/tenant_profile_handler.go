@@ -26,6 +26,12 @@ func NewTenantProfileHandler(r *gin.RouterGroup, db *gorm.DB, uc usecase.TenantU
 	r.POST("/tenant/profile/logo", h.UploadLogo)
 	r.POST("/tenant/profile/headmaster-signature", h.UploadHeadmasterSignature)
 	r.PUT("/tenant/payment-config", h.UpdatePaymentConfig)
+	r.GET("/tenant/paystack/countries", h.GetPaystackCountries)
+	r.GET("/tenant/paystack/banks", h.GetPaystackBanks)
+	r.POST("/tenant/paystack/resolve-account", h.ResolvePaystackAccount)
+	r.POST("/tenant/paystack/subaccount", h.CreatePaystackSubaccount)
+	r.GET("/tenant/paystack/subaccount", h.GetPaystackSubaccount)
+	r.DELETE("/tenant/paystack/subaccount", h.RemovePaystackSubaccount)
 	r.POST("/tenant/subscription/pay", h.InitializeSubscriptionPayment)
 	r.POST("/tenant/subscription/verify/:reference", h.VerifySubscriptionPayment)
 	r.GET("/tenant/subscription/history", h.GetSubscriptionHistory)
@@ -291,6 +297,102 @@ func (h *TenantProfileHandler) UpdatePaymentConfig(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Payment configuration updated successfully"})
+}
+
+func (h *TenantProfileHandler) GetPaystackCountries(c *gin.Context) {
+	countries := h.uc.GetPaystackCountries()
+	c.JSON(http.StatusOK, countries)
+}
+
+func (h *TenantProfileHandler) GetPaystackBanks(c *gin.Context) {
+	country := c.Query("country")
+	if country == "" {
+		country = "ghana"
+	}
+	banks, err := h.uc.GetPaystackBanks(country)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, banks)
+}
+
+func (h *TenantProfileHandler) ResolvePaystackAccount(c *gin.Context) {
+	var req struct {
+		AccountNumber string `json:"account_number" binding:"required"`
+		BankCode      string `json:"bank_code" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "account_number and bank_code are required"})
+		return
+	}
+
+	resolved, err := h.uc.ResolvePaystackAccount(req.AccountNumber, req.BankCode)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resolved)
+}
+
+func (h *TenantProfileHandler) CreatePaystackSubaccount(c *gin.Context) {
+	tenantID, exists := middleware.GetTenantIDFromContext(c.Request.Context())
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tenant context not found"})
+		return
+	}
+
+	var req usecase.CreateSubaccountReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	tenant, err := h.uc.CreateAndLinkSubaccount(c.Request.Context(), tenantID.String(), req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":         "Paystack Subaccount successfully created and linked to school",
+		"subaccount_code": tenant.PaystackSubaccountCode,
+		"bank_name":       tenant.PaystackBankName,
+		"account_number":  tenant.PaystackAccountNumber,
+		"account_name":    tenant.PaystackAccountName,
+	})
+}
+
+func (h *TenantProfileHandler) GetPaystackSubaccount(c *gin.Context) {
+	tenantID, exists := middleware.GetTenantIDFromContext(c.Request.Context())
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tenant context not found"})
+		return
+	}
+
+	config, err := h.uc.GetSubaccountConfig(c.Request.Context(), tenantID.String())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, config)
+}
+
+func (h *TenantProfileHandler) RemovePaystackSubaccount(c *gin.Context) {
+	tenantID, exists := middleware.GetTenantIDFromContext(c.Request.Context())
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tenant context not found"})
+		return
+	}
+
+	if err := h.uc.RemoveSubaccount(c.Request.Context(), tenantID.String()); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Subaccount successfully unlinked"})
 }
 
 func (h *TenantProfileHandler) InitializeSubscriptionPayment(c *gin.Context) {

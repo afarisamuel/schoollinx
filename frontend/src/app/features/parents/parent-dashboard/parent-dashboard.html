@@ -772,6 +772,36 @@
                         <input type="number" min="1" [(ngModel)]="topUpAmount" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-3 text-base font-mono font-bold text-text-primary focus:border-emerald-500 focus:outline-none">
                     </div>
 
+                    <!-- Payment Method Selector -->
+                    <div class="mb-5">
+                        <label class="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-2">Payment Method</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" (click)="topUpMethod.set('paystack')"
+                                    [class.border-emerald-500]="topUpMethod() === 'paystack'"
+                                    [class.bg-emerald-500/10]="topUpMethod() === 'paystack'"
+                                    [class.text-emerald-400]="topUpMethod() === 'paystack'"
+                                    class="p-3 rounded-xl border border-border-primary bg-bg-tertiary text-left transition-all cursor-pointer">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                    <span class="text-xs font-black">Pay Online</span>
+                                </div>
+                                <p class="text-[10px] text-text-muted">MoMo / Debit Card</p>
+                            </button>
+
+                            <button type="button" (click)="topUpMethod.set('direct')"
+                                    [class.border-emerald-500]="topUpMethod() === 'direct'"
+                                    [class.bg-emerald-500/10]="topUpMethod() === 'direct'"
+                                    [class.text-emerald-400]="topUpMethod() === 'direct'"
+                                    class="p-3 rounded-xl border border-border-primary bg-bg-tertiary text-left transition-all cursor-pointer">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+                                    <span class="text-xs font-black">School Cash</span>
+                                </div>
+                                <p class="text-[10px] text-text-muted">Direct Top-Up</p>
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Purpose Note -->
                     <div class="mb-6">
                         <label class="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-2">Note / Purpose</label>

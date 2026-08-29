@@ -15,4 +15,12 @@ export class PaymentService {
             amount: amount
         });
     }
+
+    initializeWalletTopUp(studentId: string, amount: number, email?: string): Observable<{ authorization_url: string }> {
+        return this.http.post<{ authorization_url: string }>(`${this.apiUrl}/initialize-wallet-topup`, {
+            student_id: studentId,
+            amount: amount,
+            email: email
+        });
+    }
 }

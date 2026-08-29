@@ -38,12 +38,30 @@ type TenantUseCase interface {
 	Toggle2FA(ctx context.Context, tenantID uuid.UUID, require bool) error
 	ForcePasswordReset(ctx context.Context, tenantID uuid.UUID) error
 	UpdatePaymentConfig(ctx context.Context, id string, req PaymentConfigReq) error
+
+	// Paystack Subaccount & Bank Management
+	GetPaystackCountries() []domain.PaystackCountry
+	GetPaystackBanks(country string) ([]domain.PaystackBank, error)
+	ResolvePaystackAccount(accountNumber, bankCode string) (*domain.PaystackResolvedAccount, error)
+	CreateAndLinkSubaccount(ctx context.Context, tenantID string, req CreateSubaccountReq) (*domain.Tenant, error)
+	GetSubaccountConfig(ctx context.Context, tenantID string) (map[string]interface{}, error)
+	RemoveSubaccount(ctx context.Context, tenantID string) error
 }
 
 type CreateTenantAdminReq struct {
 	Email    string `json:"email" binding:"required,email"`
 	Username string `json:"username"`
 	Password string `json:"password" binding:"required,min=8"`
+}
+
+type CreateSubaccountReq struct {
+	Country          string  `json:"country"`
+	BusinessName     string  `json:"business_name"`
+	SettlementBank   string  `json:"settlement_bank" binding:"required"` // Bank code from Paystack
+	BankName         string  `json:"bank_name"`
+	AccountNumber    string  `json:"account_number" binding:"required"`
+	AccountName      string  `json:"account_name"`
+	PercentageCharge float64 `json:"percentage_charge"`
 }
 
 type PaymentConfigReq struct {
@@ -648,5 +666,116 @@ func (u *tenantUseCase) VerifySubscriptionPayment(ctx context.Context, tenantID 
 	}
 
 	return nil
+}
+
+func (u *tenantUseCase) GetPaystackCountries() []domain.PaystackCountry {
+	return []domain.PaystackCountry{
+		{Name: "Ghana", Code: "ghana", Currency: "GHS", CurrencySign: "GH₵"},
+		{Name: "Nigeria", Code: "nigeria", Currency: "NGN", CurrencySign: "₦"},
+		{Name: "Kenya", Code: "kenya", Currency: "KES", CurrencySign: "KSh"},
+		{Name: "South Africa", Code: "south africa", Currency: "ZAR", CurrencySign: "R"},
+		{Name: "Côte d'Ivoire", Code: "cote d'ivoire", Currency: "XOF", CurrencySign: "CFA"},
+	}
+}
+
+func (u *tenantUseCase) GetPaystackBanks(country string) ([]domain.PaystackBank, error) {
+	if u.paystackSvc == nil {
+		return nil, fmt.Errorf("paystack service not initialized")
+	}
+	return u.paystackSvc.GetBanks(country)
+}
+
+func (u *tenantUseCase) ResolvePaystackAccount(accountNumber, bankCode string) (*domain.PaystackResolvedAccount, error) {
+	if u.paystackSvc == nil {
+		return nil, fmt.Errorf("paystack service not initialized")
+	}
+	return u.paystackSvc.ResolveAccount(accountNumber, bankCode)
+}
+
+func (u *tenantUseCase) CreateAndLinkSubaccount(ctx context.Context, tenantID string, req CreateSubaccountReq) (*domain.Tenant, error) {
+	if u.paystackSvc == nil {
+		return nil, fmt.Errorf("paystack service not initialized")
+	}
+
+	uid, err := uuid.Parse(tenantID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid tenant ID: %w", err)
+	}
+
+	tenant, err := u.repo.GetByID(ctx, uid)
+	if err != nil {
+		return nil, fmt.Errorf("tenant not found: %w", err)
+	}
+
+	bizName := req.BusinessName
+	if bizName == "" {
+		if req.AccountName != "" {
+			bizName = req.AccountName
+		} else if tenant.Name != "" {
+			bizName = tenant.Name
+		} else {
+			bizName = "School Linx Partner"
+		}
+	}
+
+	// 1. Create Subaccount on Paystack
+	subaccountCode, err := u.paystackSvc.CreateSubaccount(bizName, req.SettlementBank, req.AccountNumber, req.PercentageCharge)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create subaccount on Paystack: %w", err)
+	}
+
+	// 2. Link Subaccount and bank details to Tenant
+	tenant.PaystackSubaccountCode = subaccountCode
+	tenant.PaystackBankName = req.BankName
+	tenant.PaystackAccountNumber = req.AccountNumber
+	tenant.PaystackAccountName = req.AccountName
+
+	if err := u.db.Table("public.tenants").Save(tenant).Error; err != nil {
+		return nil, fmt.Errorf("failed to save tenant subaccount details: %w", err)
+	}
+
+	return tenant, nil
+}
+
+func (u *tenantUseCase) GetSubaccountConfig(ctx context.Context, tenantID string) (map[string]interface{}, error) {
+	uid, err := uuid.Parse(tenantID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid tenant ID: %w", err)
+	}
+
+	tenant, err := u.repo.GetByID(ctx, uid)
+	if err != nil {
+		return nil, fmt.Errorf("tenant not found: %w", err)
+	}
+
+	hasSub := tenant.PaystackSubaccountCode != ""
+	return map[string]interface{}{
+		"has_subaccount":          hasSub,
+		"subaccount_code":         tenant.PaystackSubaccountCode,
+		"bank_name":               tenant.PaystackBankName,
+		"account_number":          tenant.PaystackAccountNumber,
+		"account_name":            tenant.PaystackAccountName,
+		"has_custom_keys":         tenant.PaystackPublicKey != "",
+		"paystack_public_key":     tenant.PaystackPublicKey,
+	}, nil
+}
+
+func (u *tenantUseCase) RemoveSubaccount(ctx context.Context, tenantID string) error {
+	uid, err := uuid.Parse(tenantID)
+	if err != nil {
+		return fmt.Errorf("invalid tenant ID: %w", err)
+	}
+
+	tenant, err := u.repo.GetByID(ctx, uid)
+	if err != nil {
+		return fmt.Errorf("tenant not found: %w", err)
+	}
+
+	tenant.PaystackSubaccountCode = ""
+	tenant.PaystackBankName = ""
+	tenant.PaystackAccountNumber = ""
+	tenant.PaystackAccountName = ""
+
+	return u.db.Table("public.tenants").Save(tenant).Error
 }
 
