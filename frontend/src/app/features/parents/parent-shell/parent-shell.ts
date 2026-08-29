@@ -11,7 +11,6 @@ import { ParentStateService } from '../../../core/infrastructure/parent/parent-s
 })
 export class ParentShell implements OnInit {
     state = inject(ParentStateService);
-    mobileMenuOpen = signal(false);
 
     navItems = [
         { path: '/parents', label: 'Overview', icon: 'fa-home', exact: true },
