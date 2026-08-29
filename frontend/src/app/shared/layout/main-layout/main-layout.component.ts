@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, inject, signal, OnInit, PLATFORM_ID, computed } from '@angular/core';
 import { RouterOutlet, RouterLink, Router, NavigationEnd } from '@angular/router';
 import { CommonModule, isPlatformBrowser, Location } from '@angular/common';
 import { filter } from 'rxjs/operators';
@@ -45,14 +45,14 @@ export class MainLayoutComponent implements OnInit {
 
   ngOnInit() {
     this.updateLayoutState();
-    
+
     // Track online/offline status
     if (isPlatformBrowser(this.platformId)) {
       this.isOnline.set(navigator.onLine);
       window.addEventListener('online', () => this.isOnline.set(true));
       window.addEventListener('offline', () => this.isOnline.set(false));
     }
-    
+
     // Load Tenant Profile to check billing
     this.tenantProfileService.getProfile().subscribe({
       next: (profile) => {
@@ -64,7 +64,7 @@ export class MainLayoutComponent implements OnInit {
           }
         }
       },
-      error: () => {}
+      error: () => { }
     });
 
     // Load Global Announcements
@@ -72,7 +72,7 @@ export class MainLayoutComponent implements OnInit {
       next: (announcements) => {
         this.activeAnnouncements.set(announcements);
       },
-      error: () => {}
+      error: () => { }
     });
 
     // Listen for global 402 Payment Required events from interceptor
@@ -89,7 +89,7 @@ export class MainLayoutComponent implements OnInit {
         this.unreadCount.update(c => c + 1);
       }
     });
-    
+
     // Update layout state on route changes
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
@@ -98,13 +98,22 @@ export class MainLayoutComponent implements OnInit {
       });
   }
 
+  homeRoute = computed(() => {
+    const role = this.currentUser()?.role;
+    if (role === 'GUARDIAN') return '/parents';
+    if (role === 'STUDENT') return '/portal';
+    return '/dashboard';
+  });
+
   private updateLayoutState() {
     const url = this.router.url;
 
     // Set back-button visibility based on current URL
-    this.canGoBack.set(url !== '/dashboard' && url !== '/');
+    this.canGoBack.set(url !== '/dashboard' && url !== '/' && url !== '/parents' && url !== '/portal');
 
-    if (url.includes('dashboard')) this.currentRouteTitle.set('Institutional Dashboard');
+    if (url.includes('parents')) this.currentRouteTitle.set('Parent Portal');
+    else if (url.includes('portal')) this.currentRouteTitle.set('Student Portal');
+    else if (url.includes('dashboard')) this.currentRouteTitle.set('Institutional Dashboard');
     else if (url.includes('students')) this.currentRouteTitle.set('Student Registry');
     else if (url.includes('program-management')) this.currentRouteTitle.set('Curriculum Management');
     else if (url.includes('department-management')) this.currentRouteTitle.set('Departmental Oversight');

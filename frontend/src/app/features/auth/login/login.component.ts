@@ -99,7 +99,7 @@ export class LoginComponent {
                     if (res.must_change_password) {
                         this.router.navigate(['/change-password']);
                     } else {
-                        this.router.navigate(['/dashboard']);
+                        this.navigateByRole();
                     }
                 }
             },
@@ -122,7 +122,7 @@ export class LoginComponent {
                 if (res.must_change_password) {
                     this.router.navigate(['/change-password']);
                 } else {
-                    this.router.navigate(['/dashboard']);
+                    this.navigateByRole();
                 }
             },
             error: (err) => {
@@ -130,6 +130,17 @@ export class LoginComponent {
                 this.loading.set(false);
             }
         });
+    }
+
+    private navigateByRole() {
+        const role = this.authService.currentUserValue?.role;
+        if (role === 'GUARDIAN') {
+            this.router.navigate(['/parents']);
+        } else if (role === 'STUDENT') {
+            this.router.navigate(['/portal']);
+        } else {
+            this.router.navigate(['/dashboard']);
+        }
     }
 }
 

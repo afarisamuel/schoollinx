@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, inject, computed, PLATFORM_ID } from '@angular/core';
 import { CommonModule, DecimalPipe, isPlatformBrowser } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { InsightsService, StudentSuccessScore } from '../../core/infrastructure/insights/insights.service';
 import { IntelligenceService, InstitutionalKPI, RetentionRisk, CourseDemand } from '../../core/infrastructure/intelligence/intelligence.service';
@@ -16,6 +16,7 @@ import { TeacherPortalService } from '../../core/infrastructure/teacher/teacher-
   styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnInit {
+  private router = inject(Router);
   private insightsService = inject(InsightsService);
   private intelligenceService = inject(IntelligenceService);
   private analyticsService = inject(AnalyticsService);
@@ -36,6 +37,8 @@ export class DashboardComponent implements OnInit {
 
   isAdmin = computed(() => this.authService.currentUserValue?.role === 'ADMIN');
   isTeacher = computed(() => this.authService.currentUserValue?.role === 'TEACHER');
+  isGuardian = computed(() => this.authService.currentUserValue?.role === 'GUARDIAN');
+  isStudent = computed(() => this.authService.currentUserValue?.role === 'STUDENT');
   canCollectFees = signal<boolean>(false);
 
   // Drag and Drop Widgets
@@ -51,6 +54,16 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit() {
     if (this.isBrowser) {
+      const userRole = this.authService.currentUserValue?.role;
+      if (userRole === 'GUARDIAN') {
+        this.router.navigate(['/parents']);
+        return;
+      }
+      if (userRole === 'STUDENT') {
+        this.router.navigate(['/portal']);
+        return;
+      }
+
       this.loadCommonData();
       this.initializeWidgets();
       if (this.isAdmin()) {

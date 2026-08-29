@@ -57,7 +57,14 @@ export class ChangePasswordComponent {
         const { old_password, new_password } = this.changePasswordForm.value;
         this.authService.changePassword(old_password, new_password).subscribe({
             next: () => {
-                this.router.navigate(['/dashboard']);
+                const role = this.authService.currentUserValue?.role;
+                if (role === 'GUARDIAN') {
+                    this.router.navigate(['/parents']);
+                } else if (role === 'STUDENT') {
+                    this.router.navigate(['/portal']);
+                } else {
+                    this.router.navigate(['/dashboard']);
+                }
             },
             error: (err) => {
                 this.error = err.error?.error || 'Failed to change password';
