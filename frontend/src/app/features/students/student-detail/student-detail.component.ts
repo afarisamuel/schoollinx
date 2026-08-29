@@ -16,10 +16,11 @@ import { ClassService } from '../../../core/infrastructure/curriculum/class.serv
 import { GuardianService } from '../../../core/infrastructure/guardian/guardian.service';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 import { Guardian } from '../../../core/domain/student.model';
-import { forkJoin } from 'rxjs';
+import { forkJoin, catchError, of } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { WelfareService } from '../../../core/infrastructure/welfare/welfare.service';
 import { BehaviorLog } from '../../../core/domain/welfare.model';
+import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 
 type Tab = 'overview' | 'timeline' | 'portfolio' | 'financials' | 'academics' | 'attendance' | 'behavior' | 'documents' | 'health';
 
@@ -49,7 +50,12 @@ export class StudentDetailComponent implements OnInit {
     private classService = inject(ClassService);
     private guardianService = inject(GuardianService);
     private welfareService = inject(WelfareService);
+    private authService = inject(AuthService);
     private dialog = inject(DialogService);
+
+    isAdmin = computed(() => this.authService.currentUserValue?.role === 'ADMIN');
+    isTeacher = computed(() => this.authService.currentUserValue?.role === 'TEACHER');
+    isGuardian = computed(() => this.authService.currentUserValue?.role === 'GUARDIAN');
 
     activeTab = signal<Tab>('overview');
     
@@ -167,22 +173,22 @@ export class StudentDetailComponent implements OnInit {
             next: (studentData) => {
                 this.student.set(studentData);
                 
-                // Fetch supplementary data concurrently
+                // Fetch supplementary data concurrently with safe fallbacks
                 forkJoin({
-                    fiscal: this.fiscalService.getStudentFiscalStatus(id),
-                    dailyBills: this.fiscalService.getStudentDailyBills(id),
-                    grades: this.gradeService.getGradesForStudent(id),
-                    trajectory: this.gradeService.getStudentGradeTrajectory(id),
-                    attendance: this.attendanceService.getStudentAttendance(id),
-                    timeline: this.studentService.getTimeline(id),
-                    portfolio: this.portfolioService.getPortfolio(id),
-                    behavior: this.welfareService.getStudentBehavior(id)
+                    fiscal: this.fiscalService.getStudentFiscalStatus(id).pipe(catchError(() => of({ balance: 0, records: [] }))),
+                    dailyBills: this.fiscalService.getStudentDailyBills(id).pipe(catchError(() => of({ bills: [] }))),
+                    grades: this.gradeService.getGradesForStudent(id).pipe(catchError(() => of([]))),
+                    trajectory: this.gradeService.getStudentGradeTrajectory(id).pipe(catchError(() => of([]))),
+                    attendance: this.attendanceService.getStudentAttendance(id).pipe(catchError(() => of([]))),
+                    timeline: this.studentService.getTimeline(id).pipe(catchError(() => of([]))),
+                    portfolio: this.portfolioService.getPortfolio(id).pipe(catchError(() => of(null))),
+                    behavior: this.welfareService.getStudentBehavior(id).pipe(catchError(() => of([])))
                 }).subscribe({
                     next: (res) => {
-                        this.fiscalBalance.set(res.fiscal.balance);
-                        this.fiscalRecords.set(res.fiscal.records);
-                        this.dailyBills.set(res.dailyBills.bills || []);
-                        this.grades.set(res.grades);
+                        this.fiscalBalance.set(res.fiscal?.balance || 0);
+                        this.fiscalRecords.set(res.fiscal?.records || []);
+                        this.dailyBills.set(res.dailyBills?.bills || []);
+                        this.grades.set(res.grades || []);
                         
                         // Process trajectory data for ngx-charts
                         const trajectoryMap = new Map<string, any[]>();

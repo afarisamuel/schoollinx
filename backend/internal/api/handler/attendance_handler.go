@@ -20,7 +20,7 @@ func NewAttendanceHandler(r *gin.RouterGroup, useCase domain.AttendanceUseCase) 
 	{
 		g.POST("", middleware.RoleMiddleware(domain.RoleAdmin, domain.RoleTeacher), h.MarkAttendance)
 		g.POST("/bulk", middleware.RoleMiddleware(domain.RoleAdmin, domain.RoleTeacher), h.MarkBulkAttendance)
-		g.GET("/student/:id", middleware.RoleMiddleware(domain.RoleAdmin, domain.RoleTeacher, domain.RoleStudent), h.GetStudentAttendance)
+		g.GET("/student/:id", middleware.RoleMiddleware(domain.RoleAdmin, domain.RoleTeacher, domain.RoleStudent, domain.RoleGuardian), h.GetStudentAttendance)
 		g.GET("/class/:id", middleware.RoleMiddleware(domain.RoleAdmin, domain.RoleTeacher), h.GetClassAttendance)
 		g.POST("/analyze", middleware.RoleMiddleware(domain.RoleAdmin), h.AnalyzeAbsences)
 
