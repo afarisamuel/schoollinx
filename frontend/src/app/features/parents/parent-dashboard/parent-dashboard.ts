@@ -6,11 +6,16 @@ import { forkJoin, catchError, of } from 'rxjs';
 import { CommunicationService, Notice, MeetingSlot, MeetingBooking } from '../../../core/infrastructure/communication/communication.service';
 import { GuardianService } from '../../../core/infrastructure/guardian/guardian.service';
 import { AttendanceService } from '../../../core/infrastructure/attendance/attendance.service';
-import { FiscalService } from '../../../core/infrastructure/fiscal/fiscal.service';
+import { FiscalService, FiscalRecord } from '../../../core/infrastructure/fiscal/fiscal.service';
 import { PaymentService } from '../../../core/infrastructure/payment/payment.service';
+import { GradeService } from '../../../core/infrastructure/grade/grade.service';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 import { Student, Guardian, AbsenceRequest, FamilyLedgerSummary, PickupPass } from '../../../core/domain/student.model';
 import { ToastService } from '../../../shared/ui/toast/toast.service';
+import { Grade, GradeTrajectoryPoint } from '../../../core/domain/grade.model';
+import { HttpClient } from '@angular/common/http';
+
+export type DashboardTab = 'overview' | 'academics' | 'billing' | 'schedule' | 'pickup' | 'absence' | 'meetings' | 'notices' | 'health' | 'activities' | 'settings';
 
 interface AttendanceSummary {
     total: number;
@@ -20,10 +25,51 @@ interface AttendanceSummary {
     percentage: number;
 }
 
+interface TimetableEntry {
+    id: string;
+    day_of_week: number;
+    start_time: string;
+    end_time: string;
+    subject?: { name: string };
+    teacher?: { first_name: string; last_name: string };
+    room: string;
+}
+
+interface HomeworkItem {
+    id: string;
+    title: string;
+    description: string;
+    due_date: string;
+    subject: string;
+    teacher?: { first_name: string; last_name: string };
+}
+
+interface AcademicInsight {
+    id?: string;
+    student_id?: string;
+    type?: string;
+    title?: string;
+    description?: string;
+    confidence_score?: number;
+    reasoning?: string;
+    subject?: string;
+    average?: number;
+    trend?: string;
+    remarks?: string;
+}
+
+interface WalletTransaction {
+    id: string;
+    amount: number;
+    type: 'credit' | 'debit';
+    description: string;
+    created_at: string;
+}
+
 @Component({
     selector: 'app-parent-dashboard',
     standalone: true,
-    imports: [CommonModule, DatePipe, RouterLink, FormsModule],
+    imports: [CommonModule, DatePipe, FormsModule],
     templateUrl: './parent-dashboard.html'
 })
 export class ParentDashboard implements OnInit {
@@ -32,17 +78,19 @@ export class ParentDashboard implements OnInit {
     private attendanceService = inject(AttendanceService);
     private fiscalService = inject(FiscalService);
     private paymentService = inject(PaymentService);
+    private gradeService = inject(GradeService);
     private dialog = inject(DialogService);
     private toast = inject(ToastService);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
+    private http = inject(HttpClient);
 
     profile = signal<Guardian | null>(null);
     loading = signal<boolean>(true);
     error = signal<string>('');
 
-    // Tabs
-    activeTab = signal<'overview' | 'billing' | 'pickup' | 'absence' | 'meetings' | 'notices'>('overview');
+    // ── TABS ───────────────────────────────────────────────────────────────
+    activeTab = signal<DashboardTab>('overview');
 
     // Multi-Ward Switcher
     selectedWardID = signal<string>('all');
@@ -53,15 +101,15 @@ export class ParentDashboard implements OnInit {
         return p.students.filter(s => s.id === this.selectedWardID());
     });
 
-    // Family Ledger & Sibling Billing
+    // ── FAMILY LEDGER ──────────────────────────────────────────────────────
     familyLedger = signal<FamilyLedgerSummary | null>(null);
     loadingLedger = signal(false);
 
-    // Digital Pickup Pass
+    // ── DIGITAL PICKUP PASS ────────────────────────────────────────────────
     pickupPass = signal<PickupPass | null>(null);
     loadingPass = signal(false);
 
-    // Absence Requests
+    // ── ABSENCE REQUESTS ───────────────────────────────────────────────────
     absenceRequests = signal<AbsenceRequest[]>([]);
     loadingAbsences = signal(false);
     absenceStudentID = signal<string>('');
@@ -73,10 +121,17 @@ export class ParentDashboard implements OnInit {
     absenceSuccess = signal(false);
     absenceError = signal('');
 
-    // Notices
+    // ── NOTICES ────────────────────────────────────────────────────────────
     notices = signal<Notice[]>([]);
+    noticeFilter = signal<string>('ALL');
 
-    // Meetings
+    filteredNotices = computed(() => {
+        const filter = this.noticeFilter();
+        if (filter === 'ALL') return this.notices();
+        return this.notices().filter(n => n.target === filter || n.target === 'ALL');
+    });
+
+    // ── MEETINGS ───────────────────────────────────────────────────────────
     selectedTeacherID = signal<string>('');
     availableSlots = signal<MeetingSlot[]>([]);
     myBookings = signal<MeetingBooking[]>([]);
@@ -84,11 +139,12 @@ export class ParentDashboard implements OnInit {
     bookingStudentID = signal<string>('');
     bookingSuccess = signal(false);
 
-    // Attendance per student
+    // ── ATTENDANCE ─────────────────────────────────────────────────────────
     attendanceMap = signal<Record<string, AttendanceSummary>>({});
 
-    // Prepaid Wallet per student (for daily fees)
+    // ── WALLET & TOP-UP ────────────────────────────────────────────────────
     walletMap = signal<Record<string, number>>({});
+    walletTransactionsMap = signal<Record<string, WalletTransaction[]>>({});
     showTopUpModal = signal(false);
     topUpStudentID = signal('');
     topUpStudentName = signal('');
@@ -96,6 +152,81 @@ export class ParentDashboard implements OnInit {
     topUpNote = signal('Daily Canteen & Transport');
     topUpMethod = signal<'paystack' | 'direct'>('paystack');
     isSubmittingTopUp = signal(false);
+
+    // ── ACADEMICS ──────────────────────────────────────────────────────────
+    gradesMap = signal<Record<string, Grade[]>>({});
+    trajectoryMap = signal<Record<string, GradeTrajectoryPoint[]>>({});
+    homeworkMap = signal<Record<string, HomeworkItem[]>>({});
+    timetableMap = signal<Record<string, TimetableEntry[]>>({});
+    insightsMap = signal<Record<string, AcademicInsight[]>>({});
+    fiscalMap = signal<Record<string, FiscalRecord[]>>({});
+    loadingAcademics = signal(false);
+
+    // GPA computed per student
+    gpaMap = computed(() => {
+        const result: Record<string, number> = {};
+        const grades = this.gradesMap();
+        for (const [sid, gradeList] of Object.entries(grades)) {
+            if (gradeList.length === 0) { result[sid] = 0; continue; }
+            const avg = gradeList.reduce((s, g) => s + (g.score || 0), 0) / gradeList.length;
+            result[sid] = Math.round(avg * 10) / 10;
+        }
+        return result;
+    });
+
+    averageAttendance = computed(() => {
+        const students = this.profile()?.students || [];
+        if (!students.length) return 0;
+        const att = this.attendanceMap();
+        const total = students.reduce((sum, s) => sum + (att[s.id || '']?.percentage || 0), 0);
+        return Math.round(total / students.length);
+    });
+
+    // Homework pending count per student
+    pendingHomeworkMap = computed(() => {
+        const result: Record<string, number> = {};
+        const hw = this.homeworkMap();
+        const today = new Date().toISOString().slice(0, 10);
+        for (const [sid, items] of Object.entries(hw)) {
+            result[sid] = items.filter(h => h.due_date >= today).length;
+        }
+        return result;
+    });
+
+    // Today's schedule per student
+    todaysTimetableMap = computed(() => {
+        const result: Record<string, TimetableEntry[]> = {};
+        const tt = this.timetableMap();
+        const dayOfWeek = new Date().getDay(); // 0=Sun, 1=Mon...
+        for (const [sid, entries] of Object.entries(tt)) {
+            result[sid] = entries.filter(e => e.day_of_week === dayOfWeek);
+        }
+        return result;
+    });
+
+    // Total alerts for smart banner
+    smartAlerts = computed(() => {
+        const alerts: Array<{ type: 'warning' | 'info' | 'danger'; message: string }> = [];
+        const ledger = this.familyLedger();
+        if (ledger && ledger.total_family_balance > 0) {
+            alerts.push({ type: 'danger', message: `Outstanding family balance: GH₵${ledger.total_family_balance.toFixed(2)}` });
+        }
+        const absences = this.absenceRequests();
+        const pending = absences.filter(a => a.status === 'PENDING').length;
+        if (pending > 0) {
+            alerts.push({ type: 'info', message: `${pending} absence request(s) pending school review` });
+        }
+        const notices = this.notices();
+        if (notices.length > 0) {
+            alerts.push({ type: 'info', message: `${notices.length} school notice(s) available` });
+        }
+        return alerts;
+    });
+
+    // Days of week labels
+    readonly dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    readonly quickAmounts = [20, 50, 100, 200, 500];
 
     ngOnInit() {
         this.loadAll();
@@ -138,21 +269,25 @@ export class ParentDashboard implements OnInit {
                 this.myBookings.set(res.bookings as MeetingBooking[]);
                 this.loading.set(false);
 
-                // Set default student for absence and booking if wards exist
                 if (res.profile?.students?.length) {
                     this.absenceStudentID.set(res.profile.students[0].id || '');
                     this.bookingStudentID.set(res.profile.students[0].id || '');
                 }
 
-                // Load attendance & wallet for each student
                 res.profile?.students?.forEach(s => {
                     if (s.id) {
                         this.loadAttendance(s.id);
                         this.loadWallet(s.id);
+                        this.loadGrades(s.id);
+                        this.loadFiscalStatus(s.id);
+                        if (s.class_id) {
+                            this.loadHomework(s.id, s.class_id);
+                            this.loadTimetable(s.id, s.class_id);
+                        }
+                        this.loadInsights(s.id);
                     }
                 });
 
-                // Preload family ledger and pickup pass
                 this.loadFamilyLedger();
                 this.loadPickupPass();
                 this.loadAbsenceRequests();
@@ -189,6 +324,52 @@ export class ParentDashboard implements OnInit {
                 ...m,
                 [studentId]: { total, present, absent, late, percentage: pct }
             }));
+        });
+    }
+
+    loadGrades(studentId: string) {
+        this.gradeService.getGradesForStudent(studentId).pipe(
+            catchError(() => of([]))
+        ).subscribe(grades => {
+            this.gradesMap.update(m => ({ ...m, [studentId]: grades }));
+        });
+
+        this.gradeService.getStudentGradeTrajectory(studentId).pipe(
+            catchError(() => of([]))
+        ).subscribe(traj => {
+            this.trajectoryMap.update(m => ({ ...m, [studentId]: traj }));
+        });
+    }
+
+    loadHomework(studentId: string, classId: string) {
+        this.http.get<HomeworkItem[]>(`/api/homework/class/${classId}`).pipe(
+            catchError(() => of([]))
+        ).subscribe(hw => {
+            this.homeworkMap.update(m => ({ ...m, [studentId]: hw }));
+        });
+    }
+
+    loadTimetable(studentId: string, classId: string) {
+        this.http.get<TimetableEntry[]>(`/api/timetable/class/${classId}`).pipe(
+            catchError(() => of([]))
+        ).subscribe(tt => {
+            this.timetableMap.update(m => ({ ...m, [studentId]: tt }));
+        });
+    }
+
+    loadInsights(studentId: string) {
+        this.guardianService.getChildAcademics(studentId).pipe(
+            catchError(() => of([]))
+        ).subscribe((insights: any) => {
+            this.insightsMap.update(m => ({ ...m, [studentId]: insights as AcademicInsight[] }));
+        });
+    }
+
+    loadFiscalStatus(studentId: string) {
+        this.fiscalService.getStudentFiscalStatus(studentId).pipe(
+            catchError(() => of({ balance: 0, records: [] }))
+        ).subscribe(res => {
+            this.fiscalMap.update(m => ({ ...m, [studentId]: res.records || [] }));
         });
     }
 
@@ -238,10 +419,12 @@ export class ParentDashboard implements OnInit {
             reason: this.absenceReason(),
             notes: this.absenceNotes()
         }).subscribe({
-            next: (created) => {
+            next: () => {
                 this.isSubmittingAbsence.set(false);
                 this.absenceSuccess.set(true);
                 this.absenceNotes.set('');
+                this.absenceStartDate.set('');
+                this.absenceEndDate.set('');
                 this.loadAbsenceRequests();
                 setTimeout(() => this.absenceSuccess.set(false), 4000);
             },
@@ -252,7 +435,7 @@ export class ParentDashboard implements OnInit {
         });
     }
 
-    setTab(tab: 'overview' | 'billing' | 'pickup' | 'absence' | 'meetings' | 'notices') {
+    setTab(tab: DashboardTab) {
         this.activeTab.set(tab);
     }
 
@@ -284,6 +467,106 @@ export class ParentDashboard implements OnInit {
 
     getAttendance(studentId: string): AttendanceSummary {
         return this.attendanceMap()[studentId] || { total: 0, present: 0, absent: 0, late: 0, percentage: 0 };
+    }
+
+    getGrades(studentId: string): Grade[] {
+        return this.gradesMap()[studentId] || [];
+    }
+
+    getGradesBySubject(studentId: string): Record<string, Grade[]> {
+        const grades = this.getGrades(studentId);
+        return grades.reduce((acc, g) => {
+            const subj = g.subject || 'Unknown';
+            if (!acc[subj]) acc[subj] = [];
+            acc[subj].push(g);
+            return acc;
+        }, {} as Record<string, Grade[]>);
+    }
+
+    getSubjectAverage(grades: Grade[]): number {
+        if (!grades.length) return 0;
+        return Math.round(grades.reduce((s, g) => s + g.score, 0) / grades.length * 10) / 10;
+    }
+
+    getSubjectColor(avg: number): string {
+        if (avg >= 80) return 'text-emerald-400';
+        if (avg >= 65) return 'text-amber-400';
+        if (avg >= 50) return 'text-orange-400';
+        return 'text-rose-400';
+    }
+
+    getGradeLetterColor(score: number): string {
+        if (score >= 80) return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+        if (score >= 65) return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+        if (score >= 50) return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
+        return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+    }
+
+    getGradeLetter(score: number): string {
+        if (score >= 80) return 'A';
+        if (score >= 70) return 'B';
+        if (score >= 60) return 'C';
+        if (score >= 50) return 'D';
+        return 'F';
+    }
+
+    getHomework(studentId: string): HomeworkItem[] {
+        return this.homeworkMap()[studentId] || [];
+    }
+
+    getPendingHomework(studentId: string): HomeworkItem[] {
+        const today = new Date().toISOString().slice(0, 10);
+        return this.getHomework(studentId).filter(h => h.due_date >= today);
+    }
+
+    getOverdueHomework(studentId: string): HomeworkItem[] {
+        const today = new Date().toISOString().slice(0, 10);
+        return this.getHomework(studentId).filter(h => h.due_date < today);
+    }
+
+    getTimetable(studentId: string): TimetableEntry[] {
+        return this.timetableMap()[studentId] || [];
+    }
+
+    getTodaySchedule(studentId: string): TimetableEntry[] {
+        return this.todaysTimetableMap()[studentId] || [];
+    }
+
+    getTimetableByDay(studentId: string, day: number): TimetableEntry[] {
+        return this.getTimetable(studentId).filter(e => e.day_of_week === day);
+    }
+
+    getInsights(studentId: string): AcademicInsight[] {
+        return this.insightsMap()[studentId] || [];
+    }
+
+    getFiscalRecords(studentId: string): FiscalRecord[] {
+        return this.fiscalMap()[studentId] || [];
+    }
+
+    getAttendanceStreak(studentId: string): number {
+        // Rough streak: based on percentage > 90
+        const att = this.getAttendance(studentId);
+        if (att.percentage >= 95) return 30;
+        if (att.percentage >= 90) return 20;
+        if (att.percentage >= 80) return 10;
+        return 0;
+    }
+
+    getAchievements(studentId: string): Array<{ icon: string; label: string; color: string }> {
+        const achievements = [];
+        const att = this.getAttendance(studentId);
+        const gpa = this.gpaMap()[studentId] || 0;
+        const hw = this.getHomework(studentId);
+
+        if (att.percentage >= 95) achievements.push({ icon: '🏆', label: 'Perfect Attendance', color: 'amber' });
+        if (att.percentage >= 80) achievements.push({ icon: '⭐', label: 'Good Attendance', color: 'yellow' });
+        if (gpa >= 80) achievements.push({ icon: '🎓', label: 'Academic Excellence', color: 'indigo' });
+        if (gpa >= 70) achievements.push({ icon: '📚', label: 'Strong Performer', color: 'blue' });
+        if (hw.length > 0) achievements.push({ icon: '✅', label: 'Active Learner', color: 'emerald' });
+        if (att.absent === 0) achievements.push({ icon: '🌟', label: 'Zero Absences', color: 'purple' });
+
+        return achievements;
     }
 
     payWard(studentId: string, studentName: string) {
@@ -331,11 +614,33 @@ export class ParentDashboard implements OnInit {
         this.payWard(firstWard.student_id, firstWard.student_name);
     }
 
+    downloadReceipt(studentId: string) {
+        const records = this.getFiscalRecords(studentId).filter(r => r.status === 'PAID');
+        if (!records.length) {
+            this.toast.info('No paid records found for receipt download.', 'No Records');
+            return;
+        }
+        this.fiscalService.getReceipt(records[0].id).subscribe({
+            next: (blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `receipt_${studentId}.pdf`;
+                a.click();
+                URL.revokeObjectURL(url);
+            },
+            error: () => {
+                this.toast.error('Could not download receipt at this time.', 'Download Failed');
+            }
+        });
+    }
+
     loadWallet(studentId: string) {
         this.fiscalService.getWalletInfo(studentId).pipe(
             catchError(() => of({ balance: 0, transactions: [] }))
         ).subscribe(w => {
             this.walletMap.update(map => ({ ...map, [studentId]: w?.balance || 0 }));
+            this.walletTransactionsMap.update(map => ({ ...map, [studentId]: w?.transactions || [] }));
         });
     }
 
@@ -395,5 +700,159 @@ export class ParentDashboard implements OnInit {
                 this.toast.error(msg, 'Top-Up Failed');
             }
         });
+    }
+
+    sharePickupPass() {
+        const p = this.profile();
+        if (!p) return;
+        if (navigator.share) {
+            navigator.share({
+                title: 'School Pickup Pass',
+                text: `${p.first_name} ${p.last_name} — Gate Code: ${p.pickup_code}`,
+                url: window.location.href
+            }).catch(() => {});
+        } else {
+            navigator.clipboard.writeText(`${p.first_name} ${p.last_name} — Gate Code: ${p.pickup_code || 'N/A'}`);
+            this.toast.success('Pickup pass details copied to clipboard!', 'Copied');
+        }
+    }
+
+    printPass() {
+        window.print();
+    }
+
+    getApprovedAbsenceDays(): number {
+        return this.absenceRequests()
+            .filter(a => a.status === 'APPROVED')
+            .reduce((total, a) => {
+                if (!a.start_date || !a.end_date) return total;
+                const diff = (new Date(a.end_date).getTime() - new Date(a.start_date).getTime()) / (1000 * 60 * 60 * 24) + 1;
+                return total + Math.max(1, diff);
+            }, 0);
+    }
+
+    getPendingAbsenceDays(): number {
+        return this.absenceRequests()
+            .filter(a => a.status === 'PENDING')
+            .reduce((total, a) => {
+                if (!a.start_date || !a.end_date) return total;
+                const diff = (new Date(a.end_date).getTime() - new Date(a.start_date).getTime()) / (1000 * 60 * 60 * 24) + 1;
+                return total + Math.max(1, diff);
+            }, 0);
+    }
+
+    getAbsenceStatusClass(status: string): string {
+        switch (status) {
+            case 'APPROVED': return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+            case 'REJECTED': return 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
+            default: return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+        }
+    }
+
+    getTotalFamilyWallet(): number {
+        let total = 0;
+        for (const v of Object.values(this.walletMap())) {
+            total += v;
+        }
+        return total;
+    }
+
+    getUpcomingHomework(studentId: string): HomeworkItem[] {
+        const today = new Date().toISOString().slice(0, 10);
+        const threeDays = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        return this.getHomework(studentId).filter(h => h.due_date >= today && h.due_date <= threeDays);
+    }
+
+    isHomeworkDueSoon(dueDate: string): boolean {
+        const today = new Date().toISOString().slice(0, 10);
+        const threeDays = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        return dueDate >= today && dueDate <= threeDays;
+    }
+
+    isHomeworkOverdue(dueDate: string): boolean {
+        const today = new Date().toISOString().slice(0, 10);
+        return dueDate < today;
+    }
+
+    getDayLabel(dayNum: number): string {
+        return this.dayLabels[dayNum] || 'Unknown';
+    }
+
+    getTodayDayOfWeek(): number {
+        return new Date().getDay();
+    }
+
+    getSubjectInitial(subject: string): string {
+        return subject ? subject.charAt(0).toUpperCase() : '?';
+    }
+
+    getHomeworkCompletionRate(studentId: string): number {
+        const hw = this.getHomework(studentId);
+        if (!hw.length) return 0;
+        const today = new Date().toISOString().slice(0, 10);
+        const past = hw.filter(h => h.due_date < today);
+        if (!past.length) return 100;
+        // Can't check submission status from parent view, so show all past as "completed" unless known
+        return Math.round((past.length / hw.length) * 100);
+    }
+
+    getWalletTransactions(studentId: string): WalletTransaction[] {
+        return this.walletTransactionsMap()[studentId] || [];
+    }
+
+    // For the settings tab
+    profileEditMode = signal(false);
+    editFirstName = signal('');
+    editLastName = signal('');
+    editPhone = signal('');
+    editAddress = signal('');
+
+    enterEditMode() {
+        const p = this.profile();
+        if (!p) return;
+        this.editFirstName.set(String(p.first_name || ''));
+        this.editLastName.set(String(p.last_name || ''));
+        this.editPhone.set(String(p.phone_number || ''));
+        this.editAddress.set(String(p.address || ''));
+        this.profileEditMode.set(true);
+    }
+
+    cancelEditMode() {
+        this.profileEditMode.set(false);
+    }
+
+    saveProfile() {
+        this.toast.info('Profile update feature coming soon!', 'Feature Preview');
+        this.profileEditMode.set(false);
+    }
+
+    // Dark mode toggle
+    isDarkMode = signal(document.documentElement.classList.contains('dark'));
+    toggleDarkMode() {
+        const isDark = !this.isDarkMode();
+        this.isDarkMode.set(isDark);
+        document.documentElement.classList.toggle('dark', isDark);
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    }
+
+    // Print portal summary
+    printSummary() {
+        window.print();
+    }
+
+    objectKeys(obj: any): string[] {
+        return Object.keys(obj || {});
+    }
+
+    formatCurrency(amount: number): string {
+        return `GH₵${(amount || 0).toFixed(2)}`;
+    }
+
+    trackById(index: number, item: any): any {
+        return item.id || index;
+    }
+
+    trackByIndex(index: number): number {
+        return index;
     }
 }

@@ -1,0 +1,108 @@
+<div class="max-w-[1400px] mx-auto p-4 md:p-8 animate-fade-in pb-24">
+    <div class="mb-7">
+        <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-indigo-400 mb-1">Teacher Meetings</h1>
+        <p class="text-text-muted text-sm">Book a consultation with your child's teachers and view upcoming meetings.</p>
+    </div>
+
+    @if (bookingSuccess()) {
+        <div class="mb-5 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl flex items-center gap-3">
+            <i class="fas fa-check-circle text-lg"></i>
+            <span class="font-bold text-sm">Meeting booked successfully! The teacher has been notified.</span>
+        </div>
+    }
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Book Meeting Form -->
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5">
+            <h3 class="text-base font-black text-text-primary mb-1">Book a Conference</h3>
+            <p class="text-xs text-text-muted mb-5">Schedule 1-on-1 time with your child's teachers</p>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">For Student</label>
+                    <select [ngModel]="studentId()" (ngModelChange)="studentId.set($event)"
+                            class="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500">
+                        @for (s of state.profile()?.students || []; track s.id) {
+                            <option [value]="s.id">{{ s.first_name }} {{ s.last_name }}</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Teacher ID</label>
+                    <div class="flex gap-2">
+                        <input type="text" [ngModel]="teacherId()" (ngModelChange)="teacherId.set($event)"
+                               placeholder="Enter Teacher ID..."
+                               class="flex-1 px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500" />
+                        <button (click)="findSlots()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl cursor-pointer">
+                            <i class="fas fa-search"></i> Find
+                        </button>
+                    </div>
+                </div>
+
+                @if (slots().length > 0) {
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Available Slots</label>
+                        <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                            @for (slot of slots(); track slot.id) {
+                                <div class="p-3 bg-bg-tertiary border border-border-primary rounded-xl flex items-center justify-between">
+                                    <div>
+                                        <div class="text-xs font-bold text-text-primary">{{ slot.date | date:'mediumDate' }}</div>
+                                        <div class="text-[10px] text-text-muted">{{ slot.start_time }} – {{ slot.end_time }}</div>
+                                    </div>
+                                    <button (click)="bookSlot(slot.id!)" class="px-3 py-1.5 bg-indigo-600 text-white font-bold text-xs rounded-lg hover:bg-indigo-500 cursor-pointer">Book</button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (noSlots()) {
+                    <div class="py-5 text-center text-amber-400 border border-amber-500/20 bg-amber-500/5 rounded-xl text-xs font-bold">
+                        <i class="fas fa-calendar-times mb-1 block text-lg"></i>
+                        No available slots for this teacher.
+                    </div>
+                }
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Discussion Topic</label>
+                    <textarea [ngModel]="reason()" (ngModelChange)="reason.set($event)" rows="3"
+                              placeholder="e.g., Mathematics progress, homework habits..."
+                              class="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Meetings -->
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5">
+            <h3 class="text-base font-black text-text-primary mb-1">My Scheduled Meetings</h3>
+            <p class="text-xs text-text-muted mb-5">Upcoming and past conference bookings</p>
+
+            <div class="space-y-3">
+                @for (b of state.bookings(); track b.id) {
+                    <div class="p-4 bg-bg-tertiary border border-border-primary rounded-xl">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="px-2.5 py-0.5 text-[9px] font-black uppercase rounded-md border"
+                                  [ngClass]="b.status === 'CONFIRMED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'">
+                                {{ b.status || 'PENDING' }}
+                            </span>
+                            <span class="text-[10px] text-text-muted">{{ b.created_at | date:'mediumDate' }}</span>
+                        </div>
+                        <p class="text-xs font-bold text-text-primary">{{ b.reason || 'General Academic Consultation' }}</p>
+                        @if (b.slot) {
+                            <div class="text-[10px] text-text-muted mt-1">
+                                <i class="fas fa-calendar text-indigo-400 mr-1"></i>
+                                {{ b.slot.date | date:'mediumDate' }} at {{ b.slot.start_time }}
+                            </div>
+                        }
+                    </div>
+                }
+                @empty {
+                    <div class="py-14 text-center text-text-muted border border-dashed border-border-primary rounded-2xl">
+                        <i class="fas fa-calendar text-2xl opacity-30 mb-2 block"></i>
+                        <p class="font-bold text-xs">No meeting bookings yet.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

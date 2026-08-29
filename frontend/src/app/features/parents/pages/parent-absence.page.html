@@ -1,0 +1,131 @@
+<div class="max-w-[1400px] mx-auto p-4 md:p-8 animate-fade-in pb-24">
+    <div class="mb-7">
+        <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-rose-400 mb-1">Leave & Absence</h1>
+        <p class="text-text-muted text-sm">Submit absence notifications and track their approval status.</p>
+    </div>
+
+    <!-- Leave Balance Summary -->
+    <div class="grid grid-cols-3 gap-3 mb-6">
+        <div class="p-4 bg-bg-secondary border border-border-primary rounded-2xl text-center">
+            <div class="text-2xl font-black text-text-primary">{{ state.absenceRequests().length }}</div>
+            <div class="text-xs text-text-muted mt-0.5">Total Requests</div>
+        </div>
+        <div class="p-4 bg-bg-secondary border border-emerald-500/20 bg-emerald-500/5 rounded-2xl text-center">
+            <div class="text-2xl font-black text-emerald-400">{{ approvedDays() }}</div>
+            <div class="text-xs text-text-muted mt-0.5">Approved Days</div>
+        </div>
+        <div class="p-4 bg-bg-secondary border border-amber-500/20 bg-amber-500/5 rounded-2xl text-center">
+            <div class="text-2xl font-black text-amber-400">{{ pendingCount() }}</div>
+            <div class="text-xs text-text-muted mt-0.5">Pending Review</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <!-- Form -->
+        <div class="lg:col-span-2 bg-bg-secondary border border-border-primary rounded-2xl p-5">
+            <h3 class="text-base font-black text-text-primary mb-1">Submit Absence Request</h3>
+            <p class="text-xs text-text-muted mb-5">Notify teachers in advance to avoid unexcused absences.</p>
+
+            @if (success()) {
+                <div class="mb-4 p-3.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-sm font-bold flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i> Absence request submitted successfully!
+                </div>
+            }
+            @if (errorMsg()) {
+                <div class="mb-4 p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-xs font-bold">{{ errorMsg() }}</div>
+            }
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Select Ward *</label>
+                    <select [ngModel]="studentId()" (ngModelChange)="studentId.set($event)"
+                            class="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500">
+                        @for (s of state.profile()?.students || []; track s.id) {
+                            <option [value]="s.id">{{ s.first_name }} {{ s.last_name }} ({{ s.class_name }})</option>
+                        }
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Start Date *</label>
+                        <input type="date" [ngModel]="startDate()" (ngModelChange)="startDate.set($event)"
+                               class="w-full px-3 py-2 bg-bg-tertiary border border-border-primary rounded-xl text-xs text-text-primary focus:outline-none focus:border-indigo-500" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">End Date *</label>
+                        <input type="date" [ngModel]="endDate()" (ngModelChange)="endDate.set($event)"
+                               class="w-full px-3 py-2 bg-bg-tertiary border border-border-primary rounded-xl text-xs text-text-primary focus:outline-none focus:border-indigo-500" />
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Reason Category *</label>
+                    <select [ngModel]="reason()" (ngModelChange)="reason.set($event)"
+                            class="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500">
+                        <option value="Medical">Medical / Doctor Appointment</option>
+                        <option value="Illness">Child Illness / Bedrest</option>
+                        <option value="Family Travel">Family Travel / Emergency</option>
+                        <option value="Bereavement">Bereavement</option>
+                        <option value="Religious">Religious Observance</option>
+                        <option value="Other">Other Personal Reason</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Additional Notes</label>
+                    <textarea [ngModel]="notes()" (ngModelChange)="notes.set($event)" rows="3"
+                              placeholder="Brief explanation for class teacher..."
+                              class="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+                </div>
+                <button (click)="submit()" [disabled]="submitting()"
+                        class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-black font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
+                    @if (submitting()) {
+                        <div class="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div> Submitting...
+                    } @else {
+                        <i class="fas fa-paper-plane"></i> Send Absence Request
+                    }
+                </button>
+            </div>
+        </div>
+
+        <!-- History Timeline -->
+        <div class="lg:col-span-3 bg-bg-secondary border border-border-primary rounded-2xl p-5">
+            <h3 class="text-base font-black text-text-primary mb-1">Request History</h3>
+            <p class="text-xs text-text-muted mb-5">All submitted leave applications and their status.</p>
+
+            <div class="space-y-3">
+                @for (req of state.absenceRequests(); track req.id) {
+                    <div class="p-4 bg-bg-tertiary border border-border-primary rounded-xl">
+                        <div class="flex items-start justify-between gap-3 mb-2">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h4 class="font-black text-text-primary text-sm">
+                                    {{ req.student ? (req.student.first_name + ' ' + req.student.last_name) : 'Ward' }}
+                                </h4>
+                                <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-md border"
+                                      [ngClass]="statusClass(req.status)">{{ req.status }}</span>
+                            </div>
+                            <span class="text-[10px] text-text-muted shrink-0">{{ req.created_at | date:'mediumDate' }}</span>
+                        </div>
+                        <p class="text-xs text-text-primary mb-1"><span class="text-text-muted">Reason:</span> {{ req.reason }}</p>
+                        <div class="flex items-center gap-3 text-xs text-text-muted">
+                            <span><i class="fas fa-calendar text-indigo-400 mr-1"></i>{{ req.start_date }} → {{ req.end_date }}</span>
+                        </div>
+                        @if (req.notes) {
+                            <p class="text-[10px] text-text-muted mt-2 italic bg-bg-secondary p-2 rounded-lg border border-border-primary/50">"{{ req.notes }}"</p>
+                        }
+                        @if (req.review_notes) {
+                            <div class="mt-2 p-2.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
+                                <span class="text-[9px] font-bold uppercase tracking-wider text-indigo-400 block">School Review Note:</span>
+                                <span class="text-xs text-text-secondary">{{ req.review_notes }}</span>
+                            </div>
+                        }
+                    </div>
+                }
+                @empty {
+                    <div class="py-14 text-center text-text-muted border border-dashed border-border-primary rounded-2xl">
+                        <i class="fas fa-calendar-check text-2xl opacity-30 mb-2 block"></i>
+                        <p class="font-bold text-xs">No absence requests submitted yet.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

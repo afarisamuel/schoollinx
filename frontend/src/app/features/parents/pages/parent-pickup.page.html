@@ -1,0 +1,103 @@
+<div class="max-w-lg mx-auto p-4 md:p-8 animate-fade-in pb-24">
+    <div class="mb-7">
+        <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-1">Pickup Pass</h1>
+        <p class="text-text-muted text-sm">Present this digital pass at the school gate to collect your ward.</p>
+    </div>
+
+    @if (state.profile(); as p) {
+        <div class="bg-gradient-to-b from-bg-secondary to-bg-tertiary border-2 border-purple-500/30 rounded-2xl p-6 md:p-8 relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-5 border-b border-border-primary/60 mb-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-xl">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-text-primary">Campus Pickup Pass</h3>
+                        <p class="text-[10px] uppercase font-bold tracking-widest text-purple-400">School Linx &bull; Authorized Exit</p>
+                    </div>
+                </div>
+                <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-full flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Active
+                </span>
+            </div>
+
+            <!-- Guardian Info -->
+            <div class="flex items-center gap-4 mb-5">
+                <div class="w-14 h-14 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center font-black text-xl shrink-0">
+                    {{ p.first_name[0] }}{{ p.last_name[0] }}
+                </div>
+                <div>
+                    <h4 class="text-base font-black text-text-primary">{{ p.first_name }} {{ p.last_name }}</h4>
+                    <p class="text-xs text-text-muted">{{ p.relationship }} &bull; {{ p.phone_number }}</p>
+                    <span class="inline-block mt-1 text-[10px] font-bold text-emerald-400">
+                        <i class="fas fa-check mr-1"></i> Authorized for Collection
+                    </span>
+                </div>
+            </div>
+
+            <!-- QR Visual -->
+            <div class="bg-white p-5 rounded-xl flex flex-col items-center justify-center mb-5">
+                <div class="w-40 h-40 bg-white flex items-center justify-center border-4 border-dashed border-gray-200 rounded-xl mb-3">
+                    <svg class="w-32 h-32" viewBox="0 0 100 100" fill="none">
+                        <rect width="100" height="100" fill="white"/>
+                        <rect x="5" y="5" width="30" height="30" fill="black"/>
+                        <rect x="10" y="10" width="20" height="20" fill="white"/>
+                        <rect x="15" y="15" width="10" height="10" fill="black"/>
+                        <rect x="65" y="5" width="30" height="30" fill="black"/>
+                        <rect x="70" y="10" width="20" height="20" fill="white"/>
+                        <rect x="75" y="15" width="10" height="10" fill="black"/>
+                        <rect x="5" y="65" width="30" height="30" fill="black"/>
+                        <rect x="10" y="70" width="20" height="20" fill="white"/>
+                        <rect x="15" y="75" width="10" height="10" fill="black"/>
+                        <rect x="42" y="10" width="16" height="6" fill="black"/>
+                        <rect x="45" y="25" width="10" height="10" fill="black"/>
+                        <rect x="42" y="45" width="16" height="16" fill="black"/>
+                        <rect x="65" y="45" width="10" height="10" fill="black"/>
+                        <rect x="80" y="60" width="15" height="8" fill="black"/>
+                        <rect x="45" y="75" width="10" height="20" fill="black"/>
+                        <rect x="65" y="75" width="30" height="20" fill="black"/>
+                    </svg>
+                </div>
+                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Gate Security Code</span>
+                <span class="text-2xl font-black font-mono text-gray-900 tracking-widest select-all mt-1">{{ p.pickup_code || 'SL-GATE' }}</span>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-2 mb-5">
+                <button (click)="sharePass(p)" class="flex-1 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl cursor-pointer flex items-center justify-center gap-2">
+                    <i class="fas fa-share-alt"></i> Share Pass
+                </button>
+                <button (click)="printPass()" class="flex-1 py-2.5 bg-bg-tertiary hover:bg-bg-primary border border-border-primary text-text-primary font-bold text-xs rounded-xl cursor-pointer flex items-center justify-center gap-2">
+                    <i class="fas fa-print"></i> Print Pass
+                </button>
+            </div>
+
+            <!-- Authorized Wards -->
+            <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted block mb-2">Authorized Wards ({{ p.students?.length || 0 }}):</span>
+                <div class="space-y-2">
+                    @for (s of p.students || []; track s.id) {
+                        <div class="p-3 bg-bg-primary rounded-xl border border-border-primary flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs font-black">{{ s.first_name[0] }}</div>
+                                <div>
+                                    <h5 class="text-xs font-black text-text-primary">{{ s.first_name }} {{ s.last_name }}</h5>
+                                    <p class="text-[10px] text-text-muted">{{ s.class_name }} &bull; {{ s.enrollment_num }}</p>
+                                </div>
+                            </div>
+                            <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[9px] font-bold rounded border border-emerald-500/20">Authorized</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <p class="text-[10px] text-text-muted text-center mt-4">
+                <i class="fas fa-info-circle mr-1"></i>
+                Present this pass or mention code <strong>{{ p.pickup_code }}</strong> to gate security.
+            </p>
+        </div>
+    }
+</div>
