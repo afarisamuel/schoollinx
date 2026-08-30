@@ -31,11 +31,15 @@ func (r *fiscalRepository) Transaction(ctx context.Context, fn func(repo domain.
 
 func (r *fiscalRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.FiscalRecord, error) {
 	var record domain.FiscalRecord
-	if err := r.db.WithContext(ctx).First(&record, "id = ?", id).Error; err != nil {
+	if err := r.db.WithContext(ctx).
+		Preload("Student").
+		Preload("Student.Class").
+		First(&record, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 	return &record, nil
 }
+
 
 func (r *fiscalRepository) MarkOverdueRecords(ctx context.Context, asOf time.Time) error {
 	return r.db.WithContext(ctx).Model(&domain.FiscalRecord{}).

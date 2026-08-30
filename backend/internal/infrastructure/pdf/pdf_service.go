@@ -432,6 +432,43 @@ func (s *PDFService) GenerateBulkPupilBills(w io.Writer, tenantName string, tena
 	return pdf.Output(w)
 }
 
+// feeCategoryLabel returns a human-readable label for a FeeCategory enum value.
+func feeCategoryLabel(cat domain.FeeCategory) string {
+	labels := map[domain.FeeCategory]string{
+		domain.CategoryTermFee:         "Term Fee",
+		domain.CategoryTuition:         "Tuition",
+		domain.CategoryLab:             "Laboratory Fee",
+		domain.CategoryLibraryFine:     "Library Fine",
+		domain.CategoryExtracurricular: "Extracurricular",
+		domain.CategoryCanteen:         "Canteen / Feeding",
+		domain.CategoryTransport:       "School Transport",
+	}
+	if label, ok := labels[cat]; ok {
+		return label
+	}
+	// Fallback: replace underscores and title-case
+	s := string(cat)
+	out := ""
+	prevUnderscore := true
+	for _, c := range s {
+		if c == '_' {
+			out += " "
+			prevUnderscore = true
+		} else if prevUnderscore {
+			if c >= 'a' && c <= 'z' {
+				out += string(c - 32)
+			} else {
+				out += string(c)
+			}
+			prevUnderscore = false
+		} else {
+			out += string(c)
+			prevUnderscore = false
+		}
+	}
+	return out
+}
+
 // GeneratePaymentReceipt generates a printable payment receipt for a single fiscal record.
 // It is only meaningful when amount_paid > 0 (partial or full payment).
 func (s *PDFService) GeneratePaymentReceipt(w io.Writer, tenantName string, tenant *domain.Tenant, record *domain.FiscalRecord) error {
@@ -484,47 +521,81 @@ func (s *PDFService) GeneratePaymentReceipt(w io.Writer, tenantName string, tena
 	pdf.Line(15, 53, 195, 53)
 
 	// ── Student info box ──────────────────────────────────────────────────────
+	// Box height is 46 to accommodate extra fields (name, enroll no, class, term)
 	pdf.SetFillColor(248, 250, 252)
-	pdf.RoundedRect(15, 56, 180, 32, 3, "1234", "F")
+	pdf.RoundedRect(15, 56, 180, 46, 3, "1234", "F")
 	pdf.SetDrawColor(226, 232, 240)
-	pdf.RoundedRect(15, 56, 180, 32, 3, "1234", "D")
+	pdf.RoundedRect(15, 56, 180, 46, 3, "1234", "D")
 
 	pdf.SetFont("Arial", "B", 8)
 	pdf.SetTextColor(100, 116, 139)
 	pdf.SetXY(20, 60)
 	pdf.CellFormat(80, 5, "STUDENT DETAILS", "", 0, "L", false, 0, "")
 
+	// Student full name
 	studentName := "N/A"
+	enrollNum := "—"
+	className := "—"
 	if record.Student != nil {
 		studentName = fmt.Sprintf("%s %s", string(record.Student.FirstName), string(record.Student.LastName))
+		if record.Student.EnrollmentNum != "" {
+			enrollNum = record.Student.EnrollmentNum
+		}
+		if record.Student.Class != nil && record.Student.Class.Name != "" {
+			className = record.Student.Class.Name
+		}
 	}
 
-	pdf.SetFont("Arial", "B", 12)
+	pdf.SetFont("Arial", "B", 13)
 	pdf.SetTextColor(15, 23, 42)
 	pdf.SetXY(20, 67)
 	pdf.CellFormat(120, 7, studentName, "", 0, "L", false, 0, "")
 
+	// Enrollment number (right side of name row)
 	pdf.SetFont("Arial", "", 9)
 	pdf.SetTextColor(71, 85, 105)
-	pdf.SetXY(20, 76)
+	pdf.SetXY(140, 67)
+	pdf.CellFormat(50, 7, "ID: "+enrollNum, "", 0, "R", false, 0, "")
+
+	// Row 2: Category | Class
 	termLabel := record.TermName
 	if termLabel == "" {
 		termLabel = "—"
 	}
-	pdf.CellFormat(80, 5, "Category:  "+string(record.Category), "", 0, "L", false, 0, "")
+	pdf.SetXY(20, 76)
+	pdf.CellFormat(80, 5, "Category:  "+feeCategoryLabel(record.Category), "", 0, "L", false, 0, "")
 	pdf.SetXY(110, 76)
+	pdf.CellFormat(80, 5, "Class:  "+className, "", 0, "L", false, 0, "")
+
+	// Row 3: Term | Description
+	desc := record.Description
+	if desc == "" {
+		desc = "—"
+	}
+	pdf.SetXY(20, 84)
 	pdf.CellFormat(80, 5, "Term:  "+termLabel, "", 0, "L", false, 0, "")
+	pdf.SetXY(110, 84)
+	pdf.CellFormat(80, 5, "Ref:  "+desc, "", 0, "L", false, 0, "")
 
 	// ── Payment summary ───────────────────────────────────────────────────────
-	pdf.SetXY(15, 96)
+	pdf.SetXY(15, 110)
 	pdf.SetFont("Arial", "B", 9)
 	pdf.SetTextColor(100, 116, 139)
 	pdf.CellFormat(180, 6, "PAYMENT SUMMARY", "", 0, "L", false, 0, "")
-	pdf.Line(15, 104, 195, 104)
+	pdf.Line(15, 118, 195, 118)
 
 	balanceDue := record.Amount - record.AmountPaid
 	if balanceDue < 0 {
 		balanceDue = 0
+	}
+
+	paidAtStr := "—"
+	if record.PaidAt != nil {
+		paidAtStr = record.PaidAt.Format("02 Jan 2006  15:04")
+	}
+	dueDateStr := "—"
+	if !record.DueDate.IsZero() {
+		dueDateStr = record.DueDate.Format("02 Jan 2006")
 	}
 
 	summaryRows := []struct {
@@ -535,10 +606,12 @@ func (s *PDFService) GeneratePaymentReceipt(w io.Writer, tenantName string, tena
 		{"Total Fee", fmt.Sprintf("GHS %.2f", record.Amount), false},
 		{"Amount Paid", fmt.Sprintf("GHS %.2f", record.AmountPaid), false},
 		{"Balance Due", fmt.Sprintf("GHS %.2f", balanceDue), false},
+		{"Due Date", dueDateStr, false},
+		{"Payment Date", paidAtStr, false},
 		{"Payment Status", string(record.Status), true},
 	}
 
-	y := 107.0
+	y := 121.0
 	for _, row := range summaryRows {
 		pdf.SetXY(15, y)
 		if row.bold {
@@ -579,7 +652,7 @@ func (s *PDFService) GeneratePaymentReceipt(w io.Writer, tenantName string, tena
 		pdf.SetTextColor(51, 65, 85)
 		for _, b := range record.Breakdown {
 			pdf.SetXY(20, y)
-			pdf.CellFormat(100, 6, "• "+string(b.Category), "", 0, "L", false, 0, "")
+			pdf.CellFormat(100, 6, "• "+feeCategoryLabel(b.Category), "", 0, "L", false, 0, "")
 			pdf.SetXY(120, y)
 			pdf.CellFormat(75, 6, fmt.Sprintf("GHS %.2f", b.Amount), "", 0, "R", false, 0, "")
 			y += 7
@@ -587,13 +660,14 @@ func (s *PDFService) GeneratePaymentReceipt(w io.Writer, tenantName string, tena
 	}
 
 	// ── Dashed cut line ───────────────────────────────────────────────────────
+	cutY := 260.0
 	pdf.SetDrawColor(203, 213, 225)
 	pdf.SetDashPattern([]float64{2, 2}, 0)
-	pdf.Line(15, 250, 195, 250)
+	pdf.Line(15, cutY, 195, cutY)
 	pdf.SetDashPattern([]float64{}, 0)
 	pdf.SetFont("Arial", "I", 7)
 	pdf.SetTextColor(148, 163, 184)
-	pdf.SetXY(15, 251)
+	pdf.SetXY(15, cutY+1)
 	pdf.CellFormat(180, 4, "Keep this receipt for your records", "", 0, "C", false, 0, "")
 
 	// ── Footer ────────────────────────────────────────────────────────────────
@@ -604,6 +678,8 @@ func (s *PDFService) GeneratePaymentReceipt(w io.Writer, tenantName string, tena
 
 	return pdf.Output(w)
 }
+
+
 
 // GenerateExecutiveReportPDF creates a high-level summary PDF for administrators
 type ExecutiveStats struct {
