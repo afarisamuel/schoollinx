@@ -10,6 +10,7 @@ BUILD_DIR="/opt/basic-sms/admin-build"
 WEB_DIR="/var/www/admin-frontend"
 USER="softivite"
 GROUP="www-data"
+DOMAIN="schoollinx.com"
 
 # Cloudflare Cache Purge (optional - fill in to auto-purge on deploy)
 CF_ZONE_ID=""
@@ -115,26 +116,6 @@ chmod -R 755 "$WEB_DIR"
 
 echo -e "${YELLOW}Phase 4: Nginx Configuration${NC}"
 
-read -p "Do you want to configure Nginx with Cloudflare SSL for Admin? (y/n) " SETUP_SSL
-if [ "$SETUP_SSL" = "y" ]; then
-    read -p "Enter your domain (e.g. admin.yourdomain.com): " DOMAIN
-    
-    mkdir -p /etc/nginx/ssl/$DOMAIN
-    
-    if [ ! -f "/etc/nginx/ssl/$DOMAIN/cert.pem" ]; then
-        echo "Please paste your Cloudflare Origin Certificate (Ctrl+D to save):"
-        cat > /etc/nginx/ssl/$DOMAIN/cert.pem
-    else
-        echo -e "${GREEN}✓ Cloudflare Origin Certificate already exists${NC}"
-    fi
-    
-    if [ ! -f "/etc/nginx/ssl/$DOMAIN/key.pem" ]; then
-        echo "Please paste your Cloudflare Private Key (Ctrl+D to save):"
-        cat > /etc/nginx/ssl/$DOMAIN/key.pem
-    else
-        echo -e "${GREEN}✓ Cloudflare Private Key already exists${NC}"
-    fi
-    
     cat << EOF > /etc/nginx/sites-available/$APP_NAME
 server {
     listen 80;
@@ -157,21 +138,7 @@ server {
     }
 }
 EOF
-else
-    cat << EOF > /etc/nginx/sites-available/$APP_NAME
-server {
-    listen 80;
-    server_name _;
-    
-    root $WEB_DIR;
-    index index.html;
 
-    location / {
-        try_files \$uri \$uri/ /index.html;
-    }
-}
-EOF
-fi
 
 ln -sf /etc/nginx/sites-available/$APP_NAME /etc/nginx/sites-enabled/
 systemctl restart nginx

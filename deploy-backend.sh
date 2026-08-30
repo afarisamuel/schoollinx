@@ -9,6 +9,7 @@ APP_NAME="basic-sms-backend"
 APP_DIR="/opt/basic-sms/backend"
 USER="softivite"
 GROUP="www-data"
+DOMAIN="schoollinx.com"
 
 # Database Configuration (set these before running the script)
 DB_NAME=""
@@ -70,63 +71,63 @@ chown -R $USER:$GROUP "$APP_DIR"
 
 cd "$APP_DIR"
 
-echo -e "${YELLOW}Phase 2.5: Database Setup and Backups${NC}"
+# echo -e "${YELLOW}Phase 2.5: Database Setup and Backups${NC}"
 
-echo -e "${YELLOW}Do you want to set up the PostgreSQL database?${NC}"
-echo "   1) Yes - Create database and user"
-echo "   2) No - Skip database creation"
-read -p "   Enter choice [1-2]: " DB_SETUP_CHOICE
+# echo -e "${YELLOW}Do you want to set up the PostgreSQL database?${NC}"
+# echo "   1) Yes - Create database and user"
+# echo "   2) No - Skip database creation"
+# read -p "   Enter choice [1-2]: " DB_SETUP_CHOICE
 
-if [ "$DB_SETUP_CHOICE" = "1" ]; then
-    [ -z "$DB_NAME" ] && read -p "Enter Database Name (e.g. sms): " DB_NAME
-    [ -z "$DB_USER" ] && read -p "Enter Database User: " DB_USER
-    if [ -z "$DB_PASSWORD" ]; then
-        read -s -p "Enter Database Password: " DB_PASSWORD
-        echo ""
-    fi
+# if [ "$DB_SETUP_CHOICE" = "1" ]; then
+#     [ -z "$DB_NAME" ] && read -p "Enter Database Name (e.g. sms): " DB_NAME
+#     [ -z "$DB_USER" ] && read -p "Enter Database User: " DB_USER
+#     if [ -z "$DB_PASSWORD" ]; then
+#         read -s -p "Enter Database Password: " DB_PASSWORD
+#         echo ""
+#     fi
     
-    echo -e "${YELLOW}Creating PostgreSQL database...${NC}"
-    sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;" || echo "Database already exists"
-    sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';" || echo "User already exists"
-    sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
-    sudo -u postgres psql -c "ALTER DATABASE $DB_NAME OWNER TO $DB_USER;"
-    echo -e "${GREEN}✓ Database configured${NC}"
-fi
+#     echo -e "${YELLOW}Creating PostgreSQL database...${NC}"
+#     sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;" || echo "Database already exists"
+#     sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';" || echo "User already exists"
+#     sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
+#     sudo -u postgres psql -c "ALTER DATABASE $DB_NAME OWNER TO $DB_USER;"
+#     echo -e "${GREEN}✓ Database configured${NC}"
+# fi
 
-echo -e "${YELLOW}Do you want to set up automated daily backups?${NC}"
-echo "   1) Yes - Configure daily backups (30 day retention)"
-echo "   2) No - Skip backup configuration"
-read -p "   Enter choice [1-2]: " BACKUP_CHOICE
+# echo -e "${YELLOW}Do you want to set up automated daily backups?${NC}"
+# echo "   1) Yes - Configure daily backups (30 day retention)"
+# echo "   2) No - Skip backup configuration"
+# read -p "   Enter choice [1-2]: " BACKUP_CHOICE
 
-if [ "$BACKUP_CHOICE" = "1" ]; then
-    if [ -z "$DB_NAME" ]; then
-        read -p "Enter Database Name to backup: " DB_NAME
-    fi
-    BACKUP_DIR="/opt/basic-sms/backups/postgres"
-    mkdir -p $BACKUP_DIR
-    chown -R postgres:postgres /opt/basic-sms/backups
+# if [ "$BACKUP_CHOICE" = "1" ]; then
+#     if [ -z "$DB_NAME" ]; then
+#         read -p "Enter Database Name to backup: " DB_NAME
+#     fi
+#     BACKUP_DIR="/opt/basic-sms/backups/postgres"
+#     mkdir -p $BACKUP_DIR
+#     chown -R postgres:postgres /opt/basic-sms/backups
 
-    cat << 'BACKUP_SCRIPT' > $APP_DIR/backup_postgres.sh
-#!/bin/bash
-# Automated PostgreSQL backup script
-DB_NAME="REPLACE_ME"
-BACKUP_DIR="/opt/basic-sms/backups/postgres"
-DATE=\$(date +"%Y%m%d_%H%M%S")
-RETENTION_DAYS=30
-BACKUP_FILE="\$BACKUP_DIR/\${DB_NAME}_\${DATE}.sql.gz"
+#     cat << 'BACKUP_SCRIPT' > $APP_DIR/backup_postgres.sh
+# #!/bin/bash
+# # Automated PostgreSQL backup script
+# DB_NAME="REPLACE_ME"
+# BACKUP_DIR="/opt/basic-sms/backups/postgres"
+# DATE=\$(date +"%Y%m%d_%H%M%S")
+# RETENTION_DAYS=30
+# BACKUP_FILE="\$BACKUP_DIR/\${DB_NAME}_\${DATE}.sql.gz"
 
-mkdir -p \$BACKUP_DIR
-sudo -u postgres pg_dump \$DB_NAME | gzip > \$BACKUP_FILE
-find \$BACKUP_DIR -name "*.sql.gz" -type f -mtime +\$RETENTION_DAYS -delete
-echo "Backup completed: \$BACKUP_FILE"
-BACKUP_SCRIPT
+# mkdir -p \$BACKUP_DIR
+# sudo -u postgres pg_dump \$DB_NAME | gzip > \$BACKUP_FILE
+# find \$BACKUP_DIR -name "*.sql.gz" -type f -mtime +\$RETENTION_DAYS -delete
+# echo "Backup completed: \$BACKUP_FILE"
+# BACKUP_SCRIPT
 
-    sed -i "s/REPLACE_ME/$DB_NAME/g" $APP_DIR/backup_postgres.sh
-    chmod +x $APP_DIR/backup_postgres.sh
+#     sed -i "s/REPLACE_ME/$DB_NAME/g" $APP_DIR/backup_postgres.sh
+#     chmod +x $APP_DIR/backup_postgres.sh
     
-    (crontab -l 2>/dev/null; echo "0 2 * * * $APP_DIR/backup_postgres.sh >> $APP_DIR/backup.log 2>&1") | crontab -
-    echo -e "${GREEN}✓ Automated backups configured (daily at 2 AM)${NC}"
-fi
+#     (crontab -l 2>/dev/null; echo "0 2 * * * $APP_DIR/backup_postgres.sh >> $APP_DIR/backup.log 2>&1") | crontab -
+#     echo -e "${GREEN}✓ Automated backups configured (daily at 2 AM)${NC}"
+# fi
 
 
 echo -e "${YELLOW}Phase 3: Configuration${NC}"
@@ -165,14 +166,14 @@ echo -e "${YELLOW}Building the Go application...${NC}"
 sudo -u $USER /usr/local/go/bin/go build -o bin/server main.go
 
 echo ""
-echo -e "${YELLOW}Do you want to run database migrations?${NC}"
-echo "   1) Yes"
-echo "   2) No"
-read -p "   Enter choice [1-2]: " MIGRATE_CHOICE
-if [ "$MIGRATE_CHOICE" = "1" ]; then
-    echo -e "${YELLOW}Running migrations...${NC}"
-    sudo -u $USER /usr/local/go/bin/go run ./cmd/migrate up || echo -e "${RED}Migration failed${NC}"
-fi
+# echo -e "${YELLOW}Do you want to run database migrations?${NC}"
+# echo "   1) Yes"
+# echo "   2) No"
+# read -p "   Enter choice [1-2]: " MIGRATE_CHOICE
+# if [ "$MIGRATE_CHOICE" = "1" ]; then
+#     echo -e "${YELLOW}Running migrations...${NC}"
+#     sudo -u $USER /usr/local/go/bin/go run ./cmd/migrate up || echo -e "${RED}Migration failed${NC}"
+# fi
 
 echo -e "${YELLOW}Phase 5: Service Setup${NC}"
 
@@ -200,25 +201,25 @@ systemctl restart $APP_NAME
 
 echo -e "${YELLOW}Phase 6: Nginx Configuration${NC}"
 
-read -p "Do you want to configure Nginx with Cloudflare SSL for the Backend? (y/n) " SETUP_SSL
-if [ "$SETUP_SSL" = "y" ]; then
-    read -p "Enter your API domain (e.g. api.yourdomain.com): " DOMAIN
+# read -p "Do you want to configure Nginx with Cloudflare SSL for the Backend? (y/n) " SETUP_SSL
+# if [ "$SETUP_SSL" = "y" ]; then
+#     read -p "Enter your API domain (e.g. api.yourdomain.com): " DOMAIN
     
-    mkdir -p /etc/nginx/ssl/$DOMAIN
+#     mkdir -p /etc/nginx/ssl/$DOMAIN
     
-    if [ ! -f "/etc/nginx/ssl/$DOMAIN/cert.pem" ]; then
-        echo "Please paste your Cloudflare Origin Certificate (Ctrl+D to save):"
-        cat > /etc/nginx/ssl/$DOMAIN/cert.pem
-    else
-        echo -e "${GREEN}✓ Cloudflare Origin Certificate already exists${NC}"
-    fi
+#     if [ ! -f "/etc/nginx/ssl/$DOMAIN/cert.pem" ]; then
+#         echo "Please paste your Cloudflare Origin Certificate (Ctrl+D to save):"
+#         cat > /etc/nginx/ssl/$DOMAIN/cert.pem
+#     else
+#         echo -e "${GREEN}✓ Cloudflare Origin Certificate already exists${NC}"
+#     fi
     
-    if [ ! -f "/etc/nginx/ssl/$DOMAIN/key.pem" ]; then
-        echo "Please paste your Cloudflare Private Key (Ctrl+D to save):"
-        cat > /etc/nginx/ssl/$DOMAIN/key.pem
-    else
-        echo -e "${GREEN}✓ Cloudflare Private Key already exists${NC}"
-    fi
+#     if [ ! -f "/etc/nginx/ssl/$DOMAIN/key.pem" ]; then
+#         echo "Please paste your Cloudflare Private Key (Ctrl+D to save):"
+#         cat > /etc/nginx/ssl/$DOMAIN/key.pem
+#     else
+#         echo -e "${GREEN}✓ Cloudflare Private Key already exists${NC}"
+#     fi
     
     cat << EOF > /etc/nginx/sites-available/$APP_NAME
 server {
@@ -255,28 +256,6 @@ server {
     }
 }
 EOF
-else
-    cat << EOF > /etc/nginx/sites-available/$APP_NAME
-server {
-    listen 80;
-    server_name _;
-    
-    # Block IP-based access
-    if (\$host ~* "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$") {
-        return 444;
-    }
-    
-    location / {
-        proxy_pass http://localhost:8080; # Change if your Go app uses a different port
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_cache_bypass \$http_upgrade;
-    }
-}
-EOF
-fi
 
 ln -sf /etc/nginx/sites-available/$APP_NAME /etc/nginx/sites-enabled/
 systemctl restart nginx

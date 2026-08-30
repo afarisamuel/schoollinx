@@ -9,6 +9,7 @@ APP_NAME="basic-sms-frontend"
 APP_DIR="/opt/basic-sms/frontend"
 USER="softivite"
 GROUP="www-data"
+DOMAIN="schoollinx.com"
 
 # Cloudflare Cache Purge (optional - fill in to auto-purge on deploy)
 CF_ZONE_ID=""
@@ -118,27 +119,26 @@ sudo -u $USER env PATH="$RESOLVED_PATH" pm2 start "$SSR_SERVER" --name $APP_NAME
 sudo -u $USER env PATH="$RESOLVED_PATH" pm2 save
 env PATH="$RESOLVED_PATH" pm2 startup systemd -u $USER --hp /home/$USER || true
 
-echo -e "${YELLOW}Phase 5: Nginx Configuration${NC}"
+# echo -e "${YELLOW}Phase 5: Nginx Configuration${NC}"
 
-read -p "Do you want to configure Nginx with Cloudflare SSL? (y/n) " SETUP_SSL
-if [ "$SETUP_SSL" = "y" ]; then
-    read -p "Enter your domain (e.g. yourdomain.com): " DOMAIN
+# read -p "Do you want to configure Nginx with Cloudflare SSL? (y/n) " SETUP_SSL
+
     
-    mkdir -p /etc/nginx/ssl/$DOMAIN
+    # mkdir -p /etc/nginx/ssl/$DOMAIN
     
-    if [ ! -f "/etc/nginx/ssl/$DOMAIN/cert.pem" ]; then
-        echo "Please paste your Cloudflare Origin Certificate (Ctrl+D to save):"
-        cat > /etc/nginx/ssl/$DOMAIN/cert.pem
-    else
-        echo -e "${GREEN}✓ Cloudflare Origin Certificate already exists${NC}"
-    fi
+    # if [ ! -f "/etc/nginx/ssl/$DOMAIN/cert.pem" ]; then
+    #     echo "Please paste your Cloudflare Origin Certificate (Ctrl+D to save):"
+    #     cat > /etc/nginx/ssl/$DOMAIN/cert.pem
+    # else
+    #     echo -e "${GREEN}✓ Cloudflare Origin Certificate already exists${NC}"
+    # fi
     
-    if [ ! -f "/etc/nginx/ssl/$DOMAIN/key.pem" ]; then
-        echo "Please paste your Cloudflare Private Key (Ctrl+D to save):"
-        cat > /etc/nginx/ssl/$DOMAIN/key.pem
-    else
-        echo -e "${GREEN}✓ Cloudflare Private Key already exists${NC}"
-    fi
+    # if [ ! -f "/etc/nginx/ssl/$DOMAIN/key.pem" ]; then
+    #     echo "Please paste your Cloudflare Private Key (Ctrl+D to save):"
+    #     cat > /etc/nginx/ssl/$DOMAIN/key.pem
+    # else
+    #     echo -e "${GREEN}✓ Cloudflare Private Key already exists${NC}"
+    # fi
     
     cat << EOF > /etc/nginx/sites-available/$APP_NAME
 # Block hq subdomain - reserved for admin-frontend app
@@ -176,31 +176,6 @@ server {
     }
 }
 EOF
-else
-    cat << EOF > /etc/nginx/sites-available/$APP_NAME
-# Block hq subdomain - reserved for admin-frontend app
-server {
-    listen 80;
-    server_name hq.*;
-
-    return 444; # Drop connection - hq is reserved for admin-frontend
-}
-
-server {
-    listen 80;
-    server_name _;
-
-    location / {
-        proxy_pass http://localhost:4000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_cache_bypass \$http_upgrade;
-    }
-}
-EOF
-fi
 
 ln -sf /etc/nginx/sites-available/$APP_NAME /etc/nginx/sites-enabled/
 systemctl restart nginx
