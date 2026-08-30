@@ -32,6 +32,10 @@ export class GradeService {
         return this.http.post<GradeWeight>(`${this.apiUrl}/weights`, weight);
     }
 
+    updateClassWeights(classId: string, weights: GradeWeight[]): Observable<any> {
+        return this.http.put(`${this.apiUrl}/weights/${classId}`, weights);
+    }
+
     getGrade(id: string): Observable<Grade> {
         return this.http.get<Grade>(`${this.apiUrl}/${id}`);
     }

@@ -56,6 +56,10 @@ func (u *gradeUseCase) UpsertWeight(ctx context.Context, w *domain.GradeWeight) 
 	return u.gradeRepo.UpsertWeight(ctx, w)
 }
 
+func (u *gradeUseCase) UpdateWeights(ctx context.Context, classID uuid.UUID, weights []domain.GradeWeight) error {
+	return u.gradeRepo.ReplaceWeights(ctx, classID, weights)
+}
+
 func (u *gradeUseCase) GetStudentGradeTrajectory(ctx context.Context, studentID uuid.UUID) ([]domain.GradeTrajectoryPoint, error) {
 	return u.gradeRepo.GetStudentGradeTrajectory(ctx, studentID)
 }

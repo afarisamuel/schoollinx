@@ -9,6 +9,7 @@ import { Teacher } from '../../../core/domain/teacher.model';
 import { ScholasticLevelService } from '../../../core/infrastructure/scholastic-level/scholastic-level.service';
 import { ScholasticLevel } from '../../../core/domain/scholastic-level.model';
 import { SubjectService, Subject } from '../../../core/infrastructure/curriculum/subject.service';
+import { GradeService } from '../../../core/infrastructure/grade/grade.service';
 
 @Component({
   selector: 'app-class-management',
@@ -22,6 +23,7 @@ export class ClassManagementComponent implements OnInit {
   private dialog = inject(DialogService);
   private scholasticLevelService = inject(ScholasticLevelService);
   private subjectService = inject(SubjectService);
+  private gradeService = inject(GradeService);
 
   classes = signal<Class[]>([]);
   teachers = signal<Teacher[]>([]);
@@ -33,6 +35,13 @@ export class ClassManagementComponent implements OnInit {
   isEditMode = signal(false);
   submitting = signal(false);
   searchQuery = signal('');
+
+  // Grading Columns & Weights State (Admin Controlled)
+  isGradingModalOpen = signal(false);
+  gradingClass = signal<Class | null>(null);
+  gradingColumns = signal<{ id?: string; category: string; weight: number }[]>([]);
+  isSavingWeights = signal(false);
+  totalGradingWeight = computed(() => this.gradingColumns().reduce((sum, c) => sum + (c.weight || 0), 0));
 
   currentClass: Partial<Class> = { name: '', teacher_id: '', scholastic_level_id: '' };
 
@@ -180,6 +189,115 @@ export class ClassManagementComponent implements OnInit {
           next: () => this.loadData(),
           error: (err) => this.dialog.alert(err.error?.error || 'Failed to delete class', 'Error', 'danger')
         });
+      }
+    });
+  }
+
+  // ── Grading Columns Management (Admin Controlled) ─────────────────
+  openGradingColumnsModal(cls: Class) {
+    this.gradingClass.set(cls);
+    this.gradeService.getGradeWeights(cls.id).subscribe({
+      next: (weights) => {
+        if (weights && weights.length > 0) {
+          this.gradingColumns.set(weights.map(w => ({
+            id: w.id,
+            category: w.category,
+            weight: w.weight > 1 ? Math.round(w.weight) : Math.round(w.weight * 100)
+          })));
+        } else {
+          this.applyGradingPreset('standard');
+        }
+        this.isGradingModalOpen.set(true);
+      },
+      error: () => {
+        this.applyGradingPreset('standard');
+        this.isGradingModalOpen.set(true);
+      }
+    });
+  }
+
+  closeGradingModal() {
+    this.isGradingModalOpen.set(false);
+    this.gradingClass.set(null);
+  }
+
+  addGradingColumn() {
+    const current = this.gradingColumns();
+    this.gradingColumns.set([
+      ...current,
+      { category: 'Assessment ' + (current.length + 1), weight: 10 }
+    ]);
+  }
+
+  removeGradingColumn(index: number) {
+    const current = [...this.gradingColumns()];
+    current.splice(index, 1);
+    this.gradingColumns.set(current);
+  }
+
+  applyGradingPreset(preset: 'standard' | 'trimester' | 'continuous') {
+    if (preset === 'standard') {
+      this.gradingColumns.set([
+        { category: 'Class Assessment', weight: 30 },
+        { category: 'Final Examination', weight: 70 }
+      ]);
+    } else if (preset === 'trimester') {
+      this.gradingColumns.set([
+        { category: 'Homework & Classwork', weight: 20 },
+        { category: 'Mid-Term Exam', weight: 30 },
+        { category: 'End of Term Exam', weight: 50 }
+      ]);
+    } else if (preset === 'continuous') {
+      this.gradingColumns.set([
+        { category: 'Class Tests', weight: 25 },
+        { category: 'Project Work', weight: 25 },
+        { category: 'Terminal Examination', weight: 50 }
+      ]);
+    }
+  }
+
+  saveGradingColumns() {
+    const cls = this.gradingClass();
+    if (!cls) return;
+
+    const cols = this.gradingColumns();
+    if (cols.length === 0) {
+      this.dialog.alert('At least one assessment column is required.', 'Validation Error', 'warning');
+      return;
+    }
+
+    for (const c of cols) {
+      if (!c.category.trim()) {
+        this.dialog.alert('All columns must have a valid assessment name.', 'Validation Error', 'warning');
+        return;
+      }
+      if (c.weight <= 0) {
+        this.dialog.alert('Column weights must be greater than 0%.', 'Validation Error', 'warning');
+        return;
+      }
+    }
+
+    if (this.totalGradingWeight() !== 100) {
+      this.dialog.alert(`Total weight must equal exactly 100%. Current total is ${this.totalGradingWeight()}%.`, 'Invalid Weight Balance', 'warning');
+      return;
+    }
+
+    this.isSavingWeights.set(true);
+    const payload = cols.map(c => ({
+      class_id: cls.id,
+      category: c.category.trim(),
+      weight: c.weight // percentage integer e.g. 30
+    }));
+
+    this.gradeService.updateClassWeights(cls.id, payload).subscribe({
+      next: () => {
+        this.isSavingWeights.set(false);
+        this.closeGradingModal();
+        this.dialog.alert(`Grading columns and percentage weights for ${cls.name} saved successfully! Teachers will now automatically use these columns in the Speed Gradebook.`, 'Success', 'success');
+      },
+      error: (err) => {
+        this.isSavingWeights.set(false);
+        this.dialog.alert(err.error?.error || 'Failed to save grading columns.', 'Error', 'danger');
       }
     });
   }

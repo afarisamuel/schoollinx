@@ -73,6 +73,21 @@ func (r *gradeRepository) UpsertWeight(ctx context.Context, w *domain.GradeWeigh
 		FirstOrCreate(w).Error
 }
 
+func (r *gradeRepository) ReplaceWeights(ctx context.Context, classID uuid.UUID, weights []domain.GradeWeight) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("class_id = ?", classID).Delete(&domain.GradeWeight{}).Error; err != nil {
+			return err
+		}
+		for i := range weights {
+			weights[i].ClassID = classID
+			if err := tx.Create(&weights[i]).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
 // GetWeightedGPA computes a weighted GPA (0–100) per student in a class.
 // For each student, it averages their scores per category, normalises to percentage,
 // then multiplies by the configured weight for that category.
@@ -84,7 +99,12 @@ func (r *gradeRepository) GetWeightedGPA(ctx context.Context, classID uuid.UUID)
 
 	weightMap := make(map[domain.GradeCategory]float64)
 	for _, w := range weights {
-		weightMap[w.Category] = float64(w.Weight)
+		// Normalize percentage weights (e.g. 30 -> 0.30)
+		wt := float64(w.Weight)
+		if wt > 1.0 {
+			wt = wt / 100.0
+		}
+		weightMap[w.Category] = wt
 	}
 
 	grades, err := r.GetByClassID(ctx, classID)
@@ -102,6 +122,7 @@ func (r *gradeRepository) GetWeightedGPA(ctx context.Context, classID uuid.UUID)
 		categories map[domain.GradeCategory]*scoreSum
 	}
 	students := make(map[uuid.UUID]*studentData)
+
 	for _, g := range grades {
 		if _, ok := students[g.StudentID]; !ok {
 			name := ""

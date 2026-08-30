@@ -71,6 +71,12 @@ export class TeacherPortalComponent implements OnInit {
     
     // UI Helpers
     columnCount = signal(3);
+    isColumnsAdminConfigured = signal(false);
+    cumulativeThreshold = computed(() => {
+        const cols = this.gradeColumns();
+        const total = cols.reduce((sum, c) => sum + (c.weight > 1 ? c.weight : c.weight * 100), 0);
+        return Math.round(total);
+    });
 
     // Classroom Mastery Suite (Phase 1-5)
     activeTab = signal<'gradebook' | 'seating' | 'lessons' | 'resources' | 'sickbay' | 'widgets' | 'timetable' | 'cover-board' | 'consultations' | 'notices' | 'ai-copilot' | 'hr-vault'>('gradebook');
@@ -246,8 +252,8 @@ export class TeacherPortalComponent implements OnInit {
 
         this.portalService.getClassStudents(classId).subscribe(students => {
             this.students.set(students);
-            // Initialize Grid Configuration (3 default columns)
-            this.setupGrid(this.columnCount());
+            // Load admin-configured grading weights or fallback to defaults
+            this.loadClassWeights(classId);
 
             // Initialize default roll-call map
             const initialAttendance: Record<string, 'PRESENT' | 'LATE' | 'EXCUSED' | 'ABSENT'> = {};
@@ -318,11 +324,42 @@ export class TeacherPortalComponent implements OnInit {
         return studentGpa ? studentGpa.gpa : null;
     }
 
+    loadClassWeights(classId: string) {
+        this.portalService.getClassWeights(classId).subscribe({
+            next: (weights) => {
+                if (weights && weights.length > 0) {
+                    this.isColumnsAdminConfigured.set(true);
+                    this.columnCount.set(weights.length);
+                    const cols = weights.map(w => ({
+                        name: w.category,
+                        weight: w.weight > 1 ? Math.round(w.weight) : Math.round(w.weight * 100)
+                    }));
+                    this.gradeColumns.set(cols);
+                    const grid: Record<string, number[]> = {};
+                    this.students().forEach(s => {
+                        grid[s.id] = new Array(cols.length).fill(0);
+                    });
+                    this.gradeGrid.set(grid);
+                    this.runCalculations();
+                } else {
+                    this.isColumnsAdminConfigured.set(false);
+                    this.setupGrid(3);
+                }
+            },
+            error: () => {
+                this.isColumnsAdminConfigured.set(false);
+                this.setupGrid(3);
+            }
+        });
+    }
+
     setupGrid(count: number) {
         this.columnCount.set(count);
+        const basePct = Math.floor(100 / count);
+        const remainder = 100 - (basePct * count);
         const newCols = Array.from({ length: count }, (_, i) => ({
             name: `Assessment ${i + 1}`,
-            weight: Number((1 / count).toFixed(2))
+            weight: i === 0 ? basePct + remainder : basePct
         }));
         this.gradeColumns.set(newCols);
 
@@ -352,7 +389,7 @@ export class TeacherPortalComponent implements OnInit {
 
     updateColumnWeight(index: number, weight: any) {
         const cols = [...this.gradeColumns()];
-        cols[index].weight = parseFloat(weight) || 0;
+        cols[index].weight = Math.min(100, Math.max(0, parseInt(weight, 10) || 0));
         this.gradeColumns.set(cols);
         this.runCalculations();
     }
@@ -369,7 +406,8 @@ export class TeacherPortalComponent implements OnInit {
             const scores = grid[s.id] || [];
             let total = 0;
             cols.forEach((c, i) => {
-                total += (scores[i] || 0) * c.weight;
+                const weightFactor = c.weight > 1 ? c.weight / 100 : c.weight;
+                total += (scores[i] || 0) * weightFactor;
             });
             stats[s.id] = { total: parseFloat(total.toFixed(2)), rank: 0 };
             studentTotals.push({ id: s.id, total: stats[s.id].total });
@@ -432,6 +470,7 @@ export class TeacherPortalComponent implements OnInit {
 
         Object.keys(grid).forEach(studentId => {
             grid[studentId].forEach((score, i) => {
+                const weightPct = cols[i].weight > 1 ? cols[i].weight : Math.round(cols[i].weight * 100);
                 entries.push({
                     student_id: studentId,
                     subject: this.selectedSubjectId(),
@@ -439,7 +478,7 @@ export class TeacherPortalComponent implements OnInit {
                     score: score,
                     max_score: 100,
                     term: this.term(),
-                    remarks: `Weight: ${cols[i].weight * 100}%`
+                    remarks: `Weight: ${weightPct}%`
                 });
             });
         });

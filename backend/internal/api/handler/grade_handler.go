@@ -23,6 +23,7 @@ func NewGradeHandler(r *gin.RouterGroup, useCase domain.GradeUseCase) {
 		g.GET("/class/:class_id", h.GetClassGrades)
 		g.GET("/weights/:class_id", h.GetClassWeights)
 		g.POST("/weights", h.UpsertWeight)
+		g.PUT("/weights/:class_id", h.UpdateClassWeights)
 		g.PUT("/:id", h.UpdateGrade)
 		g.DELETE("/:id", h.DeleteGrade)
 		g.POST("/bulk", h.BulkCreate)
@@ -276,4 +277,37 @@ func (h *GradeHandler) UpsertWeight(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, weight)
+}
+
+// UpdateClassWeights godoc
+// @Summary      Update all grading weights/columns for a class
+// @Description  Replaces the grading weights and assessment columns for a class
+// @Tags         Grades
+// @Accept       json
+// @Produce      json
+// @Param        class_id  path      string              true  "Class ID"
+// @Param        body      body      []domain.GradeWeight  true  "Weights payload"
+// @Success      200       {object}  map[string]string
+// @Failure      400       {object}  map[string]string
+// @Failure      500       {object}  map[string]string
+// @Router       /grades/weights/{class_id} [put]
+func (h *GradeHandler) UpdateClassWeights(c *gin.Context) {
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid class ID format"})
+		return
+	}
+
+	var weights []domain.GradeWeight
+	if err := c.ShouldBindJSON(&weights); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.gradeUseCase.UpdateWeights(c.Request.Context(), classID, weights); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Class grading columns and weights updated successfully"})
 }
