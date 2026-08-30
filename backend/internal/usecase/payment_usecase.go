@@ -226,15 +226,30 @@ func (u *paymentUseCase) VerifyPayment(ctx context.Context, tenantID string, ref
 		return nil, fmt.Errorf("transaction not found")
 	}
 
-	// Idempotent: If already marked paid, return immediately
-	if tx.Status == domain.PaymentStatusPaid {
-		return tx, nil
-	}
-
 	tenantUUID, _ := uuid.Parse(tx.TenantID)
 	tenant, err := u.tenantRepo.GetByID(ctx, tenantUUID)
 	if err != nil || tenant == nil {
 		return nil, fmt.Errorf("tenant not found")
+	}
+
+	// Inject tenant context so GORM targets the correct tenant schema
+	tenantCtx := context.WithValue(ctx, middleware.TenantIDKey, tenant.ID)
+	tenantCtx = context.WithValue(tenantCtx, middleware.TenantSchemaKey, tenant.SchemaName)
+	tenantCtx = context.WithValue(tenantCtx, middleware.TenantNameKey, tenant.Name)
+
+	// Idempotent: If already marked paid, reconcile invoice if needed and return immediately
+	if tx.Status == domain.PaymentStatusPaid {
+		if tx.FiscalRecordID != nil && *tx.FiscalRecordID != uuid.Nil {
+			invoice, err := u.fiscalRepo.GetByID(tenantCtx, *tx.FiscalRecordID)
+			if err == nil && invoice != nil && invoice.AmountPaid < tx.Amount {
+				invoice.AmountPaid += tx.Amount
+				if invoice.AmountPaid >= invoice.Amount {
+					invoice.Status = domain.PaymentStatusPaid
+				}
+				_ = u.fiscalRepo.Update(tenantCtx, invoice)
+			}
+		}
+		return tx, nil
 	}
 
 	secretKey := string(tenant.PaystackSecretKey)
@@ -253,18 +268,26 @@ func (u *paymentUseCase) VerifyPayment(ctx context.Context, tenantID string, ref
 		return tx, fmt.Errorf("payment status is: %s", status)
 	}
 
-	// Inject tenant context so GORM targets the correct tenant schema
-	tenantCtx := context.WithValue(ctx, middleware.TenantIDKey, tenant.ID)
-	tenantCtx = context.WithValue(tenantCtx, middleware.TenantSchemaKey, tenant.SchemaName)
-	tenantCtx = context.WithValue(tenantCtx, middleware.TenantNameKey, tenant.Name)
-
 	// 1. Mark transaction as PAID
 	if err := u.paymentRepo.UpdateTransactionStatus(tx.TenantID, reference, domain.PaymentStatusPaid); err != nil {
 		return nil, fmt.Errorf("failed to update transaction status: %w", err)
 	}
 	tx.Status = domain.PaymentStatusPaid
 
-	// 2. Credit student's daily wallet if wallet top-up
+	// 2. If regular fee payment (has FiscalRecordID) -> Credit Invoice
+	if tx.FiscalRecordID != nil && *tx.FiscalRecordID != uuid.Nil {
+		invoice, err := u.fiscalRepo.GetByID(tenantCtx, *tx.FiscalRecordID)
+		if err == nil && invoice != nil {
+			invoice.AmountPaid += tx.Amount
+			if invoice.AmountPaid >= invoice.Amount {
+				invoice.Status = domain.PaymentStatusPaid
+			}
+			_ = u.fiscalRepo.Update(tenantCtx, invoice)
+		}
+		return tx, nil
+	}
+
+	// 3. Otherwise, if wallet top-up (reference starts with "TOPUP-" or StudentID without FiscalRecordID)
 	if (len(reference) >= 6 && reference[:6] == "TOPUP-") || (tx.StudentID != nil && *tx.StudentID != uuid.Nil) {
 		var targetStudentID uuid.UUID
 		if tx.StudentID != nil && *tx.StudentID != uuid.Nil {
@@ -288,18 +311,6 @@ func (u *paymentUseCase) VerifyPayment(ctx context.Context, tenantID string, ref
 			}
 		}
 		return tx, nil
-	}
-
-	// 3. Update invoice if regular fee payment
-	if tx.FiscalRecordID != nil && *tx.FiscalRecordID != uuid.Nil {
-		invoice, err := u.fiscalRepo.GetByID(tenantCtx, *tx.FiscalRecordID)
-		if err == nil && invoice != nil {
-			invoice.AmountPaid += tx.Amount
-			if invoice.AmountPaid >= invoice.Amount {
-				invoice.Status = domain.PaymentStatusPaid
-			}
-			_ = u.fiscalRepo.Update(tenantCtx, invoice)
-		}
 	}
 
 	return tx, nil
@@ -420,8 +431,21 @@ func (u *paymentUseCase) HandlePaystackWebhook(ctx context.Context, payload []by
 	tenantCtx = context.WithValue(tenantCtx, middleware.TenantSchemaKey, tenant.SchemaName)
 	tenantCtx = context.WithValue(tenantCtx, middleware.TenantNameKey, tenant.Name)
 
-	// If it's a wallet top-up (reference starts with "TOPUP-")
-	if len(reference) >= 6 && reference[:6] == "TOPUP-" {
+	// 7. If regular fee payment (has FiscalRecordID) -> Credit Invoice
+	if tx.FiscalRecordID != nil && *tx.FiscalRecordID != uuid.Nil {
+		invoice, err := u.fiscalRepo.GetByID(tenantCtx, *tx.FiscalRecordID)
+		if err == nil && invoice != nil {
+			invoice.AmountPaid += tx.Amount
+			if invoice.AmountPaid >= invoice.Amount {
+				invoice.Status = domain.PaymentStatusPaid
+			}
+			_ = u.fiscalRepo.Update(tenantCtx, invoice)
+		}
+		return nil
+	}
+
+	// 8. Otherwise, if wallet top-up (reference starts with "TOPUP-" or StudentID without FiscalRecordID)
+	if (len(reference) >= 6 && reference[:6] == "TOPUP-") || (tx.StudentID != nil && *tx.StudentID != uuid.Nil) {
 		var targetStudentID uuid.UUID
 		if tx.StudentID != nil && *tx.StudentID != uuid.Nil {
 			targetStudentID = *tx.StudentID
@@ -444,18 +468,6 @@ func (u *paymentUseCase) HandlePaystackWebhook(ctx context.Context, payload []by
 			}
 		}
 		return nil
-	}
-
-	// 7. Update the Invoice status
-	if tx.FiscalRecordID != nil && *tx.FiscalRecordID != uuid.Nil {
-		invoice, err := u.fiscalRepo.GetByID(tenantCtx, *tx.FiscalRecordID)
-		if err == nil && invoice != nil {
-			invoice.AmountPaid += tx.Amount
-			if invoice.AmountPaid >= invoice.Amount {
-				invoice.Status = domain.PaymentStatusPaid
-			}
-			_ = u.fiscalRepo.Update(tenantCtx, invoice)
-		}
 	}
 
 	return nil

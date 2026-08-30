@@ -52,7 +52,10 @@ func (u *fiscalUseCase) GetStudentBalance(ctx context.Context, studentID uuid.UU
 	var outstandingBalance float64
 	for _, r := range records {
 		if r.Status != domain.PaymentStatusPaid {
-			outstandingBalance += r.Amount
+			rem := r.Amount - r.AmountPaid
+			if rem > 0 {
+				outstandingBalance += rem
+			}
 		}
 	}
 

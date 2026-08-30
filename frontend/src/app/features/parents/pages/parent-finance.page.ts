@@ -108,6 +108,7 @@ export class ParentFinancePage implements OnInit {
                         students.forEach(s => {
                             if (s.id) {
                                 this.state.reloadWallet(s.id);
+                                this.state.loadStudentData(s.id, '');
                             }
                         });
                         this.router.navigate([], { queryParams: {}, replaceUrl: true });
@@ -240,39 +241,13 @@ export class ParentFinancePage implements OnInit {
         if (!id || amount <= 0) return;
         this.submitting.set(true);
 
-        if (this.topUpMethod() === 'paystack') {
-            const email = this.state.profile()?.email || '';
-            const cb = `${window.location.origin}/parents/finance`;
-            this.paymentService.initializeWalletTopUp(id, amount, email, cb).subscribe({
-                next: (r) => { window.location.href = r.authorization_url; },
-                error: () => {
-                    this.submitting.set(false);
-                    this.toast.error('Failed to connect to Paystack.', 'Error');
-                }
-            });
-            return;
-        }
-
-        this.api.topUpWallet(id, amount, this.topUpNote()).subscribe({
-            next: () => {
+        const email = this.state.profile()?.email || '';
+        const cb = `${window.location.origin}/parents/finance`;
+        this.paymentService.initializeWalletTopUp(id, amount, email, cb).subscribe({
+            next: (r) => { window.location.href = r.authorization_url; },
+            error: (e) => {
                 this.submitting.set(false);
-                this.showTopUpModal.set(false);
-                this.toast.success(`GH₵${amount.toFixed(2)} added to ${this.topUpName()}'s wallet`, 'Top-Up Successful');
-                // Optimistically update walletMap immediately so the UI reflects the new balance instantly
-                const cur = this.state.walletMap()[id] || { balance: 0, transactions: [] };
-                this.state.walletMap.update(m => ({
-                    ...m,
-                    [id]: {
-                        ...cur,
-                        balance: (cur.balance || 0) + amount
-                    }
-                }));
-                this.state.reloadWallet(id);
-                this.state.reloadLedger();
-            },
-            error: (err) => {
-                this.submitting.set(false);
-                this.toast.error(err?.error?.error || 'Failed to complete top-up.', 'Top-Up Failed');
+                this.toast.error(e.error?.error || 'Failed to connect to Paystack gateway.', 'Error');
             }
         });
     }
@@ -339,43 +314,17 @@ export class ParentFinancePage implements OnInit {
 
         this.processingFeePayment.set(true);
 
-        if (this.feePaymentMethod() === 'paystack') {
-            const email = this.state.profile()?.email || '';
-            const cb = `${window.location.origin}/parents/finance`;
-            this.paymentService.initializePayment(recordId || undefined, { amount, studentId: studentId || undefined, email, callbackUrl: cb }).subscribe({
-                next: (r) => { 
-                    window.location.href = r.authorization_url; 
-                },
-                error: (e) => {
-                    this.processingFeePayment.set(false);
-                    this.toast.error(e.error?.error || 'Failed to connect to Paystack gateway.', 'Payment Error');
-                }
-            });
-            return;
-        }
-
-        // Direct payment
-        if (recordId) {
-            this.fiscalService.processPartialPayment(recordId, amount, 'Direct payment via Parent Portal').subscribe({
-                next: () => {
-                    this.processingFeePayment.set(false);
-                    this.showFeeModal.set(false);
-                    this.toast.success(`Payment of GH₵${amount.toFixed(2)} recorded successfully for ${this.paymentWardName()}.`, 'Payment Successful');
-                    this.state.reloadLedger();
-                    if (studentId) {
-                        this.state.loadStudentData(studentId, '');
-                    }
-                },
-                error: (err) => {
-                    this.processingFeePayment.set(false);
-                    this.toast.error(err?.error?.error || 'Failed to record direct payment.', 'Error');
-                }
-            });
-        } else {
-            this.processingFeePayment.set(false);
-            this.showFeeModal.set(false);
-            this.toast.error('No invoice record found for direct clearance.', 'Error');
-        }
+        const email = this.state.profile()?.email || '';
+        const cb = `${window.location.origin}/parents/finance`;
+        this.paymentService.initializePayment(recordId || undefined, { amount, studentId: studentId || undefined, email, callbackUrl: cb }).subscribe({
+            next: (r) => { 
+                window.location.href = r.authorization_url; 
+            },
+            error: (e) => {
+                this.processingFeePayment.set(false);
+                this.toast.error(e.error?.error || 'Failed to connect to Paystack gateway.', 'Payment Error');
+            }
+        });
     }
 
     payMilestone(milestoneId: string, amount: number, studentName: string) {
