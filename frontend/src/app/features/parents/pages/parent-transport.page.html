@@ -98,22 +98,33 @@
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 py-6">
                         <div class="p-4 bg-bg-tertiary/60 border border-border-primary rounded-2xl">
                             <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted block mb-1">Live Speed</span>
-                            <div class="text-2xl font-black text-amber-400 font-mono">{{ (bus.speed_kmh || 38.5) | number:'1.1-1' }} <span class="text-xs text-text-muted font-normal">km/h</span></div>
-                            <div class="text-[10px] text-emerald-400 mt-1 flex items-center gap-1">
-                                <i class="fas fa-check-circle"></i> Normal Cruising
+                            <div class="text-2xl font-black text-amber-400 font-mono">
+                                {{ (bus.speed_kmh || 0) | number:'1.1-1' }} <span class="text-xs text-text-muted font-normal">km/h</span>
+                            </div>
+                            <div class="text-[10px] mt-1 flex items-center gap-1" [ngClass]="bus.speed_kmh > 0 ? 'text-emerald-400' : 'text-text-muted'">
+                                <i class="fas" [ngClass]="bus.speed_kmh > 0 ? 'fa-check-circle' : 'fa-pause-circle'"></i>
+                                {{ bus.speed_kmh > 0 ? 'Normal Cruising' : 'Stationary' }}
                             </div>
                         </div>
 
                         <div class="p-4 bg-bg-tertiary/60 border border-border-primary rounded-2xl">
                             <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted block mb-1">Next Scheduled Stop</span>
-                            <div class="text-base font-bold text-text-primary truncate">{{ bus.next_stop_name || 'Campus Gate' }}</div>
+                            <div class="text-base font-bold text-text-primary truncate">{{ bus.next_stop_name || 'En Route' }}</div>
                             <div class="text-[10px] text-text-muted mt-1">Passenger Drop-off</div>
                         </div>
 
                         <div class="p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl">
                             <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block mb-1">Estimated Arrival</span>
-                            <div class="text-2xl font-black text-emerald-400 font-mono">~{{ bus.estimated_arrival_mins || 10 }} <span class="text-xs text-text-muted font-normal">mins</span></div>
-                            <div class="text-[10px] text-emerald-400/80 mt-1">Calculated with live traffic</div>
+                            <div class="text-2xl font-black text-emerald-400 font-mono">
+                                @if (bus.estimated_arrival_mins) {
+                                    ~{{ bus.estimated_arrival_mins }} <span class="text-xs text-text-muted font-normal">mins</span>
+                                } @else {
+                                    <span class="text-base font-sans font-bold text-text-muted">Standby</span>
+                                }
+                            </div>
+                            <div class="text-[10px] text-emerald-400/80 mt-1">
+                                {{ bus.estimated_arrival_mins ? 'Calculated with live traffic' : 'Awaiting departure' }}
+                            </div>
                         </div>
 
                         <div class="p-4 bg-bg-tertiary/60 border border-border-primary rounded-2xl">
@@ -130,7 +141,13 @@
                                 <i class="fas fa-satellite text-indigo-400 text-sm"></i>
                                 <span class="text-xs font-black uppercase tracking-wider text-text-primary">Satellite Route Coordinate Matrix</span>
                             </div>
-                            <span class="text-[10px] font-mono text-text-muted">LAT: {{ bus.current_lat || '5.6358' }} • LNG: {{ bus.current_lng || '-0.1611' }}</span>
+                            <span class="text-[10px] font-mono text-text-muted">
+                                @if (bus.current_lat && bus.current_lng) {
+                                    LAT: {{ bus.current_lat }} &bull; LNG: {{ bus.current_lng }}
+                                } @else {
+                                    GPS Transponder Standby
+                                }
+                            </span>
                         </div>
 
                         <!-- Visual Bus Simulation Track -->

@@ -238,12 +238,7 @@ export class ParentPortalService {
     // ── Milestone 4: Houses, Boarding & Emergency Broadcasts ──────────────
     getHouseLeaderboard(): Observable<any[]> {
         return this.http.get<any[]>('/api/houses/leaderboard').pipe(
-            catchError(() => of([
-                { id: '1', name: 'Aggrey House', color: '#6366F1', crest: '🦅', total_points: 1420, rank: 1 },
-                { id: '2', name: 'Guggisberg House', color: '#10B981', crest: '🦁', total_points: 1350, rank: 2 },
-                { id: '3', name: 'Fraser House', color: '#F59E0B', crest: '⚡', total_points: 1210, rank: 3 },
-                { id: '4', name: 'Clark House', color: '#EC4899', crest: '🛡️', total_points: 1080, rank: 4 }
-            ]))
+            catchError(() => of([]))
         );
     }
 

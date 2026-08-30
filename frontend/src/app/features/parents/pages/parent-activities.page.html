@@ -24,30 +24,38 @@
         </div>
 
         <!-- 4-House Bento Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            @for (house of houseLeaderboard(); track house.id; let idx = $index) {
-                <div class="p-4 bg-bg-tertiary/70 border border-border-primary rounded-2xl relative overflow-hidden transition-all hover:border-amber-500/30">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-2xl">{{ house.crest || '🛡️' }}</span>
-                        <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded"
-                              [ngClass]="idx === 0 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
-                                         idx === 1 ? 'bg-slate-400/20 text-slate-300 border border-slate-400/30' :
-                                         idx === 2 ? 'bg-amber-700/20 text-amber-600 border border-amber-700/30' :
-                                         'bg-bg-secondary text-text-muted border border-border-primary'">
-                            Rank #{{ idx + 1 }}
-                        </span>
+        @if (houseLeaderboard().length > 0) {
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                @for (house of houseLeaderboard(); track house.id; let idx = $index) {
+                    <div class="p-4 bg-bg-tertiary/70 border border-border-primary rounded-2xl relative overflow-hidden transition-all hover:border-amber-500/30">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-2xl">{{ house.crest || '🛡️' }}</span>
+                            <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded"
+                                  [ngClass]="idx === 0 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
+                                             idx === 1 ? 'bg-slate-400/20 text-slate-300 border border-slate-400/30' :
+                                             idx === 2 ? 'bg-amber-700/20 text-amber-600 border border-amber-700/30' :
+                                             'bg-bg-secondary text-text-muted border border-border-primary'">
+                                Rank #{{ idx + 1 }}
+                            </span>
+                        </div>
+                        <div class="font-black text-sm text-text-primary mb-1">{{ house.name }}</div>
+                        <div class="text-xl font-mono font-black text-amber-400 mb-2">
+                            {{ house.total_points | number }} <span class="text-[10px] text-text-muted font-normal font-sans">pts</span>
+                        </div>
+                        <!-- Accent color bar -->
+                        <div class="h-1.5 rounded-full bg-bg-secondary overflow-hidden">
+                            <div class="h-full rounded-full" [style.background-color]="house.color || '#6366F1'" [style.width.%]="85 - (idx * 15)"></div>
+                        </div>
                     </div>
-                    <div class="font-black text-sm text-text-primary mb-1">{{ house.name }}</div>
-                    <div class="text-xl font-mono font-black text-amber-400 mb-2">
-                        {{ house.total_points | number }} <span class="text-[10px] text-text-muted font-normal font-sans">pts</span>
-                    </div>
-                    <!-- Accent color bar -->
-                    <div class="h-1.5 rounded-full bg-bg-secondary overflow-hidden">
-                        <div class="h-full rounded-full" [style.background-color]="house.color || '#6366F1'" [style.width.%]="85 - (idx * 15)"></div>
-                    </div>
-                </div>
-            }
-        </div>
+                }
+            </div>
+        } @else {
+            <div class="py-8 text-center text-text-muted border border-dashed border-border-primary rounded-2xl">
+                <i class="fas fa-shield-alt text-2xl opacity-30 mb-2 block"></i>
+                <p class="font-bold text-xs">No House Cup standings active</p>
+                <p class="text-[11px] text-text-muted mt-0.5">Points will display here once the house championship is launched by the school.</p>
+            </div>
+        }
     </div>
 
     @for (student of state.profile()?.students || []; track student.id) {
