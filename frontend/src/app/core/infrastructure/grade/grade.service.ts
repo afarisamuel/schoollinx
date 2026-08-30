@@ -28,12 +28,24 @@ export class GradeService {
         return this.http.get<GradeWeight[]>(`${this.apiUrl}/weights/${classId}`);
     }
 
+    getGeneralWeights(): Observable<GradeWeight[]> {
+        return this.http.get<GradeWeight[]>(`${this.apiUrl}/weights/general`);
+    }
+
     upsertGradeWeight(weight: GradeWeight): Observable<GradeWeight> {
         return this.http.post<GradeWeight>(`${this.apiUrl}/weights`, weight);
     }
 
     updateClassWeights(classId: string, weights: GradeWeight[]): Observable<any> {
         return this.http.put(`${this.apiUrl}/weights/${classId}`, weights);
+    }
+
+    updateGeneralWeights(weights: GradeWeight[]): Observable<any> {
+        return this.http.put(`${this.apiUrl}/weights/general`, weights);
+    }
+
+    resetClassWeights(classId: string): Observable<any> {
+        return this.http.delete(`${this.apiUrl}/weights/${classId}`);
     }
 
     getGrade(id: string): Observable<Grade> {

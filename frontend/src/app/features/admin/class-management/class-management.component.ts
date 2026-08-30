@@ -38,6 +38,8 @@ export class ClassManagementComponent implements OnInit {
 
   // Grading Columns & Weights State (Admin Controlled)
   isGradingModalOpen = signal(false);
+  isGeneralGrading = signal(false);
+  isInheritedFromGeneral = signal(false);
   gradingClass = signal<Class | null>(null);
   gradingColumns = signal<{ id?: string; category: string; weight: number }[]>([]);
   isSavingWeights = signal(false);
@@ -194,9 +196,11 @@ export class ClassManagementComponent implements OnInit {
   }
 
   // ── Grading Columns Management (Admin Controlled) ─────────────────
-  openGradingColumnsModal(cls: Class) {
-    this.gradingClass.set(cls);
-    this.gradeService.getGradeWeights(cls.id).subscribe({
+  openGeneralGradingModal() {
+    this.isGeneralGrading.set(true);
+    this.gradingClass.set(null);
+    this.isInheritedFromGeneral.set(false);
+    this.gradeService.getGeneralWeights().subscribe({
       next: (weights) => {
         if (weights && weights.length > 0) {
           this.gradingColumns.set(weights.map(w => ({
@@ -216,9 +220,65 @@ export class ClassManagementComponent implements OnInit {
     });
   }
 
+  openGradingColumnsModal(cls: Class) {
+    this.isGeneralGrading.set(false);
+    this.gradingClass.set(cls);
+    this.gradeService.getGradeWeights(cls.id).subscribe({
+      next: (weights) => {
+        if (weights && weights.length > 0) {
+          const hasCustom = weights.some(w => w.class_id === cls.id);
+          this.isInheritedFromGeneral.set(!hasCustom);
+          this.gradingColumns.set(weights.map(w => ({
+            id: w.id,
+            category: w.category,
+            weight: w.weight > 1 ? Math.round(w.weight) : Math.round(w.weight * 100)
+          })));
+        } else {
+          this.isInheritedFromGeneral.set(true);
+          this.applyGradingPreset('standard');
+        }
+        this.isGradingModalOpen.set(true);
+      },
+      error: () => {
+        this.isInheritedFromGeneral.set(true);
+        this.applyGradingPreset('standard');
+        this.isGradingModalOpen.set(true);
+      }
+    });
+  }
+
+  resetClassToGeneralDefault() {
+    const cls = this.gradingClass();
+    if (!cls) return;
+
+    this.dialog.confirm(
+      `Are you sure you want to reset ${cls.name} to the General School Default? Any custom column settings for this class will be removed.`,
+      'Reset to Default',
+      'warning',
+      'Reset to General'
+    ).subscribe((confirmed) => {
+      if (confirmed) {
+        this.isSavingWeights.set(true);
+        this.gradeService.resetClassWeights(cls.id).subscribe({
+          next: () => {
+            this.isSavingWeights.set(false);
+            this.openGradingColumnsModal(cls);
+            this.dialog.alert(`${cls.name} has been reset to the General School Default grading configuration.`, 'Success', 'success');
+          },
+          error: (err) => {
+            this.isSavingWeights.set(false);
+            this.dialog.alert(err.error?.error || 'Failed to reset class grading columns.', 'Error', 'danger');
+          }
+        });
+      }
+    });
+  }
+
   closeGradingModal() {
     this.isGradingModalOpen.set(false);
     this.gradingClass.set(null);
+    this.isGeneralGrading.set(false);
+    this.isInheritedFromGeneral.set(false);
   }
 
   addGradingColumn() {
@@ -257,8 +317,9 @@ export class ClassManagementComponent implements OnInit {
   }
 
   saveGradingColumns() {
+    const isGeneral = this.isGeneralGrading();
     const cls = this.gradingClass();
-    if (!cls) return;
+    if (!isGeneral && !cls) return;
 
     const cols = this.gradingColumns();
     if (cols.length === 0) {
@@ -283,22 +344,50 @@ export class ClassManagementComponent implements OnInit {
     }
 
     this.isSavingWeights.set(true);
-    const payload = cols.map(c => ({
-      class_id: cls.id,
-      category: c.category.trim(),
-      weight: c.weight // percentage integer e.g. 30
-    }));
 
-    this.gradeService.updateClassWeights(cls.id, payload).subscribe({
-      next: () => {
-        this.isSavingWeights.set(false);
-        this.closeGradingModal();
-        this.dialog.alert(`Grading columns and percentage weights for ${cls.name} saved successfully! Teachers will now automatically use these columns in the Speed Gradebook.`, 'Success', 'success');
-      },
-      error: (err) => {
-        this.isSavingWeights.set(false);
-        this.dialog.alert(err.error?.error || 'Failed to save grading columns.', 'Error', 'danger');
-      }
-    });
+    if (isGeneral) {
+      const payload = cols.map(c => ({
+        category: c.category.trim(),
+        weight: c.weight // percentage e.g. 30
+      }));
+
+      this.gradeService.updateGeneralWeights(payload).subscribe({
+        next: () => {
+          this.isSavingWeights.set(false);
+          this.closeGradingModal();
+          this.dialog.alert(
+            'General school grading columns and weights saved successfully! All classes without custom columns will automatically use this configuration in the Speed Gradebook.',
+            'Success',
+            'success'
+          );
+        },
+        error: (err) => {
+          this.isSavingWeights.set(false);
+          this.dialog.alert(err.error?.error || 'Failed to save general grading columns.', 'Error', 'danger');
+        }
+      });
+    } else if (cls) {
+      const payload = cols.map(c => ({
+        class_id: cls.id,
+        category: c.category.trim(),
+        weight: c.weight // percentage e.g. 30
+      }));
+
+      this.gradeService.updateClassWeights(cls.id, payload).subscribe({
+        next: () => {
+          this.isSavingWeights.set(false);
+          this.closeGradingModal();
+          this.dialog.alert(
+            `Custom grading columns and percentage weights for ${cls.name} saved successfully! Teachers will now use these specific columns.`,
+            'Success',
+            'success'
+          );
+        },
+        error: (err) => {
+          this.isSavingWeights.set(false);
+          this.dialog.alert(err.error?.error || 'Failed to save grading columns.', 'Error', 'danger');
+        }
+      });
+    }
   }
 }

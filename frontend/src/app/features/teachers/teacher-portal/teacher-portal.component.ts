@@ -72,6 +72,7 @@ export class TeacherPortalComponent implements OnInit {
     // UI Helpers
     columnCount = signal(3);
     isColumnsAdminConfigured = signal(false);
+    isClassSpecificWeights = signal(false);
     cumulativeThreshold = computed(() => {
         const cols = this.gradeColumns();
         const total = cols.reduce((sum, c) => sum + (c.weight > 1 ? c.weight : c.weight * 100), 0);
@@ -329,6 +330,8 @@ export class TeacherPortalComponent implements OnInit {
             next: (weights) => {
                 if (weights && weights.length > 0) {
                     this.isColumnsAdminConfigured.set(true);
+                    const isCustom = weights.some(w => w.class_id === classId);
+                    this.isClassSpecificWeights.set(isCustom);
                     this.columnCount.set(weights.length);
                     const cols = weights.map(w => ({
                         name: w.category,
@@ -343,11 +346,13 @@ export class TeacherPortalComponent implements OnInit {
                     this.runCalculations();
                 } else {
                     this.isColumnsAdminConfigured.set(false);
+                    this.isClassSpecificWeights.set(false);
                     this.setupGrid(3);
                 }
             },
             error: () => {
                 this.isColumnsAdminConfigured.set(false);
+                this.isClassSpecificWeights.set(false);
                 this.setupGrid(3);
             }
         });

@@ -45,10 +45,11 @@ func (g *Grade) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 // GradeWeight defines the contribution of each category to the final weighted GPA.
+// When ClassID is nil, it represents the School-Wide General Default weights for all classes.
 type GradeWeight struct {
 	TenantBase
 	ID       uuid.UUID     `json:"id" gorm:"type:uuid;primaryKey"`
-	ClassID  uuid.UUID     `json:"class_id" gorm:"type:uuid;index;not null"`
+	ClassID  *uuid.UUID    `json:"class_id" gorm:"type:uuid;index"`
 	Category GradeCategory `json:"category" gorm:"type:varchar(100);not null"`
 	Weight   float32       `json:"weight" gorm:"not null"` // Percentage (e.g. 30 for 30%) or decimal (0.3)
 }
@@ -99,8 +100,10 @@ type GradeRepository interface {
 
 	// Phase 18 additions
 	GetWeightsByClassID(ctx context.Context, classID uuid.UUID) ([]GradeWeight, error)
+	GetGeneralWeights(ctx context.Context) ([]GradeWeight, error)
 	UpsertWeight(ctx context.Context, w *GradeWeight) error
-	ReplaceWeights(ctx context.Context, classID uuid.UUID, weights []GradeWeight) error
+	ReplaceWeights(ctx context.Context, classID *uuid.UUID, weights []GradeWeight) error
+	DeleteWeightsByClassID(ctx context.Context, classID uuid.UUID) error
 	GetWeightedGPA(ctx context.Context, classID uuid.UUID) ([]GradeWeightedGPA, error)
 	CurveGrades(ctx context.Context, classID uuid.UUID, term string, method string, factor float64) error
 	LogChange(ctx context.Context, log *GradeLog) error
@@ -132,7 +135,9 @@ type GradeUseCase interface {
 	DeleteGrade(ctx context.Context, id uuid.UUID) error
 	BulkCreateGrades(ctx context.Context, grades []Grade) (int, []string, error)
 	GetWeightsByClassID(ctx context.Context, classID uuid.UUID) ([]GradeWeight, error)
+	GetGeneralWeights(ctx context.Context) ([]GradeWeight, error)
 	UpsertWeight(ctx context.Context, w *GradeWeight) error
-	UpdateWeights(ctx context.Context, classID uuid.UUID, weights []GradeWeight) error
+	UpdateWeights(ctx context.Context, classID *uuid.UUID, weights []GradeWeight) error
+	DeleteWeightsByClassID(ctx context.Context, classID uuid.UUID) error
 	GetStudentGradeTrajectory(ctx context.Context, studentID uuid.UUID) ([]GradeTrajectoryPoint, error)
 }

@@ -24,13 +24,25 @@
       <p class="text-sm text-text-muted mt-2 font-medium">Organize academic classes and assign form tutors</p>
     </div>
 
-    <button
-      (click)="openCreateModal()"
-      class="relative z-10 inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-black uppercase tracking-widest bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white shadow-lg shadow-amber-500/30 hover:-translate-y-0.5 transition-all duration-200 border border-white/10"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-      New Class
-    </button>
+    <div class="flex items-center gap-3 relative z-10">
+      <button
+        (click)="openGeneralGradingModal()"
+        class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black bg-bg-secondary/70 hover:bg-bg-secondary border border-border-primary hover:border-emerald-500/40 text-text-primary shadow-sm hover:-translate-y-0.5 transition-all cursor-pointer"
+        title="Configure general school grading columns applied to all classes without custom setup"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-emerald-400"><path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/></svg>
+        <span>General Grading Columns</span>
+        <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/25 text-[9px] font-black text-emerald-400 uppercase tracking-wider">Default</span>
+      </button>
+
+      <button
+        (click)="openCreateModal()"
+        class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-black uppercase tracking-widest bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white shadow-lg shadow-amber-500/30 hover:-translate-y-0.5 transition-all duration-200 border border-white/10 cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        New Class
+      </button>
+    </div>
   </div>
 
   <!-- ── Stats Row ───────────────────────────────────── -->
@@ -401,7 +413,7 @@
 }
 
 <!-- ── Grading Columns Modal (Admin Configured) ─────── -->
-@if (isGradingModalOpen() && gradingClass()) {
+@if (isGradingModalOpen()) {
 <div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-fade-in">
   <div class="absolute inset-0 bg-black/60 backdrop-blur-md" (click)="closeGradingModal()"></div>
 
@@ -412,8 +424,16 @@
     <!-- Header -->
     <div class="relative px-8 pt-7 pb-6 border-b border-border-primary/50 flex justify-between items-start">
       <div>
-        <h2 class="text-xl font-black text-text-primary">Grading Columns & Weights</h2>
-        <p class="text-xs text-text-muted mt-1 font-medium">Configure speed gradebook columns for <span class="text-emerald-400 font-bold">{{ gradingClass()?.name }}</span></p>
+        @if (isGeneralGrading()) {
+          <div class="flex items-center gap-2">
+            <h2 class="text-xl font-black text-text-primary">General School Grading Columns</h2>
+            <span class="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-[10px] font-black text-emerald-400 uppercase tracking-widest">School Default</span>
+          </div>
+          <p class="text-xs text-text-muted mt-1 font-medium">Applied automatically to <span class="text-emerald-400 font-bold">all classes</span> that do not have custom columns setup</p>
+        } @else {
+          <h2 class="text-xl font-black text-text-primary">Grading Columns & Weights</h2>
+          <p class="text-xs text-text-muted mt-1 font-medium">Configure speed gradebook columns for <span class="text-emerald-400 font-bold">{{ gradingClass()?.name }}</span></p>
+        }
       </div>
       <button (click)="closeGradingModal()" class="w-9 h-9 rounded-2xl bg-bg-tertiary border border-border-primary text-text-muted hover:text-text-primary flex items-center justify-center transition-all cursor-pointer">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -421,6 +441,29 @@
     </div>
 
     <div class="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+      <!-- Status Notice for Class-Specific Modal -->
+      @if (!isGeneralGrading()) {
+        @if (isInheritedFromGeneral()) {
+          <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-start gap-3 text-xs text-amber-300">
+            <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div>
+              <p class="font-bold">Currently using General School Default</p>
+              <p class="text-[11px] text-amber-300/80 mt-0.5">Saving changes will create a customized grading configuration specifically for {{ gradingClass()?.name }}.</p>
+            </div>
+          </div>
+        } @else {
+          <div class="flex items-center justify-between p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-xs">
+            <span class="font-bold text-indigo-300 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-indigo-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+              Class-Specific Setup Active
+            </span>
+            <button type="button" (click)="resetClassToGeneralDefault()" class="text-[11px] font-bold text-rose-400 hover:text-rose-300 underline cursor-pointer">
+              Reset to General Default
+            </button>
+          </div>
+        }
+      }
+
       <!-- Quick Presets -->
       <div>
         <label class="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2 block">Quick Presets</label>
@@ -493,7 +536,7 @@
           <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
           Saving...
         } @else {
-          Save Grading Columns
+          {{ isGeneralGrading() ? 'Save as General School Default' : 'Save for ' + (gradingClass()?.name || 'Class') }}
         }
       </button>
     </div>

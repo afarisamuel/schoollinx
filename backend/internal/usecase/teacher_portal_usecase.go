@@ -136,7 +136,7 @@ func (u *teacherPortalUseCase) GetClassWeights(ctx context.Context, classID uuid
 }
 
 func (u *teacherPortalUseCase) UpdateClassWeights(ctx context.Context, classID uuid.UUID, weights []domain.GradeWeight) error {
-	return u.gradeRepo.ReplaceWeights(ctx, classID, weights)
+	return u.gradeRepo.ReplaceWeights(ctx, &classID, weights)
 }
 
 func (u *teacherPortalUseCase) GetClassGPA(ctx context.Context, classID uuid.UUID) ([]domain.GradeWeightedGPA, error) {

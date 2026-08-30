@@ -17,9 +17,9 @@ export interface Grade {
 
 export interface GradeWeight {
     id?: string;
-    class_id: string;
+    class_id?: string;
     category: GradeCategory;
-    weight: number; // e.g. 0.3 for 30%
+    weight: number; // percentage e.g. 30
 }
 
 export interface GradeTrajectoryPoint {

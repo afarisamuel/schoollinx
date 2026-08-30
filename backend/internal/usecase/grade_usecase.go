@@ -52,12 +52,20 @@ func (u *gradeUseCase) GetWeightsByClassID(ctx context.Context, classID uuid.UUI
 	return u.gradeRepo.GetWeightsByClassID(ctx, classID)
 }
 
+func (u *gradeUseCase) GetGeneralWeights(ctx context.Context) ([]domain.GradeWeight, error) {
+	return u.gradeRepo.GetGeneralWeights(ctx)
+}
+
 func (u *gradeUseCase) UpsertWeight(ctx context.Context, w *domain.GradeWeight) error {
 	return u.gradeRepo.UpsertWeight(ctx, w)
 }
 
-func (u *gradeUseCase) UpdateWeights(ctx context.Context, classID uuid.UUID, weights []domain.GradeWeight) error {
+func (u *gradeUseCase) UpdateWeights(ctx context.Context, classID *uuid.UUID, weights []domain.GradeWeight) error {
 	return u.gradeRepo.ReplaceWeights(ctx, classID, weights)
+}
+
+func (u *gradeUseCase) DeleteWeightsByClassID(ctx context.Context, classID uuid.UUID) error {
+	return u.gradeRepo.DeleteWeightsByClassID(ctx, classID)
 }
 
 func (u *gradeUseCase) GetStudentGradeTrajectory(ctx context.Context, studentID uuid.UUID) ([]domain.GradeTrajectoryPoint, error) {

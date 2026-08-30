@@ -21,9 +21,12 @@ func NewGradeHandler(r *gin.RouterGroup, useCase domain.GradeUseCase) {
 		g.GET("/student/:student_id", h.GetStudentGrades)
 		g.GET("/student/:student_id/trajectory", h.GetStudentTrajectory)
 		g.GET("/class/:class_id", h.GetClassGrades)
+		g.GET("/weights/general", h.GetGeneralWeights)
+		g.PUT("/weights/general", h.UpdateGeneralWeights)
 		g.GET("/weights/:class_id", h.GetClassWeights)
 		g.POST("/weights", h.UpsertWeight)
 		g.PUT("/weights/:class_id", h.UpdateClassWeights)
+		g.DELETE("/weights/:class_id", h.DeleteClassWeights)
 		g.PUT("/:id", h.UpdateGrade)
 		g.DELETE("/:id", h.DeleteGrade)
 		g.POST("/bulk", h.BulkCreate)
@@ -237,7 +240,13 @@ func (h *GradeHandler) BulkCreate(c *gin.Context) {
 // @Failure      500       {object}  map[string]string
 // @Router       /grades/weights/{class_id} [get]
 func (h *GradeHandler) GetClassWeights(c *gin.Context) {
-	classID, err := uuid.Parse(c.Param("class_id"))
+	param := c.Param("class_id")
+	if param == "general" || param == "default" {
+		h.GetGeneralWeights(c)
+		return
+	}
+
+	classID, err := uuid.Parse(param)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid class ID format"})
 		return
@@ -250,6 +259,50 @@ func (h *GradeHandler) GetClassWeights(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, weights)
+}
+
+// GetGeneralWeights godoc
+// @Summary      Get general/school-wide default grading weights
+// @Description  Retrieves the default assessment columns and percentage weights for all classes
+// @Tags         Grades
+// @Accept       json
+// @Produce      json
+// @Success      200   {object}  []domain.GradeWeight
+// @Failure      500   {object}  map[string]string
+// @Router       /grades/weights/general [get]
+func (h *GradeHandler) GetGeneralWeights(c *gin.Context) {
+	weights, err := h.gradeUseCase.GetGeneralWeights(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, weights)
+}
+
+// UpdateGeneralWeights godoc
+// @Summary      Update general/school-wide default grading weights
+// @Description  Sets the default assessment columns and percentage weights for all classes that don't have custom ones
+// @Tags         Grades
+// @Accept       json
+// @Produce      json
+// @Param        body  body      []domain.GradeWeight  true  "Weights payload"
+// @Success      200   {object}  map[string]string
+// @Failure      400   {object}  map[string]string
+// @Failure      500   {object}  map[string]string
+// @Router       /grades/weights/general [put]
+func (h *GradeHandler) UpdateGeneralWeights(c *gin.Context) {
+	var weights []domain.GradeWeight
+	if err := c.ShouldBindJSON(&weights); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.gradeUseCase.UpdateWeights(c.Request.Context(), nil, weights); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "General school grading columns updated successfully"})
 }
 
 // UpsertWeight godoc
@@ -292,7 +345,13 @@ func (h *GradeHandler) UpsertWeight(c *gin.Context) {
 // @Failure      500       {object}  map[string]string
 // @Router       /grades/weights/{class_id} [put]
 func (h *GradeHandler) UpdateClassWeights(c *gin.Context) {
-	classID, err := uuid.Parse(c.Param("class_id"))
+	param := c.Param("class_id")
+	if param == "general" || param == "default" {
+		h.UpdateGeneralWeights(c)
+		return
+	}
+
+	classID, err := uuid.Parse(param)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid class ID format"})
 		return
@@ -304,10 +363,46 @@ func (h *GradeHandler) UpdateClassWeights(c *gin.Context) {
 		return
 	}
 
-	if err := h.gradeUseCase.UpdateWeights(c.Request.Context(), classID, weights); err != nil {
+	if err := h.gradeUseCase.UpdateWeights(c.Request.Context(), &classID, weights); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Class grading columns and weights updated successfully"})
+}
+
+// DeleteClassWeights godoc
+// @Summary      Reset class grading columns to general school defaults
+// @Description  Deletes class-specific grading weights, reverting the class to general defaults
+// @Tags         Grades
+// @Accept       json
+// @Produce      json
+// @Param        class_id  path      string  true  "Class ID"
+// @Success      200       {object}  map[string]string
+// @Failure      400       {object}  map[string]string
+// @Failure      500       {object}  map[string]string
+// @Router       /grades/weights/{class_id} [delete]
+func (h *GradeHandler) DeleteClassWeights(c *gin.Context) {
+	param := c.Param("class_id")
+	if param == "general" || param == "default" {
+		if err := h.gradeUseCase.DeleteWeightsByClassID(c.Request.Context(), uuid.Nil); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "General school grading columns reset successfully"})
+		return
+	}
+
+	classID, err := uuid.Parse(param)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid class ID format"})
+		return
+	}
+
+	if err := h.gradeUseCase.DeleteWeightsByClassID(c.Request.Context(), classID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Class grading columns reset to general school defaults"})
 }

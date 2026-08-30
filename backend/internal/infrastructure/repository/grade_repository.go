@@ -62,30 +62,71 @@ func (r *gradeRepository) Delete(ctx context.Context, id uuid.UUID) error {
 
 func (r *gradeRepository) GetWeightsByClassID(ctx context.Context, classID uuid.UUID) ([]domain.GradeWeight, error) {
 	var weights []domain.GradeWeight
-	err := r.db.WithContext(ctx).Where("class_id = ?", classID).Find(&weights).Error
+	if classID != uuid.Nil {
+		err := r.db.WithContext(ctx).Where("class_id = ?", classID).Find(&weights).Error
+		if err == nil && len(weights) > 0 {
+			return weights, nil
+		}
+	}
+
+	// Fallback to General / School-Wide Default weights (class_id IS NULL or class_id = '00000000-0000-0000-0000-000000000000')
+	err := r.db.WithContext(ctx).Where("class_id IS NULL OR class_id = ?", uuid.Nil).Find(&weights).Error
+	return weights, err
+}
+
+func (r *gradeRepository) GetGeneralWeights(ctx context.Context) ([]domain.GradeWeight, error) {
+	var weights []domain.GradeWeight
+	err := r.db.WithContext(ctx).Where("class_id IS NULL OR class_id = ?", uuid.Nil).Find(&weights).Error
 	return weights, err
 }
 
 func (r *gradeRepository) UpsertWeight(ctx context.Context, w *domain.GradeWeight) error {
+	if w.ClassID == nil || *w.ClassID == uuid.Nil {
+		return r.db.WithContext(ctx).
+			Where("(class_id IS NULL OR class_id = ?) AND category = ?", uuid.Nil, w.Category).
+			Assign(domain.GradeWeight{Weight: w.Weight}).
+			FirstOrCreate(w).Error
+	}
 	return r.db.WithContext(ctx).
-		Where("class_id = ? AND category = ?", w.ClassID, w.Category).
+		Where("class_id = ? AND category = ?", *w.ClassID, w.Category).
 		Assign(domain.GradeWeight{Weight: w.Weight}).
 		FirstOrCreate(w).Error
 }
 
-func (r *gradeRepository) ReplaceWeights(ctx context.Context, classID uuid.UUID, weights []domain.GradeWeight) error {
+func (r *gradeRepository) ReplaceWeights(ctx context.Context, classID *uuid.UUID, weights []domain.GradeWeight) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("class_id = ?", classID).Delete(&domain.GradeWeight{}).Error; err != nil {
-			return err
-		}
-		for i := range weights {
-			weights[i].ClassID = classID
-			if err := tx.Create(&weights[i]).Error; err != nil {
+		if classID == nil || *classID == uuid.Nil {
+			// Replacing General School Default weights
+			if err := tx.Where("class_id IS NULL OR class_id = ?", uuid.Nil).Delete(&domain.GradeWeight{}).Error; err != nil {
 				return err
+			}
+			for i := range weights {
+				weights[i].ClassID = nil
+				if err := tx.Create(&weights[i]).Error; err != nil {
+					return err
+				}
+			}
+		} else {
+			// Replacing Class-Specific weights
+			if err := tx.Where("class_id = ?", *classID).Delete(&domain.GradeWeight{}).Error; err != nil {
+				return err
+			}
+			for i := range weights {
+				weights[i].ClassID = classID
+				if err := tx.Create(&weights[i]).Error; err != nil {
+					return err
+				}
 			}
 		}
 		return nil
 	})
+}
+
+func (r *gradeRepository) DeleteWeightsByClassID(ctx context.Context, classID uuid.UUID) error {
+	if classID == uuid.Nil {
+		return r.db.WithContext(ctx).Where("class_id IS NULL OR class_id = ?", uuid.Nil).Delete(&domain.GradeWeight{}).Error
+	}
+	return r.db.WithContext(ctx).Where("class_id = ?", classID).Delete(&domain.GradeWeight{}).Error
 }
 
 // GetWeightedGPA computes a weighted GPA (0–100) per student in a class.
