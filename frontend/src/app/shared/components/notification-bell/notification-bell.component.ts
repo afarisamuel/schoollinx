@@ -4,10 +4,12 @@ import { NotificationService, Notification } from '../../../core/infrastructure/
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 
+import { RouterModule } from '@angular/router';
+
 @Component({
     selector: 'app-notification-bell',
     standalone: true,
-    imports: [CommonModule, DatePipe],
+    imports: [CommonModule, DatePipe, RouterModule],
     templateUrl: './notification-bell.component.html',
     styleUrl: './notification-bell.component.css'
 })

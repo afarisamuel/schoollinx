@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { FiscalService, FeeStructure, InstallmentPlanTemplate, InstallmentPlanMilestoneDef } from '../../../core/infrastructure/fiscal/fiscal.service';
+import { FiscalService, FeeStructure, InstallmentPlanTemplate, InstallmentPlanMilestoneDef, BillTemplateConfig, BillSupplyItem } from '../../../core/infrastructure/fiscal/fiscal.service';
 import { AcademicPeriodService } from '../../../core/infrastructure/academic-period/academic-period.service';
 import { AcademicPeriod } from '../../../core/domain/academic-period.model';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
@@ -32,7 +32,26 @@ export class ConfigureFeesComponent implements OnInit {
   generatingFees = signal(false);
   generatingDailyFees = signal(false);
 
-  activeTab = signal<'term' | 'daily' | 'installments'>('term');
+  activeTab = signal<'term' | 'daily' | 'installments' | 'bill_template'>('term');
+
+  // Bill Template Customization State
+  billConfig = signal<BillTemplateConfig>({
+    title: 'PUPIL BILL FOR TERM',
+    subtitle: 'Official School Billing & Academic Expense Statement',
+    footer_notes: 'Toiletries, stationery, and books must be presented on the first day of resumption.\nAll fee payments must be made using your child\'s student ID via official school payment channels.\nSTRICTLY NO PHYSICAL CASH PAYMENT TO SCHOOL STAFF.\nPayment can be made in advance to enhance flexible installments.',
+    show_supplies_table: true,
+    supplies_title: 'REQUIRED BOOKS & MATERIALS TO BE BROUGHT / PURCHASED',
+    required_items: [
+      { category: 'BOOKS', description: 'Core Mathematics Course Book', quantity: '1 copy', note: 'Compulsory for all terms' },
+      { category: 'BOOKS', description: 'English Language & Grammar Workbook', quantity: '1 copy', note: 'Compulsory' },
+      { category: 'STATIONERY', description: 'Ruled Exercise Books (Pack of 10)', quantity: '1 pack', note: 'Available at school store' },
+      { category: 'TOILETRIES', description: 'Antiseptic Liquid / Disinfectant (250ml)', quantity: '2 bottles', note: 'Hand to Housemaster' },
+      { category: 'TOILETRIES', description: 'Washing Powder (1kg)', quantity: '1 pack', note: 'Term requirement' },
+      { category: 'TOILETRIES', description: 'Toilet Paper Rolls', quantity: '3 rolls', note: 'Standard pack' }
+    ]
+  });
+  savingBillConfig = signal(false);
+  newSupplyItem: BillSupplyItem = { category: 'BOOKS', description: '', quantity: '1', note: '' };
 
   // Installment Plan Configuration State
   installmentPlan = signal<InstallmentPlanTemplate>({
@@ -90,6 +109,7 @@ export class ConfigureFeesComponent implements OnInit {
   ngOnInit() {
     this.loadActivePeriod();
     this.loadInstallmentSettings();
+    this.loadBillConfig();
   }
 
   loadActivePeriod() {
@@ -343,5 +363,50 @@ export class ConfigureFeesComponent implements OnInit {
         this.toast.error(err?.error?.error || 'Failed to save installment milestone policy.', 'Error');
       }
     });
+  }
+
+  loadBillConfig() {
+    this.fiscalService.getBillConfig().subscribe({
+      next: (cfg) => {
+        if (cfg) {
+          if (!cfg.required_items) cfg.required_items = [];
+          this.billConfig.set(cfg);
+        }
+      },
+      error: () => console.warn('Using default bill configuration')
+    });
+  }
+
+  onSaveBillConfig() {
+    this.savingBillConfig.set(true);
+    this.fiscalService.saveBillConfig(this.billConfig()).subscribe({
+      next: (saved) => {
+        this.savingBillConfig.set(false);
+        this.billConfig.set(saved);
+        this.toast.success('Bill template & supplies list updated successfully');
+      },
+      error: (err) => {
+        this.savingBillConfig.set(false);
+        this.toast.error('Failed to save bill template: ' + (err.error?.error || err.message));
+      }
+    });
+  }
+
+  addSupplyItem() {
+    if (!this.newSupplyItem.description.trim()) {
+      this.toast.error('Please enter an item description');
+      return;
+    }
+    const current = this.billConfig();
+    const updatedItems = [...(current.required_items || []), { ...this.newSupplyItem }];
+    this.billConfig.set({ ...current, required_items: updatedItems });
+    this.newSupplyItem = { category: 'BOOKS', description: '', quantity: '1', note: '' };
+    this.toast.success('Item added to supplies table. Click Save to persist changes.');
+  }
+
+  removeSupplyItem(index: number) {
+    const current = this.billConfig();
+    const updatedItems = (current.required_items || []).filter((_, i) => i !== index);
+    this.billConfig.set({ ...current, required_items: updatedItems });
   }
 }

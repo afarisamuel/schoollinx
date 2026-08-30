@@ -312,6 +312,34 @@ export class FiscalService {
     saveInstallmentSettings(settings: Partial<InstallmentPlanTemplate>): Observable<InstallmentPlanTemplate> {
         return this.http.post<InstallmentPlanTemplate>(`${this.apiUrl}/installment-settings`, settings);
     }
+
+    // Bill Template Customization & Supplies
+    getBillConfig(): Observable<BillTemplateConfig> {
+        return this.http.get<BillTemplateConfig>(`${this.apiUrl}/bill-config`);
+    }
+
+    saveBillConfig(config: Partial<BillTemplateConfig>): Observable<BillTemplateConfig> {
+        return this.http.post<BillTemplateConfig>(`${this.apiUrl}/bill-config`, config);
+    }
+}
+
+export interface BillSupplyItem {
+    category: string;
+    description: string;
+    quantity: string;
+    note: string;
+}
+
+export interface BillTemplateConfig {
+    id?: string;
+    title: string;
+    subtitle?: string;
+    footer_notes: string;
+    bank_details?: string;
+    payment_instructions?: string;
+    show_supplies_table: boolean;
+    supplies_title: string;
+    required_items: BillSupplyItem[];
 }
 
 export interface InstallmentPlanMilestoneDef {
@@ -342,3 +370,4 @@ export interface DailyBill {
     collected_by?: string;
     collected_at?: string;
 }
+

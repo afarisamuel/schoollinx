@@ -340,4 +340,46 @@ func (r *fiscalRepository) SaveInstallmentPlanTemplate(ctx context.Context, temp
 	return r.db.WithContext(ctx).Create(template).Error
 }
 
+func (r *fiscalRepository) GetBillTemplateConfig(ctx context.Context) (*domain.BillTemplateConfig, error) {
+	var config domain.BillTemplateConfig
+	err := r.db.WithContext(ctx).Order("updated_at DESC").First(&config).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Return intelligent default template config
+			defaultCfg := &domain.BillTemplateConfig{
+				Title:             "PUPIL BILL FOR TERM",
+				Subtitle:          "Official School Billing & Academic Expense Statement",
+				FooterNotes:       "Toiletries, stationery, and books must be presented on the first day of resumption.\n\nAll fee payments must be made using your child's student ID via official school payment channels.\n\nSTRICTLY NO PHYSICAL CASH PAYMENT TO SCHOOL STAFF.\n\nPayment can be made in advance to enhance flexible installments.",
+				ShowSuppliesTable: true,
+				SuppliesTitle:     "REQUIRED BOOKS & MATERIALS TO BE BROUGHT / PURCHASED",
+				RequiredItems: []domain.BillSupplyItem{
+					{Category: "BOOKS", Description: "Core Mathematics Course Book", Quantity: "1 copy", Note: "Compulsory for all terms"},
+					{Category: "BOOKS", Description: "English Language & Grammar Workbook", Quantity: "1 copy", Note: "Compulsory"},
+					{Category: "STATIONERY", Description: "Ruled Exercise Books (Pack of 10)", Quantity: "1 pack", Note: "Available at school store"},
+					{Category: "TOILETRIES", Description: "Antiseptic Liquid / Disinfectant (250ml)", Quantity: "2 bottles", Note: "To be handed to Housemaster"},
+					{Category: "TOILETRIES", Description: "Washing Powder (1kg)", Quantity: "1 pack", Note: "Term requirement"},
+					{Category: "TOILETRIES", Description: "Toilet Paper Rolls", Quantity: "3 rolls", Note: "Standard pack"},
+				},
+			}
+			return defaultCfg, nil
+		}
+		return nil, err
+	}
+	return &config, nil
+}
+
+func (r *fiscalRepository) SaveBillTemplateConfig(ctx context.Context, config *domain.BillTemplateConfig) error {
+	var existing domain.BillTemplateConfig
+	err := r.db.WithContext(ctx).First(&existing).Error
+	if err == nil {
+		config.ID = existing.ID
+		return r.db.WithContext(ctx).Save(config).Error
+	}
+	if config.ID == uuid.Nil {
+		config.ID = uuid.New()
+	}
+	return r.db.WithContext(ctx).Create(config).Error
+}
+
+
 

@@ -181,6 +181,8 @@ type FiscalRepository interface {
 	UpdateInstallmentMilestone(ctx context.Context, id uuid.UUID, amountPaid float64, status string) error
 	GetInstallmentPlanTemplate(ctx context.Context) (*InstallmentPlanTemplate, error)
 	SaveInstallmentPlanTemplate(ctx context.Context, template *InstallmentPlanTemplate) error
+	GetBillTemplateConfig(ctx context.Context) (*BillTemplateConfig, error)
+	SaveBillTemplateConfig(ctx context.Context, config *BillTemplateConfig) error
 }
 
 type FinancialRecommendation struct {
@@ -252,6 +254,10 @@ type FiscalUseCase interface {
 	GetExchangeRates(ctx context.Context) (map[string]float64, error)
 	GetInstallmentPlanTemplate(ctx context.Context) (*InstallmentPlanTemplate, error)
 	SaveInstallmentPlanTemplate(ctx context.Context, template *InstallmentPlanTemplate) (*InstallmentPlanTemplate, error)
+
+	// Bill Customization & Supplies Template
+	GetBillTemplateConfig(ctx context.Context) (*BillTemplateConfig, error)
+	SaveBillTemplateConfig(ctx context.Context, config *BillTemplateConfig) (*BillTemplateConfig, error)
 }
 
 // Donation represents a financial contribution from an Alumni or external sponsor
@@ -491,5 +497,37 @@ type InstallmentPlanMilestoneDef struct {
 	Percentage  float64 `json:"percentage"`  // e.g. 40.0
 	DueTrigger  string  `json:"due_trigger"` // e.g. "Term Registration"
 }
+
+// BillTemplateConfig allows administrators to configure the pupil/class bill design,
+// custom footer instructions/policies, and the required supplies/books table.
+type BillTemplateConfig struct {
+	TenantBase
+	ID                  uuid.UUID        `json:"id" gorm:"type:uuid;primaryKey"`
+	Title               string           `json:"title" gorm:"type:varchar(120);default:'PUPIL BILL FOR TERM'"`
+	Subtitle            string           `json:"subtitle" gorm:"type:varchar(255)"`
+	FooterNotes         string           `json:"footer_notes" gorm:"type:text"`
+	BankDetails         string           `json:"bank_details" gorm:"type:text"`
+	PaymentInstructions string           `json:"payment_instructions" gorm:"type:text"`
+	ShowSuppliesTable   bool             `json:"show_supplies_table" gorm:"default:true"`
+	SuppliesTitle       string           `json:"supplies_title" gorm:"type:varchar(120);default:'REQUIRED BOOKS & MATERIALS TO BE BROUGHT / PURCHASED'"`
+	RequiredItems       []BillSupplyItem `json:"required_items" gorm:"serializer:json"`
+	CreatedAt           time.Time        `json:"created_at"`
+	UpdatedAt           time.Time        `json:"updated_at"`
+}
+
+func (btc *BillTemplateConfig) BeforeCreate(tx *gorm.DB) (err error) {
+	if btc.ID == uuid.Nil {
+		btc.ID = uuid.New()
+	}
+	return
+}
+
+type BillSupplyItem struct {
+	Category    string `json:"category"`    // e.g. "BOOKS", "STATIONERY", "TOILETRIES", "UNIFORMS"
+	Description string `json:"description"` // e.g. "Core Mathematics Textbook SHS 1"
+	Quantity    string `json:"quantity"`    // e.g. "1 copy" or "2 bottles"
+	Note        string `json:"note"`        // e.g. "Compulsory" or "Available at School Bookstore"
+}
+
 
 

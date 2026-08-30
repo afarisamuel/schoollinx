@@ -375,7 +375,7 @@ func (s *PDFService) GeneratePayslip(w io.Writer, pr *domain.PayrollRecord) erro
 }
 
 // GeneratePupilBill generates a printable bill for a student
-func (s *PDFService) GeneratePupilBill(w io.Writer, tenantName string, tenant *domain.Tenant, student *domain.Student, records []domain.FiscalRecord) error {
+func (s *PDFService) GeneratePupilBill(w io.Writer, tenantName string, tenant *domain.Tenant, student *domain.Student, records []domain.FiscalRecord, config *domain.BillTemplateConfig) error {
 	pdf := gofpdf.New("P", "mm", "A4", "")
 	pdf.AddPage()
 
@@ -383,14 +383,17 @@ func (s *PDFService) GeneratePupilBill(w io.Writer, tenantName string, tenant *d
 		s.drawWatermark(pdf, tenant.LogoURL)
 	}
 
-	s.drawBillHeader(pdf, tenantName)
+	s.drawBillHeader(pdf, tenantName, tenant, config)
 	s.drawBillStudentInfo(pdf, student)
 	s.drawBillTable(pdf, records)
-	s.drawBillToiletries(pdf)
+	if config == nil || config.ShowSuppliesTable {
+		s.drawBillSuppliesTable(pdf, config)
+	}
+	s.drawBillFooter(pdf, config)
 
-	pdf.SetY(-30)
+	pdf.SetY(-15)
 	pdf.SetFont("Arial", "I", 8)
-	pdf.CellFormat(190, 10, fmt.Sprintf("Generated on %s | Academic Records Hub", time.Now().Format("2006-01-02")), "", 0, "C", false, 0, "")
+	pdf.CellFormat(190, 8, fmt.Sprintf("Generated on %s | Academic Records Hub", time.Now().Format("2006-01-02")), "", 0, "C", false, 0, "")
 
 	return pdf.Output(w)
 }
@@ -404,7 +407,7 @@ type StudentBillData struct {
 }
 
 // GenerateBulkPupilBills generates a printable multi-page bill for multiple students
-func (s *PDFService) GenerateBulkPupilBills(w io.Writer, tenantName string, tenant *domain.Tenant, bills []StudentBillData) error {
+func (s *PDFService) GenerateBulkPupilBills(w io.Writer, tenantName string, tenant *domain.Tenant, bills []StudentBillData, config *domain.BillTemplateConfig) error {
 	pdf := gofpdf.New("P", "mm", "A4", "")
 
 	for _, bill := range bills {
@@ -412,15 +415,18 @@ func (s *PDFService) GenerateBulkPupilBills(w io.Writer, tenantName string, tena
 		if tenant != nil && tenant.LogoURL != "" {
 			s.drawWatermark(pdf, tenant.LogoURL)
 		}
-		s.drawBillHeader(pdf, tenantName)
+		s.drawBillHeader(pdf, tenantName, tenant, config)
 		s.drawBillStudentInfo(pdf, bill.Student)
 		s.drawBillTable(pdf, bill.Records)
-		s.drawBillToiletries(pdf)
+		if config == nil || config.ShowSuppliesTable {
+			s.drawBillSuppliesTable(pdf, config)
+		}
+		s.drawBillFooter(pdf, config)
 
 		// Dynamic Footer
-		pdf.SetY(-30)
+		pdf.SetY(-15)
 		pdf.SetFont("Arial", "I", 8)
-		pdf.CellFormat(190, 10, fmt.Sprintf("Generated on %s | Finance Department", time.Now().Format("2006-01-02")), "", 0, "C", false, 0, "")
+		pdf.CellFormat(190, 8, fmt.Sprintf("Generated on %s | Finance Department", time.Now().Format("2006-01-02")), "", 0, "C", false, 0, "")
 	}
 
 	return pdf.Output(w)

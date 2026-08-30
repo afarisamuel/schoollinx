@@ -1,18 +1,19 @@
 import { Component, inject, signal, OnInit, PLATFORM_ID, computed } from '@angular/core';
 import { RouterOutlet, RouterLink, Router, NavigationEnd } from '@angular/router';
 import { CommonModule, isPlatformBrowser, Location } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
 import { ThemeService } from '../../../core/infrastructure/theme/theme.service';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 import { WebsocketService, AppNotification } from '../../../core/infrastructure/websocket/websocket.service';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { AiChatbotComponent } from '../../ui/ai-chatbot/ai-chatbot.component';
 import { TenantProfileService, TenantProfile, SystemAnnouncement } from '../../../core/infrastructure/tenant-profile.service';
+import { SidebarComponent } from '../sidebar/sidebar.component';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, CommonModule, AiChatbotComponent],
+  imports: [RouterOutlet, RouterLink, CommonModule, AiChatbotComponent, SidebarComponent],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.css',
 })
@@ -28,6 +29,10 @@ export class MainLayoutComponent implements OnInit {
   tenantProfile = signal<TenantProfile | null>(null);
   isBillingLocked = signal<boolean>(false);
   activeAnnouncements = signal<SystemAnnouncement[]>([]);
+
+  // Sidebar State
+  isSidebarCollapsed = signal<boolean>(false);
+  isMobileSidebarOpen = signal<boolean>(false);
 
   currentRouteTitle = signal<string>('Dashboard');
 
@@ -46,8 +51,12 @@ export class MainLayoutComponent implements OnInit {
   ngOnInit() {
     this.updateLayoutState();
 
-    // Track online/offline status
+    // Track online/offline status and restore sidebar state
     if (isPlatformBrowser(this.platformId)) {
+      const saved = localStorage.getItem('schoollinx_sidebar_collapsed');
+      if (saved !== null) {
+        this.isSidebarCollapsed.set(saved === 'true');
+      }
       this.isOnline.set(navigator.onLine);
       window.addEventListener('online', () => this.isOnline.set(true));
       window.addEventListener('offline', () => this.isOnline.set(false));
@@ -159,6 +168,24 @@ export class MainLayoutComponent implements OnInit {
     this.unreadCount.set(0);
     this.notifications.update(n => n.map(msg => ({ ...msg, read: true })));
     this.isDropdownOpen.set(false);
+  }
+
+  toggleSidebar() {
+    this.isSidebarCollapsed.update(v => {
+      const next = !v;
+      if (isPlatformBrowser(this.platformId)) {
+        localStorage.setItem('schoollinx_sidebar_collapsed', String(next));
+      }
+      return next;
+    });
+  }
+
+  toggleMobileSidebar() {
+    this.isMobileSidebarOpen.update(v => !v);
+  }
+
+  closeMobileSidebar() {
+    this.isMobileSidebarOpen.set(false);
   }
 
   goBack() {

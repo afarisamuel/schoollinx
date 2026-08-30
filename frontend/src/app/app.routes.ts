@@ -106,6 +106,11 @@ export const tenantRoutes: Routes = [
                 loadComponent: () => import('./features/attendance/biometric-hub/biometric-hub.component').then(c => c.BiometricHubComponent),
                 title: 'Biometric Command Center'
             },
+            {
+                path: 'notifications',
+                loadComponent: () => import('./features/notifications/notification-center.component').then(c => c.NotificationCenterComponent),
+                title: 'Notification Center'
+            },
             // Miscellaneous standalone routes
 
             {

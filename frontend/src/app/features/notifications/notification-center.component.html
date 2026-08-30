@@ -1,0 +1,265 @@
+<div class="min-h-screen p-6 md:p-10 max-w-[1400px] mx-auto animate-fade-in">
+
+  <!-- ── Ambient Glow ──────────────────────────────────────── -->
+  <div class="absolute -left-20 -top-10 w-72 h-72 bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+  <!-- ── Top Header ───────────────────────────────────────── -->
+  <div class="flex flex-col md:flex-row items-start md:items-end justify-between mb-8 gap-4 relative z-10">
+    <div>
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+          </svg>
+        </div>
+        <nav class="text-xs text-text-muted font-medium flex items-center gap-1.5">
+          <a routerLink="/dashboard" class="hover:text-text-primary transition-colors">Dashboard</a>
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+          <span class="text-text-primary">Notifications</span>
+        </nav>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <h1 class="text-3xl md:text-5xl font-black tracking-tighter text-text-primary">
+          Notification <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500">Center</span>
+        </h1>
+        @if (unreadCount() > 0) {
+          <span class="px-3 py-1 rounded-full bg-indigo-500 text-white font-black text-xs shadow-md shadow-indigo-500/30 animate-pulse">
+            {{ unreadCount() }} Unread
+          </span>
+        }
+      </div>
+      <p class="text-sm text-text-muted mt-2 font-medium">
+        Institutional alerts, student payment records, grade updates, and campus operations.
+      </p>
+    </div>
+
+    <!-- Live Connection Status & Global Actions -->
+    <div class="flex items-center flex-wrap gap-3">
+      <div class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-border-primary bg-bg-secondary/60 text-xs font-bold">
+        <span class="w-2 h-2 rounded-full"
+              [class.bg-emerald-400]="isConnected()"
+              [class.animate-ping]="isConnected()"
+              [class.bg-amber-400]="!isConnected()"></span>
+        <span [class.text-emerald-400]="isConnected()" [class.text-amber-400]="!isConnected()">
+          {{ isConnected() ? 'WebSocket Live' : 'Reconnecting...' }}
+        </span>
+      </div>
+
+      @if (unreadCount() > 0) {
+        <button
+          (click)="markAllAsRead()"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 transition-all cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Mark all as read
+        </button>
+      }
+
+      @if (notifications().length > 0) {
+        <button
+          (click)="clearAll()"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-all cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          Clear feed
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- ── Metrics Bar ──────────────────────────────────────── -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8 relative z-10">
+    <div (click)="activeFilter.set('ALL')"
+         class="p-4 rounded-2xl border transition-all cursor-pointer group"
+         [ngClass]="activeFilter() === 'ALL' ? 'bg-indigo-500/10 border-indigo-500/40' : 'bg-bg-secondary/40 border-border-primary/60 hover:bg-bg-tertiary/40'">
+      <span class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Total Received</span>
+      <div class="flex items-baseline justify-between">
+        <span class="text-2xl font-black text-text-primary">{{ notifications().length }}</span>
+        <span class="text-xs text-text-muted font-bold">All</span>
+      </div>
+    </div>
+
+    <div (click)="activeFilter.set('UNREAD')"
+         class="p-4 rounded-2xl border transition-all cursor-pointer group"
+         [ngClass]="activeFilter() === 'UNREAD' ? 'bg-indigo-500/15 border-indigo-500/40' : 'bg-bg-secondary/40 border-border-primary/60 hover:bg-bg-tertiary/40'">
+      <span class="text-[10px] font-black uppercase tracking-widest text-indigo-400 block mb-1">Unread Alerts</span>
+      <div class="flex items-baseline justify-between">
+        <span class="text-2xl font-black text-indigo-400">{{ unreadCount() }}</span>
+        <span class="text-xs text-indigo-400 font-bold">Pending</span>
+      </div>
+    </div>
+
+    <div (click)="activeFilter.set('PAYMENT')"
+         class="p-4 rounded-2xl border transition-all cursor-pointer group"
+         [ngClass]="activeFilter() === 'PAYMENT' ? 'bg-emerald-500/10 border-emerald-500/40' : 'bg-bg-secondary/40 border-border-primary/60 hover:bg-bg-tertiary/40'">
+      <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400 block mb-1">Fee Payments</span>
+      <div class="flex items-baseline justify-between">
+        <span class="text-2xl font-black text-emerald-400">{{ paymentCount() }}</span>
+        <span class="text-xs text-emerald-400 font-bold">Billing</span>
+      </div>
+    </div>
+
+    <div (click)="activeFilter.set('GRADE')"
+         class="p-4 rounded-2xl border transition-all cursor-pointer group"
+         [ngClass]="activeFilter() === 'GRADE' ? 'bg-purple-500/10 border-purple-500/40' : 'bg-bg-secondary/40 border-border-primary/60 hover:bg-bg-tertiary/40'">
+      <span class="text-[10px] font-black uppercase tracking-widest text-purple-400 block mb-1">Academic & Grades</span>
+      <div class="flex items-baseline justify-between">
+        <span class="text-2xl font-black text-purple-400">{{ gradeCount() }}</span>
+        <span class="text-xs text-purple-400 font-bold">Assessments</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Controls Bar: Filter Pills & Search ────────────────── -->
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 relative z-10">
+    <!-- Filter Pills -->
+    <div class="flex items-center flex-wrap gap-2 w-full sm:w-auto">
+      <button
+        (click)="activeFilter.set('ALL')"
+        class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+        [ngClass]="activeFilter() === 'ALL' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'bg-bg-secondary/60 text-text-secondary hover:text-text-primary border border-border-primary'">
+        All ({{ notifications().length }})
+      </button>
+
+      <button
+        (click)="activeFilter.set('UNREAD')"
+        class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+        [ngClass]="activeFilter() === 'UNREAD' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'bg-bg-secondary/60 text-text-secondary hover:text-text-primary border border-border-primary'">
+        Unread ({{ unreadCount() }})
+      </button>
+
+      <button
+        (click)="activeFilter.set('PAYMENT')"
+        class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+        [ngClass]="activeFilter() === 'PAYMENT' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/30' : 'bg-bg-secondary/60 text-text-secondary hover:text-text-primary border border-border-primary'">
+        <span>💳</span> Payments ({{ paymentCount() }})
+      </button>
+
+      <button
+        (click)="activeFilter.set('GRADE')"
+        class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+        [ngClass]="activeFilter() === 'GRADE' ? 'bg-purple-600 text-white shadow-md shadow-purple-500/30' : 'bg-bg-secondary/60 text-text-secondary hover:text-text-primary border border-border-primary'">
+        <span>🎓</span> Academic ({{ gradeCount() }})
+      </button>
+
+      <button
+        (click)="activeFilter.set('ATTENDANCE')"
+        class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+        [ngClass]="activeFilter() === 'ATTENDANCE' ? 'bg-amber-600 text-white shadow-md shadow-amber-500/30' : 'bg-bg-secondary/60 text-text-secondary hover:text-text-primary border border-border-primary'">
+        <span>📋</span> Attendance ({{ attendanceCount() }})
+      </button>
+
+      <button
+        (click)="activeFilter.set('SYSTEM')"
+        class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+        [ngClass]="activeFilter() === 'SYSTEM' ? 'bg-slate-700 text-white shadow-md' : 'bg-bg-secondary/60 text-text-secondary hover:text-text-primary border border-border-primary'">
+        <span>🔔</span> System ({{ systemCount() }})
+      </button>
+    </div>
+
+    <!-- Search Input -->
+    <div class="relative w-full sm:w-72">
+      <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input
+        type="text"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+        placeholder="Filter by keyword..."
+        class="w-full bg-bg-secondary/80 border border-border-primary rounded-xl pl-9 pr-4 py-2 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+      />
+    </div>
+  </div>
+
+  <!-- ── Notification Feed List ───────────────────────────── -->
+  <div class="space-y-3 relative z-10">
+    @for (n of filteredNotifications(); track n.id) {
+      <div
+        (click)="markAsRead(n.id)"
+        class="p-5 rounded-2xl border transition-all duration-200 cursor-pointer relative overflow-hidden group flex flex-col md:flex-row md:items-center justify-between gap-4"
+        [ngClass]="!n.read ? 'bg-bg-secondary/90 border-indigo-500/40 shadow-lg shadow-indigo-500/5' : 'bg-bg-secondary/40 border-border-primary/50 hover:bg-bg-tertiary/40'"
+      >
+        <!-- Left color indicator -->
+        <div class="absolute left-0 top-0 bottom-0 w-1.5"
+             [style.background-color]="getColor(n.type)"></div>
+
+        <div class="flex items-start gap-4 flex-1 pl-2">
+          <!-- Icon avatar -->
+          <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 shadow-inner"
+               [style.background-color]="getColor(n.type) + '20'"
+               [style.border]="'1px solid ' + getColor(n.type) + '40'">
+            {{ getIcon(n.type) }}
+          </div>
+
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap mb-1">
+              <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md"
+                    [style.color]="getColor(n.type)"
+                    [style.background-color]="getColor(n.type) + '15'">
+                {{ getTypeLabel(n.type) }}
+              </span>
+
+              @if (!n.read) {
+                <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                <span class="text-[10px] font-black text-indigo-400">NEW</span>
+              }
+
+              <span class="text-[11px] text-text-muted font-medium ml-auto">
+                {{ n.created_at | date:'medium' }}
+              </span>
+            </div>
+
+            <h3 class="text-sm font-black text-text-primary tracking-tight group-hover:text-indigo-400 transition-colors">
+              {{ n.title }}
+            </h3>
+
+            <p class="text-xs text-text-secondary mt-1 leading-relaxed">
+              {{ n.message }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Right Action Controls -->
+        <div class="flex items-center gap-2 shrink-0 md:pl-4 self-end md:self-center">
+          @if (getNotificationActionRoute(n); as route) {
+            <a
+              [routerLink]="route"
+              (click)="$event.stopPropagation()"
+              class="px-3.5 py-1.5 rounded-xl bg-bg-tertiary hover:bg-indigo-600 text-text-secondary hover:text-white text-xs font-bold border border-border-primary hover:border-transparent transition-all cursor-pointer"
+            >
+              {{ getNotificationActionLabel(n) }}
+            </a>
+          }
+
+          @if (!n.read) {
+            <button
+              (click)="markAsRead(n.id, $event)"
+              class="p-2 rounded-xl text-text-muted hover:text-indigo-400 hover:bg-indigo-500/10 border border-transparent hover:border-indigo-500/20 transition-all cursor-pointer"
+              title="Mark as read"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </button>
+          }
+        </div>
+      </div>
+    } @empty {
+      <!-- ── Empty State ───────────────────────────────────── -->
+      <div class="flex flex-col items-center justify-center py-24 px-6 text-center bg-bg-secondary/30 border border-border-primary/50 rounded-3xl backdrop-blur-xl">
+        <div class="w-20 h-20 rounded-3xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-4xl mb-4 shadow-xl shadow-indigo-500/10 animate-bounce">
+          🔔
+        </div>
+        <h3 class="text-lg font-black text-text-primary">All Caught Up!</h3>
+        <p class="text-xs text-text-muted font-medium max-w-sm mt-1 mb-6 leading-relaxed">
+          No notifications match your current filter criteria. Real-time updates will automatically appear here as student activities occur.
+        </p>
+        <button
+          (click)="activeFilter.set('ALL'); searchQuery.set('')"
+          class="px-5 py-2.5 rounded-xl bg-bg-tertiary hover:bg-bg-secondary text-text-secondary hover:text-text-primary text-xs font-bold border border-border-primary transition-all cursor-pointer"
+        >
+          Reset Filters
+        </button>
+      </div>
+    }
+  </div>
+</div>

@@ -2,6 +2,7 @@ package pdf
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jung-kurt/gofpdf"
@@ -75,70 +76,169 @@ func (s *PDFService) generateConductReport(pdf *gofpdf.Fpdf, student *domain.Stu
 	pdf.MultiCell(190, 8, "The student has consistently demonstrated respect for school policies and peers. No disciplinary actions are on record for the current period.", "", "L", false)
 }
 
-func (s *PDFService) drawBillHeader(pdf *gofpdf.Fpdf, tenantName string) {
-	pdf.SetFont("Arial", "B", 18)
-	pdf.CellFormat(190, 10, tenantName, "", 0, "C", false, 0, "")
-	pdf.Ln(10)
-	
-	pdf.SetFont("Arial", "", 10)
-	// Placeholders for address and contact until they are dynamic
-	pdf.CellFormat(190, 6, "Address and Contact Info Here", "", 0, "C", false, 0, "")
-	pdf.Ln(15)
+func (s *PDFService) drawBillHeader(pdf *gofpdf.Fpdf, tenantName string, tenant *domain.Tenant, config *domain.BillTemplateConfig) {
+	// Top primary bar
+	pdf.SetFillColor(30, 41, 59) // Slate 800
+	pdf.Rect(0, 0, 210, 4, "F")
 
-	pdf.SetFont("Arial", "BU", 14)
-	pdf.CellFormat(190, 10, "PUPIL BILL FOR TERM", "", 0, "C", false, 0, "")
-	pdf.Ln(15)
+	pdf.SetY(8)
+	// School Name
+	pdf.SetFont("Arial", "B", 18)
+	pdf.SetTextColor(30, 41, 59)
+	pdf.CellFormat(190, 8, tenantName, "", 1, "C", false, 0, "")
+
+	// Motto if available
+	if tenant != nil && tenant.Motto != "" {
+		pdf.SetFont("Arial", "I", 9)
+		pdf.SetTextColor(100, 116, 139)
+		pdf.CellFormat(190, 5, fmt.Sprintf(`"%s"`, tenant.Motto), "", 1, "C", false, 0, "")
+	}
+
+	// Address and contact details
+	contactParts := []string{}
+	if tenant != nil {
+		if tenant.Address != "" {
+			contactParts = append(contactParts, tenant.Address)
+		}
+		if tenant.ContactNumbers != "" {
+			contactParts = append(contactParts, "Tel: "+tenant.ContactNumbers)
+		}
+		if tenant.Email != "" {
+			contactParts = append(contactParts, "Email: "+tenant.Email)
+		}
+	}
+	contactLine := strings.Join(contactParts, "  |  ")
+	if contactLine == "" {
+		contactLine = "Official Institutional Billing & Student Accounts"
+	}
+	pdf.SetFont("Arial", "", 8.5)
+	pdf.SetTextColor(100, 116, 139)
+	pdf.CellFormat(190, 5, contactLine, "", 1, "C", false, 0, "")
+
+	pdf.Ln(2)
+
+	// Document Title Banner
+	title := "PUPIL BILL FOR TERM"
+	if config != nil && config.Title != "" {
+		title = strings.ToUpper(config.Title)
+	}
+	pdf.SetFillColor(241, 245, 249) // Slate 100
+	pdf.SetDrawColor(203, 213, 225) // Slate 300
+	pdf.SetLineWidth(0.3)
+	pdf.SetFont("Arial", "B", 11)
+	pdf.SetTextColor(15, 23, 42)
+	pdf.CellFormat(190, 7.5, title, "1", 1, "C", true, 0, "")
+	pdf.Ln(3)
 }
 
 func (s *PDFService) drawBillStudentInfo(pdf *gofpdf.Fpdf, student *domain.Student) {
-	pdf.SetFont("Arial", "B", 10)
-	pdf.Cell(25, 8, "STUDENT ID:")
-	pdf.SetFont("Arial", "", 10)
-	pdf.Cell(65, 8, student.EnrollmentNum)
-	
-	pdf.SetFont("Arial", "B", 10)
-	pdf.Cell(20, 8, "NAME:")
-	pdf.SetFont("Arial", "", 10)
-	pdf.Cell(80, 8, fmt.Sprintf("%s %s", string(student.FirstName), string(student.LastName)))
-	pdf.Ln(8)
+	studentName := fmt.Sprintf("%s %s", string(student.FirstName), string(student.LastName))
+	studentID := student.EnrollmentNum
+	if studentID == "" {
+		studentID = "N/A"
+	}
+	className := ""
+	if student.Class != nil && student.Class.Name != "" {
+		className = student.Class.Name
+	} else if student.Level > 0 {
+		className = fmt.Sprintf("Level %d", student.Level)
+	} else {
+		className = "General"
+	}
 
-	pdf.SetFont("Arial", "B", 10)
-	pdf.Cell(25, 8, "ISSUANCE DATE:")
-	pdf.SetFont("Arial", "", 10)
-	pdf.Cell(65, 8, time.Now().Format("02 Jan 2006"))
+	issuanceDate := time.Now().Format("02 Jan 2006")
+	billRef := fmt.Sprintf("BIL-%s", student.ID.String()[:8])
 
-	pdf.SetFont("Arial", "B", 10)
-	pdf.Cell(20, 8, "CLASS:")
-	pdf.SetFont("Arial", "", 10)
-	// Using Level as class placeholder for now
-	pdf.Cell(80, 8, fmt.Sprintf("Level %d", student.Level))
-	pdf.Ln(12)
+	startY := pdf.GetY()
+	pdf.SetFillColor(248, 250, 252) // Slate 50
+	pdf.SetDrawColor(226, 232, 240) // Slate 200
+	pdf.SetLineWidth(0.3)
+	pdf.RoundedRect(10, startY, 190, 20, 2, "1234", "FD")
+
+	// Row 1: Student Name & Bill Ref
+	pdf.SetXY(14, startY+2.5)
+	pdf.SetFont("Arial", "B", 8)
+	pdf.SetTextColor(100, 116, 139)
+	pdf.Cell(28, 4.5, "STUDENT NAME:")
+	pdf.SetFont("Arial", "B", 8.5)
+	pdf.SetTextColor(15, 23, 42)
+	pdf.Cell(65, 4.5, studentName)
+
+	pdf.SetXY(110, startY+2.5)
+	pdf.SetFont("Arial", "B", 8)
+	pdf.SetTextColor(100, 116, 139)
+	pdf.Cell(28, 4.5, "BILL REFERENCE:")
+	pdf.SetFont("Arial", "B", 8.5)
+	pdf.SetTextColor(15, 23, 42)
+	pdf.Cell(50, 4.5, billRef)
+
+	// Row 2: Student ID & Issuance Date
+	pdf.SetXY(14, startY+7.5)
+	pdf.SetFont("Arial", "B", 8)
+	pdf.SetTextColor(100, 116, 139)
+	pdf.Cell(28, 4.5, "STUDENT ID:")
+	pdf.SetFont("Arial", "B", 8.5)
+	pdf.SetTextColor(79, 70, 229) // Indigo
+	pdf.Cell(65, 4.5, studentID)
+
+	pdf.SetXY(110, startY+7.5)
+	pdf.SetFont("Arial", "B", 8)
+	pdf.SetTextColor(100, 116, 139)
+	pdf.Cell(28, 4.5, "ISSUANCE DATE:")
+	pdf.SetFont("Arial", "", 8.5)
+	pdf.SetTextColor(15, 23, 42)
+	pdf.Cell(50, 4.5, issuanceDate)
+
+	// Row 3: Class & Currency
+	pdf.SetXY(14, startY+12.5)
+	pdf.SetFont("Arial", "B", 8)
+	pdf.SetTextColor(100, 116, 139)
+	pdf.Cell(28, 4.5, "CLASS / LEVEL:")
+	pdf.SetFont("Arial", "B", 8.5)
+	pdf.SetTextColor(15, 23, 42)
+	pdf.Cell(65, 4.5, className)
+
+	pdf.SetXY(110, startY+12.5)
+	pdf.SetFont("Arial", "B", 8)
+	pdf.SetTextColor(100, 116, 139)
+	pdf.Cell(28, 4.5, "CURRENCY:")
+	pdf.SetFont("Arial", "B", 8.5)
+	pdf.SetTextColor(16, 185, 129) // Emerald
+	pdf.Cell(50, 4.5, "GHc (Ghana Cedi)")
+
+	pdf.SetY(startY + 23)
 }
 
 func (s *PDFService) drawBillTable(pdf *gofpdf.Fpdf, records []domain.FiscalRecord) {
-	pdf.SetFont("Arial", "B", 12)
-	pdf.CellFormat(190, 10, "BILL", "", 0, "C", false, 0, "")
-	pdf.Ln(10)
+	pdf.SetFont("Arial", "B", 9.5)
+	pdf.SetTextColor(30, 41, 59)
+	pdf.CellFormat(190, 5.5, "1. SCHOOL FEES & FINANCIAL CHARGES", "", 1, "L", false, 0, "")
+	pdf.Ln(1)
 
-	pdf.SetFillColor(230, 230, 230)
-	pdf.SetFont("Arial", "B", 10)
-	pdf.CellFormat(100, 8, "DESCRIPTION", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(45, 8, "GHc", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(45, 8, "GHc", "1", 0, "C", true, 0, "")
-	pdf.Ln(8)
+	// Table Header
+	pdf.SetFillColor(30, 41, 59) // Slate 800
+	pdf.SetDrawColor(30, 41, 59)
+	pdf.SetTextColor(255, 255, 255)
+	pdf.SetFont("Arial", "B", 8)
+	pdf.CellFormat(12, 6.5, "#", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(98, 6.5, "DESCRIPTION / CHARGE CATEGORY", "1", 0, "L", true, 0, "")
+	pdf.CellFormat(40, 6.5, "FREQUENCY", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(40, 6.5, "AMOUNT (GHc)", "1", 1, "R", true, 0, "")
 
-	pdf.SetFont("Arial", "", 10)
+	type BillItem struct {
+		Description string
+		Type        string
+		Amount      float64
+	}
+	var items []BillItem
 	var totalBill float64 = 0
 
-	// Deduplicate breakdown items across multiple records (e.g., if there are multiple unpaid records)
-	// We'll aggregate them dynamically based on the FiscalRecord breakdowns.
 	breakdownMap := make(map[string]float64)
 	for _, record := range records {
 		if record.Status != domain.PaymentStatusPaid {
 			for _, item := range record.Breakdown {
 				breakdownMap[string(item.Category)] += item.Amount
 			}
-			// If breakdown is empty, use the record's main amount and category
 			if len(record.Breakdown) == 0 {
 				breakdownMap[string(record.Category)] += record.Amount
 			}
@@ -146,39 +246,152 @@ func (s *PDFService) drawBillTable(pdf *gofpdf.Fpdf, records []domain.FiscalReco
 	}
 
 	for category, amount := range breakdownMap {
-		pdf.CellFormat(100, 8, category, "1", 0, "C", false, 0, "")
-		pdf.CellFormat(45, 8, fmt.Sprintf("%.2f", amount), "1", 0, "C", false, 0, "")
-		pdf.CellFormat(45, 8, "", "1", 0, "C", false, 0, "")
-		pdf.Ln(8)
+		items = append(items, BillItem{
+			Description: category,
+			Type:        "TERMLY",
+			Amount:      amount,
+		})
 		totalBill += amount
 	}
 
-	pdf.SetFont("Arial", "B", 10)
-	pdf.CellFormat(100, 8, "TOTAL BILL", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(45, 8, "-", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(45, 8, fmt.Sprintf("%.2f", totalBill), "1", 0, "C", true, 0, "")
-	pdf.Ln(8)
+	if len(items) == 0 {
+		items = append(items, BillItem{
+			Description: "TUITION & ACADEMIC SERVICES",
+			Type:        "TERMLY",
+			Amount:      0.00,
+		})
+	}
 
-	pdf.CellFormat(100, 8, "TOTAL DUE:", "", 0, "L", false, 0, "")
-	pdf.Ln(15)
+	pdf.SetFont("Arial", "", 8)
+	pdf.SetDrawColor(226, 232, 240)
+	for i, item := range items {
+		if i%2 == 0 {
+			pdf.SetFillColor(255, 255, 255)
+		} else {
+			pdf.SetFillColor(248, 250, 252)
+		}
+		pdf.SetTextColor(30, 41, 59)
+		pdf.CellFormat(12, 6, fmt.Sprintf("%d", i+1), "1", 0, "C", true, 0, "")
+		pdf.CellFormat(98, 6, "  "+item.Description, "1", 0, "L", true, 0, "")
+		pdf.CellFormat(40, 6, item.Type, "1", 0, "C", true, 0, "")
+		pdf.CellFormat(40, 6, fmt.Sprintf("%.2f  ", item.Amount), "1", 1, "R", true, 0, "")
+	}
+
+	// Total Row
+	pdf.SetFont("Arial", "B", 8.5)
+	pdf.SetFillColor(241, 245, 249)
+	pdf.SetTextColor(15, 23, 42)
+	pdf.CellFormat(150, 7, "TOTAL FEES DUE", "1", 0, "R", true, 0, "")
+	pdf.SetTextColor(79, 70, 229) // Indigo
+	pdf.CellFormat(40, 7, fmt.Sprintf("GHc %.2f  ", totalBill), "1", 1, "R", true, 0, "")
+	pdf.Ln(4)
 }
 
-func (s *PDFService) drawBillToiletries(pdf *gofpdf.Fpdf) {
-	pdf.SetFont("Arial", "BU", 10)
-	pdf.CellFormat(190, 8, "OTHER SERVICE CHARGES AND TOILETRIES", "", 0, "C", false, 0, "")
-	pdf.Ln(10)
+func (s *PDFService) drawBillSuppliesTable(pdf *gofpdf.Fpdf, config *domain.BillTemplateConfig) {
+	suppliesTitle := "2. REQUIRED BOOKS, STATIONERY & SUPPLIES (ITEMS TO PURCHASE / BRING)"
+	if config != nil && config.SuppliesTitle != "" {
+		suppliesTitle = config.SuppliesTitle
+	}
 
-	pdf.SetFont("Arial", "B", 10)
-	pdf.CellFormat(190, 8, "TOILETRIES", "", 0, "C", false, 0, "")
-	pdf.Ln(8)
+	pdf.SetFont("Arial", "B", 9.5)
+	pdf.SetTextColor(30, 41, 59)
+	pdf.CellFormat(190, 5.5, suppliesTitle, "", 1, "L", false, 0, "")
+	pdf.Ln(1)
 
-	pdf.SetFont("Arial", "", 9)
-	pdf.CellFormat(47.5, 8, "ANTISEPTIC 250ML : 2", "1", 0, "C", false, 0, "")
-	pdf.CellFormat(47.5, 8, "1KG WASHING POWDER : 1", "1", 0, "C", false, 0, "")
-	pdf.CellFormat(47.5, 8, "SOAP : 3", "1", 0, "C", false, 0, "")
-	pdf.CellFormat(47.5, 8, "TOILET PAPER : 3", "1", 0, "C", false, 0, "")
-	pdf.Ln(12)
+	// Table Header
+	pdf.SetFillColor(51, 65, 85) // Slate 700
+	pdf.SetDrawColor(51, 65, 85)
+	pdf.SetTextColor(255, 255, 255)
+	pdf.SetFont("Arial", "B", 8)
+	pdf.CellFormat(32, 6.5, "CATEGORY", "1", 0, "L", true, 0, "")
+	pdf.CellFormat(88, 6.5, "ITEM DESCRIPTION & SPECIFICATION", "1", 0, "L", true, 0, "")
+	pdf.CellFormat(28, 6.5, "QUANTITY", "1", 0, "C", true, 0, "")
+	pdf.CellFormat(42, 6.5, "REMARKS / SOURCE", "1", 1, "L", true, 0, "")
 
-	pdf.SetFont("Arial", "I", 9)
-	pdf.MultiCell(190, 6, "Toiletries should be ready the first day your young ELITE will report.\n\nPayment should be made using your child USSD code or app.schoolrobot.net.\n\nNO PHYSICAL PAYMENT TO SCHOOL STAFF.\n\nPayment can be made in advance to enhance flexible payment.", "", "L", false)
+	var items []domain.BillSupplyItem
+	if config != nil && len(config.RequiredItems) > 0 {
+		items = config.RequiredItems
+	} else {
+		items = []domain.BillSupplyItem{
+			{Category: "BOOKS", Description: "Core Mathematics Course Book", Quantity: "1 copy", Note: "Compulsory for all terms"},
+			{Category: "BOOKS", Description: "English Language & Grammar Workbook", Quantity: "1 copy", Note: "Compulsory"},
+			{Category: "STATIONERY", Description: "Ruled Exercise Books (Pack of 10)", Quantity: "1 pack", Note: "Available at school store"},
+			{Category: "TOILETRIES", Description: "Antiseptic Liquid / Disinfectant (250ml)", Quantity: "2 bottles", Note: "Hand to Housemaster"},
+			{Category: "TOILETRIES", Description: "Washing Powder (1kg)", Quantity: "1 pack", Note: "Term requirement"},
+			{Category: "TOILETRIES", Description: "Toilet Paper Rolls", Quantity: "3 rolls", Note: "Standard pack"},
+		}
+	}
+
+	pdf.SetFont("Arial", "", 8)
+	pdf.SetDrawColor(226, 232, 240)
+	for i, item := range items {
+		if i%2 == 0 {
+			pdf.SetFillColor(255, 255, 255)
+		} else {
+			pdf.SetFillColor(248, 250, 252)
+		}
+		pdf.SetTextColor(30, 41, 59)
+		pdf.CellFormat(32, 5.8, "  "+item.Category, "1", 0, "L", true, 0, "")
+		pdf.CellFormat(88, 5.8, "  "+item.Description, "1", 0, "L", true, 0, "")
+		pdf.CellFormat(28, 5.8, item.Quantity, "1", 0, "C", true, 0, "")
+		pdf.CellFormat(42, 5.8, "  "+item.Note, "1", 1, "L", true, 0, "")
+	}
+	pdf.Ln(3.5)
+}
+
+func (s *PDFService) drawBillFooter(pdf *gofpdf.Fpdf, config *domain.BillTemplateConfig) {
+	pdf.SetFont("Arial", "B", 9)
+	pdf.SetTextColor(30, 41, 59)
+	pdf.CellFormat(190, 5, "IMPORTANT NOTICE & PAYMENT INSTRUCTIONS", "", 1, "L", false, 0, "")
+	pdf.Ln(0.5)
+
+	footerText := ""
+	if config != nil && strings.TrimSpace(config.FooterNotes) != "" {
+		footerText = config.FooterNotes
+	} else {
+		footerText = "Toiletries, stationery, and books must be presented on the first day of resumption.\nAll fee payments must be made using your child's student ID via official school payment channels.\nSTRICTLY NO PHYSICAL CASH PAYMENT TO SCHOOL STAFF.\nPayment can be made in advance to enhance flexible installments."
+	}
+
+	lines := strings.Split(footerText, "\n")
+	boxHeight := float64(len(lines))*4.2 + 5.0
+	if boxHeight < 18 {
+		boxHeight = 18
+	}
+
+	startY := pdf.GetY()
+	pdf.SetFillColor(248, 250, 252) // Slate 50
+	pdf.SetDrawColor(203, 213, 225) // Slate 300
+	pdf.SetLineWidth(0.3)
+	pdf.RoundedRect(10, startY, 190, boxHeight, 2, "1234", "FD")
+
+	// Left accent stripe in indigo
+	pdf.SetFillColor(79, 70, 229)
+	pdf.Rect(10, startY, 2.5, boxHeight, "F")
+
+	pdf.SetXY(15, startY+2.5)
+	pdf.SetFont("Arial", "", 8)
+	pdf.SetTextColor(51, 65, 85)
+	pdf.MultiCell(182, 4.2, footerText, "", "L", false)
+
+	pdf.SetY(startY + boxHeight + 5)
+
+	// Signature & Stamp verification section
+	signY := pdf.GetY()
+	if signY > 265 {
+		pdf.AddPage()
+		signY = 20
+	}
+
+	pdf.SetDrawColor(203, 213, 225)
+	pdf.SetLineWidth(0.3)
+
+	pdf.Line(15, signY+12, 85, signY+12)
+	pdf.SetXY(15, signY+13)
+	pdf.SetFont("Arial", "B", 7.5)
+	pdf.SetTextColor(100, 116, 139)
+	pdf.Cell(70, 4, "ACCOUNTS & FINANCE DEPARTMENT")
+
+	pdf.Line(120, signY+12, 190, signY+12)
+	pdf.SetXY(120, signY+13)
+	pdf.Cell(70, 4, "OFFICIAL SCHOOL STAMP / AUTHORIZED SIGNATURE")
 }

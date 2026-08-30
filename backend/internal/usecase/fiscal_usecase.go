@@ -114,10 +114,13 @@ func (u *fiscalUseCase) GeneratePupilBill(ctx context.Context, studentID uuid.UU
 		tenantName = strings.ToUpper(name)
 	}
 
+	// Fetch bill customization configuration
+	billConfig, _ := u.fiscalRepo.GetBillTemplateConfig(ctx)
+
 	// Generate PDF
 	var buf bytes.Buffer
 	pdfService := pdf.NewPDFService()
-	if err := pdfService.GeneratePupilBill(&buf, tenantName, tenant, student, records); err != nil {
+	if err := pdfService.GeneratePupilBill(&buf, tenantName, tenant, student, records, billConfig); err != nil {
 		return nil, fmt.Errorf("failed to generate PDF: %w", err)
 	}
 
@@ -165,10 +168,13 @@ func (u *fiscalUseCase) GenerateClassBills(ctx context.Context, classID uuid.UUI
 		})
 	}
 
+	// Fetch bill customization configuration
+	billConfig, _ := u.fiscalRepo.GetBillTemplateConfig(ctx)
+
 	// Generate PDF
 	var buf bytes.Buffer
 	pdfService := pdf.NewPDFService()
-	if err := pdfService.GenerateBulkPupilBills(&buf, tenantName, tenant, bills); err != nil {
+	if err := pdfService.GenerateBulkPupilBills(&buf, tenantName, tenant, bills, billConfig); err != nil {
 		return nil, fmt.Errorf("failed to generate bulk PDF: %w", err)
 	}
 
@@ -1134,6 +1140,24 @@ func (u *fiscalUseCase) SaveInstallmentPlanTemplate(ctx context.Context, templat
 	}
 	return template, nil
 }
+
+func (u *fiscalUseCase) GetBillTemplateConfig(ctx context.Context) (*domain.BillTemplateConfig, error) {
+	return u.fiscalRepo.GetBillTemplateConfig(ctx)
+}
+
+func (u *fiscalUseCase) SaveBillTemplateConfig(ctx context.Context, config *domain.BillTemplateConfig) (*domain.BillTemplateConfig, error) {
+	if config.Title == "" {
+		config.Title = "PUPIL BILL FOR TERM"
+	}
+	if config.SuppliesTitle == "" {
+		config.SuppliesTitle = "REQUIRED BOOKS & MATERIALS TO BE BROUGHT / PURCHASED"
+	}
+	if err := u.fiscalRepo.SaveBillTemplateConfig(ctx, config); err != nil {
+		return nil, fmt.Errorf("failed to save bill template config: %w", err)
+	}
+	return u.fiscalRepo.GetBillTemplateConfig(ctx)
+}
+
 
 
 

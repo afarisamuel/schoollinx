@@ -129,6 +129,17 @@
                     {{ installmentPlan().milestones.length }} Stages
                 </span>
             </button>
+            <button 
+                (click)="activeTab.set('bill_template')"
+                [class.text-indigo-400]="activeTab() === 'bill_template'"
+                [class.border-indigo-500]="activeTab() === 'bill_template'"
+                [class.border-transparent]="activeTab() !== 'bill_template'"
+                class="px-4 py-3 text-sm font-bold tracking-wider uppercase border-b-2 text-text-muted hover:text-text-primary transition-colors flex items-center gap-2">
+                Bill & Supplies Template
+                <span class="ml-1 px-2 py-0.5 rounded-full bg-bg-tertiary border border-border-primary text-[9px] text-indigo-400 font-black">
+                    Dual-Table
+                </span>
+            </button>
         </div>
       </div>
 
@@ -235,6 +246,142 @@
             </span>
           </div>
 
+        </div>
+      } @else if (activeTab() === 'bill_template') {
+        <!-- Bill Template & Supplies Configuration Body -->
+        <div class="p-6 flex-1 flex flex-col gap-6">
+          
+          <!-- 1. Text Below Table (Custom Instructions & Policies) -->
+          <div class="bg-bg-tertiary/30 border border-border-primary/60 rounded-2xl p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-indigo-500/15 text-indigo-400 flex items-center justify-center text-xs font-black">
+                  📝
+                </div>
+                <div>
+                  <h4 class="text-xs font-black text-text-primary uppercase tracking-wider">Custom Notice & Instructions (Text Below Table)</h4>
+                  <p class="text-[10px] text-text-muted">This text appears directly beneath the tables on printed student and class bills.</p>
+                </div>
+              </div>
+              <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase tracking-widest">Admin Configurable</span>
+            </div>
+
+            <textarea
+              [(ngModel)]="billConfig().footer_notes"
+              rows="5"
+              placeholder="e.g. Toiletries should be ready the first day your child reports... Payment should be made using your child USSD code... NO PHYSICAL PAYMENT TO SCHOOL STAFF."
+              class="w-full bg-bg-secondary border border-border-primary rounded-xl p-4 text-xs text-text-primary font-medium focus:ring-2 focus:ring-indigo-500/50 leading-relaxed resize-y"
+            ></textarea>
+            
+            <div class="flex flex-wrap gap-2 text-[10px]">
+              <span class="text-text-muted font-bold mr-1">Quick Policy Inserts:</span>
+              <button type="button" (click)="billConfig().footer_notes = billConfig().footer_notes + '\n• NO PHYSICAL CASH PAYMENT TO TEACHERS OR SCHOOL STAFF.'" class="px-2 py-1 rounded bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-secondary hover:text-text-primary transition-colors cursor-pointer">+ Strict Cash Policy</button>
+              <button type="button" (click)="billConfig().footer_notes = billConfig().footer_notes + '\n• Payment should be made using your child\'s student ID via official USSD mobile money or bank.'" class="px-2 py-1 rounded bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-secondary hover:text-text-primary transition-colors cursor-pointer">+ USSD & ID Policy</button>
+              <button type="button" (click)="billConfig().footer_notes = billConfig().footer_notes + '\n• Toiletries and course textbooks must be submitted on the first day of resumption.'" class="px-2 py-1 rounded bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-secondary hover:text-text-primary transition-colors cursor-pointer">+ Resumption Supplies Rule</button>
+            </div>
+          </div>
+
+          <!-- 2. Table 2: Required Books & Materials to be Bought / Brought -->
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-xs font-black">
+                  📚
+                </div>
+                <div>
+                  <h4 class="text-xs font-black text-text-primary uppercase tracking-wider">Table 2: Required Books, Stationery & Supplies</h4>
+                  <p class="text-[10px] text-text-muted">Items required to be bought or brought by parents/guardians upon resumption.</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
+                {{ billConfig().required_items.length }} Items
+              </span>
+            </div>
+
+            <!-- Existing Items Table -->
+            <div class="border border-border-primary/60 rounded-2xl overflow-hidden bg-bg-secondary/30">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="border-b border-border-primary/60 bg-bg-tertiary/40">
+                    <th class="px-4 py-2.5 text-[9px] font-black uppercase tracking-wider text-text-muted">Category</th>
+                    <th class="px-4 py-2.5 text-[9px] font-black uppercase tracking-wider text-text-muted">Description / Title</th>
+                    <th class="px-4 py-2.5 text-[9px] font-black uppercase tracking-wider text-text-muted">Qty</th>
+                    <th class="px-4 py-2.5 text-[9px] font-black uppercase tracking-wider text-text-muted">Notes / Store Remarks</th>
+                    <th class="px-3 py-2.5"></th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-border-primary/40">
+                  @for (item of billConfig().required_items; track $index) {
+                    <tr class="hover:bg-bg-tertiary/30 transition-colors group">
+                      <td class="px-4 py-3">
+                        <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider"
+                              [ngClass]="{
+                                'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20': item.category === 'BOOKS',
+                                'bg-purple-500/10 text-purple-400 border border-purple-500/20': item.category === 'STATIONERY',
+                                'bg-amber-500/10 text-amber-400 border border-amber-500/20': item.category === 'TOILETRIES',
+                                'bg-teal-500/10 text-teal-400 border border-teal-500/20': item.category === 'UNIFORM',
+                                'bg-slate-500/10 text-slate-400 border border-slate-500/20': !['BOOKS', 'STATIONERY', 'TOILETRIES', 'UNIFORM'].includes(item.category)
+                              }">
+                          {{ item.category }}
+                        </span>
+                      </td>
+                      <td class="px-4 py-3 font-bold text-text-primary">{{ item.description }}</td>
+                      <td class="px-4 py-3 text-text-secondary font-mono">{{ item.quantity }}</td>
+                      <td class="px-4 py-3 text-text-muted text-[11px]">{{ item.note || '-' }}</td>
+                      <td class="px-3 py-3 text-right">
+                        <button (click)="removeSupplyItem($index)" class="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white transition-all cursor-pointer" title="Remove item">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                  @if (billConfig().required_items.length === 0) {
+                    <tr>
+                      <td colspan="5" class="px-4 py-6 text-center text-text-muted text-xs">
+                        No required books or supplies configured. Add items below.
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Add Item Row Form -->
+            <div class="p-4 bg-bg-tertiary/40 border border-border-primary/60 rounded-2xl flex flex-col sm:flex-row items-end gap-3">
+              <div class="w-full sm:w-32">
+                <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1">Category</span>
+                <select [(ngModel)]="newSupplyItem.category" class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-bold focus:ring-2 focus:ring-indigo-500/50">
+                  <option value="BOOKS">BOOKS</option>
+                  <option value="STATIONERY">STATIONERY</option>
+                  <option value="TOILETRIES">TOILETRIES</option>
+                  <option value="UNIFORM">UNIFORM</option>
+                  <option value="OTHER">OTHER</option>
+                </select>
+              </div>
+
+              <div class="w-full sm:flex-1">
+                <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1">Description / Title *</span>
+                <input type="text" [(ngModel)]="newSupplyItem.description" placeholder="e.g. Core Mathematics Textbook SHS 1"
+                       class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-medium focus:ring-2 focus:ring-indigo-500/50">
+              </div>
+
+              <div class="w-full sm:w-28">
+                <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1">Quantity</span>
+                <input type="text" [(ngModel)]="newSupplyItem.quantity" placeholder="e.g. 1 copy"
+                       class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-mono focus:ring-2 focus:ring-indigo-500/50">
+              </div>
+
+              <div class="w-full sm:w-44">
+                <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1">Remarks / Note</span>
+                <input type="text" [(ngModel)]="newSupplyItem.note" placeholder="e.g. Available at store"
+                       class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-medium focus:ring-2 focus:ring-indigo-500/50">
+              </div>
+
+              <button type="button" (click)="addSupplyItem()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shrink-0 cursor-pointer shadow-md transition-all">
+                + Add Item
+              </button>
+            </div>
+          </div>
         </div>
       } @else if ((activeTab() === 'term' ? termFees() : dailyFees()).length === 0) {
         <div class="flex-1 flex flex-col items-center justify-center py-20 px-6 text-center">
@@ -385,6 +532,62 @@
             } @else {
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
               Deploy Milestone Policy
+            }
+          </button>
+        </div>
+      </div>
+    } @else if (activeTab() === 'bill_template') {
+      <!-- RIGHT: Bill Template Document Controls -->
+      <div class="bg-bg-secondary/40 backdrop-blur-xl border border-border-primary/50 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex flex-col gap-5 h-fit">
+        <div class="flex items-center gap-3 relative z-10 pb-4 border-b border-border-primary/50">
+          <div class="w-8 h-8 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div>
+            <h3 class="font-black text-text-primary text-sm">Bill Document Settings</h3>
+            <p class="text-[10px] text-text-muted font-medium mt-0.5">Template title and display rules</p>
+          </div>
+        </div>
+
+        <div class="space-y-4 relative z-10">
+          <!-- Document Title -->
+          <div>
+            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Document Title Banner</label>
+            <input type="text" [(ngModel)]="billConfig().title"
+                   class="w-full bg-bg-tertiary/80 border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+          </div>
+
+          <!-- Supplies Table Title -->
+          <div>
+            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Table 2 Heading (Supplies & Books)</label>
+            <input type="text" [(ngModel)]="billConfig().supplies_title"
+                   class="w-full bg-bg-tertiary/80 border border-border-primary rounded-xl px-4 py-3 text-text-primary text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+          </div>
+
+          <!-- Show Supplies Table Toggle -->
+          <div class="flex items-center justify-between p-4 bg-bg-tertiary/50 border border-border-primary rounded-xl">
+            <div>
+              <label class="block text-[11px] font-black text-text-primary uppercase tracking-widest mb-0.5">Show Supplies Table</label>
+              <p class="text-[9px] text-text-muted font-medium leading-tight">Display Table 2 on all pupil bills.</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" [(ngModel)]="billConfig().show_supplies_table" class="sr-only peer">
+              <div class="w-11 h-6 bg-bg-secondary peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+            </label>
+          </div>
+
+          <!-- Save Button -->
+          <button
+            (click)="onSaveBillConfig()"
+            [disabled]="savingBillConfig()"
+            class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border border-white/10"
+          >
+            @if (savingBillConfig()) {
+              <span class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+              Saving Configuration...
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save Bill Template
             }
           </button>
         </div>
