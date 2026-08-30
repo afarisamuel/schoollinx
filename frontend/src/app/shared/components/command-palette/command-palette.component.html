@@ -1,44 +1,108 @@
-@if (isOpen()) {
-<div class="palette-overlay" (click)="close()">
-    <div class="palette-container glass-panel" (click)="$event.stopPropagation()">
-        <div class="palette-header">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                class="search-icon">
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.3-4.3" />
-            </svg>
-            <input #searchInput type="text" placeholder="Search students, teachers, or pages... (Esc to close)"
-                (input)="onSearch($any($event.target).value)" (keydown.esc)="close()"
-                (keydown.arrowdown)="moveSelection(1)" (keydown.arrowup)="moveSelection(-1)"
-                (keydown.enter)="selectItem()">
-        </div>
+@if (searchService.isOpen()) {
+  <div class="fixed inset-0 z-[9999] flex items-start justify-center pt-[12vh] px-4 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm animate-fade-in" (click)="close()">
+    <div
+      class="w-full max-w-2xl bg-white dark:bg-bg-secondary border border-slate-200/80 dark:border-border-primary rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[75vh] animate-scale-up"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Search Input Header -->
+      <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-100 dark:border-border-primary/60">
+        <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.3-4.3" />
+        </svg>
 
-        <div class="palette-results">
-            @for (result of results(); track result.path; let i = $index) {
-            <div class="result-item" [class.selected]="i === selectedIndex()" (mouseenter)="selectedIndex.set(i)"
-                (click)="navigateTo(result.path)">
-                <span class="result-type badge" [attr.data-type]="result.type">{{ result.type }}</span>
-                <span class="result-title">{{ result.title }}</span>
-                <span class="result-hint">Navigate to page</span>
-            </div>
-            } @empty {
-            @if (query()) {
-            <div class="no-results">No matches found for "{{ query() }}"</div>
-            } @else {
-            <div class="palette-tips">
-                <div class="tip-item">Type to search students, teachers, or navigation links</div>
-                <div class="tip-item"><kbd>↑</kbd> <kbd>↓</kbd> to navigate</div>
-                <div class="tip-item"><kbd>Enter</kbd> to select</div>
-            </div>
-            }
-            }
-        </div>
+        <input
+          #searchInput
+          type="text"
+          [value]="query()"
+          placeholder="Search students, teachers, classes, or pages... (Esc to close)"
+          (input)="onSearch($any($event.target).value)"
+          (keydown.esc)="close()"
+          (keydown.arrowdown)="moveSelection(1)"
+          (keydown.arrowup)="moveSelection(-1)"
+          (keydown.enter)="selectItem()"
+          class="flex-1 bg-transparent text-sm md:text-base font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
+        />
 
-        <div class="palette-footer">
-            <div class="shortcut"><span>ESC</span> to close</div>
-            <div class="shortcut"><span>RET</span> to select</div>
-        </div>
+        <button (click)="close()" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-bg-tertiary dark:hover:bg-bg-tertiary/80 text-slate-500 dark:text-text-muted text-xs font-bold transition-colors cursor-pointer">
+          ESC
+        </button>
+      </div>
+
+      <!-- Search Results Feed -->
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
+        @for (result of results(); track result.path; let i = $index) {
+          <div
+            class="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl cursor-pointer transition-all border"
+            [ngClass]="{
+              'bg-indigo-50/80 dark:bg-indigo-950/40 border-indigo-200/80 dark:border-indigo-800/50 shadow-2xs': i === selectedIndex(),
+              'bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-bg-tertiary/60': i !== selectedIndex()
+            }"
+            (mouseenter)="selectedIndex.set(i)"
+            (click)="navigateTo(result.path)"
+          >
+            <!-- Badge Icon/Type -->
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs font-black uppercase"
+                 [ngClass]="{
+                   'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300': result.type === 'page',
+                   'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300': result.type === 'action',
+                   'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300': result.type === 'student',
+                   'bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300': result.type === 'teacher',
+                   'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300': result.type === 'class'
+                 }">
+              {{ result.type === 'action' ? 'ACT' : result.type[0] }}
+            </div>
+
+            <!-- Title & Description -->
+            <div class="flex-1 min-w-0">
+              <p class="text-xs md:text-sm font-bold text-slate-900 dark:text-white truncate">
+                {{ result.title }}
+              </p>
+              @if (result.description) {
+                <p class="text-[11px] font-medium text-slate-400 dark:text-text-muted truncate mt-0.5">
+                  {{ result.description }}
+                </p>
+              }
+            </div>
+
+            <!-- Enter Pill -->
+            @if (i === selectedIndex()) {
+              <span class="px-2 py-0.5 rounded-md bg-indigo-600 text-white text-[10px] font-bold shrink-0">
+                Jump &crarr;
+              </span>
+            }
+          </div>
+        } @empty {
+          @if (query()) {
+            <div class="py-12 text-center text-slate-400 dark:text-text-muted">
+              <svg class="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.3-4.3"/>
+              </svg>
+              <p class="text-xs font-semibold">No matches found for "{{ query() }}"</p>
+              <p class="text-[11px] text-slate-400 mt-1">Try searching for students, classes, fees, or grades</p>
+            </div>
+          } @else {
+            <div class="py-6 px-4 text-xs font-semibold text-slate-400 dark:text-text-muted text-center space-y-1">
+              <p>Type keywords to search anywhere across SchoolLinx</p>
+              <div class="flex items-center justify-center gap-2 pt-2 text-[11px]">
+                <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-bg-tertiary border border-slate-200/80 dark:border-border-primary font-mono">&uarr; &darr; navigate</span>
+                <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-bg-tertiary border border-slate-200/80 dark:border-border-primary font-mono">enter to select</span>
+                <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-bg-tertiary border border-slate-200/80 dark:border-border-primary font-mono">esc to close</span>
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Footer Bar -->
+      <div class="px-5 py-3 border-t border-slate-100 dark:border-border-primary/60 bg-slate-50/60 dark:bg-bg-tertiary/40 flex items-center justify-between text-[11px] text-slate-400 dark:text-text-muted font-medium">
+        <span class="flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          SchoolLinx Global Command Palette
+        </span>
+        <span class="font-bold text-slate-600 dark:text-slate-300">Tip: Press ⌘K anywhere</span>
+      </div>
     </div>
-</div>
+  </div>
 }

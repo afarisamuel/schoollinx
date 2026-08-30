@@ -1,9 +1,10 @@
-import { Component, input, output, signal, inject, PLATFORM_ID } from '@angular/core';
+import { Component, input, output, signal, inject, PLATFORM_ID, ElementRef, HostListener } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ThemeService } from '../../../core/infrastructure/theme/theme.service';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 import { AppNotification } from '../../../core/infrastructure/websocket/websocket.service';
+import { SearchService } from '../../../core/infrastructure/search/search.service';
 
 @Component({
   selector: 'app-navbar',
@@ -14,8 +15,10 @@ import { AppNotification } from '../../../core/infrastructure/websocket/websocke
 })
 export class NavbarComponent {
   themeService = inject(ThemeService);
+  searchService = inject(SearchService);
   private authService = inject(AuthService);
   private platformId = inject(PLATFORM_ID);
+  private elementRef = inject(ElementRef);
 
   // Inputs
   currentRouteTitle = input<string>('Dashboard');
@@ -33,6 +36,28 @@ export class NavbarComponent {
   isNotificationsOpen = signal<boolean>(false);
   isUserMenuOpen = signal<boolean>(false);
   isFullscreen = signal<boolean>(false);
+
+  // Close dropdowns on outside click
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const clickedInside = this.elementRef.nativeElement.contains(event.target);
+    if (!clickedInside) {
+      if (this.isNotificationsOpen()) this.isNotificationsOpen.set(false);
+      if (this.isUserMenuOpen()) this.isUserMenuOpen.set(false);
+    }
+  }
+
+  // Close on Escape key
+  @HostListener('document:keydown.escape')
+  onEscapePress(): void {
+    if (this.isNotificationsOpen()) this.isNotificationsOpen.set(false);
+    if (this.isUserMenuOpen()) this.isUserMenuOpen.set(false);
+  }
+
+  openSearch(): void {
+    this.searchService.open();
+  }
 
   userInitial(): string {
     const user = this.authService.currentUserValue;
@@ -66,12 +91,14 @@ export class NavbarComponent {
     }
   }
 
-  toggleNotifications(): void {
+  toggleNotifications(event?: MouseEvent): void {
+    if (event) event.stopPropagation();
     this.isNotificationsOpen.update(v => !v);
     if (this.isUserMenuOpen()) this.isUserMenuOpen.set(false);
   }
 
-  toggleUserMenu(): void {
+  toggleUserMenu(event?: MouseEvent): void {
+    if (event) event.stopPropagation();
     this.isUserMenuOpen.update(v => !v);
     if (this.isNotificationsOpen()) this.isNotificationsOpen.set(false);
   }

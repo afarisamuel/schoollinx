@@ -12,8 +12,8 @@
     </div>
 
     <div class="flex items-center gap-3 shrink-0">
-      <button (click)="loadRealDashboardData()" class="px-4 py-2.5 rounded-2xl bg-white dark:bg-bg-secondary hover:bg-slate-50 dark:hover:bg-bg-tertiary text-slate-700 dark:text-text-primary border border-slate-200/80 dark:border-border-primary text-xs font-bold shadow-2xs transition-all flex items-center gap-2 cursor-pointer active:scale-95">
-        <svg class="w-4 h-4 text-slate-500" [class.animate-spin]="isLoading()" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+      <button (click)="openExportDialog()" class="px-4 py-2.5 rounded-2xl bg-white dark:bg-bg-secondary hover:bg-slate-50 dark:hover:bg-bg-tertiary text-slate-700 dark:text-text-primary border border-slate-200/80 dark:border-border-primary text-xs font-bold shadow-2xs transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+        <svg class="w-4 h-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
         <span>Export Data</span>
       </button>
 
@@ -208,15 +208,39 @@
             Academic Performance & Grade Distribution
           </h2>
           <p class="text-xs font-medium text-slate-400 dark:text-text-muted mt-0.5">
-            Term evaluation breakdown across all cohorts
+            Evaluation breakdown across all cohorts for {{ selectedTerm() }}
           </p>
         </div>
 
-        <div class="flex items-center gap-2 self-start sm:self-auto">
-          <div class="px-3.5 py-1.5 rounded-xl bg-slate-50 dark:bg-bg-tertiary border border-slate-200/80 dark:border-border-primary text-xs font-bold text-slate-700 dark:text-text-primary flex items-center gap-2 cursor-pointer shadow-2xs">
-            <span>{{ currentAcademicTerm() }}</span>
+        <!-- Interactive Term Switching Pill Dropdown -->
+        <div class="relative">
+          <button
+            (click)="toggleTermDropdown()"
+            class="px-3.5 py-1.5 rounded-xl bg-slate-50 dark:bg-bg-tertiary border border-slate-200/80 dark:border-border-primary text-xs font-bold text-slate-700 dark:text-text-primary flex items-center gap-2 cursor-pointer shadow-2xs hover:bg-slate-100 dark:hover:bg-bg-tertiary/80 transition-all"
+          >
+            <span>{{ selectedTerm() }}</span>
             <svg class="w-3.5 h-3.5 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
-          </div>
+          </button>
+
+          @if (isTermDropdownOpen()) {
+            <div class="absolute right-0 top-10 w-36 bg-white dark:bg-bg-secondary border border-slate-200/80 dark:border-border-primary rounded-2xl shadow-xl p-1.5 z-40 animate-scale-up">
+              @for (term of ['Term 1', 'Term 2', 'Term 3', 'Annual']; track term) {
+                <button
+                  (click)="selectTerm(term)"
+                  class="w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center justify-between"
+                  [ngClass]="{
+                    'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400': selectedTerm() === term,
+                    'text-slate-700 dark:text-text-secondary hover:bg-slate-50 dark:hover:bg-bg-tertiary': selectedTerm() !== term
+                  }"
+                >
+                  <span>{{ term }}</span>
+                  @if (selectedTerm() === term) {
+                    <svg class="w-3 h-3 text-indigo-600 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                  }
+                </button>
+              }
+            </div>
+          }
         </div>
       </div>
 
@@ -305,5 +329,121 @@
     </div>
 
   </div>
+
+  <!-- ── 6. Export Institutional Data Modal Dialog ─────────────────── -->
+  @if (isExportModalOpen()) {
+    <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm animate-fade-in" (click)="closeExportDialog()">
+      <div
+        class="w-full max-w-lg bg-white dark:bg-bg-secondary border border-slate-200/80 dark:border-border-primary rounded-3xl shadow-2xl p-6 md:p-8 animate-scale-up space-y-6"
+        (click)="$event.stopPropagation()"
+      >
+        <!-- Modal Header -->
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h3 class="text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight">
+              Export Institutional Data
+            </h3>
+            <p class="text-xs text-slate-400 dark:text-text-muted mt-1">
+              Select an operational dataset or executive report to generate and download.
+            </p>
+          </div>
+          <button (click)="closeExportDialog()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-bg-tertiary dark:hover:bg-bg-tertiary/80 flex items-center justify-center text-slate-500 dark:text-text-muted transition-colors cursor-pointer">
+            &times;
+          </button>
+        </div>
+
+        <!-- Export Options Grid -->
+        <div class="space-y-3">
+
+          <!-- Option 1: Student Enrollment Roster -->
+          <div (click)="exportStudentRosterCSV()" class="p-4 rounded-2xl border border-slate-200/80 dark:border-border-primary hover:border-indigo-500 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/30 flex items-center justify-between gap-4 cursor-pointer transition-all group">
+            <div class="flex items-center gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">
+                  Student Enrollment Roster (CSV)
+                </p>
+                <p class="text-[11px] text-slate-400 dark:text-text-muted mt-0.5">
+                  Complete student directory, class streams, and enrollment status
+                </p>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-bg-tertiary text-slate-600 dark:text-text-muted text-[10px] font-black uppercase">
+              CSV
+            </span>
+          </div>
+
+          <!-- Option 2: Fee Collections Ledger -->
+          <div (click)="exportFinancialLedgerCSV()" class="p-4 rounded-2xl border border-slate-200/80 dark:border-border-primary hover:border-indigo-500 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/30 flex items-center justify-between gap-4 cursor-pointer transition-all group">
+            <div class="flex items-center gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6H2.25m0 0v10.5m0-10.5h1.5A.75.75 0 014.5 6v.75m0 0h14.25a.75.75 0 01.75.75v.75m-15.75 0v8.25m15.75-8.25v8.25m0 0a.75.75 0 01-.75.75H3.75"/></svg>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">
+                  Fee Collections & Tuition Ledger (CSV)
+                </p>
+                <p class="text-[11px] text-slate-400 dark:text-text-muted mt-0.5">
+                  Receipts, fee categories, payment status, and dates
+                </p>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-bg-tertiary text-slate-600 dark:text-text-muted text-[10px] font-black uppercase">
+              CSV
+            </span>
+          </div>
+
+          <!-- Option 3: Grade Distribution & Analytics -->
+          <div (click)="exportGradeDistributionCSV()" class="p-4 rounded-2xl border border-slate-200/80 dark:border-border-primary hover:border-indigo-500 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/30 flex items-center justify-between gap-4 cursor-pointer transition-all group">
+            <div class="flex items-center gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.25 2.25L15 7.5"/></svg>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">
+                  Academic Performance & Grade Roster (CSV)
+                </p>
+                <p class="text-[11px] text-slate-400 dark:text-text-muted mt-0.5">
+                  Assessment grade counts and percentiles for {{ selectedTerm() }}
+                </p>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-bg-tertiary text-slate-600 dark:text-text-muted text-[10px] font-black uppercase">
+              CSV
+            </span>
+          </div>
+
+          <!-- Option 4: Executive Summary (Print / PDF) -->
+          <div (click)="printExecutiveSummary()" class="p-4 rounded-2xl border border-slate-200/80 dark:border-border-primary hover:border-indigo-500 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/30 flex items-center justify-between gap-4 cursor-pointer transition-all group">
+            <div class="flex items-center gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24-1.076-.641-2.023-1.16-2.775-.541-.784-1.258-1.254-2.06-1.254a2.25 2.25 0 00-2.25 2.25c0 .762.386 1.455.986 1.874.62.433 1.436.657 2.378.718l2.106.187zm0 0v-3.75m0 3.75l2.42 2.42a2.25 2.25 0 003.182 0l4.243-4.243a2.25 2.25 0 000-3.182l-2.42-2.42m0 0l-3.75-3.75M9 3v3.75"/></svg>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">
+                  Executive Institutional Summary (Print / PDF)
+                </p>
+                <p class="text-[11px] text-slate-400 dark:text-text-muted mt-0.5">
+                  Print-ready high level dashboard telemetry report
+                </p>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase border border-rose-200/60">
+              PDF
+            </span>
+          </div>
+
+        </div>
+
+        <div class="pt-2 flex justify-end">
+          <button (click)="closeExportDialog()" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-bg-tertiary dark:hover:bg-bg-tertiary/80 text-slate-700 dark:text-white text-xs font-bold transition-colors cursor-pointer">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 
 </div>

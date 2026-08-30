@@ -10,11 +10,12 @@ import { AiChatbotComponent } from '../../ui/ai-chatbot/ai-chatbot.component';
 import { TenantProfileService, TenantProfile, SystemAnnouncement } from '../../../core/infrastructure/tenant-profile.service';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { NavbarComponent } from '../navbar/navbar.component';
+import { CommandPaletteComponent } from '../../components/command-palette/command-palette.component';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, CommonModule, AiChatbotComponent, SidebarComponent, NavbarComponent],
+  imports: [RouterOutlet, RouterLink, CommonModule, AiChatbotComponent, SidebarComponent, NavbarComponent, CommandPaletteComponent],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.css',
 })
