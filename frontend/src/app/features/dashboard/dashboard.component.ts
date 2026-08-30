@@ -14,6 +14,7 @@ import { AcademicPeriodService } from '../../core/infrastructure/academic-period
 import { AcademicPeriod } from '../../core/domain/academic-period.model';
 import { AttendanceService } from '../../core/infrastructure/attendance/attendance.service';
 import { CommunicationService } from '../../core/infrastructure/communication/communication.service';
+import { StudentService } from '../../core/infrastructure/student/student.service';
 
 export interface RollCallPupil {
   id: string;
@@ -42,6 +43,7 @@ export class DashboardComponent implements OnInit {
   private academicPeriodService = inject(AcademicPeriodService);
   private attendanceService = inject(AttendanceService);
   private communicationService = inject(CommunicationService);
+  private studentService = inject(StudentService);
   private platformId = inject(PLATFORM_ID);
   private isBrowser = isPlatformBrowser(this.platformId);
 
@@ -75,16 +77,8 @@ export class DashboardComponent implements OnInit {
   rollCallClass = signal<string>('Form 1A');
   rollCallDate = signal<string>(new Date().toISOString().slice(0, 10));
   rollCallSuccessMsg = signal<string>('');
-  rollCallRoster = signal<RollCallPupil[]>([
-    { id: '1', studentId: 'STU-1001', name: 'Kwame Owusu', initials: 'KO', status: 'PRESENT' },
-    { id: '2', studentId: 'STU-1002', name: 'Abena Kyei', initials: 'AK', status: 'PRESENT' },
-    { id: '3', studentId: 'STU-1003', name: 'Emmanuel Mensah', initials: 'EM', status: 'TARDY' },
-    { id: '4', studentId: 'STU-1004', name: 'Efua Adu', initials: 'EA', status: 'PRESENT' },
-    { id: '5', studentId: 'STU-1005', name: 'Kofi Boateng', initials: 'KB', status: 'ABSENT' },
-    { id: '6', studentId: 'STU-1006', name: 'Akosua Serwaa', initials: 'AS', status: 'PRESENT' },
-    { id: '7', studentId: 'STU-1007', name: 'Yaw Frimpong', initials: 'YF', status: 'PRESENT' },
-    { id: '8', studentId: 'STU-1008', name: 'Yaa Asantewaa', initials: 'YA', status: 'PRESENT' }
-  ]);
+  rollCallRoster = signal<RollCallPupil[]>([]);
+  isLoadingRoster = signal<boolean>(false);
 
   // Feature 2: Student & Parent Quick-Inspection Drawer
   isStudentInspectionOpen = signal<boolean>(false);
@@ -149,12 +143,20 @@ export class DashboardComponent implements OnInit {
     return count * 28;
   });
 
-  teacherSchedule = computed(() => [
-    { period: 'Period 1', time: '08:00 - 09:15', class: 'Form 1A', subject: this.teacherSubject(), room: 'Room 102', status: 'Completed' },
-    { period: 'Period 2', time: '09:30 - 10:45', class: 'Form 1B', subject: this.teacherSubject(), room: 'Room 104', status: 'In Progress' },
-    { period: 'Period 3', time: '11:15 - 12:30', class: 'Form 2A', subject: this.teacherSubject(), room: 'Science Lab A', status: 'Upcoming' },
-    { period: 'Period 4', time: '13:30 - 14:45', class: 'Office Hours', subject: 'Remedial & Guidance', room: 'Staff Room', status: 'Scheduled' }
-  ]);
+  teacherSchedule = computed(() => {
+    const assignments = this.teacherAssignments();
+    if (!assignments.length) return [];
+    // Build a timetable row for each class assignment.
+    // Period timing is not yet stored in the backend, so we show the class/subject pairings.
+    return assignments.map((a, i) => ({
+      period: `Period ${i + 1}`,
+      time: '—',
+      class: a.class?.name ?? 'Class',
+      subject: a.subject?.name ?? this.teacherSubject(),
+      room: '—',
+      status: 'Scheduled'
+    }));
+  });
 
   // Real Header Metadata
   currentAcademicPeriod = computed(() => {
@@ -261,19 +263,8 @@ export class DashboardComponent implements OnInit {
       });
     }
 
-    const rawCounts = [
-      { label: 'A', title: 'Grade A (Excellence 80-100%)', count: Math.round(166 * mult), color: '#10B981' },
-      { label: 'B', title: 'Grade B (Very Good 70-79%)', count: Math.round(255 * mult), color: '#6366F1' },
-      { label: 'C', title: 'Grade C (Credit 60-69%)', count: Math.round(224 * mult), color: '#3B82F6' },
-      { label: 'D', title: 'Grade D (Pass 50-59%)', count: Math.round(248 * mult), color: '#F59E0B' },
-      { label: 'F', title: 'Grade F (Remedial <50%)', count: Math.round(307 * mult), color: '#EF4444' }
-    ];
-
-    const sum = rawCounts.reduce((acc, c) => acc + c.count, 0) || 1;
-    return rawCounts.map(c => ({
-      ...c,
-      pct: Math.round((c.count / sum) * 100)
-    }));
+    // No real grade data available yet — return empty so the template can show an empty state.
+    return [];
   });
 
   totalGradedAssessments = computed(() => {
@@ -302,12 +293,8 @@ export class DashboardComponent implements OnInit {
       }));
     }
 
-    return [
-      { id: '1', initials: 'KO', name: 'Kwame Owusu', category: 'Tuition & PTA', invoiceNo: 'REC-1049', amount: 430, time: '3h ago', studentId: 'STU-1001', class: 'Form 1A', guardianName: 'Kofi Owusu', guardianPhone: '+233 24 412 3456', attendanceRate: 96.5, gpa: 84.2, balance: 120 },
-      { id: '2', initials: 'AK', name: 'Abena Kyei', category: 'Canteen & Feeding', invoiceNo: 'REC-1048', amount: 250, time: '1d ago', studentId: 'STU-1002', class: 'Form 1A', guardianName: 'Grace Kyei', guardianPhone: '+233 50 123 7890', attendanceRate: 98.0, gpa: 91.0, balance: 0 },
-      { id: '3', initials: 'EM', name: 'Emmanuel Mensah', category: 'School Bus Transit', invoiceNo: 'REC-1047', amount: 380, time: '2d ago', studentId: 'STU-1003', class: 'Form 1B', guardianName: 'David Mensah', guardianPhone: '+233 27 765 4321', attendanceRate: 89.2, gpa: 71.5, balance: 350 },
-      { id: '4', initials: 'EA', name: 'Efua Adu', category: 'Lab & Science Materials', invoiceNo: 'REC-1046', amount: 150, time: '4d ago', studentId: 'STU-1004', class: 'Form 2A', guardianName: 'Sarah Adu', guardianPhone: '+233 55 987 6543', attendanceRate: 94.0, gpa: 78.8, balance: 80 }
-    ];
+    // No real fiscal records available — return empty so the template shows an empty state.
+    return [];
   });
 
   ngOnInit() {
@@ -421,12 +408,37 @@ export class DashboardComponent implements OnInit {
   }
 
   // Feature 1: Quick Roll-Call Drawer Actions
-  openRollCall(className?: string) {
+  openRollCall(className?: string, classId?: string) {
     if (className) {
       this.rollCallClass.set(className);
     }
     this.rollCallSuccessMsg.set('');
+    this.rollCallRoster.set([]);
     this.isRollCallDrawerOpen.set(true);
+
+    // Determine which class ID to load students for
+    const targetClassId = classId
+      ?? this.teacherAssignments().find(a => a.class?.name === this.rollCallClass())?.class_id
+      ?? this.teacherAssignments()[0]?.class_id;
+
+    if (targetClassId) {
+      this.isLoadingRoster.set(true);
+      this.teacherPortalService.getClassStudents(targetClassId).subscribe({
+        next: (students: any[]) => {
+          this.rollCallRoster.set(
+            students.map(s => ({
+              id: s.id,
+              studentId: s.enrollment_num || s.id,
+              name: `${s.first_name} ${s.last_name}`,
+              initials: (s.first_name[0] + s.last_name[0]).toUpperCase(),
+              status: 'PRESENT' as const
+            }))
+          );
+          this.isLoadingRoster.set(false);
+        },
+        error: () => this.isLoadingRoster.set(false)
+      });
+    }
   }
 
   closeRollCall() {
@@ -560,16 +572,18 @@ export class DashboardComponent implements OnInit {
 
   exportStudentRosterCSV() {
     const header = 'Student ID,Full Name,Class,Enrollment Status\n';
-    const rows = [
-      'STU-1001,Kwame Owusu,Form 1A,Active',
-      'STU-1002,Abena Kyei,Form 1A,Active',
-      'STU-1003,Emmanuel Mensah,Form 1B,Active',
-      'STU-1004,Efua Adu,Form 2A,Active',
-      'STU-1005,Kofi Boateng,Form 2B,Active',
-      'STU-1006,Akosua Serwaa,Form 3A,Active'
-    ].join('\n');
-
-    this.downloadCSV(header + rows, `SchoolLinx_Student_Roster_${this.selectedTerm().replace(/\s+/g, '_')}.csv`);
+    this.studentService.getStudents().subscribe({
+      next: students => {
+        const rows = students.map(s =>
+          `${s.enrollment_num ?? s.id},"${s.first_name} ${s.last_name}","${s.class_name ?? ''}",Active`
+        ).join('\n');
+        this.downloadCSV(header + rows, `SchoolLinx_Student_Roster_${this.selectedTerm().replace(/\s+/g, '_')}.csv`);
+      },
+      error: () => {
+        // If fetch fails, export empty CSV with headers only
+        this.downloadCSV(header, `SchoolLinx_Student_Roster_${this.selectedTerm().replace(/\s+/g, '_')}.csv`);
+      }
+    });
     this.closeExportDialog();
   }
 
