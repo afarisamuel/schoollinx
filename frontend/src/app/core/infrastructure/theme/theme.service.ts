@@ -18,9 +18,11 @@ export class ThemeService {
             if (savedTheme) {
                 this.theme.set(savedTheme);
                 this.applyTheme(savedTheme);
-            } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-                this.theme.set('light');
-                this.applyTheme('light');
+            } else {
+                const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+                const defaultTheme: Theme = prefersLight ? 'light' : 'dark';
+                this.theme.set(defaultTheme);
+                this.applyTheme(defaultTheme);
             }
         }
     }
@@ -39,8 +41,10 @@ export class ThemeService {
 
         if (currentTheme === 'light') {
             document.documentElement.classList.add('light-mode');
+            document.documentElement.classList.remove('dark');
         } else {
             document.documentElement.classList.remove('light-mode');
+            document.documentElement.classList.add('dark');
         }
     }
 }
