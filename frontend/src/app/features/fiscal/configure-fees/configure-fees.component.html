@@ -118,11 +118,125 @@
                 Daily Fees
                 <span class="ml-2 px-2 py-0.5 rounded-full bg-bg-tertiary border border-border-primary text-[9px]">{{ dailyFees().length }}</span>
             </button>
+            <button 
+                (click)="activeTab.set('installments')"
+                [class.text-indigo-400]="activeTab() === 'installments'"
+                [class.border-indigo-500]="activeTab() === 'installments'"
+                [class.border-transparent]="activeTab() !== 'installments'"
+                class="px-4 py-3 text-sm font-bold tracking-wider uppercase border-b-2 text-text-muted hover:text-text-primary transition-colors flex items-center gap-2">
+                Installment Milestones
+                <span class="ml-1 px-2 py-0.5 rounded-full bg-bg-tertiary border border-border-primary text-[9px] text-emerald-400 font-black">
+                    {{ installmentPlan().milestones.length }} Stages
+                </span>
+            </button>
         </div>
       </div>
 
       <!-- Table Body -->
-      @if ((activeTab() === 'term' ? termFees() : dailyFees()).length === 0) {
+      @if (activeTab() === 'installments') {
+        <!-- Installment Milestones Configuration Body -->
+        <div class="p-6 flex-1 flex flex-col gap-6">
+          
+          <!-- Presets Row -->
+          <div>
+            <label class="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2.5">Schedule Presets</label>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <button type="button" (click)="applyInstallmentPreset('40-30-30')"
+                      class="p-2.5 rounded-xl border border-border-primary hover:border-indigo-500/50 bg-bg-tertiary/60 hover:bg-bg-tertiary text-left transition-all group">
+                <span class="block text-xs font-black text-text-primary group-hover:text-indigo-400">40 / 30 / 30</span>
+                <span class="text-[10px] text-text-muted">Standard 3-Tier</span>
+              </button>
+              <button type="button" (click)="applyInstallmentPreset('50-50')"
+                      class="p-2.5 rounded-xl border border-border-primary hover:border-indigo-500/50 bg-bg-tertiary/60 hover:bg-bg-tertiary text-left transition-all group">
+                <span class="block text-xs font-black text-text-primary group-hover:text-indigo-400">50 / 50</span>
+                <span class="text-[10px] text-text-muted">Biannual Split</span>
+              </button>
+              <button type="button" (click)="applyInstallmentPreset('60-40')"
+                      class="p-2.5 rounded-xl border border-border-primary hover:border-indigo-500/50 bg-bg-tertiary/60 hover:bg-bg-tertiary text-left transition-all group">
+                <span class="block text-xs font-black text-text-primary group-hover:text-indigo-400">60 / 40</span>
+                <span class="text-[10px] text-text-muted">Enrollment & Finals</span>
+              </button>
+              <button type="button" (click)="applyInstallmentPreset('25-25-25-25')"
+                      class="p-2.5 rounded-xl border border-border-primary hover:border-indigo-500/50 bg-bg-tertiary/60 hover:bg-bg-tertiary text-left transition-all group">
+                <span class="block text-xs font-black text-text-primary group-hover:text-indigo-400">25 x 4</span>
+                <span class="text-[10px] text-text-muted">Quarterly Plan</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Milestones List -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <label class="text-[10px] font-black text-text-muted uppercase tracking-widest">Installment Stages</label>
+              <button type="button" (click)="addMilestone()"
+                      class="px-3 py-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 text-xs font-bold transition-all flex items-center gap-1.5">
+                <i class="fas fa-plus text-[10px]"></i>
+                <span>Add Stage</span>
+              </button>
+            </div>
+
+            <div class="space-y-2.5">
+              @for (m of installmentPlan().milestones; track $index) {
+                <div class="p-4 bg-bg-tertiary/40 border border-border-primary/60 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <div class="w-8 h-8 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center font-black text-xs shrink-0 border border-indigo-500/20">
+                    {{ m.index }}
+                  </div>
+
+                  <div class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2.5 w-full">
+                    <div>
+                      <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1">Stage Title</span>
+                      <input type="text" [(ngModel)]="m.title" (ngModelChange)="updateScheduleText()"
+                             class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-bold focus:ring-2 focus:ring-indigo-500/50">
+                    </div>
+                    <div>
+                      <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1">Trigger / Milestone</span>
+                      <input type="text" [(ngModel)]="m.description"
+                             class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-medium focus:ring-2 focus:ring-indigo-500/50">
+                    </div>
+                    <div>
+                      <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1">Percentage (%)</span>
+                      <div class="relative">
+                        <input type="number" min="1" max="100" [(ngModel)]="m.percentage" (ngModelChange)="updateScheduleText()"
+                               class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-emerald-400 font-black focus:ring-2 focus:ring-indigo-500/50">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-text-muted">%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  @if (installmentPlan().milestones.length > 1) {
+                    <button (click)="removeMilestone($index)"
+                            class="p-2 rounded-xl text-text-muted hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all shrink-0 cursor-pointer"
+                            title="Remove Stage">
+                      <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Total Percentage Validation Bar -->
+          <div class="p-4 rounded-2xl border flex items-center justify-between mt-auto"
+               [ngClass]="installmentTotalPct() === 100 ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'">
+            <div class="flex items-center gap-2">
+              <i class="fas" [ngClass]="installmentTotalPct() === 100 ? 'fa-check-circle text-emerald-400' : 'fa-exclamation-triangle text-rose-400'"></i>
+              <div>
+                <span class="text-xs font-black block" [ngClass]="installmentTotalPct() === 100 ? 'text-emerald-400' : 'text-rose-400'">
+                  {{ installmentTotalPct() === 100 ? 'Schedule Balanced (100%)' : 'Imbalanced Percentages: ' + installmentTotalPct() + '%' }}
+                </span>
+                <span class="text-[10px] text-text-muted font-medium">
+                  {{ installmentTotalPct() === 100 ? 'Ready to apply across all student tuition accounts.' : 'Total must equal exactly 100% before saving.' }}
+                </span>
+              </div>
+            </div>
+
+            <span class="text-lg font-black" [ngClass]="installmentTotalPct() === 100 ? 'text-emerald-400' : 'text-rose-400'">
+              {{ installmentTotalPct() }}%
+            </span>
+          </div>
+
+        </div>
+      } @else if ((activeTab() === 'term' ? termFees() : dailyFees()).length === 0) {
         <div class="flex-1 flex flex-col items-center justify-center py-20 px-6 text-center">
           <div class="w-16 h-16 rounded-3xl bg-bg-tertiary border border-border-primary flex items-center justify-center mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-text-muted"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -198,21 +312,99 @@
       }
     </div>
 
-    <!-- RIGHT: Add Fee Form -->
-    <div class="bg-bg-secondary/40 backdrop-blur-xl border border-border-primary/50 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex flex-col gap-5 h-fit">
-      <!-- Corner accent -->
-      <div class="absolute -top-20 -right-20 w-48 h-48 bg-indigo-500/10 rounded-full blur-[60px] pointer-events-none"></div>
-      <div class="absolute -bottom-20 -left-20 w-48 h-48 bg-purple-500/10 rounded-full blur-[60px] pointer-events-none"></div>
-
-      <div class="flex items-center gap-3 relative z-10 pb-4 border-b border-border-primary/50">
-        <div class="w-8 h-8 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+    <!-- RIGHT COLUMN -->
+    @if (activeTab() === 'installments') {
+      <!-- RIGHT: Installment Policy Controls & Live Parent Preview -->
+      <div class="bg-bg-secondary/40 backdrop-blur-xl border border-border-primary/50 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex flex-col gap-5 h-fit">
+        <div class="flex items-center gap-3 relative z-10 pb-4 border-b border-border-primary/50">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div>
+            <h3 class="font-black text-text-primary text-sm">Policy Configuration</h3>
+            <p class="text-[10px] text-text-muted font-medium mt-0.5">Deployment controls & parent view</p>
+          </div>
         </div>
-        <div>
-          <h3 class="font-black text-text-primary text-sm">Add Fee Entry</h3>
-          <p class="text-[10px] text-text-muted font-medium mt-0.5">Define a new charge for this term</p>
+
+        <div class="space-y-4 relative z-10">
+          <!-- Policy Title -->
+          <div>
+            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Policy Title</label>
+            <input type="text" [(ngModel)]="installmentPlan().name"
+                   class="w-full bg-bg-tertiary/80 border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+          </div>
+
+          <!-- Schedule Display -->
+          <div>
+            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Schedule Label</label>
+            <input type="text" [(ngModel)]="installmentPlan().schedule_text"
+                   class="w-full bg-bg-tertiary/80 border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+          </div>
+
+          <!-- Active Toggle -->
+          <div class="flex items-center justify-between p-4 bg-bg-tertiary/50 border border-border-primary rounded-xl">
+            <div>
+              <label class="block text-[11px] font-black text-text-primary uppercase tracking-widest mb-0.5">Enable Split-Tuition</label>
+              <p class="text-[9px] text-text-muted font-medium leading-tight">Allow guardians to pay fees in scheduled installment milestones.</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" [(ngModel)]="installmentPlan().is_enabled" class="sr-only peer">
+              <div class="w-11 h-6 bg-bg-secondary peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-text-muted peer-checked:after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 border border-border-primary transition-all"></div>
+            </label>
+          </div>
+
+          <!-- Live Parent Preview Card -->
+          <div class="p-4 rounded-2xl bg-bg-secondary border border-border-primary space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-[9px] font-black uppercase tracking-widest text-emerald-400">Parent Portal Live Preview</span>
+              <span class="text-[10px] font-bold text-text-muted font-mono">{{ installmentPlan().schedule_text }}</span>
+            </div>
+            <p class="text-xs font-bold text-text-primary">Simulated Ward (Tuition: GH₵2,500.00)</p>
+            <div class="grid grid-cols-1 gap-2">
+              @for (m of installmentPlan().milestones; track m.index) {
+                <div class="p-2.5 bg-bg-tertiary rounded-xl border border-border-primary flex items-center justify-between">
+                  <div>
+                    <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block">{{ m.title }} ({{ m.percentage }}%)</span>
+                    <span class="text-xs font-black text-text-primary">GH₵{{ (2500 * (m.percentage / 100)).toFixed(2) }}</span>
+                  </div>
+                  <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-bg-secondary border border-border-primary text-text-muted">{{ m.description }}</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Save Button -->
+          <button
+            (click)="saveInstallmentPlan()"
+            [disabled]="savingInstallments() || installmentTotalPct() !== 100"
+            class="relative z-10 w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-500/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-white/10 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            @if (savingInstallments()) {
+              <span class="w-3.5 h-3.5 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
+              Saving Policy...
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Deploy Milestone Policy
+            }
+          </button>
         </div>
       </div>
+    } @else {
+      <!-- RIGHT: Add Fee Form -->
+      <div class="bg-bg-secondary/40 backdrop-blur-xl border border-border-primary/50 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex flex-col gap-5 h-fit">
+        <!-- Corner accent -->
+        <div class="absolute -top-20 -right-20 w-48 h-48 bg-indigo-500/10 rounded-full blur-[60px] pointer-events-none"></div>
+        <div class="absolute -bottom-20 -left-20 w-48 h-48 bg-purple-500/10 rounded-full blur-[60px] pointer-events-none"></div>
+
+        <div class="flex items-center gap-3 relative z-10 pb-4 border-b border-border-primary/50">
+          <div class="w-8 h-8 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          </div>
+          <div>
+            <h3 class="font-black text-text-primary text-sm">Add Fee Entry</h3>
+            <p class="text-[10px] text-text-muted font-medium mt-0.5">Define a new charge for this term</p>
+          </div>
+        </div>
 
       <div class="space-y-5 relative z-10">
 
@@ -343,6 +535,7 @@
         Save Fee Structure
       </button>
     </div>
+    }
 
   </div>
 </div>

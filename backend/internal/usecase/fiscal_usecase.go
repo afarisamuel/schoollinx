@@ -822,10 +822,6 @@ func (u *fiscalUseCase) CreateInstallmentAgreement(ctx context.Context, studentI
 		PenaltyPct:     5.0, // Default 5% late penalty
 	}
 
-	if err := u.fiscalRepo.CreateInstallmentAgreement(ctx, agreement); err != nil {
-		return nil, err
-	}
-
 	// Persist milestones
 	for i, m := range milestones {
 		m.ID = uuid.New()
@@ -834,6 +830,10 @@ func (u *fiscalUseCase) CreateInstallmentAgreement(ctx context.Context, studentI
 		m.Status = "PENDING"
 		m.AmountPaid = 0
 		agreement.Milestones = append(agreement.Milestones, m)
+	}
+
+	if err := u.fiscalRepo.CreateInstallmentAgreement(ctx, agreement); err != nil {
+		return nil, err
 	}
 
 	return agreement, nil
@@ -1031,5 +1031,43 @@ func (u *fiscalUseCase) GetExchangeRates(ctx context.Context) (map[string]float6
 
 	return liveRates, nil
 }
+
+func (u *fiscalUseCase) GetInstallmentPlanTemplate(ctx context.Context) (*domain.InstallmentPlanTemplate, error) {
+	tpl, err := u.fiscalRepo.GetInstallmentPlanTemplate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if tpl == nil {
+		return &domain.InstallmentPlanTemplate{
+			Name:         "Standard 3-Tier Split",
+			ScheduleText: "40% / 30% / 30% Schedule",
+			IsEnabled:    true,
+			Milestones: []domain.InstallmentPlanMilestoneDef{
+				{Index: 1, Title: "Milestone 1", Description: "Term Registration", Percentage: 40.0, DueTrigger: "Term Registration"},
+				{Index: 2, Title: "Milestone 2", Description: "Mid-Term Assessment", Percentage: 30.0, DueTrigger: "Mid-Term Assessment"},
+				{Index: 3, Title: "Milestone 3", Description: "Final Examinations", Percentage: 30.0, DueTrigger: "Final Examinations"},
+			},
+		}, nil
+	}
+	return tpl, nil
+}
+
+func (u *fiscalUseCase) SaveInstallmentPlanTemplate(ctx context.Context, template *domain.InstallmentPlanTemplate) (*domain.InstallmentPlanTemplate, error) {
+	if template.Name == "" {
+		template.Name = "Custom Installment Plan"
+	}
+	if template.ScheduleText == "" && len(template.Milestones) > 0 {
+		var parts []string
+		for _, m := range template.Milestones {
+			parts = append(parts, fmt.Sprintf("%.0f%%", m.Percentage))
+		}
+		template.ScheduleText = strings.Join(parts, " / ") + " Schedule"
+	}
+	if err := u.fiscalRepo.SaveInstallmentPlanTemplate(ctx, template); err != nil {
+		return nil, err
+	}
+	return template, nil
+}
+
 
 

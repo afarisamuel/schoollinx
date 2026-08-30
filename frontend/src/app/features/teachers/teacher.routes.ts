@@ -9,6 +9,13 @@ export const teacherRoutes: Routes = [
         data: { roles: ['ADMIN'] }
     },
     {
+        path: 'assignments',
+        loadComponent: () => import('../admin/teacher-assignments/teacher-assignments.component').then(c => c.TeacherAssignmentsComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] },
+        title: 'Assign Teachers to Classes & Subjects'
+    },
+    {
         path: 'new',
         loadComponent: () => import('./teacher-form/teacher-form.component').then(c => c.TeacherFormComponent),
         canActivate: [roleGuard],

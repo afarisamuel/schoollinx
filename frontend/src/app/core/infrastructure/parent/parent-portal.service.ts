@@ -223,6 +223,18 @@ export class ParentPortalService {
         );
     }
 
+    getAllBusRoutes(): Observable<any[]> {
+        return this.http.get<any[]>('/api/logistics/routes').pipe(
+            catchError(() => of([]))
+        );
+    }
+
+    getStudentBusAssignment(studentId: string): Observable<any> {
+        return this.http.get<any>(`/api/logistics/transport/student/${studentId}`).pipe(
+            catchError(() => of(null))
+        );
+    }
+
     // ── Milestone 4: Houses, Boarding & Emergency Broadcasts ──────────────
     getHouseLeaderboard(): Observable<any[]> {
         return this.http.get<any[]>('/api/houses/leaderboard').pipe(

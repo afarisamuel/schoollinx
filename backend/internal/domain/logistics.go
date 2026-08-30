@@ -22,10 +22,11 @@ type TransportRoute struct {
 	CurrentLng             float64    `json:"current_lng" gorm:"default:0"`
 	SpeedKmh               float64    `json:"speed_kmh" gorm:"default:0"`
 	HeadingDeg             float64    `json:"heading_deg" gorm:"default:0"`
-	NextStopName           string     `json:"next_stop_name"`
-	EstimatedArrivalMins   int        `json:"estimated_arrival_mins" gorm:"default:0"`
-	LastPingAt             *time.Time `json:"last_ping_at"`
-	CreatedAt              time.Time  `json:"created_at"`
+	NextStopName           string      `json:"next_stop_name"`
+	EstimatedArrivalMins   int         `json:"estimated_arrival_mins" gorm:"default:0"`
+	LastPingAt             *time.Time  `json:"last_ping_at"`
+	Stops                  []RouteStop `json:"stops,omitempty" gorm:"foreignKey:RouteID"`
+	CreatedAt              time.Time   `json:"created_at"`
 }
 
 // RouteStop is a named pickup/dropoff point on a route
@@ -34,6 +35,8 @@ type RouteStop struct {
 	RouteID   uuid.UUID `json:"route_id" gorm:"type:uuid;not null;index"`
 	Name      string    `json:"name" gorm:"not null"`
 	Order     int       `json:"order" gorm:"not null"`
+	Status    string    `json:"status" gorm:"default:'UPCOMING'"` // DEPARTED, NEXT, UPCOMING
+	Time      string    `json:"time"`
 	CreatedAt time.Time `json:"created_at"`
 }
 

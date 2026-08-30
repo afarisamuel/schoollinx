@@ -59,6 +59,10 @@ type Tenant struct {
 	UpdatedAt        time.Time `json:"updated_at"`
 }
 
+func (Tenant) TableName() string {
+	return "public.tenants"
+}
+
 func (t *Tenant) BeforeCreate(tx *gorm.DB) (err error) {
 	if t.ID == uuid.Nil {
 		t.ID = uuid.New()

@@ -22,7 +22,9 @@ func NewLogisticsRepository(db *gorm.DB) domain.LogisticsRepository {
 // Transport
 func (r *logisticsRepository) GetRoutes(ctx context.Context) ([]domain.TransportRoute, error) {
 	var routes []domain.TransportRoute
-	if err := r.db.WithContext(ctx).Find(&routes).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload("Stops", func(db *gorm.DB) *gorm.DB {
+		return db.Order("route_stops.order ASC")
+	}).Find(&routes).Error; err != nil {
 		return nil, err
 	}
 	return routes, nil
@@ -30,7 +32,9 @@ func (r *logisticsRepository) GetRoutes(ctx context.Context) ([]domain.Transport
 
 func (r *logisticsRepository) GetRouteByID(ctx context.Context, id uuid.UUID) (*domain.TransportRoute, error) {
 	var route domain.TransportRoute
-	if err := r.db.WithContext(ctx).First(&route, "id = ?", id).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload("Stops", func(db *gorm.DB) *gorm.DB {
+		return db.Order("route_stops.order ASC")
+	}).First(&route, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 	return &route, nil
@@ -51,6 +55,15 @@ func (r *logisticsRepository) UpdateRouteGPS(ctx context.Context, routeID uuid.U
 }
 
 func (r *logisticsRepository) CreateRoute(ctx context.Context, route *domain.TransportRoute) error {
+	if route.ID == uuid.Nil {
+		route.ID = uuid.New()
+	}
+	for i := range route.Stops {
+		if route.Stops[i].ID == uuid.Nil {
+			route.Stops[i].ID = uuid.New()
+		}
+		route.Stops[i].RouteID = route.ID
+	}
 	return r.db.WithContext(ctx).Create(route).Error
 }
 

@@ -2,10 +2,11 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { FiscalService, FeeStructure } from '../../../core/infrastructure/fiscal/fiscal.service';
+import { FiscalService, FeeStructure, InstallmentPlanTemplate, InstallmentPlanMilestoneDef } from '../../../core/infrastructure/fiscal/fiscal.service';
 import { AcademicPeriodService } from '../../../core/infrastructure/academic-period/academic-period.service';
 import { AcademicPeriod } from '../../../core/domain/academic-period.model';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
+import { ToastService } from '../../../shared/ui/toast/toast.service';
 
 interface CategoryMeta {
   key: string;
@@ -24,13 +25,30 @@ export class ConfigureFeesComponent implements OnInit {
   private fiscalService = inject(FiscalService);
   private academicPeriodService = inject(AcademicPeriodService);
   private dialog = inject(DialogService);
+  private toast = inject(ToastService);
 
   activePeriod = signal<AcademicPeriod | null>(null);
   feeStructures = signal<FeeStructure[]>([]);
   generatingFees = signal(false);
   generatingDailyFees = signal(false);
 
-  activeTab = signal<'term' | 'daily'>('term');
+  activeTab = signal<'term' | 'daily' | 'installments'>('term');
+
+  // Installment Plan Configuration State
+  installmentPlan = signal<InstallmentPlanTemplate>({
+    name: 'Standard 3-Tier Split',
+    schedule_text: '40% / 30% / 30% Schedule',
+    is_enabled: true,
+    milestones: [
+      { index: 1, title: 'Milestone 1', description: 'Term Registration', percentage: 40, due_trigger: 'Term Registration' },
+      { index: 2, title: 'Milestone 2', description: 'Mid-Term Assessment', percentage: 30, due_trigger: 'Mid-Term Assessment' },
+      { index: 3, title: 'Milestone 3', description: 'Final Examinations', percentage: 30, due_trigger: 'Final Examinations' }
+    ]
+  });
+  savingInstallments = signal(false);
+  installmentTotalPct = computed(() =>
+    this.installmentPlan().milestones.reduce((sum, m) => sum + (Number(m.percentage) || 0), 0)
+  );
 
   termFees = computed(() => this.feeStructures().filter(f => f.is_term_fee || f.frequency !== 'DAILY'));
   dailyFees = computed(() => this.feeStructures().filter(f => !f.is_term_fee || f.frequency === 'DAILY'));
@@ -71,6 +89,7 @@ export class ConfigureFeesComponent implements OnInit {
 
   ngOnInit() {
     this.loadActivePeriod();
+    this.loadInstallmentSettings();
   }
 
   loadActivePeriod() {
@@ -200,6 +219,128 @@ export class ConfigureFeesComponent implements OnInit {
             this.dialog.alert(err?.error?.error || 'Failed to generate daily bills.', 'Error', 'danger').subscribe();
           }
         });
+      }
+    });
+  }
+
+  // ── Installment Milestone Policy Methods ─────────────────────────────
+
+  loadInstallmentSettings() {
+    this.fiscalService.getInstallmentSettings().subscribe({
+      next: (plan) => {
+        if (plan && plan.milestones && plan.milestones.length > 0) {
+          this.installmentPlan.set(plan);
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  applyInstallmentPreset(type: '40-30-30' | '50-50' | '60-40' | '25-25-25-25') {
+    if (type === '40-30-30') {
+      this.installmentPlan.set({
+        name: 'Standard 3-Tier Split',
+        schedule_text: '40% / 30% / 30% Schedule',
+        is_enabled: true,
+        milestones: [
+          { index: 1, title: 'Milestone 1', description: 'Term Registration', percentage: 40, due_trigger: 'Term Registration' },
+          { index: 2, title: 'Milestone 2', description: 'Mid-Term Assessment', percentage: 30, due_trigger: 'Mid-Term Assessment' },
+          { index: 3, title: 'Milestone 3', description: 'Final Examinations', percentage: 30, due_trigger: 'Final Examinations' }
+        ]
+      });
+    } else if (type === '50-50') {
+      this.installmentPlan.set({
+        name: 'Biannual Split',
+        schedule_text: '50% / 50% Schedule',
+        is_enabled: true,
+        milestones: [
+          { index: 1, title: 'Milestone 1', description: 'Term Registration', percentage: 50, due_trigger: 'Term Registration' },
+          { index: 2, title: 'Milestone 2', description: 'Mid-Term Clearance', percentage: 50, due_trigger: 'Mid-Term Assessment' }
+        ]
+      });
+    } else if (type === '60-40') {
+      this.installmentPlan.set({
+        name: 'Admission & Clearance Split',
+        schedule_text: '60% / 40% Schedule',
+        is_enabled: true,
+        milestones: [
+          { index: 1, title: 'Milestone 1', description: 'Term Registration & Enrollment', percentage: 60, due_trigger: 'Term Registration' },
+          { index: 2, title: 'Milestone 2', description: 'Exam Clearance', percentage: 40, due_trigger: 'Final Examinations' }
+        ]
+      });
+    } else if (type === '25-25-25-25') {
+      this.installmentPlan.set({
+        name: 'Quarterly 4-Tier Plan',
+        schedule_text: '25% / 25% / 25% / 25% Schedule',
+        is_enabled: true,
+        milestones: [
+          { index: 1, title: 'Milestone 1', description: 'First Month Registration', percentage: 25, due_trigger: 'Term Registration' },
+          { index: 2, title: 'Milestone 2', description: 'Month 2 Installment', percentage: 25, due_trigger: 'Month 2' },
+          { index: 3, title: 'Milestone 3', description: 'Month 3 Installment', percentage: 25, due_trigger: 'Month 3' },
+          { index: 4, title: 'Milestone 4', description: 'Final Month Clearance', percentage: 25, due_trigger: 'Final Examinations' }
+        ]
+      });
+    }
+  }
+
+  addMilestone() {
+    const cur = this.installmentPlan();
+    const nextIdx = cur.milestones.length + 1;
+    const remaining = Math.max(0, 100 - this.installmentTotalPct());
+    this.installmentPlan.update(p => ({
+      ...p,
+      milestones: [
+        ...p.milestones,
+        {
+          index: nextIdx,
+          title: `Milestone ${nextIdx}`,
+          description: `Installment Phase ${nextIdx}`,
+          percentage: remaining,
+          due_trigger: `Phase ${nextIdx}`
+        }
+      ]
+    }));
+    this.updateScheduleText();
+  }
+
+  removeMilestone(idx: number) {
+    this.installmentPlan.update(p => {
+      const updated = p.milestones.filter((_, i) => i !== idx).map((m, i) => ({
+        ...m,
+        index: i + 1,
+        title: `Milestone ${i + 1}`
+      }));
+      return { ...p, milestones: updated };
+    });
+    this.updateScheduleText();
+  }
+
+  updateScheduleText() {
+    const m = this.installmentPlan().milestones;
+    const parts = m.map(x => `${x.percentage || 0}%`);
+    this.installmentPlan.update(p => ({
+      ...p,
+      schedule_text: parts.join(' / ') + ' Schedule'
+    }));
+  }
+
+  saveInstallmentPlan() {
+    if (this.installmentTotalPct() !== 100) {
+      this.toast.error(`Milestone percentages sum to ${this.installmentTotalPct()}%. They must sum to exactly 100%.`, 'Invalid Percentages');
+      return;
+    }
+
+    this.savingInstallments.set(true);
+    this.updateScheduleText();
+    this.fiscalService.saveInstallmentSettings(this.installmentPlan()).subscribe({
+      next: (saved) => {
+        this.savingInstallments.set(false);
+        this.installmentPlan.set(saved);
+        this.toast.success('Tuition installment milestone policy saved and deployed to parent portals.', 'Installment Policy Saved');
+      },
+      error: (err) => {
+        this.savingInstallments.set(false);
+        this.toast.error(err?.error?.error || 'Failed to save installment milestone policy.', 'Error');
       }
     });
   }

@@ -303,6 +303,31 @@ export class FiscalService {
     canteenPOSCharge(payload: { student_id: string; amount: number; item_name: string }): Observable<any> {
         return this.http.post<any>(`${this.apiUrl}/canteen/pos-charge`, payload);
     }
+
+    // Installment Settings
+    getInstallmentSettings(): Observable<InstallmentPlanTemplate> {
+        return this.http.get<InstallmentPlanTemplate>(`${this.apiUrl}/installment-settings`);
+    }
+
+    saveInstallmentSettings(settings: Partial<InstallmentPlanTemplate>): Observable<InstallmentPlanTemplate> {
+        return this.http.post<InstallmentPlanTemplate>(`${this.apiUrl}/installment-settings`, settings);
+    }
+}
+
+export interface InstallmentPlanMilestoneDef {
+    index: number;
+    title: string;
+    description: string;
+    percentage: number;
+    due_trigger?: string;
+}
+
+export interface InstallmentPlanTemplate {
+    id?: string;
+    name: string;
+    schedule_text: string;
+    is_enabled: boolean;
+    milestones: InstallmentPlanMilestoneDef[];
 }
 
 export type DailyBillStatus = 'PENDING' | 'PAID' | 'OVERDUE';

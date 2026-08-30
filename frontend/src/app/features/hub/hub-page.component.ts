@@ -193,12 +193,12 @@ export class HubPageComponent implements OnInit {
           subtitle: 'Manage teaching staff'
         },
         {
-          label: 'Faculty Allocation',
-          route: '/teacher-assignments',
+          label: 'Teacher Class & Subject Assignments',
+          route: '/teachers/assignments',
           color: '#00188F',
-          icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+          icon: 'M16 21v-2a4 4 0 0 1-4-4H6a4 4 0 0 0-4 4v2 M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
           roles: ['ADMIN'],
-          subtitle: 'Assign teachers to classes'
+          subtitle: 'Assign teachers to classes and subjects'
         },
         {
           label: 'Academic Assignments',

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -304,4 +305,30 @@ func (r *fiscalRepository) UpdateInstallmentMilestone(ctx context.Context, id uu
 	}
 	return r.db.WithContext(ctx).Model(&domain.InstallmentMilestone{}).Where("id = ?", id).Updates(updates).Error
 }
+
+func (r *fiscalRepository) GetInstallmentPlanTemplate(ctx context.Context) (*domain.InstallmentPlanTemplate, error) {
+	var template domain.InstallmentPlanTemplate
+	err := r.db.WithContext(ctx).Order("updated_at DESC").First(&template).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &template, nil
+}
+
+func (r *fiscalRepository) SaveInstallmentPlanTemplate(ctx context.Context, template *domain.InstallmentPlanTemplate) error {
+	var existing domain.InstallmentPlanTemplate
+	err := r.db.WithContext(ctx).First(&existing).Error
+	if err == nil {
+		template.ID = existing.ID
+		return r.db.WithContext(ctx).Save(template).Error
+	}
+	if template.ID == uuid.Nil {
+		template.ID = uuid.New()
+	}
+	return r.db.WithContext(ctx).Create(template).Error
+}
+
 

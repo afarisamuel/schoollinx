@@ -47,7 +47,7 @@ func TenantMiddleware(db *gorm.DB) gin.HandlerFunc {
 		// 1. Try X-Tenant-Subdomain header (Developer convenience/resilience)
 		if sub := c.GetHeader("X-Tenant-Subdomain"); sub != "" {
 			var t domain.Tenant
-			if err := db.Where("subdomain = ?", sub).First(&t).Error; err == nil {
+			if err := db.Table("public.tenants").Where("subdomain = ?", sub).First(&t).Error; err == nil {
 				if !t.IsActive {
 					c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "This tenant account has been suspended"})
 					return
@@ -62,7 +62,7 @@ func TenantMiddleware(db *gorm.DB) gin.HandlerFunc {
 		if tenantStr := c.GetHeader("X-Tenant-ID"); tenantStr != "" {
 			if parsedUUID, err := uuid.Parse(tenantStr); err == nil {
 				var t domain.Tenant
-				if err := db.Where("id = ?", parsedUUID).First(&t).Error; err == nil {
+				if err := db.Table("public.tenants").Where("id = ?", parsedUUID).First(&t).Error; err == nil {
 					if !t.IsActive {
 						c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "This tenant account has been suspended"})
 						return
@@ -79,7 +79,7 @@ func TenantMiddleware(db *gorm.DB) gin.HandlerFunc {
 		// 3. Fallback for query parameter (useful for WebSockets)
 		if tenantQuery := c.Query("tenant"); tenantQuery != "" {
 			var t domain.Tenant
-			if err := db.Where("subdomain = ?", tenantQuery).First(&t).Error; err == nil {
+			if err := db.Table("public.tenants").Where("subdomain = ?", tenantQuery).First(&t).Error; err == nil {
 				if !t.IsActive {
 					c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "This tenant account has been suspended"})
 					return
@@ -95,11 +95,16 @@ func TenantMiddleware(db *gorm.DB) gin.HandlerFunc {
 
 		// 1. First, check if there's a custom domain mapped to the exact Host
 		var t domain.Tenant
-		err := db.Where("custom_domain = ?", host).First(&t).Error
+		err := db.Table("public.tenants").Where("custom_domain = ?", host).First(&t).Error
 
 		// 2. If no custom domain matches, fallback to subdomain matching
 		if err != nil && subdomain != "" && subdomain != "www" && subdomain != "localhost" && subdomain != "127" {
-			err = db.Where("subdomain = ?", subdomain).First(&t).Error
+			err = db.Table("public.tenants").Where("subdomain = ?", subdomain).First(&t).Error
+		}
+
+		// 3. Fallback for localhost development: default to first active tenant
+		if err != nil && (strings.HasPrefix(host, "localhost") || strings.HasPrefix(host, "127.0.0.1")) {
+			err = db.Table("public.tenants").Where("is_active = true").First(&t).Error
 		}
 
 		if err == nil {

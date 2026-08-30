@@ -178,6 +178,8 @@ type FiscalRepository interface {
 	GetInstallmentAgreementsByStudent(ctx context.Context, studentID uuid.UUID) ([]InstallmentAgreement, error)
 	GetInstallmentMilestoneByID(ctx context.Context, id uuid.UUID) (*InstallmentMilestone, error)
 	UpdateInstallmentMilestone(ctx context.Context, id uuid.UUID, amountPaid float64, status string) error
+	GetInstallmentPlanTemplate(ctx context.Context) (*InstallmentPlanTemplate, error)
+	SaveInstallmentPlanTemplate(ctx context.Context, template *InstallmentPlanTemplate) error
 }
 
 type FinancialRecommendation struct {
@@ -247,6 +249,8 @@ type FiscalUseCase interface {
 	CalculateSiblingDiscount(ctx context.Context, studentID uuid.UUID, customBase *float64) (*SiblingDiscountCalculation, error)
 	SetBaselineTuition(ctx context.Context, amount float64) error
 	GetExchangeRates(ctx context.Context) (map[string]float64, error)
+	GetInstallmentPlanTemplate(ctx context.Context) (*InstallmentPlanTemplate, error)
+	SaveInstallmentPlanTemplate(ctx context.Context, template *InstallmentPlanTemplate) (*InstallmentPlanTemplate, error)
 }
 
 // Donation represents a financial contribution from an Alumni or external sponsor
@@ -459,4 +463,32 @@ type SiblingDiscountCalculation struct {
 	FinalFee        float64   `json:"final_fee"`
 	Reason          string    `json:"reason"`
 }
+
+// InstallmentPlanTemplate allows administrators to configure the institutional installment schedule
+type InstallmentPlanTemplate struct {
+	TenantBase
+	ID           uuid.UUID                     `json:"id" gorm:"type:uuid;primaryKey"`
+	Name         string                        `json:"name" gorm:"type:varchar(100);not null"`
+	ScheduleText string                        `json:"schedule_text" gorm:"type:varchar(100)"` // e.g. "40% / 30% / 30% Schedule"
+	IsEnabled    bool                          `json:"is_enabled" gorm:"default:true"`
+	Milestones   []InstallmentPlanMilestoneDef `json:"milestones" gorm:"serializer:json"`
+	CreatedAt    time.Time                     `json:"created_at"`
+	UpdatedAt    time.Time                     `json:"updated_at"`
+}
+
+func (ipt *InstallmentPlanTemplate) BeforeCreate(tx *gorm.DB) (err error) {
+	if ipt.ID == uuid.Nil {
+		ipt.ID = uuid.New()
+	}
+	return
+}
+
+type InstallmentPlanMilestoneDef struct {
+	Index       int     `json:"index"`       // 1, 2, 3...
+	Title       string  `json:"title"`       // e.g. "Milestone 1"
+	Description string  `json:"description"` // e.g. "Term Registration"
+	Percentage  float64 `json:"percentage"`  // e.g. 40.0
+	DueTrigger  string  `json:"due_trigger"` // e.g. "Term Registration"
+}
+
 

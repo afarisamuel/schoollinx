@@ -65,6 +65,8 @@ func NewFiscalHandler(r *gin.RouterGroup, fuc domain.FiscalUseCase) {
 		g.POST("/installments", h.CreateInstallmentAgreement)
 		g.GET("/installments/student/:student_id", h.GetStudentInstallments)
 		g.POST("/installments/milestones/:id/pay", h.PayInstallmentMilestone)
+		g.GET("/installment-settings", h.GetInstallmentSettings)
+		g.POST("/installment-settings", h.SaveInstallmentSettings)
 		g.GET("/discounts/sibling/:student_id", h.CalculateSiblingDiscount)
 		g.POST("/baseline-tuition", h.SetBaselineTuition)
 		g.GET("/rates", h.GetExchangeRates)
@@ -636,6 +638,30 @@ func (h *FiscalHandler) PayInstallmentMilestone(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Milestone installment payment recorded"})
+}
+
+func (h *FiscalHandler) GetInstallmentSettings(c *gin.Context) {
+	template, err := h.fiscalUseCase.GetInstallmentPlanTemplate(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, template)
+}
+
+func (h *FiscalHandler) SaveInstallmentSettings(c *gin.Context) {
+	var req domain.InstallmentPlanTemplate
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	saved, err := h.fiscalUseCase.SaveInstallmentPlanTemplate(c.Request.Context(), &req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, saved)
 }
 
 func (h *FiscalHandler) CalculateSiblingDiscount(c *gin.Context) {

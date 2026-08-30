@@ -175,6 +175,7 @@ var TenantModels = []interface{}{
 	&domain.Scholarship{},
 	&domain.InstallmentAgreement{},
 	&domain.InstallmentMilestone{},
+	&domain.InstallmentPlanTemplate{},
 	// Inventory & procurement
 	&domain.InventoryItem{},
 	&domain.AssetCheckout{},

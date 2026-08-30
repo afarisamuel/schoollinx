@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ParentStateService } from '../../../core/infrastructure/parent/parent-state.service';
 import { ParentPortalService } from '../../../core/infrastructure/parent/parent-portal.service';
-import { FiscalService } from '../../../core/infrastructure/fiscal/fiscal.service';
+import { FiscalService, InstallmentPlanTemplate } from '../../../core/infrastructure/fiscal/fiscal.service';
 import { PaymentService } from '../../../core/infrastructure/payment/payment.service';
 import { ToastService } from '../../../shared/ui/toast/toast.service';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
@@ -34,8 +34,9 @@ export class ParentFinancePage implements OnInit {
         EUR: 16.90
     });
 
-    // Installment Agreements
+    // Installment Agreements & Admin Plan
     installmentsMap = signal<Record<string, any[]>>({});
+    installmentPlan = signal<InstallmentPlanTemplate | null>(null);
 
     // Sibling Discount Savings
     siblingDiscounts = signal<Record<string, any>>({});
@@ -112,33 +113,46 @@ export class ParentFinancePage implements OnInit {
         const total = ward?.total_billed && ward.total_billed > 0 ? ward.total_billed : 2500;
         const paid = ward?.total_paid || 0;
 
-        const m1 = Math.round(total * 0.4);
-        const m2 = Math.round(total * 0.3);
-        const m3 = total - m1 - m2;
-
-        return [
-            {
-                name: 'Milestone 1 (40%)',
-                desc: 'Term Registration',
-                amount: m1,
-                status: paid >= m1 ? 'PAID' : 'DUE',
-                badgeClass: paid >= m1 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-            },
-            {
-                name: 'Milestone 2 (30%)',
-                desc: 'Mid-Term Assessment',
-                amount: m2,
-                status: paid >= (m1 + m2) ? 'PAID' : paid >= m1 ? 'DUE SOON' : 'UPCOMING',
-                badgeClass: paid >= (m1 + m2) ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : paid >= m1 ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-bg-tertiary text-text-muted border-border-primary'
-            },
-            {
-                name: 'Milestone 3 (30%)',
-                desc: 'Final Examinations',
-                amount: m3,
-                status: paid >= total ? 'PAID' : paid >= (m1 + m2) ? 'DUE SOON' : 'UPCOMING',
-                badgeClass: paid >= total ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : paid >= (m1 + m2) ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-bg-tertiary text-text-muted border-border-primary'
-            }
+        const plan = this.installmentPlan();
+        const mDefs = plan?.milestones && plan.milestones.length > 0 ? plan.milestones : [
+            { index: 1, title: 'Milestone 1', description: 'Term Registration', percentage: 40, due_trigger: 'Term Registration' },
+            { index: 2, title: 'Milestone 2', description: 'Mid-Term Assessment', percentage: 30, due_trigger: 'Mid-Term Assessment' },
+            { index: 3, title: 'Milestone 3', description: 'Final Examinations', percentage: 30, due_trigger: 'Final Examinations' }
         ];
+
+        let accumulated = 0;
+        let allocatedTotal = 0;
+
+        return mDefs.map((def, idx) => {
+            const isLast = idx === mDefs.length - 1;
+            const amount = isLast ? Math.max(0, total - allocatedTotal) : Math.round(total * (def.percentage / 100));
+            allocatedTotal += amount;
+
+            const prevThreshold = accumulated;
+            accumulated += amount;
+
+            let status = 'UPCOMING';
+            let badgeClass = 'bg-bg-tertiary text-text-muted border-border-primary';
+
+            if (paid >= accumulated) {
+                status = 'PAID';
+                badgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+            } else if (paid > prevThreshold || idx === 0) {
+                status = 'DUE';
+                badgeClass = 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+            } else if (paid === prevThreshold && idx === 1) {
+                status = 'DUE SOON';
+                badgeClass = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+            }
+
+            return {
+                name: `${def.title} (${def.percentage}%)`,
+                desc: def.description,
+                amount: amount,
+                status: status,
+                badgeClass: badgeClass
+            };
+        });
     }
 
     loadLiveExchangeRates() {
@@ -155,6 +169,15 @@ export class ParentFinancePage implements OnInit {
     }
 
     loadMilestoneData() {
+        this.fiscalService.getInstallmentSettings().subscribe({
+            next: (plan) => {
+                if (plan) {
+                    this.installmentPlan.set(plan);
+                }
+            },
+            error: () => {}
+        });
+
         const students = this.state.profile()?.students || [];
         for (const s of students) {
             if (s.id) {
