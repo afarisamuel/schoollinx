@@ -1,5 +1,6 @@
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 
@@ -17,6 +18,7 @@ export interface Notification {
     providedIn: 'root'
 })
 export class NotificationService {
+    private http = inject(HttpClient);
     private authService = inject(AuthService);
     private platformId = inject(PLATFORM_ID);
     private isBrowser = isPlatformBrowser(this.platformId);
@@ -43,12 +45,24 @@ export class NotificationService {
                 if (user) {
                     this.shouldReconnect = true;
                     this.connect();
+                    this.loadInitialNotifications();
                 } else {
                     this.shouldReconnect = false;
                     this.disconnect();
                 }
             });
         }
+    }
+
+    private loadInitialNotifications() {
+        this.http.get<Notification[]>('/api/notifications?limit=50').subscribe({
+            next: (data) => {
+                if (Array.isArray(data)) {
+                    this.notificationsSubject.next(data);
+                }
+            },
+            error: (err) => console.warn('Could not fetch notifications:', err)
+        });
     }
 
     private connect() {
@@ -74,7 +88,7 @@ export class NotificationService {
                 // Support both raw notifications and wrapped { type, payload } format
                 if (msg.type === 'notification' && msg.payload) {
                     this.addNotification(msg.payload as Notification);
-                } else if (msg.id && msg.title) {
+                } else if (msg.title && msg.message) {
                     // Raw notification object
                     this.addNotification(msg as Notification);
                 }
@@ -128,11 +142,17 @@ export class NotificationService {
     markAsRead(id: string) {
         const current = this.notificationsSubject.value;
         this.notificationsSubject.next(current.map(n => n.id === id ? { ...n, read: true } : n));
+        this.http.put(`/api/notifications/${id}/read`, {}).subscribe({
+            error: (err) => console.warn('Failed to mark notification as read:', err)
+        });
     }
 
     markAllAsRead() {
         const current = this.notificationsSubject.value;
         this.notificationsSubject.next(current.map(n => ({ ...n, read: true })));
+        this.http.put('/api/notifications/read-all', {}).subscribe({
+            error: (err) => console.warn('Failed to mark all notifications as read:', err)
+        });
     }
 
     clearAll() {

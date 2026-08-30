@@ -176,6 +176,7 @@ type FiscalRepository interface {
 	// Installments
 	CreateInstallmentAgreement(ctx context.Context, agreement *InstallmentAgreement) error
 	GetInstallmentAgreementsByStudent(ctx context.Context, studentID uuid.UUID) ([]InstallmentAgreement, error)
+	GetInstallmentAgreementByID(ctx context.Context, id uuid.UUID) (*InstallmentAgreement, error)
 	GetInstallmentMilestoneByID(ctx context.Context, id uuid.UUID) (*InstallmentMilestone, error)
 	UpdateInstallmentMilestone(ctx context.Context, id uuid.UUID, amountPaid float64, status string) error
 	GetInstallmentPlanTemplate(ctx context.Context) (*InstallmentPlanTemplate, error)

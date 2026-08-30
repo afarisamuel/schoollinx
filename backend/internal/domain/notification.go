@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,6 +14,7 @@ const (
 	NotificationAttendance NotificationType = "ATTENDANCE"
 	NotificationGrade      NotificationType = "GRADE"
 	NotificationSystem     NotificationType = "SYSTEM"
+	NotificationPayment    NotificationType = "PAYMENT"
 )
 
 type Notification struct {
@@ -31,4 +33,7 @@ type NotificationUseCase interface {
 	SendToUser(userID uuid.UUID, notification Notification) error
 	SendToRole(role Role, notification Notification) error
 	Broadcast(notification Notification) error
+	GetNotificationsForUser(ctx context.Context, userID uuid.UUID, limit int) ([]Notification, error)
+	MarkAsRead(ctx context.Context, id uuid.UUID, userID uuid.UUID) error
+	MarkAllAsRead(ctx context.Context, userID uuid.UUID) error
 }

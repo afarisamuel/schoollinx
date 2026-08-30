@@ -30,10 +30,30 @@ type fiscalUseCase struct {
 	academicRepo domain.AcademicPeriodRepository
 	tenantRepo   domain.TenantRepository
 	commRepo     domain.CommunicationRepository
+	feeNotifier  FeeNotifier
 }
 
-func NewFiscalUseCase(fiscalRepo domain.FiscalRepository, studentRepo domain.StudentRepository, donationRepo domain.DonationRepository, academicRepo domain.AcademicPeriodRepository, tenantRepo domain.TenantRepository, commRepo domain.CommunicationRepository) domain.FiscalUseCase {
-	return &fiscalUseCase{fiscalRepo: fiscalRepo, studentRepo: studentRepo, donationRepo: donationRepo, academicRepo: academicRepo, tenantRepo: tenantRepo, commRepo: commRepo}
+func NewFiscalUseCase(
+	fiscalRepo domain.FiscalRepository,
+	studentRepo domain.StudentRepository,
+	donationRepo domain.DonationRepository,
+	academicRepo domain.AcademicPeriodRepository,
+	tenantRepo domain.TenantRepository,
+	commRepo domain.CommunicationRepository,
+	fn ...FeeNotifier,
+) domain.FiscalUseCase {
+	uc := &fiscalUseCase{
+		fiscalRepo:   fiscalRepo,
+		studentRepo:  studentRepo,
+		donationRepo: donationRepo,
+		academicRepo: academicRepo,
+		tenantRepo:   tenantRepo,
+		commRepo:     commRepo,
+	}
+	if len(fn) > 0 && fn[0] != nil {
+		uc.feeNotifier = fn[0]
+	}
+	return uc
 }
 
 func (u *fiscalUseCase) CreateFee(ctx context.Context, record *domain.FiscalRecord) error {
@@ -189,10 +209,18 @@ func (u *fiscalUseCase) GeneratePaymentReceipt(ctx context.Context, recordID uui
 }
 
 func (u *fiscalUseCase) ProcessPayment(ctx context.Context, recordID uuid.UUID) error {
-	return u.fiscalRepo.Transaction(ctx, func(txRepo domain.FiscalRepository) error {
+	var paidRecord *domain.FiscalRecord
+	var amountToPay float64
+
+	err := u.fiscalRepo.Transaction(ctx, func(txRepo domain.FiscalRepository) error {
 		record, err := txRepo.GetByID(ctx, recordID)
 		if err != nil {
 			return err
+		}
+
+		amountToPay = record.Amount - record.AmountPaid
+		if amountToPay <= 0 {
+			amountToPay = record.Amount
 		}
 
 		now := time.Now()
@@ -200,8 +228,22 @@ func (u *fiscalUseCase) ProcessPayment(ctx context.Context, recordID uuid.UUID) 
 		record.Status = domain.PaymentStatusPaid
 		record.PaidAt = &now
 
+		paidRecord = record
 		return txRepo.Update(ctx, record)
 	})
+
+	if err == nil && paidRecord != nil && u.feeNotifier != nil {
+		_ = u.feeNotifier.NotifyPayment(ctx, FeePaymentNotification{
+			StudentID:        paidRecord.StudentID,
+			Amount:           amountToPay,
+			Category:         string(paidRecord.Category),
+			PaymentMethod:    "CASH",
+			ReceiptReference: fmt.Sprintf("REC-%s", strings.ToUpper(paidRecord.ID.String()[:8])),
+			RemainingBalance: 0,
+			Note:             "Full Invoice Settlement",
+		})
+	}
+	return err
 }
 
 // ProcessPartialPayment records a partial payment against a fiscal record.
@@ -211,7 +253,10 @@ func (u *fiscalUseCase) ProcessPartialPayment(ctx context.Context, recordID uuid
 		return fmt.Errorf("payment amount must be greater than zero")
 	}
 
-	return u.fiscalRepo.Transaction(ctx, func(txRepo domain.FiscalRepository) error {
+	var paidRecord *domain.FiscalRecord
+	var remaining float64
+
+	err := u.fiscalRepo.Transaction(ctx, func(txRepo domain.FiscalRepository) error {
 		record, err := txRepo.GetByID(ctx, recordID)
 		if err != nil {
 			return err
@@ -220,12 +265,13 @@ func (u *fiscalUseCase) ProcessPartialPayment(ctx context.Context, recordID uuid
 			return fmt.Errorf("this invoice is already fully paid")
 		}
 
-		remaining := record.Amount - record.AmountPaid
-		if amount > remaining {
-			return fmt.Errorf("payment of %.2f exceeds the outstanding balance of %.2f", amount, remaining)
+		rem := record.Amount - record.AmountPaid
+		if amount > rem {
+			return fmt.Errorf("payment of %.2f exceeds the outstanding balance of %.2f", amount, rem)
 		}
 
 		record.AmountPaid += amount
+		remaining = record.Amount - record.AmountPaid
 
 		// Record a wallet transaction as an audit trail
 		_ = txRepo.CreateWalletTransaction(ctx, &domain.WalletTransaction{
@@ -243,8 +289,22 @@ func (u *fiscalUseCase) ProcessPartialPayment(ctx context.Context, recordID uuid
 			record.PaidAt = &now
 		}
 
+		paidRecord = record
 		return txRepo.Update(ctx, record)
 	})
+
+	if err == nil && paidRecord != nil && u.feeNotifier != nil {
+		_ = u.feeNotifier.NotifyPayment(ctx, FeePaymentNotification{
+			StudentID:        paidRecord.StudentID,
+			Amount:           amount,
+			Category:         string(paidRecord.Category),
+			PaymentMethod:    "CASH",
+			ReceiptReference: fmt.Sprintf("REC-PART-%s", strings.ToUpper(paidRecord.ID.String()[:8])),
+			RemainingBalance: remaining,
+			Note:             note,
+		})
+	}
+	return err
 }
 
 func (u *fiscalUseCase) ListAllRecords(ctx context.Context) ([]domain.FiscalRecord, error) {
@@ -858,7 +918,26 @@ func (u *fiscalUseCase) PayInstallmentMilestone(ctx context.Context, milestoneID
 		status = "PAID"
 	}
 
-	return u.fiscalRepo.UpdateInstallmentMilestone(ctx, milestoneID, newPaid, status)
+	err = u.fiscalRepo.UpdateInstallmentMilestone(ctx, milestoneID, newPaid, status)
+	if err == nil && u.feeNotifier != nil {
+		agreement, _ := u.fiscalRepo.GetInstallmentAgreementByID(ctx, m.AgreementID)
+		if agreement != nil {
+			rem := m.Amount - newPaid
+			if rem < 0 {
+				rem = 0
+			}
+			_ = u.feeNotifier.NotifyPayment(ctx, FeePaymentNotification{
+				StudentID:        agreement.StudentID,
+				Amount:           amount,
+				Category:         "INSTALLMENT",
+				PaymentMethod:    "DIRECT",
+				ReceiptReference: fmt.Sprintf("MILESTONE-%s", strings.ToUpper(milestoneID.String()[:8])),
+				RemainingBalance: rem,
+				Note:             fmt.Sprintf("Installment Milestone due %s", m.DueDate.Format("02-Jan-2006")),
+			})
+		}
+	}
+	return err
 }
 
 func (u *fiscalUseCase) CalculateSiblingDiscount(ctx context.Context, studentID uuid.UUID, customBase *float64) (*domain.SiblingDiscountCalculation, error) {

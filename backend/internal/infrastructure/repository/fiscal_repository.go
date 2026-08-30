@@ -285,6 +285,15 @@ func (r *fiscalRepository) GetInstallmentAgreementsByStudent(ctx context.Context
 	return agreements, err
 }
 
+func (r *fiscalRepository) GetInstallmentAgreementByID(ctx context.Context, id uuid.UUID) (*domain.InstallmentAgreement, error) {
+	var agreement domain.InstallmentAgreement
+	err := r.db.WithContext(ctx).Preload("Milestones").First(&agreement, "id = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &agreement, nil
+}
+
 func (r *fiscalRepository) GetInstallmentMilestoneByID(ctx context.Context, id uuid.UUID) (*domain.InstallmentMilestone, error) {
 	var m domain.InstallmentMilestone
 	err := r.db.WithContext(ctx).First(&m, "id = ?", id).Error

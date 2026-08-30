@@ -15,15 +15,26 @@ type dailyBillUseCase struct {
 	studentRepo   domain.StudentRepository
 	fiscalRepo    domain.FiscalRepository
 	logisticsRepo domain.LogisticsRepository
+	feeNotifier   FeeNotifier
 }
 
-func NewDailyBillUseCase(billRepo domain.DailyBillRepository, studentRepo domain.StudentRepository, fiscalRepo domain.FiscalRepository, logisticsRepo domain.LogisticsRepository) domain.DailyBillUseCase {
-	return &dailyBillUseCase{
+func NewDailyBillUseCase(
+	billRepo domain.DailyBillRepository,
+	studentRepo domain.StudentRepository,
+	fiscalRepo domain.FiscalRepository,
+	logisticsRepo domain.LogisticsRepository,
+	fn ...FeeNotifier,
+) domain.DailyBillUseCase {
+	uc := &dailyBillUseCase{
 		billRepo:      billRepo,
 		studentRepo:   studentRepo,
 		fiscalRepo:    fiscalRepo,
 		logisticsRepo: logisticsRepo,
 	}
+	if len(fn) > 0 && fn[0] != nil {
+		uc.feeNotifier = fn[0]
+	}
+	return uc
 }
 
 func (u *dailyBillUseCase) processBillWithWallet(ctx context.Context, student *domain.Student, amount float64, today time.Time, category string) domain.DailyBill {
@@ -106,7 +117,19 @@ func (u *dailyBillUseCase) CollectBill(ctx context.Context, billID uuid.UUID, co
 	if bill.Status != domain.DailyBillPending {
 		return fmt.Errorf("bill is already %s", bill.Status)
 	}
-	return u.billRepo.MarkPaid(ctx, billID, collectorID)
+	err = u.billRepo.MarkPaid(ctx, billID, collectorID)
+	if err == nil && u.feeNotifier != nil {
+		_ = u.feeNotifier.NotifyPayment(ctx, FeePaymentNotification{
+			StudentID:        bill.StudentID,
+			Amount:           bill.Amount,
+			Category:         "DAILY_FEE",
+			PaymentMethod:    "CASH",
+			ReceiptReference: fmt.Sprintf("DAILY-%s", strings.ToUpper(bill.ID.String()[:8])),
+			RemainingBalance: 0,
+			Note:             "Daily Bill Collection",
+		})
+	}
+	return err
 }
 
 // GetMyCollections returns all bills collected by a staff member today, plus a total.

@@ -25,6 +25,7 @@ type paymentUseCase struct {
 	tenantRepo  domain.TenantRepository
 	paystackSvc domain.PaystackService
 	studentRepo domain.StudentRepository
+	feeNotifier FeeNotifier
 }
 
 func NewPaymentUseCase(
@@ -33,7 +34,8 @@ func NewPaymentUseCase(
 	ur domain.UserRepository,
 	tr domain.TenantRepository,
 	ps domain.PaystackService,
-	sr ...domain.StudentRepository,
+	sr domain.StudentRepository,
+	fn ...FeeNotifier,
 ) PaymentUseCase {
 	uc := &paymentUseCase{
 		paymentRepo: pr,
@@ -41,9 +43,10 @@ func NewPaymentUseCase(
 		userRepo:    ur,
 		tenantRepo:  tr,
 		paystackSvc: ps,
+		studentRepo: sr,
 	}
-	if len(sr) > 0 {
-		uc.studentRepo = sr[0]
+	if len(fn) > 0 && fn[0] != nil {
+		uc.feeNotifier = fn[0]
 	}
 	return uc
 }
@@ -283,6 +286,22 @@ func (u *paymentUseCase) VerifyPayment(ctx context.Context, tenantID string, ref
 				invoice.Status = domain.PaymentStatusPaid
 			}
 			_ = u.fiscalRepo.Update(tenantCtx, invoice)
+
+			if u.feeNotifier != nil {
+				rem := invoice.Amount - invoice.AmountPaid
+				if rem < 0 {
+					rem = 0
+				}
+				_ = u.feeNotifier.NotifyPayment(tenantCtx, FeePaymentNotification{
+					StudentID:        invoice.StudentID,
+					Amount:           tx.Amount,
+					Category:         string(invoice.Category),
+					PaymentMethod:    "PAYSTACK",
+					ReceiptReference: reference,
+					RemainingBalance: rem,
+					Note:             "Online Payment Verified",
+				})
+			}
 		}
 		return tx, nil
 	}
@@ -308,6 +327,18 @@ func (u *paymentUseCase) VerifyPayment(ctx context.Context, tenantID string, ref
 					Balance:     student.PrepaidBalance,
 					Description: fmt.Sprintf("Online Paystack Top-Up (%s)", reference),
 				})
+
+				if u.feeNotifier != nil {
+					_ = u.feeNotifier.NotifyPayment(tenantCtx, FeePaymentNotification{
+						StudentID:        student.ID,
+						Amount:           tx.Amount,
+						Category:         "WALLET_TOPUP",
+						PaymentMethod:    "PAYSTACK",
+						ReceiptReference: reference,
+						RemainingBalance: student.PrepaidBalance,
+						Note:             "Online Wallet Top-Up",
+					})
+				}
 			}
 		}
 		return tx, nil
@@ -440,6 +471,22 @@ func (u *paymentUseCase) HandlePaystackWebhook(ctx context.Context, payload []by
 				invoice.Status = domain.PaymentStatusPaid
 			}
 			_ = u.fiscalRepo.Update(tenantCtx, invoice)
+
+			if u.feeNotifier != nil {
+				rem := invoice.Amount - invoice.AmountPaid
+				if rem < 0 {
+					rem = 0
+				}
+				_ = u.feeNotifier.NotifyPayment(tenantCtx, FeePaymentNotification{
+					StudentID:        invoice.StudentID,
+					Amount:           tx.Amount,
+					Category:         string(invoice.Category),
+					PaymentMethod:    "PAYSTACK",
+					ReceiptReference: reference,
+					RemainingBalance: rem,
+					Note:             "Online Webhook Payment",
+				})
+			}
 		}
 		return nil
 	}
@@ -465,6 +512,18 @@ func (u *paymentUseCase) HandlePaystackWebhook(ctx context.Context, payload []by
 					Balance:     student.PrepaidBalance,
 					Description: fmt.Sprintf("Online Paystack Top-Up (%s)", reference),
 				})
+
+				if u.feeNotifier != nil {
+					_ = u.feeNotifier.NotifyPayment(tenantCtx, FeePaymentNotification{
+						StudentID:        student.ID,
+						Amount:           tx.Amount,
+						Category:         "WALLET_TOPUP",
+						PaymentMethod:    "PAYSTACK",
+						ReceiptReference: reference,
+						RemainingBalance: student.PrepaidBalance,
+						Note:             "Online Wallet Top-Up",
+					})
+				}
 			}
 		}
 		return nil

@@ -152,7 +152,7 @@ func (a *App) setupRoutes() {
 	handler.NewWelfareHandler(api, usecases.Welfare)
 	handler.NewLogisticsHandler(api, usecases.Logistics)
 	handler.NewFacilityHandler(api, usecases.Facility)
-	handler.NewNotificationHandler(api, infra.Hub, repos.Message)
+	handler.NewNotificationHandler(api, infra.Hub, repos.Message, usecases.Notification)
 	handler.NewDocumentHandler(api, usecases.Document)
 	handler.NewHRHandler(api, usecases.HR)
 	handler.NewRolesHandler(api, repos.User)

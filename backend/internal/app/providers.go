@@ -193,8 +193,9 @@ func initRepositories(db *gorm.DB) *Repositories {
 
 func initUseCases(repos *Repositories, infra *Infrastructure, db *gorm.DB, cfg *config.Config) *UseCases {
 	campaignManager := usecase.NewCampaignManager(repos.Campaign, repos.Student, repos.User, infra.SMTP)
-	fiscalUC := usecase.NewFiscalUseCase(repos.Fiscal, repos.Student, repos.Donation, repos.AcademicPeriod, repos.Tenant, repos.Communication)
-	notifUC := usecase.NewNotificationUseCase(infra.Hub)
+	notifUC := usecase.NewNotificationUseCase(infra.Hub, db)
+	feeNotifier := usecase.NewFeeNotifier(infra.SMS, notifUC, repos.Student, repos.Guardian, repos.Tenant)
+	fiscalUC := usecase.NewFiscalUseCase(repos.Fiscal, repos.Student, repos.Donation, repos.AcademicPeriod, repos.Tenant, repos.Communication, feeNotifier)
 
 	return &UseCases{
 		Audit:          usecase.NewAuditUseCase(repos.Audit),
@@ -226,14 +227,14 @@ func initUseCases(repos *Repositories, infra *Infrastructure, db *gorm.DB, cfg *
 		Welfare:        usecase.NewWelfareUseCase(repos.Welfare, infra.SMS, repos.Student, repos.Guardian),
 		Logistics:      usecase.NewLogisticsUseCase(repos.Logistics),
 		Facility:       usecase.NewFacilityUseCase(repos.Facility),
-		Payment:        usecase.NewPaymentUseCase(repos.Payment, repos.Fiscal, repos.User, repos.Tenant, infra.Paystack, repos.Student),
+		Payment:        usecase.NewPaymentUseCase(repos.Payment, repos.Fiscal, repos.User, repos.Tenant, infra.Paystack, repos.Student, feeNotifier),
 		Document:       usecase.NewDocumentUseCase(repos.Document, "./storage/uploads"),
 		TeacherPortal:  usecase.NewTeacherPortalUseCase(repos.Teacher, repos.Student, repos.Grade, repos.Class, repos.Subject, repos.TeacherPortal),
 		HR:             usecase.NewHRUseCase(repos.HR, infra.PDF),
 		Exam:           usecase.NewExamUseCase(repos.Exam),
 		Portfolio:      usecase.NewPortfolioUseCase(repos.Portfolio),
 		Communication:  usecase.NewCommunicationUseCase(repos.Communication, infra.SMS, repos.Guardian, repos.Student, repos.Teacher),
-		DailyBill:      usecase.NewDailyBillUseCase(repos.DailyBill, repos.Student, repos.Fiscal, repos.Logistics),
+		DailyBill:      usecase.NewDailyBillUseCase(repos.DailyBill, repos.Student, repos.Fiscal, repos.Logistics, feeNotifier),
 		House:          usecase.NewHouseUseCase(repos.House),
 		Newsletter:     usecase.NewNewsletterUseCase(repos.Newsletter, infra.SMTP, repos.Intelligence),
 		Ledger:         usecase.NewLedgerUseCase(repos.Ledger),

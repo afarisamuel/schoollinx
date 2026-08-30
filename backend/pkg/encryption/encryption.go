@@ -89,6 +89,9 @@ func Decrypt(cryptoText string, keyString string) (string, error) {
 	nonce, cipherText := data[:nonceSize], data[nonceSize:]
 	plainText, err := gcm.Open(nil, nonce, cipherText, nil)
 	if err != nil {
+		if keyString == getEncryptionKey() && keyString != DefaultKey {
+			return Decrypt(cryptoText, DefaultKey)
+		}
 		return "", err
 	}
 
