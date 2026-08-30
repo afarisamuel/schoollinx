@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ParentStateService } from '../../../core/infrastructure/parent/parent-state.service';
 
@@ -10,6 +10,24 @@ import { ParentStateService } from '../../../core/infrastructure/parent/parent-s
 })
 export class ParentHomeworkPage {
     state = inject(ParentStateService);
+
+    activeTab = signal<'pending' | 'overdue' | 'all'>('pending');
+    selectedStudentId = signal<string>('');
+
+    selectedStudent = computed(() => {
+        const students = this.state.profile()?.students || [];
+        if (!students.length) return null;
+        return students.find(s => s.id === this.selectedStudentId()) || students[0];
+    });
+
+    constructor() {
+        effect(() => {
+            const students = this.state.profile()?.students || [];
+            if (students.length > 0 && !this.selectedStudentId()) {
+                this.selectedStudentId.set(students[0].id || '');
+            }
+        });
+    }
 
     today() { return new Date().toISOString().slice(0, 10); }
 

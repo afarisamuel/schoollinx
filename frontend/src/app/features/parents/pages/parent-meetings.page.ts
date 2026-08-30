@@ -17,6 +17,7 @@ export class ParentMeetingsPage implements OnInit {
     private api = inject(ParentPortalService);
     private toast = inject(ToastService);
 
+    activeTab = signal<'book' | 'meetings'>('book');
     teacherId = signal('');
     studentId = signal('');
     reason = signal('');

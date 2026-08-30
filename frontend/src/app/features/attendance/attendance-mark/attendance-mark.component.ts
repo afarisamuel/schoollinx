@@ -63,36 +63,61 @@ export class AttendanceMarkComponent implements OnInit {
     }
 
     loadClasses() {
-        if (this.isAdmin()) {
-            this.classService.getClasses().subscribe({
-                next: (res) => {
-                    const classList = res.map(c => ({ id: c.id!, name: c.name }));
-                    this.classes.set(classList);
-                    if (classList.length > 0) {
-                        this.selectedClassId.set(classList[0].id);
-                        this.loadStudents();
+        this.isLoading.set(true);
+        // Primary: fetch from classService (calls /api/classes which resolves teacher-specific or all institutional classes)
+        this.classService.getClasses().subscribe({
+            next: (res) => {
+                const classMap = new Map<string, { id: string; name: string }>();
+                (res || []).forEach(c => {
+                    if (c.id && c.name) classMap.set(c.id, { id: c.id, name: c.name });
+                });
+
+                // Also check teacher portal assignments to ensure all assigned classes are included
+                this.teacherPortalService.getMyClasses().subscribe({
+                    next: (portalRes) => {
+                        (portalRes.assignments || []).forEach(a => {
+                            const cid = a.class?.id || a.class_id;
+                            const cname = a.class?.name || (a as any).class_name;
+                            if (cid && cname && !classMap.has(cid)) {
+                                classMap.set(cid, { id: cid, name: cname });
+                            }
+                        });
+                        this.finishClassLoading(classMap);
+                    },
+                    error: () => this.finishClassLoading(classMap)
+                });
+            },
+            error: () => {
+                // Fallback directly to teacher portal if classService failed
+                this.teacherPortalService.getMyClasses().subscribe({
+                    next: (portalRes) => {
+                        const classMap = new Map<string, { id: string; name: string }>();
+                        (portalRes.assignments || []).forEach(a => {
+                            const cid = a.class?.id || a.class_id;
+                            const cname = a.class?.name || (a as any).class_name;
+                            if (cid && cname) classMap.set(cid, { id: cid, name: cname });
+                        });
+                        this.finishClassLoading(classMap);
+                    },
+                    error: (err) => {
+                        console.error('Failed to load classes', err);
+                        this.isLoading.set(false);
                     }
-                },
-                error: (err) => console.error('Failed to load classes', err)
-            });
+                });
+            }
+        });
+    }
+
+    private finishClassLoading(classMap: Map<string, { id: string; name: string }>) {
+        const classList = Array.from(classMap.values());
+        this.classes.set(classList);
+        if (classList.length > 0) {
+            if (!this.selectedClassId() || !classList.some(c => c.id === this.selectedClassId())) {
+                this.selectedClassId.set(classList[0].id);
+            }
+            this.loadStudents();
         } else {
-            this.teacherPortalService.getMyClasses().subscribe({
-                next: (res) => {
-                    // Extract unique classes from assignments
-                    const uniqueClasses = new Map<string, {id: string; name: string}>();
-                    res.assignments.forEach(a => {
-                        if (a.class) uniqueClasses.set(a.class.id, a.class);
-                    });
-                    const classList = Array.from(uniqueClasses.values());
-                    this.classes.set(classList);
-                    
-                    if (classList.length > 0) {
-                        this.selectedClassId.set(classList[0].id);
-                        this.loadStudents();
-                    }
-                },
-                error: (err) => console.error('Failed to load classes', err)
-            });
+            this.isLoading.set(false);
         }
     }
 
@@ -110,28 +135,43 @@ export class AttendanceMarkComponent implements OnInit {
 
     loadStudents() {
         const classId = this.selectedClassId();
-        if (!classId) return;
+        if (!classId) {
+            this.isLoading.set(false);
+            return;
+        }
         
         this.isLoading.set(true);
-        const request$ = this.isAdmin() 
-            ? this.studentService.getStudentsByClass(classId) 
-            : this.teacherPortalService.getClassStudents(classId);
-
-        request$.subscribe({
+        // Load via studentService with seamless fallback to teacherPortalService
+        this.studentService.getStudentsByClass(classId).subscribe({
             next: (students: Student[]) => {
-                this.students.set(students || []);
-                const newRecords = new Map<string, AttendanceStatus>();
-                (students || []).forEach(s => newRecords.set(s.id!, 'Present'));
-                this.attendanceRecords.set(newRecords);
-                
-                this.loadAttendanceForDate();
-                this.isLoading.set(false);
+                if (students && students.length > 0) {
+                    this.applyStudents(students);
+                } else {
+                    this.teacherPortalService.getClassStudents(classId).subscribe({
+                        next: (portalStudents) => this.applyStudents(portalStudents || []),
+                        error: () => this.applyStudents([])
+                    });
+                }
             },
-            error: (err) => {
-                console.error('Failed to load students', err);
-                this.isLoading.set(false);
+            error: () => {
+                this.teacherPortalService.getClassStudents(classId).subscribe({
+                    next: (portalStudents) => this.applyStudents(portalStudents || []),
+                    error: (err) => {
+                        console.error('Failed to load students', err);
+                        this.applyStudents([]);
+                    }
+                });
             }
         });
+    }
+
+    private applyStudents(students: Student[]) {
+        this.students.set(students || []);
+        const newRecords = new Map<string, AttendanceStatus>();
+        (students || []).forEach(s => newRecords.set(s.id!, 'Present'));
+        this.attendanceRecords.set(newRecords);
+        this.loadAttendanceForDate();
+        this.isLoading.set(false);
     }
 
     loadAttendanceForDate() {

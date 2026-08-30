@@ -47,21 +47,76 @@ func (u *teacherPortalUseCase) GetMyClasses(ctx context.Context, userID uuid.UUI
 		return nil, nil, err
 	}
 
+	// Also retrieve classes where this teacher is assigned directly on the classes table (classes.teacher_id)
+	directClasses, _ := u.classRepo.GetClassesForTeacher(ctx, userID)
+	classMap := make(map[uuid.UUID]domain.Class)
+	for _, c := range directClasses {
+		classMap[c.ID] = c
+	}
+
 	var expanded []domain.TeacherClassAssignment
+	assignedClassIDs := make(map[uuid.UUID]bool)
+
 	for _, a := range assignments {
+		if a.Class == nil || a.Class.Name == "" {
+			if c, ok := classMap[a.ClassID]; ok {
+				a.Class = &c
+			} else if cls, err := u.classRepo.GetByID(ctx, a.ClassID); err == nil && cls != nil {
+				a.Class = cls
+			}
+		}
+		assignedClassIDs[a.ClassID] = true
+
 		if a.SubjectID == nil {
-			// Class Teacher: explode into all subjects
+			// Class Teacher: explode into all subjects if subjects are configured
 			subjects, _ := u.subjectRepo.GetAll(ctx)
-			for i := range subjects {
-				s := subjects[i] // local copy
-				newAssign := a
-				newAssign.ID = uuid.New() // prevent ID collisions on frontend keys
-				newAssign.SubjectID = &s.ID
-				newAssign.Subject = &s
-				expanded = append(expanded, newAssign)
+			if len(subjects) > 0 {
+				for i := range subjects {
+					s := subjects[i] // local copy
+					newAssign := a
+					newAssign.ID = uuid.New() // prevent ID collisions on frontend keys
+					newAssign.SubjectID = &s.ID
+					newAssign.Subject = &s
+					expanded = append(expanded, newAssign)
+				}
+			} else {
+				// Retain class assignment even if no individual subjects are created yet
+				expanded = append(expanded, a)
 			}
 		} else {
 			expanded = append(expanded, a)
+		}
+	}
+
+	// Include any classes where the teacher is designated as Class Master, but hasn't had rows in teacher_class_assignments
+	for _, c := range directClasses {
+		if !assignedClassIDs[c.ID] {
+			cls := c
+			expanded = append(expanded, domain.TeacherClassAssignment{
+				ID:           uuid.New(),
+				TeacherID:    teacher.ID,
+				ClassID:      cls.ID,
+				Class:        &cls,
+				Teacher:      teacher,
+				AcademicYear: "Current",
+			})
+			assignedClassIDs[c.ID] = true
+		}
+	}
+
+	// Fallback: If no specific assignments exist, allow access to all institutional classes
+	if len(expanded) == 0 {
+		allClasses, _ := u.classRepo.GetAll(ctx)
+		for _, c := range allClasses {
+			cls := c
+			expanded = append(expanded, domain.TeacherClassAssignment{
+				ID:           uuid.New(),
+				TeacherID:    teacher.ID,
+				ClassID:      cls.ID,
+				Class:        &cls,
+				Teacher:      teacher,
+				AcademicYear: "Current",
+			})
 		}
 	}
 

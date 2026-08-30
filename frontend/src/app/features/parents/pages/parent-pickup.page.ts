@@ -16,6 +16,9 @@ export class ParentPickupPage {
     private portalService = inject(ParentPortalService);
     private toast = inject(ToastService);
 
+    // Active Tab
+    activeTab = signal<'permanent' | 'guest'>('permanent');
+
     // Third-party OTP Delegation
     showOtpModal = signal(false);
     selectedStudentId = signal('');

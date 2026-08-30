@@ -6,144 +6,164 @@
         <p class="text-text-muted text-sm">Permanent biometric pass and single-use 6-digit OTPs for drivers, uncles, and trusted relatives.</p>
     </div>
 
-    <!-- Feature 16: Third-Party Single-Use 6-Digit Gate Pass OTP Generator -->
-    <div class="bg-gradient-to-br from-indigo-950/40 via-bg-secondary to-bg-secondary border border-indigo-500/30 rounded-3xl p-6 mb-7 relative overflow-hidden">
-        <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg shrink-0">
-                <i class="fas fa-key"></i>
-            </div>
-            <div>
-                <h3 class="text-base font-black text-text-primary">Third-Party Pickup Pass (Single-Use OTP)</h3>
-                <p class="text-xs text-text-muted">Need a driver, aunt, or friend to collect your child? Generate a secure 6-digit gate code.</p>
-            </div>
-        </div>
+    <!-- Tab Navigation -->
+    <div class="flex items-center gap-2 p-1.5 bg-bg-secondary border border-border-primary rounded-2xl mb-6 overflow-x-auto">
+        <button (click)="activeTab.set('permanent')"
+                [ngClass]="activeTab() === 'permanent' ? 'bg-indigo-600 text-white font-black shadow-md shadow-indigo-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fas fa-qrcode"></i>
+            <span>Permanent QR Gate Pass</span>
+        </button>
+        <button (click)="activeTab.set('guest')"
+                [ngClass]="activeTab() === 'guest' ? 'bg-indigo-600 text-white font-black shadow-md shadow-indigo-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fas fa-key"></i>
+            <span>Third-Party Pass (OTP)</span>
+        </button>
+    </div>
 
-        @if (activeOtp(); as otp) {
-            <!-- Active OTP Display Card -->
-            <div class="p-5 bg-bg-tertiary/80 border border-indigo-500/40 rounded-2xl mb-4 text-center animate-fade-in">
-                <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400 block mb-1">
-                    <i class="fas fa-shield-alt mr-1"></i> Authorized Single-Use Pass Active
-                </span>
-                <div class="text-3xl sm:text-4xl font-mono font-black tracking-widest text-text-primary py-2 text-indigo-300">
-                    {{ otp.otp }}
+    <!-- TAB 1: Permanent Guardian Biometric Pass -->
+    @if (activeTab() === 'permanent') {
+        @if (state.profile(); as p) {
+            <div class="bg-gradient-to-b from-bg-secondary to-bg-tertiary border-2 border-purple-500/30 rounded-3xl p-6 md:p-8 relative overflow-hidden animate-fade-in">
+                <div class="absolute -right-10 -top-10 w-40 h-40 bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                <!-- Header -->
+                <div class="flex items-center justify-between pb-5 border-b border-border-primary/60 mb-5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-xl">
+                            <i class="fas fa-id-badge"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-black text-text-primary">Permanent Guardian Pass</h3>
+                            <p class="text-[10px] uppercase font-bold tracking-widest text-purple-400">School Linx &bull; Authorized Exit</p>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-full flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Active
+                    </span>
                 </div>
-                <div class="text-xs text-text-muted mb-4">
-                    Collector: <span class="font-bold text-text-primary">{{ otp.collector_name }}</span> ({{ otp.collector_phone }})
-                    <br>
-                    <span class="text-amber-400 font-medium text-[11px]"><i class="fas fa-clock mr-1"></i> Valid for 4 hours at the security gate</span>
+
+                <!-- Guardian Info -->
+                <div class="flex items-center gap-4 mb-5">
+                    <div class="w-14 h-14 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center font-black text-xl shrink-0">
+                        {{ p.first_name[0] }}{{ p.last_name[0] }}
+                    </div>
+                    <div>
+                        <h4 class="text-base font-black text-text-primary">{{ p.first_name }} {{ p.last_name }}</h4>
+                        <p class="text-xs text-text-muted">{{ p.relationship }} &bull; {{ p.phone_number }}</p>
+                        <span class="inline-block mt-1 text-[10px] font-bold text-emerald-400">
+                            <i class="fas fa-check mr-1"></i> Authorized Primary Collector
+                        </span>
+                    </div>
                 </div>
-                <div class="flex items-center justify-center gap-2">
-                    <button (click)="shareOtpWhatsApp(otp.otp, otp.collector_name)"
-                            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
-                        <i class="fab fa-whatsapp"></i> Send via WhatsApp
+
+                <!-- QR Visual -->
+                <div class="bg-white p-5 rounded-xl flex flex-col items-center justify-center mb-5">
+                    <div class="w-36 h-36 bg-white flex items-center justify-center border-4 border-dashed border-gray-200 rounded-xl mb-2">
+                        <svg class="w-28 h-28" viewBox="0 0 100 100" fill="none">
+                            <rect width="100" height="100" fill="white"/>
+                            <rect x="5" y="5" width="30" height="30" fill="black"/>
+                            <rect x="10" y="10" width="20" height="20" fill="white"/>
+                            <rect x="15" y="15" width="10" height="10" fill="black"/>
+                            <rect x="65" y="5" width="30" height="30" fill="black"/>
+                            <rect x="70" y="10" width="20" height="20" fill="white"/>
+                            <rect x="75" y="15" width="10" height="10" fill="black"/>
+                            <rect x="5" y="65" width="30" height="30" fill="black"/>
+                            <rect x="10" y="70" width="20" height="20" fill="white"/>
+                            <rect x="15" y="75" width="10" height="10" fill="black"/>
+                            <rect x="42" y="10" width="16" height="6" fill="black"/>
+                            <rect x="45" y="25" width="10" height="10" fill="black"/>
+                            <rect x="42" y="45" width="16" height="16" fill="black"/>
+                            <rect x="65" y="45" width="10" height="10" fill="black"/>
+                            <rect x="80" y="60" width="15" height="8" fill="black"/>
+                            <rect x="45" y="75" width="10" height="20" fill="black"/>
+                        </svg>
+                    </div>
+                    <div class="font-mono text-xs font-bold text-gray-700 tracking-widest">
+                        ID: {{ p.pickup_code || 'CODE-849201' }}
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-2">
+                    <button (click)="sharePass(p)"
+                            class="flex-1 py-2.5 bg-bg-secondary border border-border-primary hover:bg-bg-tertiary text-text-primary rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fas fa-share-alt"></i> Share Pass
                     </button>
-                    <button (click)="copyOtp(otp.otp)"
-                            class="px-4 py-2 bg-bg-secondary border border-border-primary hover:bg-bg-tertiary text-text-primary rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
-                        <i class="fas fa-copy"></i> Copy Code
-                    </button>
-                    <button (click)="activeOtp.set(null)"
-                            class="px-3 py-2 bg-bg-secondary border border-border-primary hover:bg-rose-500/20 text-rose-400 rounded-xl text-xs font-bold transition-all cursor-pointer">
-                        Dismiss
+                    <button (click)="printPass()"
+                            class="flex-1 py-2.5 bg-bg-secondary border border-border-primary hover:bg-bg-tertiary text-text-primary rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fas fa-print"></i> Print Pass
                     </button>
                 </div>
             </div>
         }
+    }
 
-        <!-- Generate Buttons Per Ward -->
-        <div class="space-y-2">
-            <span class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-1">Generate Gate Code For:</span>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                @for (student of state.profile()?.students || []; track student.id) {
-                    <button (click)="openOtpModal(student.id || '')"
-                            class="p-3 bg-bg-tertiary/70 border border-border-primary hover:border-indigo-500/40 rounded-xl flex items-center justify-between text-left transition-all cursor-pointer group">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-xs">
-                                {{ student.first_name[0] }}
-                            </div>
-                            <span class="text-xs font-bold text-text-primary group-hover:text-indigo-400 transition-colors">{{ student.first_name }} {{ student.last_name }}</span>
-                        </div>
-                        <span class="text-[11px] text-indigo-400 font-bold flex items-center gap-1">
-                            <span>Get Code</span>
-                            <i class="fas fa-chevron-right text-[9px]"></i>
-                        </span>
-                    </button>
-                }
-            </div>
-        </div>
-    </div>
-
-    <!-- Permanent Guardian Biometric Pass (Existing) -->
-    @if (state.profile(); as p) {
-        <div class="bg-gradient-to-b from-bg-secondary to-bg-tertiary border-2 border-purple-500/30 rounded-3xl p-6 md:p-8 relative overflow-hidden">
-            <div class="absolute -right-10 -top-10 w-40 h-40 bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
-            <!-- Header -->
-            <div class="flex items-center justify-between pb-5 border-b border-border-primary/60 mb-5">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-xl">
-                        <i class="fas fa-id-badge"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-base font-black text-text-primary">Permanent Guardian Pass</h3>
-                        <p class="text-[10px] uppercase font-bold tracking-widest text-purple-400">School Linx &bull; Authorized Exit</p>
-                    </div>
-                </div>
-                <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-full flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Active
-                </span>
-            </div>
-
-            <!-- Guardian Info -->
-            <div class="flex items-center gap-4 mb-5">
-                <div class="w-14 h-14 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center font-black text-xl shrink-0">
-                    {{ p.first_name[0] }}{{ p.last_name[0] }}
+    <!-- TAB 2: Feature 16: Third-Party Single-Use 6-Digit Gate Pass OTP Generator -->
+    @if (activeTab() === 'guest') {
+        <div class="bg-gradient-to-br from-indigo-950/40 via-bg-secondary to-bg-secondary border border-indigo-500/30 rounded-3xl p-6 relative overflow-hidden animate-fade-in">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg shrink-0">
+                    <i class="fas fa-key"></i>
                 </div>
                 <div>
-                    <h4 class="text-base font-black text-text-primary">{{ p.first_name }} {{ p.last_name }}</h4>
-                    <p class="text-xs text-text-muted">{{ p.relationship }} &bull; {{ p.phone_number }}</p>
-                    <span class="inline-block mt-1 text-[10px] font-bold text-emerald-400">
-                        <i class="fas fa-check mr-1"></i> Authorized Primary Collector
+                    <h3 class="text-base font-black text-text-primary">Third-Party Pickup Pass (Single-Use OTP)</h3>
+                    <p class="text-xs text-text-muted">Need a driver, aunt, or friend to collect your child? Generate a secure 6-digit gate code.</p>
+                </div>
+            </div>
+
+            @if (activeOtp(); as otp) {
+                <!-- Active OTP Display Card -->
+                <div class="p-5 bg-bg-tertiary/80 border border-indigo-500/40 rounded-2xl mb-4 text-center animate-fade-in">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400 block mb-1">
+                        <i class="fas fa-shield-alt mr-1"></i> Authorized Single-Use Pass Active
                     </span>
+                    <div class="text-3xl sm:text-4xl font-mono font-black tracking-widest text-text-primary py-2 text-indigo-300">
+                        {{ otp.otp }}
+                    </div>
+                    <div class="text-xs text-text-muted mb-4">
+                        Collector: <span class="font-bold text-text-primary">{{ otp.collector_name }}</span> ({{ otp.collector_phone }})
+                        <br>
+                        <span class="text-amber-400 font-medium text-[11px]"><i class="fas fa-clock mr-1"></i> Valid for 4 hours at the security gate</span>
+                    </div>
+                    <div class="flex items-center justify-center gap-2">
+                        <button (click)="shareOtpWhatsApp(otp.otp, otp.collector_name)"
+                                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                            <i class="fab fa-whatsapp"></i> Send via WhatsApp
+                        </button>
+                        <button (click)="copyOtp(otp.otp)"
+                                class="px-4 py-2 bg-bg-secondary border border-border-primary hover:bg-bg-tertiary text-text-primary rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                            <i class="fas fa-copy"></i> Copy Code
+                        </button>
+                        <button (click)="activeOtp.set(null)"
+                                class="px-3 py-2 bg-bg-secondary border border-border-primary hover:bg-rose-500/20 text-rose-400 rounded-xl text-xs font-bold transition-all cursor-pointer">
+                            Dismiss
+                        </button>
+                    </div>
                 </div>
-            </div>
+            }
 
-            <!-- QR Visual -->
-            <div class="bg-white p-5 rounded-xl flex flex-col items-center justify-center mb-5">
-                <div class="w-36 h-36 bg-white flex items-center justify-center border-4 border-dashed border-gray-200 rounded-xl mb-2">
-                    <svg class="w-28 h-28" viewBox="0 0 100 100" fill="none">
-                        <rect width="100" height="100" fill="white"/>
-                        <rect x="5" y="5" width="30" height="30" fill="black"/>
-                        <rect x="10" y="10" width="20" height="20" fill="white"/>
-                        <rect x="15" y="15" width="10" height="10" fill="black"/>
-                        <rect x="65" y="5" width="30" height="30" fill="black"/>
-                        <rect x="70" y="10" width="20" height="20" fill="white"/>
-                        <rect x="75" y="15" width="10" height="10" fill="black"/>
-                        <rect x="5" y="65" width="30" height="30" fill="black"/>
-                        <rect x="10" y="70" width="20" height="20" fill="white"/>
-                        <rect x="15" y="75" width="10" height="10" fill="black"/>
-                        <rect x="42" y="10" width="16" height="6" fill="black"/>
-                        <rect x="45" y="25" width="10" height="10" fill="black"/>
-                        <rect x="42" y="45" width="16" height="16" fill="black"/>
-                        <rect x="65" y="45" width="10" height="10" fill="black"/>
-                        <rect x="80" y="60" width="15" height="8" fill="black"/>
-                        <rect x="45" y="75" width="10" height="20" fill="black"/>
-                    </svg>
+            <!-- Generate Buttons Per Ward -->
+            <div class="space-y-2">
+                <span class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-1">Generate Gate Code For:</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    @for (student of state.profile()?.students || []; track student.id) {
+                        <button (click)="openOtpModal(student.id || '')"
+                                class="p-3 bg-bg-tertiary/70 border border-border-primary hover:border-indigo-500/40 rounded-xl flex items-center justify-between text-left transition-all cursor-pointer group">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-xs">
+                                    {{ student.first_name[0] }}
+                                </div>
+                                <span class="text-xs font-bold text-text-primary group-hover:text-indigo-400 transition-colors">{{ student.first_name }} {{ student.last_name }}</span>
+                            </div>
+                            <span class="text-[11px] text-indigo-400 font-bold flex items-center gap-1">
+                                <span>Get Code</span>
+                                <i class="fas fa-chevron-right text-[9px]"></i>
+                            </span>
+                        </button>
+                    }
                 </div>
-                <div class="font-mono text-xs font-bold text-gray-700 tracking-widest">
-                    ID: {{ p.pickup_code || 'CODE-849201' }}
-                </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="flex gap-2">
-                <button (click)="sharePass(p)"
-                        class="flex-1 py-2.5 bg-bg-secondary border border-border-primary hover:bg-bg-tertiary text-text-primary rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-                    <i class="fas fa-share-alt"></i> Share Pass
-                </button>
-                <button (click)="printPass()"
-                        class="flex-1 py-2.5 bg-bg-secondary border border-border-primary hover:bg-bg-tertiary text-text-primary rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-                    <i class="fas fa-print"></i> Print Pass
-                </button>
             </div>
         </div>
     }

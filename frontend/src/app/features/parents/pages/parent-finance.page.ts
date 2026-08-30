@@ -25,6 +25,9 @@ export class ParentFinancePage implements OnInit {
     private route = inject(ActivatedRoute);
     private router = inject(Router);
 
+    // Active Tab State
+    activeTab = signal<'ledger' | 'milestones' | 'wallets' | 'siblings'>('ledger');
+
     // Multi-Currency State
     selectedCurrency = signal<'GHS' | 'USD' | 'GBP' | 'EUR'>('GHS');
     exchangeRates = signal<Record<string, number>>({
@@ -114,12 +117,11 @@ export class ParentFinancePage implements OnInit {
         const paid = ward?.total_paid || 0;
 
         const plan = this.installmentPlan();
-        const mDefs = plan?.milestones && plan.milestones.length > 0 ? plan.milestones : [
-            { index: 1, title: 'Milestone 1', description: 'Term Registration', percentage: 40, due_trigger: 'Term Registration' },
-            { index: 2, title: 'Milestone 2', description: 'Mid-Term Assessment', percentage: 30, due_trigger: 'Mid-Term Assessment' },
-            { index: 3, title: 'Milestone 3', description: 'Final Examinations', percentage: 30, due_trigger: 'Final Examinations' }
-        ];
+        if (!plan || !plan.is_enabled || !plan.milestones || plan.milestones.length === 0) {
+            return [];
+        }
 
+        const mDefs = plan.milestones;
         let accumulated = 0;
         let allocatedTotal = 0;
 

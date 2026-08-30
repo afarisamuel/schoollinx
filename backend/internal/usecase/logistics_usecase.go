@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"time"
 
 	"github.com/google/uuid"
 
@@ -19,64 +18,7 @@ func NewLogisticsUseCase(repo domain.LogisticsRepository) domain.LogisticsUseCas
 
 // Transport
 func (u *logisticsUseCase) GetAllRoutes(ctx context.Context) ([]domain.TransportRoute, error) {
-	routes, err := u.repo.GetRoutes(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if len(routes) == 0 {
-		now := time.Now()
-		r1 := domain.TransportRoute{
-			Name:                 "Route 1: East Legon & Airport Express",
-			VehiclePlate:         "GR 4820-24",
-			VehicleInfo:          "Toyota Coaster (32-Seater • AC)",
-			DriverName:           "Driver Kwame Mensah",
-			DriverPhone:          "+233 24 411 2233",
-			Capacity:             32,
-			IsActive:             true,
-			DailyFee:             25.0,
-			CurrentLat:           5.6358,
-			CurrentLng:           -0.1611,
-			SpeedKmh:             38.5,
-			HeadingDeg:           45,
-			NextStopName:         "Boundary Road Junction",
-			EstimatedArrivalMins: 8,
-			LastPingAt:           &now,
-			Stops: []domain.RouteStop{
-				{Name: "Campus Bus Terminal", Order: 1, Status: "DEPARTED", Time: "03:30 PM"},
-				{Name: "Shiashie Flyover", Order: 2, Status: "DEPARTED", Time: "03:45 PM"},
-				{Name: "Boundary Road Junction", Order: 3, Status: "NEXT", Time: "03:55 PM"},
-				{Name: "A&C Square Roundabout", Order: 4, Status: "UPCOMING", Time: "04:05 PM"},
-				{Name: "American House Terminal", Order: 5, Status: "UPCOMING", Time: "04:15 PM"},
-			},
-		}
-		r2 := domain.TransportRoute{
-			Name:                 "Route 2: Cantonments & Osu Shuttle",
-			VehiclePlate:         "GW 9182-25",
-			VehicleInfo:          "Mercedes Sprinter (22-Seater)",
-			DriverName:           "Driver Emmanuel Darko",
-			DriverPhone:          "+233 50 882 1199",
-			Capacity:             22,
-			IsActive:             true,
-			DailyFee:             30.0,
-			CurrentLat:           5.5780,
-			CurrentLng:           -0.1802,
-			SpeedKmh:             42.0,
-			HeadingDeg:           180,
-			NextStopName:         "Danquah Circle",
-			EstimatedArrivalMins: 14,
-			LastPingAt:           &now,
-			Stops: []domain.RouteStop{
-				{Name: "Campus Bus Terminal", Order: 1, Status: "DEPARTED", Time: "03:30 PM"},
-				{Name: "Police Headquarters", Order: 2, Status: "DEPARTED", Time: "03:50 PM"},
-				{Name: "Danquah Circle", Order: 3, Status: "NEXT", Time: "04:02 PM"},
-				{Name: "Osu Oxford Street Stop", Order: 4, Status: "UPCOMING", Time: "04:12 PM"},
-			},
-		}
-		_ = u.repo.CreateRoute(ctx, &r1)
-		_ = u.repo.CreateRoute(ctx, &r2)
-		return u.repo.GetRoutes(ctx)
-	}
-	return routes, nil
+	return u.repo.GetRoutes(ctx)
 }
 
 func (u *logisticsUseCase) GetRouteByID(ctx context.Context, id uuid.UUID) (*domain.TransportRoute, error) {

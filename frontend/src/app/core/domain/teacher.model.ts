@@ -5,6 +5,7 @@ export interface Teacher {
     email: string;
     phone_number?: string;
     dob?: string;
+    employee_id?: string;
     subjects: any[]; // Array of Subject objects
     user_id?: string;
     can_collect_fees?: boolean;

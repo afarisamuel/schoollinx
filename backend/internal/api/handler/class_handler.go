@@ -41,6 +41,10 @@ func (h *ClassHandler) ListClasses(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
+			if len(classes) == 0 {
+				// If teacher has no specific class allocations yet, fall back to institutional classes so they aren't locked out
+				classes, _ = h.classUseCase.GetAllClasses(c.Request.Context())
+			}
 			if classes == nil {
 				classes = []domain.Class{}
 			}

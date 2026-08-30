@@ -1033,23 +1033,7 @@ func (u *fiscalUseCase) GetExchangeRates(ctx context.Context) (map[string]float6
 }
 
 func (u *fiscalUseCase) GetInstallmentPlanTemplate(ctx context.Context) (*domain.InstallmentPlanTemplate, error) {
-	tpl, err := u.fiscalRepo.GetInstallmentPlanTemplate(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if tpl == nil {
-		return &domain.InstallmentPlanTemplate{
-			Name:         "Standard 3-Tier Split",
-			ScheduleText: "40% / 30% / 30% Schedule",
-			IsEnabled:    true,
-			Milestones: []domain.InstallmentPlanMilestoneDef{
-				{Index: 1, Title: "Milestone 1", Description: "Term Registration", Percentage: 40.0, DueTrigger: "Term Registration"},
-				{Index: 2, Title: "Milestone 2", Description: "Mid-Term Assessment", Percentage: 30.0, DueTrigger: "Mid-Term Assessment"},
-				{Index: 3, Title: "Milestone 3", Description: "Final Examinations", Percentage: 30.0, DueTrigger: "Final Examinations"},
-			},
-		}, nil
-	}
-	return tpl, nil
+	return u.fiscalRepo.GetInstallmentPlanTemplate(ctx)
 }
 
 func (u *fiscalUseCase) SaveInstallmentPlanTemplate(ctx context.Context, template *domain.InstallmentPlanTemplate) (*domain.InstallmentPlanTemplate, error) {

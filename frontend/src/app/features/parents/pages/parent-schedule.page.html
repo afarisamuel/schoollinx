@@ -9,29 +9,73 @@
             <div class="w-6 h-6 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
             <span class="font-bold">Loading schedules...</span>
         </div>
-    } @else {
-        @for (student of state.profile()?.students || []; track student.id) {
-            @let tt = state.timetableMap()[student.id || ''] || [];
-            @let todayEntries = tt.filter(e => e.day_of_week === todayDay());
+    } @else if (selectedStudent(); as student) {
+        @let tt = state.timetableMap()[student.id || ''] || [];
+        @let todayEntries = tt.filter(e => e.day_of_week === todayDay());
 
-            <div class="border border-border-primary rounded-2xl overflow-hidden mb-6">
-                <div class="px-5 py-4 border-b border-border-primary flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-black text-lg">{{ student.first_name[0] }}</div>
-                        <div>
-                            <h2 class="font-black text-text-primary text-lg">{{ student.first_name }} {{ student.last_name }}</h2>
-                            <p class="text-[10px] text-text-muted">{{ student.class_name || 'Grade ' + student.level }}</p>
-                        </div>
-                    </div>
-                    <span class="text-xs font-bold text-text-muted">Today: {{ dayLabel(todayDay()) }}</span>
-                </div>
+        <!-- Ward Switcher (if multiple students) -->
+        @if ((state.profile()?.students || []).length > 1) {
+            <div class="flex items-center gap-2 mb-5 overflow-x-auto pb-1">
+                <span class="text-xs font-bold text-text-muted uppercase tracking-wider mr-1">Select Ward:</span>
+                @for (s of state.profile()?.students || []; track s.id) {
+                    <button (click)="selectedStudentId.set(s.id || '')"
+                            [ngClass]="selectedStudent()?.id === s.id ? 'bg-purple-600 text-white font-black shadow-md shadow-purple-600/20' : 'bg-bg-secondary text-text-muted hover:text-text-primary border border-border-primary'"
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
+                        <span class="w-2 h-2 rounded-full" [ngClass]="selectedStudent()?.id === s.id ? 'bg-white' : 'bg-purple-400'"></span>
+                        <span>{{ s.first_name }} {{ s.last_name }}</span>
+                        <span class="text-[10px] opacity-70">({{ s.class_name || 'Grade ' + s.level }})</span>
+                    </button>
+                }
+            </div>
+        }
 
-                <div class="p-5 space-y-6">
-                    <!-- Today -->
+        <div class="border border-border-primary rounded-2xl overflow-hidden mb-6 bg-bg-secondary/40 backdrop-blur-sm">
+            <div class="px-5 py-4 border-b border-border-primary flex items-center justify-between flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-black text-lg">{{ student.first_name[0] }}</div>
                     <div>
-                        <h3 class="text-sm font-black text-text-primary mb-3 flex items-center gap-2">
-                            <i class="fas fa-sun text-amber-400"></i> Today's Classes
-                        </h3>
+                        <h2 class="font-black text-text-primary text-lg">{{ student.first_name }} {{ student.last_name }}</h2>
+                        <p class="text-[10px] text-text-muted">{{ student.class_name || 'Grade ' + student.level }}</p>
+                    </div>
+                </div>
+                <span class="text-xs font-bold text-text-muted">Today: {{ dayLabel(todayDay()) }}</span>
+            </div>
+
+            <!-- Tab Navigation Bar -->
+            <div class="px-5 pt-4 border-b border-border-primary bg-bg-tertiary/20">
+                <div class="flex items-center gap-2 overflow-x-auto pb-3">
+                    <button (click)="activeTab.set('today')"
+                            [ngClass]="activeTab() === 'today' ? 'bg-purple-600 text-white font-black shadow-md shadow-purple-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                            class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-sun"></i>
+                        <span>Today's Classes</span>
+                        <span class="px-1.5 py-0.2 text-[9px] rounded-full" [ngClass]="activeTab() === 'today' ? 'bg-white/20 text-white' : 'bg-bg-tertiary text-text-muted'">
+                            {{ todayEntries.length }}
+                        </span>
+                    </button>
+                    <button (click)="activeTab.set('week')"
+                            [ngClass]="activeTab() === 'week' ? 'bg-purple-600 text-white font-black shadow-md shadow-purple-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                            class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-calendar-week"></i>
+                        <span>Full Week Timetable</span>
+                        <span class="px-1.5 py-0.2 text-[9px] rounded-full" [ngClass]="activeTab() === 'week' ? 'bg-white/20 text-white' : 'bg-bg-tertiary text-text-muted'">
+                            {{ tt.length }} periods
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-5">
+                <!-- TAB 1: Today's Classes -->
+                @if (activeTab() === 'today') {
+                    <div class="animate-fade-in space-y-3">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-black text-text-primary flex items-center gap-2">
+                                <i class="fas fa-sun text-amber-400"></i> Today's Schedule ({{ dayLabel(todayDay()) }})
+                            </h3>
+                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">{{ todayEntries.length }} Period{{ todayEntries.length !== 1 ? 's' : '' }}</span>
+                        </div>
                         @if (todayEntries.length > 0) {
                             <div class="space-y-2">
                                 @for (e of todayEntries; track e.id) {
@@ -51,49 +95,59 @@
                                 }
                             </div>
                         } @else {
-                            <div class="py-8 text-center text-text-muted border border-dashed border-border-primary rounded-xl">
-                                <i class="fas fa-couch text-xl opacity-30 mb-2 block"></i>
-                                <p class="text-xs">No classes scheduled for today.</p>
+                            <div class="py-12 text-center text-text-muted border border-dashed border-border-primary rounded-xl">
+                                <i class="fas fa-couch text-2xl opacity-30 mb-2 block"></i>
+                                <p class="text-xs font-bold text-text-primary">No classes scheduled for today.</p>
+                                <p class="text-[11px] text-text-muted mt-0.5">Enjoy your day or check the full week timetable tab.</p>
                             </div>
                         }
                     </div>
+                }
 
-                    <!-- Weekly Grid -->
-                    @if (tt.length > 0) {
-                        <div>
-                            <h3 class="text-sm font-black text-text-primary mb-3 flex items-center gap-2">
+                <!-- TAB 2: Full Week Timetable -->
+                @if (activeTab() === 'week') {
+                    <div class="animate-fade-in space-y-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-black text-text-primary flex items-center gap-2">
                                 <i class="fas fa-calendar-week text-purple-400"></i> Full Week Timetable
                             </h3>
+                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">Monday – Friday</span>
+                        </div>
+                        @if (tt.length > 0) {
                             <div class="overflow-x-auto">
-                                <div class="grid grid-cols-5 gap-2 min-w-[500px]">
+                                <div class="grid grid-cols-5 gap-3 min-w-[600px]">
                                     @for (day of [1,2,3,4,5]; track day) {
                                         <div class="space-y-2">
-                                            <div class="text-center text-xs font-black uppercase py-1.5 rounded-lg"
-                                                 [ngClass]="todayDay() === day ? 'bg-indigo-600/30 text-indigo-400' : 'bg-bg-tertiary text-text-muted'">
+                                            <div class="text-center text-xs font-black uppercase py-2 rounded-xl"
+                                                 [ngClass]="todayDay() === day ? 'bg-purple-600 text-white shadow-sm' : 'bg-bg-tertiary text-text-muted'">
                                                 {{ dayLabel(day) }}
                                             </div>
                                             @for (e of tt.filter(x => x.day_of_week === day); track e.id) {
-                                                <div class="p-2 bg-bg-secondary border border-border-primary rounded-lg">
-                                                    <div class="text-[10px] font-black text-text-primary">{{ e.subject?.name || '—' }}</div>
-                                                    <div class="text-[9px] text-text-muted">{{ e.start_time }}–{{ e.end_time }}</div>
+                                                <div class="p-2.5 bg-bg-secondary border border-border-primary rounded-xl hover:border-purple-500/30 transition-all">
+                                                    <div class="text-[11px] font-bold text-text-primary truncate">{{ e.subject?.name || '—' }}</div>
+                                                    <div class="text-[9px] text-purple-400 font-mono mt-0.5">{{ e.start_time }}–{{ e.end_time }}</div>
+                                                    @if (e.room) {
+                                                        <div class="text-[9px] text-text-muted mt-0.5 truncate">Rm {{ e.room }}</div>
+                                                    }
                                                 </div>
                                             }
                                             @if (tt.filter(x => x.day_of_week === day).length === 0) {
-                                                <div class="p-2 text-center text-[10px] text-text-muted/40 border border-dashed border-border-primary/30 rounded-lg">Free</div>
+                                                <div class="p-3 text-center text-[10px] text-text-muted/50 border border-dashed border-border-primary/30 rounded-xl">Free Day</div>
                                             }
                                         </div>
                                     }
                                 </div>
                             </div>
-                        </div>
-                    } @else {
-                        <div class="py-8 text-center text-text-muted border border-dashed border-border-primary rounded-xl">
-                            <i class="fas fa-calendar text-xl opacity-30 mb-2 block"></i>
-                            <p class="text-xs">No timetable available yet.</p>
-                        </div>
-                    }
-                </div>
+                        } @else {
+                            <div class="py-12 text-center text-text-muted border border-dashed border-border-primary rounded-xl">
+                                <i class="fas fa-calendar-times text-2xl opacity-30 mb-2 block"></i>
+                                <p class="text-xs font-bold text-text-primary">No timetable available yet.</p>
+                                <p class="text-[11px] text-text-muted mt-0.5">The school administration has not published a class schedule for this term.</p>
+                            </div>
+                        }
+                    </div>
+                }
             </div>
-        }
+        </div>
     }
 </div>

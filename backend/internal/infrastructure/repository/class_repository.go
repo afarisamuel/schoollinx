@@ -86,7 +86,7 @@ func (r *classRepository) GetClassesForTeacher(ctx context.Context, userID uuid.
 		Distinct("classes.*").
 		Joins("LEFT JOIN teacher_class_assignments tca ON tca.class_id = classes.id").
 		Joins("LEFT JOIN teachers t ON (t.id = tca.teacher_id OR t.id = classes.teacher_id)").
-		Where("t.user_id = ?", userID).
+		Where("t.user_id = ? OR t.email = (SELECT email FROM users WHERE id = ?)", userID, userID).
 		Preload("ScholasticLevel").
 		Find(&classes).Error
 	if err != nil {

@@ -16,6 +16,7 @@ export class ParentAbsencePage implements OnInit {
     private api = inject(ParentPortalService);
     private toast = inject(ToastService);
 
+    activeTab = signal<'submit' | 'history'>('submit');
     studentId = signal('');
     startDate = signal('');
     endDate = signal('');

@@ -30,10 +30,32 @@ func (r *teacherRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.
 
 func (r *teacherRepository) GetByUserID(ctx context.Context, userID uuid.UUID) (*domain.Teacher, error) {
 	var teacher domain.Teacher
-	if err := r.db.WithContext(ctx).Preload("User").Preload("Subjects").Where("user_id = ?", userID).First(&teacher).Error; err != nil {
-		return nil, err
+	if err := r.db.WithContext(ctx).Preload("User").Preload("Subjects").Where("user_id = ?", userID).First(&teacher).Error; err == nil {
+		return &teacher, nil
 	}
-	return &teacher, nil
+
+	// Fallback 1: Match teacher by user's email if user_id is not linked
+	var user domain.User
+	if err := r.db.WithContext(ctx).Where("id = ?", userID).First(&user).Error; err == nil && string(user.Email) != "" {
+		if err := r.db.WithContext(ctx).Preload("User").Preload("Subjects").Where("email = ?", user.Email).First(&teacher).Error; err == nil {
+			teacher.UserID = &userID
+			_ = r.db.WithContext(ctx).Model(&domain.Teacher{}).Where("id = ?", teacher.ID).Update("user_id", userID)
+			return &teacher, nil
+		}
+	}
+
+	// Fallback 2: If there is exactly one teacher in this tenant, auto-link for single-teacher environments
+	var count int64
+	r.db.WithContext(ctx).Model(&domain.Teacher{}).Count(&count)
+	if count == 1 {
+		if err := r.db.WithContext(ctx).Preload("User").Preload("Subjects").First(&teacher).Error; err == nil {
+			teacher.UserID = &userID
+			_ = r.db.WithContext(ctx).Model(&domain.Teacher{}).Where("id = ?", teacher.ID).Update("user_id", userID)
+			return &teacher, nil
+		}
+	}
+
+	return nil, gorm.ErrRecordNotFound
 }
 
 func (r *teacherRepository) GetAll(ctx context.Context) ([]domain.Teacher, error) {

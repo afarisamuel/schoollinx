@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ParentStateService } from '../../../core/infrastructure/parent/parent-state.service';
 import { ParentPortalService } from '../../../core/infrastructure/parent/parent-portal.service';
@@ -14,6 +14,23 @@ export class ParentHealthPage implements OnInit {
     private portalService = inject(ParentPortalService);
 
     sickbayMap = signal<Record<string, any[]>>({});
+    activeTab = signal<'attendance' | 'sickbay' | 'medical' | 'leaves'>('attendance');
+    selectedStudentId = signal<string>('');
+
+    selectedStudent = computed(() => {
+        const students = this.state.profile()?.students || [];
+        if (!students.length) return null;
+        return students.find(s => s.id === this.selectedStudentId()) || students[0];
+    });
+
+    constructor() {
+        effect(() => {
+            const students = this.state.profile()?.students || [];
+            if (students.length > 0 && !this.selectedStudentId()) {
+                this.selectedStudentId.set(students[0].id || '');
+            }
+        });
+    }
 
     ngOnInit() {
         this.loadSickbayHistory();

@@ -1,8 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit, effect, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ParentStateService } from '../../../core/infrastructure/parent/parent-state.service';
-import { ReportService } from '../../../core/infrastructure/report/report.service';
+import { ReportService, CompetencyEvaluationItem } from '../../../core/infrastructure/report/report.service';
+import { SubjectService, Subject } from '../../../core/infrastructure/curriculum/subject.service';
 import { Grade } from '../../../core/domain/grade.model';
 
 @Component({
@@ -11,23 +12,67 @@ import { Grade } from '../../../core/domain/grade.model';
     imports: [CommonModule, RouterModule],
     templateUrl: './parent-academics.page.html'
 })
-export class ParentAcademicsPage {
+export class ParentAcademicsPage implements OnInit {
     state = inject(ParentStateService);
     private reportService = inject(ReportService);
+    private subjectService = inject(SubjectService);
 
     isDownloading = signal<Record<string, boolean>>({});
+    dbSubjects = signal<Subject[]>([]);
+    loadingSubjects = signal(true);
+    competenciesMap = signal<Record<string, CompetencyEvaluationItem[]>>({});
 
-    // Default Core Curriculum Subjects
-    defaultCoreSubjects = ['Mathematics', 'English Language', 'Integrated Science', 'Social Studies', 'ICT & Computing', 'Creative Arts'];
+    // Active Tab & Ward Selection State
+    activeTab = signal<'subjects' | 'competencies' | 'homework' | 'transcript' | 'insights'>('subjects');
+    selectedStudentId = signal<string>('');
 
-    // Competency Framework (NaCCA / CBA)
-    defaultCompetencies = [
-        { name: 'Critical Thinking & Problem Solving', domain: 'Cognitive Excellence', score: 5, level: 'Exemplary', badgeClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
-        { name: 'Collaboration & Teamwork', domain: 'Social Leadership', score: 4, level: 'Proficient', badgeClass: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
-        { name: 'Digital & Research Literacy', domain: 'Modern Tools', score: 4, level: 'Proficient', badgeClass: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
-        { name: 'Communication & Expression', domain: 'Language & Art', score: 5, level: 'Exemplary', badgeClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
-        { name: 'Personal Development & Ethics', domain: 'Character', score: 4, level: 'Proficient', badgeClass: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' }
-    ];
+    selectedStudent = computed(() => {
+        const students = this.state.profile()?.students || [];
+        if (!students.length) return null;
+        return students.find(s => s.id === this.selectedStudentId()) || students[0];
+    });
+
+    constructor() {
+        effect(() => {
+            const profile = this.state.profile();
+            if (profile?.students && profile.students.length > 0) {
+                if (!this.selectedStudentId()) {
+                    this.selectedStudentId.set(profile.students[0].id || '');
+                }
+                profile.students.forEach(s => {
+                    const sid = s.id;
+                    if (sid && !this.competenciesMap()[sid]) {
+                        this.reportService.getCompetencyEvaluations(sid).subscribe({
+                            next: (evals) => {
+                                this.competenciesMap.update(m => ({ ...m, [sid]: evals || [] }));
+                            },
+                            error: () => {
+                                this.competenciesMap.update(m => ({ ...m, [sid]: [] }));
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    ngOnInit() {
+        this.loadDatabaseSubjects();
+    }
+
+    loadDatabaseSubjects() {
+        this.loadingSubjects.set(true);
+        this.subjectService.getSubjects().subscribe({
+            next: (subs) => {
+                this.dbSubjects.set(subs || []);
+                this.loadingSubjects.set(false);
+            },
+            error: () => {
+                this.dbSubjects.set([]);
+                this.loadingSubjects.set(false);
+            }
+        });
+    }
 
     getStudentRemarks(student: any, gpa: number): string {
         if (gpa >= 80) {

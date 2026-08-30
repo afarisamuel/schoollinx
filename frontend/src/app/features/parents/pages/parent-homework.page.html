@@ -9,104 +9,212 @@
             <div class="w-6 h-6 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
             <span class="font-bold">Loading homework...</span>
         </div>
-    } @else {
-        @for (student of state.profile()?.students || []; track student.id) {
-            @let hw = state.homeworkMap()[student.id || ''] || [];
-            @let pending = hw.filter(h => h.due_date >= today());
-            @let overdue = hw.filter(h => h.due_date < today());
+    } @else if (selectedStudent(); as student) {
+        @let hw = state.homeworkMap()[student.id || ''] || [];
+        @let pending = hw.filter(h => h.due_date >= today());
+        @let overdue = hw.filter(h => h.due_date < today());
 
-            <div class="border border-border-primary rounded-2xl overflow-hidden mb-6">
-                <div class="px-5 py-4 border-b border-border-primary flex items-center justify-between gap-3 flex-wrap">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-black text-lg">{{ student.first_name[0] }}</div>
-                        <div>
-                            <h2 class="font-black text-text-primary text-lg">{{ student.first_name }} {{ student.last_name }}</h2>
-                            <p class="text-[10px] text-text-muted">{{ student.class_name }}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <div class="text-center">
-                            <div class="text-lg font-black text-amber-400">{{ pending.length }}</div>
-                            <div class="text-[9px] text-text-muted uppercase">Pending</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-lg font-black text-rose-400">{{ overdue.length }}</div>
-                            <div class="text-[9px] text-text-muted uppercase">Overdue</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-lg font-black text-indigo-400">{{ hw.length }}</div>
-                            <div class="text-[9px] text-text-muted uppercase">Total</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="p-5 space-y-4">
-                    @if (hw.length > 0) {
-                        @if (overdue.length > 0) {
-                            <div>
-                                <h3 class="text-xs font-black text-rose-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                    <i class="fas fa-exclamation-triangle"></i> Overdue ({{ overdue.length }})
-                                </h3>
-                                <div class="space-y-2">
-                                    @for (item of overdue; track item.id) {
-                                        <div class="p-3.5 bg-rose-500/5 border border-rose-500/20 rounded-xl flex items-center justify-between gap-3">
-                                            <div class="flex items-center gap-3 min-w-0">
-                                                <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs font-black shrink-0">{{ item.subject[0] }}</div>
-                                                <div class="min-w-0">
-                                                    <div class="text-xs font-bold text-text-primary truncate">{{ item.title }}</div>
-                                                    <div class="text-[10px] text-text-muted">{{ item.subject }} &bull; Was due {{ item.due_date }}</div>
-                                                </div>
-                                            </div>
-                                            <span class="text-[9px] font-black px-2 py-1 rounded-lg border bg-rose-500/10 text-rose-400 border-rose-500/20 shrink-0">OVERDUE</span>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        }
-
-                        @if (pending.length > 0) {
-                            <div>
-                                <h3 class="text-xs font-black text-amber-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                    <i class="fas fa-clock"></i> Upcoming ({{ pending.length }})
-                                </h3>
-                                <div class="space-y-2">
-                                    @for (item of pending; track item.id) {
-                                        @let soon = dueSoon(item.due_date);
-                                        <div class="p-3.5 bg-bg-tertiary border border-border-primary rounded-xl flex items-center justify-between gap-3"
-                                             [ngClass]="{'border-amber-500/30 bg-amber-500/5': soon}">
-                                            <div class="flex items-center gap-3 min-w-0">
-                                                <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs font-black shrink-0">{{ item.subject[0] }}</div>
-                                                <div class="min-w-0">
-                                                    <div class="text-xs font-bold text-text-primary truncate">{{ item.title }}</div>
-                                                    <div class="text-[10px] text-text-muted flex items-center gap-2 flex-wrap">
-                                                        <span>{{ item.subject }} &bull; Due {{ item.due_date }}</span>
-                                                        <span class="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20">
-                                                            <i class="fas fa-shield-alt text-[8px]"></i> Originality Verified
-                                                        </span>
-                                                    </div>
-                                                    @if (item.description) {
-                                                        <div class="text-[10px] text-text-muted/70 mt-0.5 truncate">{{ item.description }}</div>
-                                                    }
-                                                </div>
-                                            </div>
-                                            <span class="text-[9px] font-black px-2 py-1 rounded-lg border shrink-0"
-                                                  [ngClass]="soon ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'">
-                                                {{ soon ? 'DUE SOON' : 'UPCOMING' }}
-                                            </span>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        }
-                    } @else {
-                        <div class="py-12 text-center text-text-muted border border-dashed border-border-primary rounded-xl">
-                            <i class="fas fa-check-circle text-3xl opacity-30 mb-3 block"></i>
-                            <p class="font-bold text-sm">No homework assignments found.</p>
-                            <p class="text-xs mt-1 opacity-60">This updates when teachers assign homework via the class.</p>
-                        </div>
-                    }
-                </div>
+        <!-- Ward Switcher (if multiple students) -->
+        @if ((state.profile()?.students || []).length > 1) {
+            <div class="flex items-center gap-2 mb-5 overflow-x-auto pb-1">
+                <span class="text-xs font-bold text-text-muted uppercase tracking-wider mr-1">Select Ward:</span>
+                @for (s of state.profile()?.students || []; track s.id) {
+                    <button (click)="selectedStudentId.set(s.id || '')"
+                            [ngClass]="selectedStudent()?.id === s.id ? 'bg-amber-500 text-black font-black shadow-md shadow-amber-500/20' : 'bg-bg-secondary text-text-muted hover:text-text-primary border border-border-primary'"
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
+                        <span class="w-2 h-2 rounded-full" [ngClass]="selectedStudent()?.id === s.id ? 'bg-black' : 'bg-amber-400'"></span>
+                        <span>{{ s.first_name }} {{ s.last_name }}</span>
+                        <span class="text-[10px] opacity-70">({{ s.class_name }})</span>
+                    </button>
+                }
             </div>
         }
+
+        <div class="border border-border-primary rounded-2xl overflow-hidden mb-6 bg-bg-secondary/40 backdrop-blur-sm">
+            <!-- Student Header & Summary -->
+            <div class="px-5 py-4 border-b border-border-primary flex items-center justify-between gap-3 flex-wrap">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-black text-lg">{{ student.first_name[0] }}</div>
+                    <div>
+                        <h2 class="font-black text-text-primary text-lg">{{ student.first_name }} {{ student.last_name }}</h2>
+                        <p class="text-[10px] text-text-muted">{{ student.class_name }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="text-center">
+                        <div class="text-lg font-black text-amber-400">{{ pending.length }}</div>
+                        <div class="text-[9px] text-text-muted uppercase">Pending</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-lg font-black text-rose-400">{{ overdue.length }}</div>
+                        <div class="text-[9px] text-text-muted uppercase">Overdue</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-lg font-black text-indigo-400">{{ hw.length }}</div>
+                        <div class="text-[9px] text-text-muted uppercase">Total</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation Bar -->
+            <div class="px-5 pt-4 border-b border-border-primary bg-bg-tertiary/20">
+                <div class="flex items-center gap-2 overflow-x-auto pb-3">
+                    <button (click)="activeTab.set('pending')"
+                            [ngClass]="activeTab() === 'pending' ? 'bg-amber-500 text-black font-black shadow-md shadow-amber-500/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                            class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-clock"></i>
+                        <span>Pending & Upcoming</span>
+                        <span class="px-1.5 py-0.2 text-[9px] rounded-full" [ngClass]="activeTab() === 'pending' ? 'bg-black/20 text-black font-black' : 'bg-bg-tertiary text-text-muted'">
+                            {{ pending.length }}
+                        </span>
+                    </button>
+                    <button (click)="activeTab.set('overdue')"
+                            [ngClass]="activeTab() === 'overdue' ? 'bg-rose-600 text-white font-black shadow-md shadow-rose-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                            class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Overdue Tasks</span>
+                        @if (overdue.length > 0) {
+                            <span class="px-1.5 py-0.2 text-[9px] rounded-full" [ngClass]="activeTab() === 'overdue' ? 'bg-white/20 text-white' : 'bg-rose-500/20 text-rose-400'">
+                                {{ overdue.length }}
+                            </span>
+                        }
+                    </button>
+                    <button (click)="activeTab.set('all')"
+                            [ngClass]="activeTab() === 'all' ? 'bg-indigo-600 text-white font-black shadow-md shadow-indigo-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                            class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-tasks"></i>
+                        <span>All Assignments</span>
+                        <span class="px-1.5 py-0.2 text-[9px] rounded-full" [ngClass]="activeTab() === 'all' ? 'bg-white/20 text-white' : 'bg-bg-tertiary text-text-muted'">
+                            {{ hw.length }}
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-5">
+
+                <!-- TAB 1: Pending & Upcoming -->
+                @if (activeTab() === 'pending') {
+                    <div class="animate-fade-in space-y-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-black text-text-primary flex items-center gap-2">
+                                <i class="fas fa-clock text-amber-400"></i> Upcoming & Due Soon
+                            </h3>
+                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">{{ pending.length }} Task{{ pending.length !== 1 ? 's' : '' }}</span>
+                        </div>
+                        @if (pending.length > 0) {
+                            <div class="space-y-2">
+                                @for (item of pending; track item.id) {
+                                    @let soon = dueSoon(item.due_date);
+                                    <div class="p-3.5 bg-bg-tertiary border border-border-primary rounded-xl flex items-center justify-between gap-3"
+                                         [ngClass]="{'border-amber-500/30 bg-amber-500/5': soon}">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs font-black shrink-0">{{ item.subject[0] }}</div>
+                                            <div class="min-w-0">
+                                                <div class="text-xs font-bold text-text-primary truncate">{{ item.title }}</div>
+                                                <div class="text-[10px] text-text-muted flex items-center gap-2 flex-wrap">
+                                                    <span>{{ item.subject }} &bull; Due {{ item.due_date }}</span>
+                                                    <span class="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20">
+                                                        <i class="fas fa-shield-alt text-[8px]"></i> Originality Verified
+                                                    </span>
+                                                </div>
+                                                @if (item.description) {
+                                                    <div class="text-[10px] text-text-muted/70 mt-0.5 truncate">{{ item.description }}</div>
+                                                }
+                                            </div>
+                                        </div>
+                                        <span class="text-[9px] font-black px-2 py-1 rounded-lg border shrink-0"
+                                              [ngClass]="soon ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'">
+                                            {{ soon ? 'DUE SOON' : 'UPCOMING' }}
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+                        } @else {
+                            <div class="py-12 text-center text-text-muted border border-dashed border-border-primary rounded-xl">
+                                <i class="fas fa-check-double text-emerald-400 text-3xl mb-2 block opacity-80"></i>
+                                <p class="font-bold text-sm text-text-primary">No pending homework assignments</p>
+                                <p class="text-xs text-text-muted mt-0.5">{{ student.first_name }} has completed all active assignments.</p>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- TAB 2: Overdue Tasks -->
+                @if (activeTab() === 'overdue') {
+                    <div class="animate-fade-in space-y-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-black text-text-primary flex items-center gap-2">
+                                <i class="fas fa-exclamation-triangle text-rose-400"></i> Overdue Tasks
+                            </h3>
+                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">{{ overdue.length }} Overdue</span>
+                        </div>
+                        @if (overdue.length > 0) {
+                            <div class="space-y-2">
+                                @for (item of overdue; track item.id) {
+                                    <div class="p-3.5 bg-rose-500/5 border border-rose-500/20 rounded-xl flex items-center justify-between gap-3">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs font-black shrink-0">{{ item.subject[0] }}</div>
+                                            <div class="min-w-0">
+                                                <div class="text-xs font-bold text-text-primary truncate">{{ item.title }}</div>
+                                                <div class="text-[10px] text-text-muted">{{ item.subject }} &bull; Was due {{ item.due_date }}</div>
+                                            </div>
+                                        </div>
+                                        <span class="text-[9px] font-black px-2 py-1 rounded-lg border bg-rose-500/10 text-rose-400 border-rose-500/20 shrink-0">OVERDUE</span>
+                                    </div>
+                                }
+                            </div>
+                        } @else {
+                            <div class="py-12 text-center text-text-muted border border-dashed border-border-primary rounded-xl">
+                                <i class="fas fa-smile text-emerald-400 text-3xl mb-2 block opacity-80"></i>
+                                <p class="font-bold text-sm text-text-primary">Great news! No overdue assignments</p>
+                                <p class="text-xs text-text-muted mt-0.5">{{ student.first_name }} has no late or missing submissions.</p>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- TAB 3: All Assignments -->
+                @if (activeTab() === 'all') {
+                    <div class="animate-fade-in space-y-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-black text-text-primary flex items-center gap-2">
+                                <i class="fas fa-tasks text-indigo-400"></i> All Course Assignments
+                            </h3>
+                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">{{ hw.length }} Total</span>
+                        </div>
+                        @if (hw.length > 0) {
+                            <div class="space-y-2">
+                                @for (item of hw; track item.id) {
+                                    @let isOverdue = item.due_date < today();
+                                    @let soon = dueSoon(item.due_date);
+                                    <div class="p-3.5 bg-bg-tertiary border border-border-primary rounded-xl flex items-center justify-between gap-3">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs font-black shrink-0">{{ item.subject[0] }}</div>
+                                            <div class="min-w-0">
+                                                <div class="text-xs font-bold text-text-primary truncate">{{ item.title }}</div>
+                                                <div class="text-[10px] text-text-muted">{{ item.subject }} &bull; Due {{ item.due_date }}</div>
+                                            </div>
+                                        </div>
+                                        <span class="text-[9px] font-black px-2 py-1 rounded-lg border shrink-0"
+                                              [ngClass]="isOverdue ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : soon ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'">
+                                            {{ isOverdue ? 'OVERDUE' : soon ? 'DUE SOON' : 'UPCOMING' }}
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+                        } @else {
+                            <div class="py-12 text-center text-text-muted border border-dashed border-border-primary rounded-xl">
+                                <i class="fas fa-folder-open text-3xl opacity-30 mb-2 block"></i>
+                                <p class="font-bold text-sm text-text-primary">No assignments on record</p>
+                                <p class="text-xs text-text-muted mt-0.5">Tasks will appear here once teachers assign them in class.</p>
+                            </div>
+                        }
+                    </div>
+                }
+
+            </div>
+        </div>
     }
 </div>

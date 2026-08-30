@@ -11,11 +11,30 @@
         </div>
     }
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Book Meeting Form -->
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5">
+    <!-- Tab Navigation -->
+    <div class="flex items-center gap-2 p-1.5 bg-bg-secondary border border-border-primary rounded-2xl mb-6 overflow-x-auto">
+        <button (click)="activeTab.set('book')"
+                [ngClass]="activeTab() === 'book' ? 'bg-indigo-600 text-white font-black shadow-md shadow-indigo-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fas fa-calendar-plus"></i>
+            <span>Book a Conference</span>
+        </button>
+        <button (click)="activeTab.set('meetings')"
+                [ngClass]="activeTab() === 'meetings' ? 'bg-indigo-600 text-white font-black shadow-md shadow-indigo-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fas fa-handshake"></i>
+            <span>Scheduled Meetings</span>
+            <span class="px-1.5 py-0.2 text-[9px] rounded-full" [ngClass]="activeTab() === 'meetings' ? 'bg-white/20 text-white font-black' : 'bg-bg-tertiary text-text-muted'">
+                {{ state.bookings().length }}
+            </span>
+        </button>
+    </div>
+
+    <!-- TAB 1: Book Meeting Form -->
+    @if (activeTab() === 'book') {
+        <div class="max-w-2xl mx-auto bg-bg-secondary border border-border-primary rounded-2xl p-6 animate-fade-in">
             <h3 class="text-base font-black text-text-primary mb-1">Book a Conference</h3>
-            <p class="text-xs text-text-muted mb-5">Schedule 1-on-1 time with your child's teachers</p>
+            <p class="text-xs text-text-muted mb-5">Schedule 1-on-1 consultation time with your child's teachers.</p>
 
             <div class="space-y-4">
                 <div>
@@ -34,7 +53,7 @@
                                placeholder="Enter Teacher ID..."
                                class="flex-1 px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500" />
                         <button (click)="findSlots()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl cursor-pointer">
-                            <i class="fas fa-search"></i> Find
+                            <i class="fas fa-search"></i> Find Slots
                         </button>
                     </div>
                 </div>
@@ -66,16 +85,23 @@
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Discussion Topic</label>
                     <textarea [ngModel]="reason()" (ngModelChange)="reason.set($event)" rows="3"
-                              placeholder="e.g., Mathematics progress, homework habits..."
+                              placeholder="e.g., Mathematics progress, homework habits, behavioral consultation..."
                               class="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500 resize-none"></textarea>
                 </div>
             </div>
         </div>
+    }
 
-        <!-- My Meetings -->
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5">
-            <h3 class="text-base font-black text-text-primary mb-1">My Scheduled Meetings</h3>
-            <p class="text-xs text-text-muted mb-5">Upcoming and past conference bookings</p>
+    <!-- TAB 2: My Meetings -->
+    @if (activeTab() === 'meetings') {
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-6 animate-fade-in">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-base font-black text-text-primary mb-0.5">My Scheduled Meetings</h3>
+                    <p class="text-xs text-text-muted">Upcoming and past conference bookings with educators.</p>
+                </div>
+                <span class="text-xs font-bold text-text-muted">{{ state.bookings().length }} Meeting{{ state.bookings().length !== 1 ? 's' : '' }}</span>
+            </div>
 
             <div class="space-y-3">
                 @for (b of state.bookings(); track b.id) {
@@ -97,12 +123,13 @@
                     </div>
                 }
                 @empty {
-                    <div class="py-14 text-center text-text-muted border border-dashed border-border-primary rounded-2xl">
-                        <i class="fas fa-calendar text-2xl opacity-30 mb-2 block"></i>
+                    <div class="py-16 text-center text-text-muted border border-dashed border-border-primary rounded-2xl">
+                        <i class="fas fa-calendar text-3xl opacity-30 mb-2 block"></i>
                         <p class="font-bold text-xs">No meeting bookings yet.</p>
+                        <p class="text-[11px] text-text-muted mt-0.5">Use the "Book a Conference" tab to schedule consultations with teachers.</p>
                     </div>
                 }
             </div>
         </div>
-    </div>
+    }
 </div>

@@ -20,139 +20,239 @@
         </div>
     </div>
 
-    @for (student of state.profile()?.students || []; track student.id) {
-        @let att = state.attendanceMap()[student.id || ''] || {total:0,present:0,absent:0,late:0,percentage:0};
-        @let studentAbsences = state.absenceRequests().filter(a => a.student_id === student.id);
+    @if (selectedStudent(); as student) {
+        @let att = state.attendanceMap()[student?.id || ''] || {total:0,present:0,absent:0,late:0,percentage:0};
+        @let studentAbsences = state.absenceRequests().filter(a => a.student_id === (student?.id || ''));
+        @let sickbayVisits = sickbayMap()[student?.id || ''] || [];
 
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 mb-6">
-            <div class="flex items-center gap-3 mb-5">
-                <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center font-black text-lg">{{ student.first_name[0] }}</div>
-                <div>
-                    <h2 class="font-black text-text-primary text-lg">{{ student.first_name }} {{ student.last_name }}</h2>
-                    <p class="text-[10px] text-text-muted">{{ student.class_name }}</p>
-                </div>
-            </div>
-
-            <!-- Attendance Stats -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-                <div class="p-3.5 bg-bg-tertiary rounded-xl border border-border-primary text-center">
-                    <div class="text-xl font-black" [ngClass]="att.percentage >= 80 ? 'text-emerald-400' : 'text-rose-400'">{{ att.percentage }}%</div>
-                    <div class="text-[9px] text-text-muted uppercase tracking-wider mt-1">Attendance</div>
-                </div>
-                <div class="p-3.5 bg-bg-tertiary rounded-xl border border-border-primary text-center">
-                    <div class="text-xl font-black text-rose-400">{{ att.absent }}</div>
-                    <div class="text-[9px] text-text-muted uppercase tracking-wider mt-1">Absent Days</div>
-                </div>
-                <div class="p-3.5 bg-bg-tertiary rounded-xl border border-border-primary text-center">
-                    <div class="text-xl font-black text-amber-400">{{ att.late }}</div>
-                    <div class="text-[9px] text-text-muted uppercase tracking-wider mt-1">Late Days</div>
-                </div>
-                <div class="p-3.5 bg-bg-tertiary rounded-xl border border-border-primary text-center">
-                    <div class="text-xl font-black text-indigo-400">{{ studentAbsences.length }}</div>
-                    <div class="text-[9px] text-text-muted uppercase tracking-wider mt-1">Leave Requests</div>
-                </div>
-            </div>
-
-            <!-- Medical Profile -->
-            @if (student.health_conditions || student.allergies || student.blood_group) {
-                <div class="p-4 bg-rose-500/5 border border-rose-500/20 rounded-xl mb-5">
-                    <h4 class="text-xs font-black text-rose-400 mb-3 flex items-center gap-2">
-                        <i class="fas fa-heartbeat"></i> Medical Profile
-                    </h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                        @if (student.blood_group) {
-                            <div class="p-2.5 bg-bg-secondary rounded-xl border border-border-primary">
-                                <span class="text-text-muted block text-[10px]">Blood Group</span>
-                                <span class="font-bold text-text-primary text-sm">{{ student.blood_group }}</span>
-                            </div>
-                        }
-                        @if (student.allergies) {
-                            <div class="p-2.5 bg-bg-secondary rounded-xl border border-border-primary">
-                                <span class="text-text-muted block text-[10px]">Allergies</span>
-                                <span class="font-bold text-text-primary">{{ student.allergies }}</span>
-                            </div>
-                        }
-                        @if (student.health_conditions) {
-                            <div class="p-2.5 bg-bg-secondary rounded-xl border border-border-primary">
-                                <span class="text-text-muted block text-[10px]">Conditions</span>
-                                <span class="font-bold text-text-primary">{{ student.health_conditions }}</span>
-                            </div>
-                        }
-                    </div>
-                </div>
-            }
-
-            <!-- Feature 17: Campus Sickbay & Infirmary Electronic Medical Records (EMR) -->
-            <div class="p-4 bg-bg-tertiary/70 border border-border-primary rounded-xl mb-5">
-                <div class="flex items-center justify-between mb-3">
-                    <h4 class="text-xs font-black text-rose-400 flex items-center gap-2">
-                        <i class="fas fa-clinic-medical"></i> Campus Sickbay EMR & Dispensary Visits
-                    </h4>
-                    <span class="text-[10px] text-text-muted font-bold">Campus Nurse Logbook</span>
-                </div>
-
-                @if ((sickbayMap()[student.id || ''] || []).length > 0) {
-                    <div class="space-y-3">
-                        @for (visit of sickbayMap()[student.id || ''] || []; track visit.id) {
-                            <div class="p-3.5 bg-bg-secondary border border-border-primary rounded-xl">
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-bold text-xs text-text-primary">{{ visit.symptoms }}</span>
-                                        @if (visit.fever_alert || (visit.temperature_celsius >= 38.0)) {
-                                            <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse">
-                                                Fever Alert ({{ visit.temperature_celsius }}°C)
-                                            </span>
-                                        } @else if (visit.temperature_celsius) {
-                                            <span class="px-2 py-0.5 text-[9px] font-bold rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
-                                                {{ visit.temperature_celsius }}°C
-                                            </span>
-                                        }
-                                    </div>
-                                    <span class="text-[10px] text-text-muted font-mono">{{ visit.created_at | date:'mediumDate' }}</span>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-text-muted">
-                                    <div><strong class="text-text-primary">Diagnosis:</strong> {{ visit.diagnosis || 'Observation' }}</div>
-                                    <div><strong class="text-text-primary">Medication:</strong> {{ visit.medication_given || 'Rest & Hydration' }}</div>
-                                    <div><strong class="text-text-primary">Attending:</strong> {{ visit.attending_nurse }}</div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                } @else {
-                    <div class="py-4 text-center text-text-muted text-xs border border-dashed border-border-primary rounded-xl">
-                        <i class="fas fa-check-circle text-emerald-400 mr-1.5"></i> No clinic or infirmary visits recorded this term. Ward is healthy!
-                    </div>
+        <!-- Ward Switcher (if multiple students) -->
+        @if ((state.profile()?.students || []).length > 1) {
+            <div class="flex items-center gap-2 mb-5 overflow-x-auto pb-1">
+                <span class="text-xs font-bold text-text-muted uppercase tracking-wider mr-1">Select Ward:</span>
+                @for (s of state.profile()?.students || []; track s.id) {
+                    <button (click)="selectedStudentId.set(s.id || '')"
+                            [ngClass]="selectedStudent()?.id === s.id ? 'bg-rose-600 text-white font-black shadow-md shadow-rose-600/20' : 'bg-bg-secondary text-text-muted hover:text-text-primary border border-border-primary'"
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
+                        <span class="w-2 h-2 rounded-full" [ngClass]="selectedStudent()?.id === s.id ? 'bg-white' : 'bg-rose-400'"></span>
+                        <span>{{ s.first_name }} {{ s.last_name }}</span>
+                        <span class="text-[10px] opacity-70">({{ s.class_name }})</span>
+                    </button>
                 }
             </div>
+        }
 
-            <!-- Absence Timeline -->
-            @if (studentAbsences.length > 0) {
-                <div>
-                    <h4 class="text-sm font-black text-text-primary mb-3">Absence Timeline</h4>
-                    <div class="relative pl-5 space-y-3">
-                        <div class="absolute left-1.5 top-0 bottom-0 w-0.5 bg-border-primary"></div>
-                        @for (req of studentAbsences; track req.id) {
-                            <div class="relative flex items-start gap-3">
-                                <div class="absolute -left-4 w-3 h-3 rounded-full mt-0.5 shrink-0 border-2 border-bg-secondary"
-                                     [ngClass]="req.status === 'APPROVED' ? 'bg-emerald-500' : req.status === 'REJECTED' ? 'bg-rose-500' : 'bg-amber-500'"></div>
-                                <div class="bg-bg-tertiary border border-border-primary rounded-xl p-3 flex-1">
-                                    <div class="flex items-center justify-between mb-1">
-                                        <span class="text-xs font-bold text-text-primary">{{ req.reason }}</span>
-                                        <span class="text-[9px] font-black px-2 py-0.5 rounded border"
-                                              [ngClass]="statusClass(req.status)">
-                                            {{ req.status }}
-                                        </span>
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl overflow-hidden mb-6">
+            <div class="px-5 py-4 border-b border-border-primary flex items-center justify-between flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center font-black text-lg">{{ student.first_name[0] }}</div>
+                    <div>
+                        <h2 class="font-black text-text-primary text-lg">{{ student.first_name }} {{ student.last_name }}</h2>
+                        <p class="text-[10px] text-text-muted">{{ student.class_name }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg border"
+                          [ngClass]="att.percentage >= 80 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'">
+                        {{ att.percentage }}% Attendance Rate
+                    </span>
+                </div>
+            </div>
+
+            <!-- Tab Navigation Bar -->
+            <div class="px-5 pt-4 border-b border-border-primary bg-bg-tertiary/20">
+                <div class="flex items-center gap-2 overflow-x-auto pb-3">
+                    <button (click)="activeTab.set('attendance')"
+                            [ngClass]="activeTab() === 'attendance' ? 'bg-rose-600 text-white font-black shadow-md shadow-rose-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                            class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Attendance Vitals</span>
+                    </button>
+                    <button (click)="activeTab.set('sickbay')"
+                            [ngClass]="activeTab() === 'sickbay' ? 'bg-rose-600 text-white font-black shadow-md shadow-rose-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                            class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-clinic-medical"></i>
+                        <span>Sickbay EMR</span>
+                        @if (sickbayVisits.length > 0) {
+                            <span class="px-1.5 py-0.2 text-[9px] rounded-full" [ngClass]="activeTab() === 'sickbay' ? 'bg-white/20 text-white' : 'bg-rose-500/20 text-rose-400'">
+                                {{ sickbayVisits.length }}
+                            </span>
+                        }
+                    </button>
+                    <button (click)="activeTab.set('medical')"
+                            [ngClass]="activeTab() === 'medical' ? 'bg-rose-600 text-white font-black shadow-md shadow-rose-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                            class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-heartbeat"></i>
+                        <span>Medical Profile</span>
+                    </button>
+                    <button (click)="activeTab.set('leaves')"
+                            [ngClass]="activeTab() === 'leaves' ? 'bg-rose-600 text-white font-black shadow-md shadow-rose-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                            class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Leave Requests</span>
+                        <span class="px-1.5 py-0.2 text-[9px] rounded-full" [ngClass]="activeTab() === 'leaves' ? 'bg-white/20 text-white' : 'bg-bg-tertiary text-text-muted'">
+                            {{ studentAbsences.length }}
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-5">
+
+                <!-- TAB 1: Attendance Stats -->
+                @if (activeTab() === 'attendance') {
+                    <div class="animate-fade-in space-y-4">
+                        <h3 class="text-sm font-black text-text-primary flex items-center gap-2 mb-2">
+                            <i class="fas fa-chart-pie text-rose-400"></i> Attendance Breakdown
+                        </h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div class="p-4 bg-bg-tertiary rounded-xl border border-border-primary text-center">
+                                <div class="text-2xl font-black" [ngClass]="att.percentage >= 80 ? 'text-emerald-400' : 'text-rose-400'">{{ att.percentage }}%</div>
+                                <div class="text-[10px] text-text-muted uppercase tracking-wider mt-1">Attendance Rate</div>
+                            </div>
+                            <div class="p-4 bg-bg-tertiary rounded-xl border border-border-primary text-center">
+                                <div class="text-2xl font-black text-emerald-400">{{ att.present }}</div>
+                                <div class="text-[10px] text-text-muted uppercase tracking-wider mt-1">Present Days</div>
+                            </div>
+                            <div class="p-4 bg-bg-tertiary rounded-xl border border-border-primary text-center">
+                                <div class="text-2xl font-black text-rose-400">{{ att.absent }}</div>
+                                <div class="text-[10px] text-text-muted uppercase tracking-wider mt-1">Absent Days</div>
+                            </div>
+                            <div class="p-4 bg-bg-tertiary rounded-xl border border-border-primary text-center">
+                                <div class="text-2xl font-black text-amber-400">{{ att.late }}</div>
+                                <div class="text-[10px] text-text-muted uppercase tracking-wider mt-1">Late Days</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- TAB 2: Campus Sickbay EMR -->
+                @if (activeTab() === 'sickbay') {
+                    <div class="animate-fade-in space-y-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="text-xs font-black text-rose-400 flex items-center gap-2">
+                                <i class="fas fa-clinic-medical"></i> Campus Sickbay EMR & Dispensary Visits
+                            </h4>
+                            <span class="text-[10px] text-text-muted font-bold">Campus Nurse Logbook</span>
+                        </div>
+
+                        @if (sickbayVisits.length > 0) {
+                            <div class="space-y-3">
+                                @for (visit of sickbayVisits; track visit.id) {
+                                    <div class="p-4 bg-bg-tertiary border border-border-primary rounded-xl">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-bold text-xs text-text-primary">{{ visit.symptoms }}</span>
+                                                @if (visit.fever_alert || (visit.temperature_celsius >= 38.0)) {
+                                                    <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse">
+                                                        Fever Alert ({{ visit.temperature_celsius }}°C)
+                                                    </span>
+                                                } @else if (visit.temperature_celsius) {
+                                                    <span class="px-2 py-0.5 text-[9px] font-bold rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
+                                                        {{ visit.temperature_celsius }}°C
+                                                    </span>
+                                                }
+                                            </div>
+                                            <span class="text-[10px] text-text-muted font-mono">{{ visit.created_at | date:'mediumDate' }}</span>
+                                        </div>
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-text-muted mt-2">
+                                            <div><strong class="text-text-primary">Diagnosis:</strong> {{ visit.diagnosis || 'Observation' }}</div>
+                                            <div><strong class="text-text-primary">Medication:</strong> {{ visit.medication_given || 'Rest & Hydration' }}</div>
+                                            <div><strong class="text-text-primary">Attending:</strong> {{ visit.attending_nurse }}</div>
+                                        </div>
                                     </div>
-                                    <div class="text-[10px] text-text-muted">{{ req.start_date }} → {{ req.end_date }}</div>
-                                    @if (req.review_notes) {
-                                        <div class="mt-1.5 text-[10px] text-indigo-400 italic">"{{ req.review_notes }}"</div>
-                                    }
-                                </div>
+                                }
+                            </div>
+                        } @else {
+                            <div class="py-10 text-center text-text-muted text-xs border border-dashed border-border-primary rounded-xl">
+                                <i class="fas fa-check-circle text-emerald-400 text-xl mb-2 block opacity-80"></i>
+                                <p class="font-bold text-text-primary">No clinic or infirmary visits recorded this term</p>
+                                <p class="text-[11px] text-text-muted mt-0.5">{{ student.first_name }} has not required sickbay attention.</p>
                             </div>
                         }
                     </div>
-                </div>
-            }
+                }
+
+                <!-- TAB 3: Medical Profile -->
+                @if (activeTab() === 'medical') {
+                    <div class="animate-fade-in space-y-4">
+                        <h4 class="text-xs font-black text-rose-400 mb-3 flex items-center gap-2">
+                            <i class="fas fa-heartbeat"></i> Medical Profile & Health Conditions
+                        </h4>
+                        @if (student.health_conditions || student.allergies || student.blood_group) {
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                                @if (student.blood_group) {
+                                    <div class="p-3.5 bg-bg-tertiary rounded-xl border border-border-primary">
+                                        <span class="text-text-muted block text-[10px] uppercase font-bold">Blood Group</span>
+                                        <span class="font-black text-text-primary text-base">{{ student.blood_group }}</span>
+                                    </div>
+                                }
+                                @if (student.allergies) {
+                                    <div class="p-3.5 bg-bg-tertiary rounded-xl border border-border-primary">
+                                        <span class="text-text-muted block text-[10px] uppercase font-bold">Allergies</span>
+                                        <span class="font-bold text-text-primary text-sm">{{ student.allergies }}</span>
+                                    </div>
+                                }
+                                @if (student.health_conditions) {
+                                    <div class="p-3.5 bg-bg-tertiary rounded-xl border border-border-primary">
+                                        <span class="text-text-muted block text-[10px] uppercase font-bold">Health Conditions</span>
+                                        <span class="font-bold text-text-primary text-sm">{{ student.health_conditions }}</span>
+                                    </div>
+                                }
+                            </div>
+                        } @else {
+                            <div class="py-10 text-center text-text-muted border border-dashed border-border-primary rounded-xl">
+                                <i class="fas fa-file-medical text-2xl opacity-30 mb-2 block"></i>
+                                <p class="text-xs font-bold text-text-primary">No medical conditions or allergies recorded</p>
+                                <p class="text-[11px] text-text-muted mt-0.5">Please contact the school health desk if {{ student.first_name }} has allergies or medical requirements.</p>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- TAB 4: Leave Requests & Absence Timeline -->
+                @if (activeTab() === 'leaves') {
+                    <div class="animate-fade-in space-y-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-sm font-black text-text-primary flex items-center gap-2">
+                                <i class="fas fa-calendar-check text-amber-400"></i> Leave & Absence Timeline
+                            </h4>
+                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">{{ studentAbsences.length }} Request{{ studentAbsences.length !== 1 ? 's' : '' }}</span>
+                        </div>
+                        @if (studentAbsences.length > 0) {
+                            <div class="relative pl-5 space-y-3">
+                                <div class="absolute left-1.5 top-0 bottom-0 w-0.5 bg-border-primary"></div>
+                                @for (req of studentAbsences; track req.id) {
+                                    <div class="relative flex items-start gap-3">
+                                        <div class="absolute -left-4 w-3 h-3 rounded-full mt-0.5 shrink-0 border-2 border-bg-secondary"
+                                             [ngClass]="req.status === 'APPROVED' ? 'bg-emerald-500' : req.status === 'REJECTED' ? 'bg-rose-500' : 'bg-amber-500'"></div>
+                                        <div class="bg-bg-tertiary border border-border-primary rounded-xl p-3.5 flex-1">
+                                            <div class="flex items-center justify-between mb-1">
+                                                <span class="text-xs font-bold text-text-primary">{{ req.reason }}</span>
+                                                <span class="text-[9px] font-black px-2 py-0.5 rounded border"
+                                                      [ngClass]="statusClass(req.status)">
+                                                    {{ req.status }}
+                                                </span>
+                                            </div>
+                                            <div class="text-[10px] text-text-muted">{{ req.start_date }} → {{ req.end_date }}</div>
+                                            @if (req.review_notes) {
+                                                <div class="mt-1.5 text-[10px] text-indigo-400 italic">"{{ req.review_notes }}"</div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        } @else {
+                            <div class="py-10 text-center text-text-muted border border-dashed border-border-primary rounded-xl">
+                                <i class="fas fa-check-double text-emerald-400 text-xl mb-2 block opacity-80"></i>
+                                <p class="text-xs font-bold text-text-primary">No absence requests filed</p>
+                                <p class="text-[11px] text-text-muted mt-0.5">All attendance days are accounted for.</p>
+                            </div>
+                        }
+                    </div>
+                }
+
+            </div>
         </div>
     }
 </div>

@@ -9,104 +9,113 @@
             <div class="w-6 h-6 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
             <span class="font-bold">Loading academic data...</span>
         </div>
-    } @else {
-        @for (student of state.profile()?.students || []; track student.id) {
-            @let grades = state.gradesMap()[student.id || ''] || [];
-            @let bySubj = gradesBySubject(grades);
-            @let gpa = state.gpaMap()[student.id || ''] || 0;
-            @let insights = state.insightsMap()[student.id || ''] || [];
-            @let hw = state.homeworkMap()[student.id || ''] || [];
-            @let pendingHw = hw.filter(h => h.due_date >= today());
-            @let hash = getTranscriptHash(student.id);
+    } @else if (selectedStudent(); as student) {
+        @let grades = state.gradesMap()[student.id || ''] || [];
+        @let bySubj = gradesBySubject(grades);
+        @let gpa = state.gpaMap()[student.id || ''] || 0;
+        @let insights = state.insightsMap()[student.id || ''] || [];
+        @let hw = state.homeworkMap()[student.id || ''] || [];
+        @let pendingHw = hw.filter(h => h.due_date >= today());
+        @let hash = getTranscriptHash(student.id);
 
-            <div class="border border-border-primary rounded-2xl overflow-hidden mb-8 bg-bg-secondary/40 backdrop-blur-sm">
-                <!-- Student Sub-Header -->
-                <div class="px-5 py-4 bg-gradient-to-r from-indigo-600/10 to-bg-secondary border-b border-border-primary flex items-center justify-between flex-wrap gap-3">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-black text-lg">{{ student.first_name[0] }}</div>
-                        <div>
-                            <h2 class="font-black text-text-primary text-lg">{{ student.first_name }} {{ student.last_name }}</h2>
-                            <p class="text-[10px] text-text-muted">{{ student.class_name || 'Grade ' + student.level }}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <div class="text-center">
-                            <div class="text-xl font-black" [ngClass]="gpa >= 80 ? 'text-emerald-400' : gpa >= 65 ? 'text-amber-400' : 'text-rose-400'">{{ gpa | number:'1.1-1' }}</div>
-                            <div class="text-[9px] text-text-muted uppercase tracking-wider">Avg Score</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-xl font-black text-indigo-400">{{ grades.length }}</div>
-                            <div class="text-[9px] text-text-muted uppercase tracking-wider">Assessments</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-xl font-black text-amber-400">{{ pendingHw.length }}</div>
-                            <div class="text-[9px] text-text-muted uppercase tracking-wider">Pending HW</div>
-                        </div>
+        <!-- Ward Switcher (if multiple students) -->
+        @if ((state.profile()?.students || []).length > 1) {
+            <div class="flex items-center gap-2 mb-5 overflow-x-auto pb-1">
+                <span class="text-xs font-bold text-text-muted uppercase tracking-wider mr-1">Select Ward:</span>
+                @for (s of state.profile()?.students || []; track s.id) {
+                    <button (click)="selectedStudentId.set(s.id || '')"
+                            [ngClass]="selectedStudent()?.id === s.id ? 'bg-indigo-600 text-white font-black shadow-md shadow-indigo-600/20' : 'bg-bg-secondary text-text-muted hover:text-text-primary border border-border-primary'"
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
+                        <span class="w-2 h-2 rounded-full" [ngClass]="selectedStudent()?.id === s.id ? 'bg-white' : 'bg-indigo-400'"></span>
+                        <span>{{ s.first_name }} {{ s.last_name }}</span>
+                        <span class="text-[10px] opacity-70">({{ s.class_name || 'Grade ' + s.level }})</span>
+                    </button>
+                }
+            </div>
+        }
+
+        <div class="border border-border-primary rounded-2xl overflow-hidden mb-8 bg-bg-secondary/40 backdrop-blur-sm">
+            <!-- Student Header & Quick Metrics -->
+            <div class="px-5 py-4 bg-gradient-to-r from-indigo-600/10 to-bg-secondary border-b border-border-primary flex items-center justify-between flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-black text-lg">{{ student.first_name[0] }}</div>
+                    <div>
+                        <h2 class="font-black text-text-primary text-lg">{{ student.first_name }} {{ student.last_name }}</h2>
+                        <p class="text-[10px] text-text-muted">{{ student.class_name || 'Grade ' + student.level }}</p>
                     </div>
                 </div>
-
-                <div class="p-5 space-y-7">
-
-                    <!-- Official Verifiable Report Card & Cryptographic Transcript Banner -->
-                    <div class="p-4 md:p-5 bg-gradient-to-r from-indigo-950/40 via-bg-tertiary/60 to-purple-950/20 border border-indigo-500/30 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                        <div class="flex items-center gap-3.5">
-                            <div class="w-12 h-12 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-xl shrink-0">
-                                <i class="fas fa-file-certificate"></i>
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <h3 class="text-sm font-black text-text-primary">Verifiable Official Transcript</h3>
-                                    <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        <i class="fas fa-shield-check mr-1"></i> Authentic
-                                    </span>
-                                </div>
-                                <p class="text-xs text-text-muted mt-0.5">
-                                    Tamper-proof digital transcript with cryptographic verification hash.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2.5 w-full md:w-auto">
-                            <a [routerLink]="['/verify/transcript', hash]"
-                               target="_blank"
-                               class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-bg-tertiary border border-border-primary hover:bg-bg-secondary text-xs font-bold text-text-primary transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-                                <i class="fas fa-qrcode text-indigo-400 text-xs"></i>
-                                <span>Verify QR</span>
-                            </a>
-                            <button (click)="downloadTranscript(student.id || '', student.first_name + ' ' + student.last_name)"
-                                    [disabled]="isDownloading()[student.id || '']"
-                                    class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
-                                @if (isDownloading()[student.id || '']) {
-                                    <i class="fas fa-spinner fa-spin text-xs"></i>
-                                    <span>Generating...</span>
-                                } @else {
-                                    <i class="fas fa-download text-xs"></i>
-                                    <span>Download PDF</span>
-                                }
-                            </button>
-                        </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-center">
+                        <div class="text-xl font-black" [ngClass]="gpa >= 80 ? 'text-emerald-400' : gpa >= 65 ? 'text-amber-400' : 'text-rose-400'">{{ gpa | number:'1.1-1' }}</div>
+                        <div class="text-[9px] text-text-muted uppercase tracking-wider">Avg Score</div>
                     </div>
-
-                    <!-- AI Terminal Performance Remarks -->
-                    <div class="p-4 bg-bg-tertiary/40 border border-border-primary rounded-xl">
-                        <div class="flex items-center gap-2 mb-2">
-                            <i class="fas fa-sparkles text-amber-400 text-xs"></i>
-                            <span class="text-xs font-black uppercase tracking-wider text-text-primary">Counselor & AI Terminal Remarks</span>
-                        </div>
-                        <p class="text-xs text-text-secondary leading-relaxed italic">
-                            "{{ getStudentRemarks(student, gpa) }}"
-                        </p>
+                    <div class="text-center">
+                        <div class="text-xl font-black text-indigo-400">{{ grades.length }}</div>
+                        <div class="text-[9px] text-text-muted uppercase tracking-wider">Assessments</div>
                     </div>
+                    <div class="text-center">
+                        <div class="text-xl font-black text-amber-400">{{ pendingHw.length }}</div>
+                        <div class="text-[9px] text-text-muted uppercase tracking-wider">Pending HW</div>
+                    </div>
+                </div>
+            </div>
 
-                    <!-- Subject Performance -->
-                    <div>
+            <!-- Tab Navigation Bar -->
+            <div class="px-5 pt-4 border-b border-border-primary bg-bg-tertiary/20">
+                <div class="flex items-center gap-2 overflow-x-auto pb-3">
+                    <button (click)="activeTab.set('subjects')"
+                            [ngClass]="activeTab() === 'subjects' ? 'bg-indigo-600 text-white font-black shadow-md shadow-indigo-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Subjects & Grades</span>
+                    </button>
+                    <button (click)="activeTab.set('competencies')"
+                            [ngClass]="activeTab() === 'competencies' ? 'bg-indigo-600 text-white font-black shadow-md shadow-indigo-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Competencies (CBE)</span>
+                    </button>
+                    <button (click)="activeTab.set('homework')"
+                            [ngClass]="activeTab() === 'homework' ? 'bg-indigo-600 text-white font-black shadow-md shadow-indigo-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-tasks"></i>
+                        <span>Homework & Tasks</span>
+                        @if (pendingHw.length > 0) {
+                            <span class="px-1.5 py-0.2 text-[9px] rounded-full bg-amber-400/20 text-amber-300">
+                                {{ pendingHw.length }}
+                            </span>
+                        }
+                    </button>
+                    <button (click)="activeTab.set('transcript')"
+                            [ngClass]="activeTab() === 'transcript' ? 'bg-indigo-600 text-white font-black shadow-md shadow-indigo-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-file-certificate"></i>
+                        <span>Official Transcript</span>
+                    </button>
+                    <button (click)="activeTab.set('insights')"
+                            [ngClass]="activeTab() === 'insights' ? 'bg-indigo-600 text-white font-black shadow-md shadow-indigo-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-sparkles"></i>
+                        <span>Remarks & AI Insights</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-5">
+
+                <!-- TAB 1: Subjects & Grades -->
+                @if (activeTab() === 'subjects') {
+                    <div class="animate-fade-in space-y-4">
                         <div class="flex items-center justify-between mb-3">
                             <h3 class="text-sm font-black text-text-primary flex items-center gap-2">
                                 <i class="fas fa-chart-bar text-indigo-400"></i> Subject Performance Breakdown
                             </h3>
                             <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">
-                                {{ objectKeys(bySubj).length > 0 ? objectKeys(bySubj).length + ' Subjects Graded' : 'Current Term Enrolled Subjects' }}
+                                {{ objectKeys(bySubj).length > 0 ? objectKeys(bySubj).length + ' Subjects Graded' : (dbSubjects().length > 0 ? dbSubjects().length + ' Enrolled Subjects' : 'Curriculum Subjects') }}
                             </span>
                         </div>
+
                         @if (objectKeys(bySubj).length > 0) {
                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                                 @for (subj of objectKeys(bySubj); track subj) {
@@ -133,65 +142,93 @@
                                     </div>
                                 }
                             </div>
-                        } @else {
+                        } @else if (dbSubjects().length > 0) {
                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-                                @for (sub of defaultCoreSubjects; track sub) {
+                                @for (sub of dbSubjects(); track sub.id) {
                                     <div class="p-3.5 bg-bg-tertiary/50 border border-border-primary rounded-xl">
                                         <div class="flex items-center justify-between mb-2">
-                                            <div class="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs font-black">{{ sub[0] }}</div>
+                                            <div class="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs font-black">{{ sub.name[0] }}</div>
                                             <span class="px-1.5 py-0.2 text-[8px] font-black rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase tracking-wider">
                                                 ENROLLED
                                             </span>
                                         </div>
-                                        <h4 class="text-xs font-bold text-text-primary truncate mb-1">{{ sub }}</h4>
+                                        <h4 class="text-xs font-bold text-text-primary truncate mb-1" [title]="sub.name">{{ sub.name }}</h4>
                                         <div class="text-[10px] text-text-muted flex items-center justify-between">
-                                            <span>Assessments</span>
+                                            <span>{{ sub.code || 'Core' }}</span>
                                             <span class="text-indigo-400 font-bold">In Progress</span>
                                         </div>
                                     </div>
                                 }
                             </div>
+                        } @else {
+                            <div class="p-8 text-center bg-bg-tertiary/20 border border-border-primary rounded-2xl">
+                                <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-xl mx-auto mb-3">
+                                    <i class="fas fa-book-open"></i>
+                                </div>
+                                <p class="text-xs font-bold text-text-primary mb-1">No Enrolled Subjects Available</p>
+                                <p class="text-[11px] text-text-muted max-w-sm mx-auto">No curriculum subjects have been registered in the database for this academic term yet.</p>
+                            </div>
                         }
                     </div>
+                }
 
-                    <!-- Competency-Based Assessment (CBE / NaCCA 21st-Century Rubrics) -->
-                    <div>
+                <!-- TAB 2: Competency-Based Assessment -->
+                @if (activeTab() === 'competencies') {
+                    <div class="animate-fade-in space-y-4">
                         <div class="flex items-center justify-between mb-3">
                             <h3 class="text-sm font-black text-text-primary flex items-center gap-2">
                                 <i class="fas fa-layer-group text-purple-400"></i> Competency-Based Assessment (CBE / 21st-Century Skills)
                             </h3>
                             <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">NaCCA Aligned</span>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            @for (c of defaultCompetencies; track c.name) {
-                                <div class="p-4 bg-bg-tertiary border border-border-primary rounded-xl">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">{{ c.domain }}</span>
-                                        <span class="px-2 py-0.5 text-[9px] font-black rounded border" [ngClass]="c.badgeClass">
-                                            {{ c.level }}
-                                        </span>
-                                    </div>
-                                    <h4 class="text-xs font-bold text-text-primary mb-2.5">{{ c.name }}</h4>
-                                    <div class="flex items-center gap-1.5">
-                                        @for (dot of [1, 2, 3, 4, 5]; track dot) {
-                                            <div class="flex-1 h-2 rounded-full"
-                                                 [ngClass]="dot <= c.score ? 'bg-indigo-500' : 'bg-bg-secondary'"></div>
-                                        }
-                                    </div>
-                                    <div class="mt-2 text-[10px] text-text-muted flex justify-between">
-                                        <span>Rating</span>
-                                        <span class="font-bold text-text-primary">{{ c.score }}/5</span>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    </div>
 
-                    <!-- Homework Tracker -->
-                    <div>
-                        <h3 class="text-sm font-black text-text-primary mb-3 flex items-center gap-2">
-                            <i class="fas fa-tasks text-amber-400"></i> Homework & Assignments
-                        </h3>
+                        @let studentEvals = competenciesMap()[student.id || ''] || [];
+                        @if (studentEvals.length > 0) {
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                @for (c of studentEvals; track c.id) {
+                                    <div class="p-4 bg-bg-tertiary border border-border-primary rounded-xl">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">{{ c.rubric?.domain || 'Core Skill' }}</span>
+                                            <span class="px-2 py-0.5 text-[9px] font-black rounded border bg-indigo-500/10 text-indigo-400 border-indigo-500/20">
+                                                Level {{ c.score }}
+                                            </span>
+                                        </div>
+                                        <h4 class="text-xs font-bold text-text-primary mb-2.5">{{ c.rubric?.name || 'Competency Evaluation' }}</h4>
+                                        <div class="flex items-center gap-1.5">
+                                            @for (dot of [1, 2, 3, 4, 5]; track dot) {
+                                                <div class="flex-1 h-2 rounded-full"
+                                                     [ngClass]="dot <= c.score ? 'bg-indigo-500' : 'bg-bg-secondary'"></div>
+                                            }
+                                        </div>
+                                        <div class="mt-2 text-[10px] text-text-muted flex justify-between">
+                                            <span>Rating</span>
+                                            <span class="font-bold text-text-primary">{{ c.score }}/5</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        } @else {
+                            <div class="p-8 text-center bg-bg-tertiary/20 border border-border-primary rounded-2xl">
+                                <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center text-xl mx-auto mb-3">
+                                    <i class="fas fa-layer-group"></i>
+                                </div>
+                                <p class="text-xs font-bold text-text-primary mb-0.5">No Competency Evaluations Recorded</p>
+                                <p class="text-[11px] text-text-muted">CBE / NaCCA rubric evaluations have not been filed for this student yet.</p>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- TAB 3: Homework & Assignments -->
+                @if (activeTab() === 'homework') {
+                    <div class="animate-fade-in space-y-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-black text-text-primary flex items-center gap-2">
+                                <i class="fas fa-tasks text-amber-400"></i> Homework & Assignments
+                            </h3>
+                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">{{ hw.length }} Assignment{{ hw.length !== 1 ? 's' : '' }}</span>
+                        </div>
+
                         @if (hw.length > 0) {
                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                 @for (item of hw; track item.id) {
@@ -212,38 +249,104 @@
                                 }
                             </div>
                         } @else {
-                            <div class="py-7 px-4 text-center bg-bg-tertiary/40 border border-dashed border-border-primary rounded-xl">
-                                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mx-auto flex items-center justify-center mb-2">
-                                    <i class="fas fa-check-double text-xs"></i>
+                            <div class="py-10 px-4 text-center bg-bg-tertiary/40 border border-dashed border-border-primary rounded-xl">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mx-auto flex items-center justify-center mb-2">
+                                    <i class="fas fa-check-double text-sm"></i>
                                 </div>
                                 <h4 class="text-xs font-black text-text-primary">All Homework Up-To-Date</h4>
                                 <p class="text-[11px] text-text-muted mt-0.5">No pending or overdue homework assignments for {{ student.first_name }}.</p>
                             </div>
                         }
                     </div>
+                }
 
-                    <!-- AI Insights -->
-                    @if (insights.length > 0) {
-                        <div>
-                            <h3 class="text-sm font-black text-text-primary mb-3 flex items-center gap-2">
-                                <i class="fas fa-brain text-cyan-400"></i> Academic Trajectory & Insights
-                            </h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                @for (ins of insights.slice(0,4); track ins.id) {
-                                    <div class="p-3.5 bg-bg-tertiary border border-border-primary rounded-xl">
-                                        <span class="px-2 py-0.5 text-[9px] font-black rounded border inline-block mb-2"
-                                              [ngClass]="ins.type === 'RISK' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'">
-                                            {{ ins.type }}
+                <!-- TAB 4: Verifiable Official Transcript Banner -->
+                @if (activeTab() === 'transcript') {
+                    <div class="animate-fade-in space-y-5">
+                        <div class="p-5 md:p-6 bg-gradient-to-r from-indigo-950/40 via-bg-tertiary/60 to-purple-950/20 border border-indigo-500/30 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-14 h-14 rounded-2xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-2xl shrink-0">
+                                    <i class="fas fa-file-certificate"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-base font-black text-text-primary">Verifiable Official Transcript</h3>
+                                        <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                            <i class="fas fa-shield-check mr-1"></i> Authentic
                                         </span>
-                                        <h4 class="text-xs font-bold text-text-primary mb-1">{{ ins.title }}</h4>
-                                        <p class="text-[10px] text-text-muted leading-relaxed">{{ ins.description }}</p>
                                     </div>
-                                }
+                                    <p class="text-xs text-text-muted mt-1 max-w-lg">
+                                        Tamper-proof digital transcript with cryptographic verification hash. Can be shared with colleges, high schools, and educational authorities.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2.5 w-full md:w-auto">
+                                <a [routerLink]="['/verify/transcript', hash]"
+                                   target="_blank"
+                                   class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-bg-tertiary border border-border-primary hover:bg-bg-secondary text-xs font-bold text-text-primary transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                                    <i class="fas fa-qrcode text-indigo-400 text-xs"></i>
+                                    <span>Verify QR</span>
+                                </a>
+                                <button (click)="downloadTranscript(student.id || '', student.first_name + ' ' + student.last_name)"
+                                        [disabled]="isDownloading()[student.id || '']"
+                                        class="flex-1 md:flex-initial px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
+                                    @if (isDownloading()[student.id || '']) {
+                                        <i class="fas fa-spinner fa-spin text-xs"></i>
+                                        <span>Generating...</span>
+                                    } @else {
+                                        <i class="fas fa-download text-xs"></i>
+                                        <span>Download PDF Transcript</span>
+                                    }
+                                </button>
                             </div>
                         </div>
-                    }
-                </div>
+
+                        <!-- Cryptographic verification details -->
+                        <div class="p-4 bg-bg-tertiary/40 border border-border-primary rounded-xl">
+                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block mb-1">Cryptographic Fingerprint</span>
+                            <div class="text-xs font-mono text-indigo-400 break-all select-all">{{ hash }}</div>
+                        </div>
+                    </div>
+                }
+
+                <!-- TAB 5: Counselor Remarks & AI Learning Insights -->
+                @if (activeTab() === 'insights') {
+                    <div class="animate-fade-in space-y-6">
+                        <!-- AI Terminal Performance Remarks -->
+                        <div class="p-4 bg-bg-tertiary/40 border border-border-primary rounded-xl">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i class="fas fa-sparkles text-amber-400 text-xs"></i>
+                                <span class="text-xs font-black uppercase tracking-wider text-text-primary">Counselor & AI Terminal Remarks</span>
+                            </div>
+                            <p class="text-xs text-text-secondary leading-relaxed italic">
+                                "{{ getStudentRemarks(student, gpa) }}"
+                            </p>
+                        </div>
+
+                        <!-- AI Insights Grid -->
+                        @if (insights.length > 0) {
+                            <div>
+                                <h3 class="text-sm font-black text-text-primary mb-3 flex items-center gap-2">
+                                    <i class="fas fa-brain text-cyan-400"></i> Academic Trajectory & Insights
+                                </h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    @for (ins of insights.slice(0,4); track ins.id) {
+                                        <div class="p-3.5 bg-bg-tertiary border border-border-primary rounded-xl">
+                                            <span class="px-2 py-0.5 text-[9px] font-black rounded border inline-block mb-2"
+                                                  [ngClass]="ins.type === 'RISK' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'">
+                                                {{ ins.type }}
+                                            </span>
+                                            <h4 class="text-xs font-bold text-text-primary mb-1">{{ ins.title }}</h4>
+                                            <p class="text-[10px] text-text-muted leading-relaxed">{{ ins.description }}</p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
             </div>
-        }
+        </div>
     }
 </div>

@@ -62,173 +62,236 @@
         </div>
     </div>
 
-    <!-- Sibling Discount Matrix Card (Feature 12) -->
-    <div class="mb-6 p-5 bg-gradient-to-r from-purple-950/30 to-bg-secondary border border-purple-500/30 rounded-2xl">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg shrink-0">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div>
-                    <h3 class="text-sm font-black text-text-primary">Automated Sibling Discount Matrix</h3>
-                    <p class="text-xs text-text-muted">Dynamic tiered fee reduction applied across your registered wards.</p>
-                </div>
-            </div>
-            <span class="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20 w-fit">
-                Institutional Policy Active
+    <!-- Tab Navigation -->
+    <div class="flex items-center gap-2 p-1.5 bg-bg-secondary border border-border-primary rounded-2xl mb-6 overflow-x-auto">
+        <button (click)="activeTab.set('ledger')"
+                [ngClass]="activeTab() === 'ledger' ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/40'"
+                class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+            <i class="fas fa-file-invoice-dollar"></i>
+            <span>Wards Fee Ledger</span>
+            <span class="px-1.5 py-0.2 text-[9px] rounded-full" [ngClass]="activeTab() === 'ledger' ? 'bg-white/20 text-white' : 'bg-bg-tertiary text-text-muted'">
+                {{ ledgerWards().length }}
             </span>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-            @for (student of state.profile()?.students || []; track student.id; let idx = $index) {
-                <div class="p-3.5 bg-bg-tertiary/60 border border-border-primary rounded-xl">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs font-bold text-text-primary">{{ student.first_name }} {{ student.last_name }}</span>
-                        <span class="text-[10px] font-black text-purple-400">Ward #{{ idx + 1 }}</span>
-                    </div>
-                    <div class="text-[11px] text-text-muted">
-                        @if (idx === 0) {
-                            Standard Base Rate (0% Discount)
-                        } @else if (idx === 1) {
-                            <span class="text-emerald-400 font-bold">10% Sibling Discount Applied</span>
-                        } @else {
-                            <span class="text-emerald-400 font-bold">20% Multi-Sibling Discount Applied</span>
-                        }
-                    </div>
-                </div>
+        </button>
+        <button (click)="activeTab.set('milestones')"
+                [ngClass]="activeTab() === 'milestones' ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/40'"
+                class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+            <i class="fas fa-calendar-check"></i>
+            <span>Split-Tuition Milestones</span>
+            @if (installmentPlan()?.is_enabled && installmentPlan()?.milestones?.length) {
+                <span class="px-1.5 py-0.2 text-[9px] rounded-full bg-emerald-400/20 text-emerald-300">
+                    Active
+                </span>
             }
-        </div>
+        </button>
+        <button (click)="activeTab.set('wallets')"
+                [ngClass]="activeTab() === 'wallets' ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/40'"
+                class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+            <i class="fas fa-wallet"></i>
+            <span>Daily Wallets & Canteen</span>
+        </button>
+        <button (click)="activeTab.set('siblings')"
+                [ngClass]="activeTab() === 'siblings' ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/40'"
+                class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+            <i class="fas fa-users"></i>
+            <span>Sibling Policy Matrix</span>
+        </button>
     </div>
 
-    <!-- Wards Fee Breakdown -->
-    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 mb-6 overflow-x-auto">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-base font-black text-text-primary flex items-center gap-2">
-                <i class="fas fa-list text-indigo-400"></i> Wards Fee Ledger
-            </h3>
-            <span class="text-xs text-text-muted font-bold">{{ ledgerWards().length }} Ward{{ ledgerWards().length > 1 ? 's' : '' }} Registered</span>
-        </div>
-        <table class="w-full text-sm">
-            <thead>
-                <tr class="border-b border-border-primary text-xs font-bold uppercase tracking-wider text-text-muted">
-                    <th class="pb-3 text-left pl-2">Ward</th>
-                    <th class="pb-3 text-left">Class</th>
-                    <th class="pb-3 text-left">Billed</th>
-                    <th class="pb-3 text-left">Paid</th>
-                    <th class="pb-3 text-left">Balance</th>
-                    <th class="pb-3 text-left">Status</th>
-                    <th class="pb-3 text-right pr-2">Action</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-border-primary">
-                @for (w of ledgerWards(); track w.student_id) {
-                    <tr class="hover:bg-bg-tertiary/30 transition-colors">
-                        <td class="py-3.5 pl-2 font-bold text-text-primary">{{ w.student_name }}</td>
-                        <td class="py-3.5 text-text-muted text-xs">{{ w.class_name }}</td>
-                        <td class="py-3.5 text-text-muted font-mono">{{ formatMoney(w.total_billed) }}</td>
-                        <td class="py-3.5 text-emerald-400 font-mono">{{ formatMoney(w.total_paid) }}</td>
-                        <td class="py-3.5 font-bold font-mono" [ngClass]="w.balance_due > 0 ? 'text-rose-400' : 'text-emerald-400'">
-                            {{ formatMoney(w.balance_due) }}
-                        </td>
-                        <td class="py-3.5">
-                            <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-md border"
-                                  [ngClass]="w.balance_due > 0 ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'">
-                                {{ w.balance_due > 0 ? 'DUE' : 'SETTLED' }}
-                            </span>
-                        </td>
-                        <td class="py-3.5 text-right pr-2">
-                            <div class="flex items-center justify-end gap-2">
-                                @if (w.balance_due > 0) {
-                                    <button (click)="payWard(w.student_id, w.student_name)"
-                                            class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer">
-                                        Pay
+    <!-- TAB 1: Wards Fee Ledger Breakdown -->
+    @if (activeTab() === 'ledger') {
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 mb-6 overflow-x-auto animate-fade-in">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                    <i class="fas fa-list text-indigo-400"></i> Wards Fee Ledger
+                </h3>
+                <span class="text-xs text-text-muted font-bold">{{ ledgerWards().length }} Ward{{ ledgerWards().length > 1 ? 's' : '' }} Registered</span>
+            </div>
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-border-primary text-xs font-bold uppercase tracking-wider text-text-muted">
+                        <th class="pb-3 text-left pl-2">Ward</th>
+                        <th class="pb-3 text-left">Class</th>
+                        <th class="pb-3 text-left">Billed</th>
+                        <th class="pb-3 text-left">Paid</th>
+                        <th class="pb-3 text-left">Balance</th>
+                        <th class="pb-3 text-left">Status</th>
+                        <th class="pb-3 text-right pr-2">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border-primary">
+                    @for (w of ledgerWards(); track w.student_id) {
+                        <tr class="hover:bg-bg-tertiary/30 transition-colors">
+                            <td class="py-3.5 pl-2 font-bold text-text-primary">{{ w.student_name }}</td>
+                            <td class="py-3.5 text-text-muted text-xs">{{ w.class_name }}</td>
+                            <td class="py-3.5 text-text-muted font-mono">{{ formatMoney(w.total_billed) }}</td>
+                            <td class="py-3.5 text-emerald-400 font-mono">{{ formatMoney(w.total_paid) }}</td>
+                            <td class="py-3.5 font-bold font-mono" [ngClass]="w.balance_due > 0 ? 'text-rose-400' : 'text-emerald-400'">
+                                {{ formatMoney(w.balance_due) }}
+                            </td>
+                            <td class="py-3.5">
+                                <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-md border"
+                                      [ngClass]="w.balance_due > 0 ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'">
+                                    {{ w.balance_due > 0 ? 'DUE' : 'SETTLED' }}
+                                </span>
+                            </td>
+                            <td class="py-3.5 text-right pr-2">
+                                <div class="flex items-center justify-end gap-2">
+                                    @if (w.balance_due > 0) {
+                                        <button (click)="payWard(w.student_id, w.student_name)"
+                                                class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer">
+                                            Pay
+                                        </button>
+                                    }
+                                    <button (click)="downloadReceipt(w.student_id)"
+                                            class="px-3 py-1.5 bg-bg-tertiary border border-border-primary hover:bg-bg-secondary text-text-muted hover:text-text-primary font-bold text-xs rounded-xl transition-all cursor-pointer">
+                                        Receipt
                                     </button>
-                                }
-                                <button (click)="downloadReceipt(w.student_id)"
-                                        class="px-3 py-1.5 bg-bg-tertiary border border-border-primary hover:bg-bg-secondary text-text-muted hover:text-text-primary font-bold text-xs rounded-xl transition-all cursor-pointer">
-                                    Receipt
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                }
-                @if (ledgerWards().length === 0) {
-                    <tr>
-                        <td colspan="7" class="py-8 text-center text-text-muted">
-                            <i class="fas fa-check-circle text-2xl text-emerald-400 mb-2 block opacity-70"></i>
-                            <p class="text-xs font-bold text-text-primary">All tuition and school fees are settled</p>
-                            <p class="text-[11px] text-text-muted mt-0.5">No pending fee statements or unpaid invoices on file.</p>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Split-Tuition Installment Agreements Tracker (Feature 8) -->
-    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 mb-6">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-base font-black text-text-primary flex items-center gap-2">
-                <i class="fas fa-calendar-check text-emerald-400"></i> Split-Tuition Installment Milestones
-            </h3>
-            <span class="text-xs font-bold text-text-muted">{{ installmentPlan()?.schedule_text || '40% / 30% / 30% Schedule' }}</span>
-        </div>
-
-        <div class="space-y-4">
-            @for (student of state.profile()?.students || []; track student.id) {
-                @let milestones = getMilestonesForStudent(student.id || '');
-                <div class="p-4 bg-bg-tertiary/40 border border-border-primary rounded-xl">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-xs font-black text-text-primary">{{ student.first_name }} {{ student.last_name }}</span>
-                        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Installment Plan Active</span>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        @for (m of milestones; track m.name) {
-                            <div class="p-3 bg-bg-secondary border border-border-primary rounded-xl"
-                                 [ngClass]="m.status === 'DUE SOON' ? 'border-amber-500/30' : m.status === 'DUE' ? 'border-rose-500/30' : ''">
-                                <div class="flex items-center justify-between mb-1">
-                                    <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted">{{ m.name }}</span>
-                                    <span class="px-1.5 py-0.2 text-[9px] font-black rounded border" [ngClass]="m.badgeClass">
-                                        {{ m.status }}
-                                    </span>
                                 </div>
-                                <div class="text-sm font-bold text-text-primary">{{ formatMoney(m.amount) }}</div>
-                                <div class="text-[10px] text-text-muted mt-0.5">{{ m.desc }}</div>
-                            </div>
-                        }
-                    </div>
-                </div>
-            }
+                            </td>
+                        </tr>
+                    }
+                    @if (ledgerWards().length === 0) {
+                        <tr>
+                            <td colspan="7" class="py-8 text-center text-text-muted">
+                                <i class="fas fa-check-circle text-2xl text-emerald-400 mb-2 block opacity-70"></i>
+                                <p class="text-xs font-bold text-text-primary">All tuition and school fees are settled</p>
+                                <p class="text-[11px] text-text-muted mt-0.5">No pending fee statements or unpaid invoices on file.</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
-    </div>
+    }
 
-    <!-- Student Daily Wallets -->
-    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5">
-        <h3 class="text-base font-black text-text-primary mb-4 flex items-center gap-2">
-            <i class="fas fa-wallet text-amber-400"></i> Student Daily Wallets & Canteen Funds
-        </h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            @for (student of state.profile()?.students || []; track student.id) {
-                @let wallet = state.walletMap()[student.id || ''];
-                <div class="p-4 bg-bg-tertiary border border-border-primary rounded-xl flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-bold text-text-primary">{{ student.first_name }} {{ student.last_name }}</span>
-                            <span class="text-[10px] text-text-muted">{{ student.class_name }}</span>
-                        </div>
-                        <div class="text-2xl font-black text-emerald-400 my-2">
-                            {{ formatMoney(wallet?.balance || 0) }}
-                        </div>
-                        <p class="text-[10px] text-text-muted">Available for daily campus lunch and bus transit.</p>
+    <!-- TAB 2: Split-Tuition Installment Agreements Tracker -->
+    @if (activeTab() === 'milestones') {
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 mb-6 animate-fade-in">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                    <i class="fas fa-calendar-check text-emerald-400"></i> Split-Tuition Installment Milestones
+                </h3>
+                <span class="text-xs font-bold text-text-muted">
+                    {{ installmentPlan()?.is_enabled && installmentPlan()?.milestones?.length ? installmentPlan()?.schedule_text : 'No Schedule Configured' }}
+                </span>
+            </div>
+
+            @if (!installmentPlan()?.is_enabled || !installmentPlan()?.milestones?.length) {
+                <div class="p-8 text-center bg-bg-tertiary/20 border border-border-primary rounded-2xl">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-xl mx-auto mb-3">
+                        <i class="fas fa-calendar-times"></i>
                     </div>
-                    <button (click)="openTopUp(student.id || '', student.first_name + ' ' + student.last_name)"
-                            class="mt-4 w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer">
-                        <i class="fas fa-plus text-[10px]"></i> Top-Up Wallet
-                    </button>
+                    <p class="text-xs font-bold text-text-primary mb-0.5">No Installment Schedule Configured</p>
+                    <p class="text-[11px] text-text-muted max-w-md mx-auto">The school administration has not configured split-tuition installment milestones for this academic term.</p>
+                </div>
+            } @else {
+                <div class="space-y-4">
+                    @for (student of state.profile()?.students || []; track student.id) {
+                        @let milestones = getMilestonesForStudent(student.id || '');
+                        <div class="p-4 bg-bg-tertiary/40 border border-border-primary rounded-xl">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-black text-text-primary">{{ student.first_name }} {{ student.last_name }}</span>
+                                <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Installment Plan Active</span>
+                            </div>
+
+                            @if (milestones.length > 0) {
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    @for (m of milestones; track m.name) {
+                                        <div class="p-3 bg-bg-secondary border border-border-primary rounded-xl"
+                                             [ngClass]="m.status === 'DUE SOON' ? 'border-amber-500/30' : m.status === 'DUE' ? 'border-rose-500/30' : ''">
+                                            <div class="flex items-center justify-between mb-1">
+                                                <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted">{{ m.name }}</span>
+                                                <span class="px-1.5 py-0.2 text-[9px] font-black rounded border" [ngClass]="m.badgeClass">
+                                                    {{ m.status }}
+                                                </span>
+                                            </div>
+                                            <div class="text-sm font-bold text-text-primary">{{ formatMoney(m.amount) }}</div>
+                                            <div class="text-[10px] text-text-muted mt-0.5">{{ m.desc }}</div>
+                                        </div>
+                                    }
+                                </div>
+                            } @else {
+                                <p class="text-xs text-text-muted italic">No active milestones for this ward.</p>
+                            }
+                        </div>
+                    }
                 </div>
             }
         </div>
-    </div>
+    }
+
+    <!-- TAB 3: Student Daily Wallets -->
+    @if (activeTab() === 'wallets') {
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 mb-6 animate-fade-in">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                    <i class="fas fa-wallet text-amber-400"></i> Student Daily Wallets & Canteen Funds
+                </h3>
+                <span class="text-xs text-text-muted">Instant micro-funding for campus services</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                @for (student of state.profile()?.students || []; track student.id) {
+                    @let wallet = state.walletMap()[student.id || ''];
+                    <div class="p-4 bg-bg-tertiary border border-border-primary rounded-xl flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-text-primary">{{ student.first_name }} {{ student.last_name }}</span>
+                                <span class="text-[10px] text-text-muted">{{ student.class_name }}</span>
+                            </div>
+                            <div class="text-2xl font-black text-emerald-400 my-2">
+                                {{ formatMoney(wallet?.balance || 0) }}
+                            </div>
+                            <p class="text-[10px] text-text-muted">Available for daily campus lunch, tuck shop, and bus transit.</p>
+                        </div>
+                        <button (click)="openTopUp(student.id || '', student.first_name + ' ' + student.last_name)"
+                                class="mt-4 w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                            <i class="fas fa-plus text-[10px]"></i> Top-Up Wallet
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- TAB 4: Sibling Discount Matrix Card -->
+    @if (activeTab() === 'siblings') {
+        <div class="mb-6 p-5 bg-gradient-to-r from-purple-950/30 to-bg-secondary border border-purple-500/30 rounded-2xl animate-fade-in">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg shrink-0">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-text-primary">Automated Sibling Discount Matrix</h3>
+                        <p class="text-xs text-text-muted">Dynamic tiered fee reduction applied across your registered wards.</p>
+                    </div>
+                </div>
+                <span class="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20 w-fit">
+                    Institutional Policy Active
+                </span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                @for (student of state.profile()?.students || []; track student.id; let idx = $index) {
+                    <div class="p-3.5 bg-bg-tertiary/60 border border-border-primary rounded-xl">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-bold text-text-primary">{{ student.first_name }} {{ student.last_name }}</span>
+                            <span class="text-[10px] font-black text-purple-400">Ward #{{ idx + 1 }}</span>
+                        </div>
+                        <div class="text-[11px] text-text-muted">
+                            @if (idx === 0) {
+                                Standard Base Rate (0% Discount)
+                            } @else if (idx === 1) {
+                                <span class="text-emerald-400 font-bold">10% Sibling Discount Applied</span>
+                            } @else {
+                                <span class="text-emerald-400 font-bold">20% Multi-Sibling Discount Applied</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
 
 </div>
 
