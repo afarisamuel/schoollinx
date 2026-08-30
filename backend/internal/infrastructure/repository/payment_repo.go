@@ -3,6 +3,7 @@ package repository
 import (
 	"github.com/user/high-school-management/backend/internal/domain"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type paymentRepository struct {
@@ -14,7 +15,7 @@ func NewPaymentRepository(db *gorm.DB) domain.PaymentRepository {
 }
 
 func (r *paymentRepository) CreateTransaction(tx *domain.PaymentTransaction) error {
-	return r.db.Table("public.payment_transactions").Create(tx).Error
+	return r.db.Table("public.payment_transactions").Omit(clause.Associations).Create(tx).Error
 }
 
 func (r *paymentRepository) GetTransactionByReference(tenantID, reference string) (*domain.PaymentTransaction, error) {

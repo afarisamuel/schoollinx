@@ -4,13 +4,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
-
-
 
 // PaymentTransaction represents an attempt to pay a fiscal record (invoice)
 type PaymentTransaction struct {
-	ID             uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	ID             uuid.UUID      `json:"id" gorm:"type:uuid;primary_key"`
 	TenantID       string         `json:"tenant_id" gorm:"type:varchar(255);not null;index"`
 	FiscalRecordID *uuid.UUID     `json:"fiscal_record_id,omitempty" gorm:"type:uuid;index"`
 	StudentID      *uuid.UUID     `json:"student_id,omitempty" gorm:"type:uuid;index"`
@@ -22,9 +21,16 @@ type PaymentTransaction struct {
 	CreatedAt      time.Time      `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt      time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
 
-	// Relationships
-	FiscalRecord *FiscalRecord `json:"fiscal_record,omitempty" gorm:"foreignKey:FiscalRecordID"`
-	Payer        *User         `json:"payer,omitempty" gorm:"foreignKey:PayerID"`
+	// Cross-schema relationships (scoped to tenant schemas)
+	FiscalRecord *FiscalRecord `json:"fiscal_record,omitempty" gorm:"-"`
+	Payer        *User         `json:"payer,omitempty" gorm:"-"`
+}
+
+func (pt *PaymentTransaction) BeforeCreate(tx *gorm.DB) (err error) {
+	if pt.ID == uuid.Nil {
+		pt.ID = uuid.New()
+	}
+	return
 }
 
 func (PaymentTransaction) TableName() string {
@@ -33,12 +39,19 @@ func (PaymentTransaction) TableName() string {
 
 // PaymentWebhookLog records raw incoming webhooks for debugging and idempotency
 type PaymentWebhookLog struct {
-	ID        uuid.UUID `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	ID        uuid.UUID `json:"id" gorm:"type:uuid;primary_key"`
 	TenantID  string    `json:"tenant_id" gorm:"type:varchar(255);not null;index"`
 	Provider  string    `json:"provider" gorm:"type:varchar(50);not null"`
 	Event     string    `json:"event" gorm:"type:varchar(100);not null"`
 	Payload   string    `json:"payload" gorm:"type:jsonb"`
 	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
+}
+
+func (pw *PaymentWebhookLog) BeforeCreate(tx *gorm.DB) (err error) {
+	if pw.ID == uuid.Nil {
+		pw.ID = uuid.New()
+	}
+	return
 }
 
 func (PaymentWebhookLog) TableName() string {

@@ -142,6 +142,7 @@ func (u *paymentUseCase) InitializePayment(ctx context.Context, tenantID string,
 
 	// 5. Save the transaction locally
 	tx := &domain.PaymentTransaction{
+		ID:             uuid.New(),
 		TenantID:       tenantID,
 		FiscalRecordID: &fiscalRecordID,
 		StudentID:      &record.StudentID,
@@ -203,6 +204,7 @@ func (u *paymentUseCase) InitializeWalletTopUp(ctx context.Context, tenantID str
 	}
 
 	tx := &domain.PaymentTransaction{
+		ID:        uuid.New(),
 		TenantID:  tenantID,
 		StudentID: &studentID,
 		Amount:    amount,
