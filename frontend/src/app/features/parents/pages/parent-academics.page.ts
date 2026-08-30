@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { ParentStateService } from '../../../core/infrastructure/parent/parent-state.service';
 import { ReportService, CompetencyEvaluationItem } from '../../../core/infrastructure/report/report.service';
 import { SubjectService, Subject } from '../../../core/infrastructure/curriculum/subject.service';
+import { ClassService } from '../../../core/infrastructure/curriculum/class.service';
 import { Grade } from '../../../core/domain/grade.model';
 
 @Component({
@@ -16,10 +17,13 @@ export class ParentAcademicsPage implements OnInit {
     state = inject(ParentStateService);
     private reportService = inject(ReportService);
     private subjectService = inject(SubjectService);
+    private classService = inject(ClassService);
 
     isDownloading = signal<Record<string, boolean>>({});
     dbSubjects = signal<Subject[]>([]);
+    classSubjects = signal<{ id: string; name: string; code?: string }[]>([]);
     loadingSubjects = signal(true);
+    loadingClassSubjects = signal(false);
     competenciesMap = signal<Record<string, CompetencyEvaluationItem[]>>({});
 
     // Active Tab & Ward Selection State
@@ -30,6 +34,12 @@ export class ParentAcademicsPage implements OnInit {
         const students = this.state.profile()?.students || [];
         if (!students.length) return null;
         return students.find(s => s.id === this.selectedStudentId()) || students[0];
+    });
+
+    studentClassName = computed(() => {
+        const s = this.selectedStudent();
+        if (!s) return 'Assigned Class';
+        return s.class?.name || s.class_name || (s.level ? `Grade ${s.level}` : 'Assigned Class');
     });
 
     constructor() {
@@ -54,6 +64,14 @@ export class ParentAcademicsPage implements OnInit {
                 });
             }
         });
+
+        // Whenever selected student changes, load their class subjects
+        effect(() => {
+            const student = this.selectedStudent();
+            if (student) {
+                this.loadClassSubjects(student);
+            }
+        });
     }
 
     ngOnInit() {
@@ -71,6 +89,64 @@ export class ParentAcademicsPage implements OnInit {
                 this.dbSubjects.set([]);
                 this.loadingSubjects.set(false);
             }
+        });
+    }
+
+    loadClassSubjects(student: any) {
+        if (!student) {
+            this.classSubjects.set([]);
+            return;
+        }
+
+        // 1. If preloaded on student.class:
+        if (student.class?.subjects && Array.isArray(student.class.subjects) && student.class.subjects.length > 0) {
+            this.classSubjects.set(student.class.subjects);
+        }
+
+        // 2. Fetch fresh class subjects from API:
+        const classId = student.class_id || student.class?.id;
+        if (classId) {
+            this.loadingClassSubjects.set(true);
+            this.classService.getClassSubjects(classId).subscribe({
+                next: (subs) => {
+                    if (subs && subs.length > 0) {
+                        this.classSubjects.set(subs);
+                    } else if (!student.class?.subjects || student.class.subjects.length === 0) {
+                        this.classSubjects.set([]);
+                    }
+                    this.loadingClassSubjects.set(false);
+                },
+                error: () => {
+                    this.loadingClassSubjects.set(false);
+                }
+            });
+        } else {
+            this.classSubjects.set(student.class?.subjects || []);
+        }
+    }
+
+    getGradesForSubject(subjName: string, subjId?: string, bySubj: Record<string, Grade[]> = {}): Grade[] {
+        if (bySubj[subjName] && bySubj[subjName].length > 0) {
+            return bySubj[subjName];
+        }
+        if (subjId && bySubj[subjId] && bySubj[subjId].length > 0) {
+            return bySubj[subjId];
+        }
+        const lower = (subjName || '').toLowerCase().trim();
+        for (const key of Object.keys(bySubj)) {
+            if (key.toLowerCase().trim() === lower) {
+                return bySubj[key];
+            }
+        }
+        return [];
+    }
+
+    getOtherGradedSubjects(bySubj: Record<string, Grade[]> = {}): string[] {
+        const classNames = new Set(this.classSubjects().map(s => s.name.toLowerCase().trim()));
+        const classIds = new Set(this.classSubjects().map(s => s.id));
+        return Object.keys(bySubj).filter(key => {
+            const lower = key.toLowerCase().trim();
+            return !classNames.has(lower) && !classIds.has(key);
         });
     }
 

@@ -59,6 +59,7 @@ func (r *guardianRepository) GetLinkedStudents(ctx context.Context, guardianID u
 		Joins(fmt.Sprintf("JOIN %s ON %s.student_id = students.id", tbl, tbl)).
 		Where(fmt.Sprintf("%s.guardian_id = ?", tbl), guardianID).
 		Preload("User").
+		Preload("Class.Subjects").
 		Preload("Class").
 		Find(&students).Error
 

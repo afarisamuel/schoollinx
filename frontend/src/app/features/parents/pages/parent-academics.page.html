@@ -28,7 +28,7 @@
                             class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
                         <span class="w-2 h-2 rounded-full" [ngClass]="selectedStudent()?.id === s.id ? 'bg-white' : 'bg-indigo-400'"></span>
                         <span>{{ s.first_name }} {{ s.last_name }}</span>
-                        <span class="text-[10px] opacity-70">({{ s.class_name || 'Grade ' + s.level }})</span>
+                        <span class="text-[10px] opacity-70">({{ s.class?.name || s.class_name || (s.level ? 'Grade ' + s.level : 'Class') }})</span>
                     </button>
                 }
             </div>
@@ -41,7 +41,7 @@
                     <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-black text-lg">{{ student.first_name[0] }}</div>
                     <div>
                         <h2 class="font-black text-text-primary text-lg">{{ student.first_name }} {{ student.last_name }}</h2>
-                        <p class="text-[10px] text-text-muted">{{ student.class_name || 'Grade ' + student.level }}</p>
+                        <p class="text-xs font-bold text-indigo-400">{{ studentClassName() }}</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
@@ -107,28 +107,111 @@
                 <!-- TAB 1: Subjects & Grades -->
                 @if (activeTab() === 'subjects') {
                     <div class="animate-fade-in space-y-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-sm font-black text-text-primary flex items-center gap-2">
-                                <i class="fas fa-chart-bar text-indigo-400"></i> Subject Performance Breakdown
-                            </h3>
-                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">
-                                {{ objectKeys(bySubj).length > 0 ? objectKeys(bySubj).length + ' Subjects Graded' : (dbSubjects().length > 0 ? dbSubjects().length + ' Enrolled Subjects' : 'Curriculum Subjects') }}
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+                            <div>
+                                <h3 class="text-sm font-black text-text-primary flex items-center gap-2">
+                                    <i class="fas fa-book-open text-indigo-400"></i> Class Subjects & Performance
+                                </h3>
+                                <p class="text-[11px] text-text-muted mt-0.5">
+                                    Enrolled curriculum subjects for <span class="font-black text-emerald-400">{{ studentClassName() }}</span>
+                                </p>
+                            </div>
+                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider px-2.5 py-1 rounded-lg bg-bg-tertiary border border-border-primary self-start sm:self-auto">
+                                {{ classSubjects().length > 0 ? classSubjects().length + ' Class Subjects' : (objectKeys(bySubj).length > 0 ? objectKeys(bySubj).length + ' Subjects Graded' : 'No Subjects') }}
                             </span>
                         </div>
 
-                        @if (objectKeys(bySubj).length > 0) {
+                        @if (classSubjects().length > 0) {
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                @for (sub of classSubjects(); track (sub.id || sub.name)) {
+                                    @let sg = getGradesForSubject(sub.name, sub.id, bySubj);
+                                    @if (sg.length > 0) {
+                                        @let avg = subjectAvg(sg);
+                                        <div class="p-4 bg-bg-tertiary border border-border-primary rounded-2xl hover:border-indigo-500/40 transition-all">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs font-black">{{ sub.name[0] }}</div>
+                                                    <div class="flex flex-col min-w-0">
+                                                        <span class="text-xs font-bold text-text-primary truncate" [title]="sub.name">{{ sub.name }}</span>
+                                                        <span class="text-[9px] text-text-muted font-mono uppercase">{{ sub.code || 'Core' }}</span>
+                                                    </div>
+                                                </div>
+                                                <span class="px-2 py-0.5 text-[10px] font-black rounded-md border" [ngClass]="gradeLetterClass(avg)">
+                                                    {{ gradeLetter(avg) }} · {{ avg | number:'1.0-0' }}%
+                                                </span>
+                                            </div>
+                                            <div class="h-1.5 bg-bg-secondary rounded-full overflow-hidden">
+                                                <div class="h-full rounded-full" [style.width.%]="avg"
+                                                     [ngClass]="avg >= 80 ? 'bg-emerald-400' : avg >= 65 ? 'bg-amber-400' : 'bg-rose-400'"></div>
+                                            </div>
+                                            <div class="mt-2 text-[10px] text-text-muted flex justify-between">
+                                                <span>{{ sg.length }} assessment{{ sg.length > 1 ? 's' : '' }}</span>
+                                                <span class="text-emerald-400 font-bold">Graded</span>
+                                            </div>
+                                        </div>
+                                    } @else {
+                                        <div class="p-4 bg-bg-tertiary/60 border border-border-primary rounded-2xl">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs font-black">{{ sub.name[0] }}</div>
+                                                    <div class="flex flex-col min-w-0">
+                                                        <span class="text-xs font-bold text-text-primary truncate" [title]="sub.name">{{ sub.name }}</span>
+                                                        <span class="text-[9px] text-text-muted font-mono uppercase">{{ sub.code || 'Core' }}</span>
+                                                    </div>
+                                                </div>
+                                                <span class="px-2 py-0.5 text-[9px] font-black rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase tracking-wider">
+                                                    Enrolled
+                                                </span>
+                                            </div>
+                                            <div class="h-1.5 bg-bg-secondary/60 rounded-full overflow-hidden">
+                                                <div class="h-full w-full bg-border-primary/40 rounded-full"></div>
+                                            </div>
+                                            <div class="mt-2 text-[10px] text-text-muted flex justify-between">
+                                                <span>In Progress</span>
+                                                <span class="text-indigo-400 font-medium">Pending Entry</span>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+
+                                <!-- Extra graded subjects outside standard class curriculum if any -->
+                                @for (subj of getOtherGradedSubjects(bySubj); track subj) {
+                                    @let sg = bySubj[subj];
+                                    @let avg = subjectAvg(sg);
+                                    <div class="p-4 bg-bg-tertiary border border-border-primary rounded-2xl">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs font-black">{{ subj[0] }}</div>
+                                                <span class="text-xs font-bold text-text-primary max-w-[120px] truncate" [title]="subj">{{ subj }}</span>
+                                            </div>
+                                            <span class="px-2 py-0.5 text-[10px] font-black rounded-md border" [ngClass]="gradeLetterClass(avg)">
+                                                {{ gradeLetter(avg) }} · {{ avg | number:'1.0-0' }}%
+                                            </span>
+                                        </div>
+                                        <div class="h-1.5 bg-bg-secondary rounded-full overflow-hidden">
+                                            <div class="h-full rounded-full" [style.width.%]="avg"
+                                                 [ngClass]="avg >= 80 ? 'bg-emerald-400' : avg >= 65 ? 'bg-amber-400' : 'bg-rose-400'"></div>
+                                        </div>
+                                        <div class="mt-2 text-[10px] text-text-muted flex justify-between">
+                                            <span>{{ sg.length }} test{{ sg.length > 1 ? 's' : '' }}</span>
+                                            <span class="text-purple-400 font-bold">Elective</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        } @else if (objectKeys(bySubj).length > 0) {
                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                                 @for (subj of objectKeys(bySubj); track subj) {
                                     @let sg = bySubj[subj];
                                     @let avg = subjectAvg(sg);
-                                    <div class="p-4 bg-bg-tertiary border border-border-primary rounded-xl">
+                                    <div class="p-4 bg-bg-tertiary border border-border-primary rounded-2xl">
                                         <div class="flex items-center justify-between mb-2">
                                             <div class="flex items-center gap-2">
                                                 <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs font-black">{{ subj[0] }}</div>
-                                                <span class="text-xs font-bold text-text-primary max-w-[90px] truncate">{{ subj }}</span>
+                                                <span class="text-xs font-bold text-text-primary max-w-[120px] truncate">{{ subj }}</span>
                                             </div>
                                             <span class="px-2 py-0.5 text-[10px] font-black rounded-md border" [ngClass]="gradeLetterClass(avg)">
-                                                {{ gradeLetter(avg) }} · {{ avg | number:'1.0-0' }}
+                                                {{ gradeLetter(avg) }} · {{ avg | number:'1.0-0' }}%
                                             </span>
                                         </div>
                                         <div class="h-1.5 bg-bg-secondary rounded-full overflow-hidden">
@@ -142,31 +225,13 @@
                                     </div>
                                 }
                             </div>
-                        } @else if (dbSubjects().length > 0) {
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-                                @for (sub of dbSubjects(); track sub.id) {
-                                    <div class="p-3.5 bg-bg-tertiary/50 border border-border-primary rounded-xl">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <div class="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs font-black">{{ sub.name[0] }}</div>
-                                            <span class="px-1.5 py-0.2 text-[8px] font-black rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase tracking-wider">
-                                                ENROLLED
-                                            </span>
-                                        </div>
-                                        <h4 class="text-xs font-bold text-text-primary truncate mb-1" [title]="sub.name">{{ sub.name }}</h4>
-                                        <div class="text-[10px] text-text-muted flex items-center justify-between">
-                                            <span>{{ sub.code || 'Core' }}</span>
-                                            <span class="text-indigo-400 font-bold">In Progress</span>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
                         } @else {
                             <div class="p-8 text-center bg-bg-tertiary/20 border border-border-primary rounded-2xl">
                                 <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-xl mx-auto mb-3">
                                     <i class="fas fa-book-open"></i>
                                 </div>
-                                <p class="text-xs font-bold text-text-primary mb-1">No Enrolled Subjects Available</p>
-                                <p class="text-[11px] text-text-muted max-w-sm mx-auto">No curriculum subjects have been registered in the database for this academic term yet.</p>
+                                <p class="text-xs font-bold text-text-primary mb-1">No Subjects Assigned to {{ studentClassName() }}</p>
+                                <p class="text-[11px] text-text-muted max-w-sm mx-auto">There are currently no curriculum subjects assigned to {{ student.first_name }}'s class ({{ studentClassName() }}).</p>
                             </div>
                         }
                     </div>
