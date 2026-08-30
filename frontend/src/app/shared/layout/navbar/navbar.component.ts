@@ -1,5 +1,5 @@
-import { Component, input, output, signal, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, output, signal, inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ThemeService } from '../../../core/infrastructure/theme/theme.service';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
@@ -15,6 +15,7 @@ import { AppNotification } from '../../../core/infrastructure/websocket/websocke
 export class NavbarComponent {
   themeService = inject(ThemeService);
   private authService = inject(AuthService);
+  private platformId = inject(PLATFORM_ID);
 
   // Inputs
   currentRouteTitle = input<string>('Dashboard');
@@ -30,6 +31,7 @@ export class NavbarComponent {
   // Dropdown States
   isNotificationsOpen = signal<boolean>(false);
   isUserMenuOpen = signal<boolean>(false);
+  isFullscreen = signal<boolean>(false);
 
   userInitial(): string {
     const user = this.authService.currentUserValue;
@@ -39,15 +41,28 @@ export class NavbarComponent {
 
   userName(): string {
     const user = this.authService.currentUserValue;
-    return user?.username || user?.email || 'User';
+    return (user?.username || user?.email || 'Afari Adusei').toUpperCase();
   }
 
   userRole(): string {
     const role = this.authService.currentUserValue?.role;
-    if (role === 'TEACHER') return 'Faculty';
-    if (role === 'GUARDIAN') return 'Parent / Guardian';
-    if (role === 'STUDENT') return 'Student';
-    return 'Administrator';
+    if (role === 'TEACHER') return 'FACULTY';
+    if (role === 'GUARDIAN') return 'PARENT';
+    if (role === 'STUDENT') return 'STUDENT';
+    return 'ADMIN';
+  }
+
+  toggleFullscreen(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+      this.isFullscreen.set(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+        this.isFullscreen.set(false);
+      }
+    }
   }
 
   toggleNotifications(): void {

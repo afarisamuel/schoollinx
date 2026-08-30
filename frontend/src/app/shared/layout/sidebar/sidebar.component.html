@@ -29,11 +29,11 @@
 
       @if (!isCollapsed()) {
         <div class="min-w-0 flex-1 animate-fade-in">
-          <h2 class="text-base font-black tracking-tight text-text-primary group-hover:text-indigo-400 transition-colors leading-tight truncate">
-            {{ tenantProfile()?.name || 'SchoolLinx' }}
+          <h2 class="text-sm font-black tracking-tight text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors leading-tight truncate">
+            {{ tenantProfile()?.name || 'SchoolLinx' }} OS
           </h2>
-          <p class="text-[10px] font-extrabold text-text-muted uppercase tracking-widest leading-tight mt-1 truncate">
-            Institutional OS
+          <p class="text-[10px] font-extrabold text-emerald-500 uppercase tracking-widest leading-tight mt-1 flex items-center gap-1.5 truncate">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ONLINE
           </p>
         </div>
       }
@@ -231,31 +231,33 @@
   </nav>
 
   <!-- ── Sidebar Bottom User Card ────────────────────────── -->
-  <div class="p-3.5 border-t border-border-primary/70 bg-bg-tertiary/40 shrink-0">
-    <div class="flex items-center gap-3 p-2 rounded-2xl hover:bg-bg-tertiary transition-colors"
+  <div class="p-3 border-t border-slate-100 dark:border-border-primary/70 bg-slate-50/50 dark:bg-bg-tertiary/40 shrink-0 space-y-2">
+    <div class="flex items-center gap-3 p-1.5 rounded-2xl hover:bg-slate-100/70 dark:hover:bg-bg-tertiary transition-colors"
          [ngClass]="{'justify-center': isCollapsed()}">
-      <div routerLink="/profile" (click)="onNavClick()" class="w-10 h-10 shrink-0 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 text-indigo-400 font-black text-sm flex items-center justify-center border border-indigo-500/20 cursor-pointer hover:scale-105 transition-transform shadow-sm" title="Profile Settings">
+      <div routerLink="/profile" (click)="onNavClick()" class="w-9 h-9 shrink-0 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 font-black text-sm flex items-center justify-center border border-indigo-200 dark:border-indigo-800/60 cursor-pointer hover:scale-105 transition-transform shadow-2xs" title="Profile Settings">
         {{ userInitial() }}
       </div>
 
       @if (!isCollapsed()) {
         <div routerLink="/profile" (click)="onNavClick()" class="min-w-0 flex-1 cursor-pointer">
-          <p class="text-sm font-black text-text-primary truncate leading-tight">
+          <p class="text-xs font-black text-slate-900 dark:text-white truncate leading-tight">
             {{ userName() }}
           </p>
-          <p class="text-[11px] font-bold text-text-muted uppercase tracking-wider mt-0.5 leading-tight truncate">
+          <p class="text-[10px] font-bold text-slate-400 dark:text-text-muted uppercase tracking-wider mt-0.5 leading-tight truncate">
             {{ userRoleLabel() }}
           </p>
         </div>
-
-        <button
-          (click)="logout()"
-          class="w-8 h-8 rounded-xl text-text-muted hover:text-rose-400 hover:bg-rose-500/10 flex items-center justify-center transition-all cursor-pointer"
-          title="Logout"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
-        </button>
       }
     </div>
+
+    @if (!isCollapsed()) {
+      <button
+        (click)="logout()"
+        class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-text-muted hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 border border-slate-200/80 dark:border-border-primary/60 transition-all cursor-pointer shadow-2xs"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+        <span>Sign Out</span>
+      </button>
+    }
   </div>
 </aside>

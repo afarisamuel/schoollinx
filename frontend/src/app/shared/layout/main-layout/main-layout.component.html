@@ -1,6 +1,6 @@
-<div class="flex h-screen bg-bg-primary font-sans leading-relaxed text-text-primary overflow-hidden p-0 lg:p-2.5 gap-2.5">
+<div class="flex h-screen bg-[#F4F6FB] dark:bg-bg-primary font-sans leading-relaxed text-slate-900 dark:text-text-primary overflow-hidden p-2 md:p-3.5 gap-3 md:gap-3.5">
 
-    <!-- 1. Modular Sidebar Panel -->
+    <!-- 1. Modular Sidebar Panel (Floating Card) -->
     <app-sidebar
         class="h-full flex shrink-0"
         [isCollapsed]="isSidebarCollapsed()"
@@ -9,16 +9,12 @@
         (closeMobile)="closeMobileSidebar()"
     ></app-sidebar>
 
-    <!-- 2. Modular Main Workspace Canvas -->
-    <div class="flex-1 flex flex-col min-w-0 bg-bg-primary lg:bg-bg-secondary/40 lg:rounded-3xl border-0 lg:border border-border-primary/70 overflow-hidden shadow-2xl relative" [class.blur-sm]="isBillingLocked() || !isOnline()">
-        
-        <!-- Ambient Canvas Lighting -->
-        <div class="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/5 blur-[120px] rounded-full pointer-events-none"></div>
-        <div class="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-purple-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+    <!-- 2. Main Column (Navbar + Main Canvas) -->
+    <div class="flex-1 flex flex-col min-w-0 h-full gap-3 md:gap-3.5 overflow-hidden" [class.blur-sm]="isBillingLocked() || !isOnline()">
 
-        <!-- Global Announcements Banner -->
+        <!-- Global Announcements Banner (if active) -->
         @for (ann of activeAnnouncements(); track ann.id) {
-            <div class="w-full text-white text-xs font-bold px-4 py-2 flex items-center justify-center gap-3 relative z-50 shadow-md"
+            <div class="w-full text-white text-xs font-bold px-4 py-2 rounded-2xl flex items-center justify-center gap-3 relative z-50 shadow-md shrink-0"
                  [ngClass]="{
                      'bg-blue-600': ann.priority === 'INFO',
                      'bg-amber-500': ann.priority === 'WARNING',
@@ -29,8 +25,9 @@
             </div>
         }
 
-        <!-- 3. Modular Navbar Component -->
+        <!-- 3. Modular Floating Navbar Component -->
         <app-navbar
+            class="shrink-0"
             [currentRouteTitle]="currentRouteTitle()"
             [unreadCount]="unreadCount()"
             [notifications]="notifications()"
@@ -40,8 +37,8 @@
             (markRead)="markAllAsRead()"
         ></app-navbar>
 
-        <!-- 4. Modular Main Page Canvas Outlet -->
-        <main class="flex-1 min-h-0 overflow-y-auto custom-scrollbar relative z-0">
+        <!-- 4. Modular Main Page Canvas (Floating Card) -->
+        <main class="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-slate-50/50 dark:bg-bg-secondary/40 rounded-2xl md:rounded-3xl border border-slate-200/80 dark:border-border-primary/80 shadow-sm relative z-0">
             <router-outlet />
         </main>
     </div>
