@@ -82,8 +82,11 @@
         </div>
     </div>
 
-    <!-- View Mode Selector Pill Tabs -->
-    <div class="flex items-center justify-between border-b border-border-primary pb-3 flex-wrap gap-3">
+    @if (isLoading()) {
+        <app-page-loader text="Loading curriculum allocation data..." subtext="Syncing educators, classrooms, curriculum subjects, and active assignments."></app-page-loader>
+    } @else {
+        <!-- View Mode Selector Pill Tabs -->
+        <div class="flex items-center justify-between border-b border-border-primary pb-3 flex-wrap gap-3">
         <div class="flex items-center p-1 bg-bg-secondary border border-border-primary rounded-xl">
             <button (click)="viewMode.set('by-class')"
                     [ngClass]="viewMode() === 'by-class' ? 'bg-indigo-600 text-white font-black shadow-md shadow-indigo-600/20' : 'text-text-muted hover:text-text-primary'"
@@ -545,6 +548,7 @@
                 </table>
             </div>
         </div>
+    }
     }
 
 </div>

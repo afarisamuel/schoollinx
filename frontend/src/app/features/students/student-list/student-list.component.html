@@ -201,7 +201,9 @@
         </div>
       }
 
-      @if (filteredStudents().length > 0) {
+      @if (loading()) {
+        <app-page-loader text="Loading student directory..." subtext="Retrieving students, enrollment records, and active placements."></app-page-loader>
+      } @else if (filteredStudents().length > 0) {
 
         <!-- ─────────── GRID VIEW ─────────── -->
         @if (viewMode() === 'grid') {

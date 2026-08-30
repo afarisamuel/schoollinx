@@ -12,16 +12,18 @@ import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 import { ScholasticLevelService } from '../../../core/infrastructure/scholastic-level/scholastic-level.service';
 import { ScholasticLevel } from '../../../core/domain/scholastic-level.model';
 import { PaginationState, defaultPaginationState } from '../../../core/domain/pagination.model';
+import { PageLoaderComponent } from '../../../shared/ui/page-loader/page-loader.component';
 
 @Component({
     selector: 'app-student-list',
     standalone: true,
-    imports: [RouterLink, CommonModule, FormsModule, DocumentRequestModalComponent, GraduationModalComponent],
+    imports: [RouterLink, CommonModule, FormsModule, DocumentRequestModalComponent, GraduationModalComponent, PageLoaderComponent],
     templateUrl: './student-list.component.html',
     styleUrl: './student-list.component.css'
 })
 export class StudentListComponent implements OnInit {
     private dialog = inject(DialogService);
+    loading = signal<boolean>(true);
     students = signal<Student[]>([]);
     selectedIds = signal<Set<string>>(new Set());
     selectedStudentForDocs = signal<Student | null>(null);
@@ -111,15 +113,22 @@ export class StudentListComponent implements OnInit {
     }
 
     loadStudents(page: number = this.pagination().currentPage) {
-        this.studentService.getStudentsPaginated(page, this.pagination().pageSize).subscribe(res => {
-            this.students.set(res.data || []);
-            this.pagination.set({
-                currentPage: res.meta.current_page,
-                pageSize: res.meta.page_size,
-                totalCount: res.meta.total_count,
-                totalPages: res.meta.total_pages
-            });
-            this.selectedIds.set(new Set());
+        this.loading.set(true);
+        this.studentService.getStudentsPaginated(page, this.pagination().pageSize).subscribe({
+            next: (res) => {
+                this.students.set(res.data || []);
+                this.pagination.set({
+                    currentPage: res.meta.current_page,
+                    pageSize: res.meta.page_size,
+                    totalCount: res.meta.total_count,
+                    totalPages: res.meta.total_pages
+                });
+                this.selectedIds.set(new Set());
+                this.loading.set(false);
+            },
+            error: () => {
+                this.loading.set(false);
+            }
         });
     }
 

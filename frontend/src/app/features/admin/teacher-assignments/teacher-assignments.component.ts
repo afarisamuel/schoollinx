@@ -11,6 +11,7 @@ import { AcademicPeriodService } from '../../../core/infrastructure/academic-per
 import { Teacher } from '../../../core/domain/teacher.model';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 import { ToastService } from '../../../shared/ui/toast/toast.service';
+import { PageLoaderComponent } from '../../../shared/ui/page-loader/page-loader.component';
 
 export interface ClassSubjectRow {
     subject: Subject;
@@ -22,7 +23,7 @@ export interface ClassSubjectRow {
 @Component({
     selector: 'app-teacher-assignments',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule],
+    imports: [CommonModule, FormsModule, RouterModule, PageLoaderComponent],
     templateUrl: './teacher-assignments.component.html',
     styleUrl: './teacher-assignments.component.css'
 })
