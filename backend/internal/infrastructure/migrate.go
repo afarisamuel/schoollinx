@@ -10,18 +10,18 @@ import (
 // RunMigrations applies migrations to the global (public) schema,
 // and then applies them to every active tenant schema.
 func RunMigrations(db *gorm.DB) error {
-	// 1. Run migrations for the public schema (global tables)
-	log.Println("Running migrations for public schema")
-	if err := db.AutoMigrate(GlobalModels...); err != nil {
-		return fmt.Errorf("failed to migrate public schema: %w", err)
-	}
-
-	// Ensure payment_transactions supports wallet top-ups (fiscal_record_id & payer_id nullable, student_id column)
+	// 0. Ensure payment_transactions table and columns exist cleanly
 	_ = db.Exec(`ALTER TABLE public.payment_transactions ALTER COLUMN fiscal_record_id DROP NOT NULL`).Error
 	_ = db.Exec(`ALTER TABLE public.payment_transactions ALTER COLUMN payer_id DROP NOT NULL`).Error
 	_ = db.Exec(`ALTER TABLE public.payment_transactions DROP CONSTRAINT IF EXISTS payment_transactions_fiscal_record_id_not_null`).Error
 	_ = db.Exec(`ALTER TABLE public.payment_transactions DROP CONSTRAINT IF EXISTS payment_transactions_payer_id_not_null`).Error
 	_ = db.Exec(`ALTER TABLE public.payment_transactions ADD COLUMN IF NOT EXISTS student_id uuid`).Error
+
+	// 1. Run migrations for the public schema (global tables)
+	log.Println("Running migrations for public schema")
+	if err := db.AutoMigrate(GlobalModels...); err != nil {
+		return fmt.Errorf("failed to migrate public schema: %w", err)
+	}
 
 	// 2. Fetch all known tenant schemas
 	schemas, err := getTenantSchemas(db)

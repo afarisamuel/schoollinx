@@ -1075,6 +1075,7 @@ CREATE TABLE IF NOT EXISTS payment_transactions (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id       VARCHAR(255) NOT NULL,
     fiscal_record_id UUID,
+    student_id      UUID,
     payer_id        UUID,
     amount          NUMERIC(12,4) NOT NULL,
     reference       VARCHAR(255) NOT NULL UNIQUE,

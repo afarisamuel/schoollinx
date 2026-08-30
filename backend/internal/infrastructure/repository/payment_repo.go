@@ -15,7 +15,15 @@ func NewPaymentRepository(db *gorm.DB) domain.PaymentRepository {
 }
 
 func (r *paymentRepository) CreateTransaction(tx *domain.PaymentTransaction) error {
-	return r.db.Table("public.payment_transactions").Omit(clause.Associations).Create(tx).Error
+	err := r.db.Table("public.payment_transactions").Omit(clause.Associations).Create(tx).Error
+	if err != nil {
+		// If column student_id is missing or constraint issue, patch table schema and retry once
+		_ = r.db.Exec(`ALTER TABLE public.payment_transactions ADD COLUMN IF NOT EXISTS student_id uuid`).Error
+		_ = r.db.Exec(`ALTER TABLE public.payment_transactions ALTER COLUMN fiscal_record_id DROP NOT NULL`).Error
+		_ = r.db.Exec(`ALTER TABLE public.payment_transactions ALTER COLUMN payer_id DROP NOT NULL`).Error
+		return r.db.Table("public.payment_transactions").Omit(clause.Associations).Create(tx).Error
+	}
+	return nil
 }
 
 func (r *paymentRepository) GetTransactionByReference(tenantID, reference string) (*domain.PaymentTransaction, error) {
