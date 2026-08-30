@@ -480,10 +480,13 @@ func (h *GuardianHandler) SendPortalInvites(c *gin.Context) {
 }
 
 func (h *GuardianHandler) GeneratePickupOTP(c *gin.Context) {
-	userIDVal, exists := c.Get("user_id")
+	userIDVal, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
+		userIDVal, exists = c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			return
+		}
 	}
 	userID, ok := userIDVal.(uuid.UUID)
 	if !ok {

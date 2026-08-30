@@ -17,6 +17,9 @@ export class ParentAcademicsPage {
 
     isDownloading = signal<Record<string, boolean>>({});
 
+    // Default Core Curriculum Subjects
+    defaultCoreSubjects = ['Mathematics', 'English Language', 'Integrated Science', 'Social Studies', 'ICT & Computing', 'Creative Arts'];
+
     // Competency Framework (NaCCA / CBA)
     defaultCompetencies = [
         { name: 'Critical Thinking & Problem Solving', domain: 'Cognitive Excellence', score: 5, level: 'Exemplary', badgeClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
@@ -25,6 +28,16 @@ export class ParentAcademicsPage {
         { name: 'Communication & Expression', domain: 'Language & Art', score: 5, level: 'Exemplary', badgeClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
         { name: 'Personal Development & Ethics', domain: 'Character', score: 4, level: 'Proficient', badgeClass: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' }
     ];
+
+    getStudentRemarks(student: any, gpa: number): string {
+        if (gpa >= 80) {
+            return `${student.first_name} exhibits remarkable academic leadership, consistently scoring in the upper percentile across assessments. Independent critical problem-solving and classroom curiosity are exemplary.`;
+        }
+        if (gpa >= 65) {
+            return `${student.first_name} has demonstrated commendable academic diligence this term, exhibiting strong engagement across core subjects. Punctuality and classroom collaboration have been exemplary.`;
+        }
+        return `${student.first_name} is actively engaged in current term coursework. Continuous classroom assessments and homework deliverables are being recorded by subject tutors.`;
+    }
 
     today() { return new Date().toISOString().slice(0, 10); }
 

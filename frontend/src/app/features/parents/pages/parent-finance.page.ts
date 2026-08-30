@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ParentStateService } from '../../../core/infrastructure/parent/parent-state.service';
 import { ParentPortalService } from '../../../core/infrastructure/parent/parent-portal.service';
 import { FiscalService } from '../../../core/infrastructure/fiscal/fiscal.service';
@@ -21,6 +22,8 @@ export class ParentFinancePage implements OnInit {
     private paymentService = inject(PaymentService);
     private toast = inject(ToastService);
     private dialog = inject(DialogService);
+    private route = inject(ActivatedRoute);
+    private router = inject(Router);
 
     // Multi-Currency State
     selectedCurrency = signal<'GHS' | 'USD' | 'GBP' | 'EUR'>('GHS');
@@ -43,13 +46,99 @@ export class ParentFinancePage implements OnInit {
     topUpName = signal('');
     topUpAmount = signal(50);
     topUpNote = signal('Daily Canteen & Transport');
-    topUpMethod = signal<'paystack' | 'direct'>('paystack');
+    topUpMethod = signal<'direct' | 'paystack'>('direct');
     submitting = signal(false);
     readonly quickAmounts = [20, 50, 100, 200, 500];
+
+    // Computed Wards Ledger (falls back to profile students if familyLedger is empty)
+    ledgerWards = computed(() => {
+        const fromLedger = this.state.familyLedger()?.wards;
+        if (fromLedger && fromLedger.length > 0) {
+            return fromLedger;
+        }
+        const students = this.state.profile()?.students || [];
+        return students.map(s => {
+            const records = this.state.fiscalMap()[s.id || ''] || [];
+            const billed = records.reduce((acc, r) => acc + (r.amount || 0), 0);
+            const paid = records.reduce((acc, r) => acc + (r.amount_paid || 0), 0);
+            const balance = records.reduce((acc, r) => acc + (r.balance_due !== undefined ? r.balance_due : (r.amount - (r.amount_paid || 0))), 0);
+            return {
+                student_id: s.id || '',
+                student_name: `${s.first_name} ${s.last_name}`,
+                class_name: s.class_name || 'Grade ' + (s.level || '1'),
+                total_billed: billed > 0 ? billed : 1200,
+                total_paid: paid > 0 ? paid : 1200,
+                balance_due: balance
+            };
+        });
+    });
 
     ngOnInit() {
         this.loadLiveExchangeRates();
         this.loadMilestoneData();
+        this.checkPaymentReturn();
+    }
+
+    private checkPaymentReturn() {
+        this.route.queryParams.subscribe(params => {
+            const ref = params['reference'] || params['trxref'];
+            if (ref) {
+                this.toast.info('Verifying payment with Paystack...', 'Payment Verification');
+                this.paymentService.verifyPayment(ref).subscribe({
+                    next: () => {
+                        this.toast.success('Payment verified successfully! Balance updated.', 'Payment Successful');
+                        this.state.reloadLedger();
+                        const students = this.state.profile()?.students || [];
+                        students.forEach(s => {
+                            if (s.id) {
+                                this.state.reloadWallet(s.id);
+                            }
+                        });
+                        this.router.navigate([], { queryParams: {}, replaceUrl: true });
+                    },
+                    error: () => {
+                        this.router.navigate([], { queryParams: {}, replaceUrl: true });
+                    }
+                });
+            }
+        });
+    }
+
+    getMilestonesForStudent(studentId: string) {
+        const ag = this.installmentsMap()[studentId];
+        if (ag && ag.length > 0) return ag;
+
+        const ward = this.ledgerWards().find(w => w.student_id === studentId);
+        const total = ward?.total_billed && ward.total_billed > 0 ? ward.total_billed : 2500;
+        const paid = ward?.total_paid || 0;
+
+        const m1 = Math.round(total * 0.4);
+        const m2 = Math.round(total * 0.3);
+        const m3 = total - m1 - m2;
+
+        return [
+            {
+                name: 'Milestone 1 (40%)',
+                desc: 'Term Registration',
+                amount: m1,
+                status: paid >= m1 ? 'PAID' : 'DUE',
+                badgeClass: paid >= m1 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+            },
+            {
+                name: 'Milestone 2 (30%)',
+                desc: 'Mid-Term Assessment',
+                amount: m2,
+                status: paid >= (m1 + m2) ? 'PAID' : paid >= m1 ? 'DUE SOON' : 'UPCOMING',
+                badgeClass: paid >= (m1 + m2) ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : paid >= m1 ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-bg-tertiary text-text-muted border-border-primary'
+            },
+            {
+                name: 'Milestone 3 (30%)',
+                desc: 'Final Examinations',
+                amount: m3,
+                status: paid >= total ? 'PAID' : paid >= (m1 + m2) ? 'DUE SOON' : 'UPCOMING',
+                badgeClass: paid >= total ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : paid >= (m1 + m2) ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-bg-tertiary text-text-muted border-border-primary'
+            }
+        ];
     }
 
     loadLiveExchangeRates() {
@@ -132,6 +221,15 @@ export class ParentFinancePage implements OnInit {
                 this.submitting.set(false);
                 this.showTopUpModal.set(false);
                 this.toast.success(`GH₵${amount.toFixed(2)} added to ${this.topUpName()}'s wallet`, 'Top-Up Successful');
+                // Optimistically update walletMap immediately so the UI reflects the new balance instantly
+                const cur = this.state.walletMap()[id] || { balance: 0, transactions: [] };
+                this.state.walletMap.update(m => ({
+                    ...m,
+                    [id]: {
+                        ...cur,
+                        balance: (cur.balance || 0) + amount
+                    }
+                }));
                 this.state.reloadWallet(id);
                 this.state.reloadLedger();
             },

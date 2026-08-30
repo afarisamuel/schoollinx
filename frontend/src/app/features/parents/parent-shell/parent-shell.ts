@@ -1,8 +1,10 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { ParentStateService } from '../../../core/infrastructure/parent/parent-state.service';
+import { PaymentService } from '../../../core/infrastructure/payment/payment.service';
+import { ToastService } from '../../../shared/ui/toast/toast.service';
 
 @Component({
     selector: 'app-parent-shell',
@@ -13,6 +15,9 @@ import { ParentStateService } from '../../../core/infrastructure/parent/parent-s
 export class ParentShell implements OnInit {
     state = inject(ParentStateService);
     private router = inject(Router);
+    private route = inject(ActivatedRoute);
+    private paymentService = inject(PaymentService);
+    private toast = inject(ToastService);
 
     isOverviewPage = signal(true);
 
@@ -41,12 +46,40 @@ export class ParentShell implements OnInit {
     ngOnInit() {
         this.state.bootstrap();
         this.checkRoute(this.router.url);
+        this.checkPaymentReturn();
 
         this.router.events
             .pipe(filter(e => e instanceof NavigationEnd))
             .subscribe((e: any) => {
                 this.checkRoute(e.urlAfterRedirects || e.url);
             });
+    }
+
+    private checkPaymentReturn() {
+        this.route.queryParams.subscribe(params => {
+            const ref = params['reference'] || params['trxref'];
+            if (ref) {
+                this.toast.info('Verifying transaction with Paystack...', 'Payment Verification');
+                this.paymentService.verifyPayment(ref).subscribe({
+                    next: () => {
+                        this.toast.success('Payment verified successfully! Your student wallet and fee ledger have been updated.', 'Payment Successful');
+                        this.state.reloadLedger();
+                        const students = this.state.profile()?.students || [];
+                        students.forEach(s => {
+                            if (s.id) {
+                                this.state.reloadWallet(s.id);
+                                this.state.loadStudentData(s.id, s.class_id || '');
+                            }
+                        });
+                        this.router.navigate([], { queryParams: {}, replaceUrl: true });
+                    },
+                    error: (err: any) => {
+                        this.toast.error(err?.error?.error || 'Payment verification could not be completed.', 'Verification Notice');
+                        this.router.navigate([], { queryParams: {}, replaceUrl: true });
+                    }
+                });
+            }
+        });
     }
 
     private checkRoute(url: string) {

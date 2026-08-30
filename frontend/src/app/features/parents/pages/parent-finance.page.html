@@ -101,9 +101,12 @@
 
     <!-- Wards Fee Breakdown -->
     <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 mb-6 overflow-x-auto">
-        <h3 class="text-base font-black text-text-primary mb-4 flex items-center gap-2">
-            <i class="fas fa-list text-indigo-400"></i> Wards Fee Ledger
-        </h3>
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                <i class="fas fa-list text-indigo-400"></i> Wards Fee Ledger
+            </h3>
+            <span class="text-xs text-text-muted font-bold">{{ ledgerWards().length }} Ward{{ ledgerWards().length > 1 ? 's' : '' }} Registered</span>
+        </div>
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b border-border-primary text-xs font-bold uppercase tracking-wider text-text-muted">
@@ -117,7 +120,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-border-primary">
-                @for (w of state.familyLedger()?.wards || []; track w.student_id) {
+                @for (w of ledgerWards(); track w.student_id) {
                     <tr class="hover:bg-bg-tertiary/30 transition-colors">
                         <td class="py-3.5 pl-2 font-bold text-text-primary">{{ w.student_name }}</td>
                         <td class="py-3.5 text-text-muted text-xs">{{ w.class_name }}</td>
@@ -148,6 +151,15 @@
                         </td>
                     </tr>
                 }
+                @if (ledgerWards().length === 0) {
+                    <tr>
+                        <td colspan="7" class="py-8 text-center text-text-muted">
+                            <i class="fas fa-check-circle text-2xl text-emerald-400 mb-2 block opacity-70"></i>
+                            <p class="text-xs font-bold text-text-primary">All tuition and school fees are settled</p>
+                            <p class="text-[11px] text-text-muted mt-0.5">No pending fee statements or unpaid invoices on file.</p>
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
@@ -163,6 +175,7 @@
 
         <div class="space-y-4">
             @for (student of state.profile()?.students || []; track student.id) {
+                @let milestones = getMilestonesForStudent(student.id || '');
                 <div class="p-4 bg-bg-tertiary/40 border border-border-primary rounded-xl">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-xs font-black text-text-primary">{{ student.first_name }} {{ student.last_name }}</span>
@@ -170,32 +183,19 @@
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div class="p-3 bg-bg-secondary border border-border-primary rounded-xl">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted">Milestone 1 (40%)</span>
-                                <span class="px-1.5 py-0.2 text-[9px] font-black rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">PAID</span>
+                        @for (m of milestones; track m.name) {
+                            <div class="p-3 bg-bg-secondary border border-border-primary rounded-xl"
+                                 [ngClass]="m.status === 'DUE SOON' ? 'border-amber-500/30' : m.status === 'DUE' ? 'border-rose-500/30' : ''">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted">{{ m.name }}</span>
+                                    <span class="px-1.5 py-0.2 text-[9px] font-black rounded border" [ngClass]="m.badgeClass">
+                                        {{ m.status }}
+                                    </span>
+                                </div>
+                                <div class="text-sm font-bold text-text-primary">{{ formatMoney(m.amount) }}</div>
+                                <div class="text-[10px] text-text-muted mt-0.5">{{ m.desc }}</div>
                             </div>
-                            <div class="text-sm font-bold text-text-primary">{{ formatMoney(1000) }}</div>
-                            <div class="text-[10px] text-text-muted mt-0.5">Term Registration</div>
-                        </div>
-
-                        <div class="p-3 bg-bg-secondary border border-amber-500/30 rounded-xl">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Milestone 2 (30%)</span>
-                                <span class="px-1.5 py-0.2 text-[9px] font-black rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">DUE SOON</span>
-                            </div>
-                            <div class="text-sm font-bold text-text-primary">{{ formatMoney(750) }}</div>
-                            <div class="text-[10px] text-text-muted mt-0.5">Mid-Term Assessment</div>
-                        </div>
-
-                        <div class="p-3 bg-bg-secondary border border-border-primary rounded-xl opacity-60">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted">Milestone 3 (30%)</span>
-                                <span class="px-1.5 py-0.2 text-[9px] font-black rounded bg-bg-tertiary text-text-muted border border-border-primary">UPCOMING</span>
-                            </div>
-                            <div class="text-sm font-bold text-text-primary">{{ formatMoney(750) }}</div>
-                            <div class="text-[10px] text-text-muted mt-0.5">Final Examinations</div>
-                        </div>
+                        }
                     </div>
                 </div>
             }
@@ -243,6 +243,27 @@
                 </button>
             </div>
 
+            <!-- Payment Method Selector -->
+            <div>
+                <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-2">Payment Method</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button (click)="topUpMethod.set('direct')"
+                            [ngClass]="topUpMethod() === 'direct' ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 font-black' : 'bg-bg-tertiary border-border-primary text-text-muted hover:text-text-primary'"
+                            class="py-2.5 px-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 transition-all cursor-pointer">
+                        <i class="fas fa-bolt text-amber-400"></i>
+                        <span>Direct Top-Up</span>
+                        <span class="text-[9px] font-normal text-text-muted">Instant Credit</span>
+                    </button>
+                    <button (click)="topUpMethod.set('paystack')"
+                            [ngClass]="topUpMethod() === 'paystack' ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 font-black' : 'bg-bg-tertiary border-border-primary text-text-muted hover:text-text-primary'"
+                            class="py-2.5 px-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 transition-all cursor-pointer">
+                        <i class="fas fa-credit-card text-emerald-400"></i>
+                        <span>MoMo / Card</span>
+                        <span class="text-[9px] font-normal text-text-muted">Paystack Gateway</span>
+                    </button>
+                </div>
+            </div>
+
             <!-- Quick Amounts -->
             <div>
                 <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-2">Select Amount</label>
@@ -274,7 +295,7 @@
                         class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
                     @if (submitting()) {
                         <i class="fas fa-spinner fa-spin text-xs"></i>
-                        <span>Connecting...</span>
+                        <span>Processing...</span>
                     } @else {
                         <i class="fas fa-check text-xs"></i>
                         <span>Confirm Top-Up</span>
