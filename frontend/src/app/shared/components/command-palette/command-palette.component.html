@@ -1,107 +1,174 @@
 @if (searchService.isOpen()) {
-  <div class="fixed inset-0 z-[9999] flex items-start justify-center pt-[12vh] px-4 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm animate-fade-in" (click)="close()">
+  <div class="fixed inset-0 z-[9999] flex items-start justify-center pt-[8vh] md:pt-[10vh] px-4 bg-slate-900/60 dark:bg-black/80 backdrop-blur-xs animate-fade-in" (click)="close()">
     <div
-      class="w-full max-w-2xl bg-white dark:bg-bg-secondary border border-slate-200/80 dark:border-border-primary rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[75vh] animate-scale-up"
+      class="w-full max-w-2xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[82vh] animate-scale-up"
       (click)="$event.stopPropagation()"
     >
       <!-- Search Input Header -->
-      <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-100 dark:border-border-primary/60">
-        <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <circle cx="11" cy="11" r="8" />
-          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.3-4.3" />
-        </svg>
+      <div class="flex items-center gap-3.5 px-5 py-4 border-b border-slate-100 dark:border-border-primary/60 bg-slate-50/50 dark:bg-bg-tertiary/20">
+        <div class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 shadow-2xs">
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <circle cx="11" cy="11" r="8" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.3-4.3" />
+          </svg>
+        </div>
 
         <input
           #searchInput
           type="text"
           [value]="query()"
-          placeholder="Search students, teachers, classes, or pages... (Esc to close)"
+          placeholder="Search 40+ modules, students, fees, or quick actions..."
           (input)="onSearch($any($event.target).value)"
           (keydown.esc)="close()"
           (keydown.arrowdown)="moveSelection(1)"
           (keydown.arrowup)="moveSelection(-1)"
           (keydown.enter)="selectItem()"
-          class="flex-1 bg-transparent text-sm md:text-base font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
+          class="flex-1 bg-transparent text-sm md:text-base font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-text-muted/60 focus:outline-none"
         />
 
-        <button (click)="close()" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-bg-tertiary dark:hover:bg-bg-tertiary/80 text-slate-500 dark:text-text-muted text-xs font-bold transition-colors cursor-pointer">
+        @if (query().length > 0) {
+          <button
+            (click)="onSearch('')"
+            class="w-6 h-6 rounded-full bg-slate-100 dark:bg-bg-tertiary hover:bg-slate-200 text-slate-400 hover:text-slate-700 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer text-xs"
+            title="Clear text"
+          >
+            ✕
+          </button>
+        }
+
+        <button (click)="close()" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-bg-tertiary dark:hover:bg-bg-tertiary/80 text-slate-500 dark:text-text-muted text-[11px] font-black tracking-wider transition-colors cursor-pointer border border-slate-200/80 dark:border-border-primary/60">
           ESC
         </button>
       </div>
 
-      <!-- Search Results Feed -->
-      <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
-        @for (result of results(); track result.path; let i = $index) {
-          <div
-            class="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl cursor-pointer transition-all border"
+      <!-- Quick Category Filter Chips Row -->
+      <div class="px-4 py-2.5 border-b border-slate-100 dark:border-border-primary/50 flex items-center gap-1.5 overflow-x-auto custom-scrollbar shrink-0 bg-white dark:bg-bg-secondary">
+        @for (cat of categories; track cat.id) {
+          <button
+            (click)="setCategory(cat.id)"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 border"
             [ngClass]="{
-              'bg-indigo-50/80 dark:bg-indigo-950/40 border-indigo-200/80 dark:border-indigo-800/50 shadow-2xs': i === selectedIndex(),
-              'bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-bg-tertiary/60': i !== selectedIndex()
+              'bg-indigo-600 text-white border-indigo-600 shadow-2xs shadow-indigo-600/30': activeCategory() === cat.id,
+              'bg-slate-100/90 dark:bg-white/5 text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-200/80 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white': activeCategory() !== cat.id
+            }"
+          >
+            <svg class="w-3.5 h-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="cat.icon" />
+            </svg>
+            <span>{{ cat.label }}</span>
+          </button>
+        }
+      </div>
+
+      <!-- Search Results Feed -->
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1.5 min-h-[220px]">
+        @for (result of results(); track result.id; let i = $index) {
+          <div
+            class="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl cursor-pointer transition-all border group select-none"
+            [ngClass]="{
+              'bg-indigo-50/90 dark:bg-indigo-950/50 border-indigo-200/90 dark:border-indigo-800/60 shadow-2xs': i === selectedIndex(),
+              'bg-transparent border-transparent hover:bg-slate-50/90 dark:hover:bg-bg-tertiary/50': i !== selectedIndex()
             }"
             (mouseenter)="selectedIndex.set(i)"
             (click)="navigateTo(result.path)"
           >
-            <!-- Badge Icon/Type -->
-            <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs font-black uppercase"
+            <!-- Badge Icon Container -->
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border transition-all duration-150"
                  [ngClass]="{
-                   'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300': result.type === 'page',
-                   'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300': result.type === 'action',
-                   'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300': result.type === 'student',
-                   'bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300': result.type === 'teacher',
-                   'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300': result.type === 'class'
+                   'bg-emerald-100 dark:bg-emerald-950/70 border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-300 shadow-2xs': result.type === 'action',
+                   'bg-indigo-100 dark:bg-indigo-950/70 border-indigo-200 dark:border-indigo-800/50 text-indigo-700 dark:text-indigo-300 shadow-2xs': result.category === 'academic' || result.type === 'page',
+                   'bg-amber-100 dark:bg-amber-950/70 border-amber-200 dark:border-amber-800/50 text-amber-800 dark:text-amber-300 shadow-2xs': result.category === 'finance',
+                   'bg-sky-100 dark:bg-sky-950/70 border-sky-200 dark:border-sky-800/50 text-sky-700 dark:text-sky-300 shadow-2xs': result.category === 'registry',
+                   'bg-purple-100 dark:bg-purple-950/70 border-purple-200 dark:border-purple-800/50 text-purple-700 dark:text-purple-300 shadow-2xs': result.category === 'operations',
+                   'bg-rose-100 dark:bg-rose-950/70 border-rose-200 dark:border-rose-800/50 text-rose-700 dark:text-rose-300 shadow-2xs': result.category === 'communication'
                  }">
-              {{ result.type === 'action' ? 'ACT' : result.type[0] }}
+              @if (result.type === 'action') {
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              } @else if (result.category === 'finance') {
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              } @else if (result.category === 'registry') {
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+              } @else if (result.category === 'operations') {
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+              } @else if (result.category === 'communication') {
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+              } @else {
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+              }
             </div>
 
             <!-- Title & Description -->
             <div class="flex-1 min-w-0">
-              <p class="text-xs md:text-sm font-bold text-slate-900 dark:text-white truncate">
-                {{ result.title }}
-              </p>
+              <div class="flex items-center gap-2">
+                <p class="text-xs md:text-sm font-bold text-slate-900 dark:text-white truncate">
+                  {{ result.title }}
+                </p>
+                @if (result.badge) {
+                  <span class="inline-block px-1.5 py-0.2 rounded text-[9px] font-black uppercase tracking-wider bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-white/10">
+                    {{ result.badge }}
+                  </span>
+                }
+              </div>
               @if (result.description) {
-                <p class="text-[11px] font-medium text-slate-400 dark:text-text-muted truncate mt-0.5">
+                <p class="text-[11px] font-medium text-slate-500 dark:text-text-muted truncate mt-0.5">
                   {{ result.description }}
                 </p>
               }
             </div>
 
-            <!-- Enter Pill -->
-            @if (i === selectedIndex()) {
-              <span class="px-2 py-0.5 rounded-md bg-indigo-600 text-white text-[10px] font-bold shrink-0">
-                Jump &crarr;
+            <!-- Route Preview / Enter Pill -->
+            <div class="shrink-0 flex items-center gap-2">
+              <span class="hidden md:inline-block text-[10px] font-mono text-slate-400 dark:text-text-muted opacity-60">
+                {{ result.path }}
               </span>
-            }
+              @if (i === selectedIndex()) {
+                <span class="px-2 py-1 rounded-lg bg-indigo-600 text-white text-[10px] font-black shadow-xs shadow-indigo-600/30 flex items-center gap-1 animate-scale-up">
+                  Jump ↵
+                </span>
+              }
+            </div>
           </div>
         } @empty {
           @if (query()) {
             <div class="py-12 text-center text-slate-400 dark:text-text-muted">
-              <svg class="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <circle cx="11" cy="11" r="8" stroke-width="2"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.3-4.3"/>
-              </svg>
-              <p class="text-xs font-semibold">No matches found for "{{ query() }}"</p>
-              <p class="text-[11px] text-slate-400 mt-1">Try searching for students, classes, fees, or grades</p>
+              <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-bg-tertiary flex items-center justify-center mx-auto mb-3 text-slate-400">
+                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.3-4.3"/>
+                </svg>
+              </div>
+              <p class="text-sm font-bold text-slate-700 dark:text-slate-300">No matches found for "{{ query() }}"</p>
+              <p class="text-xs text-slate-400 mt-1">Try searching for keywords like "tuition", "admit", "grades", "exam", or "bus"</p>
+              <button
+                (click)="onSearch(''); setCategory('all')"
+                class="mt-3 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 transition-colors cursor-pointer border border-indigo-200 dark:border-indigo-800"
+              >
+                Reset Search Filters
+              </button>
             </div>
           } @else {
-            <div class="py-6 px-4 text-xs font-semibold text-slate-400 dark:text-text-muted text-center space-y-1">
-              <p>Type keywords to search anywhere across SchoolLinx</p>
-              <div class="flex items-center justify-center gap-2 pt-2 text-[11px]">
-                <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-bg-tertiary border border-slate-200/80 dark:border-border-primary font-mono">&uarr; &darr; navigate</span>
-                <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-bg-tertiary border border-slate-200/80 dark:border-border-primary font-mono">enter to select</span>
-                <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-bg-tertiary border border-slate-200/80 dark:border-border-primary font-mono">esc to close</span>
+            <div class="py-10 px-4 text-center space-y-3 text-slate-400 dark:text-text-muted">
+              <div class="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
               </div>
+              <p class="text-xs font-bold text-slate-600 dark:text-slate-300">Quick Navigation & Instant Commands</p>
+              <p class="text-[11px] text-slate-400 max-w-sm mx-auto">Search by name, subject, fee balance, admission number, or select a category filter above.</p>
             </div>
           }
         }
       </div>
 
       <!-- Footer Bar -->
-      <div class="px-5 py-3 border-t border-slate-100 dark:border-border-primary/60 bg-slate-50/60 dark:bg-bg-tertiary/40 flex items-center justify-between text-[11px] text-slate-400 dark:text-text-muted font-medium">
-        <span class="flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-          SchoolLinx Global Command Palette
-        </span>
-        <span class="font-bold text-slate-600 dark:text-slate-300">Tip: Press ⌘K anywhere</span>
+      <div class="px-5 py-3 border-t border-slate-100 dark:border-border-primary/60 bg-slate-50/80 dark:bg-bg-tertiary/40 flex items-center justify-between text-[11px] text-slate-500 dark:text-text-muted font-medium">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="font-bold text-slate-700 dark:text-slate-300">{{ results().length }} items ready</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="hidden sm:inline font-mono">↑↓ navigate</span>
+          <span class="hidden sm:inline font-mono">↵ open</span>
+          <span class="font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-bg-tertiary px-2 py-0.5 rounded-md border border-slate-200 dark:border-border-primary shadow-2xs">⌘K / Ctrl+K</span>
+        </div>
       </div>
     </div>
   </div>
