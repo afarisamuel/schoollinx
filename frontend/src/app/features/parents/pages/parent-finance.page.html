@@ -368,3 +368,142 @@
         </div>
     </div>
 }
+
+<!-- Fee Payment & Part-Payment Modal -->
+@if (showFeeModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div class="w-full max-w-lg bg-bg-secondary border border-border-primary rounded-2xl p-6 shadow-2xl space-y-5">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between border-b border-border-primary/50 pb-3">
+                <div>
+                    <h3 class="text-lg font-black text-text-primary flex items-center gap-2">
+                        <i class="fas fa-file-invoice-dollar text-emerald-400"></i>
+                        Pay School Fees
+                    </h3>
+                    <p class="text-xs text-text-muted mt-0.5">Recording payment for <strong class="text-text-primary">{{ paymentWardName() }}</strong></p>
+                </div>
+                <button (click)="showFeeModal.set(false)" class="text-text-muted hover:text-text-primary cursor-pointer p-1">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Outstanding Balance Banner -->
+            <div class="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-rose-400 block mb-0.5">Total Outstanding</span>
+                    <span class="text-xl font-black text-rose-400 font-mono">GH₵{{ paymentTotalDue().toFixed(2) }}</span>
+                </div>
+                <span class="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30 uppercase tracking-wider">
+                    Unpaid Balance
+                </span>
+            </div>
+
+            <!-- Payment Type Selection (Full vs Part Payment) -->
+            <div>
+                <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-2">Payment Option</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" (click)="paymentType.set('full')"
+                            [ngClass]="paymentType() === 'full' ? 'bg-emerald-600/15 border-emerald-500 text-emerald-300 font-black shadow-sm' : 'bg-bg-tertiary border-border-primary text-text-muted hover:text-text-primary'"
+                            class="p-3 rounded-xl border text-xs font-bold flex flex-col items-start gap-1 transition-all cursor-pointer">
+                        <div class="flex items-center gap-1.5 w-full justify-between">
+                            <span class="flex items-center gap-1.5"><i class="fas fa-check-double text-emerald-400"></i> Full Balance</span>
+                            <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center" [ngClass]="paymentType() === 'full' ? 'border-emerald-500 bg-emerald-500' : 'border-border-primary'">
+                                @if (paymentType() === 'full') { <span class="w-1.5 h-1.5 rounded-full bg-white"></span> }
+                            </span>
+                        </div>
+                        <span class="text-sm font-black font-mono mt-1 text-text-primary">GH₵{{ paymentTotalDue().toFixed(2) }}</span>
+                        <span class="text-[10px] font-normal text-text-muted">Settles invoice in full</span>
+                    </button>
+
+                    <button type="button" (click)="paymentType.set('partial')"
+                            [ngClass]="paymentType() === 'partial' ? 'bg-indigo-600/15 border-indigo-500 text-indigo-300 font-black shadow-sm' : 'bg-bg-tertiary border-border-primary text-text-muted hover:text-text-primary'"
+                            class="p-3 rounded-xl border text-xs font-bold flex flex-col items-start gap-1 transition-all cursor-pointer">
+                        <div class="flex items-center gap-1.5 w-full justify-between">
+                            <span class="flex items-center gap-1.5"><i class="fas fa-pie-chart text-indigo-400"></i> Part Payment</span>
+                            <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center" [ngClass]="paymentType() === 'partial' ? 'border-indigo-500 bg-indigo-500' : 'border-border-primary'">
+                                @if (paymentType() === 'partial') { <span class="w-1.5 h-1.5 rounded-full bg-white"></span> }
+                            </span>
+                        </div>
+                        <span class="text-sm font-black font-mono mt-1 text-text-primary">Custom Amount</span>
+                        <span class="text-[10px] font-normal text-text-muted">Pay in flexible installments</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- If Part Payment: Quick Amounts & Custom Amount Input -->
+            @if (paymentType() === 'partial') {
+                <div class="p-4 bg-bg-tertiary/60 border border-border-primary rounded-xl space-y-3 animate-fade-in">
+                    <div>
+                        <label class="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-1.5">Quick Select Part Amount</label>
+                        <div class="flex flex-wrap gap-2">
+                            @for (amt of quickPartAmounts; track amt) {
+                                @if (amt < paymentTotalDue()) {
+                                    <button type="button" (click)="customPaymentAmount.set(amt)"
+                                            [ngClass]="customPaymentAmount() === amt ? 'bg-indigo-600 text-white font-black' : 'bg-bg-secondary border border-border-primary text-text-muted hover:text-text-primary'"
+                                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer">
+                                        GH₵{{ amt }}
+                                    </button>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-1">Enter Part Payment Amount (GH₵)</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-3 flex items-center text-text-muted text-xs font-bold font-mono pointer-events-none">GH₵</span>
+                            <input type="number" [(ngModel)]="customPaymentAmount" [max]="paymentTotalDue()" min="1" step="10"
+                                   class="w-full pl-12 pr-4 py-2.5 bg-bg-secondary border border-border-primary rounded-xl text-text-primary font-bold text-sm font-mono focus:outline-none focus:border-indigo-500" />
+                        </div>
+                        @if (customPaymentAmount() > 0 && customPaymentAmount() < paymentTotalDue()) {
+                            <p class="text-[11px] text-text-muted mt-1.5">
+                                Remaining balance after this payment: <strong class="text-amber-400 font-mono">GH₵{{ (paymentTotalDue() - customPaymentAmount()).toFixed(2) }}</strong>
+                            </p>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Payment Method Selector -->
+            <div>
+                <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-2">Payment Gateway</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" (click)="feePaymentMethod.set('paystack')"
+                            [ngClass]="feePaymentMethod() === 'paystack' ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300 font-black' : 'bg-bg-tertiary border-border-primary text-text-muted hover:text-text-primary'"
+                            class="py-2.5 px-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 transition-all cursor-pointer">
+                        <i class="fas fa-credit-card text-emerald-400"></i>
+                        <span>Paystack Gateway</span>
+                        <span class="text-[9px] font-normal text-text-muted">MoMo & Bank Cards</span>
+                    </button>
+                    <button type="button" (click)="feePaymentMethod.set('direct')"
+                            [ngClass]="feePaymentMethod() === 'direct' ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 font-black' : 'bg-bg-tertiary border-border-primary text-text-muted hover:text-text-primary'"
+                            class="py-2.5 px-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 transition-all cursor-pointer">
+                        <i class="fas fa-receipt text-indigo-400"></i>
+                        <span>Direct Clearance</span>
+                        <span class="text-[9px] font-normal text-text-muted">Instant Ledger Entry</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-2 pt-2 border-t border-border-primary/50">
+                <button (click)="showFeeModal.set(false)"
+                        class="flex-1 py-3 bg-bg-tertiary border border-border-primary rounded-xl text-xs font-bold text-text-muted hover:text-text-primary transition-all cursor-pointer">
+                    Cancel
+                </button>
+                <button (click)="submitFeePayment()" [disabled]="processingFeePayment()"
+                        class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-600/30 disabled:opacity-50">
+                    @if (processingFeePayment()) {
+                        <i class="fas fa-spinner fa-spin text-xs"></i>
+                        <span>Processing Payment...</span>
+                    } @else {
+                        <i class="fas fa-lock text-xs"></i>
+                        <span>
+                            Pay GH₵{{ (paymentType() === 'full' ? paymentTotalDue() : customPaymentAmount()).toFixed(2) }}
+                        </span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}

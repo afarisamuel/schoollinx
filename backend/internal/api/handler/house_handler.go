@@ -119,5 +119,9 @@ func (h *HouseHandler) GetStudentHouse(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	if house == nil {
+		c.JSON(http.StatusOK, nil)
+		return
+	}
 	c.JSON(http.StatusOK, house)
 }

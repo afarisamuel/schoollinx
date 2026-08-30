@@ -32,6 +32,9 @@ func (r *houseRepository) GetAll(ctx context.Context) ([]domain.House, error) {
 func (r *houseRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.House, error) {
 	var house domain.House
 	if err := r.db.WithContext(ctx).First(&house, "id = ?", id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &house, nil
@@ -55,6 +58,9 @@ func (r *houseRepository) AssignStudent(ctx context.Context, member *domain.Hous
 func (r *houseRepository) GetStudentHouse(ctx context.Context, studentID uuid.UUID) (*domain.House, error) {
 	var member domain.HouseMember
 	if err := r.db.WithContext(ctx).Where("student_id = ?", studentID).First(&member).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return r.GetByID(ctx, member.HouseID)

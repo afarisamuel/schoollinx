@@ -36,6 +36,13 @@ export class TeacherPortalComponent implements OnInit {
     gradeRows = signal<GradeEntry[]>([]);
     existingGrades = signal<any[]>([]);
 
+    // Subject enforcement
+    selectedSubjectId = signal<string>('');
+    classSubjects = signal<{ id: string; name: string; code: string }[]>([]);
+
+    // Computed: true when grading is allowed (subject selected)
+    canGrade = computed(() => !!this.selectedSubjectId());
+
     isLoading = signal(false);
     isSaving = signal(false);
     successMsg = signal('');
@@ -224,6 +231,19 @@ export class TeacherPortalComponent implements OnInit {
         this.errorMsg.set('');
         const classId = assignment.class_id;
 
+        // Auto-set subject from assignment, or clear for class-teacher assignments
+        if (assignment.subject_id) {
+            this.selectedSubjectId.set(assignment.subject_id);
+        } else {
+            this.selectedSubjectId.set('');
+        }
+
+        // Load class subjects for class-teacher selection
+        this.classService.getClassSubjects(classId).subscribe({
+            next: (subs) => this.classSubjects.set(subs || []),
+            error: () => this.classSubjects.set([])
+        });
+
         this.portalService.getClassStudents(classId).subscribe(students => {
             this.students.set(students);
             // Initialize Grid Configuration (3 default columns)
@@ -369,6 +389,11 @@ export class TeacherPortalComponent implements OnInit {
         this.studentStats.set(stats);
     }
 
+    getSubjectNameById(id: string): string {
+        const s = this.classSubjects().find(s => s.id === id);
+        return s ? s.name : id;
+    }
+
     getStudentName(studentId: string): string {
         const s = this.students().find(st => st.id === studentId);
         return s ? `${s.first_name} ${s.last_name}` : `Student #${studentId}`;
@@ -391,6 +416,13 @@ export class TeacherPortalComponent implements OnInit {
     submitGrades() {
         const assignment = this.selectedAssignment();
         if (!assignment) return;
+
+        // Enforce subject selection
+        if (!this.selectedSubjectId()) {
+            this.toast.show('Please select a subject before recording grades.', 'warning');
+            return;
+        }
+
         const classId = assignment.class_id;
         
         // Flatten grid into GradeEntry array
@@ -402,7 +434,7 @@ export class TeacherPortalComponent implements OnInit {
             grid[studentId].forEach((score, i) => {
                 entries.push({
                     student_id: studentId,
-                    subject: assignment.subject_id,
+                    subject: this.selectedSubjectId(),
                     category: cols[i].name as any,
                     score: score,
                     max_score: 100,

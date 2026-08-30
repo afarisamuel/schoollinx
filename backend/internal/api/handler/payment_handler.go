@@ -24,15 +24,12 @@ func (h *PaymentHandler) InitializePayment(c *gin.Context) {
 		return
 	}
 
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
 	var req struct {
 		FiscalRecordID string  `json:"fiscal_record_id"`
-		Amount         float64 `json:"amount"` // Optional, if 0 it will default to full amount
+		RecordID       string  `json:"record_id"`
+		StudentID      string  `json:"student_id"`
+		Amount         float64 `json:"amount"` // Optional, if 0 it will default to full balance
+		Email          string  `json:"email"`
 		CallbackURL    string  `json:"callback_url"`
 	}
 
@@ -41,27 +38,42 @@ func (h *PaymentHandler) InitializePayment(c *gin.Context) {
 		return
 	}
 
-	fiscalRecordUUID, err := uuid.Parse(req.FiscalRecordID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid fiscal record ID"})
-		return
+	recordIDStr := req.FiscalRecordID
+	if recordIDStr == "" {
+		recordIDStr = req.RecordID
 	}
 
-	uid, ok := userID.(uuid.UUID)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID type"})
-		return
+	var fiscalRecordUUID uuid.UUID
+	var err error
+	if recordIDStr != "" {
+		fiscalRecordUUID, err = uuid.Parse(recordIDStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid fiscal record ID"})
+			return
+		}
+	}
+
+	var studentUUID uuid.UUID
+	if req.StudentID != "" {
+		studentUUID, _ = uuid.Parse(req.StudentID)
+	}
+
+	var uid uuid.UUID
+	if userID, exists := c.Get("userID"); exists && userID != nil {
+		if u, ok := userID.(uuid.UUID); ok {
+			uid = u
+		}
 	}
 
 	callbackURL := req.CallbackURL
 	if callbackURL == "" {
 		origin := c.GetHeader("Origin")
 		if origin != "" {
-			callbackURL = origin + "/parents?tab=billing"
+			callbackURL = origin + "/parents/finance"
 		}
 	}
 
-	authURL, err := h.paymentUseCase.InitializePayment(c.Request.Context(), tenantID.(uuid.UUID).String(), uid, fiscalRecordUUID, req.Amount, callbackURL)
+	authURL, err := h.paymentUseCase.InitializePayment(c.Request.Context(), tenantID.(uuid.UUID).String(), uid, fiscalRecordUUID, studentUUID, req.Email, req.Amount, callbackURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

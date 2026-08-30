@@ -22,7 +22,7 @@ func (r *classRepository) Create(ctx context.Context, class *domain.Class) error
 
 func (r *classRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Class, error) {
 	var class domain.Class
-	if err := r.db.WithContext(ctx).Preload("Teacher").Preload("ScholasticLevel").First(&class, "id = ?", id).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload("Teacher").Preload("ScholasticLevel").Preload("Subjects").First(&class, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 	return &class, nil
@@ -30,7 +30,7 @@ func (r *classRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Cl
 
 func (r *classRepository) GetAll(ctx context.Context) ([]domain.Class, error) {
 	var classes []domain.Class
-	if err := r.db.WithContext(ctx).Preload("Teacher").Preload("ScholasticLevel").Find(&classes).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload("Teacher").Preload("ScholasticLevel").Preload("Subjects").Find(&classes).Error; err != nil {
 		return nil, err
 	}
 	return classes, nil
@@ -88,9 +88,34 @@ func (r *classRepository) GetClassesForTeacher(ctx context.Context, userID uuid.
 		Joins("LEFT JOIN teachers t ON (t.id = tca.teacher_id OR t.id = classes.teacher_id)").
 		Where("t.user_id = ? OR t.email = (SELECT email FROM users WHERE id = ?)", userID, userID).
 		Preload("ScholasticLevel").
+		Preload("Subjects").
 		Find(&classes).Error
 	if err != nil {
 		return nil, err
 	}
 	return classes, nil
+}
+
+func (r *classRepository) GetClassSubjects(ctx context.Context, classID uuid.UUID) ([]domain.Subject, error) {
+	var class domain.Class
+	if err := r.db.WithContext(ctx).Preload("Subjects").First(&class, "id = ?", classID).Error; err != nil {
+		return nil, err
+	}
+	return class.Subjects, nil
+}
+
+func (r *classRepository) SetClassSubjects(ctx context.Context, classID uuid.UUID, subjectIDs []uuid.UUID) error {
+	var class domain.Class
+	if err := r.db.WithContext(ctx).First(&class, "id = ?", classID).Error; err != nil {
+		return err
+	}
+
+	var subjects []domain.Subject
+	if len(subjectIDs) > 0 {
+		if err := r.db.WithContext(ctx).Where("id IN ?", subjectIDs).Find(&subjects).Error; err != nil {
+			return err
+		}
+	}
+
+	return r.db.WithContext(ctx).Model(&class).Association("Subjects").Replace(subjects)
 }

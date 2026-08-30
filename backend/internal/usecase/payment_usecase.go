@@ -12,7 +12,7 @@ import (
 )
 
 type PaymentUseCase interface {
-	InitializePayment(ctx context.Context, tenantID string, payerID uuid.UUID, fiscalRecordID uuid.UUID, amount float64, callbackURL string) (string, error)
+	InitializePayment(ctx context.Context, tenantID string, payerID uuid.UUID, fiscalRecordID uuid.UUID, studentID uuid.UUID, payerEmail string, amount float64, callbackURL string) (string, error)
 	InitializeWalletTopUp(ctx context.Context, tenantID string, studentID uuid.UUID, payerEmail string, amount float64, callbackURL string) (string, error)
 	VerifyPayment(ctx context.Context, tenantID string, reference string) (*domain.PaymentTransaction, error)
 	HandlePaystackWebhook(ctx context.Context, payload []byte, signature string) error
@@ -48,31 +48,61 @@ func NewPaymentUseCase(
 	return uc
 }
 
-func (u *paymentUseCase) InitializePayment(ctx context.Context, tenantID string, payerID uuid.UUID, fiscalRecordID uuid.UUID, amount float64, callbackURL string) (string, error) {
-	// 1. Get the invoice
-	record, err := u.fiscalRepo.GetByID(ctx, fiscalRecordID)
-	if err != nil {
-		return "", fmt.Errorf("failed to fetch fiscal record: %w", err)
+func (u *paymentUseCase) InitializePayment(ctx context.Context, tenantID string, payerID uuid.UUID, fiscalRecordID uuid.UUID, studentID uuid.UUID, payerEmail string, amount float64, callbackURL string) (string, error) {
+	// 1. Get the invoice / fiscal record
+	var record *domain.FiscalRecord
+	if fiscalRecordID != uuid.Nil {
+		var err error
+		record, err = u.fiscalRepo.GetByID(ctx, fiscalRecordID)
+		if err != nil {
+			return "", fmt.Errorf("failed to fetch fiscal record: %w", err)
+		}
+	} else if studentID != uuid.Nil {
+		records, err := u.fiscalRepo.GetByStudent(ctx, studentID)
+		if err != nil || len(records) == 0 {
+			return "", fmt.Errorf("no pending invoice found for this student")
+		}
+		for i := range records {
+			if records[i].Status != domain.PaymentStatusPaid && (records[i].Amount-records[i].AmountPaid) > 0 {
+				record = &records[i]
+				fiscalRecordID = record.ID
+				break
+			}
+		}
+		if record == nil {
+			return "", fmt.Errorf("all invoices for this student are already settled")
+		}
+	} else {
+		return "", fmt.Errorf("fiscal_record_id or student_id is required")
 	}
 
-	amountToPay := record.Amount - record.AmountPaid
-	if amount > 0 && amount < amountToPay {
+	remainingBalance := record.Amount - record.AmountPaid
+	if remainingBalance <= 0 {
+		return "", fmt.Errorf("invoice is already fully paid")
+	}
+
+	amountToPay := remainingBalance
+	if amount > 0 && amount <= remainingBalance {
+		amountToPay = amount
+	} else if amount > 0 {
 		amountToPay = amount
 	}
 
 	if amountToPay <= 0 {
-		return "", fmt.Errorf("invoice is already fully paid")
+		return "", fmt.Errorf("payment amount must be greater than zero")
 	}
 
-	// 2. Fetch payer's email
-	payer, err := u.userRepo.GetByID(ctx, payerID)
-	if err != nil {
-		return "", fmt.Errorf("failed to fetch payer: %w", err)
+	// 2. Fetch payer's email (graceful fallback)
+	email := payerEmail
+	if email == "" && payerID != uuid.Nil && u.userRepo != nil {
+		payer, err := u.userRepo.GetByID(ctx, payerID)
+		if err == nil && payer != nil && payer.Email != "" {
+			email = string(payer.Email)
+		}
 	}
-	if payer == nil {
-		return "", fmt.Errorf("payer not found")
+	if email == "" {
+		email = "parent@schoollinx.com"
 	}
-	email := string(payer.Email)
 
 	// 3. Generate a unique reference
 	reference := fmt.Sprintf("REF-%s-%d", uuid.New().String()[:8], time.Now().Unix())
@@ -89,7 +119,7 @@ func (u *paymentUseCase) InitializePayment(ctx context.Context, tenantID string,
 
 	// Ensure callbackURL uses the tenant subdomain if not provided
 	if callbackURL == "" && tenant.Subdomain != "" {
-		callbackURL = fmt.Sprintf("https://%s.schoollinx.com/parents?tab=billing", tenant.Subdomain)
+		callbackURL = fmt.Sprintf("https://%s.schoollinx.com/parents/finance", tenant.Subdomain)
 	}
 
 	var authURL string
@@ -114,11 +144,14 @@ func (u *paymentUseCase) InitializePayment(ctx context.Context, tenantID string,
 	tx := &domain.PaymentTransaction{
 		TenantID:       tenantID,
 		FiscalRecordID: &fiscalRecordID,
-		PayerID:        &payerID,
+		StudentID:      &record.StudentID,
 		Amount:         amountToPay,
 		Reference:      reference,
 		Status:         domain.PaymentStatusPending,
 		Provider:       "PAYSTACK",
+	}
+	if payerID != uuid.Nil {
+		tx.PayerID = &payerID
 	}
 
 	if err := u.paymentRepo.CreateTransaction(tx); err != nil {

@@ -8,6 +8,7 @@ import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 import { Teacher } from '../../../core/domain/teacher.model';
 import { ScholasticLevelService } from '../../../core/infrastructure/scholastic-level/scholastic-level.service';
 import { ScholasticLevel } from '../../../core/domain/scholastic-level.model';
+import { SubjectService, Subject } from '../../../core/infrastructure/curriculum/subject.service';
 
 @Component({
   selector: 'app-class-management',
@@ -20,10 +21,13 @@ export class ClassManagementComponent implements OnInit {
   private teacherService = inject(TeacherService);
   private dialog = inject(DialogService);
   private scholasticLevelService = inject(ScholasticLevelService);
+  private subjectService = inject(SubjectService);
 
   classes = signal<Class[]>([]);
   teachers = signal<Teacher[]>([]);
   levels = signal<ScholasticLevel[]>([]);
+  subjects = signal<Subject[]>([]);
+  selectedSubjectIds = signal<string[]>([]);
   loading = signal(true);
   isModalOpen = signal(false);
   isEditMode = signal(false);
@@ -76,6 +80,11 @@ export class ClassManagementComponent implements OnInit {
       next: (l) => this.levels.set(l || []),
       error: (err) => console.error('Failed to load scholastic levels', err)
     });
+
+    this.subjectService.getSubjects().subscribe({
+      next: (s) => this.subjects.set(s || []),
+      error: (err) => console.error('Failed to load subjects', err)
+    });
   }
 
   getTeacherName(id: string): string {
@@ -86,18 +95,39 @@ export class ClassManagementComponent implements OnInit {
   openCreateModal() {
     this.isEditMode.set(false);
     this.currentClass = { name: '', teacher_id: '', scholastic_level_id: '' };
+    this.selectedSubjectIds.set([]);
     this.isModalOpen.set(true);
   }
 
   openEditModal(cls: Class) {
     this.isEditMode.set(true);
     this.currentClass = { ...cls };
+    this.selectedSubjectIds.set((cls.subjects || []).map(s => s.id));
     this.isModalOpen.set(true);
   }
 
   closeModal() {
     this.isModalOpen.set(false);
     this.currentClass = { name: '', teacher_id: '', scholastic_level_id: '' };
+    this.selectedSubjectIds.set([]);
+  }
+
+  toggleSubject(id: string) {
+    const current = this.selectedSubjectIds();
+    if (current.includes(id)) {
+      this.selectedSubjectIds.set(current.filter(s => s !== id));
+    } else {
+      this.selectedSubjectIds.set([...current, id]);
+    }
+  }
+
+  isSubjectSelected(id: string): boolean {
+    return this.selectedSubjectIds().includes(id);
+  }
+
+  getSubjectName(id: string): string {
+    const s = this.subjects().find(s => s.id === id);
+    return s ? s.name : id;
   }
 
   saveClass() {
@@ -115,13 +145,18 @@ export class ClassManagementComponent implements OnInit {
     }
 
     this.submitting.set(true);
+    const subjectIds = this.selectedSubjectIds();
+
+    const saveSubjects = (classId: string) => {
+      this.classService.setClassSubjects(classId, subjectIds).subscribe({
+        next: () => { this.loadData(); this.closeModal(); this.submitting.set(false); },
+        error: () => { this.loadData(); this.closeModal(); this.submitting.set(false); }
+      });
+    };
+
     if (this.isEditMode() && this.currentClass.id) {
       this.classService.updateClass(this.currentClass.id, this.currentClass).subscribe({
-        next: () => {
-          this.loadData();
-          this.closeModal();
-          this.submitting.set(false);
-        },
+        next: (updated) => saveSubjects(updated.id || this.currentClass.id!),
         error: (err) => {
           this.submitting.set(false);
           this.dialog.alert(err.error?.error || 'Failed to update class', 'Error', 'danger');
@@ -129,11 +164,7 @@ export class ClassManagementComponent implements OnInit {
       });
     } else {
       this.classService.createClass(this.currentClass).subscribe({
-        next: () => {
-          this.loadData();
-          this.closeModal();
-          this.submitting.set(false);
-        },
+        next: (created) => saveSubjects(created.id),
         error: (err) => {
           this.submitting.set(false);
           this.dialog.alert(err.error?.error || 'Failed to create class', 'Error', 'danger');

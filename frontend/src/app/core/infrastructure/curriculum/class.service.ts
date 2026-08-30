@@ -8,6 +8,7 @@ export interface Class {
     teacher_id: string;
     scholastic_level_id?: string;
     scholastic_level?: { id: string; name: string; ordinal: number };
+    subjects?: { id: string; name: string; code: string }[];
 }
 
 export interface ClassTermLock {
@@ -40,6 +41,14 @@ export class ClassService {
 
     deleteClass(id: string): Observable<any> {
         return this.http.delete(`${this.apiUrl}/${id}`);
+    }
+
+    getClassSubjects(classId: string): Observable<{ id: string; name: string; code: string }[]> {
+        return this.http.get<{ id: string; name: string; code: string }[]>(`${this.apiUrl}/${classId}/subjects`);
+    }
+
+    setClassSubjects(classId: string, subjectIds: string[]): Observable<any> {
+        return this.http.put(`${this.apiUrl}/${classId}/subjects`, { subject_ids: subjectIds });
     }
 
     getClassLocks(classId: string): Observable<ClassTermLock[]> {

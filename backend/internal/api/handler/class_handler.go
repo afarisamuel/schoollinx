@@ -27,6 +27,10 @@ func NewClassHandler(r *gin.RouterGroup, cuc domain.ClassUseCase, cr domain.Clas
 		// Phase 19: Term Locks
 		g.GET("/:id/locks", h.GetClassLocks)
 		g.POST("/:id/locks", h.UpsertClassLock)
+
+		// Subject assignments
+		g.GET("/:id/subjects", h.GetClassSubjects)
+		g.PUT("/:id/subjects", h.SetClassSubjects)
 	}
 }
 
@@ -153,4 +157,41 @@ func (h *ClassHandler) UpsertClassLock(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, lock)
+}
+
+func (h *ClassHandler) GetClassSubjects(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid class ID format"})
+		return
+	}
+	subjects, err := h.classRepo.GetClassSubjects(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if subjects == nil {
+		subjects = []domain.Subject{}
+	}
+	c.JSON(http.StatusOK, subjects)
+}
+
+func (h *ClassHandler) SetClassSubjects(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid class ID format"})
+		return
+	}
+	var req struct {
+		SubjectIDs []uuid.UUID `json:"subject_ids"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := h.classRepo.SetClassSubjects(c.Request.Context(), id, req.SubjectIDs); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Subjects updated successfully"})
 }

@@ -9,11 +9,33 @@ export class PaymentService {
     private http = inject(HttpClient);
     private apiUrl = '/api/payments';
 
-    initializePayment(fiscalRecordId: string, amount?: number, callbackUrl?: string): Observable<{ authorization_url: string }> {
+    initializePayment(
+        fiscalRecordId?: string,
+        amountOrOptions?: number | { amount?: number; studentId?: string; email?: string; callbackUrl?: string },
+        callbackUrl?: string,
+        studentId?: string,
+        email?: string
+    ): Observable<{ authorization_url: string }> {
+        let amt: number | undefined;
+        let cb = callbackUrl;
+        let sId = studentId;
+        let em = email;
+
+        if (typeof amountOrOptions === 'object' && amountOrOptions !== null) {
+            amt = amountOrOptions.amount;
+            cb = amountOrOptions.callbackUrl || cb;
+            sId = amountOrOptions.studentId || sId;
+            em = amountOrOptions.email || em;
+        } else if (typeof amountOrOptions === 'number') {
+            amt = amountOrOptions;
+        }
+
         return this.http.post<{ authorization_url: string }>(`${this.apiUrl}/initialize`, {
             fiscal_record_id: fiscalRecordId,
-            amount: amount,
-            callback_url: callbackUrl
+            student_id: sId,
+            amount: amt,
+            email: em,
+            callback_url: cb
         });
     }
 

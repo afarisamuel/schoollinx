@@ -54,6 +54,18 @@ export class ParentFinancePage implements OnInit {
     submitting = signal(false);
     readonly quickAmounts = [20, 50, 100, 200, 500];
 
+    // Fee Payment Modal State (Full & Part Payment)
+    showFeeModal = signal(false);
+    paymentWardId = signal('');
+    paymentWardName = signal('');
+    paymentRecordId = signal('');
+    paymentTotalDue = signal(0);
+    paymentType = signal<'full' | 'partial'>('full');
+    customPaymentAmount = signal(100);
+    feePaymentMethod = signal<'paystack' | 'direct'>('paystack');
+    processingFeePayment = signal(false);
+    readonly quickPartAmounts = [50, 100, 200, 300, 500];
+
     // Computed Wards Ledger (falls back to profile students if familyLedger is empty)
     ledgerWards = computed(() => {
         const fromLedger = this.state.familyLedger()?.wards;
@@ -265,28 +277,105 @@ export class ParentFinancePage implements OnInit {
         });
     }
 
-    payWard(studentId: string, studentName: string) {
+    openFeePayment(studentId: string, studentName: string) {
         const records = this.state.fiscalMap()[studentId] || [];
-        const pending = records.find(r => r.status !== 'PAID' && ((r.balance_due || 0) > 0));
-        if (!pending) {
-            this.dialog.alert(`No pending invoices for ${studentName}.`, 'Settled', 'info');
+        const pending = records.find(r => r.status !== 'PAID' && (r.amount - (r.amount_paid || 0)) > 0);
+        
+        let due = 0;
+        if (pending) {
+            due = pending.balance_due !== undefined && pending.balance_due > 0 
+                ? pending.balance_due 
+                : (pending.amount - (pending.amount_paid || 0));
+        } else {
+            const ward = this.ledgerWards().find(w => w.student_id === studentId);
+            due = ward?.balance_due || 0;
+        }
+
+        if (due <= 0) {
+            this.dialog.alert(`All school fees are already settled for ${studentName}.`, 'Settled', 'info');
             return;
         }
-        const amt = pending.balance_due || pending.amount;
-        this.dialog.confirm(`Pay GH₵${amt.toFixed(2)} for ${studentName} via Paystack?`, 'Fee Payment', 'info', 'Pay Now').subscribe(ok => {
-            if (!ok) return;
-            const cb = `${window.location.origin}/parents/finance`;
-            this.paymentService.initializePayment(pending.id, amt, cb).subscribe({
-                next: (r) => { window.location.href = r.authorization_url; },
-                error: (e) => { this.dialog.alert(e.error?.error || 'Payment init failed.', 'Error', 'error'); }
-            });
-        });
+
+        this.paymentWardId.set(studentId);
+        this.paymentWardName.set(studentName);
+        this.paymentRecordId.set(pending?.id || '');
+        this.paymentTotalDue.set(due);
+        this.paymentType.set('full');
+        this.customPaymentAmount.set(Math.min(100, Math.round(due / 2)));
+        this.feePaymentMethod.set('paystack');
+        this.showFeeModal.set(true);
+    }
+
+    payWard(studentId: string, studentName: string) {
+        this.openFeePayment(studentId, studentName);
     }
 
     payFamilyBalance() {
-        const wards = this.state.familyLedger()?.wards?.filter(w => w.balance_due > 0) || [];
-        if (!wards.length) { this.dialog.alert('All fees are settled!', 'Settled', 'success'); return; }
-        this.payWard(wards[0].student_id, wards[0].student_name);
+        const wards = this.ledgerWards().filter(w => w.balance_due > 0);
+        if (!wards.length) { 
+            this.dialog.alert('All family school fees are settled!', 'Settled', 'success'); 
+            return; 
+        }
+        this.openFeePayment(wards[0].student_id, wards[0].student_name);
+    }
+
+    submitFeePayment() {
+        const studentId = this.paymentWardId();
+        const recordId = this.paymentRecordId();
+        const totalDue = this.paymentTotalDue();
+        const type = this.paymentType();
+        
+        const amount = type === 'full' ? totalDue : this.customPaymentAmount();
+
+        if (amount <= 0) {
+            this.toast.warning('Payment amount must be greater than zero.', 'Invalid Amount');
+            return;
+        }
+
+        if (amount > totalDue) {
+            this.toast.warning(`Payment cannot exceed the outstanding balance of GH₵${totalDue.toFixed(2)}.`, 'Amount Exceeded');
+            return;
+        }
+
+        this.processingFeePayment.set(true);
+
+        if (this.feePaymentMethod() === 'paystack') {
+            const email = this.state.profile()?.email || '';
+            const cb = `${window.location.origin}/parents/finance`;
+            this.paymentService.initializePayment(recordId || undefined, { amount, studentId: studentId || undefined, email, callbackUrl: cb }).subscribe({
+                next: (r) => { 
+                    window.location.href = r.authorization_url; 
+                },
+                error: (e) => {
+                    this.processingFeePayment.set(false);
+                    this.toast.error(e.error?.error || 'Failed to connect to Paystack gateway.', 'Payment Error');
+                }
+            });
+            return;
+        }
+
+        // Direct payment
+        if (recordId) {
+            this.fiscalService.processPartialPayment(recordId, amount, 'Direct payment via Parent Portal').subscribe({
+                next: () => {
+                    this.processingFeePayment.set(false);
+                    this.showFeeModal.set(false);
+                    this.toast.success(`Payment of GH₵${amount.toFixed(2)} recorded successfully for ${this.paymentWardName()}.`, 'Payment Successful');
+                    this.state.reloadLedger();
+                    if (studentId) {
+                        this.state.loadStudentData(studentId, '');
+                    }
+                },
+                error: (err) => {
+                    this.processingFeePayment.set(false);
+                    this.toast.error(err?.error?.error || 'Failed to record direct payment.', 'Error');
+                }
+            });
+        } else {
+            this.processingFeePayment.set(false);
+            this.showFeeModal.set(false);
+            this.toast.error('No invoice record found for direct clearance.', 'Error');
+        }
     }
 
     payMilestone(milestoneId: string, amount: number, studentName: string) {

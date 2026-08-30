@@ -17,6 +17,7 @@ type Class struct {
 	// Preloaded fields
 	Teacher         *Teacher         `json:"teacher,omitempty" gorm:"foreignKey:TeacherID"`
 	ScholasticLevel *ScholasticLevel `json:"scholastic_level,omitempty" gorm:"foreignKey:ScholasticLevelID"`
+	Subjects        []Subject        `json:"subjects,omitempty" gorm:"many2many:class_subjects;"`
 	ID              uuid.UUID        `json:"id" gorm:"type:uuid;primaryKey"`
 	TenantBase
 }
@@ -57,6 +58,10 @@ type ClassRepository interface {
 	UpsertLock(ctx context.Context, lock *ClassTermLock) error
 	IsLocked(ctx context.Context, classID uuid.UUID, term string) (bool, error)
 	GetClassesForTeacher(ctx context.Context, userID uuid.UUID) ([]Class, error)
+
+	// Subject assignments
+	GetClassSubjects(ctx context.Context, classID uuid.UUID) ([]Subject, error)
+	SetClassSubjects(ctx context.Context, classID uuid.UUID, subjectIDs []uuid.UUID) error
 }
 
 type ClassUseCase interface {
