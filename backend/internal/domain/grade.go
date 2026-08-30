@@ -28,7 +28,7 @@ type Grade struct {
 	Score     float32       `json:"score" gorm:"not null"`
 	MaxScore  float32       `json:"max_score" gorm:"default:100"` // denominator for weighting
 	Value     float32       `json:"value" gorm:"-"`               // alias for Score in generated reports
-	Category  GradeCategory `json:"category" gorm:"type:varchar(20);default:'ASSIGNMENT'"`
+	Category  GradeCategory `json:"category" gorm:"type:varchar(100);default:'ASSIGNMENT'"`
 	Subject   string        `json:"subject" gorm:"not null"`
 	Remarks   string        `json:"remarks"`
 	Term      string        `json:"term" gorm:"not null"`

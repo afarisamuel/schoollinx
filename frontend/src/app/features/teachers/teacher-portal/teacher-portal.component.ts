@@ -1,6 +1,8 @@
-import { Component, inject, signal, computed, HostListener, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 import { IdbService } from '../../../core/infrastructure/pwa/idb.service';
 import {
     TeacherPortalService,
@@ -78,6 +80,12 @@ export class TeacherPortalComponent implements OnInit {
         const total = cols.reduce((sum, c) => sum + (c.weight > 1 ? c.weight : c.weight * 100), 0);
         return Math.round(total);
     });
+
+    // Auto-Save System
+    autoSaveStatus = signal<'idle' | 'saving' | 'saved' | 'error'>('idle');
+    lastAutoSavedAt = signal<Date | null>(null);
+    private autoSaveTrigger$ = new Subject<void>();
+    private autoSaveSub?: Subscription;
 
     // Classroom Mastery Suite (Phase 1-5)
     activeTab = signal<'gradebook' | 'seating' | 'lessons' | 'resources' | 'sickbay' | 'widgets' | 'timetable' | 'cover-board' | 'consultations' | 'notices' | 'ai-copilot' | 'hr-vault'>('gradebook');
@@ -201,6 +209,14 @@ export class TeacherPortalComponent implements OnInit {
     ngOnInit() {
         this.isLoading.set(true);
         this.loadPeriods();
+
+        // Setup real-time debounced auto-save (600ms debounce)
+        this.autoSaveSub = this.autoSaveTrigger$.pipe(
+            debounceTime(600)
+        ).subscribe(() => {
+            this.performAutoSave(false);
+        });
+
         this.portalService.getMyClasses().subscribe({
             next: (resp) => {
                 this.teacher.set(resp.teacher);
@@ -212,6 +228,10 @@ export class TeacherPortalComponent implements OnInit {
                 this.isLoading.set(false);
             }
         });
+    }
+
+    ngOnDestroy() {
+        this.autoSaveSub?.unsubscribe();
     }
 
     loadPeriods() {
@@ -270,6 +290,7 @@ export class TeacherPortalComponent implements OnInit {
         // Load existing grades for this class to show history
         this.portalService.getClassGrades(classId).subscribe(grades => {
             this.existingGrades.set(grades);
+            this.populateGridWithExistingGrades();
         });
 
         // Load classroom mastery suite
@@ -285,11 +306,9 @@ export class TeacherPortalComponent implements OnInit {
         this.checkTermLock(classId, this.term());
     }
 
-    checkTermLock(classId: string, term: string) {
-        this.classService.getClassLocks(classId).subscribe(locks => {
-            const lock = locks.find((l: { term: string; }) => l.term === term);
-            this.isTermLocked.set(lock ? lock.is_locked : false);
-        });
+    onSubjectChange(subjectId: string) {
+        this.selectedSubjectId.set(subjectId);
+        this.populateGridWithExistingGrades();
     }
 
     setTerm(t: string) {
@@ -298,6 +317,14 @@ export class TeacherPortalComponent implements OnInit {
         if (classId) {
             this.checkTermLock(classId, t);
         }
+        this.populateGridWithExistingGrades();
+    }
+
+    checkTermLock(classId: string, term: string) {
+        this.classService.getClassLocks(classId).subscribe(locks => {
+            const lock = locks.find((l: { term: string; }) => l.term === term);
+            this.isTermLocked.set(lock ? lock.is_locked : false);
+        });
     }
 
     loadWeights(classId: string) {
@@ -338,12 +365,7 @@ export class TeacherPortalComponent implements OnInit {
                         weight: w.weight > 1 ? Math.round(w.weight) : Math.round(w.weight * 100)
                     }));
                     this.gradeColumns.set(cols);
-                    const grid: Record<string, number[]> = {};
-                    this.students().forEach(s => {
-                        grid[s.id] = new Array(cols.length).fill(0);
-                    });
-                    this.gradeGrid.set(grid);
-                    this.runCalculations();
+                    this.populateGridWithExistingGrades();
                 } else {
                     this.isColumnsAdminConfigured.set(false);
                     this.isClassSpecificWeights.set(false);
@@ -367,23 +389,54 @@ export class TeacherPortalComponent implements OnInit {
             weight: i === 0 ? basePct + remainder : basePct
         }));
         this.gradeColumns.set(newCols);
+        this.populateGridWithExistingGrades();
+    }
 
-        // Initialize grid values
+    populateGridWithExistingGrades() {
+        const students = this.students();
+        const cols = this.gradeColumns();
+        const existing = this.existingGrades();
+        const currentSubject = this.selectedSubjectId();
+        const currentTerm = this.term();
+
+        if (!students || students.length === 0 || !cols || cols.length === 0) return;
+
         const grid: Record<string, number[]> = {};
-        this.students().forEach(s => {
-            grid[s.id] = new Array(count).fill(0);
+        students.forEach(s => {
+            grid[s.id] = cols.map(c => {
+                const found = existing.find(g =>
+                    g.student_id === s.id &&
+                    (g.subject === currentSubject || g.subject_id === currentSubject) &&
+                    g.term === currentTerm &&
+                    g.category === c.name
+                );
+                return found ? found.score : 0;
+            });
         });
         this.gradeGrid.set(grid);
         this.runCalculations();
     }
 
     updateScore(studentId: string, colIndex: number, value: any) {
-        const score = parseFloat(value) || 0;
+        const score = Math.max(0, Math.min(100, parseFloat(value) || 0));
         const grid = { ...this.gradeGrid() };
         if (!grid[studentId]) grid[studentId] = new Array(this.gradeColumns().length).fill(0);
         grid[studentId][colIndex] = score;
         this.gradeGrid.set(grid);
         this.runCalculations();
+
+        // Trigger real-time debounced auto-save
+        if (this.canGrade() && !this.isTermLocked()) {
+            this.autoSaveStatus.set('saving');
+            this.autoSaveTrigger$.next();
+        }
+    }
+
+    onScoreBlur() {
+        // Immediate save on blur if changes are pending
+        if (this.canGrade() && !this.isTermLocked() && this.autoSaveStatus() === 'saving') {
+            this.performAutoSave(false);
+        }
     }
 
     updateColumnName(index: number, name: string) {
@@ -457,65 +510,96 @@ export class TeacherPortalComponent implements OnInit {
     }
 
     submitGrades() {
+        this.performAutoSave(true);
+    }
+
+    performAutoSave(manual = false) {
         const assignment = this.selectedAssignment();
         if (!assignment) return;
 
         // Enforce subject selection
         if (!this.selectedSubjectId()) {
-            this.toast.show('Please select a subject before recording grades.', 'warning');
+            if (manual) {
+                this.toast.show('Please select a subject before recording grades.', 'warning');
+            }
             return;
         }
 
         const classId = assignment.class_id;
-        
-        // Flatten grid into GradeEntry array
         const grid = this.gradeGrid();
         const cols = this.gradeColumns();
+        if (!cols || cols.length === 0) return;
+
         const entries: GradeEntry[] = [];
 
         Object.keys(grid).forEach(studentId => {
             grid[studentId].forEach((score, i) => {
-                const weightPct = cols[i].weight > 1 ? cols[i].weight : Math.round(cols[i].weight * 100);
-                entries.push({
-                    student_id: studentId,
-                    subject: this.selectedSubjectId(),
-                    category: cols[i].name as any,
-                    score: score,
-                    max_score: 100,
-                    term: this.term(),
-                    remarks: `Weight: ${weightPct}%`
-                });
+                if (cols[i]) {
+                    const weightPct = cols[i].weight > 1 ? cols[i].weight : Math.round(cols[i].weight * 100);
+                    entries.push({
+                        student_id: studentId,
+                        subject: this.selectedSubjectId(),
+                        category: cols[i].name as any,
+                        score: score,
+                        max_score: 100,
+                        term: this.term(),
+                        remarks: `Weight: ${weightPct}%`
+                    });
+                }
             });
         });
 
-        this.isSaving.set(true);
+        if (entries.length === 0) return;
 
-        // Phase 19: Offline Handling
+        this.autoSaveStatus.set('saving');
+        if (manual) this.isSaving.set(true);
+
+        // Offline Handling
         if (!navigator.onLine) {
             this.idbService.saveOfflineGrades(classId, entries).then(() => {
-                this.isSaving.set(false);
-                this.successMsg.set('⚠️ Saved Offline! These grades will automatically sync when network access is restored.');
-                setTimeout(() => this.successMsg.set(''), 5000);
+                this.autoSaveStatus.set('saved');
+                if (manual) {
+                    this.isSaving.set(false);
+                    this.successMsg.set('⚠️ Saved Offline! These grades will automatically sync when network access is restored.');
+                    setTimeout(() => this.successMsg.set(''), 5000);
+                }
             }).catch(() => {
-                this.errorMsg.set('Failed to save to device offline storage.');
-                this.isSaving.set(false);
+                this.autoSaveStatus.set('error');
+                if (manual) {
+                    this.errorMsg.set('Failed to save to device offline storage.');
+                    this.isSaving.set(false);
+                }
             });
             return;
         }
 
         this.portalService.bulkSubmitGrades(classId, entries).subscribe({
             next: (res) => {
-                this.successMsg.set(`✅ Successfully saved and synchronized ${res.count} scores.`);
-                this.isSaving.set(false);
-                // Reload existing grades and stats
+                this.autoSaveStatus.set('saved');
+                this.lastAutoSavedAt.set(new Date());
+                if (manual) {
+                    this.successMsg.set(`✅ Successfully saved and synchronized ${res.count} scores.`);
+                    this.isSaving.set(false);
+                    setTimeout(() => this.successMsg.set(''), 4000);
+                }
+                // Silently reload existing grades and stats
                 this.portalService.getClassGrades(classId).subscribe(grades => {
                     this.existingGrades.set(grades);
                     this.loadGPA(classId);
                 });
+                // Reset indicator to idle after 3s
+                setTimeout(() => {
+                    if (this.autoSaveStatus() === 'saved') {
+                        this.autoSaveStatus.set('idle');
+                    }
+                }, 3000);
             },
             error: (e) => {
-                this.errorMsg.set(e.error?.error || 'Failed to save grades.');
-                this.isSaving.set(false);
+                this.autoSaveStatus.set('error');
+                if (manual) {
+                    this.errorMsg.set(e.error?.error || 'Failed to save grades.');
+                    this.isSaving.set(false);
+                }
             }
         });
     }

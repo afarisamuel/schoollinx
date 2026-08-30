@@ -63,6 +63,7 @@ func RunTenantMigrations(db *gorm.DB, schemaName string) error {
 		_ = tx.Exec("ALTER TABLE grade_weights ALTER COLUMN class_id DROP NOT NULL").Error
 		_ = tx.Exec("ALTER TABLE grade_weights DROP CONSTRAINT IF EXISTS grade_weights_class_id_category_key").Error
 		_ = tx.Exec("ALTER TABLE grade_weights DROP CONSTRAINT IF EXISTS grade_weights_class_id_fkey").Error
+		_ = tx.Exec("ALTER TABLE grades ALTER COLUMN category TYPE VARCHAR(100)").Error
 
 		if err := tx.AutoMigrate(TenantModels...); err != nil {
 			return fmt.Errorf("failed to auto migrate models for %s: %w", schemaName, err)
