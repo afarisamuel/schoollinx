@@ -59,9 +59,16 @@ export class TeacherAssignmentsComponent implements OnInit {
         if (!q) return this.teachers();
         return this.teachers().filter(t => 
             (`${t.first_name || ''} ${t.last_name || ''}`).toLowerCase().includes(q) || 
-            (t.email || '').toLowerCase().includes(q)
+            (t.email || '').toLowerCase().includes(q) ||
+            (t.employee_id || '').toLowerCase().includes(q)
         );
     });
+
+    getInitials(firstName?: string, lastName?: string): string {
+        const f = firstName ? firstName.charAt(0) : '';
+        const l = lastName ? lastName.charAt(0) : '';
+        return (f + l).toUpperCase() || 'ED';
+    }
 
     // Matrix Active Edit State (Drafting)
     pendingAdditions = signal<Partial<TeacherAssignment>[]>([]);
