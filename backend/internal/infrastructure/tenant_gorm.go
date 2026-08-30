@@ -18,17 +18,32 @@ func registerTenantCallbacks(db *gorm.DB) {
 	db.Callback().Raw().Before("gorm:raw").Register("tenant:raw", setupTenantSchema)
 }
 
+var globalTables = map[string]bool{
+	"tenants":                      true,
+	"revoked_tokens":               true,
+	"payment_transactions":         true,
+	"payment_webhook_logs":         true,
+	"tenant_subscription_payments": true,
+	"system_announcements":         true,
+	"system_configs":               true,
+	"system_security_ips":          true,
+	"system_audit_logs":            true,
+	"affiliates":                   true,
+	"affiliate_referrals":          true,
+	"contact_submissions":          true,
+	"newsletters":                  true,
+	"newsletter_subscribers":       true,
+	"support_tickets":              true,
+	"platform_invoices":            true,
+	"telemetry_events":             true,
+	"hardware_leases":              true,
+	"whitelisted_ips":              true,
+	"sms_ledgers":                  true,
+}
+
 // setupTenantSchema automatically prepends the schema name to the table name
 // for all queries, enforcing schema-based multi-tenancy.
 func setupTenantSchema(db *gorm.DB) {
-	// 1. HARD BYPASS for the global registry (tenants table).
-	// This table MUST always be resolved in the shared 'public' schema
-	// regardless of the current request context or connection search_path.
-	if db.Statement.Table == "tenants" {
-		db.Statement.Table = "public.tenants"
-		return
-	}
-
 	if db.Statement.Context == nil {
 		return
 	}
@@ -38,8 +53,26 @@ func setupTenantSchema(db *gorm.DB) {
 		return
 	}
 
-	// Prefix the table name with the schema name if it isn't already prefixed.
-	// This works well because GORM uses db.Statement.Table to build almost all SQL operations.
+	// 1. Resolve table name from Model or Dest if db.Statement.Table is empty
+	if db.Statement.Table == "" {
+		if db.Statement.Model != nil {
+			_ = db.Statement.Parse(db.Statement.Model)
+		} else if db.Statement.Dest != nil {
+			_ = db.Statement.Parse(db.Statement.Dest)
+		}
+		if db.Statement.Schema != nil {
+			db.Statement.Table = db.Statement.Schema.Table
+		}
+	}
+
+	// 2. HARD BYPASS for global registry tables that MUST live in the shared 'public' schema
+	cleanTable := strings.TrimPrefix(db.Statement.Table, "public.")
+	if globalTables[cleanTable] {
+		db.Statement.Table = "public." + cleanTable
+		return
+	}
+
+	// 3. Prefix tenant tables with schema name if not already prefixed
 	if db.Statement.Table != "" && !strings.Contains(db.Statement.Table, ".") {
 		if err := ValidateSchemaName(schemaName); err == nil {
 			db.Statement.Table = schemaName + "." + db.Statement.Table

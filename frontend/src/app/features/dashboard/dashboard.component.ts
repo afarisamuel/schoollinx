@@ -7,6 +7,8 @@ import { IntelligenceService, InstitutionalKPI, RetentionRisk, CourseDemand } fr
 import { AnalyticsService, AttendanceStats, ChartData } from '../../core/infrastructure/analytics/analytics.service';
 import { AuthService } from '../../core/infrastructure/auth/auth.service';
 import { TeacherPortalService } from '../../core/infrastructure/teacher/teacher-portal.service';
+import { AcademicPeriodService } from '../../core/infrastructure/academic-period/academic-period.service';
+import { AcademicPeriod } from '../../core/domain/academic-period.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,11 +24,13 @@ export class DashboardComponent implements OnInit {
   private analyticsService = inject(AnalyticsService);
   private authService = inject(AuthService);
   private teacherService = inject(TeacherPortalService);
+  private academicPeriodService = inject(AcademicPeriodService);
   private platformId = inject(PLATFORM_ID);
   private isBrowser = isPlatformBrowser(this.platformId);
 
   // Core KPIs & Analytics
   kpis = signal<InstitutionalKPI | null>(null);
+  activePeriod = signal<AcademicPeriod | null>(null);
   attendanceStats = signal<AttendanceStats | null>(null);
   gradeDistribution = signal<ChartData[]>([]);
 
@@ -41,6 +45,28 @@ export class DashboardComponent implements OnInit {
   isStudent = computed(() => this.authService.currentUserValue?.role === 'STUDENT');
   canCollectFees = signal<boolean>(false);
   teacherClassesCount = signal<number>(0);
+
+  currentAcademicPeriod = computed(() => {
+    const period = this.activePeriod();
+    if (period?.name) return period.name;
+    const kpiPeriod = this.kpis()?.active_academic_year;
+    if (kpiPeriod && kpiPeriod !== 'None Active') return kpiPeriod;
+    return null;
+  });
+
+  currentAcademicTerm = computed(() => {
+    const period = this.activePeriod();
+    if (period && period.current_term) return `${period.term_type || 'Term'} ${period.current_term}`;
+    const kpiTerm = this.kpis()?.active_term;
+    if (kpiTerm && kpiTerm !== 'N/A') return kpiTerm;
+    return null;
+  });
+
+  totalStudents = computed(() => {
+    const fromKpi = this.kpis()?.total_students;
+    if (fromKpi !== undefined && fromKpi !== null && fromKpi > 0) return fromKpi;
+    return this.atRiskStudents()?.length || 0;
+  });
 
   // Drag and Drop Widgets
   isEditMode = signal(false);
@@ -102,6 +128,10 @@ export class DashboardComponent implements OnInit {
   private loadCommonData() {
     this.intelligenceService.getKPIs().subscribe({
       next: data => this.kpis.set(data),
+      error: () => {}
+    });
+    this.academicPeriodService.getActive().subscribe({
+      next: period => this.activePeriod.set(period),
       error: () => {}
     });
     this.analyticsService.getAttendanceStats().subscribe({

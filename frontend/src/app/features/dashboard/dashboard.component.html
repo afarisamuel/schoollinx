@@ -15,9 +15,9 @@
       </h1>
       <div class="flex items-center gap-3">
         <span class="w-3 h-3 rounded-full shadow-[0_0_12px_rgba(52,211,153,0.8)] animate-pulse" 
-              [class]="kpis()?.active_academic_year && kpis()?.active_academic_year !== 'None Active' ? 'bg-emerald-400' : 'bg-rose-400 shadow-[0_0_12px_rgba(251,113,133,0.8)]'"></span>
+              [class]="currentAcademicPeriod() ? 'bg-emerald-400' : 'bg-rose-400 shadow-[0_0_12px_rgba(251,113,133,0.8)]'"></span>
         <p class="text-text-secondary font-bold tracking-[0.2em] text-xs uppercase">
-          {{ kpis()?.active_academic_year || 'No Period Set' }}
+          {{ currentAcademicPeriod() ? (currentAcademicPeriod() + (currentAcademicTerm() ? ' • ' + currentAcademicTerm() : '')) : 'No Period Set' }}
         </p>
       </div>
     </div>
@@ -26,7 +26,7 @@
     <div class="flex flex-wrap items-center gap-4 animate-bento-in delay-2">
       <div class="kpi-pill">
         <span class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Students</span>
-        <span class="text-2xl font-black bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">{{ kpis()?.total_students || 0 }}</span>
+        <span class="text-2xl font-black bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">{{ totalStudents() }}</span>
       </div>
       <div class="kpi-pill">
         <span class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Teachers</span>

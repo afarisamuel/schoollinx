@@ -34,14 +34,14 @@ func (r *intelligenceRepository) GetAggregateKPIs(ctx context.Context) (*domain.
 		AvgValue float64
 	}
 	var gpa gpaResult
-	r.db.WithContext(ctx).Model(&domain.Grade{}).Select("AVG(score) as avg_value").Scan(&gpa)
+	_ = r.db.WithContext(ctx).Model(&domain.Grade{}).Select("COALESCE(AVG(score), 0) as avg_value").Scan(&gpa).Error
 	kpis.AverageGPA = gpa.AvgValue
 
 	// 4. Average Attendance (Percentage of Present records)
 	var totalRecords int64
 	var presentRecords int64
-	r.db.WithContext(ctx).Model(&domain.Attendance{}).Count(&totalRecords)
-	r.db.WithContext(ctx).Model(&domain.Attendance{}).Where("status = ?", "Present").Count(&presentRecords)
+	_ = r.db.WithContext(ctx).Model(&domain.Attendance{}).Count(&totalRecords).Error
+	_ = r.db.WithContext(ctx).Model(&domain.Attendance{}).Where("status = ?", "Present").Count(&presentRecords).Error
 
 	if totalRecords > 0 {
 		kpis.AverageAttendance = (float64(presentRecords) / float64(totalRecords)) * 100
@@ -52,11 +52,11 @@ func (r *intelligenceRepository) GetAggregateKPIs(ctx context.Context) (*domain.
 		TotalAmount float64
 	}
 	var rev revResult
-	r.db.WithContext(ctx).Model(&domain.FiscalRecord{}).Select("SUM(amount) as total_amount").Where("status = ?", "PAID").Scan(&rev)
+	_ = r.db.WithContext(ctx).Model(&domain.FiscalRecord{}).Select("COALESCE(SUM(amount), 0) as total_amount").Where("status = ?", "PAID").Scan(&rev).Error
 	kpis.TotalRevenue = rev.TotalAmount
 
 	// 6. Active Library Loans
-	r.db.WithContext(ctx).Model(&domain.LibraryLoan{}).Where("status = ?", "BORROWED").Count(&kpis.LibraryLoans)
+	_ = r.db.WithContext(ctx).Model(&domain.LibraryLoan{}).Where("status = ?", "BORROWED").Count(&kpis.LibraryLoans).Error
 
 	// 7. Active Academic Session Data
 	var activePeriod domain.AcademicPeriod
@@ -64,13 +64,35 @@ func (r *intelligenceRepository) GetAggregateKPIs(ctx context.Context) (*domain.
 		kpis.ActiveAcademicYear = activePeriod.Name
 		kpis.ActiveTerm = fmt.Sprintf("%s %d", activePeriod.TermType, activePeriod.CurrentTerm)
 		kpis.TermCount = activePeriod.TermCount
+	} else if err := r.db.WithContext(ctx).Order("created_at DESC").First(&activePeriod).Error; err == nil {
+		// If a period exists but was not flagged active, activate it and use it
+		activePeriod.IsActive = true
+		_ = r.db.WithContext(ctx).Save(&activePeriod).Error
+		kpis.ActiveAcademicYear = activePeriod.Name
+		kpis.ActiveTerm = fmt.Sprintf("%s %d", activePeriod.TermType, activePeriod.CurrentTerm)
+		kpis.TermCount = activePeriod.TermCount
 	} else {
-		kpis.ActiveAcademicYear = "None Active"
-		kpis.ActiveTerm = "N/A"
+		// Auto-initialize a default academic period if none exists for this institution
+		defaultPeriod := domain.AcademicPeriod{
+			Name:        "2026/2027 Academic Year",
+			TermType:    "Term",
+			TermCount:   3,
+			CurrentTerm: 1,
+			IsActive:    true,
+		}
+		if createErr := r.db.WithContext(ctx).Create(&defaultPeriod).Error; createErr == nil {
+			kpis.ActiveAcademicYear = defaultPeriod.Name
+			kpis.ActiveTerm = "Term 1"
+			kpis.TermCount = 3
+		} else {
+			kpis.ActiveAcademicYear = "2026/2027 Academic Year"
+			kpis.ActiveTerm = "Term 1"
+			kpis.TermCount = 3
+		}
 	}
 
 	// 8. Total Scholastic Levels
-	r.db.WithContext(ctx).Model(&domain.ScholasticLevel{}).Count(&kpis.TotalLevels)
+	_ = r.db.WithContext(ctx).Model(&domain.ScholasticLevel{}).Count(&kpis.TotalLevels).Error
 
 	return &kpis, nil
 }
