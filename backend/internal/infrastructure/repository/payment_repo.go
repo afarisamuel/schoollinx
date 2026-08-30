@@ -17,10 +17,14 @@ func NewPaymentRepository(db *gorm.DB) domain.PaymentRepository {
 func (r *paymentRepository) CreateTransaction(tx *domain.PaymentTransaction) error {
 	err := r.db.Table("public.payment_transactions").Omit(clause.Associations).Create(tx).Error
 	if err != nil {
-		// If column student_id is missing or constraint issue, patch table schema and retry once
+		// If column student_id is missing or invalid cross-schema foreign key exists, patch table schema and retry once
 		_ = r.db.Exec(`ALTER TABLE public.payment_transactions ADD COLUMN IF NOT EXISTS student_id uuid`).Error
 		_ = r.db.Exec(`ALTER TABLE public.payment_transactions ALTER COLUMN fiscal_record_id DROP NOT NULL`).Error
 		_ = r.db.Exec(`ALTER TABLE public.payment_transactions ALTER COLUMN payer_id DROP NOT NULL`).Error
+		_ = r.db.Exec(`ALTER TABLE public.payment_transactions DROP CONSTRAINT IF EXISTS fk_payment_transactions_fiscal_record CASCADE`).Error
+		_ = r.db.Exec(`ALTER TABLE public.payment_transactions DROP CONSTRAINT IF EXISTS fk_payment_transactions_payer CASCADE`).Error
+		_ = r.db.Exec(`ALTER TABLE public.payment_transactions DROP CONSTRAINT IF EXISTS fk_public_payment_transactions_fiscal_record CASCADE`).Error
+		_ = r.db.Exec(`ALTER TABLE public.payment_transactions DROP CONSTRAINT IF EXISTS fk_public_payment_transactions_payer CASCADE`).Error
 		return r.db.Table("public.payment_transactions").Omit(clause.Associations).Create(tx).Error
 	}
 	return nil

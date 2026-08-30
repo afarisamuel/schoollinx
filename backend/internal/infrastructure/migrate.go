@@ -10,11 +10,15 @@ import (
 // RunMigrations applies migrations to the global (public) schema,
 // and then applies them to every active tenant schema.
 func RunMigrations(db *gorm.DB) error {
-	// 0. Ensure payment_transactions table and columns exist cleanly
+	// 0. Ensure payment_transactions table and columns exist cleanly without invalid cross-schema foreign keys
 	_ = db.Exec(`ALTER TABLE public.payment_transactions ALTER COLUMN fiscal_record_id DROP NOT NULL`).Error
 	_ = db.Exec(`ALTER TABLE public.payment_transactions ALTER COLUMN payer_id DROP NOT NULL`).Error
 	_ = db.Exec(`ALTER TABLE public.payment_transactions DROP CONSTRAINT IF EXISTS payment_transactions_fiscal_record_id_not_null`).Error
 	_ = db.Exec(`ALTER TABLE public.payment_transactions DROP CONSTRAINT IF EXISTS payment_transactions_payer_id_not_null`).Error
+	_ = db.Exec(`ALTER TABLE public.payment_transactions DROP CONSTRAINT IF EXISTS fk_payment_transactions_fiscal_record CASCADE`).Error
+	_ = db.Exec(`ALTER TABLE public.payment_transactions DROP CONSTRAINT IF EXISTS fk_payment_transactions_payer CASCADE`).Error
+	_ = db.Exec(`ALTER TABLE public.payment_transactions DROP CONSTRAINT IF EXISTS fk_public_payment_transactions_fiscal_record CASCADE`).Error
+	_ = db.Exec(`ALTER TABLE public.payment_transactions DROP CONSTRAINT IF EXISTS fk_public_payment_transactions_payer CASCADE`).Error
 	_ = db.Exec(`ALTER TABLE public.payment_transactions ADD COLUMN IF NOT EXISTS student_id uuid`).Error
 
 	// 1. Run migrations for the public schema (global tables)
