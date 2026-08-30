@@ -185,6 +185,14 @@ export class MainLayoutComponent implements OnInit {
     this.isMobileSidebarOpen.update(v => !v);
   }
 
+  onNavbarHamburgerToggle() {
+    if (isPlatformBrowser(this.platformId) && window.innerWidth < 1024) {
+      this.toggleMobileSidebar();
+    } else {
+      this.toggleSidebar();
+    }
+  }
+
   closeMobileSidebar() {
     this.isMobileSidebarOpen.set(false);
   }

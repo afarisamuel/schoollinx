@@ -24,6 +24,7 @@ export class NavbarComponent {
   canGoBack = input<boolean>(false);
 
   // Outputs
+  toggleSidebar = output<void>();
   toggleMobile = output<void>();
   goBack = output<void>();
   markRead = output<void>();
