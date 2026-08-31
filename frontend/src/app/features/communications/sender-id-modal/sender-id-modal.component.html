@@ -1,0 +1,114 @@
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" (click)="close.emit()">
+  <div class="relative w-full max-w-md bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl p-6 md:p-8 overflow-hidden" (click)="$event.stopPropagation()">
+    <!-- Decorative Ambient Glow -->
+    <div class="absolute top-0 right-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-[70px] pointer-events-none"></div>
+
+    <!-- Header -->
+    <div class="flex items-start justify-between mb-6 relative z-10">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-widest mb-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><polyline points="9 12 11 14 15 10"/></svg>
+          Telco Brand Header
+        </div>
+        <h2 class="text-2xl font-black text-text-primary">SMS Sender ID</h2>
+        <p class="text-xs text-text-secondary mt-1">Register your custom school brand name for SMS broadcasts.</p>
+      </div>
+      <button (click)="close.emit()" class="p-2 rounded-xl bg-bg-tertiary hover:bg-border-primary text-text-muted hover:text-text-primary transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Current Status Banner -->
+    <div class="mb-6 relative z-10">
+      @if (overview()?.sms_sender_id_status === 'APPROVED') {
+        <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">✓</div>
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-widest text-emerald-400">Active Verified Sender ID</p>
+              <p class="text-base font-black text-emerald-300 font-mono tracking-wider">{{ overview()?.sms_sender_id }}</p>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Verified</span>
+        </div>
+      } @else if (overview()?.sms_sender_id_status === 'PENDING') {
+        <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">⏳</div>
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-widest text-amber-400">Review In Progress</p>
+              <p class="text-base font-black text-amber-300 font-mono tracking-wider">{{ overview()?.sms_sender_id }}</p>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse">Pending Review</span>
+        </div>
+      } @else if (overview()?.sms_sender_id_status === 'REJECTED') {
+        <div class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30">
+          <div class="flex items-center justify-between mb-1">
+            <p class="text-[10px] font-black uppercase tracking-widest text-rose-400">Request Rejected</p>
+            <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-rose-500/20 text-rose-400 border border-rose-500/30">Rejected</span>
+          </div>
+          <p class="text-xs text-text-muted mt-1">
+            {{ overview()?.latest_request?.admin_notes || 'Please provide a valid official school abbreviation and submit again.' }}
+          </p>
+        </div>
+      } @else {
+        <div class="p-3.5 rounded-2xl bg-bg-tertiary border border-border-primary text-xs text-text-muted">
+          Your account is currently using the default system header: <strong class="text-text-primary">SchoolLinx</strong>.
+        </div>
+      }
+    </div>
+
+    <!-- Registration Form -->
+    <div class="space-y-4 mb-6 relative z-10">
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="text-[10px] font-black uppercase tracking-widest text-text-muted">Custom Sender ID (Max 11 Chars)</label>
+          <span class="text-[10px] font-mono text-text-muted">{{ senderIdInput().length }}/11</span>
+        </div>
+        <div class="relative">
+          <input
+            type="text"
+            maxlength="11"
+            [(ngModel)]="senderIdInput"
+            placeholder="e.g. ACHIMOTA, PRESEC"
+            class="w-full bg-bg-tertiary border border-border-primary focus:border-indigo-500 rounded-xl px-4 py-3 text-sm font-mono font-bold uppercase tracking-wider text-text-primary placeholder-text-muted outline-none transition-all"
+          />
+        </div>
+        <p class="text-[10px] text-text-muted mt-1">Letters and numbers only. As per NCA/telco regulations, maximum 11 characters.</p>
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Purpose / Justification</label>
+        <textarea
+          rows="2"
+          [(ngModel)]="purposeInput"
+          placeholder="e.g. Official school communication for academic term updates and guardian notices."
+          class="w-full bg-bg-tertiary border border-border-primary focus:border-indigo-500 rounded-xl p-3 text-xs text-text-primary placeholder-text-muted outline-none resize-none transition-all"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-3 relative z-10">
+      <button
+        (click)="close.emit()"
+        class="flex-1 py-3 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-border-primary text-text-secondary transition-all border border-border-primary"
+      >
+        Cancel
+      </button>
+      <button
+        (click)="submitRequest()"
+        [disabled]="isSubmitting() || !senderIdInput().trim()"
+        class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider"
+      >
+        @if (isSubmitting()) {
+          <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+          Submitting...
+        } @else {
+          Submit for Approval
+        }
+      </button>
+    </div>
+  </div>
+</div>

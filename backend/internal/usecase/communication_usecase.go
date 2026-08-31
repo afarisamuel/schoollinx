@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/domain"
+	"gorm.io/gorm"
 )
 
 type communicationUseCase struct {
@@ -15,10 +17,20 @@ type communicationUseCase struct {
 	guardians domain.GuardianRepository
 	students  domain.StudentRepository
 	teachers  domain.TeacherRepository
+	tenants   domain.TenantRepository
+	db        *gorm.DB
 }
 
-func NewCommunicationUseCase(repo domain.CommunicationRepository, sms domain.SMSProvider, guardians domain.GuardianRepository, students domain.StudentRepository, teachers domain.TeacherRepository) domain.CommunicationUseCase {
-	return &communicationUseCase{repo: repo, sms: sms, guardians: guardians, students: students, teachers: teachers}
+func NewCommunicationUseCase(repo domain.CommunicationRepository, sms domain.SMSProvider, guardians domain.GuardianRepository, students domain.StudentRepository, teachers domain.TeacherRepository, tenants domain.TenantRepository, db *gorm.DB) domain.CommunicationUseCase {
+	return &communicationUseCase{
+		repo:      repo,
+		sms:       sms,
+		guardians: guardians,
+		students:  students,
+		teachers:  teachers,
+		tenants:   tenants,
+		db:        db,
+	}
 }
 
 func (u *communicationUseCase) CreateNotice(ctx context.Context, notice *domain.Notice) error {
@@ -40,27 +52,69 @@ func (u *communicationUseCase) GetReminders(ctx context.Context) ([]domain.Remin
 func (u *communicationUseCase) SendUrgentSMS(ctx context.Context, targetAudience string, message string) error {
 	var recipients []string
 
-	if targetAudience == "ALL_PARENTS" {
+	if targetAudience == "ALL_PARENTS" || targetAudience == "ALL" {
 		parents, err := u.guardians.GetAll(ctx)
 		if err != nil {
 			return err
 		}
 		for _, p := range parents {
-			phone := string(p.PhoneNumber) // Decrypts from deterministic/encrypted string assuming it's available as string underlying type
+			phone := string(p.PhoneNumber)
 			if phone != "" {
 				recipients = append(recipients, phone)
 			}
 		}
+	} else if targetAudience == "TEACHERS" || targetAudience == "STAFF" {
+		teachers, err := u.teachers.GetAll(ctx)
+		if err == nil {
+			for _, t := range teachers {
+				phone := string(t.PhoneNumber)
+				if phone != "" {
+					recipients = append(recipients, phone)
+				}
+			}
+		}
 	} else {
-		// Fallback for demonstration
 		recipients = []string{"0241234567"}
 	}
 
 	if len(recipients) == 0 {
-		return nil // no one to send to
+		return nil // no recipients to send to
 	}
 
-	return u.sms.SendSMS(ctx, "BASIC-SMS", recipients, message)
+	// Determine custom sender ID and verify SMS credits balance
+	senderID := "SchoolLinx"
+	tenantID, hasTenant := middleware.GetTenantIDFromContext(ctx)
+	if hasTenant && tenantID != uuid.Nil && u.tenants != nil {
+		tenant, err := u.tenants.GetByID(ctx, tenantID)
+		if err == nil && tenant != nil {
+			if tenant.SMSSenderID != "" && tenant.SMSSenderIDStatus == string(domain.SenderIDStatusApproved) {
+				senderID = tenant.SMSSenderID
+			}
+
+			// Credit balance verification
+			if tenant.SMSCredits < len(recipients) {
+				return fmt.Errorf("insufficient SMS credits (Balance: %d, Required: %d). Please top up your SMS credits", tenant.SMSCredits, len(recipients))
+			}
+
+			// Deduct credits and record in SmsLedger
+			if u.db != nil {
+				_ = u.db.Transaction(func(tx *gorm.DB) error {
+					if err := tx.Model(&domain.Tenant{}).Where("id = ?", tenantID).UpdateColumn("sms_credits", gorm.Expr("GREATEST(sms_credits - ?, 0)", len(recipients))).Error; err != nil {
+						return err
+					}
+					ledger := domain.SmsLedger{
+						TenantID:    tenantID,
+						Direction:   domain.SmsLedgerDirectionDebit,
+						Amount:      len(recipients),
+						Description: fmt.Sprintf("SMS Broadcast to %d recipient(s) [%s]", len(recipients), targetAudience),
+					}
+					return tx.Create(&ledger).Error
+				})
+			}
+		}
+	}
+
+	return u.sms.SendSMS(ctx, senderID, recipients, message)
 }
 
 func (u *communicationUseCase) CreateMeetingSlot(ctx context.Context, slot *domain.MeetingSlot) error {

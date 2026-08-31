@@ -27,6 +27,7 @@ export const routes: Routes = [
       { path: 'audit-logs', component: AuditLogsComponent },
       { path: 'announcements', loadComponent: () => import('./features/announcements/announcements').then(m => m.AnnouncementsComponent) },
       { path: 'finance', loadComponent: () => import('./features/finance/finance').then(m => m.FinanceComponent) },
+      { path: 'sms-management', loadComponent: () => import('./features/sms-management/sms-management').then(m => m.SmsManagementComponent) },
       { path: 'affiliates', loadComponent: () => import('./features/affiliates/affiliates').then(m => m.AffiliatesComponent) },
       { path: 'telemetry', loadComponent: () => import('./features/telemetry/telemetry').then(m => m.TelemetryComponent) },
       { path: 'security', loadComponent: () => import('./features/security/security').then(m => m.SecurityComponent) },

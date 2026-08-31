@@ -1,0 +1,582 @@
+<div class="p-6 md:p-10 space-y-8 animate-fade-in max-w-7xl mx-auto">
+
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-border-primary">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-accent-primary/10 text-accent-primary border border-accent-primary/20">
+          <span class="w-1.5 h-1.5 rounded-full bg-accent-primary animate-pulse"></span>
+          Gateway Infrastructure
+        </span>
+        <span class="text-xs text-text-muted">· Arkasel & Multi-Carrier Hub</span>
+      </div>
+      <h1 class="text-3xl font-black tracking-tight text-white">SMS & Sender ID Management</h1>
+      <p class="text-sm text-text-secondary mt-1">Review school Sender ID applications, configure per-SMS unit pricing, and manage credit allocations.</p>
+    </div>
+
+    <!-- Refresh Action -->
+    <div class="flex items-center gap-3">
+      <button (click)="loadAllData()" [disabled]="isLoading()" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-secondary hover:text-white text-xs font-bold transition-all disabled:opacity-50">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" [class.animate-spin]="isLoading()" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Sync Telemetry
+      </button>
+    </div>
+  </div>
+
+  <!-- Telemetry KPI Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Total SMS in Circulation -->
+    <div class="p-5 rounded-2xl bg-bg-secondary/60 border border-border-primary backdrop-blur-xl relative overflow-hidden group">
+      <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-accent-primary/10 rounded-full blur-2xl group-hover:bg-accent-primary/20 transition-all"></div>
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">SMS in Circulation</span>
+        <div class="w-8 h-8 rounded-lg bg-accent-primary/10 text-accent-primary flex items-center justify-center border border-accent-primary/20">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+        </div>
+      </div>
+      <div class="text-2xl font-black text-white">{{ telemetry()?.total_credits_in_circulation || 0 | number }}</div>
+      <p class="text-xs text-text-muted mt-1">Total active credits across all tenants</p>
+    </div>
+
+    <!-- Pending Sender ID Requests -->
+    <div class="p-5 rounded-2xl bg-bg-secondary/60 border border-border-primary backdrop-blur-xl relative overflow-hidden group" [ngClass]="{'border-amber-500/30 bg-amber-500/5': (telemetry()?.pending_sender_id_requests || 0) > 0}">
+      <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl transition-all"></div>
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Pending Approvals</span>
+        <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+      </div>
+      <div class="text-2xl font-black" [ngClass]="(telemetry()?.pending_sender_id_requests || 0) > 0 ? 'text-amber-400' : 'text-white'">
+        {{ telemetry()?.pending_sender_id_requests || 0 }}
+      </div>
+      <p class="text-xs text-text-muted mt-1">Sender IDs awaiting review</p>
+    </div>
+
+    <!-- Active Sender IDs -->
+    <div class="p-5 rounded-2xl bg-bg-secondary/60 border border-border-primary backdrop-blur-xl relative overflow-hidden group">
+      <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl transition-all"></div>
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Verified Sender IDs</span>
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+      </div>
+      <div class="text-2xl font-black text-emerald-400">{{ telemetry()?.active_approved_sender_ids || 0 }}</div>
+      <p class="text-xs text-text-muted mt-1">Approved institutional headers</p>
+    </div>
+
+    <!-- Total Top-Up Revenue -->
+    <div class="p-5 rounded-2xl bg-bg-secondary/60 border border-border-primary backdrop-blur-xl relative overflow-hidden group">
+      <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl transition-all"></div>
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">SMS Top-Up Revenue</span>
+        <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center border border-purple-500/20">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+      </div>
+      <div class="text-2xl font-black text-purple-300">₵{{ telemetry()?.total_topup_revenue_ghs || 0 | number:'1.2-2' }}</div>
+      <p class="text-xs text-text-muted mt-1">Global on-demand sales</p>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="flex items-center gap-2 p-1.5 bg-bg-secondary border border-border-primary rounded-2xl overflow-x-auto">
+    <button (click)="setTab('requests')"
+            [class.bg-accent-primary]="activeTab() === 'requests'"
+            [class.text-white]="activeTab() === 'requests'"
+            [class.text-text-muted]="activeTab() !== 'requests'"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+      Sender ID Requests
+      @if (telemetry()?.pending_sender_id_requests) {
+        <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500 text-black font-black">
+          {{ telemetry()?.pending_sender_id_requests }}
+        </span>
+      }
+    </button>
+
+    <button (click)="setTab('pricing')"
+            [class.bg-accent-primary]="activeTab() === 'pricing'"
+            [class.text-white]="activeTab() === 'pricing'"
+            [class.text-text-muted]="activeTab() !== 'pricing'"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      SMS Pricing Engine
+    </button>
+
+    <button (click)="setTab('tenants')"
+            [class.bg-accent-primary]="activeTab() === 'tenants'"
+            [class.text-white]="activeTab() === 'tenants'"
+            [class.text-text-muted]="activeTab() !== 'tenants'"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+      Tenant Balances & Credits
+    </button>
+
+    <button (click)="setTab('ledger')"
+            [class.bg-accent-primary]="activeTab() === 'ledger'"
+            [class.text-white]="activeTab() === 'ledger'"
+            [class.text-text-muted]="activeTab() !== 'ledger'"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Global SMS Audit Ledger
+    </button>
+  </div>
+
+  <!-- TAB 1: SENDER ID REQUESTS -->
+  @if (activeTab() === 'requests') {
+    <div class="space-y-6 animate-fade-in">
+      <!-- Filter Bar -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <button (click)="requestStatusFilter.set('ALL')"
+                  [class.bg-bg-tertiary]="requestStatusFilter() === 'ALL'"
+                  [class.text-white]="requestStatusFilter() === 'ALL'"
+                  [class.text-text-muted]="requestStatusFilter() !== 'ALL'"
+                  class="px-3.5 py-1.5 rounded-lg text-xs font-bold border border-border-primary transition-all">
+            All ({{ requests().length }})
+          </button>
+          <button (click)="requestStatusFilter.set('PENDING')"
+                  [class.bg-amber-500/20]="requestStatusFilter() === 'PENDING'"
+                  [class.text-amber-400]="requestStatusFilter() === 'PENDING'"
+                  [class.border-amber-500/40]="requestStatusFilter() === 'PENDING'"
+                  [class.text-text-muted]="requestStatusFilter() !== 'PENDING'"
+                  class="px-3.5 py-1.5 rounded-lg text-xs font-bold border border-border-primary transition-all">
+            Pending
+          </button>
+          <button (click)="requestStatusFilter.set('APPROVED')"
+                  [class.bg-emerald-500/20]="requestStatusFilter() === 'APPROVED'"
+                  [class.text-emerald-400]="requestStatusFilter() === 'APPROVED'"
+                  [class.border-emerald-500/40]="requestStatusFilter() === 'APPROVED'"
+                  [class.text-text-muted]="requestStatusFilter() !== 'APPROVED'"
+                  class="px-3.5 py-1.5 rounded-lg text-xs font-bold border border-border-primary transition-all">
+            Approved
+          </button>
+          <button (click)="requestStatusFilter.set('REJECTED')"
+                  [class.bg-rose-500/20]="requestStatusFilter() === 'REJECTED'"
+                  [class.text-rose-400]="requestStatusFilter() === 'REJECTED'"
+                  [class.border-rose-500/40]="requestStatusFilter() === 'REJECTED'"
+                  [class.text-text-muted]="requestStatusFilter() !== 'REJECTED'"
+                  class="px-3.5 py-1.5 rounded-lg text-xs font-bold border border-border-primary transition-all">
+            Rejected
+          </button>
+        </div>
+      </div>
+
+      <!-- Requests Table -->
+      <div class="bg-bg-secondary rounded-2xl border border-border-primary overflow-hidden shadow-2xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-bg-tertiary/70 text-text-muted uppercase text-[10px] font-black tracking-widest border-b border-border-primary">
+              <tr>
+                <th class="p-4">School / Tenant</th>
+                <th class="p-4">Requested Sender ID</th>
+                <th class="p-4">Purpose / Use Case</th>
+                <th class="p-4">Status</th>
+                <th class="p-4">Submitted At</th>
+                <th class="p-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-primary">
+              @for (req of filteredRequests(); track req.id) {
+                <tr class="hover:bg-bg-tertiary/30 transition-colors">
+                  <td class="p-4">
+                    <div class="font-bold text-white text-sm">{{ req.tenant?.name || 'Unknown Tenant' }}</div>
+                    <div class="text-text-muted text-[11px] font-mono">{{ req.tenant?.subdomain }}.schoollinx.com</div>
+                  </td>
+                  <td class="p-4">
+                    <span class="inline-flex items-center px-3 py-1 rounded-lg bg-accent-primary/10 border border-accent-primary/30 text-accent-primary font-mono font-bold text-sm tracking-wider">
+                      {{ req.sender_id }}
+                    </span>
+                  </td>
+                  <td class="p-4 max-w-xs">
+                    <p class="text-text-secondary text-xs truncate" [title]="req.purpose">{{ req.purpose || 'Institutional announcements and student updates' }}</p>
+                    @if (req.admin_notes) {
+                      <p class="text-rose-400 text-[10px] mt-1 italic">Note: {{ req.admin_notes }}</p>
+                    }
+                  </td>
+                  <td class="p-4">
+                    @if (req.status === 'APPROVED') {
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                        Approved
+                      </span>
+                    } @else if (req.status === 'PENDING') {
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                        Pending Review
+                      </span>
+                    } @else {
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                        Rejected
+                      </span>
+                    }
+                  </td>
+                  <td class="p-4 text-text-muted font-mono text-[11px]">
+                    {{ req.created_at | date:'mediumDate' }}
+                  </td>
+                  <td class="p-4 text-right">
+                    @if (req.status === 'PENDING') {
+                      <div class="flex items-center justify-end gap-2">
+                        <button (click)="approveRequest(req)"
+                                [disabled]="isProcessingAction()"
+                                class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs transition-all shadow-md shadow-emerald-500/20">
+                          Approve
+                        </button>
+                        <button (click)="openRejectModal(req)"
+                                [disabled]="isProcessingAction()"
+                                class="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs transition-all">
+                          Reject
+                        </button>
+                      </div>
+                    } @else if (req.status === 'REJECTED') {
+                      <button (click)="approveRequest(req)"
+                              [disabled]="isProcessingAction()"
+                              class="px-3 py-1.5 rounded-lg bg-bg-tertiary hover:bg-emerald-500 hover:text-black text-text-muted font-bold text-xs transition-all border border-border-primary">
+                        Re-Approve
+                      </button>
+                    } @else {
+                      <span class="text-text-muted text-[11px]">Active on Gateway</span>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" class="p-12 text-center text-text-muted">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 mx-auto mb-2 text-text-muted/50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+                    No Sender ID requests found in this filter.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 2: SMS PRICING ENGINE -->
+  @if (activeTab() === 'pricing') {
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
+      <!-- Global Price Configuration Card -->
+      <div class="lg:col-span-2 p-8 rounded-3xl bg-bg-secondary border border-border-primary shadow-2xl relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-accent-primary/10 rounded-full blur-[80px] pointer-events-none"></div>
+
+        <div class="flex items-center justify-between pb-6 mb-6 border-b border-border-primary">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-accent-primary/10 text-accent-primary border border-accent-primary/20 mb-2">
+              Platform Rate Configuration
+            </div>
+            <h2 class="text-2xl font-black text-white">Default SMS Unit Cost</h2>
+            <p class="text-xs text-text-secondary mt-1">This rate is used to convert tenant GHS top-up amounts into SMS credits.</p>
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          <div>
+            <label class="block text-xs font-black uppercase tracking-widest text-text-muted mb-2">Cost per SMS (GHS / Unit)</label>
+            <div class="flex items-center gap-3">
+              <div class="relative max-w-xs flex-1">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted font-bold text-sm">₵</span>
+                <input type="number" step="0.005" min="0.01" [(ngModel)]="globalRateInput"
+                       class="w-full bg-bg-tertiary border border-border-primary focus:border-accent-primary rounded-xl pl-9 pr-4 py-3 text-white font-mono font-bold text-lg outline-none transition-all" />
+              </div>
+              <button (click)="saveGlobalRate()" [disabled]="isSavingGlobalRate()"
+                      class="px-6 py-3 rounded-xl bg-accent-primary hover:bg-accent-secondary text-white font-bold text-sm transition-all shadow-lg shadow-accent-primary/20 disabled:opacity-50 flex items-center gap-2">
+                @if (isSavingGlobalRate()) {
+                  <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                }
+                Update Global Rate
+              </button>
+            </div>
+            @if (globalRateSavedSuccess()) {
+              <p class="text-emerald-400 text-xs font-bold mt-2 animate-fade-in">✓ Global SMS rate updated across the platform!</p>
+            }
+          </div>
+
+          <!-- Formula Explainer -->
+          <div class="p-4 rounded-2xl bg-bg-tertiary/50 border border-border-primary">
+            <h3 class="text-xs font-black uppercase tracking-widest text-accent-primary mb-1">Conversion Formula</h3>
+            <p class="text-xs text-text-secondary leading-relaxed font-mono">
+              SMS Credits = Top-Up Amount (GHS) ÷ Unit Cost (₵{{ globalRateInput() }})
+            </p>
+            <p class="text-[11px] text-text-muted mt-2">
+              When a school initiates an SMS top-up of <strong>₵50.00</strong>, they will receive <strong>{{ (50 / (globalRateInput() || 0.05)) | number:'1.0-0' }} SMS credits</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Conversion Simulator Widget -->
+      <div class="p-8 rounded-3xl bg-gradient-to-br from-bg-secondary to-bg-tertiary border border-border-primary shadow-2xl relative overflow-hidden flex flex-col justify-between">
+        <div>
+          <span class="text-[10px] font-black uppercase tracking-widest text-accent-secondary">Live Simulator</span>
+          <h3 class="text-xl font-black text-white mt-1 mb-4">Top-Up Conversion Preview</h3>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Simulate Top-Up Amount (GHS)</label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted font-bold">₵</span>
+                <input type="number" [(ngModel)]="calcGhsAmount"
+                       class="w-full bg-bg-primary border border-border-primary rounded-xl pl-8 pr-4 py-2.5 text-white font-mono font-bold outline-none" />
+              </div>
+            </div>
+
+            <!-- Quick Amount Pills -->
+            <div class="flex flex-wrap gap-2">
+              <button (click)="calcGhsAmount.set(20)" class="px-2.5 py-1 rounded-lg bg-bg-primary text-[11px] font-bold text-text-muted hover:text-white border border-border-primary">₵20</button>
+              <button (click)="calcGhsAmount.set(50)" class="px-2.5 py-1 rounded-lg bg-bg-primary text-[11px] font-bold text-text-muted hover:text-white border border-border-primary">₵50</button>
+              <button (click)="calcGhsAmount.set(100)" class="px-2.5 py-1 rounded-lg bg-bg-primary text-[11px] font-bold text-text-muted hover:text-white border border-border-primary">₵100</button>
+              <button (click)="calcGhsAmount.set(500)" class="px-2.5 py-1 rounded-lg bg-bg-primary text-[11px] font-bold text-text-muted hover:text-white border border-border-primary">₵500</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-8 p-4 rounded-2xl bg-accent-primary/10 border border-accent-primary/20 text-center">
+          <p class="text-[10px] font-black uppercase tracking-widest text-accent-primary mb-1">Converted SMS Credits</p>
+          <div class="text-3xl font-black text-white font-mono">{{ calcCredits() | number }}</div>
+          <p class="text-[11px] text-text-muted mt-1">@ ₵{{ globalRateInput() }} / SMS</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 3: TENANT BALANCES & CREDITS -->
+  @if (activeTab() === 'tenants') {
+    <div class="space-y-6 animate-fade-in">
+      <!-- Search & Filters -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="relative w-full sm:w-80">
+          <input type="text" [(ngModel)]="tenantSearchQuery" placeholder="Search schools or sender ID..."
+                 class="w-full bg-bg-secondary border border-border-primary focus:border-accent-primary rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-text-muted outline-none transition-all" />
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <span class="text-xs text-text-muted">Showing {{ filteredTenants().length }} schools</span>
+      </div>
+
+      <!-- Tenants Table -->
+      <div class="bg-bg-secondary rounded-2xl border border-border-primary overflow-hidden shadow-2xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-bg-tertiary/70 text-text-muted uppercase text-[10px] font-black tracking-widest border-b border-border-primary">
+              <tr>
+                <th class="p-4">School</th>
+                <th class="p-4">Active Sender ID</th>
+                <th class="p-4">SMS Balance</th>
+                <th class="p-4">Custom Rate (GHS)</th>
+                <th class="p-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-primary">
+              @for (tenant of filteredTenants(); track tenant.id) {
+                <tr class="hover:bg-bg-tertiary/30 transition-colors">
+                  <td class="p-4">
+                    <div class="font-bold text-white text-sm">{{ tenant.name }}</div>
+                    <div class="text-text-muted text-[11px] font-mono">{{ tenant.subdomain }}.schoollinx.com</div>
+                  </td>
+                  <td class="p-4">
+                    @if (tenant.sms_sender_id) {
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-bg-tertiary border border-border-primary text-white font-mono font-bold text-xs">
+                        <span class="w-1.5 h-1.5 rounded-full" [ngClass]="tenant.sms_sender_id_status === 'APPROVED' ? 'bg-emerald-400' : 'bg-amber-400'"></span>
+                        {{ tenant.sms_sender_id }}
+                      </span>
+                    } @else {
+                      <span class="text-text-muted italic">Default (SchoolLinx)</span>
+                    }
+                  </td>
+                  <td class="p-4">
+                    <div class="font-mono font-black text-sm" [ngClass]="tenant.sms_credits < 200 ? 'text-rose-400' : 'text-emerald-400'">
+                      {{ tenant.sms_credits | number }} <span class="text-[10px] text-text-muted font-normal">credits</span>
+                    </div>
+                  </td>
+                  <td class="p-4 font-mono text-text-secondary">
+                    @if (tenant.sms_cost_per_unit && tenant.sms_cost_per_unit > 0) {
+                      <span class="text-accent-primary font-bold">₵{{ tenant.sms_cost_per_unit }} (Custom)</span>
+                    } @else {
+                      <span>₵{{ globalRateInput() }} (Default)</span>
+                    }
+                  </td>
+                  <td class="p-4 text-right">
+                    <div class="flex items-center justify-end gap-2">
+                      <button (click)="openCreditModal(tenant)"
+                              class="px-3 py-1.5 rounded-lg bg-accent-primary/10 hover:bg-accent-primary hover:text-white text-accent-primary border border-accent-primary/30 font-bold text-xs transition-all">
+                        + Inject Credits
+                      </button>
+                      <button (click)="openRateModal(tenant)"
+                              class="px-3 py-1.5 rounded-lg bg-bg-tertiary hover:bg-border-primary text-text-secondary font-bold text-xs transition-all border border-border-primary">
+                        Set Rate
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 4: GLOBAL SMS AUDIT LEDGER -->
+  @if (activeTab() === 'ledger') {
+    <div class="space-y-6 animate-fade-in">
+      <div class="bg-bg-secondary rounded-2xl border border-border-primary overflow-hidden shadow-2xl">
+        <div class="p-4 border-b border-border-primary flex items-center justify-between">
+          <span class="font-black text-white text-sm">Platform SMS Transactions & Dispatches</span>
+          <span class="text-xs text-text-muted">Last 100 entries</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-bg-tertiary/70 text-text-muted uppercase text-[10px] font-black tracking-widest border-b border-border-primary">
+              <tr>
+                <th class="p-4">Timestamp</th>
+                <th class="p-4">School</th>
+                <th class="p-4">Type</th>
+                <th class="p-4">Amount</th>
+                <th class="p-4">Description</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-primary font-mono">
+              @for (item of ledgerItems(); track item.id) {
+                <tr class="hover:bg-bg-tertiary/30 transition-colors">
+                  <td class="p-4 text-text-muted text-[11px]">
+                    {{ item.created_at | date:'medium' }}
+                  </td>
+                  <td class="p-4 text-white font-bold">
+                    {{ item.tenant?.name || 'System / Platform' }}
+                  </td>
+                  <td class="p-4">
+                    @if (item.direction === 'CREDIT') {
+                      <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        + CREDIT
+                      </span>
+                    } @else {
+                      <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                        - DEBIT
+                      </span>
+                    }
+                  </td>
+                  <td class="p-4 font-black" [ngClass]="item.direction === 'CREDIT' ? 'text-emerald-400' : 'text-rose-400'">
+                    {{ item.direction === 'CREDIT' ? '+' : '-' }}{{ item.amount | number }}
+                  </td>
+                  <td class="p-4 text-text-secondary text-[11px] font-sans">
+                    {{ item.description }}
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="p-12 text-center text-text-muted font-sans">
+                    No ledger entries recorded yet.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- ===== REJECT SENDER ID MODAL ===== -->
+@if (selectedRequest()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" (click)="closeRejectModal()">
+    <div class="relative w-full max-w-md bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-2xl" (click)="$event.stopPropagation()">
+      <h3 class="text-lg font-black text-white mb-1">Reject Sender ID Request</h3>
+      <p class="text-xs text-text-secondary mb-4">
+        Provide a reason for rejecting the sender ID <strong>"{{ selectedRequest()?.sender_id }}"</strong> for {{ selectedRequest()?.tenant?.name }}.
+      </p>
+
+      <div class="mb-6">
+        <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Rejection Reason</label>
+        <textarea rows="3" [(ngModel)]="rejectReason" placeholder="e.g. Sender ID violates telco branding guidelines or requires official authorization letter."
+                  class="w-full bg-bg-tertiary border border-border-primary focus:border-rose-500 rounded-xl p-3 text-xs text-white outline-none resize-none"></textarea>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button (click)="closeRejectModal()" class="flex-1 py-2.5 rounded-xl bg-bg-tertiary hover:bg-border-primary text-text-secondary font-bold text-xs transition-all">
+          Cancel
+        </button>
+        <button (click)="confirmReject()" [disabled]="isProcessingAction()"
+                class="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs transition-all shadow-lg shadow-rose-500/20 disabled:opacity-50">
+          Confirm Rejection
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ===== INJECT CREDITS MODAL ===== -->
+@if (selectedTenantForCredits()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" (click)="closeCreditModal()">
+    <div class="relative w-full max-w-md bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-2xl" (click)="$event.stopPropagation()">
+      <h3 class="text-lg font-black text-white mb-1">Inject SMS Credits</h3>
+      <p class="text-xs text-text-secondary mb-4">
+        Grant or adjust SMS credits for <strong>{{ selectedTenantForCredits()?.name }}</strong>.
+      </p>
+
+      <div class="space-y-4 mb-6">
+        <div>
+          <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Number of Credits</label>
+          <input type="number" [(ngModel)]="creditInjectAmount"
+                 class="w-full bg-bg-tertiary border border-border-primary focus:border-accent-primary rounded-xl px-4 py-2.5 text-white font-mono font-bold text-sm outline-none" />
+          <p class="text-[10px] text-text-muted mt-1">Use positive numbers to add credits, negative to deduct.</p>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Reason / Notes</label>
+          <input type="text" [(ngModel)]="creditInjectReason" placeholder="e.g. Complimentary institutional onboarding bonus"
+                 class="w-full bg-bg-tertiary border border-border-primary focus:border-accent-primary rounded-xl px-4 py-2.5 text-xs text-white outline-none" />
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button (click)="closeCreditModal()" class="flex-1 py-2.5 rounded-xl bg-bg-tertiary hover:bg-border-primary text-text-secondary font-bold text-xs transition-all">
+          Cancel
+        </button>
+        <button (click)="confirmInjectCredits()" [disabled]="isInjectingCredits()"
+                class="flex-1 py-2.5 rounded-xl bg-accent-primary hover:bg-accent-secondary text-white font-bold text-xs transition-all shadow-lg shadow-accent-primary/20 disabled:opacity-50">
+          Apply Credits
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ===== SET CUSTOM RATE MODAL ===== -->
+@if (selectedTenantForRate()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" (click)="closeRateModal()">
+    <div class="relative w-full max-w-md bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-2xl" (click)="$event.stopPropagation()">
+      <h3 class="text-lg font-black text-white mb-1">Set Custom SMS Rate</h3>
+      <p class="text-xs text-text-secondary mb-4">
+        Configure a custom per-SMS unit price for <strong>{{ selectedTenantForRate()?.name }}</strong>.
+      </p>
+
+      <div class="space-y-4 mb-6">
+        <div>
+          <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Rate per SMS (GHS)</label>
+          <input type="number" step="0.005" [(ngModel)]="tenantCustomRate"
+                 class="w-full bg-bg-tertiary border border-border-primary focus:border-accent-primary rounded-xl px-4 py-2.5 text-white font-mono font-bold text-sm outline-none" />
+          <p class="text-[10px] text-text-muted mt-1">Set to 0 to revert to the platform global default rate (₵{{ globalRateInput() }}).</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button (click)="closeRateModal()" class="flex-1 py-2.5 rounded-xl bg-bg-tertiary hover:bg-border-primary text-text-secondary font-bold text-xs transition-all">
+          Cancel
+        </button>
+        <button (click)="confirmSetTenantRate()" [disabled]="isSavingTenantRate()"
+                class="flex-1 py-2.5 rounded-xl bg-accent-primary hover:bg-accent-secondary text-white font-bold text-xs transition-all shadow-lg shadow-accent-primary/20 disabled:opacity-50">
+          Save Custom Rate
+        </button>
+      </div>
+    </div>
+  </div>
+}

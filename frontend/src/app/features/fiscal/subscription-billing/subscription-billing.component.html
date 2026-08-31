@@ -1,3 +1,19 @@
+<!-- ===== SMS Top-Up Modal ===== -->
+@if (showSmsTopUpModal()) {
+  <app-sms-topup-modal
+    [initialBalance]="tenantProfile()?.sms_credits || 0"
+    (close)="showSmsTopUpModal.set(false)"
+    (topupCompleted)="onSmsTopUpCompleted($event)"
+  />
+}
+
+<!-- ===== SMS Sender ID Request Modal ===== -->
+@if (showSenderIdModal()) {
+  <app-sender-id-modal
+    (close)="showSenderIdModal.set(false)"
+  />
+}
+
 <!-- ===== Pay Subscription Modal ===== -->
 @if (showPayModal()) {
   <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" (click)="closePayModal()">
@@ -264,10 +280,11 @@
                 <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                 </div>
-                <span class="text-xs font-bold text-text-secondary flex items-center gap-2">SMS Credits <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 text-[8px] uppercase font-black">Add-on</span></span>
+                <span class="text-xs font-bold text-text-secondary flex items-center gap-2">SMS Credits <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 text-[8px] uppercase font-black">On-Demand</span></span>
               </div>
-              <button (click)="handleBuyCredits()" class="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-lg" title="Purchase Credits">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              <button (click)="handleBuyCredits()" class="p-1.5 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-lg transition-colors flex items-center gap-1 text-[10px] font-bold" title="Purchase Credits">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Top Up
               </button>
             </div>
             <div class="flex items-end justify-between">
@@ -277,6 +294,9 @@
                   {{ tenantProfile()?.sms_credits || 0 | number }}
                 </p>
               </div>
+              <button (click)="handleOpenSenderId()" class="text-[10px] text-text-muted hover:text-accent-primary font-bold underline transition-colors">
+                Sender ID
+              </button>
             </div>
           </div>
 

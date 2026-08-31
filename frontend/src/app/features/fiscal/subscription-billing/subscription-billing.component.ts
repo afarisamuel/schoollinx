@@ -15,11 +15,13 @@ import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 import { StudentService } from '../../../core/infrastructure/student/student.service';
 
 import { ToastService } from '../../../shared/ui/toast/toast.service';
+import { SmsTopUpModalComponent } from './sms-topup-modal/sms-topup-modal.component';
+import { SenderIdModalComponent } from '../../communications/sender-id-modal/sender-id-modal.component';
 
 @Component({
   selector: 'app-subscription-billing',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SmsTopUpModalComponent, SenderIdModalComponent],
   templateUrl: './subscription-billing.component.html'
 })
 export class SubscriptionBillingComponent implements OnInit {
@@ -28,6 +30,9 @@ export class SubscriptionBillingComponent implements OnInit {
   private toast = inject(ToastService);
   private http = inject(HttpClient);
   private studentService = inject(StudentService);
+
+  showSmsTopUpModal = signal(false);
+  showSenderIdModal = signal(false);
 
   tenantProfile = signal<TenantProfile | null>(null);
   loading = signal(true);
@@ -443,7 +448,17 @@ export class SubscriptionBillingComponent implements OnInit {
   }
 
   handleBuyCredits() {
-    this.dialog.alert('SMS credit purchasing portal will be available soon.', 'Purchase SMS Credits', 'info');
+    this.showSmsTopUpModal.set(true);
+  }
+
+  handleOpenSenderId() {
+    this.showSenderIdModal.set(true);
+  }
+
+  onSmsTopUpCompleted(newBalance: number) {
+    if (this.tenantProfile()) {
+      this.tenantProfile.update(p => p ? { ...p, sms_credits: newBalance } : p);
+    }
   }
 
   handleStorageUpgrade() {

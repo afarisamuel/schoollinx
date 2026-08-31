@@ -3,17 +3,26 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CommunicationService, Notice, Reminder } from '../../../core/infrastructure/communication/communication.service';
+import { SmsService, SMSOverview } from '../../../core/infrastructure/sms/sms.service';
+import { SmsTopUpModalComponent } from '../../fiscal/subscription-billing/sms-topup-modal/sms-topup-modal.component';
+import { SenderIdModalComponent } from '../sender-id-modal/sender-id-modal.component';
 
 @Component({
     selector: 'app-communications-hub',
     standalone: true,
-    imports: [CommonModule, FormsModule, DatePipe, RouterLink],
+    imports: [CommonModule, FormsModule, DatePipe, RouterLink, SmsTopUpModalComponent, SenderIdModalComponent],
     templateUrl: './communications-hub.component.html'
 })
 export class CommunicationsHubComponent implements OnInit {
     private commService = inject(CommunicationService);
+    private smsService = inject(SmsService);
 
     activeTab = signal<'notices' | 'sms' | 'reminders'>('notices');
+
+    // SMS Modals & Live Balance
+    showSmsTopUp = signal(false);
+    showSenderId = signal(false);
+    smsOverview = signal<SMSOverview | null>(null);
 
     // Notices
     notices = signal<Notice[]>([]);
@@ -34,6 +43,14 @@ export class CommunicationsHubComponent implements OnInit {
     ngOnInit() {
         this.loadNotices();
         this.loadReminders();
+        this.loadSMSOverview();
+    }
+
+    loadSMSOverview() {
+        this.smsService.getOverview().subscribe({
+            next: (ov) => this.smsOverview.set(ov),
+            error: () => {}
+        });
     }
 
     setTab(tab: 'notices' | 'sms' | 'reminders') {
@@ -68,12 +85,25 @@ export class CommunicationsHubComponent implements OnInit {
                 this.sendingSMS.set(false);
                 this.smsSuccess.set(res.message);
                 this.smsPayload.set({ target_audience: 'ALL_PARENTS', message: '' });
+                this.loadSMSOverview();
             },
             error: (err) => {
                 this.sendingSMS.set(false);
                 this.smsError.set(err.error?.error || 'Failed to send SMS');
             }
         });
+    }
+
+    onTopUpCompleted(newBalance: number) {
+        if (this.smsOverview()) {
+            this.smsOverview.update(o => o ? { ...o, sms_credits: newBalance } : o);
+        } else {
+            this.loadSMSOverview();
+        }
+    }
+
+    onSenderIdSubmitted() {
+        this.loadSMSOverview();
     }
 
     saveReminder() {

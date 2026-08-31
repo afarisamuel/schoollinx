@@ -87,6 +87,8 @@ var GlobalModels = []interface{}{
 	&domain.HardwareLease{},
 	&domain.WhitelistedIP{},
 	&domain.SmsLedger{},
+	&domain.SenderIDRequest{},
+	&domain.SMSTopUpPayment{},
 }
 
 // TenantModels are tables created inside each tenant's own schema.

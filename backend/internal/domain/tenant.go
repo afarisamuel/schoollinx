@@ -18,6 +18,9 @@ type Tenant struct {
 	SubscriptionPlan      string    `json:"subscription_plan" gorm:"default:'BASIC'"` // e.g., BASIC, PRO, USAGE
 	PerStudentPerTermRate float64   `json:"per_student_per_term_rate" gorm:"default:0.0"`
 	SMSCredits            int       `json:"sms_credits" gorm:"default:0"`
+	SMSSenderID           string    `json:"sms_sender_id" gorm:"type:varchar(11);default:''"`
+	SMSSenderIDStatus     string    `json:"sms_sender_id_status" gorm:"type:varchar(20);default:'NONE'"` // NONE, PENDING, APPROVED, REJECTED
+	SMSCostPerUnit        float64   `json:"sms_cost_per_unit" gorm:"default:0.0"` // 0 defaults to platform-wide rate
 	StorageLimitGB        int       `json:"storage_limit_gb" gorm:"default:5"`
 	StorageUsedMB         int       `json:"storage_used_mb" gorm:"default:0"`
 	BillingDueDate        *time.Time `json:"billing_due_date"`
