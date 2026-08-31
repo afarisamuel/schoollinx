@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, computed } from '@angular/core';
+import { Component, OnInit, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GradeService } from '../../../core/infrastructure/grade/grade.service';
@@ -32,16 +32,16 @@ export class BulkGradingComponent implements OnInit {
   private authService = inject(AuthService);
   private dialog = inject(DialogService);
 
-  classes: Class[] = [];
-  subjects: Subject[] = [];
-  students: Student[] = [];
-  
-  selectedClassId: string = '';
-  selectedSubjectId: string = '';
-  selectedTerm: string = '';
-  terms: AcademicTerm[] = [];
-  activePeriodId: string = '';
-  activeTermId: string = '';
+  classes = signal<Class[]>([]);
+  subjects = signal<Subject[]>([]);
+  students = signal<Student[]>([]);
+
+  selectedClassId = signal('');
+  selectedSubjectId = signal('');
+  selectedTerm = signal('');
+  terms = signal<AcademicTerm[]>([]);
+  activePeriodId = signal('');
+  activeTermId = signal('');
 
   // Role permissions
   isHeadmasterOrAdmin = computed(() => {
@@ -50,22 +50,22 @@ export class BulkGradingComponent implements OnInit {
   });
 
   // Dynamic columns configured for this class
-  configuredColumns: GradeWeight[] = [];
-  
+  configuredColumns = signal<GradeWeight[]>([]);
+
   // Configuration Mode State
-  isConfigMode = false;
-  newColumnCategory = '';
-  newColumnWeight = 0;
+  isConfigMode = signal(false);
+  newColumnCategory = signal('');
+  newColumnWeight = signal(0);
 
   // Map of studentId -> category -> { score, gradeId? }
-  draftGrades: Map<string, { [category: string]: { score: number | null, id?: string } }> = new Map();
+  draftGrades = signal<Map<string, { [category: string]: { score: number | null, id?: string } }>>(new Map());
 
   // Terminal Evaluation & Remarks Modal State
-  evalStudent: Student | null = null;
-  isEvalModalOpen = false;
-  isEvalLoading = false;
-  isEvalSaving = false;
-  evalData: any = {};
+  evalStudent = signal<Student | null>(null);
+  isEvalModalOpen = signal(false);
+  isEvalLoading = signal(false);
+  isEvalSaving = signal(false);
+  evalData = signal<any>({});
 
   readonly headmasterTemplates = [
     'Promoted with Distinction. Outstanding academic capability and character.',
@@ -75,8 +75,8 @@ export class BulkGradingComponent implements OnInit {
     'Shows consistent academic and disciplinary growth throughout the term.'
   ];
 
-  isLoading = false;
-  isSaving = false;
+  isLoading = signal(false);
+  isSaving = signal(false);
 
   ngOnInit() {
     this.loadClasses();
@@ -84,19 +84,28 @@ export class BulkGradingComponent implements OnInit {
     this.loadTerms();
   }
 
+  getDisplayWeight(weight: number): number {
+    if (weight === null || weight === undefined) return 0;
+    return weight > 1 ? Math.round(weight) : Math.round(weight * 100);
+  }
+
+  updateEvalField(field: string, value: any) {
+    this.evalData.update(d => ({ ...d, [field]: value }));
+  }
+
   loadTerms() {
     this.academicPeriodService.getActive().subscribe({
       next: (period) => {
         if (period && period.terms) {
-          this.activePeriodId = period.id || '';
-          this.terms = period.terms;
+          this.activePeriodId.set(period.id || '');
+          this.terms.set(period.terms);
           const currentTerm = period.terms.find(t => t.term_number === period.current_term);
           if (currentTerm) {
-            this.selectedTerm = currentTerm.name;
-            this.activeTermId = currentTerm.id || '';
-          } else if (this.terms.length > 0) {
-            this.selectedTerm = this.terms[0].name;
-            this.activeTermId = this.terms[0].id || '';
+            this.selectedTerm.set(currentTerm.name);
+            this.activeTermId.set(currentTerm.id || '');
+          } else if (period.terms.length > 0) {
+            this.selectedTerm.set(period.terms[0].name);
+            this.activeTermId.set(period.terms[0].id || '');
           }
         }
       },
@@ -108,70 +117,70 @@ export class BulkGradingComponent implements OnInit {
 
   loadClasses() {
     this.classService.getClasses().subscribe((classes) => {
-      this.classes = classes;
+      this.classes.set(classes);
     });
   }
 
   loadSubjects() {
     this.subjectService.getSubjects().subscribe((subjects) => {
-      this.subjects = subjects;
+      this.subjects.set(subjects);
     });
   }
 
   onClassChange() {
-    if (this.selectedClassId) {
+    if (this.selectedClassId()) {
       this.loadWeights();
       this.loadStudents();
     }
   }
 
   loadWeights() {
-    this.gradeService.getGradeWeights(this.selectedClassId).subscribe({
+    this.gradeService.getGradeWeights(this.selectedClassId()).subscribe({
       next: (weights) => {
         if (!weights || weights.length === 0) {
-           this.configuredColumns = [
-             { class_id: this.selectedClassId, category: 'ASSIGNMENT', weight: 0.3 },
-             { class_id: this.selectedClassId, category: 'EXAMS', weight: 0.7 }
-           ];
+           this.configuredColumns.set([
+             { class_id: this.selectedClassId(), category: 'ASSIGNMENT', weight: 0.3 },
+             { class_id: this.selectedClassId(), category: 'EXAMS', weight: 0.7 }
+           ]);
         } else {
-           this.configuredColumns = weights.map(w => ({
+           this.configuredColumns.set(weights.map(w => ({
              ...w,
              weight: w.weight > 1 ? w.weight / 100 : w.weight
-           }));
+           })));
         }
         this.initDraftGrades();
       },
       error: () => {
-         this.configuredColumns = [];
+         this.configuredColumns.set([]);
       }
     });
   }
 
   loadStudents() {
-    this.isLoading = true;
+    this.isLoading.set(true);
     this.studentService.getStudents().subscribe((students) => {
-      this.students = students.filter(s => s.class_id === this.selectedClassId);
+      this.students.set(students.filter(s => s.class_id === this.selectedClassId()));
       this.loadExistingGrades();
     });
   }
 
   loadExistingGrades() {
     this.initDraftGrades();
-    if (!this.selectedClassId) return;
+    if (!this.selectedClassId()) return;
 
-    this.isLoading = true;
-    
+    this.isLoading.set(true);
+
     // Fetch all grades for this class to prepopulate
-    this.gradeService.getGradesForClass(this.selectedClassId).subscribe({
+    this.gradeService.getGradesForClass(this.selectedClassId()).subscribe({
       next: (grades) => {
-        const selectedSub = this.subjects.find(s => s.id === this.selectedSubjectId || s.name === this.selectedSubjectId);
-        const subName = selectedSub?.name || this.selectedSubjectId;
-        const subId = selectedSub?.id || this.selectedSubjectId;
+        const selectedSub = this.subjects().find(s => s.id === this.selectedSubjectId() || s.name === this.selectedSubjectId());
+        const subName = selectedSub?.name || this.selectedSubjectId();
+        const subId = selectedSub?.id || this.selectedSubjectId();
         const subCode = selectedSub?.code || '';
 
         // Flexible subject matching (by id, name, or code)
         const matchSubject = (gSub: string) => {
-          if (!this.selectedSubjectId) return true;
+          if (!this.selectedSubjectId()) return true;
           if (!gSub) return false;
           const sNorm = gSub.trim().toLowerCase();
           return sNorm === subId.toLowerCase() ||
@@ -181,10 +190,10 @@ export class BulkGradingComponent implements OnInit {
 
         // Flexible term matching (by exact, normalized, or ordinal number)
         const matchTerm = (gTerm: string) => {
-          if (!this.selectedTerm) return true;
+          if (!this.selectedTerm()) return true;
           if (!gTerm) return false;
           const cleanG = gTerm.toLowerCase().replace(/[^a-z0-9]/g, '');
-          const cleanSel = this.selectedTerm.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const cleanSel = this.selectedTerm().toLowerCase().replace(/[^a-z0-9]/g, '');
           if (cleanG === cleanSel) return true;
           if ((cleanSel.includes('first') || cleanSel.includes('1')) && (cleanG.includes('first') || cleanG.includes('1') || cleanG === 'term1')) return true;
           if ((cleanSel.includes('second') || cleanSel.includes('2')) && (cleanG.includes('second') || cleanG.includes('2') || cleanG === 'term2')) return true;
@@ -193,12 +202,13 @@ export class BulkGradingComponent implements OnInit {
         };
 
         const filtered = (grades || []).filter(g => matchSubject(g.subject) && matchTerm(g.term));
+        const map = this.draftGrades();
 
         filtered.forEach(g => {
-          const studentDraft = this.draftGrades.get(g.student_id);
+          const studentDraft = map.get(g.student_id);
           if (studentDraft) {
             // Find matching column category case-insensitively or by category alias
-            const matchingCol = this.configuredColumns.find(col => {
+            const matchingCol = this.configuredColumns().find(col => {
               const c1 = col.category.trim().toLowerCase();
               const c2 = (g.category || '').trim().toLowerCase();
               if (c1 === c2) return true;
@@ -211,127 +221,132 @@ export class BulkGradingComponent implements OnInit {
             studentDraft[targetCategory] = { score: g.score, id: g.id };
           }
         });
-        this.isLoading = false;
+        // Trigger signal update so the template re-renders
+        this.draftGrades.set(new Map(map));
+        this.isLoading.set(false);
       },
       error: () => {
-        this.isLoading = false;
+        this.isLoading.set(false);
       }
     });
   }
 
   onFilterChange() {
-    const termObj = this.terms.find(t => t.name === this.selectedTerm || t.id === this.selectedTerm);
+    const termObj = this.terms().find(t => t.name === this.selectedTerm() || t.id === this.selectedTerm());
     if (termObj && termObj.id) {
-      this.activeTermId = termObj.id;
+      this.activeTermId.set(termObj.id);
     }
-    if (this.selectedClassId) {
+    if (this.selectedClassId()) {
       this.loadExistingGrades();
     }
   }
 
   initDraftGrades() {
-    this.draftGrades.clear();
-    this.students.forEach(student => {
+    const newMap = new Map<string, { [category: string]: { score: number | null, id?: string } }>();
+    this.students().forEach(student => {
       if (student.id) {
         const initialMap: any = {};
-        this.configuredColumns.forEach(col => {
+        this.configuredColumns().forEach(col => {
           initialMap[col.category] = { score: null };
         });
-        this.draftGrades.set(student.id, initialMap);
+        newMap.set(student.id, initialMap);
       }
     });
+    this.draftGrades.set(newMap);
   }
 
   // Terminal Evaluation & Remarks Handlers
   openEvaluation(student: Student) {
-    this.evalStudent = student;
-    this.isEvalModalOpen = true;
-    this.isEvalLoading = true;
-    this.evalData = {};
+    this.evalStudent.set(student);
+    this.isEvalModalOpen.set(true);
+    this.isEvalLoading.set(true);
+    this.evalData.set({});
 
-    const periodId = this.activePeriodId || '00000000-0000-0000-0000-000000000000';
-    const termId = this.activeTermId || '00000000-0000-0000-0000-000000000000';
+    const periodId = this.activePeriodId() || '00000000-0000-0000-0000-000000000000';
+    const termId = this.activeTermId() || '00000000-0000-0000-0000-000000000000';
 
-    this.teacherPortalService.getStudentEvaluation(this.selectedClassId, student.id!, periodId, termId).subscribe({
+    this.teacherPortalService.getStudentEvaluation(this.selectedClassId(), student.id!, periodId, termId).subscribe({
       next: (data) => {
-        this.evalData = data || {
+        this.evalData.set(data || {
           conduct: '',
           attitude: '',
           interest: '',
           class_teacher_remark: '',
           head_teacher_remark: ''
-        };
-        this.isEvalLoading = false;
+        });
+        this.isEvalLoading.set(false);
       },
       error: () => {
-        this.evalData = {
+        this.evalData.set({
           conduct: '',
           attitude: '',
           interest: '',
           class_teacher_remark: '',
           head_teacher_remark: ''
-        };
-        this.isEvalLoading = false;
+        });
+        this.isEvalLoading.set(false);
       }
     });
   }
 
   saveEvaluation() {
-    if (!this.evalStudent || !this.selectedClassId) return;
-    this.isEvalSaving = true;
+    if (!this.evalStudent() || !this.selectedClassId()) return;
+    this.isEvalSaving.set(true);
     const payload = {
-      ...this.evalData,
-      academic_period_id: this.activePeriodId || '00000000-0000-0000-0000-000000000000',
-      term_id: this.activeTermId || '00000000-0000-0000-0000-000000000000'
+      ...this.evalData(),
+      academic_period_id: this.activePeriodId() || '00000000-0000-0000-0000-000000000000',
+      term_id: this.activeTermId() || '00000000-0000-0000-0000-000000000000'
     };
 
-    this.teacherPortalService.updateStudentEvaluation(this.selectedClassId, this.evalStudent.id!, payload).subscribe({
+    this.teacherPortalService.updateStudentEvaluation(this.selectedClassId(), this.evalStudent()!.id!, payload).subscribe({
       next: () => {
-        this.isEvalSaving = false;
-        this.dialog.alert(`Evaluation & Remarks saved for ${this.evalStudent?.first_name} ${this.evalStudent?.last_name}`, 'Saved', 'success').subscribe();
+        this.isEvalSaving.set(false);
+        this.dialog.alert(`Evaluation & Remarks saved for ${this.evalStudent()?.first_name} ${this.evalStudent()?.last_name}`, 'Saved', 'success').subscribe();
         this.closeEvaluation();
       },
       error: (err) => {
-        this.isEvalSaving = false;
+        this.isEvalSaving.set(false);
         this.dialog.alert(err.error?.error || 'Failed to save evaluation', 'Error', 'error').subscribe();
       }
     });
   }
 
   closeEvaluation() {
-    this.isEvalModalOpen = false;
-    this.evalStudent = null;
-    this.evalData = {};
+    this.isEvalModalOpen.set(false);
+    this.evalStudent.set(null);
+    this.evalData.set({});
   }
 
   applyTemplate(text: string) {
-    this.evalData.head_teacher_remark = text;
+    this.evalData.update(d => ({ ...d, head_teacher_remark: text }));
   }
 
   getDraft(studentId: string, category: string) {
-    const studentDraft = this.draftGrades.get(studentId);
+    const studentDraft = this.draftGrades().get(studentId);
     return studentDraft ? studentDraft[category] : { score: null };
   }
 
   updateDraft(studentId: string, category: string, value: any) {
-    const studentDraft = this.draftGrades.get(studentId);
+    const map = this.draftGrades();
+    const studentDraft = map.get(studentId);
     if (studentDraft) {
       if (!studentDraft[category]) studentDraft[category] = { score: null };
       studentDraft[category].score = value === '' ? null : Number(value);
+      this.draftGrades.set(new Map(map));
     }
   }
 
   getTotalPercentage(studentId: string): string {
-    const studentDraft = this.draftGrades.get(studentId);
+    const studentDraft = this.draftGrades().get(studentId);
     if (!studentDraft) return '—';
 
     let total = 0;
     let hasAnyScore = false;
 
-    this.configuredColumns.forEach(col => {
+    this.configuredColumns().forEach(col => {
       const draft = studentDraft[col.category];
       if (draft && draft.score !== null) {
-        // Calculate based on weight. E.g., if score is out of 100, score * weight.
+        // weight is normalized to decimal (0.2 = 20%), score is out of 100
         total += (draft.score * col.weight);
         hasAnyScore = true;
       }
@@ -343,7 +358,7 @@ export class BulkGradingComponent implements OnInit {
   getGradeColor(studentId: string): string {
     const totalStr = this.getTotalPercentage(studentId);
     if (totalStr === '—') return 'text-text-muted';
-    
+
     const pct = parseFloat(totalStr);
     if (pct >= 80) return 'text-emerald-500';
     if (pct >= 60) return 'text-blue-500';
@@ -386,27 +401,27 @@ export class BulkGradingComponent implements OnInit {
   }
 
   getClassAverage(): string {
-    const scored = this.students.filter(s => this.getTotalPercentage(s.id!) !== '—');
+    const scored = this.students().filter(s => this.getTotalPercentage(s.id!) !== '—');
     if (scored.length === 0) return '—';
     const sum = scored.reduce((acc, s) => acc + parseFloat(this.getTotalPercentage(s.id!)), 0);
     return (sum / scored.length).toFixed(1) + '%';
   }
 
   getPassRate(): string {
-    const scored = this.students.filter(s => this.getTotalPercentage(s.id!) !== '—');
+    const scored = this.students().filter(s => this.getTotalPercentage(s.id!) !== '—');
     if (scored.length === 0) return '—';
     const passing = scored.filter(s => parseFloat(this.getTotalPercentage(s.id!)) >= 40).length;
     return ((passing / scored.length) * 100).toFixed(0) + '%';
   }
 
   getTopScore(): string {
-    const scored = this.students.map(s => this.getTotalPercentage(s.id!)).filter(v => v !== '—').map(v => parseFloat(v));
+    const scored = this.students().map(s => this.getTotalPercentage(s.id!)).filter(v => v !== '—').map(v => parseFloat(v));
     if (scored.length === 0) return '—';
     return Math.max(...scored).toFixed(1) + '%';
   }
 
   getGradedCount(): number {
-    return this.students.filter(s => this.getTotalPercentage(s.id!) !== '—').length;
+    return this.students().filter(s => this.getTotalPercentage(s.id!) !== '—').length;
   }
 
   getGradeDistribution() {
@@ -418,7 +433,7 @@ export class BulkGradingComponent implements OnInit {
       { label: 'E', min: 40, max: 49, color: 'bg-orange-500', textColor: 'text-orange-500', count: 0 },
       { label: 'F', min: 0, max: 39, color: 'bg-rose-500', textColor: 'text-rose-500', count: 0 },
     ];
-    this.students.forEach(s => {
+    this.students().forEach(s => {
       const total = this.getTotalPercentage(s.id!);
       if (total === '—') return;
       const pct = parseFloat(total);
@@ -438,32 +453,32 @@ export class BulkGradingComponent implements OnInit {
   ];
 
   saveGrades() {
-    if (!this.selectedClassId || !this.selectedSubjectId) {
+    if (!this.selectedClassId() || !this.selectedSubjectId()) {
       this.dialog.alert('Please select a class and a subject.', 'Validation Error', 'error').subscribe();
       return;
     }
 
-    const selectedSub = this.subjects.find(s => s.id === this.selectedSubjectId || s.name === this.selectedSubjectId);
-    const resolvedSubject = selectedSub?.id || this.selectedSubjectId;
+    const selectedSub = this.subjects().find(s => s.id === this.selectedSubjectId() || s.name === this.selectedSubjectId());
+    const resolvedSubject = selectedSub?.id || this.selectedSubjectId();
 
     const gradesToSave: Partial<Grade>[] = [];
-    
-    this.students.forEach(student => {
+
+    this.students().forEach(student => {
       if (student.id) {
-        const studentDraft = this.draftGrades.get(student.id);
+        const studentDraft = this.draftGrades().get(student.id);
         if (studentDraft) {
-          this.configuredColumns.forEach(col => {
+          this.configuredColumns().forEach(col => {
             const draft = studentDraft[col.category];
             if (draft && draft.score !== null) {
               gradesToSave.push({
-                id: draft.id, // Include ID if it's an update
+                id: draft.id,
                 student_id: student.id,
-                class_id: this.selectedClassId,
+                class_id: this.selectedClassId(),
                 subject: resolvedSubject,
                 category: col.category,
                 score: draft.score,
                 max_score: 100,
-                term: this.selectedTerm,
+                term: this.selectedTerm(),
                 remarks: 'Verified & Saved via Admin Console'
               });
             }
@@ -477,15 +492,15 @@ export class BulkGradingComponent implements OnInit {
       return;
     }
 
-    this.isSaving = true;
+    this.isSaving.set(true);
     this.gradeService.bulkCreateGrades(gradesToSave).subscribe({
       next: (res) => {
-        this.isSaving = false;
+        this.isSaving.set(false);
         this.dialog.alert(`Successfully saved ${res.imported} grades.`, 'Success', 'success').subscribe();
-        this.loadExistingGrades(); // Reload to get newly created IDs
+        this.loadExistingGrades();
       },
-      error: (err) => {
-        this.isSaving = false;
+      error: () => {
+        this.isSaving.set(false);
         this.dialog.alert('Failed to save grades.', 'Error', 'error').subscribe();
       }
     });
@@ -493,21 +508,20 @@ export class BulkGradingComponent implements OnInit {
 
   // --- Configuration Methods ---
   toggleConfigMode() {
-    this.isConfigMode = !this.isConfigMode;
+    this.isConfigMode.update(v => !v);
   }
 
   addColumn() {
-    if (!this.newColumnCategory || this.newColumnWeight <= 0) {
+    if (!this.newColumnCategory() || this.newColumnWeight() <= 0) {
       this.dialog.alert('Please enter a valid category name and weight percentage (e.g., 30 for 30%).', 'Validation', 'warning').subscribe();
       return;
     }
 
-    const weightDecimal = this.newColumnWeight / 100;
-    
-    // Add locally
+    const weightDecimal = this.newColumnWeight() / 100;
+
     const newWeight: GradeWeight = {
-      class_id: this.selectedClassId,
-      category: this.newColumnCategory.toUpperCase(),
+      class_id: this.selectedClassId(),
+      category: this.newColumnCategory().toUpperCase(),
       weight: weightDecimal
     };
 
@@ -515,10 +529,10 @@ export class BulkGradingComponent implements OnInit {
       next: (res) => {
         // Normalize the returned weight to decimal (API may return 20 for 20%)
         const normalized = { ...res, weight: res.weight > 1 ? res.weight / 100 : res.weight };
-        this.configuredColumns.push(normalized);
-        this.newColumnCategory = '';
-        this.newColumnWeight = 0;
-        this.initDraftGrades(); // Re-initialize rows
+        this.configuredColumns.update(cols => [...cols, normalized]);
+        this.newColumnCategory.set('');
+        this.newColumnWeight.set(0);
+        this.initDraftGrades();
       },
       error: () => {
         this.dialog.alert('Failed to save column configuration.', 'Error', 'error').subscribe();
@@ -527,14 +541,16 @@ export class BulkGradingComponent implements OnInit {
   }
 
   removeColumn(index: number) {
-    // In a real app, you'd add a DELETE endpoint for weights.
-    // For now, we just remove it locally and ignore any grades tied to it.
-    this.configuredColumns.splice(index, 1);
+    this.configuredColumns.update(cols => {
+      const updated = [...cols];
+      updated.splice(index, 1);
+      return updated;
+    });
     this.initDraftGrades();
   }
 
   getTotalWeightPercentage(): number {
-    return Math.round(this.configuredColumns.reduce((sum, col) => {
+    return Math.round(this.configuredColumns().reduce((sum, col) => {
       // weight is always stored as decimal (0.2 = 20%) after normalization
       const pct = col.weight > 1 ? col.weight : col.weight * 100;
       return sum + pct;
