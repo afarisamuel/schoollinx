@@ -219,7 +219,7 @@ export class GuardianDetailComponent implements OnInit {
         this.guardianService.resetPassword(g.id!).subscribe({
           next: (res) => {
             this.dialog.alert(
-              `Password reset successfully!<br><br><strong>Temporary Password:</strong> <code class="bg-indigo-500/10 text-indigo-400 px-2 py-1 rounded font-mono font-bold">${res.password}</code><br><br>A notification has been sent to ${g.email || g.phone_number}.`,
+              `Password reset successfully!<br><br><strong>Temporary Password:</strong> <code class="bg-teal-500/10 text-teal-400 px-2 py-1 rounded font-mono font-bold">${res.password}</code><br><br>A notification has been sent to ${g.email || g.phone_number}.`,
               'Password Reset Complete',
               'success'
             );

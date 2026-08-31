@@ -3,7 +3,7 @@
 
   <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm">
     <div class="flex items-center gap-4">
-      <div class="w-12 h-12 rounded-2xl bg-pink-500/10 text-pink-400 flex items-center justify-center text-xl">
+      <div class="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-400 flex items-center justify-center text-xl">
         <i class="fas fa-bullhorn"></i>
       </div>
       <div>
@@ -25,7 +25,7 @@
           <h2 class="text-base font-black text-text-primary">Broadcast Announcement</h2>
           <p class="text-xs text-text-muted">Send targeted bulletin notice to selected audience.</p>
         </div>
-        <span class="px-3 py-1 bg-pink-500/10 text-pink-400 border border-pink-500/20 rounded-xl text-[10px] font-black uppercase tracking-wider">
+        <span class="px-3 py-1 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded-xl text-[10px] font-black uppercase tracking-wider">
           Publish Notice
         </span>
       </div>
@@ -36,17 +36,17 @@
           <div class="grid grid-cols-3 gap-2">
             <button type="button" (click)="noticeAudience.set('ALL')"
                     class="py-2 rounded-xl text-xs font-black uppercase transition-all cursor-pointer border"
-                    [ngClass]="noticeAudience() === 'ALL' ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-bg-tertiary text-text-muted border-border-primary'">
+                    [ngClass]="noticeAudience() === 'ALL' ? 'bg-teal-600 text-white border-teal-500' : 'bg-bg-tertiary text-text-muted border-border-primary'">
               All
             </button>
             <button type="button" (click)="noticeAudience.set('STUDENTS')"
                     class="py-2 rounded-xl text-xs font-black uppercase transition-all cursor-pointer border"
-                    [ngClass]="noticeAudience() === 'STUDENTS' ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-bg-tertiary text-text-muted border-border-primary'">
+                    [ngClass]="noticeAudience() === 'STUDENTS' ? 'bg-teal-600 text-white border-teal-500' : 'bg-bg-tertiary text-text-muted border-border-primary'">
               Students
             </button>
             <button type="button" (click)="noticeAudience.set('PARENTS')"
                     class="py-2 rounded-xl text-xs font-black uppercase transition-all cursor-pointer border"
-                    [ngClass]="noticeAudience() === 'PARENTS' ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-bg-tertiary text-text-muted border-border-primary'">
+                    [ngClass]="noticeAudience() === 'PARENTS' ? 'bg-teal-600 text-white border-teal-500' : 'bg-bg-tertiary text-text-muted border-border-primary'">
               Guardians
             </button>
           </div>
@@ -56,14 +56,14 @@
           <label class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Notice Title *</label>
           <input type="text" [ngModel]="noticeTitle()" (ngModelChange)="noticeTitle.set($event)"
                  placeholder="e.g. Science Project Deadline & Submission Guidelines"
-                 class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary focus:outline-none focus:border-pink-500" />
+                 class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary focus:outline-none focus:border-teal-500" />
         </div>
 
         <div>
           <label class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Notice Content *</label>
           <textarea [ngModel]="noticeContent()" (ngModelChange)="noticeContent.set($event)" rows="4"
                     placeholder="Write detailed instructions, reminders, or agenda..."
-                    class="w-full px-4 py-3 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary resize-none focus:outline-none focus:border-pink-500"></textarea>
+                    class="w-full px-4 py-3 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary resize-none focus:outline-none focus:border-teal-500"></textarea>
         </div>
 
         <div>
@@ -73,7 +73,7 @@
         </div>
 
         <button (click)="postNotice()" [disabled]="isPosting()"
-                class="w-full py-3 bg-pink-600 hover:bg-pink-500 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-pink-600/20 cursor-pointer flex items-center justify-center gap-2">
+                class="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-teal-600/20 cursor-pointer flex items-center justify-center gap-2">
           <i class="fas fa-paper-plane"></i> Publish Announcement
         </button>
       </div>
@@ -95,7 +95,7 @@
         @for (notice of notices(); track notice.id) {
           <div class="p-5 bg-bg-tertiary border border-border-primary rounded-2xl space-y-2">
             <div class="flex items-center justify-between">
-              <span class="px-2.5 py-0.5 bg-pink-500/10 text-pink-400 border border-pink-500/20 rounded-lg text-[10px] font-black uppercase tracking-wider">
+              <span class="px-2.5 py-0.5 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded-lg text-[10px] font-black uppercase tracking-wider">
                 {{ notice.target_audience }}
               </span>
               <span class="text-[10px] text-text-muted">{{ notice.created_at | date:'mediumDate' }}</span>

@@ -16,7 +16,7 @@ export class StudentSearchDropdownComponent implements OnInit {
 
   @Input() studentId: string | null | undefined = '';
   @Input() placeholder: string = 'Search by name or ID...';
-  @Input() inputClass: string = 'w-full bg-bg-tertiary border border-border-primary rounded-xl pr-4 py-3 text-text-primary text-sm focus:outline-none focus:border-indigo-500 transition-colors';
+  @Input() inputClass: string = 'w-full bg-bg-tertiary border border-border-primary rounded-xl pr-4 py-3 text-text-primary text-sm focus:outline-none focus:border-teal-500 transition-colors';
   @Input() required: boolean = false;
   @Input() disabled: boolean = false;
 

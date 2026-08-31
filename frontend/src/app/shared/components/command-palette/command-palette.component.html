@@ -6,7 +6,7 @@
     >
       <!-- Search Input Header -->
       <div class="flex items-center gap-3.5 px-5 py-4 border-b border-slate-100 dark:border-border-primary/60 bg-slate-50/50 dark:bg-bg-tertiary/20">
-        <div class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 shadow-2xs">
+        <div class="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-950/80 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0 shadow-2xs">
           <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <circle cx="11" cy="11" r="8" />
             <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.3-4.3" />
@@ -48,7 +48,7 @@
             (click)="setCategory(cat.id)"
             class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 border"
             [ngClass]="{
-              'bg-indigo-600 text-white border-indigo-600 shadow-2xs shadow-indigo-600/30': activeCategory() === cat.id,
+              'bg-teal-600 text-white border-teal-600 shadow-2xs shadow-teal-600/30': activeCategory() === cat.id,
               'bg-slate-100/90 dark:bg-white/5 text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-200/80 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white': activeCategory() !== cat.id
             }"
           >
@@ -66,7 +66,7 @@
           <div
             class="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl cursor-pointer transition-all border group select-none"
             [ngClass]="{
-              'bg-indigo-50/90 dark:bg-indigo-950/50 border-indigo-200/90 dark:border-indigo-800/60 shadow-2xs': i === selectedIndex(),
+              'bg-teal-50/90 dark:bg-teal-950/50 border-teal-200/90 dark:border-teal-800/60 shadow-2xs': i === selectedIndex(),
               'bg-transparent border-transparent hover:bg-slate-50/90 dark:hover:bg-bg-tertiary/50': i !== selectedIndex()
             }"
             (mouseenter)="selectedIndex.set(i)"
@@ -75,12 +75,11 @@
             <!-- Badge Icon Container -->
             <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border transition-all duration-150"
                  [ngClass]="{
-                   'bg-emerald-100 dark:bg-emerald-950/70 border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-300 shadow-2xs': result.type === 'action',
-                   'bg-indigo-100 dark:bg-indigo-950/70 border-indigo-200 dark:border-indigo-800/50 text-indigo-700 dark:text-indigo-300 shadow-2xs': result.category === 'academic' || result.type === 'page',
-                   'bg-amber-100 dark:bg-amber-950/70 border-amber-200 dark:border-amber-800/50 text-amber-800 dark:text-amber-300 shadow-2xs': result.category === 'finance',
-                   'bg-sky-100 dark:bg-sky-950/70 border-sky-200 dark:border-sky-800/50 text-sky-700 dark:text-sky-300 shadow-2xs': result.category === 'registry',
-                   'bg-purple-100 dark:bg-purple-950/70 border-purple-200 dark:border-purple-800/50 text-purple-700 dark:text-purple-300 shadow-2xs': result.category === 'operations',
-                   'bg-rose-100 dark:bg-rose-950/70 border-rose-200 dark:border-rose-800/50 text-rose-700 dark:text-rose-300 shadow-2xs': result.category === 'communication'
+                    'bg-emerald-100 dark:bg-emerald-950/70 border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-300 shadow-2xs': result.type === 'action',
+                    'bg-teal-100 dark:bg-teal-950/70 border-teal-200 dark:border-teal-800/50 text-teal-700 dark:text-teal-300 shadow-2xs': result.category === 'academic' || result.category === 'operations' || result.type === 'page',
+                    'bg-amber-100 dark:bg-amber-950/70 border-amber-200 dark:border-amber-800/50 text-amber-800 dark:text-amber-300 shadow-2xs': result.category === 'finance',
+                    'bg-sky-100 dark:bg-sky-950/70 border-sky-200 dark:border-sky-800/50 text-sky-700 dark:text-sky-300 shadow-2xs': result.category === 'registry',
+                    'bg-rose-100 dark:bg-rose-950/70 border-rose-200 dark:border-rose-800/50 text-rose-700 dark:text-rose-300 shadow-2xs': result.category === 'communication'
                  }">
               @if (result.type === 'action') {
                 <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -122,7 +121,7 @@
                 {{ result.path }}
               </span>
               @if (i === selectedIndex()) {
-                <span class="px-2 py-1 rounded-lg bg-indigo-600 text-white text-[10px] font-black shadow-xs shadow-indigo-600/30 flex items-center gap-1 animate-scale-up">
+                <span class="px-2 py-1 rounded-lg bg-teal-600 text-white text-[10px] font-black shadow-xs shadow-teal-600/30 flex items-center gap-1 animate-scale-up">
                   Jump ↵
                 </span>
               }
@@ -141,14 +140,14 @@
               <p class="text-xs text-slate-400 mt-1">Try searching for keywords like "tuition", "admit", "grades", "exam", or "bus"</p>
               <button
                 (click)="onSearch(''); setCategory('all')"
-                class="mt-3 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 transition-colors cursor-pointer border border-indigo-200 dark:border-indigo-800"
+                class="mt-3 px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 text-xs font-bold hover:bg-teal-100 transition-colors cursor-pointer border border-teal-200 dark:border-teal-800"
               >
                 Reset Search Filters
               </button>
             </div>
           } @else {
             <div class="py-10 px-4 text-center space-y-3 text-slate-400 dark:text-text-muted">
-              <div class="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto">
+              <div class="w-10 h-10 rounded-2xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center mx-auto">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
               </div>
               <p class="text-xs font-bold text-slate-600 dark:text-slate-300">Quick Navigation & Instant Commands</p>

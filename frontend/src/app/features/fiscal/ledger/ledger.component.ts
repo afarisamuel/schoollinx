@@ -26,7 +26,7 @@ export class LedgerComponent implements OnInit {
   typeColors: Record<AccountType, string> = {
     ASSET:     'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
     LIABILITY: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
-    EQUITY:    'text-purple-400 bg-purple-500/10 border-purple-500/20',
+    EQUITY:    'text-teal-400 bg-teal-500/10 border-teal-500/20',
     REVENUE:   'text-blue-400 bg-blue-500/10 border-blue-500/20',
     EXPENSE:   'text-amber-400 bg-amber-500/10 border-amber-500/20',
   };

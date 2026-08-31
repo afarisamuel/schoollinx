@@ -1,22 +1,22 @@
 <div class="max-w-[1440px] mx-auto p-4 md:p-8 animate-fade-in pb-24">
     @if (loading()) {
         <div class="flex items-center justify-center h-64">
-            <div class="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+            <div class="w-12 h-12 border-4 border-teal-500/30 border-t-teal-500 rounded-full animate-spin"></div>
         </div>
     } @else if (exam()) {
         <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10">
             <div>
-                <a routerLink="/exams" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 uppercase tracking-widest flex items-center gap-1 mb-4 transition-colors">
+                <a routerLink="/exams" class="text-xs font-bold text-teal-400 hover:text-teal-300 uppercase tracking-widest flex items-center gap-1 mb-4 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
                     Back to Exams
                 </a>
-                <h1 class="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-text-primary to-text-secondary tracking-tight mb-2">
+                <h1 class="text-3xl md:text-5xl font-black text-teal-400 tracking-tight mb-2">
                     {{ exam()?.title }}
                 </h1>
                 <p class="text-text-muted font-medium text-sm">{{ exam()?.description }}</p>
                 <div class="flex items-center gap-4 mt-4">
                     <span class="px-3 py-1 bg-bg-tertiary rounded-lg text-[10px] font-black uppercase tracking-widest">{{ exam()?.academic_year }} - {{ exam()?.term }}</span>
-                    <span class="px-3 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest">{{ exam()?.status }}</span>
+                    <span class="px-3 py-1 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest">{{ exam()?.status }}</span>
                 </div>
             </div>
         </div>
@@ -29,7 +29,7 @@
         @if (activeTab() === 'schedules') {
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-xl font-bold text-text-primary">Exam Schedules</h2>
-                <button (click)="addingSchedule.set(true)" *ngIf="!addingSchedule()" class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition-colors">Add Schedule</button>
+                <button (click)="addingSchedule.set(true)" *ngIf="!addingSchedule()" class="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-xl text-xs font-bold transition-colors">Add Schedule</button>
             </div>
 
             @if (addingSchedule()) {
@@ -63,7 +63,7 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-3 mt-6">
-                        <button (click)="saveSchedule()" class="px-6 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition-colors">Save Schedule</button>
+                        <button (click)="saveSchedule()" class="px-6 py-2.5 bg-teal-500 hover:bg-teal-600 text-white rounded-xl text-xs font-bold transition-colors">Save Schedule</button>
                         <button (click)="addingSchedule.set(false)" class="px-6 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-xs font-bold hover:bg-bg-primary transition-colors">Cancel</button>
                     </div>
                 </div>
@@ -92,7 +92,7 @@
                                 </td>
                                 <td class="p-6 text-sm font-medium">{{ sch.max_score }}</td>
                                 <td class="p-6 text-right">
-                                    <button (click)="selectSchedule(sch.id!)" class="px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all border border-indigo-500/20">Enter Results</button>
+                                    <button (click)="selectSchedule(sch.id!)" class="px-4 py-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all border border-teal-500/20">Enter Results</button>
                                 </td>
                             </tr>
                         } @empty {
@@ -109,7 +109,7 @@
                     <div class="p-6 bg-bg-secondary border border-border-primary rounded-3xl">
                         <div class="flex justify-between items-center mb-6">
                             <h3 class="text-lg font-bold">Results Entry</h3>
-                            <button class="px-4 py-2 bg-indigo-500 text-white rounded-xl text-xs font-bold">Save All Results</button>
+                            <button class="px-4 py-2 bg-teal-500 text-white rounded-xl text-xs font-bold">Save All Results</button>
                         </div>
                         <div class="text-center p-12 text-text-muted border border-dashed border-border-primary rounded-2xl">
                             <p class="font-bold">Select a student roster to enter results.</p>

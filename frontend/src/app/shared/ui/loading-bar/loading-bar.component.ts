@@ -9,14 +9,14 @@ import { LoadingService } from '../../../core/services/loading.service';
   template: `
     @if (loadingService.isLoading()) {
       <!-- Top Glowing Indeterminate Progress Line -->
-      <div class="fixed top-0 left-0 right-0 h-[3px] z-[99999] overflow-hidden pointer-events-none bg-indigo-950/20">
+      <div class="fixed top-0 left-0 right-0 h-[3px] z-[99999] overflow-hidden pointer-events-none bg-teal-950/20">
         <div class="loading-bar-inner h-full w-full"></div>
       </div>
 
       <!-- Subtle Floating Sync Indicator -->
       @if (showPill()) {
         <div class="fixed bottom-5 right-5 z-[99999] flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-bg-secondary/90 border border-border-primary backdrop-blur-xl shadow-2xl animate-fade-in pointer-events-none transition-all duration-300">
-          <div class="w-3.5 h-3.5 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+          <div class="w-3.5 h-3.5 border-2 border-teal-500/30 border-t-teal-500 rounded-full animate-spin"></div>
           <span class="text-[11px] font-bold text-text-primary tracking-wide">Syncing data...</span>
         </div>
       }
@@ -36,8 +36,8 @@ import { LoadingService } from '../../../core/services/loading.service';
     }
 
     .loading-bar-inner {
-      background: linear-gradient(90deg, #6366f1 0%, #a855f7 50%, #10b981 100%);
-      box-shadow: 0 0 12px rgba(99, 102, 241, 0.8), 0 0 4px rgba(168, 85, 247, 0.6);
+      background: #14b8a6;
+      box-shadow: 0 0 12px rgba(20, 184, 166, 0.8);
       animation: loadingSlide 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
       transform-origin: left center;
     }

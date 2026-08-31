@@ -18,24 +18,24 @@
 
   <div *ngIf="!isLoading && upcomingHomeworks.length > 0" class="space-y-4">
     <h3 class="text-lg font-bold text-text-primary flex items-center gap-2">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
       Upcoming Tasks
     </h3>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div *ngFor="let hw of upcomingHomeworks" class="bg-bg-secondary border border-border-primary rounded-xl p-6 hover:border-indigo-500/30 transition-colors">
+      <div *ngFor="let hw of upcomingHomeworks" class="bg-bg-secondary border border-border-primary rounded-xl p-6 hover:border-teal-500/30 transition-colors">
         <div class="flex justify-between items-start mb-2">
           <h4 class="text-lg font-bold text-text-primary">{{ hw.title }}</h4>
-          <span class="px-2.5 py-1 bg-indigo-500/10 text-indigo-400 text-[10px] font-bold uppercase tracking-wider rounded-lg">{{ hw.subject }}</span>
+          <span class="px-2.5 py-1 bg-teal-500/10 text-teal-400 text-[10px] font-bold uppercase tracking-wider rounded-lg">{{ hw.subject }}</span>
         </div>
         <p class="text-sm text-text-secondary mb-4">{{ hw.description }}</p>
         <div class="flex items-center justify-between mt-4 border-t border-border-primary pt-4">
           <div class="flex items-center gap-2 text-xs font-bold text-text-muted">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
             Due: {{ hw.due_date | date:'mediumDate' }}
           </div>
           
           <button (click)="openSubmitModal(hw)" class="px-4 py-2 rounded-xl text-xs font-bold transition-all"
-            [ngClass]="getSubmissionForHomework(hw.id) ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'">
+            [ngClass]="getSubmissionForHomework(hw.id) ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-teal-500 hover:bg-teal-600 text-white shadow-lg shadow-teal-500/20'">
             {{ getSubmissionForHomework(hw.id) ? 'View Submission' : 'Submit Work' }}
           </button>
         </div>
@@ -91,11 +91,11 @@
       <div class="space-y-4">
         <div>
           <label class="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Answer Content / Notes</label>
-          <textarea [(ngModel)]="submissionContent" rows="4" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-text-muted" placeholder="Write your answer or notes here..."></textarea>
+          <textarea [(ngModel)]="submissionContent" rows="4" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all placeholder:text-text-muted" placeholder="Write your answer or notes here..."></textarea>
         </div>
         <div>
           <label class="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Attachment URL (Optional)</label>
-          <input [(ngModel)]="submissionFileUrl" type="text" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-text-muted" placeholder="https://drive.google.com/...">
+          <input [(ngModel)]="submissionFileUrl" type="text" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all placeholder:text-text-muted" placeholder="https://drive.google.com/...">
         </div>
       </div>
     </div>
@@ -104,7 +104,7 @@
       <button (click)="closeSubmitModal()" class="px-5 py-2.5 rounded-xl text-sm font-bold text-text-secondary hover:bg-bg-tertiary transition-colors border border-transparent hover:border-border-primary">
         Cancel
       </button>
-      <button (click)="submitHomework()" [disabled]="isSubmitting" class="px-5 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-500/25 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+      <button (click)="submitHomework()" [disabled]="isSubmitting" class="px-5 py-2.5 bg-teal-500 hover:bg-teal-600 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-teal-500/25 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
         <svg *ngIf="isSubmitting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
         {{ isSubmitting ? 'Submitting...' : 'Submit Work' }}
       </button>

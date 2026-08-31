@@ -12,7 +12,7 @@
                 Create Custom
             </button>
             <button (click)="generateWeekly()" [disabled]="isGenerating()"
-                    class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-sm font-bold shadow-lg shadow-indigo-500/30 hover:scale-105 active:scale-95 transition-all disabled:opacity-60 disabled:scale-100">
+                    class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-bold shadow-lg shadow-teal-500/30 hover:scale-105 active:scale-95 transition-all disabled:opacity-60 disabled:scale-100">
                 @if (isGenerating()) {
                     <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     Generating...
@@ -26,14 +26,14 @@
 
     <!-- Custom Builder -->
     @if (showBuilder()) {
-    <div class="p-6 rounded-3xl bg-bg-secondary border border-indigo-500/30 shadow-xl animate-fade-in flex flex-col gap-4">
+    <div class="p-6 rounded-3xl bg-bg-secondary border border-teal-500/30 shadow-xl animate-fade-in flex flex-col gap-4">
         <h2 class="text-lg font-black text-text-primary">New Custom Newsletter</h2>
         
         <div>
             <label class="block text-xs font-bold uppercase tracking-widest text-text-muted mb-2">Subject Title</label>
             <input type="text" [value]="newTitle()" (input)="newTitle.set($any($event.target).value)" 
                    placeholder="e.g. End of Term Updates"
-                   class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 text-sm text-text-primary focus:outline-none focus:border-indigo-500 transition-all">
+                   class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 text-sm text-text-primary focus:outline-none focus:border-teal-500 transition-all">
         </div>
 
         <div>
@@ -49,14 +49,14 @@
             </div>
             <!-- Editor Area -->
             <div #editor contenteditable="true" (input)="newContent.set($any($event.target).innerHTML)"
-                 class="w-full min-h-[200px] bg-bg-tertiary border border-border-primary rounded-b-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-indigo-500 transition-all prose prose-sm prose-invert max-w-none">
+                 class="w-full min-h-[200px] bg-bg-tertiary border border-border-primary rounded-b-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-teal-500 transition-all prose prose-sm prose-invert max-w-none">
             </div>
         </div>
 
         <div class="flex justify-end gap-3 mt-2">
             <button (click)="showBuilder.set(false)" class="px-4 py-2 text-sm font-bold text-text-muted hover:text-text-primary">Cancel</button>
             <button (click)="createCustom()" [disabled]="!newTitle().trim() || !newContent().trim() || isGenerating()"
-                    class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-500 disabled:opacity-50 transition-all">
+                    class="px-5 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-bold hover:bg-teal-500 disabled:opacity-50 transition-all">
                 Save Draft
             </button>
         </div>
@@ -82,11 +82,11 @@
     <!-- Newsletter List -->
     @if (isLoading()) {
         <div class="h-64 flex items-center justify-center">
-            <div class="w-8 h-8 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+            <div class="w-8 h-8 border-4 border-teal-500/30 border-t-teal-500 rounded-full animate-spin"></div>
         </div>
     } @else if (newsletters().length === 0) {
         <div class="py-20 text-center">
-            <div class="w-16 h-16 mx-auto rounded-full bg-indigo-500/10 text-indigo-500 flex items-center justify-center mb-4">
+            <div class="w-16 h-16 mx-auto rounded-full bg-teal-500/10 text-teal-500 flex items-center justify-center mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1"/></svg>
             </div>
             <h2 class="text-lg font-bold text-text-primary mb-2">No newsletters yet</h2>
@@ -96,7 +96,7 @@
         <div class="space-y-3">
             @for (n of newsletters(); track n.id) {
                 <div class="p-5 rounded-2xl border border-border-primary flex flex-col md:flex-row md:items-center gap-4" style="background: var(--bg-secondary);">
-                    <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center flex-shrink-0">
+                    <div class="w-12 h-12 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center flex-shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h9"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/><path d="M19 16v6"/><path d="M16 19h6"/></svg>
                     </div>
                     <div class="flex-1 min-w-0">

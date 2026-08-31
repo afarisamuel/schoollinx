@@ -365,7 +365,7 @@ export class BulkGradingComponent implements OnInit {
     const map: Record<string, string> = {
       'A': 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
       'B': 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-      'C': 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20',
+      'C': 'bg-teal-500/10 text-teal-500 border-teal-500/20',
       'D': 'bg-amber-500/10 text-amber-500 border-amber-500/20',
       'E': 'bg-orange-500/10 text-orange-500 border-orange-500/20',
       'F': 'bg-rose-500/10 text-rose-500 border-rose-500/20',
@@ -410,7 +410,7 @@ export class BulkGradingComponent implements OnInit {
     const bands = [
       { label: 'A', min: 80, max: 100, color: 'bg-emerald-500', textColor: 'text-emerald-500', count: 0 },
       { label: 'B', min: 70, max: 79, color: 'bg-blue-500', textColor: 'text-blue-500', count: 0 },
-      { label: 'C', min: 60, max: 69, color: 'bg-indigo-500', textColor: 'text-indigo-500', count: 0 },
+      { label: 'C', min: 60, max: 69, color: 'bg-teal-500', textColor: 'text-teal-500', count: 0 },
       { label: 'D', min: 50, max: 59, color: 'bg-amber-500', textColor: 'text-amber-500', count: 0 },
       { label: 'E', min: 40, max: 49, color: 'bg-orange-500', textColor: 'text-orange-500', count: 0 },
       { label: 'F', min: 0, max: 39, color: 'bg-rose-500', textColor: 'text-rose-500', count: 0 },
@@ -428,7 +428,7 @@ export class BulkGradingComponent implements OnInit {
   readonly gradeKey = [
     { label: 'A', range: '80–100%', badgeClass: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
     { label: 'B', range: '70–79%', badgeClass: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
-    { label: 'C', range: '60–69%', badgeClass: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20' },
+    { label: 'C', range: '60–69%', badgeClass: 'bg-teal-500/10 text-teal-500 border-teal-500/20' },
     { label: 'D', range: '50–59%', badgeClass: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
     { label: 'E', range: '40–49%', badgeClass: 'bg-orange-500/10 text-orange-500 border-orange-500/20' },
     { label: 'F', range: '0–39%', badgeClass: 'bg-rose-500/10 text-rose-500 border-rose-500/20' },

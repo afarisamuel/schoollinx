@@ -30,7 +30,7 @@
       @if (!isCollapsed()) {
       <div class="min-w-0 flex-1 animate-fade-in">
         <h2
-          class="text-sm font-black tracking-tight text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors leading-tight truncate">
+          class="text-sm font-black tracking-tight text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors leading-tight truncate">
           {{ tenantProfile()?.name || 'SchoolLinx' }}
         </h2>
         <div class="flex items-center gap-1.5 mt-0.5">
@@ -47,7 +47,7 @@
     <!-- @if (!isCollapsed()) {
       <button
         (click)="toggleCollapse.emit()"
-        class="hidden lg:flex ml-auto w-8 h-8 rounded-xl bg-slate-100 hover:bg-indigo-50 dark:bg-bg-tertiary dark:hover:bg-indigo-500/15 text-slate-500 hover:text-indigo-600 dark:text-text-muted dark:hover:text-indigo-400 items-center justify-center border border-slate-200/80 dark:border-border-primary/60 transition-all cursor-pointer shadow-2xs"
+        class="hidden lg:flex ml-auto w-8 h-8 rounded-xl bg-slate-100 hover:bg-teal-50 dark:bg-bg-tertiary dark:hover:bg-teal-500/15 text-slate-500 hover:text-teal-600 dark:text-text-muted dark:hover:text-teal-400 items-center justify-center border border-slate-200/80 dark:border-border-primary/60 transition-all cursor-pointer shadow-2xs"
         title="Collapse sidebar"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
@@ -55,7 +55,7 @@
     } @else {
       <button
         (click)="toggleCollapse.emit()"
-        class="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-indigo-600 text-white items-center justify-center shadow-lg shadow-indigo-500/30 hover:scale-110 transition-all cursor-pointer z-10"
+        class="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-teal-600 text-white items-center justify-center shadow-lg shadow-teal-500/30 hover:scale-110 transition-all cursor-pointer z-10"
         title="Expand sidebar"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m9 18 6-6-6-6"/></svg>
@@ -82,7 +82,7 @@
         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
       <input type="text" [value]="searchQuery()" (input)="onSearchInput($event)" placeholder="Quick find module..."
-        class="w-full pl-9 pr-14 py-2 bg-slate-100/90 hover:bg-slate-100 dark:bg-bg-tertiary/70 dark:hover:bg-bg-tertiary border border-slate-200/80 dark:border-border-primary/60 focus:bg-white dark:focus:bg-bg-tertiary focus:border-indigo-500 rounded-xl text-xs font-semibold text-slate-900 dark:text-text-primary placeholder:text-slate-400 dark:placeholder:text-text-muted/60 focus:outline-none transition-all shadow-inner" />
+        class="w-full pl-9 pr-14 py-2 bg-slate-100/90 hover:bg-slate-100 dark:bg-bg-tertiary/70 dark:hover:bg-bg-tertiary border border-slate-200/80 dark:border-border-primary/60 focus:bg-white dark:focus:bg-bg-tertiary focus:border-teal-500 rounded-xl text-xs font-semibold text-slate-900 dark:text-text-primary placeholder:text-slate-400 dark:placeholder:text-text-muted/60 focus:outline-none transition-all shadow-inner" />
       @if (searchQuery().length > 0) {
       <button (click)="clearSearch()"
         class="absolute right-2.5 text-slate-400 hover:text-slate-700 dark:text-text-muted dark:hover:text-text-primary transition-colors cursor-pointer"
@@ -123,7 +123,7 @@
           <!-- Hub Portal Quick Direct Link (if available) -->
           @if (group.hubRoute) {
           <a [routerLink]="group.hubRoute" (click)="$event.stopPropagation(); onNavClick()"
-            class="p-1 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:text-text-muted dark:hover:text-indigo-400 dark:hover:bg-indigo-500/10 transition-colors"
+            class="p-1 rounded-md text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:text-text-muted dark:hover:text-teal-400 dark:hover:bg-teal-500/10 transition-colors"
             title="Open Hub View">
             <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
               stroke="currentColor" stroke-width="2">
@@ -154,21 +154,21 @@
         <a [routerLink]="item.route" (click)="onNavClick()"
           class="relative flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs transition-all duration-150 group cursor-pointer border"
           [ngClass]="{
-                  'bg-indigo-50/90 dark:bg-indigo-500/15 text-indigo-900 dark:text-indigo-200 border-indigo-200/90 dark:border-indigo-500/30 font-bold shadow-2xs': isItemActive(item),
+                  'bg-teal-50/90 dark:bg-teal-500/15 text-teal-900 dark:text-teal-200 border-teal-200/90 dark:border-teal-500/30 font-bold shadow-2xs': isItemActive(item),
                   'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-white/5 border-transparent font-semibold': !isItemActive(item),
                   'justify-center': isCollapsed()
                 }">
           <!-- Left active highlight bar -->
           @if (isItemActive(item)) {
-          <div class="absolute left-0 top-2 bottom-2 w-1 bg-indigo-600 dark:bg-indigo-400 rounded-r-full shadow-xs">
+          <div class="absolute left-0 top-2 bottom-2 w-1 bg-teal-600 dark:bg-teal-400 rounded-r-full shadow-xs">
           </div>
           }
 
           <!-- Structured Icon Badge Container -->
           <div class="w-7.5 h-7.5 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150"
             [ngClass]="{
-                    'bg-indigo-600 dark:bg-indigo-500 text-white shadow-2xs shadow-indigo-600/30': isItemActive(item),
-                    'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 dark:group-hover:bg-indigo-950/60 dark:group-hover:text-indigo-300': !isItemActive(item)
+                    'bg-teal-600 dark:bg-teal-500 text-white shadow-2xs shadow-teal-600/30': isItemActive(item),
+                    'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 group-hover:bg-teal-50 group-hover:text-teal-600 dark:group-hover:bg-teal-950/60 dark:group-hover:text-teal-300': !isItemActive(item)
                   }">
             <svg class="w-4 h-4 shrink-0 transition-transform duration-150 group-hover:scale-110"
               xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -185,7 +185,7 @@
           <!-- Unread or Count Badge -->
           @if (item.badge && item.badge() !== null) {
           <span
-            class="px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-600 dark:bg-indigo-500 text-white ring-1 ring-white/20 shadow-2xs animate-pulse">
+            class="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-600 dark:bg-teal-500 text-white ring-1 ring-white/20 shadow-2xs animate-pulse">
             {{ item.badge() }}
           </span>
           }
@@ -197,7 +197,7 @@
             class="pointer-events-none absolute left-full ml-3 px-3 py-1.5 bg-slate-900 dark:bg-bg-secondary text-white dark:text-text-primary border border-slate-800 dark:border-border-primary rounded-xl text-xs font-bold shadow-2xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 flex items-center gap-2">
             {{ item.label }}
             @if (item.badge && item.badge() !== null) {
-            <span class="px-1.5 py-0.2 rounded-full text-[9px] bg-indigo-500 text-white">
+            <span class="px-1.5 py-0.2 rounded-full text-[9px] bg-teal-500 text-white">
               {{ item.badge() }}
             </span>
             }
@@ -206,7 +206,7 @@
           <!-- Collapsed Badge Dot -->
           @if (item.badge && item.badge() !== null) {
           <span
-            class="absolute top-2 right-2 w-2 h-2 rounded-full bg-indigo-600 ring-2 ring-white dark:ring-bg-secondary animate-ping"></span>
+            class="absolute top-2 right-2 w-2 h-2 rounded-full bg-teal-600 ring-2 ring-white dark:ring-bg-secondary animate-ping"></span>
           }
           }
         </a>
@@ -218,7 +218,7 @@
     <div class="px-4 py-8 text-center animate-fade-in">
       <p class="text-xs font-medium text-slate-500 dark:text-text-muted">No matching modules found</p>
       <button (click)="clearSearch()"
-        class="mt-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline uppercase tracking-wider cursor-pointer">
+        class="mt-2 text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline uppercase tracking-wider cursor-pointer">
         Clear filter
       </button>
     </div>
@@ -232,7 +232,7 @@
       class="flex items-center gap-3 p-1.5 rounded-2xl hover:bg-slate-200/60 dark:hover:bg-bg-tertiary transition-colors"
       [ngClass]="{'justify-center': isCollapsed()}">
       <div routerLink="/profile" (click)="onNavClick()"
-        class="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-black text-xs flex items-center justify-center cursor-pointer hover:scale-105 transition-transform shadow-xs shadow-indigo-500/25"
+        class="w-9 h-9 shrink-0 rounded-xl bg-teal-600 text-white font-black text-xs flex items-center justify-center cursor-pointer hover:scale-105 transition-transform shadow-xs shadow-teal-500/25"
         title="Profile Settings">
         {{ userInitial() }}
       </div>
@@ -244,7 +244,7 @@
         </p>
         <div class="flex items-center gap-1.5 mt-0.5">
           <span
-            class="inline-block px-1.5 py-0.2 rounded text-[9px] font-black uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60 leading-tight truncate">
+            class="inline-block px-1.5 py-0.2 rounded text-[9px] font-black uppercase tracking-wider bg-teal-100 dark:bg-teal-950/80 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800/60 leading-tight truncate">
             {{ userRoleLabel() }}
           </span>
         </div>

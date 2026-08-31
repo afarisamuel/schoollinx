@@ -5,7 +5,7 @@
     <div>
       <div class="flex items-center gap-3">
         <h1 class="text-2xl md:text-3xl font-black tracking-tight text-text-primary">Guardian & Parent Registry</h1>
-        <span class="px-3 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-bold rounded-full">
+        <span class="px-3 py-1 bg-teal-500/10 text-teal-400 border border-teal-500/20 text-xs font-bold rounded-full">
           {{ totalGuardians() }} Registered
         </span>
       </div>
@@ -23,12 +23,12 @@
         <span>Import CSV</span>
       </button>
 
-      <button (click)="sendPortalInvites()" [disabled]="isSendingInvites()" class="px-4 py-2.5 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/20 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50">
+      <button (click)="sendPortalInvites()" [disabled]="isSendingInvites()" class="px-4 py-2.5 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/20 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50">
         <i class="fas fa-paper-plane"></i>
         <span>{{ isSendingInvites() ? 'Sending...' : 'Send Invites' }}</span>
       </button>
 
-      <button (click)="openAddModal()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer">
+      <button (click)="openAddModal()" class="px-5 py-2.5 bg-teal-600 hover:bg-teal-500 active:scale-95 text-white font-bold text-xs rounded-xl shadow-lg shadow-teal-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         <span>Add Guardian</span>
       </button>
@@ -41,7 +41,7 @@
     <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm relative overflow-hidden group">
       <div class="flex items-center justify-between mb-3">
         <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Total Guardians</span>
-        <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-lg">
+        <div class="w-10 h-10 rounded-2xl bg-teal-500/10 text-teal-400 flex items-center justify-center text-lg">
           <i class="fas fa-user-friends"></i>
         </div>
       </div>
@@ -68,11 +68,11 @@
     <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm relative overflow-hidden group">
       <div class="flex items-center justify-between mb-3">
         <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Linked Wards</span>
-        <div class="w-10 h-10 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-lg">
+        <div class="w-10 h-10 rounded-2xl bg-teal-500/10 text-teal-400 flex items-center justify-center text-lg">
           <i class="fas fa-graduation-cap"></i>
         </div>
       </div>
-      <div class="text-3xl font-black text-purple-400">{{ totalLinkedWards() }}</div>
+      <div class="text-3xl font-black text-teal-400">{{ totalLinkedWards() }}</div>
       <p class="text-xs text-text-muted mt-1">Students connected to parents</p>
     </div>
   </div>
@@ -86,7 +86,7 @@
         [ngModel]="searchQuery()"
         (ngModelChange)="searchQuery.set($event)"
         placeholder="Search by guardian name, phone, email, ward..."
-        class="w-full pl-11 pr-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-indigo-500 transition-colors"
+        class="w-full pl-11 pr-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-teal-500 transition-colors"
       />
     </div>
 
@@ -95,7 +95,7 @@
       <select
         [ngModel]="selectedRelationship()"
         (ngModelChange)="selectedRelationship.set($event)"
-        class="bg-bg-tertiary border border-border-primary text-text-primary text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 transition-colors w-full md:w-auto font-medium"
+        class="bg-bg-tertiary border border-border-primary text-text-primary text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-teal-500 transition-colors w-full md:w-auto font-medium"
       >
         <option value="all">All Relationships</option>
         @for (r of relationships; track r) {
@@ -108,7 +108,7 @@
   <!-- Loading State -->
   @if (isLoading()) {
     <div class="flex flex-col items-center justify-center py-20 bg-bg-secondary border border-border-primary rounded-3xl">
-      <div class="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
+      <div class="w-12 h-12 border-4 border-teal-500/20 border-t-teal-500 rounded-full animate-spin mb-4"></div>
       <p class="text-text-muted font-bold text-sm">Loading guardians and linked wards...</p>
     </div>
   } @else {
@@ -116,14 +116,14 @@
     <!-- Empty State -->
     @if (filteredGuardians().length === 0) {
       <div class="flex flex-col items-center justify-center py-20 px-4 bg-bg-secondary border border-border-primary rounded-3xl text-center">
-        <div class="w-16 h-16 rounded-3xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-2xl mb-4">
+        <div class="w-16 h-16 rounded-3xl bg-teal-500/10 text-teal-400 flex items-center justify-center text-2xl mb-4">
           <i class="fas fa-user-plus"></i>
         </div>
         <h3 class="text-lg font-black text-text-primary mb-1">No Guardians Found</h3>
         <p class="text-sm text-text-muted max-w-sm mb-6">
           {{ searchQuery() ? 'No guardians matched your search query.' : 'There are no guardians registered in the system yet. Add your first guardian to provision portal access.' }}
         </p>
-        <button (click)="openAddModal()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm rounded-2xl shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all">
+        <button (click)="openAddModal()" class="px-6 py-3 bg-teal-600 hover:bg-teal-500 text-white font-bold text-sm rounded-2xl shadow-lg shadow-teal-600/30 flex items-center gap-2 transition-all">
           <i class="fas fa-plus"></i> Add New Guardian
         </button>
       </div>
@@ -149,11 +149,11 @@
                   <!-- Name & Avatar -->
                   <td class="py-4 px-6">
                     <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 border border-indigo-500/20 flex items-center justify-center font-black text-indigo-400 text-sm shrink-0">
+                      <div class="w-10 h-10 rounded-2xl bg-teal-500/20 border border-teal-500/20 flex items-center justify-center font-black text-teal-400 text-sm shrink-0">
                         {{ guardian.first_name.charAt(0) }}{{ guardian.last_name.charAt(0) }}
                       </div>
                       <div>
-                        <a [routerLink]="['/guardians', guardian.id]" class="font-black text-text-primary hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                        <a [routerLink]="['/guardians', guardian.id]" class="font-black text-text-primary hover:text-teal-400 transition-colors flex items-center gap-1.5">
                           {{ guardian.first_name }} {{ guardian.last_name }}
                           <i class="fas fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"></i>
                         </a>
@@ -184,7 +184,7 @@
 
                   <!-- Relationship -->
                   <td class="py-4 px-6">
-                    <span class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-bold">
+                    <span class="px-2.5 py-1 rounded-lg bg-teal-500/10 text-teal-400 border border-teal-500/20 text-xs font-bold">
                       {{ guardian.relationship || 'Parent' }}
                     </span>
                   </td>
@@ -209,9 +209,9 @@
                       <div class="flex flex-wrap gap-1.5 items-center">
                         @for (student of guardian.students; track student.id) {
                           <a [routerLink]="['/students/details', student.id]" 
-                             class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-bg-tertiary hover:bg-indigo-500/10 border border-border-primary hover:border-indigo-500/30 rounded-lg text-xs font-bold text-text-primary hover:text-indigo-400 transition-colors"
+                             class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-bg-tertiary hover:bg-teal-500/10 border border-border-primary hover:border-teal-500/30 rounded-lg text-xs font-bold text-text-primary hover:text-teal-400 transition-colors"
                              [title]="'View ' + student.first_name + '\'s profile'">
-                            <i class="fas fa-child text-[10px] text-indigo-400"></i>
+                            <i class="fas fa-child text-[10px] text-teal-400"></i>
                             <span>{{ student.first_name }} {{ student.last_name }}</span>
                             @if (student.class?.name) {
                               <span class="text-[10px] text-text-muted font-normal">({{ student.class?.name }})</span>
@@ -228,7 +228,7 @@
                   <td class="py-4 px-6 text-right">
                     <div class="flex items-center justify-end gap-2">
                       <a [routerLink]="['/guardians', guardian.id]" 
-                         class="px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-xl text-xs font-bold transition-colors flex items-center gap-1"
+                         class="px-3 py-1.5 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 rounded-xl text-xs font-bold transition-colors flex items-center gap-1"
                          title="Manage linked students and details">
                         <i class="fas fa-link text-[10px]"></i> Manage Wards
                       </a>
@@ -280,7 +280,7 @@
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">First Name *</label>
               <input type="text" formControlName="first_name" placeholder="e.g., David"
-                     class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500 transition-colors" />
+                     class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-teal-500 transition-colors" />
               @if (guardianForm.get('first_name')?.invalid && guardianForm.get('first_name')?.touched) {
                 <span class="text-xs text-rose-400 mt-1 block">First name is required.</span>
               }
@@ -288,7 +288,7 @@
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Last Name *</label>
               <input type="text" formControlName="last_name" placeholder="e.g., Mensah"
-                     class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500 transition-colors" />
+                     class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-teal-500 transition-colors" />
               @if (guardianForm.get('last_name')?.invalid && guardianForm.get('last_name')?.touched) {
                 <span class="text-xs text-rose-400 mt-1 block">Last name is required.</span>
               }
@@ -300,7 +300,7 @@
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Phone Number *</label>
               <input type="tel" formControlName="phone_number" placeholder="e.g., 0244123456"
-                     class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500 transition-colors" />
+                     class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-teal-500 transition-colors" />
               @if (guardianForm.get('phone_number')?.invalid && guardianForm.get('phone_number')?.touched) {
                 <span class="text-xs text-rose-400 mt-1 block">Phone number is required.</span>
               }
@@ -308,7 +308,7 @@
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Email Address</label>
               <input type="email" formControlName="email" placeholder="e.g., parent@example.com"
-                     class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500 transition-colors" />
+                     class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-teal-500 transition-colors" />
               <span class="text-[10px] text-text-muted mt-1 block">Login details and alerts will be emailed here.</span>
             </div>
           </div>
@@ -318,7 +318,7 @@
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Relationship to Student *</label>
               <select formControlName="relationship"
-                      class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500 transition-colors font-medium">
+                      class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-teal-500 transition-colors font-medium">
                 @for (r of relationships; track r) {
                   <option [value]="r">{{ r }}</option>
                 }
@@ -327,7 +327,7 @@
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Gender</label>
               <select formControlName="gender"
-                      class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500 transition-colors font-medium">
+                      class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-teal-500 transition-colors font-medium">
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
               </select>
@@ -338,7 +338,7 @@
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Residential Address</label>
             <input type="text" formControlName="address" placeholder="e.g., House 42, Ring Road Central, Accra"
-                   class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-indigo-500 transition-colors" />
+                   class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-teal-500 transition-colors" />
           </div>
 
           <!-- Link Initial Ward / Student (Optional) -->
@@ -347,9 +347,9 @@
               Link First Student / Ward (Optional)
             </label>
             @if (selectedInitialStudent()) {
-              <div class="flex items-center justify-between p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+              <div class="flex items-center justify-between p-3 bg-teal-500/10 border border-teal-500/20 rounded-xl">
                 <div class="flex items-center gap-2.5">
-                  <i class="fas fa-user-graduate text-indigo-400"></i>
+                  <i class="fas fa-user-graduate text-teal-400"></i>
                   <span class="text-sm font-bold text-text-primary">
                     {{ selectedInitialStudent()?.first_name }} {{ selectedInitialStudent()?.last_name }}
                   </span>
@@ -376,7 +376,7 @@
               Cancel
             </button>
             <button type="submit" [disabled]="isSubmitting()"
-                    class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all disabled:opacity-50">
+                    class="px-6 py-2.5 bg-teal-600 hover:bg-teal-500 active:scale-95 text-white font-bold text-sm rounded-xl shadow-lg shadow-teal-600/30 flex items-center gap-2 transition-all disabled:opacity-50">
               @if (isSubmitting()) {
                 <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                 <span>Provisioning Account...</span>
@@ -423,7 +423,7 @@
 
           <div>
             <span class="text-[10px] uppercase font-bold text-text-muted tracking-wider block font-sans">Portal URL</span>
-            <span class="text-xs text-indigo-400 select-all font-sans">/login</span>
+            <span class="text-xs text-teal-400 select-all font-sans">/login</span>
           </div>
         </div>
 
@@ -456,12 +456,12 @@
         </div>
 
         <div class="space-y-4 mb-6">
-          <div class="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center justify-between">
+          <div class="p-4 bg-teal-500/10 border border-teal-500/20 rounded-2xl flex items-center justify-between">
             <div>
-              <h4 class="text-xs font-bold text-indigo-300">Need the template format?</h4>
+              <h4 class="text-xs font-bold text-teal-300">Need the template format?</h4>
               <p class="text-[11px] text-text-muted">Includes columns: first_name, last_name, phone_number, email, relationship, student_enrollment_num</p>
             </div>
-            <button (click)="downloadTemplate()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5">
+            <button (click)="downloadTemplate()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5">
               <i class="fas fa-download"></i> Download CSV
             </button>
           </div>
@@ -469,7 +469,7 @@
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">Select CSV File</label>
             <input type="file" accept=".csv" (change)="onFileSelected($event)"
-                   class="w-full text-xs text-text-muted file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 file:cursor-pointer" />
+                   class="w-full text-xs text-text-muted file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-teal-600 file:text-white hover:file:bg-teal-500 file:cursor-pointer" />
           </div>
 
           @if (selectedImportFile()) {
@@ -515,7 +515,7 @@
 
         @if (isLoadingAbsences()) {
           <div class="py-16 text-center text-text-muted font-bold text-sm">
-            <div class="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+            <div class="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
             Loading leave applications...
           </div>
         } @else {
@@ -539,7 +539,7 @@
                   <p class="text-xs text-text-muted">
                     Parent: <strong>{{ req.guardian ? (req.guardian.first_name + ' ' + req.guardian.last_name) : 'Guardian' }}</strong> &bull; Reason: {{ req.reason }}
                   </p>
-                  <p class="text-xs text-indigo-400 font-mono">
+                  <p class="text-xs text-teal-400 font-mono">
                     {{ req.start_date }} to {{ req.end_date }}
                   </p>
                   @if (req.notes) {

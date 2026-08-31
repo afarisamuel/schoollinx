@@ -282,7 +282,7 @@ export class FiscalDashboardComponent implements OnInit {
             return { text: `${abs} day${abs !== 1 ? 's' : ''} overdue`, cls: 'text-rose-400' };
         } else if (days === 0) {
             return isDaily
-                ? { text: 'Generated today', cls: 'text-indigo-400' }
+                ? { text: 'Generated today', cls: 'text-teal-400' }
                 : { text: 'Due today', cls: 'text-amber-400' };
         } else {
             return { text: `${days} day${days !== 1 ? 's' : ''} left`, cls: 'text-emerald-400' };

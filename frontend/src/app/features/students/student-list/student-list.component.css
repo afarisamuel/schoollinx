@@ -5,7 +5,7 @@
     /* Default is DARK MODE */
     --card-bg: rgba(15, 23, 42, 0.65);
     --card-border: rgba(255, 255, 255, 0.08);
-    --card-border-hover: rgba(99, 102, 241, 0.35);
+    --card-border-hover: rgba(20, 184, 166, 0.35);
     --card-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.5);
     --input-bg: rgba(255, 255, 255, 0.04);
     --input-border: rgba(255, 255, 255, 0.12);
@@ -16,27 +16,40 @@
 :host-context(.light-mode) {
     --card-bg: #ffffff;
     --card-border: rgba(0, 0, 0, 0.08);
-    --card-border-hover: rgba(99, 102, 241, 0.3);
+    --card-border-hover: rgba(20, 184, 166, 0.3);
     --card-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.08);
     --input-bg: rgba(0, 0, 0, 0.03);
     --input-border: rgba(0, 0, 0, 0.12);
     --text-muted: #64748b;
     --text-primary-alpha: #0f172a;
-}/* Entry animations */
+}
+
+/* Entry animations */
 @keyframes fadeSlideUp {
-    from { opacity: 0; transform: translateY(24px) scale(0.98); filter: blur(4px); }
-    to   { opacity: 1; transform: none; filter: blur(0); }
+    from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.98);
+        filter: blur(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+        filter: blur(0);
+    }
 }
 
 @keyframes shimmer {
-    0%   { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
 }
 
-@keyframes gradientX {
-    0%, 100% { background-position: 0% 50%; }
-    50%       { background-position: 100% 50%; }
-}
+
 
 .animate-in {
     animation: fadeSlideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -47,11 +60,7 @@
     animation: fadeSlideUp 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-/* Gradient text animation */
-.gradient-text {
-    background-size: 200% 200%;
-    animation: gradientX 4s ease infinite;
-}
+
 
 /* Glass search input */
 .search-glass {
@@ -63,9 +72,9 @@
 }
 
 .search-glass:focus-within {
-    border-color: rgba(99, 102, 241, 0.5);
-    background: rgba(99, 102, 241, 0.04);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1), 0 4px 20px rgba(0,0,0,0.2);
+    border-color: rgba(20, 184, 166, 0.5);
+    background: rgba(20, 184, 166, 0.04);
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1), 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 /* Glass select */
@@ -80,9 +89,9 @@
 }
 
 .glass-select:focus {
-    border-color: rgba(99, 102, 241, 0.5);
-    background: rgba(99, 102, 241, 0.04);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    border-color: rgba(20, 184, 166, 0.5);
+    background: rgba(20, 184, 166, 0.04);
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
     outline: none;
 }
 
@@ -102,7 +111,7 @@
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--card-border);
-    box-shadow: 
+    box-shadow:
         var(--card-shadow),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
     transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
@@ -114,7 +123,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 60%);
+    background: transparent;
     opacity: 0;
     transition: opacity 0.4s ease;
     z-index: 0;
@@ -123,9 +132,9 @@
 .student-card-inner:hover {
     transform: translateY(-6px) scale(1.01);
     border-color: var(--card-border-hover);
-    box-shadow: 
-        0 20px 44px -12px rgba(0,0,0,0.2), 
-        0 0 30px rgba(99, 102, 241, 0.12),
+    box-shadow:
+        0 20px 44px -12px rgba(0, 0, 0, 0.2),
+        0 0 30px rgba(20, 184, 166, 0.12),
         inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
@@ -134,10 +143,10 @@
 }
 
 .student-card-inner.selected {
-    border-color: rgba(99, 102, 241, 0.5);
-    box-shadow: 
-        0 8px 32px -8px rgba(99, 102, 241, 0.3),
-        inset 0 1px 0 rgba(99, 102, 241, 0.2);
+    border-color: rgba(20, 184, 166, 0.5);
+    box-shadow:
+        0 8px 32px -8px rgba(20, 184, 166, 0.3),
+        inset 0 1px 0 rgba(20, 184, 166, 0.2);
 }
 
 /* Stat cards */
@@ -146,7 +155,7 @@
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--card-border);
-    box-shadow: 
+    box-shadow:
         var(--card-shadow),
         inset 0 1px 0 rgba(255, 255, 255, 0.06);
     transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -173,16 +182,16 @@
 
 /* Primary CTA */
 .btn-primary {
-    background: linear-gradient(135deg, #6366f1, #a855f7);
+    background: #14b8a6;
     background-size: 200% 200%;
-    box-shadow: 0 8px 24px -4px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 8px 24px -4px rgba(20, 184, 166, 0.4);
     transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .btn-primary:hover {
     background-position: 100% 0;
     transform: translateY(-2px);
-    box-shadow: 0 12px 32px -4px rgba(99, 102, 241, 0.55);
+    box-shadow: 0 12px 32px -4px rgba(20, 184, 166, 0.55);
 }
 
 .btn-primary:active {
@@ -202,16 +211,25 @@
 }
 
 .page-pill.active {
-    background: linear-gradient(135deg, #6366f1, #a855f7);
+    background: #14b8a6;
     border-color: transparent;
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 4px 16px rgba(20, 184, 166, 0.4);
     color: white;
 }
 
 /* Custom scrollbar for export dropdown */
-.export-dropdown::-webkit-scrollbar { width: 4px; }
-.export-dropdown::-webkit-scrollbar-track { background: transparent; }
-.export-dropdown::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+.export-dropdown::-webkit-scrollbar {
+    width: 4px;
+}
+
+.export-dropdown::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.export-dropdown::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
 
 /* ===== View Toggle Pill ===== */
 .view-toggle {
@@ -247,9 +265,9 @@
 }
 
 .view-toggle__btn.active {
-    background: linear-gradient(135deg, #6366f1, #a855f7);
+    background: #14b8a6;
     color: white;
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 4px 16px rgba(20, 184, 166, 0.4);
 }
 
 /* ===== Premium Table ===== */
@@ -258,7 +276,7 @@
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--card-border);
-    box-shadow: 
+    box-shadow:
         var(--card-shadow),
         inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
@@ -292,8 +310,15 @@
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.student-table thead tr th:first-child { padding-left: 20px; border-radius: 24px 0 0 0; }
-.student-table thead tr th:last-child  { padding-right: 20px; border-radius: 0 24px 0 0; }
+.student-table thead tr th:first-child {
+    padding-left: 20px;
+    border-radius: 24px 0 0 0;
+}
+
+.student-table thead tr th:last-child {
+    padding-right: 20px;
+    border-radius: 0 24px 0 0;
+}
 
 /* Table rows */
 .student-table tbody tr {
@@ -305,19 +330,21 @@
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.student-table tbody tr:last-child { border-bottom: none; }
-
-.student-table tbody tr:hover { 
-    background: rgba(99, 102, 241, 0.06); 
+.student-table tbody tr:last-child {
+    border-bottom: none;
 }
 
-:host-context(.light-mode) .student-table tbody tr:hover { 
-    background: rgba(99, 102, 241, 0.04); 
+.student-table tbody tr:hover {
+    background: rgba(20, 184, 166, 0.06);
+}
+
+:host-context(.light-mode) .student-table tbody tr:hover {
+    background: rgba(20, 184, 166, 0.04);
 }
 
 .student-table tbody tr.row-selected {
-    background: rgba(99, 102, 241, 0.1);
-    border-left: 3px solid #6366f1;
+    background: rgba(20, 184, 166, 0.1);
+    border-left: 3px solid #14b8a6;
 }
 
 /* Table cells */
@@ -332,13 +359,25 @@
     color: #1e293b;
 }
 
-.student-table tbody td:first-child { padding-left: 20px; }
-.student-table tbody td:last-child  { padding-right: 20px; }
+.student-table tbody td:first-child {
+    padding-left: 20px;
+}
+
+.student-table tbody td:last-child {
+    padding-right: 20px;
+}
 
 /* Staggered row animation */
 @keyframes tableRowIn {
-    from { opacity: 0; transform: translateX(-8px); }
-    to   { opacity: 1; transform: none; }
+    from {
+        opacity: 0;
+        transform: translateX(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
 }
 
 .table-row-animated {
@@ -359,15 +398,15 @@
 }
 
 .table-pill.indigo {
-    background: rgba(99, 102, 241, 0.16);
-    border: 1px solid rgba(99, 102, 241, 0.35);
-    color: #c7d2fe;
+    background: rgba(20, 184, 166, 0.16);
+    border: 1px solid rgba(20, 184, 166, 0.35);
+    color: #99f6e4;
 }
 
 .table-pill.purple {
-    background: rgba(168, 85, 247, 0.16);
-    border: 1px solid rgba(168, 85, 247, 0.35);
-    color: #e9d5ff;
+    background: rgba(20, 184, 166, 0.12);
+    border: 1px solid rgba(20, 184, 166, 0.28);
+    color: #5eead4;
 }
 
 .table-pill.slate {
@@ -408,6 +447,7 @@
     background: rgba(59, 130, 246, 0.12);
     border-color: rgba(59, 130, 246, 0.28);
 }
+
 .table-action-btn.view:hover {
     background: rgba(59, 130, 246, 0.25);
     border-color: rgba(59, 130, 246, 0.55);
@@ -415,25 +455,27 @@
 }
 
 .table-action-btn.edit {
-    color: #818cf8;
-    background: rgba(99, 102, 241, 0.12);
-    border-color: rgba(99, 102, 241, 0.28);
+    color: #5eead4;
+    background: rgba(20, 184, 166, 0.12);
+    border-color: rgba(20, 184, 166, 0.28);
 }
+
 .table-action-btn.edit:hover {
-    background: rgba(99, 102, 241, 0.25);
-    border-color: rgba(99, 102, 241, 0.55);
+    background: rgba(20, 184, 166, 0.25);
+    border-color: rgba(20, 184, 166, 0.55);
     color: #a5b4fc;
 }
 
 .table-action-btn.docs {
-    color: #c084fc;
-    background: rgba(168, 85, 247, 0.12);
-    border-color: rgba(168, 85, 247, 0.28);
+    color: #2dd4bf;
+    background: rgba(20, 184, 166, 0.12);
+    border-color: rgba(20, 184, 166, 0.28);
 }
+
 .table-action-btn.docs:hover {
-    background: rgba(168, 85, 247, 0.25);
-    border-color: rgba(168, 85, 247, 0.55);
-    color: #e9d5ff;
+    background: rgba(20, 184, 166, 0.25);
+    border-color: rgba(20, 184, 166, 0.55);
+    color: #99f6e4;
 }
 
 .table-action-btn.delete {
@@ -441,6 +483,7 @@
     background: rgba(239, 68, 68, 0.12);
     border-color: rgba(239, 68, 68, 0.28);
 }
+
 .table-action-btn.delete:hover {
     background: rgba(239, 68, 68, 0.25);
     border-color: rgba(239, 68, 68, 0.55);

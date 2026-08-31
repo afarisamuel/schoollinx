@@ -46,9 +46,9 @@
           <p class="text-[9px] font-black uppercase tracking-widest text-text-muted mb-1">Rate/Student</p>
           <p class="text-xl font-black text-text-primary">₵{{ tenantProfile()?.per_student_per_term_rate || 0 | number:'1.2-2' }}</p>
         </div>
-        <div class="text-center p-3 rounded-2xl bg-gradient-to-br from-rose-500/10 to-orange-500/10 border border-rose-500/20">
+        <div class="text-center p-3 rounded-2xl bg-teal-500/10 border border-rose-500/20">
           <p class="text-[9px] font-black uppercase tracking-widest text-rose-500 mb-1">Total Due</p>
-          <p class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-orange-500">₵{{ totalDue | number:'1.2-2' }}</p>
+          <p class="text-xl font-black text-teal-400">₵{{ totalDue | number:'1.2-2' }}</p>
         </div>
       </div>
 
@@ -82,7 +82,7 @@
         </button>
         <button
           (click)="confirmPayment()"
-          class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-400 hover:to-orange-400 text-white transition-all shadow-lg shadow-rose-500/20"
+          class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-teal-600 hover:bg-teal-500 text-white transition-all shadow-lg shadow-rose-500/20"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           Proceed to Payment
@@ -98,7 +98,7 @@
   <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-6 md:gap-0 relative z-10">
     <div class="header-content relative">
       <div class="absolute -left-8 -top-8 w-24 h-24 bg-rose-500/20 rounded-full blur-2xl pointer-events-none"></div>
-      <h1 class="text-3xl md:text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-orange-500 relative z-10">
+      <h1 class="text-3xl md:text-4xl font-black tracking-tight text-teal-400 relative z-10">
         Subscription & Billing
       </h1>
       <p class="text-sm font-medium text-text-secondary mt-2 relative z-10">
@@ -118,7 +118,7 @@
       <div class="relative overflow-hidden bg-bg-secondary border border-border-primary rounded-3xl p-8 shadow-2xl">
         <!-- Premium decorative background elements -->
         <div class="absolute top-0 right-0 w-64 h-64 bg-rose-500/10 rounded-full blur-[80px] pointer-events-none mix-blend-screen"></div>
-        <div class="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px] pointer-events-none mix-blend-screen"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-teal-500/10 rounded-full blur-[80px] pointer-events-none mix-blend-screen"></div>
         <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50"></div>
 
         <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pb-6 border-b border-border-primary">
@@ -136,7 +136,7 @@
           
           <div class="mt-6 md:mt-0 text-left md:text-right">
             <p class="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Per Student Rate</p>
-            <div class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-orange-500">
+            <div class="text-4xl font-black text-teal-400">
               ₵{{ tenantProfile()?.per_student_per_term_rate || 0 | number:'1.2-2' }}<span class="text-lg text-text-muted">/term</span>
             </div>
             <div class="mt-3">
@@ -151,7 +151,7 @@
               <button
                 (click)="handleUpgrade()"
                 [disabled]="isPaymentLoading()"
-                class="mt-1 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-400 hover:to-orange-400 text-white text-xs font-bold transition-all shadow-lg shadow-rose-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                class="mt-1 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold transition-all shadow-lg shadow-rose-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 @if (isPaymentLoading()) {
                   <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -171,7 +171,6 @@
             @if (termPaymentStatus() === 'PAID') {
               <!-- PAID banner -->
               <div class="relative overflow-hidden flex items-center justify-between gap-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl px-6 py-4">
-                <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_left,rgba(16,185,129,0.08)_0%,transparent_70%)] pointer-events-none"></div>
                 <div class="flex items-center gap-4 relative z-10">
                   <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><polyline points="9 12 11 14 15 10"/></svg>
@@ -198,21 +197,20 @@
               </div>
             } @else if (termPaymentStatus() === 'PENDING') {
               <!-- PENDING banner -->
-              <div class="relative overflow-hidden flex items-center justify-between gap-4 bg-orange-500/10 border border-orange-500/30 rounded-2xl px-6 py-4">
-                <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_left,rgba(249,115,22,0.08)_0%,transparent_70%)] pointer-events-none"></div>
+              <div class="relative overflow-hidden flex items-center justify-between gap-4 bg-teal-500/10 border border-teal-500/30 rounded-2xl px-6 py-4">
                 <div class="flex items-center gap-4 relative z-10">
-                  <div class="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-400 shrink-0">
+                  <div class="w-10 h-10 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center text-teal-400 shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                   </div>
                   <div>
-                    <p class="text-[10px] font-black uppercase tracking-widest text-orange-400 mb-0.5">Current Term Status</p>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-teal-400 mb-0.5">Current Term Status</p>
                     <p class="text-lg font-black text-orange-300">Payment Pending</p>
-                    <p class="text-xs text-orange-400/70 mt-0.5">A payment was initiated but not yet confirmed. Click <strong class="text-orange-300">Verify</strong> in the history table below.</p>
+                    <p class="text-xs text-teal-400/70 mt-0.5">A payment was initiated but not yet confirmed. Click <strong class="text-orange-300">Verify</strong> in the history table below.</p>
                   </div>
                 </div>
                 <div class="relative z-10 shrink-0">
-                  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-300 text-[11px] font-black uppercase tracking-widest">
-                    <span class="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span>
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-teal-500/20 border border-teal-500/30 text-orange-300 text-[11px] font-black uppercase tracking-widest">
+                    <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
                     Pending
                   </span>
                 </div>
@@ -220,7 +218,6 @@
             } @else {
               <!-- OVERDUE banner -->
               <div class="relative overflow-hidden flex items-center justify-between gap-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl px-6 py-4">
-                <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_left,rgba(244,63,94,0.08)_0%,transparent_70%)] pointer-events-none"></div>
                 <div class="flex items-center gap-4 relative z-10">
                   <div class="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -238,7 +235,7 @@
                   </div>
                 </div>
                 <div class="relative z-10 shrink-0">
-                  <button (click)="handleUpgrade()" [disabled]="isPaymentLoading()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-400 hover:to-orange-400 text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-rose-500/20 disabled:opacity-50">
+                  <button (click)="handleUpgrade()" [disabled]="isPaymentLoading()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-rose-500/20 disabled:opacity-50">
                     @if (isPaymentLoading()) {
                       <div class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     } @else {
@@ -306,12 +303,12 @@
           <div class="bg-bg-tertiary rounded-2xl p-5 border border-border-primary lg:col-span-2 group">
             <div class="flex items-center justify-between mb-3">
               <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center border border-indigo-500/20">
+                <div class="w-8 h-8 rounded-lg bg-teal-500/10 text-teal-500 flex items-center justify-center border border-teal-500/20">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m8 17 4 4 4-4"/></svg>
                 </div>
-                <span class="text-xs font-bold text-text-secondary flex items-center gap-2">Cloud Storage <span class="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-500 text-[8px] uppercase font-black">Add-on</span></span>
+                <span class="text-xs font-bold text-text-secondary flex items-center gap-2">Cloud Storage <span class="px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-500 text-[8px] uppercase font-black">Add-on</span></span>
               </div>
-              <button (click)="handleStorageUpgrade()" class="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500 hover:text-white rounded-lg" title="Expand Storage">
+              <button (click)="handleStorageUpgrade()" class="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-teal-500/10 text-teal-500 hover:bg-teal-500 hover:text-white rounded-lg" title="Expand Storage">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
               </button>
             </div>
@@ -324,9 +321,9 @@
               
               <!-- Progress Bar -->
               <div class="h-2 w-full bg-border-primary rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-1000"
+                <div class="h-full bg-teal-600 rounded-full transition-all duration-1000"
                      [style.width.%]="tenantProfile()?.storage_limit_gb ? (((tenantProfile()!.storage_used_mb || 0) / 1024) / tenantProfile()!.storage_limit_gb) * 100 : 0"
-                     [ngClass]="{'from-rose-500 to-orange-500': tenantProfile()?.storage_limit_gb && (((tenantProfile()!.storage_used_mb || 0) / 1024) / tenantProfile()!.storage_limit_gb) > 0.9}">
+                     [ngClass]="{'from-rose-500 to-teal-500': tenantProfile()?.storage_limit_gb && (((tenantProfile()!.storage_used_mb || 0) / 1024) / tenantProfile()!.storage_limit_gb) > 0.9}">
                 </div>
               </div>
             </div>
@@ -394,7 +391,7 @@
         @if (gatewayMode() === 'subaccount') {
           <!-- Active Subaccount Card if already connected -->
           @if (subaccountConfig()?.has_subaccount) {
-            <div class="relative overflow-hidden bg-gradient-to-br from-emerald-500/15 via-bg-tertiary to-teal-500/10 border-2 border-emerald-500/30 rounded-2xl p-6 mb-8">
+            <div class="relative overflow-hidden bg-teal-500/15 border-2 border-emerald-500/30 rounded-2xl p-6 mb-8">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                 <div class="flex items-start gap-4">
                   <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/40 shrink-0">
@@ -558,7 +555,7 @@
                       type="button"
                       (click)="createAndLinkSubaccount()"
                       [disabled]="isCreatingSubaccount()"
-                      class="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 shrink-0"
+                      class="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm bg-teal-600 hover:bg-teal-500 text-white transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 shrink-0"
                     >
                       @if (isCreatingSubaccount()) {
                         <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -663,7 +660,7 @@
                 <button
                   (click)="savePaymentConfig()"
                   [disabled]="isSavingConfig()"
-                  class="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm bg-teal-600 hover:bg-teal-500 text-white transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   @if (isSavingConfig()) {
                     <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -729,7 +726,7 @@
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest"
                           [ngClass]="{
                             'bg-emerald-500/10 text-emerald-500': item.status === 'SUCCESS' || item.status === 'PAID',
-                            'bg-orange-500/10 text-orange-500': item.status === 'PENDING',
+                            'bg-teal-500/10 text-teal-500': item.status === 'PENDING',
                             'bg-rose-500/10 text-rose-500': item.status === 'FAILED'
                           }">
                       {{ item.status }}

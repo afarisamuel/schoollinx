@@ -19,7 +19,7 @@
                 Lending Dashboard
             </a>
             <a routerLink="/library/add"
-               class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all">
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-teal-500/20 transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                 Add New Title
             </a>
@@ -37,12 +37,12 @@
                 type="text"
                 placeholder="Search by title, author, or ISBN..."
                 (input)="onSearch($event)"
-                class="w-full bg-bg-tertiary border border-border-primary rounded-xl pl-10 pr-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-indigo-500/40 focus:bg-bg-secondary transition-all"
+                class="w-full bg-bg-tertiary border border-border-primary rounded-xl pl-10 pr-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-teal-500/40 focus:bg-bg-secondary transition-all"
             >
         </div>
         <div class="flex items-center gap-2 flex-wrap">
             <span class="text-[10px] font-bold text-text-muted uppercase tracking-widest hidden sm:block">Filter:</span>
-            <button class="px-3 py-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black rounded-lg uppercase tracking-wide transition-all hover:bg-indigo-500/20">All</button>
+            <button class="px-3 py-2 bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[10px] font-black rounded-lg uppercase tracking-wide transition-all hover:bg-teal-500/20">All</button>
             <button class="px-3 py-2 bg-bg-tertiary border border-border-primary text-text-muted text-[10px] font-black rounded-lg uppercase tracking-wide transition-all hover:bg-bg-secondary hover:text-text-primary">Available</button>
             <button class="px-3 py-2 bg-bg-tertiary border border-border-primary text-text-muted text-[10px] font-black rounded-lg uppercase tracking-wide transition-all hover:bg-bg-secondary hover:text-text-primary">On Loan</button>
         </div>
@@ -64,18 +64,17 @@
         </div>
         <div class="flex flex-col gap-1 p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-xl">
             <span class="text-[9px] font-bold text-text-muted uppercase tracking-tighter">Categories</span>
-            <span class="text-2xl font-black text-indigo-400">{{ categoryCount() }}</span>
+            <span class="text-2xl font-black text-teal-400">{{ categoryCount() }}</span>
         </div>
     </div>
 
     <!-- Book Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         @for (book of books(); track book.id) {
-        <div class="group bg-bg-secondary border border-border-primary rounded-3xl shadow-xl overflow-hidden flex flex-col hover:border-indigo-500/30 hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-500/5 transition-all duration-300">
+        <div class="group bg-bg-secondary border border-border-primary rounded-3xl shadow-xl overflow-hidden flex flex-col hover:border-teal-500/30 hover:-translate-y-1 hover:shadow-2xl hover:shadow-teal-500/5 transition-all duration-300">
 
             <!-- Book Cover Area -->
-            <div class="relative h-44 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-amber-500/10 flex items-center justify-center overflow-hidden">
-                <div class="absolute inset-0 bg-[linear-gradient(135deg,transparent_40%,rgba(99,102,241,0.04)_100%)]"></div>
+            <div class="relative h-44 bg-teal-500/10 flex items-center justify-center overflow-hidden">
 
                 <!-- Category Badge -->
                 <span class="absolute top-3 left-3 px-2.5 py-1 bg-bg-secondary/80  border border-border-secondary text-[9px] font-black text-text-muted uppercase tracking-widest rounded-lg">{{ book.category }}</span>
@@ -95,7 +94,7 @@
 
                 <!-- Book Icon -->
                 <div class="flex flex-col items-center gap-2 opacity-20 group-hover:opacity-40 transition-opacity duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6.5 18H20"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" class="text-teal-400"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6.5 18H20"/></svg>
                 </div>
             </div>
 
@@ -127,7 +126,7 @@
                 @if (book.available_copies > 0) {
                 <button
                     (click)="requestLoan(book)"
-                    class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-95">
+                    class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-teal-500/20 transition-all active:scale-95">
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
                     Request Loan
                 </button>
