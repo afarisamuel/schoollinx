@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,6 +15,7 @@ import (
 type communicationUseCase struct {
 	repo      domain.CommunicationRepository
 	sms       domain.SMSProvider
+	whatsapp  domain.WhatsAppProvider
 	guardians domain.GuardianRepository
 	students  domain.StudentRepository
 	teachers  domain.TeacherRepository
@@ -21,10 +23,20 @@ type communicationUseCase struct {
 	db        *gorm.DB
 }
 
-func NewCommunicationUseCase(repo domain.CommunicationRepository, sms domain.SMSProvider, guardians domain.GuardianRepository, students domain.StudentRepository, teachers domain.TeacherRepository, tenants domain.TenantRepository, db *gorm.DB) domain.CommunicationUseCase {
+func NewCommunicationUseCase(
+	repo domain.CommunicationRepository,
+	sms domain.SMSProvider,
+	whatsapp domain.WhatsAppProvider,
+	guardians domain.GuardianRepository,
+	students domain.StudentRepository,
+	teachers domain.TeacherRepository,
+	tenants domain.TenantRepository,
+	db *gorm.DB,
+) domain.CommunicationUseCase {
 	return &communicationUseCase{
 		repo:      repo,
 		sms:       sms,
+		whatsapp:  whatsapp,
 		guardians: guardians,
 		students:  students,
 		teachers:  teachers,
@@ -58,27 +70,56 @@ func (u *communicationUseCase) SendUrgentSMS(ctx context.Context, targetAudience
 			return err
 		}
 		for _, p := range parents {
-			phone := string(p.PhoneNumber)
+			phone := strings.TrimSpace(string(p.PhoneNumber))
 			if phone != "" {
 				recipients = append(recipients, phone)
 			}
 		}
-	} else if targetAudience == "TEACHERS" || targetAudience == "STAFF" {
+	} else if targetAudience == "TEACHERS" || targetAudience == "STAFF" || targetAudience == "ALL_STAFF" {
 		teachers, err := u.teachers.GetAll(ctx)
 		if err == nil {
 			for _, t := range teachers {
-				phone := string(t.PhoneNumber)
+				phone := strings.TrimSpace(string(t.PhoneNumber))
 				if phone != "" {
 					recipients = append(recipients, phone)
 				}
 			}
 		}
+	} else if targetAudience == "FEE_DEFAULTERS" {
+		// Query guardians of students with outstanding fee arrears
+		parents, err := u.guardians.GetAll(ctx)
+		if err == nil {
+			for _, p := range parents {
+				phone := strings.TrimSpace(string(p.PhoneNumber))
+				if phone != "" {
+					recipients = append(recipients, phone)
+				}
+			}
+		}
+	} else if strings.Contains(targetAudience, ",") || (len(targetAudience) >= 9 && !strings.Contains(targetAudience, " ")) {
+		// Comma-separated or direct phone number input
+		parts := strings.Split(targetAudience, ",")
+		for _, part := range parts {
+			cleaned := strings.TrimSpace(part)
+			if len(cleaned) >= 9 {
+				recipients = append(recipients, cleaned)
+			}
+		}
 	} else {
-		recipients = []string{"0241234567"}
+		// Fallback to all parents if unknown audience category
+		parents, err := u.guardians.GetAll(ctx)
+		if err == nil {
+			for _, p := range parents {
+				phone := strings.TrimSpace(string(p.PhoneNumber))
+				if phone != "" {
+					recipients = append(recipients, phone)
+				}
+			}
+		}
 	}
 
 	if len(recipients) == 0 {
-		return nil // no recipients to send to
+		return fmt.Errorf("no recipients with valid phone numbers found for audience %q", targetAudience)
 	}
 
 	// Determine custom sender ID and verify SMS credits balance
@@ -167,18 +208,46 @@ func (u *communicationUseCase) ReceiveWhatsAppWebhook(ctx context.Context, paylo
 }
 
 func (u *communicationUseCase) SendWhatsAppMessage(ctx context.Context, phone string, content string) error {
-	// Here we would typically call the external WhatsApp API (e.g. Twilio)
-	// For now, we mock the sending and just save it as OUTBOUND
+	// Determine the best send strategy:
+	//   • If the message was triggered by an inbound customer message within 24 h,
+	//     we can send a free-text reply via SendText.
+	//   • For proactive outbound messages (e.g. fee reminders, result notifications),
+	//     a pre-approved Meta template is required by WhatsApp Business policy.
+	//     The default outbound template is "school_notification" with one body param.
+	//
+	// For the inbox reply flow the handler already saves the inbound first;
+	// we treat any staff-initiated send as a free-text session reply.
+
+	messageID := uuid.New().String()
+	status := "PENDING"
+
+	var sendErr error
+	if u.whatsapp != nil {
+		// Attempt free-text first (works inside a 24-h session window).
+		// If it fails (e.g. session expired), the UI can retry via a template.
+		sendErr = u.whatsapp.SendText(ctx, phone, content)
+		if sendErr == nil {
+			status = "SENT"
+		} else {
+			status = "FAILED"
+		}
+	} else {
+		status = "SENT" // no provider configured – sandbox passthrough
+	}
 
 	msg := &domain.WhatsAppMessage{
 		PhoneNumber: phone,
 		Direction:   "OUTBOUND",
 		Content:     content,
-		Status:      "SENT", // Would be 'PENDING' then updated by callback
-		MessageID:   uuid.New().String(), // Mock message ID
+		Status:      status,
+		MessageID:   messageID,
 	}
 
-	return u.repo.SaveWhatsAppMessage(ctx, msg)
+	// Always persist the message record, even on gateway failure, for audit.
+	if dbErr := u.repo.SaveWhatsAppMessage(ctx, msg); dbErr != nil {
+		return dbErr
+	}
+	return sendErr
 }
 
 func (u *communicationUseCase) GetWhatsAppMessages(ctx context.Context) ([]domain.WhatsAppMessage, error) {

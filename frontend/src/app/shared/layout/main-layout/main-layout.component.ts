@@ -5,7 +5,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
 import { ThemeService } from '../../../core/infrastructure/theme/theme.service';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
-import { WebsocketService, AppNotification } from '../../../core/infrastructure/websocket/websocket.service';
+import { NotificationService, Notification } from '../../../core/infrastructure/notifications/notification.service';
 import { AiChatbotComponent } from '../../ui/ai-chatbot/ai-chatbot.component';
 import { TenantProfileService, TenantProfile, SystemAnnouncement } from '../../../core/infrastructure/tenant-profile.service';
 import { SidebarComponent } from '../sidebar/sidebar.component';
@@ -24,7 +24,7 @@ export class MainLayoutComponent implements OnInit {
   private router = inject(Router);
   private location = inject(Location);
   themeService = inject(ThemeService);
-  private wsService = inject(WebsocketService);
+  private notificationService = inject(NotificationService);
   private tenantProfileService = inject(TenantProfileService);
 
   currentUser = toSignal(this.authService.currentUser$);
@@ -38,9 +38,9 @@ export class MainLayoutComponent implements OnInit {
 
   currentRouteTitle = signal<string>('Dashboard');
 
-  // Notifications State
-  notifications = signal<AppNotification[]>([]);
-  unreadCount = signal<number>(0);
+  // Notifications State from unified NotificationService
+  notifications = toSignal(this.notificationService.notifications$, { initialValue: [] as Notification[] });
+  unreadCount = computed(() => this.notifications().filter(n => !n.read).length);
   isDropdownOpen = signal<boolean>(false);
 
   // Online/Offline status
@@ -62,6 +62,9 @@ export class MainLayoutComponent implements OnInit {
       this.isOnline.set(navigator.onLine);
       window.addEventListener('online', () => this.isOnline.set(true));
       window.addEventListener('offline', () => this.isOnline.set(false));
+
+      // Trigger notification initial fetch
+      this.notificationService.loadInitialNotifications();
     }
 
     // Load Tenant Profile to check billing
@@ -92,14 +95,6 @@ export class MainLayoutComponent implements OnInit {
         this.isBillingLocked.set(true);
       });
     }
-
-    // Subscribe to incoming notifications
-    this.wsService.messages$.subscribe(msg => {
-      this.notifications.update(n => [msg, ...n]);
-      if (!msg.read) {
-        this.unreadCount.update(c => c + 1);
-      }
-    });
 
     // Update layout state on route changes
     this.router.events
@@ -167,8 +162,7 @@ export class MainLayoutComponent implements OnInit {
   }
 
   markAllAsRead(): void {
-    this.unreadCount.set(0);
-    this.notifications.update(n => n.map(msg => ({ ...msg, read: true })));
+    this.notificationService.markAllAsRead();
     this.isDropdownOpen.set(false);
   }
 

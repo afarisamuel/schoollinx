@@ -3,7 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ThemeService } from '../../../core/infrastructure/theme/theme.service';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
-import { AppNotification } from '../../../core/infrastructure/websocket/websocket.service';
+import { NotificationService, Notification } from '../../../core/infrastructure/notifications/notification.service';
 import { SearchService } from '../../../core/infrastructure/search/search.service';
 
 @Component({
@@ -17,13 +17,14 @@ export class NavbarComponent {
   themeService = inject(ThemeService);
   searchService = inject(SearchService);
   private authService = inject(AuthService);
+  private notificationService = inject(NotificationService);
   private platformId = inject(PLATFORM_ID);
   private elementRef = inject(ElementRef);
 
   // Inputs
   currentRouteTitle = input<string>('Dashboard');
   unreadCount = input<number>(0);
-  notifications = input<AppNotification[]>([]);
+  notifications = input<Notification[]>([]);
   canGoBack = input<boolean>(false);
 
   // Outputs
@@ -106,6 +107,15 @@ export class NavbarComponent {
   onMarkAllAsRead(): void {
     this.markRead.emit();
     this.isNotificationsOpen.set(false);
+  }
+
+  onMarkAsRead(id: string, event?: MouseEvent): void {
+    if (event) event.stopPropagation();
+    this.notificationService.markAsRead(id);
+  }
+
+  getTypeIcon(type: Notification['type']): string {
+    return this.notificationService.getTypeIcon(type);
   }
 
   logout(): void {

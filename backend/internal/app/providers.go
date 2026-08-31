@@ -19,6 +19,7 @@ type Infrastructure struct {
 	Paystack domain.PaystackService
 	Hub      *ws.Hub
 	SMS      domain.SMSProvider
+	WhatsApp domain.WhatsAppProvider
 }
 
 type Repositories struct {
@@ -134,6 +135,7 @@ func initInfrastructure(cfg *config.Config) *Infrastructure {
 		Paystack: payment.NewPaystackService(cfg),
 		Hub:      hub,
 		SMS:      sms.NewArkaselSMSProvider(cfg.SMSAPIKey),
+		WhatsApp: sms.NewArkaselWhatsAppProvider(cfg.WhatsAppAPIKey, cfg.WhatsAppSenderNumber),
 	}
 }
 
@@ -233,7 +235,7 @@ func initUseCases(repos *Repositories, infra *Infrastructure, db *gorm.DB, cfg *
 		HR:             usecase.NewHRUseCase(repos.HR, infra.PDF),
 		Exam:           usecase.NewExamUseCase(repos.Exam),
 		Portfolio:      usecase.NewPortfolioUseCase(repos.Portfolio),
-		Communication:  usecase.NewCommunicationUseCase(repos.Communication, infra.SMS, repos.Guardian, repos.Student, repos.Teacher, repos.Tenant, db),
+		Communication:  usecase.NewCommunicationUseCase(repos.Communication, infra.SMS, infra.WhatsApp, repos.Guardian, repos.Student, repos.Teacher, repos.Tenant, db),
 		DailyBill:      usecase.NewDailyBillUseCase(repos.DailyBill, repos.Student, repos.Fiscal, repos.Logistics, feeNotifier),
 		House:          usecase.NewHouseUseCase(repos.House),
 		Newsletter:     usecase.NewNewsletterUseCase(repos.Newsletter, infra.SMTP, repos.Intelligence),

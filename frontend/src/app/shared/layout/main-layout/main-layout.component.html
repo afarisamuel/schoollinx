@@ -1,45 +1,36 @@
-<div class="flex h-screen bg-[#F4F6FB] dark:bg-bg-primary font-sans leading-relaxed text-slate-900 dark:text-text-primary overflow-hidden p-2 md:p-3.5 gap-3 md:gap-3.5">
+<div
+    class="flex h-screen bg-[#F4F6FB] dark:bg-bg-primary font-sans leading-relaxed text-slate-900 dark:text-text-primary overflow-hidden p-2 md:p-3.5 gap-3 md:gap-3.5">
 
     <!-- 1. Modular Sidebar Panel (Floating Card) -->
-    <app-sidebar
-        class="h-full flex shrink-0"
-        [isCollapsed]="isSidebarCollapsed()"
-        [isMobileOpen]="isMobileSidebarOpen()"
-        (toggleCollapse)="toggleSidebar()"
-        (closeMobile)="closeMobileSidebar()"
-    ></app-sidebar>
+    <app-sidebar class="h-full flex shrink-0" [isCollapsed]="isSidebarCollapsed()"
+        [isMobileOpen]="isMobileSidebarOpen()" (toggleCollapse)="toggleSidebar()"
+        (closeMobile)="closeMobileSidebar()"></app-sidebar>
 
     <!-- 2. Main Column (Navbar + Main Canvas) -->
-    <div class="flex-1 flex flex-col min-w-0 h-full gap-3 md:gap-3.5 overflow-hidden" [class.blur-sm]="isBillingLocked() || !isOnline()">
+    <div class="flex-1 flex flex-col min-w-0 h-full gap-3 md:gap-3.5 overflow-hidden"
+        [class.blur-sm]="isBillingLocked() || !isOnline()">
 
         <!-- Global Announcements Banner (if active) -->
         @for (ann of activeAnnouncements(); track ann.id) {
-            <div class="w-full text-white text-xs font-bold px-4 py-2 rounded-2xl flex items-center justify-center gap-3 relative z-50 shadow-md shrink-0"
-                 [ngClass]="{
+        <div class="w-full text-white text-xs font-bold px-4 py-2 rounded-2xl flex items-center justify-center gap-3 relative z-50 shadow-md shrink-0"
+            [ngClass]="{
                      'bg-blue-600': ann.priority === 'INFO',
                      'bg-amber-500': ann.priority === 'WARNING',
                      'bg-rose-600': ann.priority === 'CRITICAL'
                  }">
-                <i class="fas fa-bullhorn text-sm"></i>
-                <span class="tracking-wide"><strong>{{ ann.title }}:</strong> {{ ann.content }}</span>
-            </div>
+            <i class="fas fa-bullhorn text-sm"></i>
+            <span class="tracking-wide"><strong>{{ ann.title }}:</strong> {{ ann.content }}</span>
+        </div>
         }
 
         <!-- 3. Modular Floating Navbar Component -->
-        <app-navbar
-            class="shrink-0"
-            [currentRouteTitle]="currentRouteTitle()"
-            [unreadCount]="unreadCount()"
-            [notifications]="notifications()"
-            [canGoBack]="canGoBack()"
-            (toggleSidebar)="onNavbarHamburgerToggle()"
-            (toggleMobile)="onNavbarHamburgerToggle()"
-            (goBack)="goBack()"
-            (markRead)="markAllAsRead()"
-        ></app-navbar>
+        <app-navbar class="shrink-0" [currentRouteTitle]="currentRouteTitle()" [unreadCount]="unreadCount()"
+            [notifications]="notifications()" [canGoBack]="canGoBack()" (toggleSidebar)="onNavbarHamburgerToggle()"
+            (toggleMobile)="onNavbarHamburgerToggle()" (goBack)="goBack()" (markRead)="markAllAsRead()"></app-navbar>
 
         <!-- 4. Modular Main Page Canvas (Floating Card) -->
-        <main class="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-[#F8FAFC] dark:bg-bg-secondary/40 rounded-2xl md:rounded-3xl border border-slate-200/90 dark:border-border-primary/80 shadow-xs relative z-0 p-3 sm:p-4 md:p-6 lg:p-7">
+        <main
+            class="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-[#F8FAFC] dark:bg-bg-secondary/40 rounded-2xl md:rounded-3xl border border-slate-200/90 dark:border-border-primary/80 shadow-xs relative z-0 p-3 sm:p-4 md:p-6 lg:p-7">
             <router-outlet />
         </main>
     </div>
@@ -52,54 +43,43 @@
 
     <!-- Billing Lock Overlay -->
     @if (isBillingLocked()) {
-        <div class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4">
-            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 md:p-12 text-center relative overflow-hidden">
-                <div class="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-rose-500/10 blur-[80px] rounded-full pointer-events-none"></div>
-                
-                <div class="w-20 h-20 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                    <i class="fas fa-lock text-3xl"></i>
-                </div>
-                
-                <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-3">Billing Cycle Overdue</h2>
-                <p class="text-slate-600 mb-8 text-lg">
-                    Your institutional access has been temporarily restricted because the billing cycle ended on <strong>{{ tenantProfile()?.billing_due_date | date:'mediumDate' }}</strong>.
-                </p>
-                
-                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-8 text-left">
-                    <p class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Current Plan</p>
-                    <p class="text-xl font-black text-slate-900 mb-4">{{ tenantProfile()?.subscription_plan || 'BASIC' }}</p>
-                    
-                    <p class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Rate</p>
-                    <p class="text-xl font-black text-slate-900">₵{{ tenantProfile()?.per_student_per_term_rate || 0 | number:'1.2-2' }} <span class="text-sm text-slate-500">/ student</span></p>
-                </div>
-                
-                <button routerLink="/dashboard/fiscal/subscription" (click)="isBillingLocked.set(false)" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-xl text-lg shadow-lg shadow-indigo-500/30 transition-all hover:scale-[1.02] active:scale-95">
-                    Proceed to Payment <i class="fas fa-arrow-right ml-2"></i>
-                </button>
-
-                <p class="mt-6 text-sm text-slate-500 font-medium">Need help? Contact <a href="mailto:support@schoollinx.com" class="text-indigo-600 hover:underline">support&#64;schoollinx.com</a></p>
+    <div class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 md:p-12 text-center relative overflow-hidden">
+            <div
+                class="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-rose-500/10 blur-[80px] rounded-full pointer-events-none">
             </div>
-        </div>
-    }
 
-    <!-- Floating Back Button -->
-    @if (canGoBack()) {
-        <button
-            (click)="goBack()"
-            id="floating-back-btn"
-            class="floating-back-btn"
-            title="Go Back"
-            aria-label="Go to previous page"
-        >
-            <span class="floating-back-btn__icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                     fill="none" stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
-            </span>
-            <span class="floating-back-btn__label">Back</span>
-        </button>
+            <div
+                class="w-20 h-20 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <i class="fas fa-lock text-3xl"></i>
+            </div>
+
+            <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-3">Billing Cycle Overdue</h2>
+            <p class="text-slate-600 mb-8 text-lg">
+                Your institutional access has been temporarily restricted because the billing cycle ended on <strong>{{
+                    tenantProfile()?.billing_due_date | date:'mediumDate' }}</strong>.
+            </p>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-8 text-left">
+                <p class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Current Plan</p>
+                <p class="text-xl font-black text-slate-900 mb-4">{{ tenantProfile()?.subscription_plan || 'BASIC' }}
+                </p>
+
+                <p class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Rate</p>
+                <p class="text-xl font-black text-slate-900">₵{{ tenantProfile()?.per_student_per_term_rate || 0 |
+                    number:'1.2-2' }} <span class="text-sm text-slate-500">/ student</span></p>
+            </div>
+
+            <button routerLink="/dashboard/fiscal/subscription" (click)="isBillingLocked.set(false)"
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-xl text-lg shadow-lg shadow-indigo-500/30 transition-all hover:scale-[1.02] active:scale-95">
+                Proceed to Payment <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+
+            <p class="mt-6 text-sm text-slate-500 font-medium">Need help? Contact <a
+                    href="mailto:support@schoollinx.com"
+                    class="text-indigo-600 hover:underline">support&#64;schoollinx.com</a></p>
+        </div>
+    </div>
     }
 
 </div>

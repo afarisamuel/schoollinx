@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
+import { environment } from '../../../../environments/environment';
 
 export interface Notification {
     id: string;
@@ -54,7 +55,10 @@ export class NotificationService {
         }
     }
 
-    private loadInitialNotifications() {
+    public loadInitialNotifications() {
+        const token = this.authService.getToken();
+        if (!token) return;
+
         this.http.get<Notification[]>('/api/notifications?limit=50').subscribe({
             next: (data) => {
                 if (Array.isArray(data)) {
@@ -71,43 +75,67 @@ export class NotificationService {
         const token = this.authService.getToken();
         if (!token) return;
 
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const host = window.location.host;
-        const wsUrl = `${protocol}//${host}/api/ws?token=${token}`;
+        let tenant = '';
+        const hostname = window.location.hostname;
+        const parts = hostname.split('.');
+        if (parts.length >= 2) {
+            tenant = parts[0];
+            if (tenant === 'www' || tenant === 'localhost' || tenant === '127') {
+                tenant = '';
+            }
+        }
+        if (!tenant && typeof localStorage !== 'undefined') {
+            tenant = localStorage.getItem('schoollinx_tenant_subdomain') || '';
+        }
 
-        this.socket = new WebSocket(wsUrl);
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        let apiHost = '';
+        if (environment.apiUrl.startsWith('http')) {
+            apiHost = new URL(environment.apiUrl).host;
+        } else {
+            apiHost = window.location.host;
+        }
 
-        this.socket.onopen = () => {
-            this.connectedSubject.next(true);
-            this.reconnectDelay = 3000; // Reset backoff on success
-        };
+        const wsUrl = `${wsProtocol}//${apiHost}/api/ws?token=${token}&tenant=${tenant}`;
 
-        this.socket.onmessage = (event) => {
-            try {
-                const msg = JSON.parse(event.data);
-                // Support both raw notifications and wrapped { type, payload } format
-                if (msg.type === 'notification' && msg.payload) {
-                    this.addNotification(msg.payload as Notification);
-                } else if (msg.title && msg.message) {
-                    // Raw notification object
-                    this.addNotification(msg as Notification);
+        try {
+            this.socket = new WebSocket(wsUrl);
+
+            this.socket.onopen = () => {
+                this.connectedSubject.next(true);
+                this.reconnectDelay = 3000; // Reset backoff on success
+            };
+
+            this.socket.onmessage = (event) => {
+                try {
+                    const msg = JSON.parse(event.data);
+                    // Support both raw notifications and wrapped { type, payload } format
+                    if (msg.type === 'notification' && msg.payload) {
+                        this.addNotification(msg.payload as Notification);
+                    } else if (msg.title && msg.message) {
+                        // Raw notification object
+                        this.addNotification(msg as Notification);
+                    }
+                } catch (e) {
+                    console.warn('Failed to parse WS message:', e);
                 }
-            } catch (e) {
-                console.warn('Failed to parse WS message:', e);
-            }
-        };
+            };
 
-        this.socket.onclose = () => {
-            this.connectedSubject.next(false);
-            this.socket = undefined;
-            if (this.shouldReconnect) {
-                this.scheduleReconnect();
-            }
-        };
+            this.socket.onclose = () => {
+                this.connectedSubject.next(false);
+                this.socket = undefined;
+                if (this.shouldReconnect) {
+                    this.scheduleReconnect();
+                }
+            };
 
-        this.socket.onerror = () => {
+            this.socket.onerror = () => {
+                this.connectedSubject.next(false);
+            };
+        } catch (err) {
+            console.warn('WebSocket connection error:', err);
             this.connectedSubject.next(false);
-        };
+        }
     }
 
     private scheduleReconnect() {
@@ -121,7 +149,7 @@ export class NotificationService {
         }, this.reconnectDelay);
     }
 
-    private disconnect() {
+    public disconnect() {
         if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
         this.socket?.close();
         this.socket = undefined;

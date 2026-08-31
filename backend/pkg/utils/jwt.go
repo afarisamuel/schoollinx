@@ -14,6 +14,7 @@ type Claims struct {
 	Permissions      []string    `json:"permissions,omitempty"`
 	Role             domain.Role `json:"role"`
 	UserID           uuid.UUID   `json:"user_id"`
+	Email            string      `json:"email,omitempty"`
 	TwoFactorPending bool        `json:"two_factor_pending,omitempty"`
 	ImpersonatorID   uuid.UUID   `json:"impersonator_id,omitempty"`
 	TenantSubdomain  string      `json:"tenant_subdomain,omitempty"`
@@ -44,6 +45,7 @@ func GenerateTokenWithOptions(user *domain.User, cfg *config.Config, twoFactorPe
 
 	claims := &Claims{
 		UserID:           user.ID,
+		Email:            string(user.Email),
 		Role:             user.Role,
 		Permissions:      permissions,
 		TwoFactorPending: twoFactorPending,
@@ -70,6 +72,7 @@ func GenerateImpersonationToken(user *domain.User, tenant *domain.Tenant, impers
 
 	claims := &Claims{
 		UserID:           user.ID,
+		Email:            string(user.Email),
 		Role:             user.Role,
 		Permissions:      permissions,
 		TwoFactorPending: false,

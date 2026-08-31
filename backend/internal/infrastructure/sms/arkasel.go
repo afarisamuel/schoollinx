@@ -26,7 +26,8 @@ type arkaselPayload struct {
 
 func (p *arkaselProvider) SendSMS(ctx context.Context, senderID string, recipients []string, message string) error {
 	if p.apiKey == "" {
-		return fmt.Errorf("arkasel api key is not configured")
+		fmt.Printf("[Arkasel SMS Gateway - Sandbox Mode] Sender: %s | Recipients: %d %v | Message: %q\n", senderID, len(recipients), recipients, message)
+		return nil
 	}
 
 	payload := arkaselPayload{

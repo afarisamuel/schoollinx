@@ -9,19 +9,21 @@ import (
 )
 
 type Config struct {
-	DatabaseURL       string
-	Port              string
-	JWTSecret         string
-	EncryptionKey     string
-	SMTPHost          string
-	SMTPPort          string
-	SMTPUser          string
-	SMTPPass          string
-	SMTPFrom          string
-	PaystackSecretKey string
-	SMSAPIKey         string
-	AutoMigrate       bool
-	RedisURL          string
+	DatabaseURL          string
+	Port                 string
+	JWTSecret            string
+	EncryptionKey        string
+	SMTPHost             string
+	SMTPPort             string
+	SMTPUser             string
+	SMTPPass             string
+	SMTPFrom             string
+	PaystackSecretKey    string
+	SMSAPIKey            string
+	WhatsAppAPIKey       string // ARKASEL_WHATSAPP_API_KEY
+	WhatsAppSenderNumber string // ARKASEL_WHATSAPP_SENDER  (WhatsApp Business phone number ID)
+	AutoMigrate          bool
+	RedisURL             string
 }
 
 func LoadConfig() *Config {
@@ -36,19 +38,21 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		DatabaseURL:       os.Getenv("DATABASE_URL"),
-		Port:              os.Getenv("PORT"),
-		JWTSecret:         os.Getenv("JWT_SECRET"),
-		EncryptionKey:     os.Getenv("ENCRYPTION_KEY"),
-		SMTPHost:          os.Getenv("SMTP_HOST"),
-		SMTPPort:          os.Getenv("SMTP_PORT"),
-		SMTPUser:          os.Getenv("SMTP_USER"),
-		SMTPPass:          os.Getenv("SMTP_PASS"),
-		SMTPFrom:          os.Getenv("SMTP_FROM"),
-		AutoMigrate:       os.Getenv("AUTO_MIGRATE") == "true",
-		PaystackSecretKey: os.Getenv("PAYSTACK_SECRET_KEY"),
-		SMSAPIKey:         os.Getenv("ARKASEL_SMS_API_KEY"),
-		RedisURL:          redisURL,
+		DatabaseURL:          os.Getenv("DATABASE_URL"),
+		Port:                 os.Getenv("PORT"),
+		JWTSecret:            os.Getenv("JWT_SECRET"),
+		EncryptionKey:        os.Getenv("ENCRYPTION_KEY"),
+		SMTPHost:             os.Getenv("SMTP_HOST"),
+		SMTPPort:             os.Getenv("SMTP_PORT"),
+		SMTPUser:             os.Getenv("SMTP_USER"),
+		SMTPPass:             os.Getenv("SMTP_PASS"),
+		SMTPFrom:             os.Getenv("SMTP_FROM"),
+		AutoMigrate:          os.Getenv("AUTO_MIGRATE") == "true",
+		PaystackSecretKey:    os.Getenv("PAYSTACK_SECRET_KEY"),
+		SMSAPIKey:            os.Getenv("ARKASEL_SMS_API_KEY"),
+		WhatsAppAPIKey:       os.Getenv("ARKASEL_WHATSAPP_API_KEY"),
+		WhatsAppSenderNumber: os.Getenv("ARKASEL_WHATSAPP_SENDER"),
+		RedisURL:             redisURL,
 	}
 }
 

@@ -92,6 +92,19 @@ type SMSProvider interface {
 	SendSMS(ctx context.Context, senderID string, recipients []string, message string) error
 }
 
+// WhatsAppProvider defines the contract for sending WhatsApp messages via a gateway.
+// Arkesel's WhatsApp Business API requires pre-approved Meta templates for outbound messages.
+type WhatsAppProvider interface {
+	// SendTemplate sends a pre-approved WhatsApp template message.
+	// templateName must match a template approved in your Arkesel/Meta account.
+	// params are the body variable substitutions ({{1}}, {{2}}, ...) in order.
+	SendTemplate(ctx context.Context, recipient, templateName, languageCode string, params []string) error
+
+	// SendText sends a free-form text reply within a 24-hour customer-service window.
+	// Use this only when replying to an inbound message within 24 h of receipt.
+	SendText(ctx context.Context, recipient, message string) error
+}
+
 type CommunicationRepository interface {
 	CreateNotice(ctx context.Context, notice *Notice) error
 	GetNotices(ctx context.Context, target string) ([]Notice, error)

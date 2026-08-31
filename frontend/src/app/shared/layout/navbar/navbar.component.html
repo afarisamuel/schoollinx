@@ -113,16 +113,35 @@
 
           <div class="max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-border-primary/40 py-2 custom-scrollbar">
             @for (msg of notifications(); track msg.id) {
-              <div class="py-2.5 px-2 hover:bg-slate-50 dark:hover:bg-bg-tertiary/50 rounded-xl transition-colors">
-                <p class="text-xs font-bold text-slate-800 dark:text-text-primary">{{ msg.title }}</p>
-                <p class="text-[11px] text-slate-500 dark:text-text-muted mt-0.5">{{ msg.message }}</p>
-                <span class="text-[9px] text-slate-400 mt-1 block">{{ msg.created_at | date:'shortTime' }}</span>
+              <div
+                (click)="onMarkAsRead(msg.id, $event)"
+                class="py-2.5 px-2 hover:bg-slate-50 dark:hover:bg-bg-tertiary/50 rounded-xl transition-colors cursor-pointer flex items-start gap-2.5 group"
+                [class.opacity-60]="msg.read"
+              >
+                <span class="text-sm mt-0.5 shrink-0">{{ getTypeIcon(msg.type) }}</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-1">
+                    <p class="text-xs font-bold text-slate-800 dark:text-text-primary truncate">{{ msg.title }}</p>
+                    @if (!msg.read) {
+                      <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
+                    }
+                  </div>
+                  <p class="text-[11px] text-slate-500 dark:text-text-muted mt-0.5 line-clamp-2 leading-relaxed">{{ msg.message }}</p>
+                  <span class="text-[9px] text-slate-400 mt-1 block font-mono">{{ msg.created_at | date:'MMM d, HH:mm' }}</span>
+                </div>
               </div>
             } @empty {
-              <div class="py-8 text-center text-xs text-slate-400 dark:text-text-muted">
-                No new notifications
+              <div class="py-8 text-center text-xs text-slate-400 dark:text-text-muted flex flex-col items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="opacity-40"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                <span>No new notifications</span>
               </div>
             }
+          </div>
+
+          <div class="pt-2.5 border-t border-slate-100 dark:border-border-primary/60 text-center">
+            <a routerLink="/notifications" (click)="isNotificationsOpen.set(false)" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
+              View all notifications &rarr;
+            </a>
           </div>
         </div>
       }
