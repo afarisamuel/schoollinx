@@ -128,13 +128,16 @@ export class BulkGradingComponent implements OnInit {
   loadWeights() {
     this.gradeService.getGradeWeights(this.selectedClassId).subscribe({
       next: (weights) => {
-        if (weights.length === 0) {
+        if (!weights || weights.length === 0) {
            this.configuredColumns = [
              { class_id: this.selectedClassId, category: 'ASSIGNMENT', weight: 0.3 },
              { class_id: this.selectedClassId, category: 'EXAMS', weight: 0.7 }
            ];
         } else {
-           this.configuredColumns = weights;
+           this.configuredColumns = weights.map(w => ({
+             ...w,
+             weight: w.weight > 1 ? w.weight / 100 : w.weight
+           }));
         }
         this.initDraftGrades();
       },
@@ -510,7 +513,9 @@ export class BulkGradingComponent implements OnInit {
 
     this.gradeService.upsertGradeWeight(newWeight).subscribe({
       next: (res) => {
-        this.configuredColumns.push(res);
+        // Normalize the returned weight to decimal (API may return 20 for 20%)
+        const normalized = { ...res, weight: res.weight > 1 ? res.weight / 100 : res.weight };
+        this.configuredColumns.push(normalized);
         this.newColumnCategory = '';
         this.newColumnWeight = 0;
         this.initDraftGrades(); // Re-initialize rows
@@ -529,6 +534,10 @@ export class BulkGradingComponent implements OnInit {
   }
 
   getTotalWeightPercentage(): number {
-    return this.configuredColumns.reduce((sum, col) => sum + (col.weight * 100), 0);
+    return Math.round(this.configuredColumns.reduce((sum, col) => {
+      // weight is always stored as decimal (0.2 = 20%) after normalization
+      const pct = col.weight > 1 ? col.weight : col.weight * 100;
+      return sum + pct;
+    }, 0));
   }
 }
