@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GradeService } from '../../../core/infrastructure/grade/grade.service';
@@ -10,6 +10,8 @@ import { Grade, GradeWeight, GradeCategory } from '../../../core/domain/grade.mo
 import { AcademicPeriodService } from '../../../core/infrastructure/academic-period/academic-period.service';
 import { AcademicTerm } from '../../../core/domain/academic-period.model';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
+import { TeacherPortalService } from '../../../core/infrastructure/teacher/teacher-portal.service';
+import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 
 @Component({
   selector: 'app-bulk-grading',
@@ -26,6 +28,8 @@ export class BulkGradingComponent implements OnInit {
   private studentService = inject(StudentService);
   private subjectService = inject(SubjectService);
   private academicPeriodService = inject(AcademicPeriodService);
+  private teacherPortalService = inject(TeacherPortalService);
+  private authService = inject(AuthService);
   private dialog = inject(DialogService);
 
   classes: Class[] = [];
@@ -36,6 +40,14 @@ export class BulkGradingComponent implements OnInit {
   selectedSubjectId: string = '';
   selectedTerm: string = '';
   terms: AcademicTerm[] = [];
+  activePeriodId: string = '';
+  activeTermId: string = '';
+
+  // Role permissions
+  isHeadmasterOrAdmin = computed(() => {
+    const role = (this.authService.currentUserValue?.role || '') as string;
+    return role === 'ADMIN' || role === 'HEADMASTER' || role === 'ECOPOWER_ADMIN' || role === 'IT_ADMIN';
+  });
 
   // Dynamic columns configured for this class
   configuredColumns: GradeWeight[] = [];
@@ -46,8 +58,22 @@ export class BulkGradingComponent implements OnInit {
   newColumnWeight = 0;
 
   // Map of studentId -> category -> { score, gradeId? }
-  // Assuming all scores are out of 100 for simplicity when using dynamic columns
   draftGrades: Map<string, { [category: string]: { score: number | null, id?: string } }> = new Map();
+
+  // Terminal Evaluation & Remarks Modal State
+  evalStudent: Student | null = null;
+  isEvalModalOpen = false;
+  isEvalLoading = false;
+  isEvalSaving = false;
+  evalData: any = {};
+
+  readonly headmasterTemplates = [
+    'Promoted with Distinction. Outstanding academic capability and character.',
+    'Promoted to next class. Very commendable performance, keep working hard.',
+    'Promoted on trial. Needs focused attention and improvement in core subjects.',
+    'Satisfactory performance. Capable of higher achievement with dedication.',
+    'Shows consistent academic and disciplinary growth throughout the term.'
+  ];
 
   isLoading = false;
   isSaving = false;
@@ -62,13 +88,15 @@ export class BulkGradingComponent implements OnInit {
     this.academicPeriodService.getActive().subscribe({
       next: (period) => {
         if (period && period.terms) {
+          this.activePeriodId = period.id || '';
           this.terms = period.terms;
-          // Pre-select the current term if available
           const currentTerm = period.terms.find(t => t.term_number === period.current_term);
           if (currentTerm) {
             this.selectedTerm = currentTerm.name;
+            this.activeTermId = currentTerm.id || '';
           } else if (this.terms.length > 0) {
             this.selectedTerm = this.terms[0].name;
+            this.activeTermId = this.terms[0].id || '';
           }
         }
       },
@@ -100,7 +128,6 @@ export class BulkGradingComponent implements OnInit {
   loadWeights() {
     this.gradeService.getGradeWeights(this.selectedClassId).subscribe({
       next: (weights) => {
-        // Provide defaults if none configured
         if (weights.length === 0) {
            this.configuredColumns = [
              { class_id: this.selectedClassId, category: 'ASSIGNMENT', weight: 0.3 },
@@ -109,6 +136,7 @@ export class BulkGradingComponent implements OnInit {
         } else {
            this.configuredColumns = weights;
         }
+        this.initDraftGrades();
       },
       error: () => {
          this.configuredColumns = [];
@@ -126,26 +154,73 @@ export class BulkGradingComponent implements OnInit {
 
   loadExistingGrades() {
     this.initDraftGrades();
+    if (!this.selectedClassId) return;
+
+    this.isLoading = true;
     
     // Fetch all grades for this class to prepopulate
-    this.gradeService.getGradesForClass(this.selectedClassId).subscribe(grades => {
-      // Filter locally by subject and term if selected
-      const filtered = grades.filter(g => 
-        (!this.selectedSubjectId || g.subject === this.selectedSubjectId) &&
-        (!this.selectedTerm || g.term === this.selectedTerm)
-      );
+    this.gradeService.getGradesForClass(this.selectedClassId).subscribe({
+      next: (grades) => {
+        const selectedSub = this.subjects.find(s => s.id === this.selectedSubjectId || s.name === this.selectedSubjectId);
+        const subName = selectedSub?.name || this.selectedSubjectId;
+        const subId = selectedSub?.id || this.selectedSubjectId;
+        const subCode = selectedSub?.code || '';
 
-      filtered.forEach(g => {
-        const studentDraft = this.draftGrades.get(g.student_id);
-        if (studentDraft) {
-          studentDraft[g.category] = { score: g.score, id: g.id };
-        }
-      });
-      this.isLoading = false;
+        // Flexible subject matching (by id, name, or code)
+        const matchSubject = (gSub: string) => {
+          if (!this.selectedSubjectId) return true;
+          if (!gSub) return false;
+          const sNorm = gSub.trim().toLowerCase();
+          return sNorm === subId.toLowerCase() ||
+                 sNorm === subName.toLowerCase() ||
+                 (subCode !== '' && sNorm === subCode.toLowerCase());
+        };
+
+        // Flexible term matching (by exact, normalized, or ordinal number)
+        const matchTerm = (gTerm: string) => {
+          if (!this.selectedTerm) return true;
+          if (!gTerm) return false;
+          const cleanG = gTerm.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const cleanSel = this.selectedTerm.toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (cleanG === cleanSel) return true;
+          if ((cleanSel.includes('first') || cleanSel.includes('1')) && (cleanG.includes('first') || cleanG.includes('1') || cleanG === 'term1')) return true;
+          if ((cleanSel.includes('second') || cleanSel.includes('2')) && (cleanG.includes('second') || cleanG.includes('2') || cleanG === 'term2')) return true;
+          if ((cleanSel.includes('third') || cleanSel.includes('3')) && (cleanG.includes('third') || cleanG.includes('3') || cleanG === 'term3')) return true;
+          return false;
+        };
+
+        const filtered = (grades || []).filter(g => matchSubject(g.subject) && matchTerm(g.term));
+
+        filtered.forEach(g => {
+          const studentDraft = this.draftGrades.get(g.student_id);
+          if (studentDraft) {
+            // Find matching column category case-insensitively or by category alias
+            const matchingCol = this.configuredColumns.find(col => {
+              const c1 = col.category.trim().toLowerCase();
+              const c2 = (g.category || '').trim().toLowerCase();
+              if (c1 === c2) return true;
+              if ((c1.includes('home') || c1.includes('assign')) && (c2.includes('home') || c2.includes('assign'))) return true;
+              if ((c1.includes('mid') || c1.includes('test')) && (c2.includes('mid') || c2.includes('test'))) return true;
+              if ((c1.includes('exam') || c1.includes('final') || c1.includes('end')) && (c2.includes('exam') || c2.includes('final') || c2.includes('end'))) return true;
+              return false;
+            });
+            const targetCategory = matchingCol ? matchingCol.category : g.category;
+            studentDraft[targetCategory] = { score: g.score, id: g.id };
+          }
+        });
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+      }
     });
   }
 
   onFilterChange() {
+    const termObj = this.terms.find(t => t.name === this.selectedTerm || t.id === this.selectedTerm);
+    if (termObj && termObj.id) {
+      this.activeTermId = termObj.id;
+    }
     if (this.selectedClassId) {
       this.loadExistingGrades();
     }
@@ -162,6 +237,72 @@ export class BulkGradingComponent implements OnInit {
         this.draftGrades.set(student.id, initialMap);
       }
     });
+  }
+
+  // Terminal Evaluation & Remarks Handlers
+  openEvaluation(student: Student) {
+    this.evalStudent = student;
+    this.isEvalModalOpen = true;
+    this.isEvalLoading = true;
+    this.evalData = {};
+
+    const periodId = this.activePeriodId || '00000000-0000-0000-0000-000000000000';
+    const termId = this.activeTermId || '00000000-0000-0000-0000-000000000000';
+
+    this.teacherPortalService.getStudentEvaluation(this.selectedClassId, student.id!, periodId, termId).subscribe({
+      next: (data) => {
+        this.evalData = data || {
+          conduct: '',
+          attitude: '',
+          interest: '',
+          class_teacher_remark: '',
+          head_teacher_remark: ''
+        };
+        this.isEvalLoading = false;
+      },
+      error: () => {
+        this.evalData = {
+          conduct: '',
+          attitude: '',
+          interest: '',
+          class_teacher_remark: '',
+          head_teacher_remark: ''
+        };
+        this.isEvalLoading = false;
+      }
+    });
+  }
+
+  saveEvaluation() {
+    if (!this.evalStudent || !this.selectedClassId) return;
+    this.isEvalSaving = true;
+    const payload = {
+      ...this.evalData,
+      academic_period_id: this.activePeriodId || '00000000-0000-0000-0000-000000000000',
+      term_id: this.activeTermId || '00000000-0000-0000-0000-000000000000'
+    };
+
+    this.teacherPortalService.updateStudentEvaluation(this.selectedClassId, this.evalStudent.id!, payload).subscribe({
+      next: () => {
+        this.isEvalSaving = false;
+        this.dialog.alert(`Evaluation & Remarks saved for ${this.evalStudent?.first_name} ${this.evalStudent?.last_name}`, 'Saved', 'success').subscribe();
+        this.closeEvaluation();
+      },
+      error: (err) => {
+        this.isEvalSaving = false;
+        this.dialog.alert(err.error?.error || 'Failed to save evaluation', 'Error', 'error').subscribe();
+      }
+    });
+  }
+
+  closeEvaluation() {
+    this.isEvalModalOpen = false;
+    this.evalStudent = null;
+    this.evalData = {};
+  }
+
+  applyTemplate(text: string) {
+    this.evalData.head_teacher_remark = text;
   }
 
   getDraft(studentId: string, category: string) {
@@ -299,6 +440,9 @@ export class BulkGradingComponent implements OnInit {
       return;
     }
 
+    const selectedSub = this.subjects.find(s => s.id === this.selectedSubjectId || s.name === this.selectedSubjectId);
+    const resolvedSubject = selectedSub?.id || this.selectedSubjectId;
+
     const gradesToSave: Partial<Grade>[] = [];
     
     this.students.forEach(student => {
@@ -312,12 +456,12 @@ export class BulkGradingComponent implements OnInit {
                 id: draft.id, // Include ID if it's an update
                 student_id: student.id,
                 class_id: this.selectedClassId,
-                subject: this.selectedSubjectId,
+                subject: resolvedSubject,
                 category: col.category,
                 score: draft.score,
-                max_score: 100, // Hardcoded to 100 for weighted calculation
+                max_score: 100,
                 term: this.selectedTerm,
-                remarks: ''
+                remarks: 'Verified & Saved via Admin Console'
               });
             }
           });

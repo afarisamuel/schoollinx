@@ -15,6 +15,7 @@ import { CampusOpsService } from '../../../core/infrastructure/campus-ops/campus
 import { RouterModule } from '@angular/router';
 import { TeacherSubnavComponent } from '../teacher-subnav/teacher-subnav.component';
 import { ToastService } from '../../../shared/ui/toast/toast.service';
+import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 
 @Component({
     selector: 'app-teacher-portal',
@@ -30,6 +31,12 @@ export class TeacherPortalComponent implements OnInit {
     private periodService = inject(AcademicPeriodService);
     private campusOps = inject(CampusOpsService);
     public toast = inject(ToastService);
+    private authService = inject(AuthService);
+
+    isHeadmasterOrAdmin = computed(() => {
+        const role = (this.authService.currentUserValue?.role || '') as string;
+        return role === 'ADMIN' || role === 'HEADMASTER' || role === 'ECOPOWER_ADMIN' || role === 'IT_ADMIN';
+    });
 
     teacher = signal<any>(null);
     assignments = signal<TeacherAssignment[]>([]);

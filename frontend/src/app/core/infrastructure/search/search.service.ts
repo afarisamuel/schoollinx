@@ -109,6 +109,76 @@ export class SearchService {
       badge: 'Library',
       keywords: ['book loan', 'borrow', 'return', 'textbook', 'isbn']
     },
+    {
+      type: 'action',
+      category: 'action',
+      id: 'act-9',
+      title: 'Terminal Evaluations & Remarks Console',
+      description: 'Review teacher remarks, conduct ratings, and add headmaster promotion remarks',
+      path: '/teachers/grading',
+      badge: 'Evaluations',
+      keywords: ['evaluation', 'remarks', 'headmaster remark', 'head teacher', 'conduct', 'attitude', 'promotion', 'grading console']
+    },
+    {
+      type: 'action',
+      category: 'action',
+      id: 'act-10',
+      title: 'CBT Quiz & Online Exam Studio',
+      description: 'Create multi-choice and essay quizzes for classes and subjects',
+      path: '/teachers/cbt-builder',
+      badge: 'CBT Quiz',
+      keywords: ['cbt', 'quiz', 'questions', 'mcq', 'exam studio', 'online assessment']
+    },
+    {
+      type: 'action',
+      category: 'action',
+      id: 'act-11',
+      title: 'Seating Chart & Desk Layout',
+      description: 'Design interactive classroom seating charts and desk arrangements',
+      path: '/teachers/seating',
+      badge: 'Classroom',
+      keywords: ['seating chart', 'desks', 'layout', 'classroom seating', 'arrangement']
+    },
+    {
+      type: 'action',
+      category: 'action',
+      id: 'act-12',
+      title: 'SMS Credits & Top-Up Ledger',
+      description: 'Top up SMS credits, monitor SMS transaction ledger, and buy bundles via Paystack',
+      path: '/fiscal/subscription-billing',
+      badge: 'SMS Top-up',
+      keywords: ['sms credit', 'topup', 'sms balance', 'buy sms', 'paystack sms', 'ledger']
+    },
+    {
+      type: 'action',
+      category: 'action',
+      id: 'act-13',
+      title: 'School License & Subscription Renewal',
+      description: 'Review billing due dates, term rates, and renew school platform access',
+      path: '/fiscal/subscription-billing',
+      badge: 'Subscription',
+      keywords: ['subscription', 'renew', 'billing', 'schoollinx license', 'due date', 'paystack']
+    },
+    {
+      type: 'action',
+      category: 'action',
+      id: 'act-14',
+      title: 'Teacher Class & Subject Allocation',
+      description: 'Assign faculty members to specific classroom streams and subjects',
+      path: '/teachers/assignments',
+      badge: 'Staff Map',
+      keywords: ['assign teacher', 'subject allocation', 'teaching roster', 'staff assignment']
+    },
+    {
+      type: 'action',
+      category: 'action',
+      id: 'act-15',
+      title: 'Extracurricular Clubs & Societies',
+      description: 'Explore sports teams, debate societies, science clubs, and memberships',
+      path: '/extracurricular',
+      badge: 'Clubs',
+      keywords: ['clubs', 'sports', 'societies', 'extracurricular', 'join club', 'my clubs']
+    },
 
     // ──  Registry & People ────────────────────────────────────────────────
     {

@@ -2,7 +2,8 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ExtracurricularService, Club, ClubEvent, ClubCategory } from '../../../core/infrastructure/extracurricular/extracurricular.service';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Component({
     selector: 'app-club-discovery',
@@ -24,7 +25,7 @@ export class ClubDiscoveryComponent implements OnInit {
     filteredClubs = computed(() => {
         let list = this.clubs();
         const categorySelection = this.activeCategory();
-        const searchVal = this.searchTerm().toLowerCase();
+        const searchVal = this.searchTerm().toLowerCase().trim();
 
         if (categorySelection) {
             list = list.filter((c: Club) => c.category === categorySelection);
@@ -50,14 +51,17 @@ export class ClubDiscoveryComponent implements OnInit {
 
     loadData() {
         forkJoin({
-            allClubs: this.extraService.getClubs(),
-            myClubs: this.extraService.getMyClubs(),
-            events: this.extraService.getEvents()
+            allClubs: this.extraService.getClubs().pipe(catchError(() => of([]))),
+            myClubs: this.extraService.getMyClubs().pipe(catchError(() => of([]))),
+            events: this.extraService.getEvents().pipe(catchError(() => of([])))
         }).subscribe({
             next: ({ allClubs, myClubs, events }: { allClubs: Club[], myClubs: Club[], events: ClubEvent[] }) => {
-                this.clubs.set(allClubs);
-                this.joinedClubIds.set(new Set<string>(myClubs.map((c: Club) => c.id)));
-                this.events.set(events);
+                this.clubs.set(allClubs || []);
+                this.joinedClubIds.set(new Set<string>((myClubs || []).map((c: Club) => c.id)));
+                this.events.set(events || []);
+            },
+            error: (err) => {
+                console.error('Failed to load club data', err);
             }
         });
     }

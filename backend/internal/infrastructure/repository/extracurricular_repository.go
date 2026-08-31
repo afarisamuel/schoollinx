@@ -51,10 +51,20 @@ func (r *extracurricularRepository) AddMember(ctx context.Context, member *domai
 }
 
 func (r *extracurricularRepository) RemoveMember(ctx context.Context, clubID, studentID uuid.UUID) error {
-	if r.db == nil {
+	if r.db == nil || studentID == uuid.Nil {
 		return nil
 	}
-	return r.db.WithContext(ctx).Where("club_id = ? AND student_id = ?", clubID, studentID).Delete(&domain.ClubMember{}).Error
+	matchingIDs := []uuid.UUID{studentID}
+	var studentRecord domain.Student
+	if err := r.db.WithContext(ctx).Where("user_id = ? OR id = ?", studentID, studentID).First(&studentRecord).Error; err == nil {
+		if studentRecord.ID != uuid.Nil && studentRecord.ID != studentID {
+			matchingIDs = append(matchingIDs, studentRecord.ID)
+		}
+		if studentRecord.UserID != nil && *studentRecord.UserID != uuid.Nil && *studentRecord.UserID != studentID {
+			matchingIDs = append(matchingIDs, *studentRecord.UserID)
+		}
+	}
+	return r.db.WithContext(ctx).Where("club_id = ? AND student_id IN ?", clubID, matchingIDs).Delete(&domain.ClubMember{}).Error
 }
 
 func (r *extracurricularRepository) GetClubMembers(ctx context.Context, clubID uuid.UUID) ([]uuid.UUID, error) {
@@ -67,12 +77,35 @@ func (r *extracurricularRepository) GetClubMembers(ctx context.Context, clubID u
 }
 
 func (r *extracurricularRepository) GetStudentClubs(ctx context.Context, studentID uuid.UUID) ([]domain.Club, error) {
-	var clubs []domain.Club
-	if r.db == nil {
+	clubs := make([]domain.Club, 0)
+	if r.db == nil || studentID == uuid.Nil {
 		return clubs, nil
 	}
-	err := r.db.WithContext(ctx).Joins("JOIN club_members ON club_members.club_id = clubs.id").
-		Where("club_members.student_id = ?", studentID).Find(&clubs).Error
+
+	matchingIDs := []uuid.UUID{studentID}
+	var studentRecord domain.Student
+	if err := r.db.WithContext(ctx).Where("user_id = ? OR id = ?", studentID, studentID).First(&studentRecord).Error; err == nil {
+		if studentRecord.ID != uuid.Nil && studentRecord.ID != studentID {
+			matchingIDs = append(matchingIDs, studentRecord.ID)
+		}
+		if studentRecord.UserID != nil && *studentRecord.UserID != uuid.Nil && *studentRecord.UserID != studentID {
+			matchingIDs = append(matchingIDs, *studentRecord.UserID)
+		}
+	}
+
+	var clubIDs []uuid.UUID
+	err := r.db.WithContext(ctx).Model(&domain.ClubMember{}).
+		Where("student_id IN ?", matchingIDs).
+		Pluck("club_id", &clubIDs).Error
+	if err != nil {
+		return nil, err
+	}
+
+	if len(clubIDs) == 0 {
+		return clubs, nil
+	}
+
+	err = r.db.WithContext(ctx).Where("id IN ?", clubIDs).Find(&clubs).Error
 	return clubs, err
 }
 

@@ -45,6 +45,11 @@ func (h *ExtracurricularHandler) GetMyClubs(c *gin.Context) {
 		}
 	}
 
+	if studentID == uuid.Nil {
+		c.JSON(http.StatusOK, []domain.Club{})
+		return
+	}
+
 	clubs, err := h.useCase.GetStudentClubs(c.Request.Context(), studentID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -67,6 +72,10 @@ func (h *ExtracurricularHandler) JoinClub(c *gin.Context) {
 			studentID = uid
 		}
 	}
+	if studentID == uuid.Nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User context missing"})
+		return
+	}
 
 	if err := h.useCase.JoinClub(c.Request.Context(), id, studentID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -86,6 +95,10 @@ func (h *ExtracurricularHandler) LeaveClub(c *gin.Context) {
 		if uid, ok := val.(uuid.UUID); ok {
 			studentID = uid
 		}
+	}
+	if studentID == uuid.Nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User context missing"})
+		return
 	}
 
 	if err := h.useCase.LeaveClub(c.Request.Context(), id, studentID); err != nil {

@@ -67,6 +67,22 @@ func (h *TeacherPortalHandler) UpdateStudentEvaluation(c *gin.Context) {
 	}
 	
 	req.StudentID = studentID
+
+	// Headmaster Remark is restricted to Admin or designated Headmaster
+	userRoleVal, _ := c.Get("userRole")
+	role, _ := userRoleVal.(domain.Role)
+	isHeadmasterOrAdmin := role == domain.RoleAdmin || role == domain.RoleHeadmaster || role == domain.RoleEcopowerAdmin || role == domain.RoleITAdmin
+
+	if !isHeadmasterOrAdmin {
+		// Regular teacher: preserve existing HeadTeacherRemark so teachers cannot overwrite it
+		existing, _ := h.evalRepo.GetByStudentAndTerm(c.Request.Context(), studentID, req.AcademicPeriodID, req.TermID)
+		if existing != nil {
+			req.HeadTeacherRemark = existing.HeadTeacherRemark
+		} else {
+			req.HeadTeacherRemark = ""
+		}
+	}
+
 	if err := h.evalRepo.Upsert(c.Request.Context(), &req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save evaluation"})
 		return

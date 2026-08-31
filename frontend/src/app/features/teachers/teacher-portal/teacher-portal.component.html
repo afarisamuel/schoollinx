@@ -1528,10 +1528,12 @@
                                 <label class="text-[10px] font-black text-text-muted uppercase tracking-widest mb-2 block">Class Teacher Remark</label>
                                 <textarea [(ngModel)]="evalData().class_teacher_remark" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all min-h-[100px]" placeholder="Enter final remarks..."></textarea>
                             </div>
-                            <div>
-                                <label class="text-[10px] font-black text-text-muted uppercase tracking-widest mb-2 block">Head Teacher Remark (Optional)</label>
-                                <textarea [(ngModel)]="evalData().head_teacher_remark" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all min-h-[80px]" placeholder="Head teacher remarks..."></textarea>
-                            </div>
+                            @if (isHeadmasterOrAdmin()) {
+                                <div>
+                                    <label class="text-[10px] font-black text-text-muted uppercase tracking-widest mb-2 block">Head Teacher / Headmaster Remark</label>
+                                    <textarea [(ngModel)]="evalData().head_teacher_remark" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all min-h-[80px]" placeholder="Head teacher remarks..."></textarea>
+                                </div>
+                            }
                         </div>
                     }
                 </div>
