@@ -188,15 +188,7 @@ export class NotificationService {
     }
 
     getTypeIcon(type: Notification['type']): string {
-        const icons: Record<string, string> = {
-            'ATTENDANCE': '📋',
-            'GRADE': '🎓',
-            'PAYMENT': '💳',
-            'HOMEWORK': '📝',
-            'MESSAGE': '💬',
-            'SYSTEM': '🔔',
-        };
-        return icons[type] || '🔔';
+        return '';
     }
 
     getTypeColor(type: Notification['type']): string {

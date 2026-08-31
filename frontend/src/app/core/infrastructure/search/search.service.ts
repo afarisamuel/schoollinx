@@ -28,7 +28,7 @@ export class SearchService {
 
   // Comprehensive institutional navigation & action catalog
   private readonly staticCatalog: SearchResult[] = [
-    // ── ⚡ Quick Actions ─────────────────────────────────────────────────────
+    // ── Quick Actions ────────────────────────────────────────────────────────
     {
       type: 'action',
       category: 'action',
@@ -110,7 +110,7 @@ export class SearchService {
       keywords: ['book loan', 'borrow', 'return', 'textbook', 'isbn']
     },
 
-    // ── 👥 Registry & People ────────────────────────────────────────────────
+    // ──  Registry & People ────────────────────────────────────────────────
     {
       type: 'page',
       category: 'registry',
@@ -182,7 +182,7 @@ export class SearchService {
       keywords: ['graduates', 'alumni', 'former students', 'old boys', 'old girls']
     },
 
-    // ── 📚 Academics & Curriculum ───────────────────────────────────────────
+    // ──  Academics & Curriculum ───────────────────────────────────────────
     {
       type: 'page',
       category: 'academic',
@@ -264,7 +264,7 @@ export class SearchService {
       keywords: ['departments', 'hod', 'faculty heads', 'divisions']
     },
 
-    // ── 💰 Financial Operations ─────────────────────────────────────────────
+    // ──  Financial Operations ─────────────────────────────────────────────
     {
       type: 'page',
       category: 'finance',
@@ -346,7 +346,7 @@ export class SearchService {
       keywords: ['revenue forecast', 'collection rate', 'bad debt', 'financial ai']
     },
 
-    // ── ⚙️ Operations, Care & Facilities ────────────────────────────────────
+    // ──  Operations, Care & Facilities ────────────────────────────────────
     {
       type: 'page',
       category: 'operations',
@@ -408,7 +408,7 @@ export class SearchService {
       keywords: ['clubs', 'sports', 'societies', 'debate', 'athletics', 'after school']
     },
 
-    // ── 📣 Communications & Settings ────────────────────────────────────────
+    // ──  Communications & Settings ────────────────────────────────────────
     {
       type: 'page',
       category: 'communication',

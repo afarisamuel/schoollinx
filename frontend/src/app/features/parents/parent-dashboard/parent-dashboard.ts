@@ -553,18 +553,18 @@ export class ParentDashboard implements OnInit {
         return 0;
     }
 
-    getAchievements(studentId: string): Array<{ icon: string; label: string; color: string }> {
+    getAchievements(studentId: string): Array<{ id: string; label: string; color: string }> {
         const achievements = [];
         const att = this.getAttendance(studentId);
         const gpa = this.gpaMap()[studentId] || 0;
         const hw = this.getHomework(studentId);
 
-        if (att.percentage >= 95) achievements.push({ icon: '🏆', label: 'Perfect Attendance', color: 'amber' });
-        if (att.percentage >= 80) achievements.push({ icon: '⭐', label: 'Good Attendance', color: 'yellow' });
-        if (gpa >= 80) achievements.push({ icon: '🎓', label: 'Academic Excellence', color: 'indigo' });
-        if (gpa >= 70) achievements.push({ icon: '📚', label: 'Strong Performer', color: 'blue' });
-        if (hw.length > 0) achievements.push({ icon: '✅', label: 'Active Learner', color: 'emerald' });
-        if (att.absent === 0) achievements.push({ icon: '🌟', label: 'Zero Absences', color: 'purple' });
+        if (att.percentage >= 95) achievements.push({ id: 'attendance_perfect', label: 'Perfect Attendance', color: 'amber' });
+        if (att.percentage >= 80) achievements.push({ id: 'attendance_good', label: 'Good Attendance', color: 'yellow' });
+        if (gpa >= 80) achievements.push({ id: 'academic_excel', label: 'Academic Excellence', color: 'indigo' });
+        if (gpa >= 70) achievements.push({ id: 'academic_strong', label: 'Strong Performer', color: 'blue' });
+        if (hw.length > 0) achievements.push({ id: 'active_learner', label: 'Active Learner', color: 'emerald' });
+        if (att.absent === 0) achievements.push({ id: 'zero_absences', label: 'Zero Absences', color: 'purple' });
 
         return achievements;
     }

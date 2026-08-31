@@ -27,7 +27,7 @@ type TenantUseCase interface {
 	ResendSetupEmail(ctx context.Context, id string) error
 	CreateTenantAdmin(ctx context.Context, id string, req CreateTenantAdminReq) error
 	UpdateBilling(ctx context.Context, id string, req BillingUpdateReq) error
-	InitializeSubscriptionPayment(ctx context.Context, tenantID string, payerEmail string, studentCount int) (string, string, error)
+	InitializeSubscriptionPayment(ctx context.Context, tenantID string, payerEmail string, studentCount int, callbackURL ...string) (string, string, error)
 	GetSubscriptionHistory(ctx context.Context, tenantID string) ([]domain.TenantSubscriptionPayment, error)
 	VerifySubscriptionPayment(ctx context.Context, tenantID string, reference string) error
 	ImpersonateTenant(ctx context.Context, id string) (string, error)
@@ -450,7 +450,7 @@ func (u *tenantUseCase) ExportTenantData(ctx context.Context, id string) ([]byte
 }
 
 // InitializeSubscriptionPayment calculates the term subscription cost and returns a Paystack checkout URL.
-func (u *tenantUseCase) InitializeSubscriptionPayment(ctx context.Context, tenantID string, payerEmail string, studentCount int) (string, string, error) {
+func (u *tenantUseCase) InitializeSubscriptionPayment(ctx context.Context, tenantID string, payerEmail string, studentCount int, callbackURL ...string) (string, string, error) {
 	if u.paystackSvc == nil {
 		return "", "", fmt.Errorf("payment provider not configured")
 	}
@@ -476,7 +476,12 @@ func (u *tenantUseCase) InitializeSubscriptionPayment(ctx context.Context, tenan
 	totalAmount := tenant.PerStudentPerTermRate * float64(studentCount)
 	reference := fmt.Sprintf("SUB-%s-%d", uid.String()[:8], time.Now().Unix())
 
-	authURL, err := u.paystackSvc.InitializeTransaction(payerEmail, totalAmount, reference)
+	cbURL := ""
+	if len(callbackURL) > 0 {
+		cbURL = callbackURL[0]
+	}
+
+	authURL, err := u.paystackSvc.InitializeTransactionWithOptions(payerEmail, totalAmount, reference, "", "", cbURL)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to initialize subscription payment: %w", err)
 	}
@@ -505,10 +510,56 @@ func (u *tenantUseCase) InitializeSubscriptionPayment(ctx context.Context, tenan
 	return authURL, reference, nil
 }
 
+func (u *tenantUseCase) creditSubscriptionPayment(ctx context.Context, tenantID uuid.UUID, reference string) error {
+	var payment domain.TenantSubscriptionPayment
+	if err := u.db.Where("reference = ? AND tenant_id = ?", reference, tenantID).First(&payment).Error; err != nil {
+		return fmt.Errorf("payment record not found: %w", err)
+	}
+	if payment.Status == "SUCCESS" {
+		return nil // already credited — idempotent
+	}
+
+	payment.Status = "SUCCESS"
+	if err := u.db.Save(&payment).Error; err != nil {
+		return fmt.Errorf("failed to update payment status: %w", err)
+	}
+
+	// Extend the tenant's billing due date by 4 months (approx 1 term)
+	var tenant domain.Tenant
+	if err := u.db.First(&tenant, "id = ?", tenantID).Error; err == nil {
+		now := time.Now()
+		if tenant.BillingDueDate != nil && tenant.BillingDueDate.After(now) {
+			newDate := tenant.BillingDueDate.AddDate(0, 4, 0)
+			tenant.BillingDueDate = &newDate
+		} else {
+			newDate := now.AddDate(0, 4, 0)
+			tenant.BillingDueDate = &newDate
+		}
+		if err := u.db.Save(&tenant).Error; err != nil {
+			logger.Error("Failed to update tenant billing due date", err, zap.String("tenant_id", tenantID.String()))
+		}
+	}
+	return nil
+}
+
 func (u *tenantUseCase) GetSubscriptionHistory(ctx context.Context, tenantID string) ([]domain.TenantSubscriptionPayment, error) {
 	uid, err := uuid.Parse(tenantID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid tenant ID: %w", err)
+	}
+
+	// Auto-verify recent pending subscription payments if provider configured
+	if u.paystackSvc != nil {
+		var pendingPayments []domain.TenantSubscriptionPayment
+		since := time.Now().AddDate(0, 0, -7)
+		if err := u.db.Where("tenant_id = ? AND status = ? AND created_at >= ?", uid, "PENDING", since).Find(&pendingPayments).Error; err == nil {
+			for _, p := range pendingPayments {
+				status, err := u.paystackSvc.VerifyTransaction(p.Reference)
+				if err == nil && status == "success" {
+					_ = u.creditSubscriptionPayment(ctx, uid, p.Reference)
+				}
+			}
+		}
 	}
 
 	var history []domain.TenantSubscriptionPayment
@@ -620,6 +671,15 @@ func (u *tenantUseCase) UpdatePaymentConfig(ctx context.Context, id string, req 
 }
 
 func (u *tenantUseCase) VerifySubscriptionPayment(ctx context.Context, tenantID string, reference string) error {
+	uid, err := uuid.Parse(tenantID)
+	if err != nil {
+		return fmt.Errorf("invalid tenant ID: %w", err)
+	}
+
+	if u.paystackSvc == nil {
+		return fmt.Errorf("payment provider not configured")
+	}
+
 	// Call Paystack to verify the transaction using the platform key
 	status, err := u.paystackSvc.VerifyTransaction(reference)
 	if err != nil {
@@ -628,44 +688,19 @@ func (u *tenantUseCase) VerifySubscriptionPayment(ctx context.Context, tenantID 
 
 	switch status {
 	case "success":
-		// Find the subscription payment record and update it
-		var payment domain.TenantSubscriptionPayment
-		if err := u.db.Where("reference = ? AND tenant_id = ?", reference, tenantID).First(&payment).Error; err != nil {
-			return fmt.Errorf("payment record not found: %w", err)
-		}
-		if payment.Status != "SUCCESS" {
-			payment.Status = "SUCCESS"
-			if err := u.db.Save(&payment).Error; err != nil {
-				return fmt.Errorf("failed to update payment status: %w", err)
-			}
-			
-			// Extend the tenant's billing due date by 4 months (approx 1 term)
-			var tenant domain.Tenant
-			if err := u.db.First(&tenant, "id = ?", tenantID).Error; err == nil {
-				now := time.Now()
-				if tenant.BillingDueDate != nil && tenant.BillingDueDate.After(now) {
-					newDate := tenant.BillingDueDate.AddDate(0, 4, 0)
-					tenant.BillingDueDate = &newDate
-				} else {
-					newDate := now.AddDate(0, 4, 0)
-					tenant.BillingDueDate = &newDate
-				}
-				u.db.Save(&tenant)
-			}
-		}
-	case "pending":
+		return u.creditSubscriptionPayment(ctx, uid, reference)
+	case "pending", "ongoing", "abandoned":
 		return fmt.Errorf("payment is still pending — please complete it on Paystack and try again")
-	default:
-		// failed, abandoned, etc.
+	case "failed", "reversed":
 		var payment domain.TenantSubscriptionPayment
-		if err := u.db.Where("reference = ? AND tenant_id = ?", reference, tenantID).First(&payment).Error; err == nil {
+		if err := u.db.Where("reference = ? AND tenant_id = ?", reference, uid).First(&payment).Error; err == nil {
 			payment.Status = "FAILED"
-			u.db.Save(&payment)
+			_ = u.db.Save(&payment)
 		}
-		return fmt.Errorf("payment was not successful (status: %s)", status)
+		return fmt.Errorf("payment was not successful on Paystack (status: %s)", status)
+	default:
+		return fmt.Errorf("payment is not completed (status: %s)", status)
 	}
-
-	return nil
 }
 
 func (u *tenantUseCase) GetPaystackCountries() []domain.PaystackCountry {

@@ -49,11 +49,11 @@ export class HomeworkPortalComponent implements OnInit {
   };
 
   commentBank = [
-    'Exemplary conceptual understanding and clear logical steps 🌟',
-    'Good attempt, but review your calculation steps carefully 💡',
-    'Well structured analysis with persuasive conclusions 👍',
-    'Please show all rough working and formulas used ✍️',
-    'Submitted punctually with outstanding neatness ✅'
+    'Exemplary conceptual understanding and clear logical steps.',
+    'Good attempt, but review your calculation steps carefully.',
+    'Well structured analysis with persuasive conclusions.',
+    'Please show all rough working and formulas used.',
+    'Submitted punctually with outstanding neatness.'
   ];
 
   formData: Partial<Homework> = {

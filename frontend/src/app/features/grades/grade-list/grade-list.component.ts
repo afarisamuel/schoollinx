@@ -112,15 +112,6 @@ export class GradeListComponent implements OnInit {
         return 'F';
     }
 
-    getCategoryIcon(cat: GradeCategory): string {
-        const icons: Record<GradeCategory, string> = {
-            ASSIGNMENT: '📝',
-            QUIZ: '⚡',
-            MIDTERM: '📊',
-            FINAL: '🎓',
-        };
-        return icons[cat] ?? '📄';
-    }
 
     getScoreClass(pct: number): string {
         if (pct >= 90) return 'excellent';

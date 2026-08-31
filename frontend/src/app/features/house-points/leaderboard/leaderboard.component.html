@@ -31,7 +31,11 @@
                              [style.backgroundColor]="house.color + '20'"
                              [style.color]="house.color"
                              [style.border]="'2px solid ' + house.color + '50'">
-                             {{ house.crest || '🏠' }}
+                             @if (house.crest) {
+                                <span>{{ house.crest }}</span>
+                             } @else {
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                             }
                         </div>
                         <span class="text-xs md:text-sm font-bold text-center text-text-primary">{{ house.name }}</span>
                         <span class="text-sm md:text-lg font-black mt-1" [style.color]="house.color">{{ house.total_points | number }}</span>
@@ -77,10 +81,14 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-4">
-                                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner"
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center shadow-inner"
                                              [style.backgroundColor]="house.color + '20'"
                                              [style.color]="house.color">
-                                             {{ house.crest || '🏠' }}
+                                             @if (house.crest) {
+                                                <span>{{ house.crest }}</span>
+                                             } @else {
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                             }
                                         </div>
                                         <div>
                                             <p class="font-bold text-text-primary group-hover:text-indigo-400 transition-colors">{{ house.name }}</p>

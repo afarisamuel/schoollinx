@@ -191,7 +191,7 @@ func (a *App) setupRoutes() {
 	affiliateGroup := superAdmin.Group("/affiliates")
 	handler.NewAffiliateHandler(affiliateGroup, a.DB)
 
-	handler.NewSMSHandler(api, superAdmin, a.DB)
+	handler.NewSMSHandler(api, superAdmin, a.DB, infra.Paystack)
 
 	telemetryUseCase := usecase.NewTelemetryUseCase(a.DB)
 	telemetryGroup := a.Router.Group("/api/telemetry")

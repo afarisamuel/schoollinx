@@ -21,9 +21,9 @@ export class DocumentRequestModalComponent {
     private reportService = inject(ReportService);
 
     options = [
-        { type: 'TRANSCRIPT' as DocumentType, title: 'Academic Transcript', icon: '📝', description: 'Complete history of grades and attendance.' },
-        { type: 'ENROLLMENT_CERTIFICATE' as DocumentType, title: 'Enrollment Certificate', icon: '🎓', description: 'Official proof of current registration.' },
-        { type: 'CONDUCT_REPORT' as DocumentType, title: 'Conduct & Behavior', icon: '🛡️', description: 'Summary of attendance and behavioral standing.' }
+        { type: 'TRANSCRIPT' as DocumentType, title: 'Academic Transcript', description: 'Complete history of grades and attendance.' },
+        { type: 'ENROLLMENT_CERTIFICATE' as DocumentType, title: 'Enrollment Certificate', description: 'Official proof of current registration.' },
+        { type: 'CONDUCT_REPORT' as DocumentType, title: 'Conduct & Behavior', description: 'Summary of attendance and behavioral standing.' }
     ];
 
     generate(type: DocumentType) {

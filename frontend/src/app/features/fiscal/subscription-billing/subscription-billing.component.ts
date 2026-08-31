@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute, Router } from '@angular/router';
 import { 
   TenantProfile, 
   TenantProfileService, 
@@ -30,6 +31,8 @@ export class SubscriptionBillingComponent implements OnInit {
   private toast = inject(ToastService);
   private http = inject(HttpClient);
   private studentService = inject(StudentService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   showSmsTopUpModal = signal(false);
   showSenderIdModal = signal(false);
@@ -121,6 +124,15 @@ export class SubscriptionBillingComponent implements OnInit {
     this.loadSubaccountConfig();
     this.loadCountries();
     this.loadBanks('ghana');
+
+    // Auto-verify if returning from Paystack redirect
+    this.route.queryParams.subscribe(params => {
+      const ref = params['reference'] || params['trxref'];
+      if (ref && typeof ref === 'string' && ref.startsWith('SUB-')) {
+        this.verifyPayment(ref);
+        this.router.navigate([], { queryParams: {}, replaceUrl: true });
+      }
+    });
   }
 
   loadSubaccountConfig() {
@@ -381,9 +393,10 @@ export class SubscriptionBillingComponent implements OnInit {
 
   initiatePayment(tenantId: string, payerEmail: string, studentCount: number) {
     this.isPaymentLoading.set(true);
+    const callbackUrl = window.location.origin + window.location.pathname;
     this.http.post<{ authorization_url: string; reference: string }>(
       `/api/tenant/subscription/pay`,
-      { payer_email: payerEmail, student_count: studentCount }
+      { payer_email: payerEmail, student_count: studentCount, callback_url: callbackUrl }
     ).subscribe({
       next: (res) => {
         this.isPaymentLoading.set(false);
@@ -402,7 +415,7 @@ export class SubscriptionBillingComponent implements OnInit {
 
   pollVerification(reference: string, attempts = 0) {
     if (attempts > 30) {
-      this.dialog.alert('Payment verification timed out. Please click "Verify" manually in the history table when you have completed payment.', 'Timeout', 'warning');
+      this.toast.warning('Payment verification polling paused. You can click "Verify" manually in the history table when you have completed payment.', 'Polling Paused');
       return;
     }
     
@@ -410,18 +423,19 @@ export class SubscriptionBillingComponent implements OnInit {
     setTimeout(() => {
       this.http.post(`/api/tenant/subscription/verify/${reference}`, {}).subscribe({
         next: () => {
-          this.dialog.alert('Payment completed and verified successfully!', 'Success', 'success');
+          this.toast.success('Subscription payment verified successfully!', 'Payment Verified');
           this.loadHistory();
           this.loadTenantProfile(); // update billing due date
         },
         error: (err) => {
-          // If 400 with "payment not successful yet", we keep polling
-          const msg = err.error?.error || '';
-          if (msg.includes('success') === false) {
-             this.pollVerification(reference, attempts + 1);
+          const msg = (err.error?.error || '').toLowerCase();
+          // If still pending, ongoing, or abandoned, continue polling
+          if (msg.includes('pending') || msg.includes('abandoned') || msg.includes('ongoing') || err.status === 400) {
+            this.pollVerification(reference, attempts + 1);
           } else {
-             // Other error
-             this.dialog.alert('Verification failed. You can try verifying manually from the table.', 'Verification Error', 'danger');
+            // Unrecoverable error
+            this.dialog.alert(err.error?.error || 'Verification not completed yet. You can try verifying manually from the table once paid.', 'Verification', 'info');
+            this.loadHistory();
           }
         }
       });
@@ -431,12 +445,13 @@ export class SubscriptionBillingComponent implements OnInit {
   verifyPayment(reference: string) {
     this.http.post(`/api/tenant/subscription/verify/${reference}`, {}).subscribe({
       next: () => {
-        this.dialog.alert('Payment verified successfully!', 'Success', 'success');
+        this.toast.success('Payment verified successfully!', 'Success');
         this.loadHistory();
+        this.loadTenantProfile();
       },
       error: (err) => {
         const msg = err.error?.error || 'Failed to verify payment.';
-        this.dialog.alert(msg, 'Verification Error', 'danger');
+        this.dialog.alert(msg, 'Verification Status', 'warning');
       }
     });
   }

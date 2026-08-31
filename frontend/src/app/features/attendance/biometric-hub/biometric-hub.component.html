@@ -161,9 +161,15 @@
                                 </div>
                                 <p class="text-[9px] font-bold text-text-muted uppercase tracking-widest">Device: {{ event.device_id }}</p>
                                 <div class="mt-1.5">
-                                    <span class="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border"
+                                    <span class="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border inline-flex items-center gap-1"
                                           [ngClass]="event.processed ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'">
-                                        {{ event.processed ? '✓ Attendance Marked' : '⏳ Pending Mapping' }}
+                                        @if (event.processed) {
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                            Attendance Marked
+                                        } @else {
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                            Pending Mapping
+                                        }
                                     </span>
                                     @if (!event.processed) {
                                         <button (click)="openLinkModal(event.rfid_token)" class="ml-3 text-[9px] font-black text-indigo-400 hover:text-indigo-300 uppercase tracking-widest bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 px-2 py-0.5 rounded transition-colors inline-flex items-center gap-1">

@@ -63,7 +63,7 @@ export class StaffAttendancePage implements OnInit {
         this.clockError = '';
         this.hrService.clockIn(this.clockStaffId).subscribe({
             next: (rec) => {
-                this.clockMessage = `✔ Clocked in at ${new Date(rec.clock_in!).toLocaleTimeString()}`;
+                this.clockMessage = `Clocked in at ${new Date(rec.clock_in!).toLocaleTimeString()}`;
                 this.loadLogs();
             },
             error: (e) => this.clockError = e.error?.error || 'Clock-in failed.'
@@ -76,7 +76,7 @@ export class StaffAttendancePage implements OnInit {
         this.clockError = '';
         this.hrService.clockOut(this.clockStaffId).subscribe({
             next: (rec) => {
-                this.clockMessage = `✔ Clocked out at ${new Date(rec.clock_out!).toLocaleTimeString()}`;
+                this.clockMessage = `Clocked out at ${new Date(rec.clock_out!).toLocaleTimeString()}`;
                 this.loadLogs();
             },
             error: (e) => this.clockError = e.error?.error || 'Clock-out failed.'

@@ -43,12 +43,12 @@ export class ParentActivitiesPage implements OnInit {
 
     getAchievements(attPct: number, gpa: number, absences: number, hwCount: number) {
         const badges = [];
-        if (attPct >= 95) badges.push({ icon: '🏆', label: 'Perfect Attendance' });
-        if (attPct >= 80) badges.push({ icon: '⭐', label: 'Good Attendance' });
-        if (gpa >= 80) badges.push({ icon: '🎓', label: 'Academic Excellence' });
-        if (gpa >= 70) badges.push({ icon: '📚', label: 'Strong Performer' });
-        if (hwCount > 0) badges.push({ icon: '✅', label: 'Active Learner' });
-        if (absences === 0) badges.push({ icon: '🌟', label: 'Zero Absences' });
+        if (attPct >= 95) badges.push({ id: 'attendance_perfect', label: 'Perfect Attendance' });
+        if (attPct >= 80) badges.push({ id: 'attendance_good', label: 'Good Attendance' });
+        if (gpa >= 80) badges.push({ id: 'academic_excel', label: 'Academic Excellence' });
+        if (gpa >= 70) badges.push({ id: 'academic_strong', label: 'Strong Performer' });
+        if (hwCount > 0) badges.push({ id: 'active_learner', label: 'Active Learner' });
+        if (absences === 0) badges.push({ id: 'zero_absences', label: 'Zero Absences' });
         return badges;
     }
 

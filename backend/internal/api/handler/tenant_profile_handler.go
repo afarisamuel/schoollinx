@@ -405,13 +405,14 @@ func (h *TenantProfileHandler) InitializeSubscriptionPayment(c *gin.Context) {
 	var req struct {
 		PayerEmail   string `json:"payer_email" binding:"required,email"`
 		StudentCount int    `json:"student_count" binding:"required,gt=0"`
+		CallbackURL  string `json:"callback_url"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "payer_email and student_count are required"})
 		return
 	}
 
-	authURL, reference, err := h.uc.InitializeSubscriptionPayment(c.Request.Context(), tenantID.String(), req.PayerEmail, req.StudentCount)
+	authURL, reference, err := h.uc.InitializeSubscriptionPayment(c.Request.Context(), tenantID.String(), req.PayerEmail, req.StudentCount, req.CallbackURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -419,7 +420,7 @@ func (h *TenantProfileHandler) InitializeSubscriptionPayment(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"authorization_url": authURL,
-		"reference": reference,
+		"reference":         reference,
 	})
 }
 
@@ -453,7 +454,7 @@ func (h *TenantProfileHandler) VerifySubscriptionPayment(c *gin.Context) {
 	}
 
 	if err := h.uc.VerifySubscriptionPayment(c.Request.Context(), tenantID.String(), reference); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 

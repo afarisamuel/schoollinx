@@ -1,14 +1,25 @@
 <section class="campaign-builder">
-    <div class="builder-header">
-        <h2>📣 Newsletter & Campaign Manager</h2>
-        <p>Draft and dispatch rich HTML email campaigns to targeted institutional segments.</p>
+    <div class="builder-header flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+        </div>
+        <div>
+            <h2 class="text-xl font-black text-text-primary">Newsletter & Campaign Manager</h2>
+            <p class="text-xs text-text-muted">Draft and dispatch rich HTML email campaigns to targeted institutional segments.</p>
+        </div>
     </div>
 
     @if (successMsg()) {
-    <div class="alert success">✅ {{ successMsg() }}</div>
+    <div class="alert success flex items-center gap-2 mb-4 p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold rounded-xl">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+        {{ successMsg() }}
+    </div>
     }
     @if (errorMsg()) {
-    <div class="alert error">⚠️ {{ errorMsg() }}</div>
+    <div class="alert error flex items-center gap-2 mb-4 p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold rounded-xl">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ errorMsg() }}
+    </div>
     }
 
     <!-- Draft Composer -->
@@ -31,8 +42,9 @@
             <textarea [(ngModel)]="draft.body_html" rows="8"
                 placeholder="<h2>Greetings...</h2><p>This week at school...</p>"></textarea>
         </div>
-        <button class="btn-primary" (click)="saveDraft()" [disabled]="isLoading()">
-            {{ isLoading() ? 'Saving...' : '💾 Save as Draft' }}
+        <button class="btn-primary flex items-center gap-2" (click)="saveDraft()" [disabled]="isLoading()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            {{ isLoading() ? 'Saving...' : 'Save as Draft' }}
         </button>
     </div>
 
@@ -50,11 +62,16 @@
                 <span class="badge" [class]="'status-' + (c.status || 'draft').toLowerCase()">{{ c.status || 'DRAFT'
                     }}</span>
             </div>
-            <div class="campaign-actions">
+            <div class="campaign-actions flex items-center gap-2">
                 @if (c.status === 'DRAFT') {
-                <button class="btn-send" (click)="dispatch(c)">🚀 Dispatch</button>
+                <button class="btn-send flex items-center gap-1.5" (click)="dispatch(c)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                    Dispatch
+                </button>
                 }
-                <button class="btn-delete" (click)="deleteCampaign(c.id!)">🗑</button>
+                <button class="btn-delete p-2 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors" (click)="deleteCampaign(c.id!)" title="Delete">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                </button>
             </div>
         </div>
         }

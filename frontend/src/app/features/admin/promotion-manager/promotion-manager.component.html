@@ -32,7 +32,9 @@
             }
             <span class="text-sm">{{ promotionMessage() }}</span>
         </div>
-        <button (click)="promotionMessage.set('')" class="opacity-60 hover:opacity-100 transition-opacity">✕</button>
+        <button (click)="promotionMessage.set('')" class="opacity-60 hover:opacity-100 transition-opacity">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
     </div>
     }
 
@@ -180,7 +182,10 @@
                     </div>
                     } @else {
                         <div class="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
-                            <p class="text-xs font-bold text-amber-500">⚠ Graduation Path</p>
+                            <p class="text-xs font-bold text-amber-500 flex items-center gap-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                Graduation Path
+                            </p>
                             <p class="text-[10px] text-amber-500/70 mt-1">Students at the maximum level will transition to <strong>ALUMNI</strong> status upon promotion.</p>
                         </div>
                     }
@@ -233,8 +238,9 @@
         </div>
 
         @if (selectedLevel() >= maxLevelOrdinal()) {
-            <div class="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-xs font-bold text-amber-500">
-                ⚠ These students will be graduated and marked as ALUMNI. This cannot be undone.
+            <div class="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-xs font-bold text-amber-500 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span>These students will be graduated and marked as ALUMNI. This cannot be undone.</span>
             </div>
         }
 

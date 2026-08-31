@@ -57,6 +57,6 @@ export class LandingComponent implements OnInit {
         { value: '500+', label: 'Schools Onboarded' },
         { value: '120K+', label: 'Students Managed' },
         { value: '99.9%', label: 'Uptime SLA' },
-        { value: '4.9★', label: 'Average Rating' }
+        { value: '4.9 / 5', label: 'Average Rating' }
     ];
 }

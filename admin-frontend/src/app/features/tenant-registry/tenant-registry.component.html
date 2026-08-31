@@ -466,8 +466,10 @@
       @if (isLoadingHistory()) {
         <div class="p-12 flex items-center justify-center"><div class="w-8 h-8 border-4 border-accent-primary border-t-transparent rounded-full animate-spin"></div></div>
       } @else if (billingHistory().length === 0) {
-        <div class="p-12 text-center text-text-muted">
-          <div class="text-4xl mb-4">🧾</div>
+        <div class="p-12 text-center text-text-muted flex flex-col items-center">
+          <div class="w-12 h-12 rounded-2xl bg-bg-tertiary/60 flex items-center justify-center mb-3 text-text-muted">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z"/><path d="M16 8h-8"/><path d="M16 12h-8"/><path d="M10 16H8"/></svg>
+          </div>
           <p class="text-sm font-bold">No payment history found.</p>
         </div>
       } @else {
@@ -527,8 +529,9 @@
       </button>
     </div>
 
-    <div class="mb-6 p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 text-amber-400 text-xs">
-      <strong class="font-black">⚠ Security Note:</strong> These keys are encrypted at rest. The secret key field is write-only — leave blank to keep the existing value.
+    <div class="mb-6 p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 text-amber-400 text-xs flex items-start gap-2.5">
+      <svg class="w-4 h-4 shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div><strong class="font-black">Security Note:</strong> These keys are encrypted at rest. The secret key field is write-only — leave blank to keep the existing value.</div>
     </div>
 
     <form [formGroup]="paymentConfigForm" (ngSubmit)="onPaymentConfigSubmit()" class="space-y-4">

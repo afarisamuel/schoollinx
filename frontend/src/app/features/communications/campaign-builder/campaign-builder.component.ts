@@ -27,9 +27,9 @@ export class CampaignBuilderComponent {
     };
 
     targetOptions = [
-        { value: 'ALL_PARENTS', label: '👨‍👩‍👧 All Parents / Guardians' },
-        { value: 'ALL_STUDENTS', label: '🎓 All Students' },
-        { value: 'ALL_USERS', label: '🌐 All Platform Users' },
+        { value: 'ALL_PARENTS', label: 'All Parents / Guardians' },
+        { value: 'ALL_STUDENTS', label: 'All Students' },
+        { value: 'ALL_USERS', label: 'All Platform Users' },
     ];
 
     ngOnInit() {

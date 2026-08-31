@@ -1267,14 +1267,34 @@
                                 <div class="flex flex-wrap gap-2">
                                     @for (badge of achievements; track badge.label) {
                                         <div class="flex items-center gap-2 px-3 py-2 bg-bg-tertiary border border-border-primary rounded-xl">
-                                            <span class="text-lg">{{ badge.icon }}</span>
+                                            <div class="w-6 h-6 rounded-lg bg-bg-secondary flex items-center justify-center text-amber-400">
+                                                @switch (badge.id) {
+                                                    @case ('attendance_perfect') {
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                                                    }
+                                                    @case ('academic_excel') {
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                                                    }
+                                                    @case ('academic_strong') {
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+                                                    }
+                                                    @case ('active_learner') {
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                                    }
+                                                    @default {
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                                    }
+                                                }
+                                            </div>
                                             <span class="text-xs font-bold text-text-primary">{{ badge.label }}</span>
                                         </div>
                                     }
                                 </div>
                             } @else {
-                                <div class="py-8 text-center text-text-muted border border-dashed border-border-primary rounded-xl">
-                                    <span class="text-3xl block mb-2">🌱</span>
+                                <div class="py-8 text-center text-text-muted border border-dashed border-border-primary rounded-xl flex flex-col items-center justify-center">
+                                    <div class="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v8"/><path d="m4.93 10.93 4.24-4.24"/><path d="M2 18h20"/><path d="M20 18a8 8 0 0 0-16 0"/><path d="M12 10a4 4 0 0 1 4 4"/></svg>
+                                    </div>
                                     <p class="text-xs font-medium">Keep striving — achievements will appear here!</p>
                                 </div>
                             }

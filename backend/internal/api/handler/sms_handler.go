@@ -15,11 +15,12 @@ import (
 )
 
 type SMSHandler struct {
-	db *gorm.DB
+	db          *gorm.DB
+	paystackSvc domain.PaystackService
 }
 
-func NewSMSHandler(api *gin.RouterGroup, superAdmin *gin.RouterGroup, db *gorm.DB) {
-	h := &SMSHandler{db: db}
+func NewSMSHandler(api *gin.RouterGroup, superAdmin *gin.RouterGroup, db *gorm.DB, paystackSvc domain.PaystackService) {
+	h := &SMSHandler{db: db, paystackSvc: paystackSvc}
 
 	// Tenant Routes
 	if api != nil {
@@ -213,8 +214,9 @@ func (h *SMSHandler) InitializeTopUp(c *gin.Context) {
 	}
 
 	var req struct {
-		Amount     float64 `json:"amount" binding:"required"`
-		PayerEmail string  `json:"payer_email"`
+		Amount      float64 `json:"amount" binding:"required"`
+		PayerEmail  string  `json:"payer_email"`
+		CallbackURL string  `json:"callback_url"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil || req.Amount <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Amount must be a positive number in GHS."})
@@ -234,7 +236,32 @@ func (h *SMSHandler) InitializeTopUp(c *gin.Context) {
 		return
 	}
 
+	payerEmail := strings.TrimSpace(req.PayerEmail)
+	if payerEmail == "" {
+		if email, exists := c.Get("user_email"); exists && email != nil {
+			payerEmail = email.(string)
+		} else if tenant.Email != "" {
+			payerEmail = tenant.Email
+		} else {
+			domainStr := tenant.Subdomain
+			if tenant.CustomDomain != nil && *tenant.CustomDomain != "" {
+				domainStr = *tenant.CustomDomain
+			}
+			payerEmail = "billing@" + domainStr + ".schoollinx.com"
+		}
+	}
+
 	reference := fmt.Sprintf("SMS-TOPUP-%s-%d", tenantID.String()[:8], time.Now().Unix())
+
+	var authURL string
+	if h.paystackSvc != nil {
+		var err error
+		authURL, err = h.paystackSvc.InitializeTransactionWithOptions(payerEmail, req.Amount, reference, "", "", req.CallbackURL)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initialize Paystack checkout: " + err.Error()})
+			return
+		}
+	}
 
 	topup := domain.SMSTopUpPayment{
 		TenantID:         tenantID,
@@ -244,7 +271,7 @@ func (h *SMSHandler) InitializeTopUp(c *gin.Context) {
 		Reference:        reference,
 		Status:           "PENDING",
 		Provider:         "PAYSTACK",
-		PayerEmail:       req.PayerEmail,
+		PayerEmail:       payerEmail,
 	}
 
 	if err := h.db.Create(&topup).Error; err != nil {
@@ -252,15 +279,14 @@ func (h *SMSHandler) InitializeTopUp(c *gin.Context) {
 		return
 	}
 
-	// In real environment with Paystack configured, initialize transaction:
-	// We return the reference, public key, and calculation breakdown
 	c.JSON(http.StatusOK, gin.H{
-		"reference":          reference,
-		"amount":             req.Amount,
-		"rate_per_sms":       rate,
-		"credits_purchased":  creditsPurchased,
-		"paystack_key":       tenant.PaystackPublicKey,
-		"currency":           "GHS",
+		"authorization_url": authURL,
+		"reference":         reference,
+		"amount":            req.Amount,
+		"rate_per_sms":      rate,
+		"credits_purchased": creditsPurchased,
+		"paystack_key":      tenant.PaystackPublicKey,
+		"currency":          "GHS",
 	})
 }
 
@@ -278,11 +304,35 @@ func (h *SMSHandler) VerifyTopUp(c *gin.Context) {
 	}
 
 	if topup.Status == "SUCCESS" {
+		var tenant domain.Tenant
+		h.db.First(&tenant, "id = ?", topup.TenantID)
 		c.JSON(http.StatusOK, gin.H{
-			"message": "Top-up already credited.",
-			"topup":   topup,
+			"message":           "Top-up already credited.",
+			"credits_added":     topup.CreditsPurchased,
+			"total_sms_credits": tenant.SMSCredits,
+			"topup":             topup,
 		})
 		return
+	}
+
+	// Verify with Paystack if service is configured
+	if h.paystackSvc != nil {
+		status, err := h.paystackSvc.VerifyTransaction(reference)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Paystack verification check failed: " + err.Error()})
+			return
+		}
+
+		if status == "pending" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Payment is still pending on Paystack. Please complete payment."})
+			return
+		}
+
+		if status != "success" {
+			_ = h.db.Model(&topup).Update("status", "FAILED")
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Payment was not successful (status: %s)", status)})
+			return
+		}
 	}
 
 	// Mark payment as SUCCESS and credit tenant
@@ -328,6 +378,36 @@ func (h *SMSHandler) GetTopUpHistory(c *gin.Context) {
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tenant context missing"})
 		return
+	}
+
+	// Auto-verify recent pending top-ups if any
+	if h.paystackSvc != nil {
+		var pendingTopups []domain.SMSTopUpPayment
+		since := time.Now().AddDate(0, 0, -7)
+		if err := h.db.Where("tenant_id = ? AND status = ? AND created_at >= ?", tenantID, "PENDING", since).Find(&pendingTopups).Error; err == nil {
+			for _, p := range pendingTopups {
+				status, err := h.paystackSvc.VerifyTransaction(p.Reference)
+				if err == nil && status == "success" {
+					_ = h.db.Transaction(func(tx *gorm.DB) error {
+						if err := tx.Model(&p).Update("status", "SUCCESS").Error; err != nil {
+							return err
+						}
+						if err := tx.Model(&domain.Tenant{}).
+							Where("id = ?", p.TenantID).
+							UpdateColumn("sms_credits", gorm.Expr("sms_credits + ?", p.CreditsPurchased)).Error; err != nil {
+							return err
+						}
+						ledger := domain.SmsLedger{
+							TenantID:    p.TenantID,
+							Direction:   domain.SmsLedgerDirectionCredit,
+							Amount:      p.CreditsPurchased,
+							Description: fmt.Sprintf("SMS Top-Up via Paystack Auto-Verify (Ref: %s, ₵%.2f @ ₵%.4f/SMS)", p.Reference, p.Amount, p.RatePerSMS),
+						}
+						return tx.Create(&ledger).Error
+					})
+				}
+			}
+		}
 	}
 
 	var payments []domain.SMSTopUpPayment

@@ -39,6 +39,8 @@ var globalTables = map[string]bool{
 	"hardware_leases":              true,
 	"whitelisted_ips":              true,
 	"sms_ledgers":                  true,
+	"sms_top_up_payments":          true,
+	"sender_id_requests":           true,
 }
 
 // setupTenantSchema automatically prepends the schema name to the table name

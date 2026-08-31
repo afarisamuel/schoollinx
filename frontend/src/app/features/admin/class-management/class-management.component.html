@@ -513,8 +513,13 @@
       <div class="p-4 rounded-2xl bg-bg-tertiary border border-border-primary flex items-center justify-between">
         <div>
           <span class="text-[10px] font-black uppercase tracking-widest text-text-muted block">Total Weight</span>
-          <span class="text-xs font-medium" [class.text-emerald-400]="totalGradingWeight() === 100" [class.text-amber-400]="totalGradingWeight() !== 100">
-            {{ totalGradingWeight() === 100 ? '✓ Balanced at 100%' : 'Must equal exactly 100%' }}
+          <span class="text-xs font-medium flex items-center gap-1" [class.text-emerald-400]="totalGradingWeight() === 100" [class.text-amber-400]="totalGradingWeight() !== 100">
+            @if (totalGradingWeight() === 100) {
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              Balanced at 100%
+            } @else {
+              Must equal exactly 100%
+            }
           </span>
         </div>
         <div class="text-right">

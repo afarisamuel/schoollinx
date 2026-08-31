@@ -560,7 +560,7 @@ export class TeacherPortalComponent implements OnInit {
                 this.autoSaveStatus.set('saved');
                 if (manual) {
                     this.isSaving.set(false);
-                    this.successMsg.set('⚠️ Saved Offline! These grades will automatically sync when network access is restored.');
+                    this.successMsg.set('Saved Offline! These grades will automatically sync when network access is restored.');
                     setTimeout(() => this.successMsg.set(''), 5000);
                 }
             }).catch(() => {
@@ -578,7 +578,7 @@ export class TeacherPortalComponent implements OnInit {
                 this.autoSaveStatus.set('saved');
                 this.lastAutoSavedAt.set(new Date());
                 if (manual) {
-                    this.successMsg.set(`✅ Successfully saved and synchronized ${res.count} scores.`);
+                    this.successMsg.set(`Successfully saved and synchronized ${res.count} scores.`);
                     this.isSaving.set(false);
                     setTimeout(() => this.successMsg.set(''), 4000);
                 }
@@ -617,7 +617,7 @@ export class TeacherPortalComponent implements OnInit {
 
         this.portalService.updateClassWeights(classId, this.weights()).subscribe({
             next: () => {
-                this.successMsg.set('✅ Class weights updated successfully.');
+                this.successMsg.set('Class weights updated successfully.');
                 this.isWeightDrawerOpen.set(false);
                 this.loadGPA(classId); // refresh GPA calculation
             },
@@ -631,7 +631,7 @@ export class TeacherPortalComponent implements OnInit {
 
         this.portalService.curveGrades(classId, this.term(), this.curveMethod(), this.curveFactor()).subscribe({
             next: () => {
-                this.successMsg.set(`✅ Grades curved using ${this.curveMethod()} successfully.`);
+                this.successMsg.set(`Grades curved using ${this.curveMethod()} successfully.`);
                 this.curveDialog.set(false);
                 this.portalService.getClassGrades(classId).subscribe(grades => this.existingGrades.set(grades));
                 this.loadGPA(classId);
@@ -688,7 +688,7 @@ export class TeacherPortalComponent implements OnInit {
         this.csvImporting.set(true);
         this.portalService.importGradesCSV(classId, file).subscribe({
             next: (res) => {
-                this.successMsg.set(`✅ CSV Imported: ${res.imported} scores saved.`);
+                this.successMsg.set(`CSV Imported: ${res.imported} scores saved.`);
                 if (res.failures?.length) {
                     this.errorMsg.set(`Warnings: ${res.failures.join(', ')}`);
                 }
@@ -759,7 +759,7 @@ export class TeacherPortalComponent implements OnInit {
         this.portalService.updateStudentEvaluation(classId, student.id, this.evalData()).subscribe({
             next: () => {
                 this.isEvalSaving.set(false);
-                this.successMsg.set(`✅ Evaluation saved for ${student.first_name}`);
+                this.successMsg.set(`Evaluation saved for ${student.first_name}`);
                 this.closeEvaluation();
                 setTimeout(() => this.successMsg.set(''), 3000);
             },

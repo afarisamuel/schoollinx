@@ -137,12 +137,12 @@ export class ChatbotService {
                         
                         let msg = `**Course Demand & Forecasting**\n\n`;
                         if (topCourses.length > 0) {
-                            msg += `📈 Top projected courses: ${topCourses.map(c => `**${c.subject_name}**`).join(', ')}\n\n`;
+                            msg += ` Top projected courses: ${topCourses.map(c => `**${c.subject_name}**`).join(', ')}\n\n`;
                         }
                         if (shortages.length > 0) {
-                            msg += `⚠️ **Teacher shortage predicted** for: ${shortages.map(c => c.subject_name).join(', ')}`;
+                            msg += ` **Teacher shortage predicted** for: ${shortages.map(c => c.subject_name).join(', ')}`;
                         } else {
-                            msg += `✅ No teacher shortages predicted.`;
+                            msg += ` No teacher shortages predicted.`;
                         }
                         
                         return {
@@ -197,7 +197,7 @@ export class ChatbotService {
                         }
                         
                         const winner = houses[0];
-                        let msg = `🏆 **House Points Leaderboard**\n\n`;
+                        let msg = ` **House Points Leaderboard**\n\n`;
                         msg += `Currently in 1st place: **${winner.name}** with **${winner.total_points}** points!\n\n`;
                         
                         msg += `**Current Standings:**\n`;
@@ -229,7 +229,7 @@ export class ChatbotService {
                             return { content: 'No active bus routes available.', type: 'text' as const };
                         }
                         
-                        let msg = `🚌 **School Bus Routes**\n\n`;
+                        let msg = ` **School Bus Routes**\n\n`;
                         msg += `We currently have **${routes.length} active routes**:\n\n`;
                         
                         routes.slice(0, 5).forEach((r, i) => {
@@ -261,7 +261,7 @@ export class ChatbotService {
             handler: () =>
                 this.fiscalService.getTodaysBills().pipe(
                     map(data => {
-                        let msg = `🧾 **Daily Bills & Collections (Today)**\n\n`;
+                        let msg = ` **Daily Bills & Collections (Today)**\n\n`;
                         msg += `Total Amount Billed: **₵${data.total.toLocaleString()}**\n`;
                         msg += `Total Collected: **₵${data.paid.toLocaleString()}**\n`;
                         msg += `Total Pending: **₵${data.pending.toLocaleString()}**\n\n`;
@@ -298,7 +298,7 @@ export class ChatbotService {
                             return { content: 'There are currently no pending staff leave requests.', type: 'text' as const };
                         }
                         
-                        let msg = `🏖️ **Pending Staff Leave Requests**\n\n`;
+                        let msg = ` **Pending Staff Leave Requests**\n\n`;
                         msg += `There are **${pending.length} pending leave requests** requiring approval:\n\n`;
                         
                         pending.slice(0, 5).forEach(r => {
@@ -334,11 +334,11 @@ export class ChatbotService {
                             return { content: 'There are currently no active library loans.', type: 'text' as const };
                         }
                         
-                        let msg = `📚 **Library Activity**\n\n`;
+                        let msg = ` **Library Activity**\n\n`;
                         msg += `Currently, there are **${loans.length} total active loans**.\n`;
                         
                         if (overdue.length > 0) {
-                            msg += `⚠️ **${overdue.length} books are OVERDUE**:\n\n`;
+                            msg += ` **${overdue.length} books are OVERDUE**:\n\n`;
                             overdue.slice(0, 5).forEach(o => {
                                 const bookTitle = o.book?.title || 'Unknown Book';
                                 const studentName = o.student ? `${o.student.first_name} ${o.student.last_name}` : 'Unknown Student';
@@ -349,7 +349,7 @@ export class ChatbotService {
                                 msg += `\n*...and ${overdue.length - 5} more overdue books.*`;
                             }
                         } else {
-                            msg += `\n✅ Good news! There are no overdue books.`;
+                            msg += `\n Good news! There are no overdue books.`;
                         }
                         
                         return {

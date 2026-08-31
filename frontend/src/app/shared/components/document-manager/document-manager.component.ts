@@ -30,12 +30,12 @@ export class DocumentManagerComponent implements OnInit {
     selectedDescription = signal('');
 
     categories: { value: DocumentCategory; label: string }[] = [
-        { value: 'ACADEMIC', label: '🎓 Academic' },
-        { value: 'MEDICAL', label: '🏥 Medical' },
-        { value: 'LEGAL', label: '⚖️ Legal' },
-        { value: 'IDENTITY', label: '🪪 Identity' },
-        { value: 'DISCIPLINARY', label: '📋 Disciplinary' },
-        { value: 'OTHER', label: '📎 Other' },
+        { value: 'ACADEMIC', label: 'Academic' },
+        { value: 'MEDICAL', label: 'Medical' },
+        { value: 'LEGAL', label: 'Legal' },
+        { value: 'IDENTITY', label: 'Identity' },
+        { value: 'DISCIPLINARY', label: 'Disciplinary' },
+        { value: 'OTHER', label: 'Other' },
     ];
 
     ngOnInit() {
@@ -101,12 +101,7 @@ export class DocumentManagerComponent implements OnInit {
     }
 
     fileIcon(mime: string): string {
-        if (mime.includes('pdf')) return '📄';
-        if (mime.includes('image')) return '🖼️';
-        if (mime.includes('word') || mime.includes('document')) return '📝';
-        if (mime.includes('sheet') || mime.includes('excel')) return '📊';
-        if (mime.includes('csv')) return '📋';
-        return '📎';
+        return '';
     }
 
     formatSize(bytes?: number): string {

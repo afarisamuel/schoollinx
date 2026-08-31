@@ -11,8 +11,8 @@ import { ToastService } from '../../../shared/ui/toast/toast.service';
 interface CategoryMeta {
   key: string;
   label: string;
-  emoji: string;
   bg: string;
+  color: string;
 }
 
 @Component({
@@ -80,22 +80,13 @@ export class ConfigureFeesComponent implements OnInit {
   customFrequency = '';
 
   categoryMeta: CategoryMeta[] = [
-    { key: 'TUITION',       label: 'Tuition',       emoji: '📚', bg: 'rgba(99,102,241,0.15)' },
-    { key: 'CANTEEN',       label: 'Canteen',        emoji: '🍽️', bg: 'rgba(251,191,36,0.15)' },
-    { key: 'LAB',           label: 'Lab',            emoji: '🔬', bg: 'rgba(6,182,212,0.15)'  },
-    { key: 'LIBRARY_FINE',  label: 'Library',        emoji: '📖', bg: 'rgba(168,85,247,0.15)' },
-    { key: 'EXTRACURRICULAR', label: 'Extra',        emoji: '⚽', bg: 'rgba(249,115,22,0.15)' },
-    { key: 'CUSTOM',        label: 'Custom',         emoji: '✏️', bg: 'rgba(148,163,184,0.15)'},
+    { key: 'TUITION',       label: 'Tuition',       bg: 'rgba(99,102,241,0.15)',  color: '#818cf8' },
+    { key: 'CANTEEN',       label: 'Canteen',        bg: 'rgba(251,191,36,0.15)',  color: '#fbbf24' },
+    { key: 'LAB',           label: 'Lab',            bg: 'rgba(6,182,212,0.15)',   color: '#22d3ee' },
+    { key: 'LIBRARY_FINE',  label: 'Library',        bg: 'rgba(168,85,247,0.15)',  color: '#c084fc' },
+    { key: 'EXTRACURRICULAR', label: 'Extra',        bg: 'rgba(249,115,22,0.15)',  color: '#fb923c' },
+    { key: 'CUSTOM',        label: 'Custom',         bg: 'rgba(148,163,184,0.15)', color: '#94a3b8' },
   ];
-
-  private categoryEmojiMap: Record<string, string> = {
-    TUITION: '📚', CANTEEN: '🍽️',
-    LAB: '🔬', LIBRARY_FINE: '📖', EXTRACURRICULAR: '⚽', CUSTOM: '✏️',
-  };
-
-  getCategoryEmoji(cat: string): string {
-    return this.categoryEmojiMap[cat] ?? '💰';
-  }
 
   selectCategory(key: string): void {
     this.newFee = { ...this.newFee, category: key as any };
