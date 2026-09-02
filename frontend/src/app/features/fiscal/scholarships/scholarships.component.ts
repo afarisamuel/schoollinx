@@ -43,6 +43,21 @@ export class ScholarshipsComponent implements OnInit {
     studentSearchResults = signal<Student[]>([]);
     showStudentDropdown = signal(false);
 
+    // Computed KPI Stats
+    totalAwarded = computed(() => {
+        return this.scholarships()
+            .filter(s => s.status === 'ACTIVE' || s.status === 'APPROVED')
+            .reduce((sum, s) => sum + (s.type === 'FIXED_AMOUNT' ? s.value : 0), 0);
+    });
+
+    activeCount = computed(() => {
+        return this.scholarships().filter(s => s.status === 'ACTIVE' || s.status === 'APPROVED').length;
+    });
+
+    pendingCount = computed(() => {
+        return this.scholarships().filter(s => s.status === 'PENDING').length;
+    });
+
     filteredScholarships = computed(() => {
         const term = this.searchScholarshipTerm().toLowerCase();
         const statusFilter = this.statusFilter();
@@ -61,9 +76,20 @@ export class ScholarshipsComponent implements OnInit {
     }
 
     loadAllScholarships(): void {
-        // We load scholarships per student in the apply form.
-        // For the list, we fetch all students then their scholarships.
-        // This is a simplified approach; a dedicated endpoint would be better.
+        this.isLoading.set(true);
+        this.fiscalService.getAllScholarships().subscribe({
+            next: (data) => {
+                this.scholarships.set(data);
+                this.isLoading.set(false);
+            },
+            error: () => this.isLoading.set(false)
+        });
+    }
+
+    clearSelectedStudent(): void {
+        this.selectedStudent.set(null);
+        this.searchStudentTerm.set('');
+        this.loadAllScholarships();
     }
 
     loadStudents(): void {

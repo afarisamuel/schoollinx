@@ -54,6 +54,7 @@ func NewFiscalHandler(r *gin.RouterGroup, fuc domain.FiscalUseCase) {
 
 		// Scholarships
 		g.POST("/scholarships", h.ApplyScholarship)
+		g.GET("/scholarships", h.GetAllScholarships)
 		g.GET("/scholarships/student/:student_id", h.GetScholarshipsByStudent)
 		g.PATCH("/scholarships/:id/status", h.UpdateScholarshipStatus)
 
@@ -529,6 +530,15 @@ func (h *FiscalHandler) GetScholarshipsByStudent(c *gin.Context) {
 		return
 	}
 	scholarships, err := h.fiscalUseCase.GetScholarshipsByStudent(c.Request.Context(), studentID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, scholarships)
+}
+
+func (h *FiscalHandler) GetAllScholarships(c *gin.Context) {
+	scholarships, err := h.fiscalUseCase.GetAllScholarships(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

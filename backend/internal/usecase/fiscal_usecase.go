@@ -796,6 +796,10 @@ func (u *fiscalUseCase) GetScholarshipsByStudent(ctx context.Context, studentID 
 	return u.fiscalRepo.GetScholarshipsByStudent(ctx, studentID)
 }
 
+func (u *fiscalUseCase) GetAllScholarships(ctx context.Context) ([]domain.Scholarship, error) {
+	return u.fiscalRepo.GetAllScholarships(ctx)
+}
+
 func (u *fiscalUseCase) UpdateScholarshipStatus(ctx context.Context, id uuid.UUID, status domain.ScholarshipStatus) error {
 	scholarship, err := u.fiscalRepo.GetScholarshipByID(ctx, id)
 	if err != nil {

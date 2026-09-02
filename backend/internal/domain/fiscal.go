@@ -173,6 +173,7 @@ type FiscalRepository interface {
 	CreateScholarship(ctx context.Context, scholarship *Scholarship) error
 	GetScholarshipByID(ctx context.Context, id uuid.UUID) (*Scholarship, error)
 	GetScholarshipsByStudent(ctx context.Context, studentID uuid.UUID) ([]Scholarship, error)
+	GetAllScholarships(ctx context.Context) ([]Scholarship, error)
 	GetActiveScholarships(ctx context.Context) ([]Scholarship, error)
 	UpdateScholarship(ctx context.Context, scholarship *Scholarship) error
 
@@ -218,6 +219,7 @@ type FiscalUseCase interface {
 	// Scholarships
 	ApplyScholarship(ctx context.Context, scholarship *Scholarship) error
 	GetScholarshipsByStudent(ctx context.Context, studentID uuid.UUID) ([]Scholarship, error)
+	GetAllScholarships(ctx context.Context) ([]Scholarship, error)
 	UpdateScholarshipStatus(ctx context.Context, id uuid.UUID, status ScholarshipStatus) error
 
 	// Year-End Rollover

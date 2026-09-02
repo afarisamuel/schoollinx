@@ -244,110 +244,66 @@
     </div>
   </div>
 
-  <div class="mt-10 space-y-8 relative z-10">
+  <div class="mt-10 space-y-6 relative z-10">
     <!-- Dashboard Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
       <!-- Receivables Card -->
-      <div
-        class="relative p-6 overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/25 bg-bg-secondary border border-border-primary hover:border-blue-500/30 rounded-3xl group cursor-default">
-        <div
-          class="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl">
-        </div>
-        <div
-          class="absolute -top-8 -right-8 w-36 h-36 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-all duration-700">
-        </div>
+      <div class="relative p-6 overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/20 bg-bg-secondary border border-border-primary hover:border-blue-500/30 rounded-3xl group cursor-default">
+        <div class="absolute -top-8 -right-8 w-36 h-36 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-all duration-700"></div>
         <div class="relative z-10">
           <div class="flex items-start justify-between mb-4">
-            <div
-              class="w-12 h-12 rounded-2xl flex items-center justify-center bg-blue-500/10 border border-blue-500/20 text-blue-500 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] transition-all duration-500">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2.5">
-                <line x1="12" x2="12" y1="1" y2="23" />
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-              </svg>
+            <div class="w-11 h-11 rounded-2xl flex items-center justify-center bg-blue-500/10 border border-blue-500/20 text-blue-500 group-hover:scale-110 transition-all duration-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" x2="12" y1="1" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
             </div>
-            <span
-              class="text-[9px] font-black uppercase tracking-widest text-blue-500 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full">Outstanding</span>
+            <span class="text-[9px] font-black uppercase tracking-widest text-blue-500 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full">Outstanding</span>
           </div>
           <p class="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted mb-1">Total Receivables</p>
           @if (summary() === null) {
           <div class="h-9 w-32 bg-border-primary/50 animate-pulse rounded-lg mt-1 mb-2"></div>
           <div class="mt-4 h-1 rounded-full bg-border-primary/30"></div>
           } @else {
-          <p class="text-3xl font-black tracking-tight text-text-primary">GH₵{{ summary()?.total_receivables |
-            number:'1.0-0' }}</p>
+          <p class="text-2xl md:text-3xl font-black tracking-tight text-text-primary">GH₵{{ summary()?.total_receivables | number:'1.0-0' }}</p>
           <div class="mt-4 h-1 rounded-full bg-border-primary">
-            <div
-              class="h-full rounded-full bg-blue-600 w-3/4 group-hover:w-full transition-all duration-700">
-            </div>
+            <div class="h-full rounded-full bg-blue-600 transition-all duration-700" [style.width]="collectionProgressWidth()"></div>
           </div>
           }
         </div>
       </div>
 
       <!-- Overdue Card -->
-      <div
-        class="relative p-6 overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-rose-500/25 bg-bg-secondary border border-border-primary hover:border-rose-500/30 rounded-3xl group cursor-default">
-        <div
-          class="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl">
-        </div>
-        <div
-          class="absolute -top-8 -right-8 w-36 h-36 bg-rose-500/10 rounded-full blur-3xl group-hover:bg-rose-500/20 transition-all duration-700">
-        </div>
+      <div class="relative p-6 overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-rose-500/20 bg-bg-secondary border border-border-primary hover:border-rose-500/30 rounded-3xl group cursor-default">
+        <div class="absolute -top-8 -right-8 w-36 h-36 bg-rose-500/10 rounded-full blur-3xl group-hover:bg-rose-500/20 transition-all duration-700"></div>
         <div class="relative z-10">
           <div class="flex items-start justify-between mb-4">
-            <div
-              class="w-12 h-12 rounded-2xl flex items-center justify-center bg-rose-500/10 border border-rose-500/20 text-rose-500 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(244,63,94,0.2)] transition-all duration-500">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2.5">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                <line x1="12" y1="9" x2="12" y2="13" />
-                <line x1="12" y1="17" x2="12.01" y2="17" />
-              </svg>
+            <div class="w-11 h-11 rounded-2xl flex items-center justify-center bg-rose-500/10 border border-rose-500/20 text-rose-500 group-hover:scale-110 transition-all duration-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
             </div>
-            <span
-              class="text-[9px] font-black uppercase tracking-widest text-rose-500 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-full">At
-              Risk</span>
+            <span class="text-[9px] font-black uppercase tracking-widest text-rose-500 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-full">At Risk</span>
           </div>
           <p class="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted mb-1">Total Overdue</p>
           @if (summary() === null) {
           <div class="h-9 w-32 bg-border-primary/50 animate-pulse rounded-lg mt-1 mb-2"></div>
           <div class="mt-4 h-1 rounded-full bg-border-primary/30"></div>
           } @else {
-          <p class="text-3xl font-black tracking-tight text-text-primary">GH₵{{ summary()?.total_overdue |
-            number:'1.0-0' }}</p>
+          <p class="text-2xl md:text-3xl font-black tracking-tight text-text-primary">GH₵{{ summary()?.total_overdue | number:'1.0-0' }}</p>
           <div class="mt-4 h-1 rounded-full bg-border-primary">
-            <div
-              class="h-full rounded-full bg-blue-600 w-1/3 group-hover:w-1/2 transition-all duration-700">
-            </div>
+            <div class="h-full rounded-full bg-rose-500 transition-all duration-700"
+              [style.width]="(summary()!.total_receivables > 0) ? ((summary()!.total_overdue / summary()!.total_receivables) * 100) + '%' : '0%'"></div>
           </div>
           }
         </div>
       </div>
 
-      <!-- Collections Card -->
-      <div
-        class="relative p-6 overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-500/25 bg-bg-secondary border border-border-primary hover:border-emerald-500/30 rounded-3xl group cursor-default">
-        <div
-          class="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl">
-        </div>
-        <div
-          class="absolute -top-8 -right-8 w-36 h-36 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-700">
-        </div>
+      <!-- Collections MTD Card -->
+      <div class="relative p-6 overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/20 bg-bg-secondary border border-border-primary hover:border-emerald-500/30 rounded-3xl group cursor-default">
+        <div class="absolute -top-8 -right-8 w-36 h-36 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-700"></div>
         <div class="relative z-10">
           <div class="flex items-start justify-between mb-4">
-            <div
-              class="w-12 h-12 rounded-2xl flex items-center justify-center bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all duration-500">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2.5">
-                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-                <polyline points="16 7 22 7 22 13" />
-              </svg>
+            <div class="w-11 h-11 rounded-2xl flex items-center justify-center bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 group-hover:scale-110 transition-all duration-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" /></svg>
             </div>
-            <span
-              class="text-[9px] font-black uppercase tracking-widest text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">This
-              Month</span>
+            <span class="text-[9px] font-black uppercase tracking-widest text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">This Month</span>
           </div>
           <p class="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted mb-1">Collections (MTD)</p>
           @if (summary() === null) {
@@ -355,18 +311,34 @@
           <div class="mt-4 h-1 rounded-full bg-border-primary/30"></div>
           } @else {
           <div class="flex items-center gap-2">
-            <p class="text-3xl font-black tracking-tight text-text-primary">GH₵{{ summary()?.collections_mtd |
-              number:'1.0-0' }}</p>
-            @if (summary()!.total_receivables > 0) {
-            <span
-              class="text-xs font-black bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full border border-emerald-500/20 shadow-sm">
-              {{ (summary()!.collections_mtd / summary()!.total_receivables) * 100 | number:'1.0-1' }}%
-            </span>
-            }
+            <p class="text-2xl md:text-3xl font-black tracking-tight text-text-primary">GH₵{{ summary()?.collections_mtd | number:'1.0-0' }}</p>
           </div>
           <div class="mt-4 h-1 rounded-full bg-border-primary">
-            <div
-              class="h-full rounded-full bg-blue-600 group-hover:w-full transition-all duration-700"
+            <div class="h-full rounded-full bg-emerald-500 transition-all duration-700" [style.width]="collectionProgressWidth()"></div>
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- Collection Rate Card (NEW #4) -->
+      <div class="relative p-6 overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-amber-500/20 bg-bg-secondary border border-border-primary hover:border-amber-500/30 rounded-3xl group cursor-default">
+        <div class="absolute -top-8 -right-8 w-36 h-36 bg-amber-500/10 rounded-full blur-3xl group-hover:bg-amber-500/20 transition-all duration-700"></div>
+        <div class="relative z-10">
+          <div class="flex items-start justify-between mb-4">
+            <div class="w-11 h-11 rounded-2xl flex items-center justify-center bg-amber-500/10 border border-amber-500/20 text-amber-500 group-hover:scale-110 transition-all duration-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <span class="text-[9px] font-black uppercase tracking-widest text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">Efficiency</span>
+          </div>
+          <p class="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted mb-1">Collection Rate</p>
+          @if (summary() === null) {
+          <div class="h-9 w-28 bg-border-primary/50 animate-pulse rounded-lg mt-1 mb-2"></div>
+          <div class="mt-4 h-1 rounded-full bg-border-primary/30"></div>
+          } @else {
+          <p class="text-2xl md:text-3xl font-black tracking-tight" [ngClass]="(summary()!.total_receivables > 0 && (summary()!.collections_mtd / summary()!.total_receivables) >= 0.8) ? 'text-emerald-400' : 'text-amber-400'">{{ collectionRate() }}</p>
+          <div class="mt-4 h-1 rounded-full bg-border-primary">
+            <div class="h-full rounded-full transition-all duration-700"
+              [ngClass]="(summary()!.total_receivables > 0 && (summary()!.collections_mtd / summary()!.total_receivables) >= 0.8) ? 'bg-emerald-500' : 'bg-amber-500'"
               [style.width]="collectionProgressWidth()"></div>
           </div>
           }
@@ -375,6 +347,28 @@
 
     </div>
     <!-- / End Stats Cards Grid -->
+
+    <!-- 7-Day Collection Velocity Sparkline -->
+    @if (velocityBars().length > 0) {
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl px-6 py-4 flex items-end gap-1.5 sm:gap-3 relative overflow-hidden animate-fade-in">
+      <div class="absolute -top-10 right-0 w-48 h-48 bg-blue-500/5 blur-[60px] rounded-full pointer-events-none"></div>
+      <div class="flex flex-col justify-center mr-4 shrink-0">
+        <p class="text-[10px] font-black uppercase tracking-widest text-text-muted">7-Day Collection Trend</p>
+        <p class="text-xs font-bold text-text-secondary mt-0.5">Daily receipts this week</p>
+      </div>
+      <div class="flex-1 flex items-end gap-1.5 h-14">
+        @for (bar of velocityBars(); track bar.day) {
+        <div class="flex flex-col items-center gap-1 flex-1">
+          <div class="w-full rounded-t-md transition-all duration-700"
+            [style.height.px]="Math.max(4, (bar.heightPct / 100) * 40)"
+            [ngClass]="bar.isToday ? 'bg-blue-500' : 'bg-blue-500/25'">
+          </div>
+          <span class="text-[8px] font-black uppercase" [ngClass]="bar.isToday ? 'text-blue-400' : 'text-text-muted'">{{ bar.day }}</span>
+        </div>
+        }
+      </div>
+    </div>
+    }
 
     <!-- Navigation Tabs for Class Overview, Fiscal Roster, and Intelligence -->
     <div class="flex items-center gap-2 p-1.5 bg-bg-secondary/80 backdrop-blur-xl border border-border-primary/60 rounded-2xl w-full sm:w-fit overflow-x-auto custom-scrollbar shadow-sm">
@@ -453,20 +447,28 @@
       class="relative p-6 bg-bg-secondary border border-border-primary rounded-3xl shadow-xl overflow-hidden animate-fade-in">
       <div class="absolute inset-0 bg-blue-500/5 opacity-50"></div>
       <div class="relative z-10">
-        <div class="flex items-center gap-3 mb-6">
-          <div
-            class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2.5">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-lg font-black text-text-primary">Class Financial Overview</h2>
+              <p class="text-xs text-text-secondary">Class-by-class fee revenue collection & settlement breakdown</p>
+            </div>
           </div>
-          <div>
-            <h2 class="text-lg font-black text-text-primary">Class Financial Overview</h2>
-            <p class="text-xs text-text-secondary">Class-by-class fee revenue collection breakdown</p>
+          <!-- Legend -->
+          <div class="hidden sm:flex items-center gap-4 text-[10px] font-black uppercase tracking-wider text-text-muted">
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Fully Paid</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Partial</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Outstanding</span>
           </div>
         </div>
 
@@ -475,10 +477,9 @@
             <thead>
               <tr class="border-b border-border-primary">
                 <th class="py-3 px-4 text-xs font-black uppercase tracking-widest text-text-muted">Class</th>
-                <th class="py-3 px-4 text-xs font-black uppercase tracking-widest text-text-muted text-right">Total Paid
-                  (GH₵)</th>
-                <th class="py-3 px-4 text-xs font-black uppercase tracking-widest text-text-muted text-right w-1/3">
-                  Collection Progress</th>
+                <th class="py-3 px-4 text-xs font-black uppercase tracking-widest text-text-muted text-right">Collected (GH₵)</th>
+                <th class="py-3 px-4 text-xs font-black uppercase tracking-widest text-text-muted text-right w-2/5">
+                  Collection Distribution</th>
                 <th class="py-3 px-4 text-xs font-black uppercase tracking-widest text-text-muted text-right">
                   Outstanding (GH₵)</th>
               </tr>
@@ -486,29 +487,31 @@
             <tbody>
               @for (stat of classStats(); track stat.className) {
               <tr class="border-b border-border-primary/50 hover:bg-bg-tertiary/50 transition-colors group">
-                <td class="py-4 px-4 font-bold text-text-primary text-sm whitespace-nowrap">{{ stat.className }}</td>
-                <td class="py-4 px-4 text-right font-black text-emerald-400 text-sm whitespace-nowrap">{{ stat.totalPaid
-                  | number:'1.2-2' }}</td>
+                <td class="py-4 px-4 font-bold text-text-primary text-sm whitespace-nowrap">
+                  <div class="flex items-center gap-2">
+                    <span>{{ stat.className }}</span>
+                    <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-bg-tertiary border border-border-primary text-text-muted">{{ stat.totalStudents }} recs</span>
+                  </div>
+                </td>
+                <td class="py-4 px-4 text-right font-black text-emerald-400 text-sm whitespace-nowrap">{{ stat.totalPaid | number:'1.2-2' }}</td>
                 <td class="py-4 px-4 align-middle">
                   <div class="flex flex-col gap-1.5 justify-center mt-1">
-                    <div
-                      class="flex justify-between text-[9px] font-black uppercase tracking-widest text-text-muted px-1">
-                      <span>Paid: {{ (stat.totalPaid / (stat.totalPaid + stat.totalOwed) * 100) || 0 | number:'1.0-0'
-                        }}%</span>
-                      <span>Owed: {{ (stat.totalOwed / (stat.totalPaid + stat.totalOwed) * 100) || 0 | number:'1.0-0'
-                        }}%</span>
+                    <div class="flex justify-between text-[9px] font-black uppercase tracking-widest px-1">
+                      <span class="text-emerald-400">Paid: {{ stat.paidPct | number:'1.0-0' }}%</span>
+                      @if (stat.partialPct > 0) {
+                      <span class="text-amber-400">Partial: {{ stat.partialPct | number:'1.0-0' }}%</span>
+                      }
+                      <span class="text-rose-400">Owed: {{ stat.owedPct | number:'1.0-0' }}%</span>
                     </div>
-                    <div
-                      class="h-1.5 w-full bg-border-primary rounded-full overflow-hidden flex shadow-inner group-hover:shadow-md transition-shadow">
-                      <div class="h-full bg-emerald-500 transition-all duration-700"
-                        [style.width]="(stat.totalPaid / ((stat.totalPaid + stat.totalOwed) || 1) * 100) + '%'"></div>
-                      <div class="h-full bg-rose-500/80 transition-all duration-700"
-                        [style.width]="(stat.totalOwed / ((stat.totalPaid + stat.totalOwed) || 1) * 100) + '%'"></div>
+                    <!-- 3-Color Progress Bar -->
+                    <div class="h-2 w-full bg-border-primary rounded-full overflow-hidden flex shadow-inner group-hover:shadow-md transition-shadow">
+                      <div class="h-full bg-emerald-500 transition-all duration-700" [style.width.%]="stat.paidPct" title="Fully Paid"></div>
+                      <div class="h-full bg-amber-500 transition-all duration-700" [style.width.%]="stat.partialPct" title="Partially Paid"></div>
+                      <div class="h-full bg-rose-500/80 transition-all duration-700" [style.width.%]="stat.owedPct" title="Outstanding"></div>
                     </div>
                   </div>
                 </td>
-                <td class="py-4 px-4 text-right font-black text-rose-400 text-sm whitespace-nowrap">{{ stat.totalOwed |
-                  number:'1.2-2' }}</td>
+                <td class="py-4 px-4 text-right font-black text-rose-400 text-sm whitespace-nowrap">{{ stat.totalOwed | number:'1.2-2' }}</td>
               </tr>
               } @empty {
               <tr>
@@ -575,14 +578,27 @@
           </div>
         </div>
 
-        <a routerLink="/fiscal/intelligence"
-          class="relative z-10 flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all duration-300 border border-blue-500/30 shrink-0">
-          View Full Intelligence
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2.5">
-            <path d="m9 18 6-6-6-6" />
-          </svg>
-        </a>
+        <div class="relative z-10 flex items-center gap-3">
+          <button (click)="refreshRecommendations()"
+            class="flex items-center gap-2 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-widest bg-bg-tertiary hover:bg-bg-primary text-text-primary border border-border-primary hover:border-blue-500/30 transition-all duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.5">
+              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+              <path d="M16 21h5v-5" />
+            </svg>
+            Re-Analyze
+          </button>
+          <a routerLink="/fiscal/intelligence"
+            class="flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all duration-300 border border-blue-500/30 shrink-0">
+            View Full Intelligence
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.5">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </a>
+        </div>
       </div>
 
       <!-- Recommendation Cards Grid -->
@@ -654,8 +670,7 @@
               </div>
               <h3 class="text-xl font-black text-text-primary tracking-tight">Fiscal Roster</h3>
             </div>
-            <p class="text-xs text-text-secondary font-medium ml-11">Real-time student financial records and payment
-              tracking</p>
+            <p class="text-xs text-text-secondary font-medium ml-11">Real-time student financial records and payment tracking</p>
           </div>
 
           <div class="relative w-full sm:w-80 group">
@@ -779,34 +794,67 @@
             }
           </button>
         </div>
+
+        <!-- Bulk Selection Action Bar (appears when 1 or more items selected) -->
+        @if (selectedCount() > 0) {
+        <div class="mt-4 p-3 rounded-2xl bg-blue-600/10 border border-blue-500/30 flex items-center justify-between gap-4 animate-fade-in">
+          <div class="flex items-center gap-3">
+            <span class="w-7 h-7 rounded-xl bg-blue-500 text-white font-black text-xs flex items-center justify-center shadow-md">
+              {{ selectedCount() }}
+            </span>
+            <span class="text-xs font-bold text-text-primary">records selected</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button (click)="bulkSettleSelected()"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-all shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Settle Selected
+            </button>
+            <button (click)="bulkSendReminderSelected()"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Send Reminders
+            </button>
+            <button (click)="clearSelection()"
+              class="p-1.5 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all" title="Clear selection">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+        }
       </div>
 
       <div class="overflow-x-auto w-full relative z-10 custom-scrollbar">
         <table class="w-full border-separate border-spacing-0 mobile-card-view">
           <thead>
             <tr class="bg-bg-tertiary">
+              <!-- Checkbox header -->
+              <th class="pl-6 pr-2 py-4 text-left border-b border-border-primary w-8">
+                <input type="checkbox" [checked]="isAllSelected()" (change)="toggleSelectAll()"
+                  class="rounded accent-blue-600 w-4 h-4 cursor-pointer" />
+              </th>
               <th
-                class="px-6 py-4 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] text-left border-b border-border-primary">
+                class="px-4 py-4 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] text-left border-b border-border-primary">
                 Student
               </th>
               <th
-                class="px-6 py-4 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] text-left border-b border-border-primary">
+                class="px-4 py-4 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] text-left border-b border-border-primary">
                 Category
               </th>
               <th
-                class="px-6 py-4 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] text-left border-b border-border-primary">
+                class="px-4 py-4 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] text-left border-b border-border-primary">
                 Description
               </th>
               <th
-                class="px-6 py-4 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] text-left border-b border-border-primary">
+                class="px-4 py-4 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] text-left border-b border-border-primary">
                 Amount
               </th>
               <th
-                class="px-6 py-4 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] text-left border-b border-border-primary">
+                class="px-4 py-4 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] text-left border-b border-border-primary">
                 Due
               </th>
               <th
-                class="px-6 py-4 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] text-left border-b border-border-primary">
+                class="px-4 py-4 text-[9px] font-black text-text-muted uppercase tracking-[0.2em] text-left border-b border-border-primary">
                 Status
               </th>
               <th
@@ -818,9 +866,18 @@
           <tbody class="divide-y divide-border-primary">
             @for (record of paginatedRecords(); track record.id) {
             <tr
-              class="even:bg-bg-tertiary/30 odd:bg-transparent hover:bg-bg-tertiary/80 transition-all duration-200 group/row">
+              class="even:bg-bg-tertiary/30 odd:bg-transparent hover:bg-bg-tertiary/80 transition-all duration-200 group/row"
+              [ngClass]="{
+                'bg-rose-500/5 hover:bg-rose-500/10 border-l-2 border-l-rose-500': record.status === 'OVERDUE',
+                'bg-blue-600/5': selectedRecordIds().has(record.id!)
+              }">
+              <!-- Select checkbox -->
+              <td class="pl-6 pr-2 py-4">
+                <input type="checkbox" [checked]="selectedRecordIds().has(record.id!)" (change)="toggleSelectRecord(record.id!)"
+                  class="rounded accent-blue-600 w-4 h-4 cursor-pointer" />
+              </td>
               <!-- Student -->
-              <td class="px-6 py-4" data-label="Student">
+              <td class="px-4 py-4" data-label="Student">
                 <div class="flex items-center gap-3">
                   <div
                     class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-[10px] font-black text-blue-500 group-hover/row:scale-110 group-hover/row:shadow-[0_0_12px_rgba(37,99,235,0.2)] transition-all duration-300 shrink-0">
@@ -837,7 +894,7 @@
                 </div>
               </td>
               <!-- Category -->
-              <td class="px-6 py-4" data-label="Category">
+              <td class="px-4 py-4" data-label="Category">
                 <span
                   class="inline-flex px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all"
                   [ngClass]="{
@@ -850,7 +907,7 @@
                 </span>
               </td>
               <!-- Description -->
-              <td class="px-6 py-4" data-label="Description">
+              <td class="px-4 py-4" data-label="Description">
                 <div class="flex flex-col gap-1">
                   <span class="text-xs text-text-secondary line-clamp-1 max-w-[180px]" [title]="record.description">{{
                     record.description || '—' }}</span>
@@ -867,7 +924,7 @@
                 </div>
               </td>
               <!-- Amount with progress -->
-              <td class="px-6 py-4" data-label="Amount">
+              <td class="px-4 py-4" data-label="Amount">
                 <div class="flex flex-col gap-1.5 min-w-[110px]">
                   <span class="text-sm font-black text-text-primary" title="Balance Due">
                     GH₵{{ (record.amount - (record.amount_paid || 0)) | number:'1.2-2' }}
@@ -888,7 +945,7 @@
                 </div>
               </td>
               <!-- Due Date -->
-              <td class="px-6 py-4 text-xs font-medium text-text-secondary whitespace-nowrap" data-label="Due">
+              <td class="px-4 py-4 text-xs font-medium text-text-secondary whitespace-nowrap" data-label="Due">
                 <div class="flex items-center gap-1.5">
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2.5" class="text-text-muted">
@@ -901,7 +958,7 @@
                 </div>
               </td>
               <!-- Status Badge -->
-              <td class="px-6 py-4" data-label="Status">
+              <td class="px-4 py-4" data-label="Status">
                 <span
                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
                   [ngClass]="{
@@ -933,11 +990,31 @@
                     </svg>
                   </button>
                   <button
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-white hover:scale-110 transition-all duration-300 shadow-sm"
+                    (click)="openPartialPaymentModal(record)" title="Partial Payment">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2.5">
+                      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                  </button>
+                  <button
                     class="w-9 h-9 flex items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500 hover:text-white hover:scale-110 transition-all duration-300 shadow-sm"
-                    (click)="payRecord(record)" title="Manual Settlement">
+                    (click)="payRecord(record)" title="Manual Full Settlement">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                       stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                  </button>
+                  }
+                  @if ((record.amount_paid || 0) > 0) {
+                  <button
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-600 hover:text-white hover:scale-110 transition-all duration-300 shadow-sm"
+                    (click)="printReceipt(record)" title="Print Payment Receipt">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2.5">
+                      <polyline points="6 9 6 2 18 2 18 9"/>
+                      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                      <rect x="6" y="14" width="12" height="8"/>
                     </svg>
                   </button>
                   }
@@ -955,7 +1032,7 @@
             </tr>
             } @empty {
             <tr>
-              <td colspan="7" class="px-6 py-24 text-center">
+              <td colspan="8" class="px-6 py-24 text-center">
                 <div class="flex flex-col items-center gap-5 text-text-muted">
                   <div
                     class="w-20 h-20 rounded-[2rem] bg-bg-tertiary flex items-center justify-center border border-dashed border-border-primary">
@@ -1016,6 +1093,61 @@
 @if (showTopUpModal()) {
 <app-fiscal-topup-modal [topUpData]="topUpData" [toppingUp]="toppingUp()" (closeModal)="showTopUpModal.set(false)"
   (submitTopUp)="submitTopUp($event)"></app-fiscal-topup-modal>
+}
+
+<!-- SMS Defaulters Preview Modal -->
+@if (showSmsPreviewModal()) {
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in"
+  (click)="closeSmsPreviewModal()">
+  <div class="relative w-full max-w-md bg-bg-secondary border border-border-primary rounded-3xl shadow-premium p-8"
+    (click)="$event.stopPropagation()">
+    <div class="absolute top-0 right-0 w-56 h-56 bg-blue-500/5 rounded-full blur-[80px] pointer-events-none"></div>
+    <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-black text-text-primary">Defaulters SMS Blast</h3>
+          <p class="text-xs text-text-secondary">Arkasel SMS Gateway</p>
+        </div>
+      </div>
+      <button (click)="closeSmsPreviewModal()" class="p-1.5 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="bg-bg-tertiary border border-border-primary rounded-2xl p-4 mb-5">
+      <div class="flex justify-between items-center mb-3">
+        <span class="text-xs font-bold text-text-secondary">Target Recipients</span>
+        <span class="text-xs font-black text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-full">
+          {{ defaultersCount() }} fee defaulters
+        </span>
+      </div>
+      <div>
+        <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Message Template</label>
+        <textarea [ngModel]="smsPreviewMessage()" (ngModelChange)="smsPreviewMessage.set($event)" rows="3"
+          class="w-full bg-bg-secondary border border-border-primary rounded-xl p-3 text-xs text-text-primary placeholder:text-text-muted outline-none focus:border-blue-500 resize-none font-medium"></textarea>
+      </div>
+    </div>
+
+    <div class="flex gap-3">
+      <button (click)="closeSmsPreviewModal()" class="flex-1 py-3 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-primary transition-all border border-border-primary">
+        Cancel
+      </button>
+      <button (click)="confirmSmsBlast()" [disabled]="sendingDefaultersSMS()"
+        class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50">
+        @if (sendingDefaultersSMS()) {
+        <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+        Sending…
+        } @else {
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send Blast Now
+        }
+      </button>
+    </div>
+  </div>
+</div>
 }
 
 <!-- Partial Payment Modal -->

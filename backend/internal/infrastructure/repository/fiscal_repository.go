@@ -263,6 +263,12 @@ func (r *fiscalRepository) GetScholarshipsByStudent(ctx context.Context, student
 	return s, err
 }
 
+func (r *fiscalRepository) GetAllScholarships(ctx context.Context) ([]domain.Scholarship, error) {
+	var s []domain.Scholarship
+	err := r.db.WithContext(ctx).Preload("Student").Order("created_at desc").Find(&s).Error
+	return s, err
+}
+
 func (r *fiscalRepository) GetActiveScholarships(ctx context.Context) ([]domain.Scholarship, error) {
 	var s []domain.Scholarship
 	err := r.db.WithContext(ctx).Where("status = ?", domain.ScholarshipStatusActive).Preload("Student").Find(&s).Error

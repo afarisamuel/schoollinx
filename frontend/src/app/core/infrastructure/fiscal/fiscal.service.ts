@@ -252,6 +252,9 @@ export class FiscalService {
     applyScholarship(scholarship: Partial<Scholarship>): Observable<Scholarship> {
         return this.http.post<Scholarship>(`${this.apiUrl}/scholarships`, scholarship);
     }
+    getAllScholarships(): Observable<Scholarship[]> {
+        return this.http.get<Scholarship[]>(`${this.apiUrl}/scholarships`);
+    }
     getScholarshipsByStudent(studentId: string): Observable<Scholarship[]> {
         return this.http.get<Scholarship[]>(`${this.apiUrl}/scholarships/student/${studentId}`);
     }
