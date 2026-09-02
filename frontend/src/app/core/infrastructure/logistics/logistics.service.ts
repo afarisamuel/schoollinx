@@ -19,6 +19,14 @@ export class LogisticsService {
         return this.http.post<TransportRoute>(`${this.apiUrl}/routes`, route);
     }
 
+    deleteRoute(routeId: string): Observable<{ message: string }> {
+        return this.http.delete<{ message: string }>(`${this.apiUrl}/routes/${routeId}`);
+    }
+
+    getRoutePassengers(routeId: string): Observable<BusAssignment[]> {
+        return this.http.get<BusAssignment[]>(`${this.apiUrl}/routes/${routeId}/passengers`);
+    }
+
     getStudentTransport(studentId: string): Observable<BusAssignment> {
         return this.http.get<BusAssignment>(`${this.apiUrl}/transport/student/${studentId}`);
     }

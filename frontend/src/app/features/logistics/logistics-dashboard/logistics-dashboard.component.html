@@ -1,105 +1,115 @@
-<div class="p-4 md:p-10 max-w-[1400px] mx-auto animate-fade-in">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4 md:gap-0">
-        <div>
-            <h1 class="text-2xl md:text-3xl font-black tracking-tight text-text-primary">Logistics Hub</h1>
-            <p class="text-sm font-medium text-text-secondary mt-1">Manage school transport routes and canteen meal plans</p>
+<div class="p-4 md:p-8 max-w-[1400px] mx-auto animate-fade-in">
+
+    <!-- ═══════════════════════ HEADER ═══════════════════════ -->
+    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-8 gap-4 relative">
+        <div class="absolute -top-8 -left-8 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+                Campus Logistics
+            </div>
+            <h1 class="text-3xl md:text-4xl font-black tracking-tight text-text-primary">Logistics Hub</h1>
+            <p class="text-sm font-medium text-text-muted mt-1">Manage transport routes, bus assignments, and canteen meal plans</p>
         </div>
-        <div class="flex flex-wrap gap-3 w-full md:w-auto">
+        <div class="flex flex-wrap gap-3 relative z-10">
             @if (activeTab() === 'transport') {
-            <button class="flex-1 md:flex-none inline-flex justify-center items-center px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-bg-tertiary border border-border-primary text-text-secondary hover:bg-bg-tertiary hover:text-text-primary transition-all" (click)="openAssignBus()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+            <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold bg-bg-secondary border border-border-primary text-text-primary hover:border-blue-500/30 hover:bg-bg-tertiary transition-all" (click)="openAssignBus()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
                 Assign Student
             </button>
-            <button class="inline-flex items-center px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-blue-600 text-text-primary shadow-lg shadow-blue-500/30 hover:-translate-y-0.5 hover:shadow-blue-500/40 transition-all" (click)="openAddRoute()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+            <button class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-500/25 hover:-translate-y-0.5 transition-all" (click)="openAddRoute()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
                 Add Route
             </button>
             } @else {
-            <button class="flex-1 md:flex-none inline-flex justify-center items-center px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-bg-tertiary border border-border-primary text-text-secondary hover:bg-bg-tertiary hover:text-text-primary transition-all" (click)="openSubscribe()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
-                Subscribe Student
+            <button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold bg-bg-secondary border border-border-primary text-text-primary hover:border-emerald-500/30 hover:bg-bg-tertiary transition-all" (click)="openSubscribe()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+                Enroll Student
             </button>
-            <button class="inline-flex items-center px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-blue-600 text-text-primary shadow-lg shadow-emerald-500/30 hover:-translate-y-0.5 hover:shadow-emerald-500/40 transition-all" (click)="openAddMealPlan()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+            <button class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider bg-emerald-600 text-white hover:bg-emerald-500 shadow-lg shadow-emerald-500/25 hover:-translate-y-0.5 transition-all" (click)="openAddMealPlan()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
                 Add Meal Plan
             </button>
             }
         </div>
     </div>
 
-    <!-- Tab Navigation -->
-    <div class="flex flex-col sm:flex-row gap-1 p-1 bg-bg-tertiary rounded-2xl border border-border-primary w-full md:w-fit mb-8">
-        <button class="px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 w-full md:w-auto"
-                [ngClass]="activeTab() === 'transport' ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30 shadow-lg shadow-blue-500/10' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary border border-transparent'"
+    <!-- ═══════════════════════ KPI CARDS ═══════════════════════ -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="p-5 flex items-center gap-4 bg-bg-secondary border border-border-primary rounded-2xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/10 transition-all group">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+            </div>
+            <div>
+                <p class="text-[10px] font-black uppercase tracking-widest text-text-muted">Total Routes</p>
+                <p class="text-2xl font-black text-text-primary">{{ routes().length }}</p>
+            </div>
+        </div>
+
+        <div class="p-5 flex items-center gap-4 bg-bg-secondary border border-border-primary rounded-2xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/10 transition-all group">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div>
+                <p class="text-[10px] font-black uppercase tracking-widest text-text-muted">Active Drivers</p>
+                <p class="text-2xl font-black text-text-primary">{{ routes().length }}</p>
+            </div>
+        </div>
+
+        <div class="p-5 flex items-center gap-4 bg-bg-secondary border border-border-primary rounded-2xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/10 transition-all group">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+            </div>
+            <div>
+                <p class="text-[10px] font-black uppercase tracking-widest text-text-muted">Meal Plans</p>
+                <p class="text-2xl font-black text-text-primary">{{ mealPlans().length }}</p>
+            </div>
+        </div>
+
+        <div class="p-5 flex items-center gap-4 bg-bg-secondary border border-border-primary rounded-2xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-amber-500/10 transition-all group">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-amber-500/10 text-amber-400 group-hover:bg-amber-500/20 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" x2="12" y1="1" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div>
+                <p class="text-[10px] font-black uppercase tracking-widest text-text-muted">Est. Revenue</p>
+                <p class="text-xl font-black text-text-primary">GH₵ {{ totalRevenue().toFixed(2) }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════ TAB NAVIGATION ═══════════════════════ -->
+    <div class="flex gap-1 p-1 bg-bg-secondary border border-border-primary rounded-2xl w-fit mb-8">
+        <button class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                [ngClass]="activeTab() === 'transport' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25' : 'text-text-muted hover:text-text-primary'"
                 (click)="switchTab('transport')">
             <span class="inline-flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
                 Transport Routes
             </span>
         </button>
-        <button class="px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300"
-                [ngClass]="activeTab() === 'canteen' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-lg shadow-emerald-500/10' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary border border-transparent'"
+        <button class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                [ngClass]="activeTab() === 'canteen' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/25' : 'text-text-muted hover:text-text-primary'"
                 (click)="switchTab('canteen')">
             <span class="inline-flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
-                Canteen & Meals
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+                Canteen &amp; Meals
             </span>
         </button>
     </div>
 
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="relative p-6 flex items-center gap-5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/10 bg-bg-tertiary border border-border-primary rounded-[2rem] group">
-            <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 z-10 bg-blue-500/10 text-blue-400">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
-            </div>
-            <div class="flex flex-col z-10">
-                <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Total Routes</span>
-                <span class="text-2xl font-black tracking-tight text-text-primary">{{ routes().length }}</span>
-            </div>
-            <div class="absolute inset-0 bg-blue-500/[0.02] group-hover:bg-blue-500/[0.05] transition-colors duration-500"></div>
-        </div>
-
-        <div class="relative p-6 flex items-center gap-5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/10 bg-bg-tertiary border border-border-primary rounded-[2rem] group">
-            <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 z-10 bg-blue-500/10 text-blue-400">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            </div>
-            <div class="flex flex-col z-10">
-                <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Active Drivers</span>
-                <span class="text-2xl font-black tracking-tight text-text-primary">{{ routes().length }}</span>
-            </div>
-            <div class="absolute inset-0 bg-blue-500/[0.02] group-hover:bg-blue-500/[0.05] transition-colors duration-500"></div>
-        </div>
-
-        <div class="relative p-6 flex items-center gap-5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/10 bg-bg-tertiary border border-border-primary rounded-[2rem] group">
-            <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 z-10 bg-emerald-500/10 text-emerald-400">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
-            </div>
-            <div class="flex flex-col z-10">
-                <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Meal Plans</span>
-                <span class="text-2xl font-black tracking-tight text-text-primary">{{ mealPlans().length }}</span>
-            </div>
-            <div class="absolute inset-0 bg-emerald-500/[0.02] group-hover:bg-emerald-500/[0.05] transition-colors duration-500"></div>
-        </div>
-
-        <div class="relative p-6 flex items-center gap-5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/10 bg-bg-tertiary border border-border-primary rounded-[2rem] group">
-            <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 z-10 bg-blue-500/10 text-blue-400">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" x2="12" y1="1" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            </div>
-            <div class="flex flex-col z-10">
-                <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Est. Revenue</span>
-                <span class="text-2xl font-black tracking-tight text-text-primary">{{ (routes().length * 500) + (mealPlans().length * 300) | currency }}</span>
-            </div>
-            <div class="absolute inset-0 bg-blue-500/[0.02] group-hover:bg-blue-500/[0.05] transition-colors duration-500"></div>
-        </div>
-    </div>
-
-    <!-- TRANSPORT TAB CONTENT -->
+    <!-- ═══════════════════════ TRANSPORT TAB ═══════════════════════ -->
     @if (activeTab() === 'transport') {
     <div class="space-y-6">
-        <div class="bg-bg-tertiary border border-border-primary rounded-3xl overflow-hidden">
-            <div class="px-6 py-5 border-b border-border-primary flex items-center justify-between">
+        <!-- Search -->
+        <div class="flex items-center gap-3 bg-bg-secondary border border-border-primary rounded-2xl px-4 py-3 max-w-sm">
+            <svg class="text-text-muted w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" [(ngModel)]="routeSearch" placeholder="Search routes, drivers, vehicles…"
+                class="bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none w-full" />
+        </div>
+
+        <!-- Routes Table -->
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-lg">
+            <div class="px-6 py-4 border-b border-border-primary flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
@@ -109,85 +119,138 @@
                 <span class="text-[10px] font-bold text-text-muted">{{ routes().length }} routes configured</span>
             </div>
 
-            <div class="overflow-x-auto w-full">
-<table class="w-full text-left mobile-card-view">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
                     <thead>
                         <tr class="border-b border-border-primary">
-                            <th class="px-6 py-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Route Name</th>
-                            <th class="px-6 py-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Driver</th>
-                            <th class="px-6 py-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Vehicle</th>
-                            <th class="px-6 py-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Term Fee</th>
-                            <th class="px-6 py-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Created</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-widest">Route Name</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-widest">Driver & Contact</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-widest">Vehicle</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-widest">Capacity</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-widest">Term Fee</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-widest">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @for (route of routes(); track route.id) {
-                        <tr class="border-b border-border-primary hover:bg-bg-tertiary transition-colors">
-                            <td class="px-6 py-5" data-label="Route Name">
+                        @for (route of filteredRoutes(); track route.id) {
+                        <tr class="border-b border-border-primary/40 hover:bg-bg-tertiary/30 transition-colors group/row">
+                            <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 text-xs font-black">
-                                        {{ route.name.charAt(0) }}
+                                    <div class="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 text-xs font-black shrink-0">
+                                        {{ route.name.charAt(0) || 'R' }}
                                     </div>
-                                    <span class="text-sm font-bold text-text-primary">{{ route.name }}</span>
+                                    <div>
+                                        <p class="text-sm font-bold text-text-primary">{{ route.name }}</p>
+                                        @if (route.stops && route.stops.length > 0) {
+                                        <div class="flex flex-wrap gap-1 mt-1">
+                                            @for (stop of route.stops; track stop.id) {
+                                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-bg-tertiary border border-border-primary text-text-muted">{{ stop.name }}</span>
+                                            }
+                                        </div>
+                                        }
+                                    </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-5 text-xs text-text-secondary" data-label="Driver">{{ route.driver_name || '—' }}</td>
-                            <td class="px-6 py-5 text-xs text-text-secondary" data-label="Vehicle">{{ route.vehicle_info || '—' }}</td>
-                            <td class="px-6 py-5 text-sm font-black text-text-primary" data-label="Daily Fee">{{ route.daily_fee | currency }}</td>
-                            <td class="px-6 py-5 text-xs text-text-muted" data-label="Created">{{ route.created_at | date:'MMM d, y' }}</td>
+                            <td class="px-6 py-4">
+                                <p class="text-xs font-bold text-text-primary">{{ route.driver_name || '—' }}</p>
+                                @if (route.driver_phone) {
+                                <p class="text-[10px] text-text-muted mt-0.5">{{ route.driver_phone }}</p>
+                                }
+                            </td>
+                            <td class="px-6 py-4">
+                                <p class="text-xs text-text-secondary">{{ route.vehicle_info || '—' }}</p>
+                                @if (route.vehicle_plate) {
+                                <span class="inline-block text-[9px] font-black font-mono px-1.5 py-0.5 rounded bg-bg-tertiary border border-border-primary text-text-primary mt-1">{{ route.vehicle_plate }}</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4">
+                                @if (route.capacity) {
+                                <span class="text-xs font-bold text-text-primary">{{ route.capacity }} seats</span>
+                                } @else {
+                                <span class="text-xs text-text-muted">—</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="text-sm font-black text-text-primary">GH₵ {{ route.daily_fee?.toFixed(2) || '0.00' }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                                    <!-- Passengers Button -->
+                                    <button (click)="openPassengersDrawer(route)"
+                                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-[10px] font-black transition-all border border-blue-500/20"
+                                        title="View passengers">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                        Roster
+                                    </button>
+                                    <!-- Delete Button -->
+                                    <button (click)="deleteRoute(route)"
+                                        class="p-1.5 rounded-xl text-text-muted hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all"
+                                        title="Delete route">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="m19 6-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
                         } @empty {
                         <tr>
-                            <td colspan="5" class="px-6 py-20 text-center">
+                            <td colspan="6" class="px-6 py-20 text-center">
                                 <div class="flex flex-col items-center gap-4 text-text-muted">
                                     <div class="w-16 h-16 rounded-3xl bg-bg-tertiary flex items-center justify-center border border-dashed border-border-primary">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
                                     </div>
                                     <p class="text-sm font-bold">No transport routes configured</p>
-                                    <p class="text-xs text-text-muted">Click "Add Route" to create a bus route.</p>
+                                    <p class="text-xs">Click "Add Route" to create the first bus route.</p>
                                 </div>
                             </td>
                         </tr>
                         }
                     </tbody>
                 </table>
-</div>
+            </div>
         </div>
     </div>
     }
 
-    <!-- CANTEEN TAB CONTENT -->
+    <!-- ═══════════════════════ CANTEEN TAB ═══════════════════════ -->
     @if (activeTab() === 'canteen') {
     <div class="space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @for (plan of mealPlans(); track plan.id) {
-            <div class="group relative p-6 bg-bg-tertiary border border-border-primary rounded-3xl hover:border-emerald-500/20 hover:shadow-[0_0_30px_-5px_rgba(16,185,129,0.1)] transition-all duration-500">
+        <!-- Search -->
+        <div class="flex items-center gap-3 bg-bg-secondary border border-border-primary rounded-2xl px-4 py-3 max-w-sm">
+            <svg class="text-text-muted w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" [(ngModel)]="mealSearch" placeholder="Search meal plans…"
+                class="bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none w-full" />
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            @for (plan of filteredMealPlans(); track plan.id) {
+            <div class="group relative p-6 bg-bg-secondary border border-border-primary rounded-3xl hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/10 transition-all duration-300 hover:-translate-y-0.5">
                 <div class="flex items-start justify-between mb-4">
-                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+                    <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
                     </div>
-                    <span class="px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[9px] font-black uppercase tracking-widest border border-emerald-500/20">Active</span>
+                    <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[9px] font-black uppercase tracking-widest border border-emerald-500/20">Active</span>
                 </div>
-                <h3 class="text-lg font-black text-text-primary mb-1">{{ plan.name }}</h3>
-                <p class="text-xs text-text-muted mb-4 line-clamp-2">{{ plan.description || 'No description provided.' }}</p>
+                <h3 class="text-base font-black text-text-primary mb-1">{{ plan.name }}</h3>
+                <p class="text-xs text-text-muted mb-5 line-clamp-2">{{ plan.description || 'No description provided.' }}</p>
                 <div class="pt-4 border-t border-border-primary flex items-center justify-between">
                     <div>
                         <span class="text-[10px] font-black text-text-muted uppercase tracking-widest">Term Fee</span>
-                        <p class="text-xl font-black text-text-primary">{{ plan.term_fee | currency }}</p>
+                        <p class="text-xl font-black text-text-primary">GH₵ {{ plan.term_fee?.toFixed(2) || '0.00' }}</p>
                     </div>
-                    <button class="px-4 py-2 rounded-xl bg-bg-tertiary border border-border-primary text-[10px] font-black uppercase tracking-widest text-text-secondary hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-500/20 transition-all" (click)="openSubscribe()">
+                    <button (click)="openSubscribe()"
+                        class="px-3 py-2 rounded-xl bg-bg-tertiary border border-border-primary text-[10px] font-black uppercase tracking-widest text-text-secondary hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-500/20 transition-all">
                         Enroll Student
                     </button>
                 </div>
             </div>
             } @empty {
-            <div class="col-span-full p-12 text-center bg-bg-tertiary border border-border-primary rounded-3xl">
+            <div class="col-span-full p-16 text-center bg-bg-secondary border border-border-primary rounded-3xl">
                 <div class="flex flex-col items-center gap-4 text-text-muted">
                     <div class="w-16 h-16 rounded-3xl bg-bg-tertiary flex items-center justify-center border border-dashed border-border-primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
                     </div>
                     <p class="text-sm font-bold">No meal plans configured</p>
-                    <p class="text-xs text-text-muted">Click "Add Meal Plan" to create a canteen plan.</p>
+                    <p class="text-xs">Click "Add Meal Plan" to create a canteen plan.</p>
                 </div>
             </div>
             }
@@ -195,183 +258,374 @@
     </div>
     }
 
-    <!-- ADD ROUTE MODAL -->
-    @if (showAddRoute()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-bg-primary" (click)="showAddRoute.set(false)"></div>
-        <div class="relative w-full max-w-lg bg-bg-secondary border border-border-primary rounded-3xl p-8 shadow-2xl">
-            <button class="absolute top-6 right-6 text-text-muted hover:text-text-primary transition-colors" (click)="showAddRoute.set(false)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
-            <h3 class="text-xl font-black text-text-primary mb-2">Add Transport Route</h3>
-            <p class="text-sm text-text-muted mb-6">Configure a new bus route for student transportation.</p>
+</div>
 
-            <div class="space-y-5">
-                <div>
-                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Route Name *</label>
-                    <input type="text" [(ngModel)]="newRoute.name" placeholder="e.g. Route A – North District" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-blue-500 transition-colors">
+<!-- ═══════════════════════ PASSENGER ROSTER DRAWER ═══════════════════════ -->
+@if (showPassengersDrawer()) {
+<div class="fixed inset-0 z-[100] flex" (click)="closePassengersDrawer()">
+    <div class="flex-1 bg-black/50 backdrop-blur-sm"></div>
+    <div class="w-full max-w-md bg-bg-secondary border-l border-border-primary h-full overflow-y-auto shadow-2xl flex flex-col" (click)="$event.stopPropagation()">
+        <!-- Header -->
+        <div class="px-6 py-5 border-b border-border-primary flex items-center justify-between shrink-0">
+            <div>
+                <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] font-black uppercase tracking-widest mb-1">
+                    Bus Roster
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Driver Name</label>
-                        <input type="text" [(ngModel)]="newRoute.driver_name" placeholder="Driver name" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-blue-500 transition-colors">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Vehicle Info</label>
-                        <input type="text" [(ngModel)]="newRoute.vehicle_info" placeholder="e.g. Bus #12, Toyota Coaster" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-blue-500 transition-colors">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Daily Fee (GHS) *</label>
-                    <input type="number" [(ngModel)]="newRoute.daily_fee" placeholder="0.00" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-blue-500 transition-colors">
-                </div>
+                <h3 class="text-base font-black text-text-primary">{{ passengerRoute()?.name }}</h3>
+                @if (passengerRoute()?.driver_name) {
+                <p class="text-xs text-text-muted mt-0.5">Driver: {{ passengerRoute()?.driver_name }}</p>
+                }
             </div>
-
-            <div class="mt-8 flex gap-3">
-                <button class="flex-1 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-bg-tertiary border border-border-primary text-text-primary hover:bg-bg-tertiary transition-all" (click)="showAddRoute.set(false)" [disabled]="savingRoute()">Cancel</button>
-                <button class="flex-1 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-blue-500 text-text-primary hover:bg-blue-600 transition-all disabled:opacity-50" (click)="saveRoute()" [disabled]="savingRoute()">
-                    {{ savingRoute() ? 'Saving...' : 'Save Route' }}
+            <div class="flex items-center gap-2">
+                <button (click)="printManifest()"
+                    class="p-2 rounded-xl text-text-muted hover:text-blue-400 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/20 transition-all"
+                    title="Print manifest">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                </button>
+                <button (click)="closePassengersDrawer()" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
         </div>
-    </div>
-    }
 
-    <!-- ASSIGN BUS MODAL -->
-    @if (showAssignBus()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-bg-primary" (click)="showAssignBus.set(false)"></div>
-        <div class="relative w-full max-w-lg bg-bg-secondary border border-border-primary rounded-3xl p-8 shadow-2xl">
-            <button class="absolute top-6 right-6 text-text-muted hover:text-text-primary transition-colors" (click)="showAssignBus.set(false)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
-            <h3 class="text-xl font-black text-text-primary mb-2">Assign Student to Bus</h3>
-            <p class="text-sm text-text-muted mb-6">Link a student to a transport route with pickup/drop-off details.</p>
+        <!-- Route Details Strip -->
+        @if (passengerRoute()) {
+        <div class="px-6 py-4 border-b border-border-primary/50 bg-bg-tertiary/30 flex flex-wrap gap-4 text-xs">
+            @if (passengerRoute()?.vehicle_info) {
+            <div class="flex items-center gap-1.5 text-text-secondary">
+                <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+                <span>{{ passengerRoute()?.vehicle_info }}</span>
+                @if (passengerRoute()?.vehicle_plate) {
+                <span class="font-mono font-black px-1 py-0.5 rounded bg-bg-secondary border border-border-primary text-[9px]">{{ passengerRoute()?.vehicle_plate }}</span>
+                }
+            </div>
+            }
+            @if (passengerRoute()?.capacity) {
+            <div class="flex items-center gap-1.5 text-text-secondary">
+                <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+                <span>{{ passengerRoute()?.capacity }} seat capacity</span>
+            </div>
+            }
+            @if (passengerRoute()?.driver_phone) {
+            <div class="flex items-center gap-1.5 text-text-secondary">
+                <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                <span>{{ passengerRoute()?.driver_phone }}</span>
+            </div>
+            }
+            <div class="flex items-center gap-1.5 text-text-secondary">
+                <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span>GH₵ {{ passengerRoute()?.daily_fee?.toFixed(2) }} / day</span>
+            </div>
+        </div>
+        }
 
-            <div class="space-y-5">
-                <div class="relative">
-                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Student *</label>
-                    <app-student-search-dropdown 
-                      [(studentId)]="newAssignment.student_id"
-                      (studentSelected)="selectStudent($event)"
-                      [required]="true"
-                      inputClass="w-full bg-bg-tertiary border border-border-primary rounded-xl pr-4 py-3 text-text-primary text-sm focus:outline-none focus:border-blue-500 transition-colors"
-                    ></app-student-search-dropdown>
+        <!-- Passengers List -->
+        <div class="flex-1 overflow-y-auto">
+            @if (loadingPassengers()) {
+            <div class="flex flex-col items-center justify-center py-16 text-text-muted gap-3">
+                <div class="w-8 h-8 border-2 border-blue-500/30 border-t-blue-400 rounded-full animate-spin"></div>
+                <p class="text-xs font-bold">Loading roster…</p>
+            </div>
+            } @else if (passengers().length === 0) {
+            <div class="flex flex-col items-center justify-center py-16 text-text-muted gap-3">
+                <div class="w-14 h-14 rounded-2xl bg-bg-tertiary border border-dashed border-border-primary flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
                 </div>
-                <div>
-                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Route *</label>
-                    <select [(ngModel)]="newAssignment.route_id" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-blue-500 transition-colors appearance-none">
-                        <option value="" class="bg-bg-secondary text-text-primary">Select a route</option>
-                        @for (route of routes(); track route.id) {
-                        <option [value]="route.id" class="bg-bg-secondary text-text-primary">{{ route.name }} — {{ route.driver_name }}</option>
-                        }
-                    </select>
-                </div>
-                @if (newAssignment.route_id) {
-                <div class="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-between">
-                    <span class="text-xs font-bold text-blue-400 uppercase tracking-widest">Daily Transport Fee</span>
-                    <span class="text-lg font-black text-white">{{ getRouteFee(newAssignment.route_id) | currency }}</span>
+                <p class="text-sm font-bold">No students assigned</p>
+                <p class="text-xs text-center px-4">Use "Assign Student" to add riders to this route.</p>
+            </div>
+            } @else {
+            <div class="divide-y divide-border-primary/40">
+                @for (p of passengers(); track p.id; let i = $index) {
+                <div class="px-6 py-4 hover:bg-bg-tertiary/30 transition-colors flex items-center gap-4">
+                    <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-black shrink-0">
+                        {{ i + 1 }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-text-primary">
+                            {{ p.student?.first_name }} {{ p.student?.last_name }}
+                        </p>
+                        <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                            @if (p.pick_up) {
+                            <span class="text-[10px] text-text-muted flex items-center gap-1">
+                                <svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                {{ p.pick_up }}
+                            </span>
+                            }
+                            @if (p.drop_off) {
+                            <span class="text-[10px] text-text-muted flex items-center gap-1">
+                                <svg class="w-3 h-3 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                {{ p.drop_off }}
+                            </span>
+                            }
+                        </div>
+                    </div>
                 </div>
                 }
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Pick-Up Point</label>
-                        <input type="text" [(ngModel)]="newAssignment.pick_up" placeholder="e.g. Junction A" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-blue-500 transition-colors">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Drop-Off Point</label>
-                        <input type="text" [(ngModel)]="newAssignment.drop_off" placeholder="e.g. School Gate" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-blue-500 transition-colors">
-                    </div>
-                </div>
             </div>
-
-            <div class="mt-8 flex gap-3">
-                <button class="flex-1 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-bg-tertiary border border-border-primary text-text-primary hover:bg-bg-tertiary transition-all" (click)="showAssignBus.set(false)" [disabled]="savingAssignment()">Cancel</button>
-                <button class="flex-1 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-blue-500 text-white hover:bg-blue-600 transition-all disabled:opacity-50" (click)="saveAssignment()" [disabled]="savingAssignment()">
-                    {{ savingAssignment() ? 'Assigning...' : 'Assign Student' }}
-                </button>
+            <!-- Summary footer -->
+            <div class="px-6 py-4 border-t border-border-primary bg-bg-tertiary/20 flex items-center justify-between">
+                <span class="text-xs font-bold text-text-muted">{{ passengers().length }} passengers</span>
+                @if (passengerRoute()?.capacity) {
+                <span class="text-xs font-bold" [ngClass]="passengers().length >= passengerRoute()!.capacity! ? 'text-rose-400' : 'text-emerald-400'">
+                    {{ passengerRoute()!.capacity! - passengers().length }} seats remaining
+                </span>
+                }
             </div>
+            }
         </div>
     </div>
-    }
-
-    <!-- ADD MEAL PLAN MODAL -->
-    @if (showAddMealPlan()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-bg-primary" (click)="showAddMealPlan.set(false)"></div>
-        <div class="relative w-full max-w-lg bg-bg-secondary border border-border-primary rounded-3xl p-8 shadow-2xl">
-            <button class="absolute top-6 right-6 text-text-muted hover:text-text-primary transition-colors" (click)="showAddMealPlan.set(false)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
-            <h3 class="text-xl font-black text-text-primary mb-2">Add Meal Plan</h3>
-            <p class="text-sm text-text-muted mb-6">Create a new canteen meal plan for student subscriptions.</p>
-
-            <div class="space-y-5">
-                <div>
-                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Plan Name *</label>
-                    <input type="text" [(ngModel)]="newMealPlan.name" placeholder="e.g. Full Board, Lunch Only" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-emerald-500 transition-colors">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Description</label>
-                    <input type="text" [(ngModel)]="newMealPlan.description" placeholder="Brief description of this plan" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-emerald-500 transition-colors">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Term Fee (GHS)</label>
-                    <input type="number" [(ngModel)]="newMealPlan.term_fee" placeholder="0.00" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-emerald-500 transition-colors">
-                </div>
-            </div>
-
-            <div class="mt-8 flex gap-3">
-                <button class="flex-1 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-bg-tertiary border border-border-primary text-text-primary hover:bg-bg-tertiary transition-all" (click)="showAddMealPlan.set(false)" [disabled]="savingMealPlan()">Cancel</button>
-                <button class="flex-1 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-emerald-500 text-white hover:bg-emerald-600 transition-all disabled:opacity-50" (click)="saveMealPlan()" [disabled]="savingMealPlan()">
-                    {{ savingMealPlan() ? 'Saving...' : 'Save Plan' }}
-                </button>
-            </div>
-        </div>
-    </div>
-    }
-
-    <!-- SUBSCRIBE STUDENT MODAL -->
-    @if (showSubscribe()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-bg-primary" (click)="showSubscribe.set(false)"></div>
-        <div class="relative w-full max-w-lg bg-bg-secondary border border-border-primary rounded-3xl p-8 shadow-2xl">
-            <button class="absolute top-6 right-6 text-text-muted hover:text-text-primary transition-colors" (click)="showSubscribe.set(false)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
-            <h3 class="text-xl font-black text-text-primary mb-2">Subscribe Student to Meal Plan</h3>
-            <p class="text-sm text-text-muted mb-6">Enroll a student into a canteen meal plan for the term.</p>
-
-            <div class="space-y-5">
-                <div>
-                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Student *</label>
-                    <app-student-search-dropdown 
-                      [(studentId)]="newSubscription.student_id"
-                      [required]="true"
-                    ></app-student-search-dropdown>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Meal Plan *</label>
-                    <select [(ngModel)]="newSubscription.meal_plan_id" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-emerald-500 transition-colors appearance-none">
-                        <option value="" class="bg-bg-secondary text-text-primary">Select a meal plan</option>
-                        @for (plan of mealPlans(); track plan.id) {
-                        <option [value]="plan.id" class="bg-bg-secondary text-text-primary">{{ plan.name }} — {{ plan.term_fee | currency }}</option>
-                        }
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Term</label>
-                    <input type="text" [(ngModel)]="newSubscription.term" placeholder="e.g. Term 1, 2025/2026" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm focus:outline-none focus:border-emerald-500 transition-colors">
-                </div>
-            </div>
-
-            <div class="mt-8 flex gap-3">
-                <button class="flex-1 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-bg-tertiary border border-border-primary text-text-primary hover:bg-bg-tertiary transition-all" (click)="showSubscribe.set(false)" [disabled]="savingSubscription()">Cancel</button>
-                <button class="flex-1 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-emerald-500 text-white hover:bg-emerald-600 transition-all disabled:opacity-50" (click)="saveSubscription()" [disabled]="savingSubscription()">
-                    {{ savingSubscription() ? 'Subscribing...' : 'Subscribe Student' }}
-                </button>
-            </div>
-        </div>
-    </div>
-    }
 </div>
+}
+
+<!-- ═══════════════════════ ADD ROUTE MODAL ═══════════════════════ -->
+@if (showAddRoute()) {
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" (click)="showAddRoute.set(false)">
+    <div class="relative w-full max-w-lg bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 shadow-2xl overflow-hidden" (click)="$event.stopPropagation()">
+        <div class="absolute -top-12 -right-12 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex items-start justify-between mb-6">
+            <div>
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] font-black uppercase tracking-widest mb-2">Transport Route</div>
+                <h3 class="text-xl font-black text-text-primary">Add Transport Route</h3>
+                <p class="text-xs text-text-muted mt-0.5">Configure a new school bus route</p>
+            </div>
+            <button (click)="showAddRoute.set(false)" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary border border-transparent hover:border-border-primary transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Route Name *</label>
+                <input type="text" [(ngModel)]="newRoute.name" placeholder="e.g. Route 1: East Legon Express"
+                    class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm outline-none focus:border-blue-500 placeholder:text-text-muted transition-colors">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Driver Name</label>
+                    <input type="text" [(ngModel)]="newRoute.driver_name" placeholder="Driver name"
+                        class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm outline-none focus:border-blue-500 placeholder:text-text-muted transition-colors">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Driver Phone</label>
+                    <input type="text" [(ngModel)]="newRoute.driver_phone" placeholder="e.g. 0244 123 456"
+                        class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm outline-none focus:border-blue-500 placeholder:text-text-muted transition-colors">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Vehicle Info</label>
+                    <input type="text" [(ngModel)]="newRoute.vehicle_info" placeholder="e.g. Toyota Coaster"
+                        class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm outline-none focus:border-blue-500 placeholder:text-text-muted transition-colors">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Plate Number</label>
+                    <input type="text" [(ngModel)]="newRoute.vehicle_plate" placeholder="e.g. GR 1234-20"
+                        class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm font-mono outline-none focus:border-blue-500 placeholder:text-text-muted transition-colors">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Seat Capacity</label>
+                    <input type="number" [(ngModel)]="newRoute.capacity" placeholder="32"
+                        class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm outline-none focus:border-blue-500 placeholder:text-text-muted transition-colors">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Daily Fee (GH₵) *</label>
+                    <input type="number" [(ngModel)]="newRoute.daily_fee" placeholder="0.00"
+                        class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm outline-none focus:border-blue-500 placeholder:text-text-muted transition-colors font-mono">
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 flex gap-3">
+            <button (click)="showAddRoute.set(false)" [disabled]="savingRoute()"
+                class="flex-1 py-3 rounded-xl text-xs font-bold bg-bg-tertiary border border-border-primary text-text-primary hover:bg-bg-primary transition-all">Cancel</button>
+            <button (click)="saveRoute()" [disabled]="savingRoute()"
+                class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25 transition-all disabled:opacity-50">
+                @if (savingRoute()) {
+                <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Saving…
+                } @else {
+                Save Route
+                }
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ═══════════════════════ ASSIGN BUS MODAL ═══════════════════════ -->
+@if (showAssignBus()) {
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" (click)="showAssignBus.set(false)">
+    <div class="relative w-full max-w-lg bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 shadow-2xl" (click)="$event.stopPropagation()">
+        <div class="flex items-start justify-between mb-6">
+            <div>
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] font-black uppercase tracking-widest mb-2">Assign Passenger</div>
+                <h3 class="text-xl font-black text-text-primary">Assign Student to Bus</h3>
+                <p class="text-xs text-text-muted mt-0.5">Link a student to a transport route</p>
+            </div>
+            <button (click)="showAssignBus.set(false)" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary border border-transparent hover:border-border-primary transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Student *</label>
+                <app-student-search-dropdown
+                    [(studentId)]="newAssignment.student_id"
+                    (studentSelected)="selectStudent($event)"
+                    [required]="true">
+                </app-student-search-dropdown>
+            </div>
+            <div>
+                <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Route *</label>
+                <select [(ngModel)]="newAssignment.route_id"
+                    class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm outline-none focus:border-blue-500 transition-colors">
+                    <option value="">Select a route…</option>
+                    @for (route of routes(); track route.id) {
+                    <option [value]="route.id">{{ route.name }} — {{ route.driver_name }} ({{ route.capacity }} seats)</option>
+                    }
+                </select>
+            </div>
+            @if (newAssignment.route_id) {
+            <div class="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-between">
+                <span class="text-xs font-bold text-blue-400 uppercase tracking-widest">Daily Transport Fee</span>
+                <span class="text-lg font-black text-text-primary">GH₵ {{ getRouteFee(newAssignment.route_id).toFixed(2) }}</span>
+            </div>
+            }
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Pick-Up Point</label>
+                    <input type="text" [(ngModel)]="newAssignment.pick_up" placeholder="e.g. Madina Junction"
+                        class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm outline-none focus:border-blue-500 placeholder:text-text-muted transition-colors">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Drop-Off Point</label>
+                    <input type="text" [(ngModel)]="newAssignment.drop_off" placeholder="e.g. School Main Gate"
+                        class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm outline-none focus:border-blue-500 placeholder:text-text-muted transition-colors">
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 flex gap-3">
+            <button (click)="showAssignBus.set(false)" [disabled]="savingAssignment()"
+                class="flex-1 py-3 rounded-xl text-xs font-bold bg-bg-tertiary border border-border-primary text-text-primary hover:bg-bg-primary transition-all">Cancel</button>
+            <button (click)="saveAssignment()" [disabled]="savingAssignment()"
+                class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25 transition-all disabled:opacity-50">
+                @if (savingAssignment()) {
+                <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Assigning…
+                } @else {
+                Assign Student
+                }
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ═══════════════════════ ADD MEAL PLAN MODAL ═══════════════════════ -->
+@if (showAddMealPlan()) {
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" (click)="showAddMealPlan.set(false)">
+    <div class="relative w-full max-w-lg bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 shadow-2xl overflow-hidden" (click)="$event.stopPropagation()">
+        <div class="absolute -top-12 -right-12 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex items-start justify-between mb-6">
+            <div>
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-widest mb-2">Canteen</div>
+                <h3 class="text-xl font-black text-text-primary">Add Meal Plan</h3>
+                <p class="text-xs text-text-muted mt-0.5">Create a new canteen meal plan for term subscriptions</p>
+            </div>
+            <button (click)="showAddMealPlan.set(false)" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary border border-transparent hover:border-border-primary transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Plan Name *</label>
+                <input type="text" [(ngModel)]="newMealPlan.name" placeholder="e.g. Full Board, Lunch Only"
+                    class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm outline-none focus:border-emerald-500 placeholder:text-text-muted transition-colors">
+            </div>
+            <div>
+                <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Description</label>
+                <input type="text" [(ngModel)]="newMealPlan.description" placeholder="Brief description of this plan"
+                    class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm outline-none focus:border-emerald-500 placeholder:text-text-muted transition-colors">
+            </div>
+            <div>
+                <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Term Fee (GH₵)</label>
+                <input type="number" [(ngModel)]="newMealPlan.term_fee" placeholder="0.00"
+                    class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm outline-none focus:border-emerald-500 placeholder:text-text-muted transition-colors font-mono">
+            </div>
+        </div>
+        <div class="mt-8 flex gap-3">
+            <button (click)="showAddMealPlan.set(false)" [disabled]="savingMealPlan()"
+                class="flex-1 py-3 rounded-xl text-xs font-bold bg-bg-tertiary border border-border-primary text-text-primary hover:bg-bg-primary transition-all">Cancel</button>
+            <button (click)="saveMealPlan()" [disabled]="savingMealPlan()"
+                class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 transition-all disabled:opacity-50">
+                @if (savingMealPlan()) {
+                <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Saving…
+                } @else {
+                Save Meal Plan
+                }
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ═══════════════════════ SUBSCRIBE STUDENT MODAL ═══════════════════════ -->
+@if (showSubscribe()) {
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" (click)="showSubscribe.set(false)">
+    <div class="relative w-full max-w-lg bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 shadow-2xl" (click)="$event.stopPropagation()">
+        <div class="flex items-start justify-between mb-6">
+            <div>
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-widest mb-2">Canteen Enrollment</div>
+                <h3 class="text-xl font-black text-text-primary">Enroll Student</h3>
+                <p class="text-xs text-text-muted mt-0.5">Subscribe a student to a canteen meal plan for the term</p>
+            </div>
+            <button (click)="showSubscribe.set(false)" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary border border-transparent hover:border-border-primary transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Student *</label>
+                <app-student-search-dropdown
+                    [(studentId)]="newSubscription.student_id"
+                    [required]="true">
+                </app-student-search-dropdown>
+            </div>
+            <div>
+                <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Meal Plan *</label>
+                <select [(ngModel)]="newSubscription.meal_plan_id"
+                    class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm outline-none focus:border-emerald-500 transition-colors">
+                    <option value="">Select a meal plan…</option>
+                    @for (plan of mealPlans(); track plan.id) {
+                    <option [value]="plan.id">{{ plan.name }} — GH₵ {{ plan.term_fee?.toFixed(2) }}</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Term</label>
+                <input type="text" [(ngModel)]="newSubscription.term" placeholder="e.g. Term 1, 2025/2026"
+                    class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm outline-none focus:border-emerald-500 placeholder:text-text-muted transition-colors">
+            </div>
+        </div>
+        <div class="mt-8 flex gap-3">
+            <button (click)="showSubscribe.set(false)" [disabled]="savingSubscription()"
+                class="flex-1 py-3 rounded-xl text-xs font-bold bg-bg-tertiary border border-border-primary text-text-primary hover:bg-bg-primary transition-all">Cancel</button>
+            <button (click)="saveSubscription()" [disabled]="savingSubscription()"
+                class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 transition-all disabled:opacity-50">
+                @if (savingSubscription()) {
+                <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Subscribing…
+                } @else {
+                Subscribe Student
+                }
+            </button>
+        </div>
+    </div>
+</div>
+}

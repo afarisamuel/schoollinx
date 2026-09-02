@@ -75,6 +75,7 @@ type LogisticsRepository interface {
 	GetRoutes(ctx context.Context) ([]TransportRoute, error)
 	GetRouteByID(ctx context.Context, id uuid.UUID) (*TransportRoute, error)
 	CreateRoute(ctx context.Context, route *TransportRoute) error
+	DeleteRoute(ctx context.Context, id uuid.UUID) error
 	UpdateRouteGPS(ctx context.Context, routeID uuid.UUID, lat, lng, speed, heading float64, nextStop string, eta int) error
 	AssignBus(ctx context.Context, assignment *BusAssignment) error
 	GetStudentTransport(ctx context.Context, studentID uuid.UUID) (*BusAssignment, error)
@@ -93,6 +94,8 @@ type LogisticsUseCase interface {
 	GetAllRoutes(ctx context.Context) ([]TransportRoute, error)
 	GetRouteByID(ctx context.Context, id uuid.UUID) (*TransportRoute, error)
 	AddRoute(ctx context.Context, route *TransportRoute) error
+	DeleteRoute(ctx context.Context, id uuid.UUID) error
+	GetRoutePassengers(ctx context.Context, routeID uuid.UUID) ([]BusAssignment, error)
 	UpdateBusGPS(ctx context.Context, routeID uuid.UUID, lat, lng, speed, heading float64, nextStop string, eta int) error
 	AssignStudentToBus(ctx context.Context, assignment *BusAssignment) error
 	GetTransportForStudent(ctx context.Context, studentID uuid.UUID) (*BusAssignment, error)

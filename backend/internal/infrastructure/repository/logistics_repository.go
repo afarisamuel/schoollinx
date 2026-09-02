@@ -100,6 +100,17 @@ func (r *logisticsRepository) GetAssignmentsByRoute(ctx context.Context, routeID
 	return assignments, nil
 }
 
+func (r *logisticsRepository) DeleteRoute(ctx context.Context, id uuid.UUID) error {
+	// Remove stops first, then assignments, then the route
+	if err := r.db.WithContext(ctx).Where("route_id = ?", id).Delete(&domain.RouteStop{}).Error; err != nil {
+		return err
+	}
+	if err := r.db.WithContext(ctx).Where("route_id = ?", id).Delete(&domain.BusAssignment{}).Error; err != nil {
+		return err
+	}
+	return r.db.WithContext(ctx).Delete(&domain.TransportRoute{}, "id = ?", id).Error
+}
+
 func (r *logisticsRepository) GetStudentsWithoutRoute(ctx context.Context) ([]domain.Student, error) {
 	var students []domain.Student
 	// Find active students who do not have a bus assignment

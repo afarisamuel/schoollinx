@@ -21,8 +21,10 @@ func NewLogisticsHandler(r *gin.RouterGroup, usecase domain.LogisticsUseCase) {
 		// Transport
 		logistics.GET("/routes", handler.GetRoutes)
 		logistics.POST("/routes", handler.AddRoute)
+		logistics.DELETE("/routes/:id", handler.DeleteRoute)
 		logistics.GET("/routes/:id/gps", handler.GetLiveRouteGPS)
 		logistics.POST("/routes/:id/gps", handler.UpdateBusGPS)
+		logistics.GET("/routes/:id/passengers", handler.GetRoutePassengers)
 		logistics.GET("/transport/student/:studentId", handler.GetStudentTransport)
 		logistics.POST("/transport/assign", handler.AssignTransport)
 
@@ -54,6 +56,33 @@ func (h *LogisticsHandler) AddRoute(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, route)
+}
+
+func (h *LogisticsHandler) DeleteRoute(c *gin.Context) {
+	routeID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid route ID"})
+		return
+	}
+	if err := h.logisticsUseCase.DeleteRoute(c.Request.Context(), routeID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Route deleted successfully"})
+}
+
+func (h *LogisticsHandler) GetRoutePassengers(c *gin.Context) {
+	routeID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid route ID"})
+		return
+	}
+	passengers, err := h.logisticsUseCase.GetRoutePassengers(c.Request.Context(), routeID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, passengers)
 }
 
 func (h *LogisticsHandler) GetStudentTransport(c *gin.Context) {
