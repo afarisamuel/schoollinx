@@ -16,7 +16,7 @@ import { of } from 'rxjs';
 @Component({
     selector: 'app-fiscal-dashboard',
     standalone: true,
-    imports: [CommonModule, RouterModule, DatePipe, FormsModule, FiscalTopUpModalComponent],
+    imports: [CommonModule, RouterModule, FormsModule, FiscalTopUpModalComponent],
     templateUrl: './fiscal-dashboard.component.html',
     styleUrl: './fiscal-dashboard.component.css'
 })

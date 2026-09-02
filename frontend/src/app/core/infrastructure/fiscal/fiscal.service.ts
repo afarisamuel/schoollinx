@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export type FeeCategory = 'TERM_FEE' | 'TUITION' | 'CANTEEN' | 'TRANSPORT' | 'LAB' | 'LIBRARY_FINE' | 'EXTRACURRICULAR' | string;
-export type PaymentStatus = 'PENDING' | 'PAID' | 'OVERDUE';
+export type PaymentStatus = 'PENDING' | 'PAID' | 'OVERDUE' | 'PARTIAL' | string;
 
 export interface FeeBreakdownItem {
     category: FeeCategory;
