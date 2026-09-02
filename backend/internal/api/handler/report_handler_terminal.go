@@ -80,19 +80,102 @@ func (h *ReportHandler) GenerateTerminalReportHandler(c *gin.Context) {
 		return
 	}
 
+	// Resolve subject IDs / UUIDs to real human-readable Subject Names
+	if h.subjectRepo != nil {
+		allSubjects, _ := h.subjectRepo.GetAll(ctx)
+		subjectNameMap := make(map[string]string)
+		for _, s := range allSubjects {
+			subjectNameMap[s.ID.String()] = s.Name
+			if s.Code != "" {
+				subjectNameMap[s.Code] = s.Name
+			}
+			subjectNameMap[s.Name] = s.Name
+		}
+
+		for i := range grades {
+			subjKey := grades[i].Subject
+			if realName, ok := subjectNameMap[subjKey]; ok && realName != "" {
+				grades[i].Subject = realName
+			} else if u, err := uuid.Parse(subjKey); err == nil {
+				if sub, err := h.subjectRepo.GetByID(ctx, u); err == nil && sub != nil && sub.Name != "" {
+					grades[i].Subject = sub.Name
+					subjectNameMap[subjKey] = sub.Name
+				}
+			}
+		}
+	}
+
 	eval, _ := h.evalRepo.GetByStudentAndTerm(ctx, studentID, periodID, termID)
 
 	// Look up the class teacher for this student
 	var classTeacher *domain.Teacher
+	classSize := 1
 	if student.ClassID != nil {
 		class, err := h.classRepo.GetByID(ctx, *student.ClassID)
 		if err == nil && class != nil && class.TeacherID != nil {
 			classTeacher, _ = h.teacherRepo.GetByID(ctx, *class.TeacherID)
 		}
+		if classStudents, err := h.studentRepo.GetByClass(ctx, *student.ClassID); err == nil && len(classStudents) > 0 {
+			classSize = len(classStudents)
+		}
 	}
 
-	// Mock attendance for now, ideally fetch from attendance repo
-	attendance := map[string]int{"present": 50, "absent": 2}
+	// Calculate real student attendance stats
+	attendance := map[string]int{"present": 0, "absent": 0, "tardy": 0}
+	if h.attendanceRepo != nil {
+		if records, err := h.attendanceRepo.GetByStudent(ctx, studentID); err == nil && len(records) > 0 {
+			for _, rec := range records {
+				if rec.Status == domain.StatusPresent {
+					attendance["present"]++
+				} else if rec.Status == domain.StatusAbsent {
+					attendance["absent"]++
+				} else if rec.Status == domain.StatusTardy {
+					attendance["tardy"]++
+				}
+			}
+		}
+	}
+
+	// If activePeriod is nil (periodID was passed as query param), fetch it
+	if activePeriod == nil && periodID != uuid.Nil {
+		activePeriod, _ = h.academicRepo.GetByID(ctx, periodID)
+	}
+
+	// Resolve actual Term Name, Academic Year, and Next Term Resumption Date
+	termLabel := "Term 1"
+	academicYearLabel := ""
+	nextTermBegins := "To be communicated"
+	totalTermsInPeriod := 3
+
+	if activePeriod != nil {
+		academicYearLabel = activePeriod.Name
+		if activePeriod.TermCount > 0 {
+			totalTermsInPeriod = activePeriod.TermCount
+		}
+
+		if len(activePeriod.Terms) > 0 {
+			for _, t := range activePeriod.Terms {
+				if t.ID == termID || (termID == uuid.Nil && t.TermNumber == activePeriod.CurrentTerm) {
+					termLabel = t.Name
+					if termLabel == "" {
+						termLabel = fmt.Sprintf("Term %d", t.TermNumber)
+					}
+					if !t.EndDate.IsZero() {
+						nextTermBegins = t.EndDate.AddDate(0, 0, 14).Format("02 Jan 2006")
+					}
+					break
+				}
+			}
+		} else if activePeriod.CurrentTerm > 0 {
+			termLabel = fmt.Sprintf("Term %d", activePeriod.CurrentTerm)
+		}
+	}
+
+	// Resolve promotion status conditionally
+	promotedTo := "N/A (Term Ongoing)"
+	if activePeriod != nil && activePeriod.CurrentTerm >= totalTermsInPeriod {
+		promotedTo = fmt.Sprintf("Level %d", student.Level+1)
+	}
 
 	data := pdf.TerminalReportData{
 		Student:        student,
@@ -101,10 +184,11 @@ func (h *ReportHandler) GenerateTerminalReportHandler(c *gin.Context) {
 		Grades:         grades,
 		Evaluation:     eval,
 		Attendance:     attendance,
-		Term:           "Term 3", 
-		ClassSize:      35,
-		NextTermBegins: "05 Sept 2026",
-		PromotedTo:     fmt.Sprintf("Level %d", student.Level+1),
+		Term:           termLabel,
+		AcademicYear:   academicYearLabel,
+		ClassSize:      classSize,
+		NextTermBegins: nextTermBegins,
+		PromotedTo:     promotedTo,
 	}
 
 	c.Header("Content-Type", "application/pdf")

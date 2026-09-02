@@ -73,6 +73,12 @@ export const tenantRoutes: Routes = [
                 loadChildren: () => import('./features/teachers/teacher.routes').then(m => m.teacherRoutes)
             },
             {
+                // Alias: sidebar uses /teacher-assignments, teacher-list uses /teachers/assignments – both now work
+                path: 'teacher-assignments',
+                redirectTo: 'teachers/assignments',
+                pathMatch: 'full'
+            },
+            {
                 path: 'guardians',
                 loadChildren: () => import('./features/guardians/guardian.routes').then(m => m.guardianRoutes)
             },

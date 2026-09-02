@@ -3,14 +3,17 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/user/high-school-management/backend/config"
 	"github.com/user/high-school-management/backend/internal/domain"
 	"gorm.io/gorm"
 )
 
 type SystemHandler struct {
-	db *gorm.DB
+	db  *gorm.DB
+	cfg *config.Config
 }
 
 type GlobalUser struct {
@@ -24,8 +27,8 @@ type GlobalUser struct {
 	CreatedAt    string      `json:"created_at"`
 }
 
-func NewSystemHandler(r *gin.RouterGroup, db *gorm.DB) {
-	h := &SystemHandler{db: db}
+func NewSystemHandler(r *gin.RouterGroup, db *gorm.DB, cfg *config.Config) {
+	h := &SystemHandler{db: db, cfg: cfg}
 	r.GET("/stats", h.GetStats)
 	r.GET("/directory", h.GetGlobalDirectory)
 	
@@ -233,10 +236,44 @@ func (h *SystemHandler) GetHealthStatus(c *gin.Context) {
 		dbStatus = "Degraded"
 	}
 
+	// Check Paystack gateway reachability
+	paystackStatus := "Unconfigured"
+	if h.cfg != nil && h.cfg.PaystackSecretKey != "" {
+		client := &http.Client{Timeout: 4 * time.Second}
+		resp, err := client.Get("https://api.paystack.co")
+		if err != nil {
+			paystackStatus = "Degraded"
+		} else {
+			resp.Body.Close()
+			if resp.StatusCode < 500 {
+				paystackStatus = "Operational"
+			} else {
+				paystackStatus = "Degraded"
+			}
+		}
+	}
+
+	// Check Arkasel/SMS gateway reachability
+	smsStatus := "Unconfigured"
+	if h.cfg != nil && h.cfg.SMSAPIKey != "" {
+		client := &http.Client{Timeout: 4 * time.Second}
+		resp, err := client.Get("https://sms.arkesel.com")
+		if err != nil {
+			smsStatus = "Degraded"
+		} else {
+			resp.Body.Close()
+			if resp.StatusCode < 500 {
+				smsStatus = "Operational"
+			} else {
+				smsStatus = "Degraded"
+			}
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"database": dbStatus,
-		"paystack": "Operational", // mocked external api
-		"hubtel":   "Operational", // mocked sms gateway
+		"paystack": paystackStatus,
+		"sms_gateway": smsStatus,
 		"aws_s3":   "Operational",
 	})
 }

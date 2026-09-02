@@ -146,7 +146,7 @@ func (a *App) setupRoutes() {
 	handler.NewDailyBillHandler(api, usecases.DailyBill, repos.Teacher)
 	handler.NewLibraryHandler(api, usecases.Library)
 	handler.NewExtracurricularHandler(api, usecases.Extra)
-	handler.NewReportHandler(api, infra.PDF, repos.Student, repos.Grade, repos.Tenant, repos.TerminalEvaluation, repos.AcademicPeriod, repos.Teacher, repos.Class)
+	handler.NewReportHandler(api, infra.PDF, repos.Student, repos.Grade, repos.Tenant, repos.TerminalEvaluation, repos.AcademicPeriod, repos.Teacher, repos.Class, repos.Subject, repos.Attendance)
 	handler.NewAcademicPeriodHandler(api, usecases.AcademicPeriod)
 	handler.NewScholasticLevelHandler(api, usecases.Scholastic)
 	handler.NewWelfareHandler(api, usecases.Welfare)
@@ -182,7 +182,7 @@ func (a *App) setupRoutes() {
 	superAdmin.Use(middleware.RoleMiddleware(domain.RoleEcopowerAdmin))
 	superAdmin.Use(middleware.AuditMiddleware(usecases.Audit))
 	handler.NewTenantHandler(superAdmin, usecases.Tenant)
-	handler.NewSystemHandler(superAdmin, a.DB)
+	handler.NewSystemHandler(superAdmin, a.DB, a.Config)
 	handler.NewAuditHandler(superAdmin, usecases.Audit)
 
 	financeGroup := superAdmin.Group("/finance")

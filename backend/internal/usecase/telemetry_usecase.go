@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/user/high-school-management/backend/internal/domain"
@@ -33,8 +34,6 @@ func (u *telemetryUseCase) LogEvent(ctx context.Context, tenantID *uuid.UUID, us
 		uID = *userID
 	}
 
-	// Marshal metadata securely or pass it down depending on JSON datatype, but since Metadata is datatypes.JSON, we should convert
-	// We'll skip complex marshalling for this stub and just use a default empty JSON
 	event := domain.TelemetryEvent{
 		TenantID:  tID,
 		UserID:    uID,
@@ -46,44 +45,139 @@ func (u *telemetryUseCase) LogEvent(ctx context.Context, tenantID *uuid.UUID, us
 	return u.db.WithContext(ctx).Create(&event).Error
 }
 
+// GetActiveUsers aggregates real active tenant login counts from telemetry_events in the past 24 hours.
 func (u *telemetryUseCase) GetActiveUsers(ctx context.Context) ([]map[string]interface{}, error) {
-	// Mock returning some recent login events grouped by tenant
-	res := []map[string]interface{}{
-		{"tenant_name": "St. Mary's High", "active_count": 142, "location": "Accra"},
-		{"tenant_name": "Achimota School", "active_count": 89, "location": "Accra"},
-		{"tenant_name": "Prempeh College", "active_count": 210, "location": "Kumasi"},
+	type row struct {
+		TenantID    uuid.UUID `gorm:"column:tenant_id"`
+		TenantName  string    `gorm:"column:tenant_name"`
+		ActiveCount int64     `gorm:"column:active_count"`
 	}
-	return res, nil
+	var rows []row
+
+	since := time.Now().Add(-24 * time.Hour)
+	err := u.db.WithContext(ctx).Table("public.telemetry_events te").
+		Select("te.tenant_id, t.name AS tenant_name, COUNT(DISTINCT te.user_id) AS active_count").
+		Joins("LEFT JOIN public.tenants t ON t.id = te.tenant_id").
+		Where("te.created_at >= ?", since).
+		Group("te.tenant_id, t.name").
+		Order("active_count DESC").
+		Limit(20).
+		Scan(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]map[string]interface{}, 0, len(rows))
+	for _, r := range rows {
+		result = append(result, map[string]interface{}{
+			"tenant_id":    r.TenantID,
+			"tenant_name":  r.TenantName,
+			"active_count": r.ActiveCount,
+		})
+	}
+	return result, nil
 }
 
+// GetModuleUsage aggregates actual event-type frequencies to produce module usage percentages.
 func (u *telemetryUseCase) GetModuleUsage(ctx context.Context) ([]map[string]interface{}, error) {
-	// Mock usage counts for pie charts
-	res := []map[string]interface{}{
-		{"module": "Finance", "usage_percentage": 35},
-		{"module": "Grading", "usage_percentage": 45},
-		{"module": "HR", "usage_percentage": 10},
-		{"module": "Library", "usage_percentage": 10},
+	type row struct {
+		EventType string `gorm:"column:event_type"`
+		Count     int64  `gorm:"column:count"`
 	}
-	return res, nil
+	var rows []row
+
+	since := time.Now().Add(-30 * 24 * time.Hour) // last 30 days
+	err := u.db.WithContext(ctx).Table("public.telemetry_events").
+		Select("event_type, COUNT(*) AS count").
+		Where("created_at >= ?", since).
+		Group("event_type").
+		Order("count DESC").
+		Scan(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var total int64
+	for _, r := range rows {
+		total += r.Count
+	}
+	if total == 0 {
+		total = 1
+	}
+
+	result := make([]map[string]interface{}, 0, len(rows))
+	for _, r := range rows {
+		pct := float64(r.Count) * 100 / float64(total)
+		result = append(result, map[string]interface{}{
+			"module":           r.EventType,
+			"count":            r.Count,
+			"usage_percentage": pct,
+		})
+	}
+	return result, nil
 }
 
+// GetFunnelMetrics derives tenant onboarding funnel from real tenant records.
 func (u *telemetryUseCase) GetFunnelMetrics(ctx context.Context) ([]map[string]interface{}, error) {
-	// Mock funnel drop-off
-	res := []map[string]interface{}{
-		{"step": "Sign Up", "count": 100},
-		{"step": "Create School", "count": 85},
-		{"step": "Add First Student", "count": 60},
-		{"step": "Complete Setup", "count": 45},
+	type funnelStep struct {
+		Step  string
+		Query string
 	}
-	return res, nil
+
+	steps := []funnelStep{
+		{"Sign Up", "SELECT COUNT(*) FROM public.tenants"},
+		{"Active Tenant", "SELECT COUNT(*) FROM public.tenants WHERE is_active = true"},
+		{"Trial Active", "SELECT COUNT(*) FROM public.tenants WHERE is_active = true AND trial_ends_at IS NOT NULL AND trial_ends_at > NOW()"},
+		{"Paid Subscribers", "SELECT COUNT(*) FROM public.tenants WHERE is_active = true AND (billing_due_date IS NOT NULL OR fixed_price_override > 0)"},
+	}
+
+	result := make([]map[string]interface{}, 0, len(steps))
+	for _, step := range steps {
+		var count int64
+		u.db.WithContext(ctx).Raw(step.Query).Scan(&count)
+		result = append(result, map[string]interface{}{
+			"step":  step.Step,
+			"count": count,
+		})
+	}
+	return result, nil
 }
 
+// GetErrors aggregates real error-type audit log entries from public.system_audit_logs.
 func (u *telemetryUseCase) GetErrors(ctx context.Context) ([]map[string]interface{}, error) {
-	// Mock common errors
-	res := []map[string]interface{}{
-		{"error": "JWT Expired", "count": 1205},
-		{"error": "Database Connection Timeout", "count": 43},
-		{"error": "Invalid Subject ID", "count": 890},
+	type row struct {
+		Action string `gorm:"column:action"`
+		Count  int64  `gorm:"column:count"`
 	}
-	return res, nil
+	var rows []row
+
+	since := time.Now().Add(-7 * 24 * time.Hour) // last 7 days
+	err := u.db.WithContext(ctx).Table("public.system_audit_logs").
+		Select("action, COUNT(*) AS count").
+		Where("created_at >= ? AND action ILIKE ? ", since, "%error%").
+		Group("action").
+		Order("count DESC").
+		Limit(10).
+		Scan(&rows).Error
+	if err != nil {
+		// fallback: query telemetry_events for error types
+		var evRows []row
+		_ = u.db.WithContext(ctx).Table("public.telemetry_events").
+			Select("event_type AS action, COUNT(*) AS count").
+			Where("created_at >= ? AND event_type ILIKE ?", since, "%error%").
+			Group("event_type").
+			Order("count DESC").
+			Limit(10).
+			Scan(&evRows).Error
+		rows = evRows
+	}
+
+	result := make([]map[string]interface{}, 0, len(rows))
+	for _, r := range rows {
+		result = append(result, map[string]interface{}{
+			"error": r.Action,
+			"count": r.Count,
+		})
+	}
+	return result, nil
 }

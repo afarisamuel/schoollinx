@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -35,11 +36,21 @@ func (u *billingUseCase) RunDailyDunningAndInvoicing(ctx context.Context) error 
 			daysUntilDue := int(time.Until(*tenant.BillingDueDate).Hours() / 24)
 			
 			if daysUntilDue == 3 || daysUntilDue == 0 {
-				// Generate invoice
+				// Calculate invoice: query real active student count from this tenant's schema
+				var studentCount int64
+				if tenant.SchemaName != "" {
+					u.db.Table(fmt.Sprintf("%s.students", tenant.SchemaName)).
+						Where("status = ?", "Active").
+						Count(&studentCount)
+				}
+				if studentCount == 0 {
+					studentCount = 1 // minimum billing unit
+				}
+
 				invoice := domain.PlatformInvoice{
 					TenantID:      tenant.ID,
 					InvoiceNumber: "INV-" + time.Now().Format("20060102") + "-" + tenant.ID.String()[:8],
-					Amount:        tenant.PerStudentPerTermRate * 100, // mock student count
+					Amount:        tenant.PerStudentPerTermRate * float64(studentCount),
 					Status:        domain.InvoiceStatusUnpaid,
 					DueDate:       *tenant.BillingDueDate,
 				}

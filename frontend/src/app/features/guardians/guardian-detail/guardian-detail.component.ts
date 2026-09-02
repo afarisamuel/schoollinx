@@ -24,6 +24,7 @@ export class GuardianDetailComponent implements OnInit {
   guardian = signal<Guardian | null>(null);
   familyLedger = signal<FamilyLedgerSummary | null>(null);
   isLoading = signal<boolean>(true);
+  ledgerError = signal<string | null>(null);
 
   // Link Student Modal
   showLinkModal = signal<boolean>(false);
@@ -74,11 +75,15 @@ export class GuardianDetailComponent implements OnInit {
   }
 
   loadFamilyLedger() {
+    this.ledgerError.set(null);
     this.guardianService.getFamilyLedger(this.guardianId()).subscribe({
       next: (ledger) => {
         this.familyLedger.set(ledger);
       },
-      error: () => {}
+      error: (err) => {
+        const msg = err?.error?.error || err?.message || 'Unable to load family financial ledger.';
+        this.ledgerError.set(msg);
+      }
     });
   }
 

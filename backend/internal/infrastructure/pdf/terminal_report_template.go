@@ -245,7 +245,7 @@ func (s *PDFService) drawTerminalReport(pdf *gofpdf.Fpdf, data TerminalReportDat
 	pdf.Ln(5)
 	pdf.SetFont("Arial", "I", 9)
 	pdf.SetTextColor(71, 85, 105)
-	if cRemark == "" { cRemark = "—" }
+	if cRemark == "" { cRemark = "N/A" }
 	pdf.MultiCell(190, 6, cRemark, "", "L", false)
 	pdf.Ln(4)
 
@@ -255,7 +255,7 @@ func (s *PDFService) drawTerminalReport(pdf *gofpdf.Fpdf, data TerminalReportDat
 	pdf.Ln(5)
 	pdf.SetFont("Arial", "I", 9)
 	pdf.SetTextColor(71, 85, 105)
-	if hRemark == "" { hRemark = "—" }
+	if hRemark == "" { hRemark = "N/A" }
 	pdf.MultiCell(190, 6, hRemark, "", "L", false)
 	pdf.Ln(16)
 

@@ -809,7 +809,7 @@ export class BulkGradingComponent implements OnInit {
     }
 
     const selectedSub = this.subjects().find(s => s.id === this.selectedSubjectId() || s.name === this.selectedSubjectId());
-    const resolvedSubject = selectedSub?.id || this.selectedSubjectId();
+    const resolvedSubject = selectedSub?.name || this.selectedSubjectId();
 
     const gradesToSave: Partial<Grade>[] = [];
 

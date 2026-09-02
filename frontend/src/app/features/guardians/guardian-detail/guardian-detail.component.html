@@ -159,6 +159,17 @@
     </div>
 
     <!-- ── FAMILY FINANCIAL LEDGER SECTION ─────────────────────────────────── -->
+    @if (ledgerError()) {
+      <div class="flex items-start gap-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-2xl p-4 mb-6">
+        <svg class="w-5 h-5 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <div>
+          <p class="text-sm font-semibold">Family Ledger Unavailable</p>
+          <p class="text-xs text-rose-400 mt-0.5">{{ ledgerError() }}</p>
+        </div>
+      </div>
+    }
     @if (familyLedger()) {
       <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 shadow-sm mb-8">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-border-primary mb-6 gap-4">

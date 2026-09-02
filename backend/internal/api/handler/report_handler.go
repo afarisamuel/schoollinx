@@ -11,14 +11,16 @@ import (
 )
 
 type ReportHandler struct {
-	pdfService   *pdf.PDFService
-	studentRepo  domain.StudentRepository
-	gradeRepo    domain.GradeRepository
-	tenantRepo   domain.TenantRepository
-	evalRepo     domain.TerminalEvaluationRepository
-	academicRepo domain.AcademicPeriodRepository
-	teacherRepo  domain.TeacherRepository
-	classRepo    domain.ClassRepository
+	pdfService     *pdf.PDFService
+	studentRepo    domain.StudentRepository
+	gradeRepo      domain.GradeRepository
+	tenantRepo     domain.TenantRepository
+	evalRepo       domain.TerminalEvaluationRepository
+	academicRepo   domain.AcademicPeriodRepository
+	teacherRepo    domain.TeacherRepository
+	classRepo      domain.ClassRepository
+	subjectRepo    domain.SubjectRepository
+	attendanceRepo domain.AttendanceRepository
 }
 
 func NewReportHandler(
@@ -31,16 +33,20 @@ func NewReportHandler(
 	academicRepo domain.AcademicPeriodRepository,
 	teacherRepo domain.TeacherRepository,
 	classRepo domain.ClassRepository,
+	subjectRepo domain.SubjectRepository,
+	attendanceRepo domain.AttendanceRepository,
 ) {
 	h := &ReportHandler{
-		pdfService:   ps,
-		studentRepo:  studentRepo,
-		gradeRepo:    gradeRepo,
-		tenantRepo:   tenantRepo,
-		evalRepo:     evalRepo,
-		academicRepo: academicRepo,
-		teacherRepo:  teacherRepo,
-		classRepo:    classRepo,
+		pdfService:     ps,
+		studentRepo:    studentRepo,
+		gradeRepo:      gradeRepo,
+		tenantRepo:     tenantRepo,
+		evalRepo:       evalRepo,
+		academicRepo:   academicRepo,
+		teacherRepo:    teacherRepo,
+		classRepo:      classRepo,
+		subjectRepo:    subjectRepo,
+		attendanceRepo: attendanceRepo,
 	}
 
 	g := r.Group("/reports")
@@ -82,6 +88,30 @@ func (h *ReportHandler) GenerateDocument(c *gin.Context) {
 	for _, g := range grades {
 		if g.StudentID == id {
 			studentGrades = append(studentGrades, g)
+		}
+	}
+
+	// Resolve subject IDs / UUIDs to real human-readable Subject Names
+	if h.subjectRepo != nil {
+		allSubjects, _ := h.subjectRepo.GetAll(c.Request.Context())
+		subjectNameMap := make(map[string]string)
+		for _, s := range allSubjects {
+			subjectNameMap[s.ID.String()] = s.Name
+			if s.Code != "" {
+				subjectNameMap[s.Code] = s.Name
+			}
+			subjectNameMap[s.Name] = s.Name
+		}
+		for i := range studentGrades {
+			subjKey := studentGrades[i].Subject
+			if realName, ok := subjectNameMap[subjKey]; ok && realName != "" {
+				studentGrades[i].Subject = realName
+			} else if u, err := uuid.Parse(subjKey); err == nil {
+				if sub, err := h.subjectRepo.GetByID(c.Request.Context(), u); err == nil && sub != nil && sub.Name != "" {
+					studentGrades[i].Subject = sub.Name
+					subjectNameMap[subjKey] = sub.Name
+				}
+			}
 		}
 	}
 
