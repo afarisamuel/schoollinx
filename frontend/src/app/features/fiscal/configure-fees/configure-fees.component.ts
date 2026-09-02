@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { FiscalService, FeeStructure, InstallmentPlanTemplate, InstallmentPlanMilestoneDef, BillTemplateConfig, BillSupplyItem } from '../../../core/infrastructure/fiscal/fiscal.service';
 import { AcademicPeriodService } from '../../../core/infrastructure/academic-period/academic-period.service';
 import { AcademicPeriod } from '../../../core/domain/academic-period.model';
+import { ClassService, Class } from '../../../core/infrastructure/curriculum/class.service';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 import { ToastService } from '../../../shared/ui/toast/toast.service';
 
@@ -24,13 +25,19 @@ interface CategoryMeta {
 export class ConfigureFeesComponent implements OnInit {
   private fiscalService = inject(FiscalService);
   private academicPeriodService = inject(AcademicPeriodService);
+  private classService = inject(ClassService);
   private dialog = inject(DialogService);
   private toast = inject(ToastService);
 
   activePeriod = signal<AcademicPeriod | null>(null);
   feeStructures = signal<FeeStructure[]>([]);
+  classes = signal<Class[]>([]);
   generatingFees = signal(false);
   generatingDailyFees = signal(false);
+
+  // Class selection state for new fee structure
+  allClasses = true;
+  selectedClassIds: string[] = [];
 
   activeTab = signal<'term' | 'daily' | 'installments' | 'bill_template'>('term');
 
@@ -99,8 +106,70 @@ export class ConfigureFeesComponent implements OnInit {
 
   ngOnInit() {
     this.loadActivePeriod();
+    this.loadClasses();
     this.loadInstallmentSettings();
     this.loadBillConfig();
+  }
+
+  loadClasses() {
+    this.classService.getClasses().subscribe({
+      next: (cls) => this.classes.set(cls || []),
+      error: (err) => console.error('Failed to load classes:', err)
+    });
+  }
+
+  toggleAllClasses(checked: boolean) {
+    this.allClasses = checked;
+    if (checked) {
+      this.selectedClassIds = [];
+    }
+  }
+
+  toggleClassSelection(classId: string) {
+    const idx = this.selectedClassIds.indexOf(classId);
+    if (idx > -1) {
+      this.selectedClassIds = this.selectedClassIds.filter(id => id !== classId);
+      if (this.selectedClassIds.length === 0) {
+        this.allClasses = true;
+      }
+    } else {
+      this.selectedClassIds = [...this.selectedClassIds, classId];
+      this.allClasses = false;
+    }
+  }
+
+  isClassSelected(classId: string): boolean {
+    return this.selectedClassIds.includes(classId);
+  }
+
+  selectAllClasses() {
+    this.allClasses = false;
+    this.selectedClassIds = this.classes().map(c => c.id);
+  }
+
+  clearClassSelection() {
+    this.allClasses = true;
+    this.selectedClassIds = [];
+  }
+
+  getClassLabelForFee(fee: FeeStructure): string {
+    if (fee.all_classes || !fee.class_ids || fee.class_ids.length === 0) {
+      return 'All Classes';
+    }
+    const classMap = new Map(this.classes().map(c => [c.id, c.name]));
+    const matchedNames = fee.class_ids.map(id => classMap.get(id) || 'Unknown Class');
+    if (matchedNames.length <= 2) {
+      return matchedNames.join(', ');
+    }
+    return `${matchedNames.slice(0, 2).join(', ')} +${matchedNames.length - 2} more`;
+  }
+
+  getClassNamesDetailed(fee: FeeStructure): string {
+    if (fee.all_classes || !fee.class_ids || fee.class_ids.length === 0) {
+      return 'Applies to all classes';
+    }
+    const classMap = new Map(this.classes().map(c => [c.id, c.name]));
+    return fee.class_ids.map(id => classMap.get(id) || id).join(', ');
   }
 
   loadActivePeriod() {
@@ -143,7 +212,9 @@ export class ConfigureFeesComponent implements OnInit {
       category: finalCategory as any,
       amount: this.newFee.amount,
       frequency: finalFrequency,
-      is_term_fee: this.newFee.is_term_fee
+      is_term_fee: this.newFee.is_term_fee,
+      all_classes: this.allClasses,
+      class_ids: this.allClasses ? [] : this.selectedClassIds
     };
 
     this.fiscalService.setFeeStructure(payload).subscribe({
@@ -153,6 +224,8 @@ export class ConfigureFeesComponent implements OnInit {
         this.newFee = { category: 'TUITION', amount: 0, frequency: 'TERMLY', is_term_fee: true };
         this.customCategory = '';
         this.customFrequency = '';
+        this.allClasses = true;
+        this.selectedClassIds = [];
       },
       error: (err: any) => this.dialog.alert(err?.error?.error || 'Failed to save fee structure', 'Error', 'danger')
     });

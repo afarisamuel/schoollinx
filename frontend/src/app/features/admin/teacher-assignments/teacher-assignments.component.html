@@ -13,7 +13,7 @@
                 Teacher Class & Subject Allocations
             </h1>
             <p class="text-sm text-text-secondary mt-1 max-w-2xl font-medium">
-                Assign educators to classes and subjects, balance faculty workloads, and ensure comprehensive curriculum coverage.
+                Assign educators to classes and subjects, balance faculty workloads, configure Class Masters, and auto-resolve curriculum gaps.
             </p>
         </div>
 
@@ -25,8 +25,8 @@
             </button>
             <button (click)="refreshAssignments()"
                     class="p-2.5 rounded-xl bg-bg-secondary border border-border-primary hover:bg-bg-tertiary text-text-muted hover:text-text-primary text-xs font-bold transition-all cursor-pointer"
-                    title="Refresh Data">
-                <i class="fas fa-sync-alt"></i>
+                    title="Refresh Data & Recommendations">
+                <i class="fas fa-sync-alt" [ngClass]="loadingRecommendations() ? 'fa-spin' : ''"></i>
             </button>
         </div>
     </div>
@@ -50,7 +50,9 @@
                 <span class="text-2xl font-black text-emerald-400 mt-1 block">
                     {{ assignedTeachersCount() }} <span class="text-xs font-normal text-text-muted font-sans">/ {{ teachers().length }}</span>
                 </span>
-                <span class="text-[10px] text-text-muted">Educators active</span>
+                <span class="text-[10px] text-text-muted">
+                    {{ auditReport()?.underutilized_teachers_count || 0 }} available &bull; {{ auditReport()?.overloaded_teachers_count || 0 }} overloaded
+                </span>
             </div>
             <div class="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
                 <i class="fas fa-user-check"></i>
@@ -59,11 +61,13 @@
 
         <div class="p-4 bg-bg-secondary border border-border-primary rounded-2xl flex items-center justify-between">
             <div>
-                <span class="text-[11px] font-bold text-text-muted uppercase tracking-wider block">Classes Covered</span>
+                <span class="text-[11px] font-bold text-text-muted uppercase tracking-wider block">Classrooms Staffed</span>
                 <span class="text-2xl font-black text-teal-400 mt-1 block">
                     {{ classesCoveredCount() }} <span class="text-xs font-normal text-text-muted font-sans">/ {{ classes().length }}</span>
                 </span>
-                <span class="text-[10px] text-text-muted">Classrooms staffed</span>
+                <span class="text-[10px]" [ngClass]="(auditReport()?.classes_without_master_count || 0) > 0 ? 'text-amber-400 font-bold' : 'text-text-muted'">
+                    {{ auditReport()?.classes_without_master_count || 0 }} missing Class Master
+                </span>
             </div>
             <div class="w-11 h-11 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center text-lg">
                 <i class="fas fa-door-open"></i>
@@ -72,12 +76,14 @@
 
         <div class="p-4 bg-bg-secondary border border-border-primary rounded-2xl flex items-center justify-between">
             <div>
-                <span class="text-[11px] font-bold text-text-muted uppercase tracking-wider block">Curriculum Subjects</span>
-                <span class="text-2xl font-black text-cyan-400 mt-1 block">{{ totalSubjectsCount() }}</span>
-                <span class="text-[10px] text-text-muted">Subjects available</span>
+                <span class="text-[11px] font-bold text-text-muted uppercase tracking-wider block">Unassigned Gaps</span>
+                <span class="text-2xl font-black mt-1 block" [ngClass]="(auditReport()?.unassigned_subjects_count || 0) > 0 ? 'text-amber-400' : 'text-cyan-400'">
+                    {{ auditReport()?.unassigned_subjects_count || 0 }}
+                </span>
+                <span class="text-[10px] text-text-muted">Subjects need teachers</span>
             </div>
             <div class="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center text-lg">
-                <i class="fas fa-book"></i>
+                <i class="fas fa-magic"></i>
             </div>
         </div>
     </div>
@@ -87,331 +93,270 @@
     } @else {
         <!-- View Mode Selector Pill Tabs -->
         <div class="flex items-center justify-between border-b border-border-primary pb-3 flex-wrap gap-3">
-        <div class="flex items-center p-1 bg-bg-secondary border border-border-primary rounded-xl">
-            <button (click)="viewMode.set('by-class')"
-                    [ngClass]="viewMode() === 'by-class' ? 'bg-teal-600 text-white font-black shadow-md shadow-teal-600/20' : 'text-text-muted hover:text-text-primary'"
-                    class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
-                <i class="fas fa-layer-group text-[11px]"></i>
-                <span>By Class (Recommended)</span>
-            </button>
-            <button (click)="viewMode.set('by-teacher')"
-                    [ngClass]="viewMode() === 'by-teacher' ? 'bg-teal-600 text-white font-black shadow-md shadow-teal-600/20' : 'text-text-muted hover:text-text-primary'"
-                    class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
-                <i class="fas fa-th text-[11px]"></i>
-                <span>Teacher Workload Matrix</span>
-            </button>
-            <button (click)="viewMode.set('master-roster')"
-                    [ngClass]="viewMode() === 'master-roster' ? 'bg-teal-600 text-white font-black shadow-md shadow-teal-600/20' : 'text-text-muted hover:text-text-primary'"
-                    class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
-                <i class="fas fa-list text-[11px]"></i>
-                <span>Master Allocation Roster</span>
-            </button>
+            <div class="flex items-center p-1 bg-bg-secondary border border-border-primary rounded-xl flex-wrap gap-1">
+                <button (click)="viewMode.set('by-class')"
+                        [ngClass]="viewMode() === 'by-class' ? 'bg-teal-600 text-white font-black shadow-md shadow-teal-600/20' : 'text-text-muted hover:text-text-primary'"
+                        class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
+                    <i class="fas fa-layer-group text-[11px]"></i>
+                    <span>By Class (Recommended)</span>
+                </button>
+                <button (click)="viewMode.set('by-teacher')"
+                        [ngClass]="viewMode() === 'by-teacher' ? 'bg-teal-600 text-white font-black shadow-md shadow-teal-600/20' : 'text-text-muted hover:text-text-primary'"
+                        class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
+                    <i class="fas fa-th text-[11px]"></i>
+                    <span>Teacher Workload Matrix</span>
+                </button>
+                <button (click)="viewMode.set('recommendations')"
+                        [ngClass]="viewMode() === 'recommendations' ? 'bg-teal-600 text-white font-black shadow-md shadow-teal-600/20' : 'text-text-muted hover:text-text-primary'"
+                        class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
+                    <i class="fas fa-sparkles text-[11px] text-amber-300"></i>
+                    <span>Smart AI Recommendations & Audit</span>
+                    @if ((auditReport()?.unassigned_subjects_count || 0) > 0) {
+                        <span class="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-amber-400 text-black">
+                            {{ auditReport()?.unassigned_subjects_count }}
+                        </span>
+                    }
+                </button>
+                <button (click)="viewMode.set('master-roster')"
+                        [ngClass]="viewMode() === 'master-roster' ? 'bg-teal-600 text-white font-black shadow-md shadow-teal-600/20' : 'text-text-muted hover:text-text-primary'"
+                        class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
+                    <i class="fas fa-list text-[11px]"></i>
+                    <span>Master Allocation Roster</span>
+                </button>
+            </div>
+
+            @if (viewMode() === 'by-teacher' && selectedTeacherId() && hasChanges()) {
+                <div class="flex gap-2">
+                    <button (click)="discardChanges()"
+                            [disabled]="isSaving()"
+                            class="px-4 py-2 rounded-xl border border-border-secondary hover:bg-bg-tertiary text-xs font-bold text-text-secondary disabled:opacity-50 transition-all cursor-pointer">
+                        Discard
+                    </button>
+                    <button (click)="applyChanges()"
+                            [disabled]="isSaving()"
+                            class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/20 disabled:opacity-50 flex items-center gap-2 transition-all cursor-pointer">
+                        @if (isSaving()) {
+                            <i class="fas fa-spinner fa-spin text-xs"></i>
+                            <span>Applying...</span>
+                        } @else {
+                            <i class="fas fa-check text-xs"></i>
+                            <span>Apply Changes</span>
+                        }
+                    </button>
+                </div>
+            }
         </div>
 
-        @if (viewMode() === 'by-teacher' && selectedTeacherId() && hasChanges()) {
-            <div class="flex gap-2">
-                <button (click)="discardChanges()"
-                        [disabled]="isSaving()"
-                        class="px-4 py-2 rounded-xl border border-border-secondary hover:bg-bg-tertiary text-xs font-bold text-text-secondary disabled:opacity-50 transition-all cursor-pointer">
-                    Discard
-                </button>
-                <button (click)="applyChanges()"
-                        [disabled]="isSaving()"
-                        class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/20 disabled:opacity-50 flex items-center gap-2 transition-all cursor-pointer">
-                    @if (isSaving()) {
-                        <i class="fas fa-spinner fa-spin text-xs"></i>
-                        <span>Applying...</span>
-                    } @else {
-                        <i class="fas fa-check text-xs"></i>
-                        <span>Apply Changes</span>
-                    }
-                </button>
-            </div>
-        }
-    </div>
+        <!-- ════════════════════════════════════════════════════════════════════ -->
+        <!-- VIEW 1: BY CLASS ALLOCATIONS (CLASS-FIRST WORKFLOW)                -->
+        <!-- ════════════════════════════════════════════════════════════════════ -->
+        @if (viewMode() === 'by-class') {
+            <div class="space-y-6">
 
-    <!-- ════════════════════════════════════════════════════════════════════ -->
-    <!-- VIEW 1: BY CLASS ALLOCATIONS (CLASS-FIRST WORKFLOW)                -->
-    <!-- ════════════════════════════════════════════════════════════════════ -->
-    @if (viewMode() === 'by-class') {
-        <div class="space-y-6">
-
-            <!-- Class Quick Selector Carousel / Pills -->
-            <div>
-                <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-2">Select Target Classroom</label>
-                <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-2">
-                    @for (cls of classes(); track cls.id) {
-                        <button (click)="selectClass(cls.id)"
-                                [ngClass]="selectedClassId() === cls.id ? 'bg-teal-600 text-white border-teal-500 shadow-md shadow-teal-600/20' : 'bg-bg-secondary border-border-primary text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
-                                class="px-4 py-2.5 rounded-xl border text-xs font-bold transition-all whitespace-nowrap shrink-0 flex items-center gap-2 cursor-pointer">
-                            <i class="fas fa-chalkboard text-[10px]"></i>
-                            <span>{{ cls.name }}</span>
-                        </button>
-                    }
+                <!-- Class Quick Selector Carousel / Pills -->
+                <div>
+                    <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-2">Select Target Classroom</label>
+                    <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-2">
+                        @for (cls of classes(); track cls.id) {
+                            <button (click)="selectClass(cls.id)"
+                                    [ngClass]="selectedClassId() === cls.id ? 'bg-teal-600 text-white border-teal-500 shadow-md shadow-teal-600/20' : 'bg-bg-secondary border-border-primary text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
+                                    class="px-4 py-2.5 rounded-xl border text-xs font-bold transition-all whitespace-nowrap shrink-0 flex items-center gap-2 cursor-pointer">
+                                <i class="fas fa-chalkboard text-[10px]"></i>
+                                <span>{{ cls.name }}</span>
+                                @if (cls.teacher_id) {
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Class Master Assigned"></span>
+                                }
+                            </button>
+                        }
+                    </div>
                 </div>
-            </div>
 
-            @if (!selectedClassId() && classes().length > 0) {
-                <div class="p-12 text-center bg-bg-secondary border border-border-primary rounded-3xl">
-                    <p class="text-text-muted text-sm font-bold">Select a classroom above to configure its subject teachers.</p>
-                </div>
-            } @else if (selectedClassId()) {
-                <!-- Active Class Allocation Board -->
-                <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-2xl">
-                    
-                    <!-- Class Header Banner -->
-                    <div class="p-5 md:p-6 bg-teal-500/40 border-b border-border-primary flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div class="flex items-center gap-3.5">
-                            <div class="w-12 h-12 rounded-2xl bg-teal-500/20 border border-teal-500/30 text-teal-400 flex items-center justify-center text-xl font-black">
-                                <i class="fas fa-users-class"></i>
+                @if (!selectedClassId() && classes().length > 0) {
+                    <div class="p-12 text-center bg-bg-secondary border border-border-primary rounded-3xl">
+                        <p class="text-text-muted text-sm font-bold">Select a classroom above to configure its subject teachers.</p>
+                    </div>
+                } @else if (selectedClassId()) {
+                    <!-- Class Master (Form Master) Control Panel -->
+                    <div class="p-4 md:p-5 bg-bg-secondary border border-border-primary rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center text-base font-bold shrink-0">
+                                <i class="fas fa-user-tie"></i>
                             </div>
                             <div>
                                 <div class="flex items-center gap-2">
-                                    <h2 class="text-lg font-black text-text-primary">{{ activeClass()?.name }}</h2>
-                                    <span class="px-2 py-0.5 text-[9px] font-black uppercase rounded bg-teal-500/10 text-teal-400 border border-teal-500/20">
-                                        Active Class
-                                    </span>
+                                    <span class="text-xs font-black text-text-primary uppercase tracking-wider">Class Master / Form Master</span>
+                                    @if (activeClass()?.teacher_id) {
+                                        <span class="px-2 py-0.5 text-[9px] font-black uppercase rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                            Appointed
+                                        </span>
+                                    } @else {
+                                        <span class="px-2 py-0.5 text-[9px] font-black uppercase rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                            Not Assigned
+                                        </span>
+                                    }
                                 </div>
-                                <p class="text-xs text-text-muted mt-0.5">
-                                    Assign a subject specialist teacher for each curriculum subject taught in this class.
+                                <p class="text-[11px] text-text-muted mt-0.5">
+                                    Responsible for attendance roll call, pastoral remarks, and cohort oversight.
                                 </p>
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-3">
-                            <button (click)="openAssignModal(selectedClassId() || undefined)"
-                                    class="px-4 py-2 rounded-xl bg-bg-tertiary border border-border-primary hover:bg-bg-secondary text-text-primary text-xs font-bold flex items-center gap-2 transition-all cursor-pointer">
-                                <i class="fas fa-plus text-teal-400 text-xs"></i>
-                                <span>Assign Subject</span>
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <div class="relative min-w-[240px]">
+                                <select [value]="activeClass()?.teacher_id || ''"
+                                        (change)="onClassMasterChange($event)"
+                                        [disabled]="isUpdatingClassMaster()"
+                                        class="w-full bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-teal-500/50 cursor-pointer disabled:opacity-50">
+                                    <option value="">-- No Class Master Assigned --</option>
+                                    @for (t of teachers(); track t.id) {
+                                        <option [value]="t.id">
+                                            {{ t.first_name }} {{ t.last_name }} ({{ t.email || 'Faculty' }})
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+
+                            <button (click)="autoAllocateClassGaps(selectedClassId() || undefined)"
+                                    class="px-4 py-2.5 rounded-xl bg-teal-600/15 hover:bg-teal-600/25 border border-teal-500/30 text-teal-300 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer">
+                                <i class="fas fa-magic text-xs"></i>
+                                <span>Auto-Fill Gaps</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Subject Rows Table -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left">
-                            <thead>
-                                <tr class="border-b border-border-primary text-xs font-bold uppercase tracking-wider text-text-muted bg-bg-tertiary/40">
-                                    <th class="py-3.5 pl-6">Subject Name</th>
-                                    <th class="py-3.5">Code</th>
-                                    <th class="py-3.5">Assigned Educator</th>
-                                    <th class="py-3.5">Status</th>
-                                    <th class="py-3.5 text-right pr-6">Quick Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-border-primary">
-                                @for (row of classSubjectRows(); track row.subject.id) {
-                                    <tr class="hover:bg-bg-tertiary/30 transition-colors">
-                                        <!-- Subject Info -->
-                                        <td class="py-4 pl-6">
-                                            <div class="flex items-center gap-3">
-                                                <div class="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center font-black text-xs shrink-0">
-                                                    {{ row.subject.name[0] }}
-                                                </div>
-                                                <div>
-                                                    <span class="font-bold text-text-primary block text-sm">{{ row.subject.name }}</span>
-                                                    <span class="text-[10px] text-text-muted font-mono">Curriculum Standard</span>
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        <!-- Code -->
-                                        <td class="py-4 text-xs font-mono text-text-muted">
-                                            {{ row.subject.code || 'GEN' }}
-                                        </td>
-
-                                        <!-- Teacher Dropdown Selector -->
-                                        <td class="py-4 min-w-[260px]">
-                                            <div class="relative max-w-xs">
-                                                <select [value]="row.assignment?.teacher_id || ''"
-                                                        (change)="onClassSubjectTeacherChange(row.subject.id, $event)"
-                                                        class="w-full bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 block transition-all cursor-pointer">
-                                                    <option value="">-- No Teacher Assigned --</option>
-                                                    @for (t of teachers(); track t.id) {
-                                                        <option [value]="t.id">
-                                                            {{ t.first_name }} {{ t.last_name }} ({{ t.email || 'Faculty' }})
-                                                        </option>
-                                                    }
-                                                </select>
-                                            </div>
-                                        </td>
-
-                                        <!-- Status Badge -->
-                                        <td class="py-4">
-                                            @if (row.assignment) {
-                                                <span class="px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1.5">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Staffed
-                                                </span>
-                                            } @else {
-                                                <span class="px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 inline-flex items-center gap-1.5">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Unassigned
-                                                </span>
-                                            }
-                                        </td>
-
-                                        <!-- Action Buttons -->
-                                        <td class="py-4 text-right pr-6">
-                                            <div class="flex items-center justify-end gap-2">
-                                                @if (row.assignment) {
-                                                    <button (click)="unassignSubject(row.assignment.id, row.subject.name)"
-                                                            class="p-2 rounded-xl bg-bg-tertiary border border-border-primary hover:border-rose-500/30 text-text-muted hover:text-rose-400 hover:bg-rose-500/10 text-xs transition-all cursor-pointer"
-                                                            title="Unassign Teacher">
-                                                        <i class="fas fa-trash-alt"></i>
-                                                    </button>
-                                                } @else {
-                                                    <button (click)="openAssignModal(selectedClassId() || undefined, row.subject.id)"
-                                                            class="px-3 py-1.5 rounded-xl bg-teal-600/10 hover:bg-teal-600/20 text-teal-400 border border-teal-500/20 text-xs font-bold transition-all cursor-pointer">
-                                                        Assign
-                                                    </button>
-                                                }
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            }
-        </div>
-    }
-
-    <!-- ════════════════════════════════════════════════════════════════════ -->
-    <!-- VIEW 2: BY TEACHER WORKLOAD MATRIX                                  -->
-    <!-- ════════════════════════════════════════════════════════════════════ -->
-    @if (viewMode() === 'by-teacher') {
-        <div class="flex flex-col lg:flex-row gap-6 min-h-0">
-            
-            <!-- Left Sidebar: Teacher Directory -->
-            <div class="w-full lg:w-80 flex flex-col bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-xl shrink-0 max-h-[700px]">
-                <div class="p-4 border-b border-border-primary space-y-3">
-                    <h3 class="text-xs font-black text-text-primary uppercase tracking-wider flex items-center justify-between">
-                        <span>Faculty Roster</span>
-                        <span class="text-[10px] text-text-muted font-normal">({{ filteredTeachers().length }} teachers)</span>
-                    </h3>
-                    <div class="relative">
-                        <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
-                        <input type="text" 
-                               [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
-                               placeholder="Search educator..." 
-                               class="w-full bg-bg-tertiary border border-border-primary rounded-xl pl-9 pr-3 py-2 text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-teal-500 transition-colors">
-                    </div>
-                </div>
-
-                <div class="flex-1 overflow-y-auto custom-scrollbar p-2.5 space-y-1">
-                    @for (t of filteredTeachers(); track t.id) {
-                        <button (click)="selectTeacher(t.id!)"
-                                class="w-full text-left p-3 rounded-xl flex items-center gap-3 transition-colors border group relative cursor-pointer"
-                                [ngClass]="selectedTeacherId() === t.id ? 'bg-teal-600/15 border-teal-500/40 text-text-primary' : 'bg-transparent border-transparent hover:bg-bg-tertiary text-text-muted hover:text-text-primary'">
-                            
-                            <div class="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs shrink-0"
-                                 [ngClass]="selectedTeacherId() === t.id ? 'bg-teal-600 text-white' : 'bg-bg-tertiary text-text-muted'">
-                                {{ getInitials(t.first_name, t.last_name) }}
-                            </div>
-                            
-                            <div class="flex flex-col overflow-hidden min-w-0">
-                                <span class="text-xs font-bold text-text-primary truncate">{{ t.first_name }} {{ t.last_name }}</span>
-                                <span class="text-[10px] text-text-muted truncate">{{ t.email || 'No email' }}</span>
+                    <!-- Active Class Allocation Board -->
+                    <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-2xl">
+                        
+                        <!-- Class Header Banner -->
+                        <div class="p-5 md:p-6 bg-teal-500/20 border-b border-border-primary flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-12 h-12 rounded-2xl bg-teal-500/20 border border-teal-500/30 text-teal-400 flex items-center justify-center text-xl font-black">
+                                    <i class="fas fa-users-class"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h2 class="text-lg font-black text-text-primary">{{ activeClass()?.name }}</h2>
+                                        <span class="px-2 py-0.5 text-[9px] font-black uppercase rounded bg-teal-500/10 text-teal-400 border border-teal-500/20">
+                                            Curriculum Subjects
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-text-muted mt-0.5">
+                                        Assign a specialist educator for each subject or accept AI recommendations.
+                                    </p>
+                                </div>
                             </div>
 
-                            @if (selectedTeacherId() === t.id && hasChanges()) {
-                                <div class="absolute right-3 w-2 h-2 rounded-full bg-amber-400 animate-pulse" title="Unsaved changes"></div>
-                            }
-                        </button>
-                    }
-
-                    @if (filteredTeachers().length === 0) {
-                        <div class="py-10 text-center text-text-muted text-xs font-medium">
-                            No faculty matching search.
-                        </div>
-                    }
-                </div>
-            </div>
-
-            <!-- Right Main: Allocation Matrix -->
-            <div class="flex-1 flex flex-col bg-bg-secondary border border-border-primary rounded-3xl shadow-xl overflow-hidden min-h-[500px]">
-                @if (!selectedTeacherId()) {
-                    <div class="flex-1 flex flex-col items-center justify-center p-12 text-center">
-                        <div class="w-16 h-16 bg-bg-tertiary rounded-2xl flex items-center justify-center mb-4 text-text-muted text-2xl border border-border-primary">
-                            <i class="fas fa-chalkboard-teacher"></i>
-                        </div>
-                        <h3 class="text-base font-bold text-text-primary">Select an Educator</h3>
-                        <p class="text-text-muted mt-1 text-xs max-w-sm">Choose a teacher from the left directory to view and edit their Subject x Class teaching matrix.</p>
-                    </div>
-                } @else {
-                    <!-- Teacher Header -->
-                    <div class="p-5 border-b border-border-primary flex items-center justify-between flex-wrap gap-4 bg-bg-tertiary/20">
-                        <div class="flex items-center gap-3.5">
-                            <div class="w-11 h-11 bg-teal-500/20 border border-teal-500/30 rounded-xl flex items-center justify-center font-black text-teal-400">
-                                {{ getInitials(activeTeacher()?.first_name, activeTeacher()?.last_name) }}
-                            </div>
-                            <div>
-                                <h3 class="text-base font-bold text-text-primary">{{ activeTeacher()?.first_name }} {{ activeTeacher()?.last_name }}</h3>
-                                <p class="text-[10px] text-text-muted uppercase tracking-widest font-black mt-0.5">
-                                    Allocation Matrix &bull; Click cells to toggle assignment
-                                </p>
+                            <div class="flex items-center gap-3">
+                                <button (click)="openAssignModal(selectedClassId() || undefined)"
+                                        class="px-4 py-2 rounded-xl bg-bg-tertiary border border-border-primary hover:bg-bg-secondary text-text-primary text-xs font-bold flex items-center gap-2 transition-all cursor-pointer">
+                                    <i class="fas fa-plus text-teal-400 text-xs"></i>
+                                    <span>Assign Subject</span>
+                                </button>
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-3 text-xs font-semibold px-3.5 py-1.5 bg-bg-tertiary rounded-xl border border-border-primary">
-                            <div class="flex items-center gap-1.5">
-                                <div class="w-3 h-3 rounded bg-teal-600"></div>
-                                <span class="text-text-secondary text-[11px]">Assigned</span>
-                            </div>
-                            <div class="flex items-center gap-1.5 opacity-60">
-                                <div class="w-3 h-3 rounded bg-bg-tertiary border border-border-primary"></div>
-                                <span class="text-text-muted text-[11px]">Empty</span>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <div class="w-3 h-3 rounded bg-amber-500/20 border border-amber-500"></div>
-                                <span class="text-amber-400 text-[11px]">Draft</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Matrix Table -->
-                    <div class="flex-1 overflow-auto custom-scrollbar p-5">
-                        <div class="inline-block min-w-full rounded-2xl border border-border-primary overflow-hidden shadow-inner">
-                            <table class="w-full text-left border-collapse text-xs">
+                        <!-- Subject Rows Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
                                 <thead>
-                                    <tr class="bg-bg-tertiary/80 text-text-muted uppercase tracking-wider font-bold">
-                                        <th class="p-3 border-b border-r border-border-primary min-w-[160px] sticky left-0 z-10 bg-bg-tertiary">
-                                            Subjects \ Classes
-                                        </th>
-                                        @for (cls of classes(); track cls.id) {
-                                            <th class="p-3 border-b border-r border-border-primary text-center min-w-[100px] text-text-primary whitespace-nowrap">
-                                                {{ cls.name }}
-                                            </th>
-                                        }
+                                    <tr class="border-b border-border-primary text-xs font-bold uppercase tracking-wider text-text-muted bg-bg-tertiary/40">
+                                        <th class="py-3.5 pl-6">Subject Name</th>
+                                        <th class="py-3.5">Code</th>
+                                        <th class="py-3.5">Assigned Educator</th>
+                                        <th class="py-3.5">Status & AI Recommendations</th>
+                                        <th class="py-3.5 text-right pr-6">Quick Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-border-primary">
-                                    @for (sub of subjects(); track sub.id) {
-                                        <tr>
-                                            <th class="p-3 border-r border-border-primary font-bold text-text-secondary whitespace-nowrap sticky left-0 z-10 bg-bg-secondary">
-                                                {{ sub.name }}
-                                                <span class="text-[9px] text-text-muted font-mono block">{{ sub.code }}</span>
-                                            </th>
-                                            @for (cls of classes(); track cls.id) {
-                                                <td class="p-2 border-r border-border-primary text-center hover:bg-bg-tertiary/40 transition-colors"
-                                                    (click)="toggleCell(sub.id, cls.id)">
-                                                    @if (isAssignedToOther(sub.id, cls.id)) {
-                                                        <div class="w-full h-8 rounded-lg bg-rose-500/5 border border-rose-500/20 flex items-center justify-center text-rose-400 opacity-60 hover:opacity-100 transition-opacity cursor-not-allowed"
-                                                             [title]="'Assigned to ' + getOtherTeacherName(sub.id, cls.id)">
-                                                            <i class="fas fa-lock text-[10px]"></i>
-                                                        </div>
+                                    @for (row of classSubjectRows(); track row.subject.id) {
+                                        <tr class="hover:bg-bg-tertiary/30 transition-colors">
+                                            <!-- Subject Info -->
+                                            <td class="py-4 pl-6">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center font-black text-xs shrink-0">
+                                                        {{ row.subject.name[0] }}
+                                                    </div>
+                                                    <div>
+                                                        <span class="font-bold text-text-primary block text-sm">{{ row.subject.name }}</span>
+                                                        <span class="text-[10px] text-text-muted font-mono">Curriculum Standard</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <!-- Code -->
+                                            <td class="py-4 text-xs font-mono text-text-muted">
+                                                {{ row.subject.code || 'GEN' }}
+                                            </td>
+
+                                            <!-- Teacher Dropdown Selector -->
+                                            <td class="py-4 min-w-[280px]">
+                                                <div class="relative max-w-sm">
+                                                    <select [value]="row.assignment?.teacher_id || ''"
+                                                            (change)="onClassSubjectTeacherChange(row.subject.id, $event)"
+                                                            class="w-full bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 block transition-all cursor-pointer">
+                                                        <option value="">-- No Teacher Assigned --</option>
+                                                        @for (t of teachers(); track t.id) {
+                                                            @let workload = getTeacherWorkload(t.id);
+                                                            <option [value]="t.id">
+                                                                {{ t.first_name }} {{ t.last_name }} ({{ workload ? workload.assigned_classes + ' classes' : 'Faculty' }})
+                                                            </option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </td>
+
+                                            <!-- Status & AI Recommendation -->
+                                            <td class="py-4">
+                                                @if (row.assignment) {
+                                                    <span class="px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1.5">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Staffed
+                                                    </span>
+                                                } @else {
+                                                    <div class="flex flex-col gap-1.5">
+                                                        <span class="px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 inline-flex items-center gap-1.5 w-fit">
+                                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Unassigned
+                                                        </span>
+
+                                                        @if (row.recommendation && row.recommendation.suggested_teacher) {
+                                                            <div class="p-2 rounded-lg bg-teal-500/10 border border-teal-500/20 text-xs flex items-center justify-between gap-2 max-w-md">
+                                                                <div class="overflow-hidden">
+                                                                    <div class="flex items-center gap-1.5">
+                                                                        <i class="fas fa-sparkles text-amber-300 text-[10px]"></i>
+                                                                        <span class="font-bold text-teal-300 text-[11px] truncate">
+                                                                            Suggested: {{ row.recommendation.suggested_teacher.teacher_name }}
+                                                                        </span>
+                                                                    </div>
+                                                                    <p class="text-[10px] text-text-muted truncate mt-0.5">
+                                                                        {{ row.recommendation.rationale }}
+                                                                    </p>
+                                                                </div>
+                                                                <button (click)="applyRecommendation(row.recommendation)"
+                                                                        class="px-2.5 py-1 rounded-md bg-teal-600 hover:bg-teal-500 text-white text-[10px] font-bold shrink-0 transition-all cursor-pointer">
+                                                                    Accept
+                                                                </button>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                }
+                                            </td>
+
+                                            <!-- Action Buttons -->
+                                            <td class="py-4 text-right pr-6">
+                                                <div class="flex items-center justify-end gap-2">
+                                                    @if (row.assignment) {
+                                                        <button (click)="unassignSubject(row.assignment.id, row.subject.name)"
+                                                                class="p-2 rounded-xl bg-bg-tertiary border border-border-primary hover:border-rose-500/30 text-text-muted hover:text-rose-400 hover:bg-rose-500/10 text-xs transition-all cursor-pointer"
+                                                                title="Unassign Teacher">
+                                                            <i class="fas fa-trash-alt"></i>
+                                                        </button>
                                                     } @else {
-                                                        <div class="w-full h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer"
-                                                             [ngClass]="isAssignedToSelected(sub.id, cls.id) && !hasChanges() ? 'bg-teal-600 border-teal-500 text-white shadow-sm' :
-                                                                        isAssignedToSelected(sub.id, cls.id) && hasChanges() ? 'bg-amber-500/20 border-amber-500 text-amber-400' :
-                                                                        'bg-bg-tertiary/50 border-border-primary text-transparent hover:border-teal-500/40'">
-                                                            @if (isAssignedToSelected(sub.id, cls.id)) {
-                                                                <i class="fas fa-check text-[10px]"></i>
-                                                            }
-                                                        </div>
+                                                        <button (click)="openAssignModal(selectedClassId() || undefined, row.subject.id)"
+                                                                class="px-3 py-1.5 rounded-xl bg-teal-600/10 hover:bg-teal-600/20 text-teal-400 border border-teal-500/20 text-xs font-bold transition-all cursor-pointer">
+                                                            Assign
+                                                        </button>
                                                     }
-                                                </td>
-                                            }
+                                                </div>
+                                            </td>
                                         </tr>
                                     }
                                 </tbody>
@@ -420,135 +365,468 @@
                     </div>
                 }
             </div>
-        </div>
-    }
+        }
 
-    <!-- ════════════════════════════════════════════════════════════════════ -->
-    <!-- VIEW 3: MASTER ALLOCATION ROSTER (SEARCHABLE TABLE)                -->
-    <!-- ════════════════════════════════════════════════════════════════════ -->
-    @if (viewMode() === 'master-roster') {
-        <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-2xl">
-            
-            <!-- Filter Bar -->
-            <div class="p-5 border-b border-border-primary flex flex-col md:flex-row md:items-center justify-between gap-3 bg-bg-tertiary/20">
-                <div class="relative flex-1 max-w-md">
-                    <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
-                    <input type="text"
-                           [ngModel]="rosterSearch()" (ngModelChange)="rosterSearch.set($event)"
-                           placeholder="Filter by educator, class, or subject..."
-                           class="w-full bg-bg-tertiary border border-border-primary rounded-xl pl-9 pr-3 py-2 text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-teal-500 transition-colors">
-                </div>
+        <!-- ════════════════════════════════════════════════════════════════════ -->
+        <!-- VIEW 2: BY TEACHER WORKLOAD MATRIX                                  -->
+        <!-- ════════════════════════════════════════════════════════════════════ -->
+        @if (viewMode() === 'by-teacher') {
+            <div class="flex flex-col lg:flex-row gap-6 min-h-0">
+                
+                <!-- Left Sidebar: Teacher Directory -->
+                <div class="w-full lg:w-80 flex flex-col bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-xl shrink-0 max-h-[700px]">
+                    <div class="p-4 border-b border-border-primary space-y-3">
+                        <h3 class="text-xs font-black text-text-primary uppercase tracking-wider flex items-center justify-between">
+                            <span>Faculty Roster</span>
+                            <span class="text-[10px] text-text-muted font-normal">({{ filteredTeachers().length }} teachers)</span>
+                        </h3>
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
+                            <input type="text" 
+                                   [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+                                   placeholder="Search educator..." 
+                                   class="w-full bg-bg-tertiary border border-border-primary rounded-xl pl-9 pr-3 py-2 text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-teal-500 transition-colors">
+                        </div>
+                    </div>
 
-                <div class="flex items-center gap-2 flex-wrap">
-                    <!-- Class Filter -->
-                    <select [ngModel]="rosterClassFilter()" (ngModelChange)="rosterClassFilter.set($event)"
-                            class="bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500/50 cursor-pointer">
-                        <option value="all">All Classes</option>
-                        @for (cls of classes(); track cls.id) {
-                            <option [value]="cls.id">{{ cls.name }}</option>
-                        }
-                    </select>
-
-                    <!-- Subject Filter -->
-                    <select [ngModel]="rosterSubjectFilter()" (ngModelChange)="rosterSubjectFilter.set($event)"
-                            class="bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500/50 cursor-pointer">
-                        <option value="all">All Subjects</option>
-                        @for (sub of subjects(); track sub.id) {
-                            <option [value]="sub.id">{{ sub.name }}</option>
-                        }
-                    </select>
-
-                    <!-- Teacher Filter -->
-                    <select [ngModel]="rosterTeacherFilter()" (ngModelChange)="rosterTeacherFilter.set($event)"
-                            class="bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500/50 cursor-pointer">
-                        <option value="all">All Faculty</option>
-                        @for (t of teachers(); track t.id) {
-                            <option [value]="t.id">{{ t.first_name }} {{ t.last_name }}</option>
-                        }
-                    </select>
-                </div>
-            </div>
-
-            <!-- Table -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead>
-                        <tr class="border-b border-border-primary text-xs font-bold uppercase tracking-wider text-text-muted bg-bg-tertiary/40">
-                            <th class="py-3.5 pl-6">Educator</th>
-                            <th class="py-3.5">Assigned Class</th>
-                            <th class="py-3.5">Subject</th>
-                            <th class="py-3.5">Academic Year</th>
-                            <th class="py-3.5 text-right pr-6">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-border-primary">
-                        @for (a of filteredAssignments(); track a.id) {
-                            <tr class="hover:bg-bg-tertiary/30 transition-colors">
-                                <!-- Educator -->
-                                <td class="py-3.5 pl-6">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center font-bold text-xs">
-                                            {{ getInitials(a.teacher?.first_name, a.teacher?.last_name) }}
-                                        </div>
-                                        <div>
-                                            <span class="font-bold text-text-primary block text-xs">
-                                                {{ a.teacher ? a.teacher.first_name + ' ' + a.teacher.last_name : 'Assigned Faculty' }}
-                                            </span>
-                                            <span class="text-[10px] text-text-muted font-mono">
-                                                ID: {{ a.teacher_id.slice(0,8) }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </td>
-
-                                <!-- Class -->
-                                <td class="py-3.5">
-                                    <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-bg-tertiary border border-border-primary text-text-primary">
-                                        {{ a.class?.name || 'Classroom' }}
-                                    </span>
-                                </td>
-
-                                <!-- Subject -->
-                                <td class="py-3.5">
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="font-bold text-text-primary text-xs">{{ a.subject?.name || 'Curriculum Subject' }}</span>
-                                        @if (a.subject?.code) {
-                                            <span class="px-1.5 py-0.2 text-[9px] font-mono text-text-muted border border-border-primary rounded">
-                                                {{ a.subject?.code }}
+                    <div class="flex-1 overflow-y-auto custom-scrollbar p-2.5 space-y-1">
+                        @for (t of filteredTeachers(); track t.id) {
+                            @let workload = getTeacherWorkload(t.id);
+                            @let badge = getWorkloadBadge(workload?.status);
+                            <button (click)="selectTeacher(t.id!)"
+                                    class="w-full text-left p-3 rounded-xl flex items-center gap-3 transition-colors border group relative cursor-pointer"
+                                    [ngClass]="selectedTeacherId() === t.id ? 'bg-teal-600/15 border-teal-500/40 text-text-primary' : 'bg-transparent border-transparent hover:bg-bg-tertiary text-text-muted hover:text-text-primary'">
+                                
+                                <div class="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs shrink-0"
+                                     [ngClass]="selectedTeacherId() === t.id ? 'bg-teal-600 text-white' : 'bg-bg-tertiary text-text-muted'">
+                                    {{ getInitials(t.first_name, t.last_name) }}
+                                </div>
+                                
+                                <div class="flex flex-col overflow-hidden min-w-0 flex-1">
+                                    <div class="flex items-center justify-between gap-1">
+                                        <span class="text-xs font-bold text-text-primary truncate">{{ t.first_name }} {{ t.last_name }}</span>
+                                        @if (workload) {
+                                            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded border {{ badge.cls }}">
+                                                {{ workload.assigned_classes }}c
                                             </span>
                                         }
                                     </div>
-                                </td>
+                                    <span class="text-[10px] text-text-muted truncate">{{ t.email || 'No email' }}</span>
+                                </div>
 
-                                <!-- Academic Year -->
-                                <td class="py-3.5 text-xs text-text-muted font-mono">
-                                    {{ a.academic_year || academicYear() }}
-                                </td>
-
-                                <!-- Action -->
-                                <td class="py-3.5 text-right pr-6">
-                                    <button (click)="deleteRosterAssignment(a)"
-                                            class="p-2 rounded-xl bg-bg-tertiary border border-border-primary hover:border-rose-500/30 text-text-muted hover:text-rose-400 hover:bg-rose-500/10 text-xs transition-all cursor-pointer"
-                                            title="Revoke Assignment">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </td>
-                            </tr>
+                                @if (selectedTeacherId() === t.id && hasChanges()) {
+                                    <div class="absolute right-3 w-2 h-2 rounded-full bg-amber-400 animate-pulse" title="Unsaved changes"></div>
+                                }
+                            </button>
                         }
 
-                        @if (filteredAssignments().length === 0) {
-                            <tr>
-                                <td colspan="5" class="py-12 text-center text-text-muted">
-                                    <i class="fas fa-inbox text-2xl opacity-40 mb-2 block"></i>
-                                    <p class="text-xs font-bold">No assignments match your search or filter criteria.</p>
-                                </td>
-                            </tr>
+                        @if (filteredTeachers().length === 0) {
+                            <div class="py-10 text-center text-text-muted text-xs font-medium">
+                                No faculty matching search.
+                            </div>
                         }
-                    </tbody>
-                </table>
+                    </div>
+                </div>
+
+                <!-- Right Main: Allocation Matrix -->
+                <div class="flex-1 flex flex-col bg-bg-secondary border border-border-primary rounded-3xl shadow-xl overflow-hidden min-h-[500px]">
+                    @if (!selectedTeacherId()) {
+                        <div class="flex-1 flex flex-col items-center justify-center p-12 text-center">
+                            <div class="w-16 h-16 bg-bg-tertiary rounded-2xl flex items-center justify-center mb-4 text-text-muted text-2xl border border-border-primary">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </div>
+                            <h3 class="text-base font-bold text-text-primary">Select an Educator</h3>
+                            <p class="text-text-muted mt-1 text-xs max-w-sm">Choose a teacher from the left directory to view and edit their Subject x Class teaching matrix.</p>
+                        </div>
+                    } @else {
+                        <!-- Teacher Header -->
+                        <div class="p-5 border-b border-border-primary flex items-center justify-between flex-wrap gap-4 bg-bg-tertiary/20">
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-11 h-11 bg-teal-500/20 border border-teal-500/30 rounded-xl flex items-center justify-center font-black text-teal-400">
+                                    {{ getInitials(activeTeacher()?.first_name, activeTeacher()?.last_name) }}
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-text-primary">{{ activeTeacher()?.first_name }} {{ activeTeacher()?.last_name }}</h3>
+                                    <p class="text-[10px] text-text-muted uppercase tracking-widest font-black mt-0.5">
+                                        Workload Matrix &bull; Click cells to assign or unassign
+                                    </p>
+                                </div>
+                            </div>
+
+                            @let tw = getTeacherWorkload(selectedTeacherId() || undefined);
+                            @let tBadge = getWorkloadBadge(tw?.status);
+                            <div class="flex items-center gap-2">
+                                <span class="px-3 py-1 rounded-lg text-xs font-bold border {{ tBadge.cls }} flex items-center gap-1.5">
+                                    <i class="fas {{ tBadge.icon }} text-[10px]"></i>
+                                    <span>{{ tBadge.text }} ({{ tw?.assigned_classes || 0 }} classes)</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Matrix Grid -->
+                        <div class="flex-1 overflow-auto custom-scrollbar p-4">
+                            <table class="w-full text-xs text-left border-collapse">
+                                <thead>
+                                    <tr>
+                                        <th class="p-3 font-black text-text-muted uppercase tracking-wider bg-bg-tertiary/40 border border-border-primary sticky left-0 z-10 min-w-[140px]">
+                                            Subject
+                                        </th>
+                                        @for (cls of classes(); track cls.id) {
+                                            <th class="p-3 font-bold text-text-primary text-center bg-bg-tertiary/40 border border-border-primary min-w-[110px]">
+                                                {{ cls.name }}
+                                            </th>
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (subj of subjects(); track subj.id) {
+                                        <tr>
+                                            <td class="p-3 font-bold text-text-primary bg-bg-secondary border border-border-primary sticky left-0 z-10">
+                                                {{ subj.name }}
+                                            </td>
+                                            @for (cls of classes(); track cls.id) {
+                                                @let assignedHere = isAssignedToSelected(subj.id, cls.id);
+                                                @let assignedOther = isAssignedToOther(subj.id, cls.id);
+                                                <td (click)="toggleCell(subj.id, cls.id)"
+                                                    [ngClass]="{
+                                                        'bg-teal-600 text-white font-bold': assignedHere,
+                                                        'bg-bg-tertiary/40 text-text-muted hover:bg-bg-tertiary cursor-pointer': !assignedHere && !assignedOther,
+                                                        'bg-rose-500/10 text-rose-400 cursor-not-allowed': assignedOther
+                                                    }"
+                                                    class="p-3 text-center border border-border-primary transition-colors cursor-pointer select-none">
+                                                    @if (assignedHere) {
+                                                        <i class="fas fa-check text-xs"></i>
+                                                    } @else if (assignedOther) {
+                                                        <span class="text-[9px] font-bold block truncate" [title]="'Assigned to: ' + getOtherTeacherName(subj.id, cls.id)">
+                                                            {{ getOtherTeacherName(subj.id, cls.id).split(' ')[0] }}
+                                                        </span>
+                                                    } @else {
+                                                        <span class="text-[10px] opacity-30">&mdash;</span>
+                                                    }
+                                                </td>
+                                            }
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
             </div>
-        </div>
-    }
+        }
+
+        <!-- ════════════════════════════════════════════════════════════════════ -->
+        <!-- VIEW 3: SMART AI RECOMMENDATIONS & WORKLOAD AUDIT                   -->
+        <!-- ════════════════════════════════════════════════════════════════════ -->
+        @if (viewMode() === 'recommendations') {
+            <div class="space-y-6">
+
+                <!-- Action Bar for AI Allocations -->
+                <div class="p-5 bg-bg-secondary border border-border-primary rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-base font-black text-text-primary flex items-center gap-2">
+                            <i class="fas fa-sparkles text-amber-300"></i>
+                            <span>Curriculum Coverage & Workload Optimization</span>
+                        </h2>
+                        <p class="text-xs text-text-muted mt-0.5">
+                            Automated heuristics match unassigned subjects to faculty specializations while balancing teaching periods.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <button (click)="autoAllocateClassGaps()"
+                                class="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-teal-600/20 transition-all cursor-pointer">
+                            <i class="fas fa-wand-magic-sparkles"></i>
+                            <span>Auto-Allocate All Gaps</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2-Column Grid: Subject Recommendations & Class Master Gaps -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                    <!-- Unassigned Subjects Recommendation Queue -->
+                    <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-xl">
+                        <div class="p-4 border-b border-border-primary bg-bg-tertiary/20 flex items-center justify-between">
+                            <h3 class="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
+                                <i class="fas fa-book-reader text-teal-400"></i>
+                                <span>Unassigned Subjects ({{ auditReport()?.subject_recommendations?.length || 0 }})</span>
+                            </h3>
+                        </div>
+
+                        <div class="divide-y divide-border-primary max-h-[500px] overflow-y-auto custom-scrollbar">
+                            @for (rec of auditReport()?.subject_recommendations || []; track rec.class_id + rec.subject_id) {
+                                <div class="p-4 hover:bg-bg-tertiary/20 transition-colors flex items-center justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-bold text-text-primary text-xs">{{ rec.subject_name }}</span>
+                                            <span class="px-1.5 py-0.2 rounded text-[9px] font-mono bg-bg-tertiary text-text-muted border border-border-primary">
+                                                {{ rec.class_name }}
+                                            </span>
+                                        </div>
+                                        @if (rec.suggested_teacher) {
+                                            <div class="text-[11px] text-teal-300 font-medium mt-1 flex items-center gap-1.5">
+                                                <i class="fas fa-user-check text-[10px]"></i>
+                                                <span>{{ rec.suggested_teacher.teacher_name }}</span>
+                                                <span class="text-[9px] text-text-muted">({{ rec.suggested_teacher.assigned_classes }} classes)</span>
+                                            </div>
+                                            <p class="text-[10px] text-text-muted mt-0.5">{{ rec.rationale }}</p>
+                                        } @else {
+                                            <p class="text-[10px] text-rose-400 mt-1">No eligible teacher found for recommendation.</p>
+                                        }
+                                    </div>
+
+                                    @if (rec.suggested_teacher) {
+                                        <button (click)="applyRecommendation(rec)"
+                                                class="px-3 py-1.5 rounded-xl bg-teal-600/20 hover:bg-teal-600 text-teal-300 hover:text-white border border-teal-500/30 text-xs font-bold transition-all cursor-pointer shrink-0">
+                                            Assign
+                                        </button>
+                                    }
+                                </div>
+                            }
+
+                            @if ((auditReport()?.subject_recommendations?.length || 0) === 0) {
+                                <div class="p-8 text-center text-text-muted text-xs font-bold">
+                                    <i class="fas fa-check-circle text-emerald-400 text-xl mb-2 block"></i>
+                                    All curriculum subjects are fully staffed!
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Classes Missing Class Master -->
+                    <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-xl">
+                        <div class="p-4 border-b border-border-primary bg-bg-tertiary/20 flex items-center justify-between">
+                            <h3 class="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
+                                <i class="fas fa-user-tie text-teal-400"></i>
+                                <span>Classes Missing Class Master ({{ auditReport()?.class_master_recommendations?.length || 0 }})</span>
+                            </h3>
+                        </div>
+
+                        <div class="divide-y divide-border-primary max-h-[500px] overflow-y-auto custom-scrollbar">
+                            @for (rec of auditReport()?.class_master_recommendations || []; track rec.class_id) {
+                                <div class="p-4 hover:bg-bg-tertiary/20 transition-colors flex items-center justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <span class="font-bold text-text-primary text-xs">{{ rec.class_name }}</span>
+                                        @if (rec.suggested_teacher) {
+                                            <div class="text-[11px] text-teal-300 font-medium mt-1 flex items-center gap-1.5">
+                                                <i class="fas fa-user-check text-[10px]"></i>
+                                                <span>{{ rec.suggested_teacher.teacher_name }}</span>
+                                                <span class="text-[9px] text-text-muted">({{ rec.suggested_teacher.assigned_classes }} classes)</span>
+                                            </div>
+                                            <p class="text-[10px] text-text-muted mt-0.5">{{ rec.rationale }}</p>
+                                        } @else {
+                                            <p class="text-[10px] text-rose-400 mt-1">No unassigned teacher available.</p>
+                                        }
+                                    </div>
+
+                                    @if (rec.suggested_teacher) {
+                                        <button (click)="applyClassMasterRecommendation(rec)"
+                                                class="px-3 py-1.5 rounded-xl bg-teal-600/20 hover:bg-teal-600 text-teal-300 hover:text-white border border-teal-500/30 text-xs font-bold transition-all cursor-pointer shrink-0">
+                                            Appoint
+                                        </button>
+                                    }
+                                </div>
+                            }
+
+                            @if ((auditReport()?.class_master_recommendations?.length || 0) === 0) {
+                                <div class="p-8 text-center text-text-muted text-xs font-bold">
+                                    <i class="fas fa-check-circle text-emerald-400 text-xl mb-2 block"></i>
+                                    Every class has an appointed Class Master!
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teacher Workload Leaderboard Table -->
+                <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-xl">
+                    <div class="p-4 border-b border-border-primary bg-bg-tertiary/20">
+                        <h3 class="text-xs font-black text-text-primary uppercase tracking-wider">
+                            Faculty Workload Distribution Leaderboard
+                        </h3>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead>
+                                <tr class="border-b border-border-primary text-xs font-bold uppercase tracking-wider text-text-muted bg-bg-tertiary/40">
+                                    <th class="py-3.5 pl-6">Educator</th>
+                                    <th class="py-3.5">Assigned Classes</th>
+                                    <th class="py-3.5">Assigned Subjects</th>
+                                    <th class="py-3.5">Class Master Role</th>
+                                    <th class="py-3.5">Workload Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border-primary">
+                                @for (w of auditReport()?.workloads || []; track w.teacher_id) {
+                                    @let badge = getWorkloadBadge(w.status);
+                                    <tr class="hover:bg-bg-tertiary/20 transition-colors">
+                                        <td class="py-3.5 pl-6">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center font-bold text-xs">
+                                                    {{ getInitials(w.teacher_name) }}
+                                                </div>
+                                                <div>
+                                                    <span class="font-bold text-text-primary text-xs block">{{ w.teacher_name }}</span>
+                                                    <span class="text-[10px] text-text-muted font-mono">{{ w.email }}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3.5 font-bold text-xs text-text-primary">
+                                            {{ w.assigned_classes }}
+                                        </td>
+                                        <td class="py-3.5 font-bold text-xs text-text-primary">
+                                            {{ w.assigned_subjects }}
+                                        </td>
+                                        <td class="py-3.5">
+                                            @if (w.is_class_master) {
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-500/15 text-teal-300 border border-teal-500/30">
+                                                    {{ w.class_master_of?.join(', ') }}
+                                                </span>
+                                            } @else {
+                                                <span class="text-text-muted text-xs">&mdash;</span>
+                                            }
+                                        </td>
+                                        <td class="py-3.5">
+                                            <span class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border {{ badge.cls }}">
+                                                {{ badge.text }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- ════════════════════════════════════════════════════════════════════ -->
+        <!-- VIEW 4: MASTER ROSTER VIEW                                          -->
+        <!-- ════════════════════════════════════════════════════════════════════ -->
+        @if (viewMode() === 'master-roster') {
+            <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-xl space-y-4 p-5">
+                <!-- Filters & Search -->
+                <div class="flex flex-col md:flex-row items-center justify-between gap-3 flex-wrap">
+                    <div class="relative w-full md:w-72">
+                        <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
+                        <input type="text"
+                               [ngModel]="rosterSearch()" (ngModelChange)="rosterSearch.set($event)"
+                               placeholder="Search faculty, class, or subject..."
+                               class="w-full bg-bg-tertiary border border-border-primary rounded-xl pl-9 pr-3 py-2 text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-teal-500">
+                    </div>
+
+                    <div class="flex items-center gap-2 w-full md:w-auto flex-wrap">
+                        <!-- Class Filter -->
+                        <select [ngModel]="rosterClassFilter()" (ngModelChange)="rosterClassFilter.set($event)"
+                                class="bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500/50 cursor-pointer">
+                            <option value="all">All Classes</option>
+                            @for (cls of classes(); track cls.id) {
+                                <option [value]="cls.id">{{ cls.name }}</option>
+                            }
+                        </select>
+
+                        <!-- Subject Filter -->
+                        <select [ngModel]="rosterSubjectFilter()" (ngModelChange)="rosterSubjectFilter.set($event)"
+                                class="bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500/50 cursor-pointer">
+                            <option value="all">All Subjects</option>
+                            @for (sub of subjects(); track sub.id) {
+                                <option [value]="sub.id">{{ sub.name }}</option>
+                            }
+                        </select>
+
+                        <!-- Teacher Filter -->
+                        <select [ngModel]="rosterTeacherFilter()" (ngModelChange)="rosterTeacherFilter.set($event)"
+                                class="bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500/50 cursor-pointer">
+                            <option value="all">All Faculty</option>
+                            @for (t of teachers(); track t.id) {
+                                <option [value]="t.id">{{ t.first_name }} {{ t.last_name }}</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead>
+                            <tr class="border-b border-border-primary text-xs font-bold uppercase tracking-wider text-text-muted bg-bg-tertiary/40">
+                                <th class="py-3.5 pl-6">Educator</th>
+                                <th class="py-3.5">Assigned Class</th>
+                                <th class="py-3.5">Subject</th>
+                                <th class="py-3.5">Academic Year</th>
+                                <th class="py-3.5 text-right pr-6">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-primary">
+                            @for (a of filteredAssignments(); track a.id) {
+                                <tr class="hover:bg-bg-tertiary/30 transition-colors">
+                                    <!-- Educator -->
+                                    <td class="py-3.5 pl-6">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center font-bold text-xs">
+                                                {{ getInitials(a.teacher?.first_name, a.teacher?.last_name) }}
+                                            </div>
+                                            <div>
+                                                <span class="font-bold text-text-primary block text-xs">
+                                                    {{ a.teacher ? a.teacher.first_name + ' ' + a.teacher.last_name : 'Assigned Faculty' }}
+                                                </span>
+                                                <span class="text-[10px] text-text-muted font-mono">
+                                                    ID: {{ a.teacher_id.slice(0,8) }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Class -->
+                                    <td class="py-3.5">
+                                        <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-bg-tertiary border border-border-primary text-text-primary">
+                                            {{ a.class?.name || 'Classroom' }}
+                                        </span>
+                                    </td>
+
+                                    <!-- Subject -->
+                                    <td class="py-3.5">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="font-bold text-text-primary text-xs">{{ a.subject?.name || 'Curriculum Subject' }}</span>
+                                            @if (a.subject?.code) {
+                                                <span class="px-1.5 py-0.2 text-[9px] font-mono text-text-muted border border-border-primary rounded">
+                                                    {{ a.subject?.code }}
+                                                </span>
+                                            }
+                                        </div>
+                                    </td>
+
+                                    <!-- Academic Year -->
+                                    <td class="py-3.5 text-xs text-text-muted font-mono">
+                                        {{ a.academic_year || academicYear() }}
+                                    </td>
+
+                                    <!-- Action -->
+                                    <td class="py-3.5 text-right pr-6">
+                                        <button (click)="deleteRosterAssignment(a)"
+                                                class="p-2 rounded-xl bg-bg-tertiary border border-border-primary hover:border-rose-500/30 text-text-muted hover:text-rose-400 hover:bg-rose-500/10 text-xs transition-all cursor-pointer"
+                                                title="Revoke Assignment">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+
+                            @if (filteredAssignments().length === 0) {
+                                <tr>
+                                    <td colspan="5" class="py-12 text-center text-text-muted">
+                                        <i class="fas fa-inbox text-2xl opacity-40 mb-2 block"></i>
+                                        <p class="text-xs font-bold">No assignments match your search or filter criteria.</p>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
     }
 
 </div>
@@ -606,7 +884,10 @@
                             class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 py-2.5 text-xs text-text-primary font-bold focus:ring-2 focus:ring-teal-500/50 cursor-pointer">
                         <option value="">-- Choose Teacher --</option>
                         @for (t of teachers(); track t.id) {
-                            <option [value]="t.id">{{ t.first_name }} {{ t.last_name }} ({{ t.email || 'Staff' }})</option>
+                            @let workload = getTeacherWorkload(t.id);
+                            <option [value]="t.id">
+                                {{ t.first_name }} {{ t.last_name }} ({{ workload ? workload.assigned_classes + ' classes' : (t.email || 'Staff') }})
+                            </option>
                         }
                     </select>
                 </div>

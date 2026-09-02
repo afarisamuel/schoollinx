@@ -37,6 +37,10 @@ func NewTeacherHandler(r *gin.RouterGroup, uc domain.TeacherUseCase) {
 		api.GET("/assignments/all", handler.GetAllAssignments)
 		api.POST("/:id/activate", handler.Activate)
 		api.POST("/:id/reset-password", handler.ResetPassword)
+
+		// Smart Recommendations & Class Master Management
+		api.GET("/recommendations/allocations", handler.GetSubjectAllocationRecommendations)
+		api.PUT("/classes/:class_id/master", handler.SetClassMaster)
 	}
 }
 
@@ -292,4 +296,38 @@ func (h *TeacherHandler) ResetPassword(c *gin.Context) {
 		"password": newPassword,
 	})
 }
+
+func (h *TeacherHandler) GetSubjectAllocationRecommendations(c *gin.Context) {
+	report, err := h.teacherUseCase.GetSubjectAllocationRecommendations(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, report)
+}
+
+func (h *TeacherHandler) SetClassMaster(c *gin.Context) {
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid class ID format"})
+		return
+	}
+
+	var req struct {
+		TeacherID *uuid.UUID `json:"teacher_id"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.teacherUseCase.SetClassMaster(c.Request.Context(), classID, req.TeacherID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Class Master updated successfully"})
+}
+
 

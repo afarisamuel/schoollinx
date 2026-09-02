@@ -206,7 +206,7 @@ func initUseCases(repos *Repositories, infra *Infrastructure, db *gorm.DB, cfg *
 		Student:        usecase.NewStudentUseCase(repos.Student, repos.Grade, repos.Attendance, repos.Welfare, repos.User, repos.Guardian, infra.SMTP),
 		Academic:       usecase.NewAcademicUseCase(repos.Grade, repos.Attendance, repos.Student, repos.Subject, repos.Fiscal),
 		Guardian:       usecase.NewGuardianUseCase(repos.Guardian, repos.Student, repos.Fiscal, repos.User, infra.SMTP),
-		Teacher:        usecase.NewTeacherUseCase(repos.Teacher, repos.User, infra.SMTP),
+		Teacher:        usecase.NewTeacherUseCase(repos.Teacher, repos.User, repos.Class, repos.Subject, infra.SMTP),
 		Class:          usecase.NewClassUseCase(repos.Class),
 		Assignment:     usecase.NewAssignmentUseCase(repos.Assignment),
 		Grade:          usecase.NewGradeUseCase(repos.Grade, notifUC),

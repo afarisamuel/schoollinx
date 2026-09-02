@@ -50,6 +50,8 @@ export interface FeeStructure {
     amount: number;
     frequency?: string;
     is_term_fee?: boolean;
+    all_classes?: boolean;
+    class_ids?: string[];
     created_at?: string;
     updated_at?: string;
 }

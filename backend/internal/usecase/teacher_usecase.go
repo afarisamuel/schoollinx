@@ -17,13 +17,23 @@ import (
 type teacherUseCase struct {
 	teacherRepo domain.TeacherRepository
 	userRepo    domain.UserRepository
+	classRepo   domain.ClassRepository
+	subjectRepo domain.SubjectRepository
 	mailService mailer.MailService
 }
 
-func NewTeacherUseCase(repo domain.TeacherRepository, userRepo domain.UserRepository, mailService mailer.MailService) domain.TeacherUseCase {
+func NewTeacherUseCase(
+	repo domain.TeacherRepository,
+	userRepo domain.UserRepository,
+	classRepo domain.ClassRepository,
+	subjectRepo domain.SubjectRepository,
+	mailService mailer.MailService,
+) domain.TeacherUseCase {
 	return &teacherUseCase{
 		teacherRepo: repo,
 		userRepo:    userRepo,
+		classRepo:   classRepo,
+		subjectRepo: subjectRepo,
 		mailService: mailService,
 	}
 }
@@ -200,4 +210,264 @@ func generateRandomPassword(length int) string {
 	}
 	return string(b)
 }
+
+func (u *teacherUseCase) SetClassMaster(ctx context.Context, classID uuid.UUID, teacherID *uuid.UUID) error {
+	class, err := u.classRepo.GetByID(ctx, classID)
+	if err != nil {
+		return fmt.Errorf("class not found: %w", err)
+	}
+	class.TeacherID = teacherID
+	return u.classRepo.Update(ctx, class)
+}
+
+func (u *teacherUseCase) GetSubjectAllocationRecommendations(ctx context.Context) (*domain.AllocationAuditReport, error) {
+	teachers, err := u.teacherRepo.GetAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch teachers: %w", err)
+	}
+
+	classes, err := u.classRepo.GetAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch classes: %w", err)
+	}
+
+	subjects, err := u.subjectRepo.GetAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch subjects: %w", err)
+	}
+
+	assignments, err := u.teacherRepo.GetAllAssignments(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch assignments: %w", err)
+	}
+
+	// 1. Build Workload Maps
+	workloadMap := make(map[uuid.UUID]*domain.TeacherWorkloadSummary)
+	classesPerTeacher := make(map[uuid.UUID]map[uuid.UUID]bool)
+	subjectsPerTeacher := make(map[uuid.UUID]map[uuid.UUID]bool)
+
+	// Map of class master assignments
+	classMasterMap := make(map[uuid.UUID][]string)
+	for _, cls := range classes {
+		if cls.TeacherID != nil {
+			classMasterMap[*cls.TeacherID] = append(classMasterMap[*cls.TeacherID], cls.Name)
+		}
+	}
+
+	for _, t := range teachers {
+		classesPerTeacher[t.ID] = make(map[uuid.UUID]bool)
+		subjectsPerTeacher[t.ID] = make(map[uuid.UUID]bool)
+
+		var specialties []string
+		for _, s := range t.Subjects {
+			specialties = append(specialties, s.Name)
+		}
+
+		fullName := strings.TrimSpace(fmt.Sprintf("%s %s", string(t.FirstName), string(t.LastName)))
+		if fullName == "" {
+			fullName = "Educator"
+		}
+
+		masterClasses := classMasterMap[t.ID]
+
+		workloadMap[t.ID] = &domain.TeacherWorkloadSummary{
+			TeacherID:        t.ID,
+			TeacherName:      fullName,
+			Email:            string(t.Email),
+			IsClassMaster:    len(masterClasses) > 0,
+			ClassMasterOf:    masterClasses,
+			Specialties:      specialties,
+			Status:           domain.WorkloadStatusAvailable,
+		}
+	}
+
+	// Map existing assignments
+	assignedPairings := make(map[string]domain.TeacherClassAssignment)
+	for _, a := range assignments {
+		if a.SubjectID != nil {
+			pairKey := fmt.Sprintf("%s:%s", a.ClassID.String(), a.SubjectID.String())
+			assignedPairings[pairKey] = a
+		}
+
+		if _, exists := classesPerTeacher[a.TeacherID]; exists {
+			classesPerTeacher[a.TeacherID][a.ClassID] = true
+			if a.SubjectID != nil {
+				subjectsPerTeacher[a.TeacherID][*a.SubjectID] = true
+			}
+		}
+	}
+
+	var underutilizedCount int
+	var overloadedCount int
+	var workloads []domain.TeacherWorkloadSummary
+
+	for _, t := range teachers {
+		w := workloadMap[t.ID]
+		w.AssignedClasses = len(classesPerTeacher[t.ID])
+		w.AssignedSubjects = len(subjectsPerTeacher[t.ID])
+		w.TotalAssignments = len(classesPerTeacher[t.ID])
+
+		switch {
+		case w.TotalAssignments == 0:
+			w.Status = domain.WorkloadStatusAvailable
+			underutilizedCount++
+		case w.TotalAssignments <= 5:
+			w.Status = domain.WorkloadStatusOptimal
+		case w.TotalAssignments <= 8:
+			w.Status = domain.WorkloadStatusHeavy
+		default:
+			w.Status = domain.WorkloadStatusOverloaded
+			overloadedCount++
+		}
+		workloads = append(workloads, *w)
+	}
+
+	// 2. Generate Recommendations for Unassigned Subjects
+	var subjectRecs []domain.SubjectAllocationRecommendation
+	var unassignedSubjectsCount int
+
+	for _, cls := range classes {
+		activeSubjects := cls.Subjects
+		if len(activeSubjects) == 0 {
+			activeSubjects = subjects
+		}
+
+		for _, subj := range activeSubjects {
+			pairKey := fmt.Sprintf("%s:%s", cls.ID.String(), subj.ID.String())
+			if _, exists := assignedPairings[pairKey]; exists {
+				continue // Already assigned
+			}
+
+			unassignedSubjectsCount++
+
+			var bestTeacher *domain.TeacherWorkloadSummary
+			var confidence float64
+			var rationale string
+			var matchReason string
+
+			subjNameLower := strings.ToLower(subj.Name)
+			subjCodeLower := strings.ToLower(subj.Code)
+
+			// Strategy 1: Subject Specialist Match
+			for _, w := range workloads {
+				if w.Status == domain.WorkloadStatusOverloaded {
+					continue
+				}
+				for _, spec := range w.Specialties {
+					specLower := strings.ToLower(spec)
+					if strings.Contains(subjNameLower, specLower) || strings.Contains(specLower, subjNameLower) || (subjCodeLower != "" && specLower == subjCodeLower) {
+						copyW := w
+						bestTeacher = &copyW
+						confidence = 0.95
+						matchReason = "SPECIALTY_MATCH"
+						rationale = fmt.Sprintf("Subject specialist in %s with %s workload (%d active classes).", subj.Name, strings.ToLower(string(w.Status)), w.AssignedClasses)
+						break
+					}
+				}
+				if bestTeacher != nil {
+					break
+				}
+			}
+
+			// Strategy 2: If Class has a Class Master with available capacity
+			if bestTeacher == nil && cls.TeacherID != nil {
+				if cmWorkload, ok := workloadMap[*cls.TeacherID]; ok && cmWorkload.Status != domain.WorkloadStatusOverloaded {
+					bestTeacher = cmWorkload
+					confidence = 0.85
+					matchReason = "CLASS_MASTER_GENERALIST"
+					rationale = fmt.Sprintf("Assigned Class Master for %s. Suitable for general cohort teaching.", cls.Name)
+				}
+			}
+
+			// Strategy 3: Lowest workload available educator
+			if bestTeacher == nil {
+				var lowestTeacher *domain.TeacherWorkloadSummary
+				minAssignments := 999
+				for _, w := range workloads {
+					if w.Status != domain.WorkloadStatusOverloaded && w.TotalAssignments < minAssignments {
+						minAssignments = w.TotalAssignments
+						copyW := w
+						lowestTeacher = &copyW
+					}
+				}
+				if lowestTeacher != nil {
+					bestTeacher = lowestTeacher
+					confidence = 0.70
+					matchReason = "WORKLOAD_BALANCED"
+					rationale = fmt.Sprintf("Faculty member with available capacity (%d assigned classes).", lowestTeacher.AssignedClasses)
+				}
+			}
+
+			subjectRecs = append(subjectRecs, domain.SubjectAllocationRecommendation{
+				ClassID:          cls.ID,
+				ClassName:        cls.Name,
+				SubjectID:        subj.ID,
+				SubjectName:      subj.Name,
+				SubjectCode:      subj.Code,
+				SuggestedTeacher: bestTeacher,
+				ConfidenceScore:  confidence,
+				Rationale:        rationale,
+				MatchReason:      matchReason,
+			})
+		}
+	}
+
+	// 3. Class Master Recommendations
+	var classMasterRecs []domain.ClassMasterRecommendation
+	var classesWithoutMasterCount int
+
+	for _, cls := range classes {
+		if cls.TeacherID == nil {
+			classesWithoutMasterCount++
+
+			var bestMaster *domain.TeacherWorkloadSummary
+			var rationale string
+
+			for _, w := range workloads {
+				if w.IsClassMaster {
+					continue
+				}
+				if classesPerTeacher[w.TeacherID][cls.ID] {
+					copyW := w
+					bestMaster = &copyW
+					rationale = fmt.Sprintf("Already teaches subjects in %s and has no Form Master duties.", cls.Name)
+					break
+				}
+			}
+
+			if bestMaster == nil {
+				for _, w := range workloads {
+					if !w.IsClassMaster && w.Status != domain.WorkloadStatusOverloaded {
+						copyW := w
+						bestMaster = &copyW
+						rationale = fmt.Sprintf("Available educator with %s workload (%d classes assigned).", strings.ToLower(string(w.Status)), w.AssignedClasses)
+						break
+					}
+				}
+			}
+
+			classMasterRecs = append(classMasterRecs, domain.ClassMasterRecommendation{
+				ClassID:          cls.ID,
+				ClassName:        cls.Name,
+				SuggestedTeacher: bestMaster,
+				Rationale:        rationale,
+			})
+		}
+	}
+
+	return &domain.AllocationAuditReport{
+		TotalTeachers:              len(teachers),
+		TotalClasses:               len(classes),
+		TotalSubjects:              len(subjects),
+		TotalActiveAssignments:     len(assignments),
+		UnassignedSubjectsCount:    unassignedSubjectsCount,
+		ClassesWithoutMasterCount:  classesWithoutMasterCount,
+		UnderutilizedTeachersCount: underutilizedCount,
+		OverloadedTeachersCount:    overloadedCount,
+		Workloads:                  workloads,
+		SubjectRecommendations:     subjectRecs,
+		ClassMasterRecommendations: classMasterRecs,
+	}, nil
+}
+
 

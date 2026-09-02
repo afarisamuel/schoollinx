@@ -123,6 +123,64 @@ export class AcademicPeriodManagementComponent implements OnInit {
 
   // Calendar / Term Methods
 
+  onQuickActivateTerm(period: AcademicPeriod, term: AcademicTerm, event?: Event) {
+    if (event) event.stopPropagation();
+    if (period.current_term === term.term_number && period.is_active) {
+      return; // Already active
+    }
+
+    this.dialog.confirm(
+      `Set "${term.name}" as the active term for "${period.name}"? ${period.is_active ? 'All fee generation, gradebooks, and report cards will immediately switch to this term.' : 'This will also activate this academic period.'}`,
+      'Activate Term',
+      'info',
+      'Activate Term'
+    ).subscribe((confirmed) => {
+      if (!confirmed) return;
+
+      if (!period.is_active) {
+        this.apService.activate(period.id).subscribe({
+          next: () => {
+            this.apService.activateTerm(period.id, term.id).subscribe({
+              next: () => {
+                this.loadPeriods();
+                this.dialog.alert(`"${term.name}" in "${period.name}" is now the active term system-wide.`, 'Term Activated', 'success');
+              }
+            });
+          }
+        });
+      } else {
+        this.apService.activateTerm(period.id, term.id).subscribe({
+          next: () => {
+            this.loadPeriods();
+            this.dialog.alert(`"${term.name}" is now the active term system-wide.`, 'Term Activated', 'success');
+          },
+          error: (err: any) => {
+            this.dialog.alert(err?.error?.error || 'Failed to activate term', 'Error', 'danger');
+          }
+        });
+      }
+    });
+  }
+
+  formatTermDateRange(term: AcademicTerm): string {
+    if (!term.start_date || !term.end_date) return '';
+    try {
+      const s = new Date(term.start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      const e = new Date(term.end_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+      return `${s} – ${e}`;
+    } catch {
+      return '';
+    }
+  }
+
+  isCurrentDateInTerm(term: AcademicTerm): boolean {
+    if (!term.start_date || !term.end_date) return false;
+    const now = new Date();
+    const s = new Date(term.start_date);
+    const e = new Date(term.end_date);
+    return now >= s && now <= e;
+  }
+
   openCalendar(period: AcademicPeriod) {
     this.selectedPeriod.set(period);
     this.showCalendar.set(true);

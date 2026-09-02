@@ -98,7 +98,8 @@ export class ClassManagementComponent implements OnInit {
     });
   }
 
-  getTeacherName(id: string): string {
+  getTeacherName(id?: string): string {
+    if (!id) return 'No Assigned Teacher';
     const t = this.teachers().find(t => t.id === id);
     return t ? `${t.first_name} ${t.last_name}` : 'No Assigned Teacher';
   }

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Teacher } from '../../domain/teacher.model';
+import { Teacher, AllocationAuditReport } from '../../domain/teacher.model';
 
 @Injectable({
     providedIn: 'root'
@@ -62,5 +62,13 @@ export class TeacherService {
         const formData = new FormData();
         formData.append('signature', file);
         return this.http.post<{ url: string }>(`${this.apiUrl}/${id}/signature`, formData);
+    }
+
+    getAllocationRecommendations(): Observable<AllocationAuditReport> {
+        return this.http.get<AllocationAuditReport>(`${this.apiUrl}/recommendations/allocations`);
+    }
+
+    setClassMaster(classId: string, teacherId: string | null): Observable<any> {
+        return this.http.put<any>(`${this.apiUrl}/classes/${classId}/master`, { teacher_id: teacherId || null });
     }
 }

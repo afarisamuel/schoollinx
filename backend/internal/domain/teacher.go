@@ -91,6 +91,65 @@ type TeacherUseCase interface {
 	GetAllAssignments(ctx context.Context) ([]TeacherClassAssignment, error)
 	ActivatePortalAccess(ctx context.Context, id uuid.UUID) (string, string, error)
 	ResetPassword(ctx context.Context, id uuid.UUID) (string, error)
+
+	// Smart Allocation & Workload Recommendations
+	GetSubjectAllocationRecommendations(ctx context.Context) (*AllocationAuditReport, error)
+	SetClassMaster(ctx context.Context, classID uuid.UUID, teacherID *uuid.UUID) error
+}
+
+type TeacherWorkloadStatus string
+
+const (
+	WorkloadStatusAvailable  TeacherWorkloadStatus = "AVAILABLE"
+	WorkloadStatusOptimal    TeacherWorkloadStatus = "OPTIMAL"
+	WorkloadStatusHeavy      TeacherWorkloadStatus = "HEAVY"
+	WorkloadStatusOverloaded TeacherWorkloadStatus = "OVERLOADED"
+)
+
+type TeacherWorkloadSummary struct {
+	TeacherID        uuid.UUID             `json:"teacher_id"`
+	TeacherName      string                `json:"teacher_name"`
+	Email            string                `json:"email"`
+	AssignedClasses  int                   `json:"assigned_classes"`
+	AssignedSubjects int                   `json:"assigned_subjects"`
+	TotalAssignments int                   `json:"total_assignments"`
+	IsClassMaster    bool                  `json:"is_class_master"`
+	ClassMasterOf    []string              `json:"class_master_of,omitempty"`
+	Specialties      []string              `json:"specialties,omitempty"`
+	Status           TeacherWorkloadStatus `json:"status"`
+}
+
+type SubjectAllocationRecommendation struct {
+	ClassID          uuid.UUID               `json:"class_id"`
+	ClassName        string                  `json:"class_name"`
+	SubjectID        uuid.UUID               `json:"subject_id"`
+	SubjectName      string                  `json:"subject_name"`
+	SubjectCode      string                  `json:"subject_code"`
+	SuggestedTeacher *TeacherWorkloadSummary `json:"suggested_teacher,omitempty"`
+	ConfidenceScore  float64                 `json:"confidence_score"`
+	Rationale        string                  `json:"rationale"`
+	MatchReason      string                  `json:"match_reason"`
+}
+
+type ClassMasterRecommendation struct {
+	ClassID          uuid.UUID               `json:"class_id"`
+	ClassName        string                  `json:"class_name"`
+	SuggestedTeacher *TeacherWorkloadSummary `json:"suggested_teacher,omitempty"`
+	Rationale        string                  `json:"rationale"`
+}
+
+type AllocationAuditReport struct {
+	TotalTeachers              int                               `json:"total_teachers"`
+	TotalClasses               int                               `json:"total_classes"`
+	TotalSubjects              int                               `json:"total_subjects"`
+	TotalActiveAssignments     int                               `json:"total_active_assignments"`
+	UnassignedSubjectsCount    int                               `json:"unassigned_subjects_count"`
+	ClassesWithoutMasterCount  int                               `json:"classes_without_master_count"`
+	UnderutilizedTeachersCount int                               `json:"underutilized_teachers_count"`
+	OverloadedTeachersCount    int                               `json:"overloaded_teachers_count"`
+	Workloads                  []TeacherWorkloadSummary          `json:"workloads"`
+	SubjectRecommendations     []SubjectAllocationRecommendation `json:"subject_recommendations"`
+	ClassMasterRecommendations []ClassMasterRecommendation       `json:"class_master_recommendations"`
 }
 
 // TeacherPortalUseCase defines the business logic for the teacher portal.

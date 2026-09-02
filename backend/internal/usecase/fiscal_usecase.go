@@ -428,23 +428,6 @@ func (u *fiscalUseCase) GenerateTermFees(ctx context.Context, periodID uuid.UUID
 		return 0, err
 	}
 
-	var totalTermFee float64
-	var breakdown []domain.FeeBreakdownItem
-	for _, structure := range structures {
-		if structure.IsTermFee != nil && *structure.IsTermFee {
-			totalTermFee += structure.Amount
-			breakdown = append(breakdown, domain.FeeBreakdownItem{
-				Category: structure.Category,
-				Amount:   structure.Amount,
-			})
-		}
-	}
-
-	if len(breakdown) == 0 {
-		// Nothing to generate if there are no term fees configured
-		return 0, nil
-	}
-
 	students, err := u.studentRepo.GetAll(ctx)
 	if err != nil {
 		return 0, err
@@ -468,13 +451,49 @@ func (u *fiscalUseCase) GenerateTermFees(ctx context.Context, periodID uuid.UUID
 			continue // Skip this student
 		}
 
+		var studentTotalFee float64
+		var studentBreakdown []domain.FeeBreakdownItem
+
+		for _, structure := range structures {
+			if structure.IsTermFee == nil || !*structure.IsTermFee {
+				continue
+			}
+
+			// Check if this fee structure applies to this student's class
+			applies := false
+			if structure.AllClasses || len(structure.ClassIDs) == 0 {
+				applies = true
+			} else if student.ClassID != nil {
+				studentClassIDStr := student.ClassID.String()
+				for _, cid := range structure.ClassIDs {
+					if cid == studentClassIDStr {
+						applies = true
+						break
+					}
+				}
+			}
+
+			if applies {
+				studentTotalFee += structure.Amount
+				studentBreakdown = append(studentBreakdown, domain.FeeBreakdownItem{
+					Category: structure.Category,
+					Amount:   structure.Amount,
+				})
+			}
+		}
+
+		if len(studentBreakdown) == 0 || studentTotalFee <= 0 {
+			// No applicable fees for this student
+			continue
+		}
+
 		record := &domain.FiscalRecord{
 			StudentID:   student.ID,
 			Category:    domain.CategoryTermFee,
-			Amount:      totalTermFee,
+			Amount:      studentTotalFee,
 			Description: "Term Fees — " + activeTerm,
 			TermName:    activeTerm,
-			Breakdown:   breakdown,
+			Breakdown:   studentBreakdown,
 			Status:      domain.PaymentStatusPending,
 			DueDate:     dueDate,
 		}

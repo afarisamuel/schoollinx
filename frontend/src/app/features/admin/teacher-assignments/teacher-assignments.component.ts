@@ -8,7 +8,13 @@ import { TeacherService } from '../../../core/infrastructure/teacher/teacher.ser
 import { ClassService, Class } from '../../../core/infrastructure/curriculum/class.service';
 import { SubjectService, Subject } from '../../../core/infrastructure/curriculum/subject.service';
 import { AcademicPeriodService } from '../../../core/infrastructure/academic-period/academic-period.service';
-import { Teacher } from '../../../core/domain/teacher.model';
+import { 
+    Teacher, 
+    AllocationAuditReport, 
+    SubjectAllocationRecommendation, 
+    ClassMasterRecommendation, 
+    TeacherWorkloadSummary 
+} from '../../../core/domain/teacher.model';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 import { ToastService } from '../../../shared/ui/toast/toast.service';
 import { PageLoaderComponent } from '../../../shared/ui/page-loader/page-loader.component';
@@ -17,6 +23,7 @@ export interface ClassSubjectRow {
     subject: Subject;
     assignment?: TeacherAssignment;
     teacher?: Teacher;
+    recommendation?: SubjectAllocationRecommendation;
     isSaving?: boolean;
 }
 
@@ -43,13 +50,16 @@ export class TeacherAssignmentsComponent implements OnInit {
     subjects = signal<Subject[]>([]);
     classes = signal<Class[]>([]);
     allAssignments = signal<TeacherAssignment[]>([]);
+    auditReport = signal<AllocationAuditReport | null>(null);
+    loadingRecommendations = signal(false);
 
-    // View Modes: 'by-class' | 'by-teacher' | 'master-roster'
-    viewMode = signal<'by-class' | 'by-teacher' | 'master-roster'>('by-class');
+    // View Modes: 'by-class' | 'by-teacher' | 'recommendations' | 'master-roster'
+    viewMode = signal<'by-class' | 'by-teacher' | 'recommendations' | 'master-roster'>('by-class');
 
     // By-Class State
     selectedClassId = signal<string | null>(null);
     activeClass = computed(() => this.classes().find(c => c.id === this.selectedClassId()));
+    isUpdatingClassMaster = signal(false);
 
     // By-Teacher Matrix State
     selectedTeacherId = signal<string | null>(null);
@@ -118,14 +128,17 @@ export class TeacherAssignmentsComponent implements OnInit {
 
         const classAssignments = this.allAssignments().filter(a => a.class_id === classId);
         const teachersList = this.teachers();
+        const allRecs = this.auditReport()?.subject_recommendations || [];
 
         return this.subjects().map(subj => {
             const assignment = classAssignments.find(a => a.subject_id === subj.id);
             const teacher = assignment ? teachersList.find(t => t.id === assignment.teacher_id) : undefined;
+            const recommendation = !assignment ? allRecs.find(r => r.class_id === classId && r.subject_id === subj.id) : undefined;
             return {
                 subject: subj,
                 assignment,
-                teacher
+                teacher,
+                recommendation
             };
         });
     });
@@ -159,13 +172,17 @@ export class TeacherAssignmentsComponent implements OnInit {
             subjects: this.subjectService.getSubjects(),
             classes: this.classService.getClasses(),
             assignments: this.assignmentService.getAll(),
-            activePeriod: this.academicPeriodService.getActive()
+            activePeriod: this.academicPeriodService.getActive(),
+            recommendations: this.teacherService.getAllocationRecommendations()
         }).subscribe({
             next: (data: any) => {
                 this.teachers.set(data.teachers || []);
                 this.subjects.set(data.subjects || []);
                 this.classes.set(data.classes || []);
                 this.allAssignments.set(data.assignments || []);
+                if (data.recommendations) {
+                    this.auditReport.set(data.recommendations);
+                }
                 if (data.activePeriod?.name) {
                     this.academicYear.set(data.activePeriod.name);
                 }
@@ -177,6 +194,19 @@ export class TeacherAssignmentsComponent implements OnInit {
             error: () => {
                 this.isLoading.set(false);
                 this.toast.error('Failed to load curriculum allocation data.', 'Load Error');
+            }
+        });
+    }
+
+    loadRecommendations() {
+        this.loadingRecommendations.set(true);
+        this.teacherService.getAllocationRecommendations().subscribe({
+            next: (data) => {
+                this.auditReport.set(data);
+                this.loadingRecommendations.set(false);
+            },
+            error: () => {
+                this.loadingRecommendations.set(false);
             }
         });
     }
@@ -198,7 +228,137 @@ export class TeacherAssignmentsComponent implements OnInit {
     refreshAssignments() {
         this.assignmentService.getAll().subscribe(data => {
             this.allAssignments.set(data || []);
+            this.loadRecommendations();
         });
+    }
+
+    // ── Class Master Management ──────────────────────────────────────────
+
+    onClassMasterChange(event: Event) {
+        const select = event.target as HTMLSelectElement;
+        const newTeacherId = select.value || null;
+        const classId = this.selectedClassId();
+        if (!classId) return;
+
+        this.isUpdatingClassMaster.set(true);
+        this.teacherService.setClassMaster(classId, newTeacherId).subscribe({
+            next: () => {
+                this.isUpdatingClassMaster.set(false);
+                this.toast.success('Class Master updated successfully.');
+                this.classes.update(list => list.map(c => c.id === classId ? { ...c, teacher_id: newTeacherId || undefined } : c));
+                this.refreshAssignments();
+            },
+            error: (err) => {
+                this.isUpdatingClassMaster.set(false);
+                this.toast.error(err?.error?.error || 'Failed to update Class Master.');
+                this.refreshAssignments();
+            }
+        });
+    }
+
+    // ── Smart Recommendation Handlers ────────────────────────────────────
+
+    applyRecommendation(rec: SubjectAllocationRecommendation) {
+        if (!rec.suggested_teacher) {
+            this.toast.warning('No suggested teacher available for this subject.');
+            return;
+        }
+
+        this.isSaving.set(true);
+        this.assignmentService.assign({
+            teacher_id: rec.suggested_teacher.teacher_id,
+            class_id: rec.class_id,
+            subject_id: rec.subject_id,
+            academic_year: this.academicYear()
+        }).subscribe({
+            next: () => {
+                this.isSaving.set(false);
+                this.toast.success(`Assigned ${rec.suggested_teacher?.teacher_name} to ${rec.subject_name}.`);
+                this.refreshAssignments();
+            },
+            error: (err) => {
+                this.isSaving.set(false);
+                this.toast.error(err?.error?.error || 'Failed to allocate teacher.');
+            }
+        });
+    }
+
+    applyClassMasterRecommendation(rec: ClassMasterRecommendation) {
+        if (!rec.suggested_teacher) return;
+        this.teacherService.setClassMaster(rec.class_id, rec.suggested_teacher.teacher_id).subscribe({
+            next: () => {
+                this.toast.success(`Appointed ${rec.suggested_teacher?.teacher_name} as Class Master for ${rec.class_name}.`);
+                this.classes.update(list => list.map(c => c.id === rec.class_id ? { ...c, teacher_id: rec.suggested_teacher?.teacher_id } : c));
+                this.refreshAssignments();
+            },
+            error: (err) => {
+                this.toast.error(err?.error?.error || 'Failed to appoint Class Master.');
+            }
+        });
+    }
+
+    autoAllocateClassGaps(classId?: string) {
+        const targetClassId = classId || this.selectedClassId();
+        const allRecs = this.auditReport()?.subject_recommendations || [];
+        const classRecs = targetClassId ? allRecs.filter(r => r.class_id === targetClassId && r.suggested_teacher) : allRecs.filter(r => r.suggested_teacher);
+
+        if (classRecs.length === 0) {
+            this.toast.info('No unassigned subjects with available recommendations found.');
+            return;
+        }
+
+        const count = classRecs.length;
+        const targetName = targetClassId ? (this.classes().find(c => c.id === targetClassId)?.name || 'this class') : 'all classrooms';
+
+        this.dialog.confirm(
+            `Automatically apply AI/Smart allocations for ${count} unassigned subject(s) in ${targetName}?`,
+            'Auto-Allocate Recommendations',
+            'info',
+            'Auto-Allocate'
+        ).subscribe(ok => {
+            if (ok) {
+                this.isSaving.set(true);
+                const bulkPayload = classRecs.map(r => ({
+                    teacher_id: r.suggested_teacher!.teacher_id,
+                    class_id: r.class_id,
+                    subject_id: r.subject_id,
+                    academic_year: this.academicYear()
+                }));
+
+                this.assignmentService.bulkAssign(bulkPayload).subscribe({
+                    next: () => {
+                        this.isSaving.set(false);
+                        this.toast.success(`Successfully allocated ${count} subject(s)!`);
+                        this.refreshAssignments();
+                    },
+                    error: (err) => {
+                        this.isSaving.set(false);
+                        this.toast.error(err?.error?.error || 'Failed to auto-allocate subjects.');
+                        this.refreshAssignments();
+                    }
+                });
+            }
+        });
+    }
+
+    getTeacherWorkload(teacherId?: string): TeacherWorkloadSummary | undefined {
+        if (!teacherId) return undefined;
+        return this.auditReport()?.workloads?.find(w => w.teacher_id === teacherId);
+    }
+
+    getWorkloadBadge(status?: string): { text: string; cls: string; icon: string } {
+        switch (status) {
+            case 'AVAILABLE':
+                return { text: 'Available', cls: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20', icon: 'fa-user-clock' };
+            case 'OPTIMAL':
+                return { text: 'Optimal Load', cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', icon: 'fa-check-circle' };
+            case 'HEAVY':
+                return { text: 'Heavy Load', cls: 'bg-amber-500/10 text-amber-400 border-amber-500/20', icon: 'fa-exclamation-triangle' };
+            case 'OVERLOADED':
+                return { text: 'Overloaded', cls: 'bg-rose-500/10 text-rose-400 border-rose-500/20', icon: 'fa-fire' };
+            default:
+                return { text: 'Standard', cls: 'bg-teal-500/10 text-teal-400 border-teal-500/20', icon: 'fa-user' };
+        }
     }
 
     // ── By-Class Mode Methods ─────────────────────────────────────────────

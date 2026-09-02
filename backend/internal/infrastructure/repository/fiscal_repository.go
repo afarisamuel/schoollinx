@@ -109,12 +109,12 @@ func (r *fiscalRepository) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 func (r *fiscalRepository) SaveFeeStructure(ctx context.Context, structure *domain.FeeStructure) error {
-	// Upsert based on period and category
-	var existing domain.FeeStructure
-	err := r.db.WithContext(ctx).Where("academic_period_id = ? AND category = ?", structure.AcademicPeriodID, structure.Category).First(&existing).Error
-	if err == nil {
-		structure.ID = existing.ID
-		return r.db.WithContext(ctx).Save(structure).Error
+	if structure.ID != uuid.Nil {
+		var existing domain.FeeStructure
+		err := r.db.WithContext(ctx).Where("id = ?", structure.ID).First(&existing).Error
+		if err == nil {
+			return r.db.WithContext(ctx).Save(structure).Error
+		}
 	}
 	return r.db.WithContext(ctx).Create(structure).Error
 }

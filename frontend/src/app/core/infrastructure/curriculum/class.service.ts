@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 export interface Class {
     id: string;
     name: string;
-    teacher_id: string;
+    teacher_id?: string;
     scholastic_level_id?: string;
     scholastic_level?: { id: string; name: string; ordinal: number };
     subjects?: { id: string; name: string; code: string }[];

@@ -112,23 +112,70 @@
                     
                     <div class="flex flex-col gap-5">
                         <div class="flex flex-col gap-2.5">
-                            <span class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Configured Terms</span>
-                            <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Academic Terms</span>
+                                @if (period.is_active) {
+                                    <span class="text-[9px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                                        Active: Term {{ period.current_term }}
+                                    </span>
+                                }
+                            </div>
+                            <div class="flex flex-col gap-1.5">
                                 @for(term of period.terms || []; track term.id) {
-                                    <div class="px-3 py-1.5 bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[10px] font-black rounded-xl uppercase tracking-widest cursor-help shadow-sm" [title]="term.start_date + ' to ' + term.end_date">
-                                        <span class="opacity-50 mr-1">T{{term.term_number}}</span> {{ term.name }}
+                                    <div 
+                                        (click)="onQuickActivateTerm(period, term, $event)"
+                                        class="flex items-center justify-between px-3 py-2 rounded-xl border text-xs transition-all cursor-pointer group/term"
+                                        [class.bg-emerald-500\/10]="period.is_active && period.current_term === term.term_number"
+                                        [class.border-emerald-500\/40]="period.is_active && period.current_term === term.term_number"
+                                        [class.bg-bg-primary]="!(period.is_active && period.current_term === term.term_number)"
+                                        [class.border-border-primary]="!(period.is_active && period.current_term === term.term_number)"
+                                        [class.hover:border-teal-500\/40]="!(period.is_active && period.current_term === term.term_number)"
+                                    >
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <span 
+                                                class="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black shrink-0"
+                                                [class.bg-emerald-500]="period.is_active && period.current_term === term.term_number"
+                                                [class.text-white]="period.is_active && period.current_term === term.term_number"
+                                                [class.bg-bg-tertiary]="!(period.is_active && period.current_term === term.term_number)"
+                                                [class.text-text-muted]="!(period.is_active && period.current_term === term.term_number)"
+                                            >
+                                                T{{ term.term_number }}
+                                            </span>
+                                            <div class="flex flex-col min-w-0">
+                                                <span class="font-bold text-text-primary text-xs truncate">{{ term.name }}</span>
+                                                @if (formatTermDateRange(term)) {
+                                                    <span class="text-[10px] text-text-muted font-medium truncate">{{ formatTermDateRange(term) }}</span>
+                                                }
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center gap-2 shrink-0">
+                                            @if (isCurrentDateInTerm(term)) {
+                                                <span class="text-[9px] font-bold text-teal-400 bg-teal-500/10 border border-teal-500/20 px-1.5 py-0.5 rounded" title="Current calendar date falls inside this term window">Today</span>
+                                            }
+                                            @if (period.is_active && period.current_term === term.term_number) {
+                                                <span class="text-[9px] font-black uppercase text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                                    Active
+                                                </span>
+                                            } @else {
+                                                <span class="text-[9px] font-bold text-text-muted group-hover/term:text-teal-400 opacity-0 group-hover/term:opacity-100 transition-opacity">
+                                                    Click to Activate
+                                                </span>
+                                            }
+                                        </div>
                                     </div>
                                 }
                                 @if ((period.terms || []).length === 0) {
-                                    <span class="text-xs text-text-muted italic px-2 py-1 bg-bg-primary rounded-lg border border-border-primary border-dashed">No terms configured</span>
+                                    <span class="text-xs text-text-muted italic px-3 py-2 bg-bg-primary rounded-xl border border-border-primary border-dashed text-center">No terms configured yet</span>
                                 }
                             </div>
                         </div>
                         
                         <div class="flex items-center gap-3 mt-2">
-                            <button (click)="openCalendar(period)" class="flex-1 py-3 bg-bg-primary hover:bg-bg-tertiary border border-border-primary text-text-primary text-[11px] font-black rounded-2xl uppercase tracking-widest transition-all shadow-sm">Setup Terms</button>
+                            <button (click)="openCalendar(period)" class="flex-1 py-3 bg-bg-primary hover:bg-bg-tertiary border border-border-primary text-text-primary text-[11px] font-black rounded-2xl uppercase tracking-widest transition-all shadow-sm cursor-pointer">Manage Calendar</button>
                             @if(!period.is_active) {
-                                <button (click)="onActivate(period.id)" class="flex-1 py-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[11px] font-black rounded-2xl uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10"/></svg> Activate</button>
+                                <button (click)="onActivate(period.id)" class="flex-1 py-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[11px] font-black rounded-2xl uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10"/></svg> Activate Period</button>
                             }
                         </div>
                     </div>

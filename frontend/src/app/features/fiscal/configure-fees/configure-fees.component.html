@@ -457,7 +457,13 @@
                       </div>
                       <div>
                         <p class="text-sm font-black text-text-primary">{{ fee.category }}</p>
-                        <p class="text-[10px] text-text-muted font-medium mt-0.5">Student charge</p>
+                        <div class="flex items-center gap-1.5 mt-0.5" [title]="getClassNamesDetailed(fee)">
+                          <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold"
+                                [ngClass]="(fee.all_classes || !fee.class_ids || fee.class_ids.length === 0) ? 'bg-bg-tertiary text-text-muted border border-border-primary' : 'bg-teal-500/10 text-teal-400 border border-teal-500/20'">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                            {{ getClassLabelForFee(fee) }}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -482,7 +488,7 @@
                     <span class="text-xl font-black text-emerald-400">{{ fee.amount | currency:'GHS':'symbol':'1.2-2' }}</span>
                   </td>
                   <td class="px-4 py-4">
-                    <button (click)="onDeleteFee(fee)" class="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white flex items-center justify-center transition-all duration-150 border border-rose-500/20 hover:border-rose-500" title="Remove">
+                    <button (click)="onDeleteFee(fee)" class="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white flex items-center justify-center transition-all duration-150 border border-rose-500/20 hover:border-rose-500 cursor-pointer" title="Remove">
                       <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                     </button>
                   </td>
@@ -492,7 +498,7 @@
             <!-- Total Row -->
             <tfoot>
               <tr class="border-t-2 border-border-primary bg-bg-tertiary/30">
-                <td colspan="2" class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted">Total Per Student</td>
+                <td colspan="2" class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted">Total Configured Rates</td>
                 <td class="px-6 py-4 text-right">
                   <span class="text-2xl font-black text-text-primary">
                     {{ totalFees() | currency:'GHS':'symbol':'1.2-2' }}
@@ -687,6 +693,74 @@
           }
         </div>
 
+        <!-- Applicable Classes Selection -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest">
+              Applicable Classes
+            </label>
+            <div class="flex items-center gap-2">
+              <button 
+                type="button" 
+                (click)="selectAllClasses()" 
+                class="text-[9px] font-bold text-teal-400 hover:text-teal-300 transition-colors uppercase tracking-wider cursor-pointer">
+                Select All
+              </button>
+              <span class="text-text-muted text-[9px]">&bull;</span>
+              <button 
+                type="button" 
+                (click)="clearClassSelection()" 
+                class="text-[9px] font-bold text-text-muted hover:text-text-primary transition-colors uppercase tracking-wider cursor-pointer">
+                All Classes
+              </button>
+            </div>
+          </div>
+
+          <!-- All Classes Toggle Option -->
+          <div class="flex items-center justify-between p-3 bg-bg-tertiary/60 border border-border-primary rounded-xl mb-2">
+            <div class="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-teal-400"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span class="text-xs font-bold text-text-primary">Apply to All Classes</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" [ngModel]="allClasses" (ngModelChange)="toggleAllClasses($event)" class="sr-only peer">
+              <div class="w-9 h-5 bg-bg-secondary peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-text-muted peer-checked:after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-500 border border-border-primary transition-all"></div>
+            </label>
+          </div>
+
+          <!-- Class Multi-Select Grid (when not All Classes) -->
+          @if (!allClasses) {
+            <div class="p-3 bg-bg-tertiary/40 border border-border-primary rounded-xl max-h-48 overflow-y-auto space-y-1.5 custom-scrollbar">
+              <div class="grid grid-cols-2 gap-1.5">
+                @for (cls of classes(); track cls.id) {
+                  <button
+                    type="button"
+                    (click)="toggleClassSelection(cls.id)"
+                    [class.bg-teal-500]="isClassSelected(cls.id)"
+                    [class.text-white]="isClassSelected(cls.id)"
+                    [class.border-teal-500]="isClassSelected(cls.id)"
+                    [class.bg-bg-secondary]="!isClassSelected(cls.id)"
+                    [class.text-text-secondary]="!isClassSelected(cls.id)"
+                    [class.border-border-primary]="!isClassSelected(cls.id)"
+                    class="flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-all text-left truncate cursor-pointer hover:border-teal-500/50"
+                  >
+                    <span class="truncate">{{ cls.name }}</span>
+                    @if (isClassSelected(cls.id)) {
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 ml-1"><polyline points="20 6 9 17 4 12"/></svg>
+                    }
+                  </button>
+                }
+              </div>
+              @if (classes().length === 0) {
+                <p class="text-xs text-text-muted text-center py-2">No classes found in this school</p>
+              }
+            </div>
+            <p class="text-[10px] font-bold text-teal-400 mt-1">
+              {{ selectedClassIds.length }} class{{ selectedClassIds.length === 1 ? '' : 'es' }} selected
+            </p>
+          }
+        </div>
+
         <!-- Amount -->
         <div>
           <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">
@@ -770,7 +844,9 @@
           <div>
             <p class="text-[9px] font-black uppercase tracking-widest text-teal-400 mb-1">Preview</p>
             <p class="text-sm font-black text-text-primary">{{ $any(newFee.category) === 'CUSTOM' ? (customCategory || 'Custom') : newFee.category }}</p>
-            <p class="text-[10px] text-text-muted font-medium mt-0.5">{{ newFee.frequency || 'TERMLY' }}</p>
+            <p class="text-[10px] text-teal-400 font-bold mt-0.5">
+              {{ allClasses ? 'All Classes' : (selectedClassIds.length + ' Classes Selected') }} &bull; {{ newFee.frequency || 'TERMLY' }}
+            </p>
           </div>
           <span class="text-2xl font-black text-teal-400">{{ newFee.amount | currency:'GHS':'symbol':'1.0-0' }}</span>
         </div>
@@ -779,8 +855,8 @@
       <!-- Save Button -->
       <button
         (click)="onSave()"
-        [disabled]="!activePeriod() || !newFee.amount || newFee.amount <= 0"
-        class="relative z-10 w-full py-3.5 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-teal-500/25 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 border border-white/10"
+        [disabled]="!activePeriod() || !newFee.amount || newFee.amount <= 0 || (!allClasses && selectedClassIds.length === 0)"
+        class="relative z-10 w-full py-3.5 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-teal-500/25 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 border border-white/10 cursor-pointer"
       >
         Save Fee Structure
       </button>

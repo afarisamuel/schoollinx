@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -35,12 +36,14 @@ const (
 type FeeStructure struct {
 	TenantBase
 	ID               uuid.UUID       `json:"id" gorm:"type:uuid;primaryKey"`
-	AcademicPeriodID uuid.UUID       `json:"academic_period_id" gorm:"type:uuid;not null;uniqueIndex:idx_period_category"`
+	AcademicPeriodID uuid.UUID       `json:"academic_period_id" gorm:"type:uuid;not null;index:idx_period_category"`
 	AcademicPeriod   *AcademicPeriod `json:"academic_period,omitempty" gorm:"foreignKey:AcademicPeriodID"`
-	Category         FeeCategory     `json:"category" gorm:"not null;uniqueIndex:idx_period_category"`
+	Category         FeeCategory     `json:"category" gorm:"not null;index:idx_period_category"`
 	Amount           float64         `json:"amount" gorm:"not null"`
 	Frequency        FeeFrequency    `json:"frequency" gorm:"type:varchar(50);default:'TERMLY';not null"`
 	IsTermFee        *bool           `json:"is_term_fee" gorm:"default:true;not null"`
+	AllClasses       bool            `json:"all_classes" gorm:"default:true"`
+	ClassIDs         pq.StringArray  `json:"class_ids" gorm:"type:text[]"`
 	CreatedAt        time.Time       `json:"created_at"`
 	UpdatedAt        time.Time       `json:"updated_at"`
 }
