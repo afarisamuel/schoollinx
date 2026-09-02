@@ -7,6 +7,29 @@
 
   <div class="relative z-10 px-4 md:px-8 xl:px-12 py-8 max-w-[1700px] mx-auto animate-fade-in">
 
+    <!-- ── DRAFT RECOVERY BANNER ────────────────────────────── -->
+    @if (hasRecoverableDraft()) {
+      <div class="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in shadow-lg shadow-amber-500/5">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          </div>
+          <div>
+            <h4 class="text-sm font-black text-text-primary">Unsaved Local Draft Available</h4>
+            <p class="text-xs text-text-secondary">We detected an unsaved draft from {{ draftSavedTime() || 'a recent session' }}. Would you like to restore your edits?</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button (click)="discardLocalDraft()" class="px-3.5 py-1.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary text-xs font-bold transition-all">
+            Discard
+          </button>
+          <button (click)="restoreLocalDraft()" class="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs transition-all shadow-md shadow-amber-500/20">
+            Restore Draft
+          </button>
+        </div>
+      </div>
+    }
+
     <!-- ── PAGE HEADER ──────────────────────────────────────── -->
     <header class="mb-8">
       <div class="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6">
@@ -16,35 +39,73 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
             </div>
             <span class="px-3 py-1 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">Assessment Engine</span>
+            
+            <!-- Lock Status Badge -->
+            @if (isLocked()) {
+              <span class="px-3 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Locked &amp; Finalized
+              </span>
+            } @else if (hasUnsavedChanges()) {
+              <span class="px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 animate-pulse">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                Draft (Unsaved)
+              </span>
+            } @else {
+              <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                Synchronized
+              </span>
+            }
           </div>
           <h1 class="text-3xl md:text-5xl font-black text-text-primary tracking-tighter leading-none mb-2">
             Grading <span class="text-blue-400">Console</span>
           </h1>
-          <p class="text-text-secondary text-base max-w-2xl font-medium">Configure assessment columns and enter scores. Totals are calculated automatically using weights.</p>
+          <p class="text-text-secondary text-base max-w-2xl font-medium">Excel-like keyboard navigation, multi-scale curriculum conversion, and automated rank analytics.</p>
         </div>
 
         <div class="flex items-center gap-3 flex-wrap">
+          <!-- Admin Lock Button -->
+          @if (isHeadmasterOrAdmin() && selectedClassId() && selectedSubjectId()) {
+            <button
+              (click)="toggleLock()"
+              class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all border shadow-sm"
+              [ngClass]="isLocked() 
+                ? 'bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20'
+                : 'bg-bg-secondary border-border-primary text-text-secondary hover:text-text-primary hover:border-blue-500/40'"
+            >
+              @if (isLocked()) {
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span>Unlock Grades</span>
+              } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+                <span>Lock Grades</span>
+              }
+            </button>
+          }
+
           <button
             (click)="toggleConfigMode()"
-            [disabled]="!selectedClassId()"
-            class="flex items-center gap-2 px-5 py-2.5 bg-bg-secondary border rounded-xl font-bold text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            [disabled]="!selectedClassId() || isLocked()"
+            class="flex items-center gap-2 px-4 py-2.5 bg-bg-secondary border rounded-xl font-bold text-xs transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
             [ngClass]="isConfigMode()
               ? 'border-blue-500 text-blue-500 bg-blue-500/5 shadow-lg shadow-blue-500/10'
               : 'border-border-primary text-text-secondary hover:border-blue-500/50 hover:text-blue-500'"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
             {{ isConfigMode() ? 'Done Configuring' : 'Configure Columns' }}
           </button>
+
           <button
             (click)="saveGrades()"
-            [disabled]="isSaving() || students().length === 0 || configuredColumns().length === 0"
-            class="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-blue-500/20 hover:-translate-y-0.5 border border-white/10"
+            [disabled]="isSaving() || isLocked() || students().length === 0 || configuredColumns().length === 0"
+            class="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl transition-all shadow-lg shadow-blue-500/20 hover:-translate-y-0.5 border border-white/10 cursor-pointer"
           >
             @if (isSaving()) {
-              <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              <span class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
               Saving...
             } @else {
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
               Save Grades
             }
           </button>
@@ -54,8 +115,16 @@
 
     <!-- ── CONTROL PANEL ───────────────────────────────────── -->
     <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 mb-4 shadow-sm">
-      <p class="text-[10px] font-black uppercase tracking-widest text-text-muted mb-4">Filters &amp; Context</p>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-[10px] font-black uppercase tracking-widest text-text-muted">Filters &amp; Curriculum Scale</p>
+        
+        <!-- Keyboard Hint Badge -->
+        <div class="hidden md:flex items-center gap-2 text-[10px] text-text-muted font-mono bg-bg-tertiary px-3 py-1 rounded-lg border border-border-primary/50">
+          <span class="font-bold text-blue-400">ProTip:</span> Use <kbd class="px-1 py-0.5 bg-bg-secondary border border-border-primary rounded">Enter</kbd> / <kbd class="px-1 py-0.5 bg-bg-secondary border border-border-primary rounded">Arrows</kbd> to navigate · Paste multi-cell Excel data
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Class -->
         <div>
           <label class="block text-[10px] font-black text-text-muted uppercase tracking-[0.15em] mb-2">Class</label>
@@ -71,6 +140,7 @@
             </div>
           </div>
         </div>
+
         <!-- Subject -->
         <div>
           <label class="block text-[10px] font-black text-text-muted uppercase tracking-[0.15em] mb-2">Subject</label>
@@ -86,6 +156,7 @@
             </div>
           </div>
         </div>
+
         <!-- Term -->
         <div>
           <label class="block text-[10px] font-black text-text-muted uppercase tracking-[0.15em] mb-2">Academic Term</label>
@@ -100,83 +171,101 @@
             </div>
           </div>
         </div>
+
+        <!-- Grading Scale Selector -->
+        <div>
+          <label class="block text-[10px] font-black text-text-muted uppercase tracking-[0.15em] mb-2">Grading System</label>
+          <div class="relative">
+            <select [ngModel]="selectedScale()" (ngModelChange)="selectedScale.set($event)" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all appearance-none">
+              <option value="STANDARD">Standard (A–F)</option>
+              <option value="WAEC">WAEC / BECE (A1–F9)</option>
+              <option value="CAMBRIDGE">Cambridge / IGCSE (A*–U)</option>
+              <option value="GPA">GPA (4.0 Scale)</option>
+            </select>
+            <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-text-muted">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    @if (selectedClassId() && selectedSubjectId()) {
-      <div class="mb-6 px-5 py-3.5 rounded-2xl bg-blue-500/5 border border-blue-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in">
-        <div class="flex items-center gap-3">
-          <span class="relative flex h-2.5 w-2.5 shrink-0">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
-          </span>
-          <p class="text-xs text-text-primary font-bold">
-            Live Teacher Synchronization Active:
-            <span class="text-text-muted font-medium ml-1">Displaying and revealing all scores and assessments recorded for {{ selectedSubjectId() }} · {{ selectedTerm() }}.</span>
-          </p>
-        </div>
-        <div class="flex items-center gap-2 shrink-0">
-          <span class="text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg">
-            Admin Verification &amp; Override
-          </span>
-        </div>
-      </div>
-    }
-
-    <!-- ── STATISTICS STRIP (shown when students + scores exist) ──────── -->
+    <!-- ── STATISTICS STRIP ──────────────────────────────────── -->
     @if (!isLoading() && students().length > 0 && configuredColumns().length > 0) {
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 animate-fade-in">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 animate-fade-in">
         <!-- Students -->
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 flex flex-col gap-2 hover:border-blue-500/30 transition-colors">
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 flex flex-col gap-1.5 hover:border-blue-500/30 transition-colors">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </div>
-            <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Students</span>
+            <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Enrolled</span>
           </div>
-          <span class="text-3xl font-black text-text-primary">{{ students().length }}</span>
+          <span class="text-2xl md:text-3xl font-black text-text-primary">{{ students().length }}</span>
         </div>
+
+        <!-- Graded Count -->
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 flex flex-col gap-1.5 hover:border-blue-500/30 transition-colors">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </div>
+            <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Completed</span>
+          </div>
+          <div class="flex items-baseline gap-1.5">
+            <span class="text-2xl md:text-3xl font-black text-text-primary">{{ getGradedCount() }}</span>
+            <span class="text-xs text-text-muted">/ {{ students().length }}</span>
+          </div>
+        </div>
+
         <!-- Class Average -->
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 flex flex-col gap-2 hover:border-blue-500/30 transition-colors">
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 flex flex-col gap-1.5 hover:border-blue-500/30 transition-colors">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
             </div>
-            <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Class Average</span>
+            <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Class Avg</span>
           </div>
-          <span class="text-3xl font-black" [ngClass]="getAverageColor(getClassAverage())">{{ getClassAverage() }}</span>
+          <span class="text-2xl md:text-3xl font-black" [ngClass]="getAverageColor(getClassAverage())">{{ getClassAverage() }}</span>
         </div>
+
         <!-- Pass Rate -->
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 flex flex-col gap-2 hover:border-emerald-500/30 transition-colors">
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 flex flex-col gap-1.5 hover:border-emerald-500/30 transition-colors">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
             <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Pass Rate</span>
           </div>
-          <span class="text-3xl font-black text-emerald-500">{{ getPassRate() }}</span>
+          <span class="text-2xl md:text-3xl font-black text-emerald-500">{{ getPassRate() }}</span>
         </div>
-        <!-- Top Performer -->
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 flex flex-col gap-2 hover:border-amber-500/30 transition-colors">
+
+        <!-- Top Score -->
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 flex flex-col gap-1.5 hover:border-amber-500/30 transition-colors">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
             </div>
             <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Top Score</span>
           </div>
-          <span class="text-3xl font-black text-amber-500">{{ getTopScore() }}</span>
+          <span class="text-2xl md:text-3xl font-black text-amber-500">{{ getTopScore() }}</span>
         </div>
       </div>
 
       <!-- Grade Distribution Bar -->
       <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 mb-6 animate-fade-in">
-        <p class="text-[10px] font-black uppercase tracking-widest text-text-muted mb-4">Grade Distribution</p>
+        <div class="flex items-center justify-between mb-4">
+          <p class="text-[10px] font-black uppercase tracking-widest text-text-muted">
+            Score Distribution — <span class="text-text-primary">{{ gradingScales[selectedScale()].name }}</span>
+          </p>
+          <span class="text-[10px] text-text-secondary font-medium">{{ gradingScales[selectedScale()].description }}</span>
+        </div>
         <div class="flex items-end gap-2 h-16">
           @for (band of getGradeDistribution(); track band.label) {
             <div class="flex flex-col items-center gap-1 flex-1">
               <span class="text-[9px] font-black text-text-muted">{{ band.count }}</span>
               <div class="w-full rounded-t-lg transition-all duration-700" [style.height.px]="band.count > 0 ? Math.max(8, (band.count / students().length) * 48) : 4" [ngClass]="band.color"></div>
-              <span class="text-[9px] font-black uppercase tracking-wider" [ngClass]="band.textColor">{{ band.label }}</span>
+              <span class="text-[9px] font-black uppercase tracking-wider text-center" [ngClass]="band.textColor">{{ band.label }}</span>
             </div>
           }
         </div>
@@ -199,7 +288,7 @@
             <div class="flex items-center gap-2 bg-bg-primary border border-border-primary rounded-xl pl-4 pr-2 py-2 group">
               <span class="text-sm font-bold text-text-primary">{{ col.category }}</span>
               <span class="text-xs font-black text-blue-500 font-mono bg-blue-500/10 px-2 py-0.5 rounded-lg">{{ getDisplayWeight(col.weight) }}%</span>
-              <button (click)="removeColumn(i)" class="w-6 h-6 rounded-md hover:bg-rose-500/10 text-text-muted hover:text-rose-500 flex items-center justify-center transition-colors ml-1">
+              <button (click)="removeColumn(i)" class="w-6 h-6 rounded-md hover:bg-rose-500/10 text-text-muted hover:text-rose-500 flex items-center justify-center transition-colors ml-1 cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </button>
             </div>
@@ -213,13 +302,13 @@
         <div class="flex flex-col sm:flex-row items-end gap-4 max-w-2xl">
           <div class="flex-1 w-full">
             <label class="block text-[10px] font-black text-text-muted uppercase tracking-[0.15em] mb-2">Column Name</label>
-            <input type="text" [ngModel]="newColumnCategory()" (ngModelChange)="newColumnCategory.set($event)" placeholder="e.g. CLASS WORK, EXAMS" class="w-full bg-bg-primary border border-border-primary rounded-xl px-4 py-2.5 text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+            <input type="text" [ngModel]="newColumnCategory()" (ngModelChange)="newColumnCategory.set($event)" placeholder="e.g. CLASS WORK, HOMEWORK, EXAMS" class="w-full bg-bg-primary border border-border-primary rounded-xl px-4 py-2.5 text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
           </div>
           <div class="w-full sm:w-36">
             <label class="block text-[10px] font-black text-text-muted uppercase tracking-[0.15em] mb-2">Weight (%)</label>
             <input type="number" [ngModel]="newColumnWeight()" (ngModelChange)="newColumnWeight.set($event)" placeholder="e.g. 30" min="1" max="100" class="w-full bg-bg-primary border border-border-primary rounded-xl px-4 py-2.5 text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
           </div>
-          <button (click)="addColumn()" class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm rounded-xl transition-all active:scale-95 whitespace-nowrap">
+          <button (click)="addColumn()" class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm rounded-xl transition-all active:scale-95 whitespace-nowrap cursor-pointer">
             + Add Column
           </button>
         </div>
@@ -232,7 +321,7 @@
             </p>
             @if (getTotalWeightPercentage() !== 100) {
               <span class="text-[10px] text-amber-500 font-bold flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 1 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 Should equal 100%
               </span>
             } @else {
@@ -263,16 +352,19 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
           </div>
           <div>
-            <h3 class="text-sm font-black text-text-primary uppercase tracking-wider">Score Entry</h3>
-            <p class="text-[10px] text-text-muted font-medium mt-0.5">All scores are entered out of 100 and weighted</p>
+            <h3 class="text-sm font-black text-text-primary uppercase tracking-wider">Score Entry Grid</h3>
+            <p class="text-[10px] text-text-muted font-medium mt-0.5">Numeric scores 0–100 or special tokens: <span class="font-mono text-blue-400 font-bold">ABS</span> (Absent), <span class="font-mono text-amber-400 font-bold">EX</span> (Exempt), <span class="font-mono text-rose-400 font-bold">INC</span> (Incomplete)</p>
           </div>
         </div>
-        @if (students().length > 0 && configuredColumns().length > 0) {
-          <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-text-muted">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            {{ getGradedCount() }} / {{ students().length }} Graded
-          </div>
-        }
+
+        <div class="flex items-center gap-3">
+          @if (students().length > 0 && configuredColumns().length > 0) {
+            <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-text-muted">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              {{ getGradedCount() }} / {{ students().length }} Graded
+            </div>
+          }
+        </div>
       </div>
 
       <!-- Loading State -->
@@ -306,7 +398,7 @@
             <p class="text-text-primary font-black text-lg">No Grading Columns</p>
             <p class="text-text-muted text-sm mt-1">Click <strong class="text-blue-500">Configure Columns</strong> above to define assessment types like Assignments, Exams, etc.</p>
           </div>
-          <button (click)="toggleConfigMode()" class="px-5 py-2.5 bg-blue-500/10 border border-blue-500/20 text-blue-500 font-bold text-sm rounded-xl hover:bg-blue-500/20 transition-all">
+          <button (click)="toggleConfigMode()" class="px-5 py-2.5 bg-blue-500/10 border border-blue-500/20 text-blue-500 font-bold text-sm rounded-xl hover:bg-blue-500/20 transition-all cursor-pointer">
             Configure Columns →
           </button>
         </div>
@@ -315,29 +407,44 @@
       <!-- The Grade Table -->
       @if (!isLoading() && students().length > 0 && configuredColumns().length > 0) {
         <div class="overflow-x-auto w-full">
-          <table class="w-full text-left">
+          <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-bg-tertiary/60">
-                <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] w-10">#</th>
-                <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] min-w-[200px]">Student</th>
+                <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] w-12">#</th>
+                <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] min-w-[220px]">Student</th>
+                <th class="px-4 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] text-center min-w-[70px]">Rank</th>
 
-                @for (col of configuredColumns(); track col.category) {
-                  <th class="px-5 py-4 text-center border-l border-border-primary/50 min-w-[120px]">
+                @for (col of configuredColumns(); track col.category; let colIdx = $index) {
+                  <th class="px-4 py-4 text-center border-l border-border-primary/50 min-w-[140px] group/col">
                     <div class="flex flex-col items-center gap-1">
-                      <span class="text-[10px] font-black text-blue-500 uppercase tracking-[0.15em]">{{ col.category }}</span>
+                      <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] font-black text-blue-500 uppercase tracking-[0.15em]">{{ col.category }}</span>
+                        
+                        <!-- Column Batch Action Trigger -->
+                        @if (!isLocked()) {
+                          <div class="opacity-0 group-hover/col:opacity-100 transition-opacity flex items-center gap-1">
+                            <button (click)="openBatchTool(col.category, 'fill')" title="Fill all students" class="p-1 rounded hover:bg-blue-500/10 text-blue-400 cursor-pointer">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            </button>
+                            <button (click)="openBatchTool(col.category, 'curve')" title="Curve scores (+X points)" class="p-1 rounded hover:bg-blue-500/10 text-blue-400 cursor-pointer">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                            </button>
+                          </div>
+                        }
+                      </div>
                       <span class="text-[9px] font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full">{{ getDisplayWeight(col.weight) }}%</span>
                     </div>
                   </th>
                 }
 
                 <th class="px-5 py-4 text-[10px] font-black text-text-primary uppercase tracking-[0.2em] min-w-[100px] text-center border-l border-border-primary bg-bg-secondary">Total</th>
-                <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] min-w-[80px] text-center border-l border-border-primary/50">Grade</th>
-                <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] min-w-[130px] text-center border-l border-border-primary/50">Evaluation</th>
+                <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] min-w-[90px] text-center border-l border-border-primary/50">Grade</th>
+                <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] min-w-[120px] text-center border-l border-border-primary/50">Evaluation</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-border-primary/50">
               @for (student of students(); track student.id; let i = $index) {
-                <tr class="hover:bg-bg-tertiary/40 transition-colors duration-150 group">
+                <tr class="hover:bg-bg-tertiary/40 transition-colors duration-150 group" [class.bg-rose-500/5]="isAtRisk(student.id!)">
                   <td class="px-5 py-4 text-xs font-mono text-text-muted">{{ i + 1 }}</td>
                   <td class="px-5 py-4">
                     <div class="flex items-center gap-3">
@@ -345,37 +452,68 @@
                         {{ student.first_name[0] }}{{ student.last_name[0] }}
                       </div>
                       <div>
-                        <span class="text-sm font-bold text-text-primary block leading-tight">{{ student.first_name }} {{ student.last_name }}</span>
+                        <div class="flex items-center gap-2">
+                          <span class="text-sm font-bold text-text-primary block leading-tight">{{ student.first_name }} {{ student.last_name }}</span>
+                          @if (isAtRisk(student.id!)) {
+                            <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase" title="Score below passing threshold">At Risk</span>
+                          }
+                        </div>
                         <span class="text-[10px] text-text-muted font-mono mt-0.5 block">{{ student.enrollment_num }}</span>
                       </div>
                     </div>
                   </td>
 
-                  @for (col of configuredColumns(); track col.category) {
-                    <td class="px-4 py-3 border-l border-border-primary/50">
-                      <input
-                        type="number" min="0" max="100"
-                        [ngModel]="getDraft(student.id!, col.category).score"
-                        (ngModelChange)="updateDraft(student.id!, col.category, $event)"
-                        placeholder="—"
-                        class="w-full bg-bg-primary border border-border-primary rounded-lg px-3 py-2.5 text-text-primary text-sm font-mono text-center focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
-                      >
+                  <!-- Rank Badge -->
+                  <td class="px-4 py-4 text-center">
+                    @if (getStudentRank(student.id!); as r) {
+                      <span class="inline-flex items-center gap-1 font-mono text-xs font-black" [ngClass]="r.rank <= 3 ? 'text-amber-400' : 'text-text-muted'">
+                        @if (r.medal) {
+                          <span class="text-sm">{{ r.medal }}</span>
+                        }
+                        <span>{{ r.rank }}{{ r.suffix }}</span>
+                      </span>
+                    } @else {
+                      <span class="text-text-muted text-xs">—</span>
+                    }
+                  </td>
+
+                  <!-- Dynamic Assessment Score Inputs -->
+                  @for (col of configuredColumns(); track col.category; let colIdx = $index) {
+                    <td class="px-3 py-2.5 border-l border-border-primary/50 relative">
+                      <div class="relative">
+                        <input
+                          id="grade-input-{{i}}-{{colIdx}}"
+                          type="text"
+                          [disabled]="isLocked()"
+                          [value]="getDraftDisplayValue(student.id!, col.category)"
+                          (input)="updateDraftValue(student.id!, col.category, $any($event.target).value)"
+                          (keydown)="handleKeyDown($event, i, colIdx)"
+                          (paste)="handlePaste($event, i, col.category)"
+                          placeholder="—"
+                          class="w-full bg-bg-primary border border-border-primary rounded-xl px-3 py-2 text-text-primary text-sm font-mono text-center focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          [ngClass]="{
+                            'border-rose-500/40 text-rose-400 bg-rose-500/5 font-bold': getDraftFlag(student.id!, col.category) === 'ABS' || getDraftFlag(student.id!, col.category) === 'INC',
+                            'border-amber-500/40 text-amber-400 bg-amber-500/5 font-bold': getDraftFlag(student.id!, col.category) === 'EX'
+                          }"
+                        >
+                      </div>
                     </td>
                   }
 
-                  <!-- Total Column -->
+                  <!-- Total Percentage Column -->
                   <td class="px-5 py-4 text-center border-l border-border-primary bg-bg-secondary/50 group-hover:bg-bg-tertiary/60 transition-colors">
                     <span class="text-base font-black font-mono" [ngClass]="getGradeColor(student.id!)">
                       {{ getTotalPercentage(student.id!) }}
                     </span>
                   </td>
 
-                  <!-- Letter Grade Column -->
+                  <!-- Scale-Specific Grade Column -->
                   <td class="px-4 py-4 text-center border-l border-border-primary/50">
                     @if (getTotalPercentage(student.id!) !== '—') {
-                      <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl text-sm font-black border"
-                        [ngClass]="getLetterGradeBadgeClass(student.id!)">
-                        {{ getLetterGrade(student.id!) }}
+                      <span class="inline-flex items-center justify-center min-w-[36px] h-8 px-2 rounded-xl text-xs font-black border"
+                        [ngClass]="getGradeBadgeClass(student.id!)"
+                        [title]="getScaleBand(student.id!)?.remark || ''">
+                        {{ getFormattedGrade(student.id!) }}
                       </span>
                     } @else {
                       <span class="text-text-muted text-sm">—</span>
@@ -387,10 +525,10 @@
                     <button
                       type="button"
                       (click)="openEvaluation(student)"
-                      class="px-3.5 py-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 border border-blue-500/30 text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                      class="px-3 py-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 border border-blue-500/30 text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
                       title="Edit Conduct, Attitude & Headmaster Remarks"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                       <span>Remarks</span>
                     </button>
                   </td>
@@ -400,23 +538,68 @@
           </table>
         </div>
 
-        <!-- Table Footer -->
-        <div class="px-6 py-4 border-t border-border-primary bg-bg-tertiary/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div class="flex items-center gap-4 flex-wrap">
-            <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Grade Key:</span>
-            @for (key of gradeKey; track key.label) {
+        <!-- Table Footer Key / Scale Legend -->
+        <div class="px-6 py-4 border-t border-border-primary bg-bg-tertiary/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Scale Legend:</span>
+            @for (band of gradingScales[selectedScale()].bands; track band.label) {
               <div class="flex items-center gap-1.5">
-                <span class="w-5 h-5 rounded-md text-[9px] font-black flex items-center justify-center border" [ngClass]="key.badgeClass">{{ key.label }}</span>
-                <span class="text-[10px] text-text-muted font-medium">{{ key.range }}</span>
+                <span class="px-2 py-0.5 rounded-md text-[9px] font-black border" [ngClass]="band.badgeClass">{{ band.label }}</span>
+                <span class="text-[10px] text-text-muted font-medium">{{ band.min }}–{{ band.max }}%</span>
               </div>
             }
           </div>
-          <span class="text-[10px] text-text-muted font-medium">{{ students().length }} students · {{ configuredColumns().length }} assessment{{ configuredColumns().length !== 1 ? 's' : '' }}</span>
+          <span class="text-[10px] text-text-muted font-medium shrink-0">{{ students().length }} students · {{ configuredColumns().length }} assessment{{ configuredColumns().length !== 1 ? 's' : '' }}</span>
         </div>
       }
     </div>
 
   </div>
+
+  <!-- ── BATCH OPERATION MODAL (Fill / Curve) ── -->
+  @if (isBatchModalOpen()) {
+    <div class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+      <div class="bg-bg-secondary w-full max-w-md rounded-3xl border border-border-primary shadow-2xl p-6 animate-slide-in">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-base font-black text-text-primary">
+            {{ batchActionType() === 'fill' ? 'Fill Column: ' + activeBatchColumn() : 'Curve Column: ' + activeBatchColumn() }}
+          </h3>
+          <button (click)="isBatchModalOpen.set(false)" class="p-1 rounded-lg text-text-muted hover:text-text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+
+        <p class="text-xs text-text-secondary mb-4 leading-relaxed">
+          {{ batchActionType() === 'fill' 
+            ? 'Set a uniform score for all students in this assessment column.' 
+            : 'Add extra points to every student’s existing score in this assessment column (capped at 100).' }}
+        </p>
+
+        <div class="mb-6">
+          <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">
+            {{ batchActionType() === 'fill' ? 'Score to assign (0–100)' : 'Points to add (+)' }}
+          </label>
+          <input
+            type="number"
+            [min]="batchActionType() === 'fill' ? 0 : 1"
+            [max]="100"
+            [ngModel]="batchValue()"
+            (ngModelChange)="batchValue.set($event)"
+            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-mono text-text-primary focus:border-blue-500 focus:outline-none"
+          >
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button (click)="isBatchModalOpen.set(false)" class="flex-1 py-2.5 rounded-xl border border-border-primary text-xs font-bold text-text-muted hover:text-text-primary">
+            Cancel
+          </button>
+          <button (click)="applyBatchTool()" class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black shadow-lg shadow-blue-500/20">
+            Apply to All
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 
   <!-- ── TERMINAL EVALUATION & REMARKS MODAL ── -->
   @if (isEvalModalOpen()) {
@@ -464,7 +647,7 @@
             <div>
               <div class="flex items-center justify-between mb-1.5">
                 <label class="text-[10px] font-black text-text-muted uppercase tracking-widest block">Class Teacher Remark</label>
-                <span class="text-[10px] font-bold text-blue-400 text-blue-400/10 px-2 py-0.5 rounded">Form Teacher</span>
+                <span class="text-[10px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded">Form Teacher</span>
               </div>
               <textarea [ngModel]="evalData().class_teacher_remark" (ngModelChange)="updateEvalField('class_teacher_remark', $event)" rows="3" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-medium text-text-primary focus:border-blue-500 focus:outline-none transition-all" placeholder="Teacher's academic and behavioral summary..."></textarea>
             </div>

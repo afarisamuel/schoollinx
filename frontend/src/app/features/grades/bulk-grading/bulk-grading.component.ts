@@ -13,6 +13,26 @@ import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 import { TeacherPortalService } from '../../../core/infrastructure/teacher/teacher-portal.service';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 
+export type GradingScaleType = 'STANDARD' | 'WAEC' | 'CAMBRIDGE' | 'GPA';
+export type SpecialGradeFlag = 'ABS' | 'EX' | 'INC';
+
+export interface GradeScaleBand {
+  label: string;
+  min: number;
+  max: number;
+  color: string;
+  textColor: string;
+  badgeClass: string;
+  remark?: string;
+}
+
+export interface GradeScaleDefinition {
+  id: GradingScaleType;
+  name: string;
+  description: string;
+  bands: GradeScaleBand[];
+}
+
 @Component({
   selector: 'app-bulk-grading',
   standalone: true,
@@ -21,7 +41,6 @@ import { AuthService } from '../../../core/infrastructure/auth/auth.service';
   styleUrl: './bulk-grading.component.css'
 })
 export class BulkGradingComponent implements OnInit {
-  // Expose Math to template
   readonly Math = Math;
   private gradeService = inject(GradeService);
   private classService = inject(ClassService);
@@ -57,8 +76,80 @@ export class BulkGradingComponent implements OnInit {
   newColumnCategory = signal('');
   newColumnWeight = signal(0);
 
-  // Map of studentId -> category -> { score, gradeId? }
-  draftGrades = signal<Map<string, { [category: string]: { score: number | null, id?: string } }>>(new Map());
+  // Map of studentId -> category -> { score: number | null, flag?: string, id?: string }
+  draftGrades = signal<Map<string, { [category: string]: { score: number | null, flag?: string, id?: string } }>>(new Map());
+
+  // Grading Scales
+  selectedScale = signal<GradingScaleType>('STANDARD');
+
+  readonly gradingScales: Record<GradingScaleType, GradeScaleDefinition> = {
+    STANDARD: {
+      id: 'STANDARD',
+      name: 'Standard (A–F)',
+      description: 'Standard 100-point letter grading system',
+      bands: [
+        { label: 'A', min: 80, max: 100, color: 'bg-emerald-500', textColor: 'text-emerald-500', badgeClass: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', remark: 'Excellent' },
+        { label: 'B', min: 70, max: 79, color: 'bg-blue-500', textColor: 'text-blue-500', badgeClass: 'bg-blue-500/10 text-blue-500 border-blue-500/20', remark: 'Very Good' },
+        { label: 'C', min: 60, max: 69, color: 'bg-blue-500', textColor: 'text-blue-500', badgeClass: 'bg-blue-500/10 text-blue-500 border-blue-500/20', remark: 'Good' },
+        { label: 'D', min: 50, max: 59, color: 'bg-amber-500', textColor: 'text-amber-500', badgeClass: 'bg-amber-500/10 text-amber-500 border-amber-500/20', remark: 'Pass' },
+        { label: 'E', min: 40, max: 49, color: 'bg-orange-500', textColor: 'text-orange-500', badgeClass: 'bg-orange-500/10 text-orange-500 border-orange-500/20', remark: 'Weak Pass' },
+        { label: 'F', min: 0, max: 39, color: 'bg-rose-500', textColor: 'text-rose-500', badgeClass: 'bg-rose-500/10 text-rose-500 border-rose-500/20', remark: 'Fail' }
+      ]
+    },
+    WAEC: {
+      id: 'WAEC',
+      name: 'WAEC / BECE (A1–F9)',
+      description: 'West African Examinations Council 9-point scale',
+      bands: [
+        { label: 'A1', min: 80, max: 100, color: 'bg-emerald-500', textColor: 'text-emerald-500', badgeClass: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', remark: 'Excellent' },
+        { label: 'B2', min: 70, max: 79, color: 'bg-blue-500', textColor: 'text-blue-500', badgeClass: 'bg-blue-500/10 text-blue-500 border-blue-500/20', remark: 'Very Good' },
+        { label: 'B3', min: 65, max: 69, color: 'bg-blue-500', textColor: 'text-blue-500', badgeClass: 'bg-blue-500/10 text-blue-500 border-blue-500/20', remark: 'Good' },
+        { label: 'C4', min: 60, max: 64, color: 'bg-blue-400', textColor: 'text-blue-400', badgeClass: 'bg-blue-500/10 text-blue-400 border-blue-500/20', remark: 'Credit' },
+        { label: 'C5', min: 55, max: 59, color: 'bg-amber-400', textColor: 'text-amber-400', badgeClass: 'bg-amber-500/10 text-amber-400 border-amber-500/20', remark: 'Credit' },
+        { label: 'C6', min: 50, max: 54, color: 'bg-amber-500', textColor: 'text-amber-500', badgeClass: 'bg-amber-500/10 text-amber-500 border-amber-500/20', remark: 'Credit' },
+        { label: 'D7', min: 45, max: 49, color: 'bg-orange-400', textColor: 'text-orange-400', badgeClass: 'bg-orange-500/10 text-orange-400 border-orange-500/20', remark: 'Pass' },
+        { label: 'E8', min: 40, max: 44, color: 'bg-orange-500', textColor: 'text-orange-500', badgeClass: 'bg-orange-500/10 text-orange-500 border-orange-500/20', remark: 'Pass' },
+        { label: 'F9', min: 0, max: 39, color: 'bg-rose-500', textColor: 'text-rose-500', badgeClass: 'bg-rose-500/10 text-rose-500 border-rose-500/20', remark: 'Fail' }
+      ]
+    },
+    CAMBRIDGE: {
+      id: 'CAMBRIDGE',
+      name: 'Cambridge / IGCSE (A*–U)',
+      description: 'International General Certificate of Secondary Education',
+      bands: [
+        { label: 'A*', min: 90, max: 100, color: 'bg-emerald-500', textColor: 'text-emerald-500', badgeClass: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', remark: 'Outstanding' },
+        { label: 'A', min: 80, max: 89, color: 'bg-emerald-400', textColor: 'text-emerald-400', badgeClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', remark: 'Excellent' },
+        { label: 'B', min: 70, max: 79, color: 'bg-blue-500', textColor: 'text-blue-500', badgeClass: 'bg-blue-500/10 text-blue-500 border-blue-500/20', remark: 'Very Good' },
+        { label: 'C', min: 60, max: 69, color: 'bg-blue-400', textColor: 'text-blue-400', badgeClass: 'bg-blue-500/10 text-blue-400 border-blue-500/20', remark: 'Good' },
+        { label: 'D', min: 50, max: 59, color: 'bg-amber-500', textColor: 'text-amber-500', badgeClass: 'bg-amber-500/10 text-amber-500 border-amber-500/20', remark: 'Satisfactory' },
+        { label: 'E', min: 40, max: 49, color: 'bg-orange-500', textColor: 'text-orange-500', badgeClass: 'bg-orange-500/10 text-orange-500 border-orange-500/20', remark: 'Acceptable' },
+        { label: 'U', min: 0, max: 39, color: 'bg-rose-500', textColor: 'text-rose-500', badgeClass: 'bg-rose-500/10 text-rose-500 border-rose-500/20', remark: 'Ungraded' }
+      ]
+    },
+    GPA: {
+      id: 'GPA',
+      name: 'GPA (4.0 Scale)',
+      description: 'Grade Point Average scale',
+      bands: [
+        { label: '4.0 (A)', min: 85, max: 100, color: 'bg-emerald-500', textColor: 'text-emerald-500', badgeClass: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', remark: 'Honors' },
+        { label: '3.5 (B+)', min: 75, max: 84, color: 'bg-blue-500', textColor: 'text-blue-500', badgeClass: 'bg-blue-500/10 text-blue-500 border-blue-500/20', remark: 'High Pass' },
+        { label: '3.0 (B)', min: 65, max: 74, color: 'bg-blue-400', textColor: 'text-blue-400', badgeClass: 'bg-blue-500/10 text-blue-400 border-blue-500/20', remark: 'Above Average' },
+        { label: '2.5 (C+)', min: 55, max: 64, color: 'bg-amber-400', textColor: 'text-amber-400', badgeClass: 'bg-amber-500/10 text-amber-400 border-amber-500/20', remark: 'Average' },
+        { label: '2.0 (C)', min: 50, max: 54, color: 'bg-amber-500', textColor: 'text-amber-500', badgeClass: 'bg-amber-500/10 text-amber-500 border-amber-500/20', remark: 'Passing' },
+        { label: '1.0 (D)', min: 40, max: 49, color: 'bg-orange-500', textColor: 'text-orange-500', badgeClass: 'bg-orange-500/10 text-orange-500 border-orange-500/20', remark: 'Conditional' },
+        { label: '0.0 (F)', min: 0, max: 39, color: 'bg-rose-500', textColor: 'text-rose-500', badgeClass: 'bg-rose-500/10 text-rose-500 border-rose-500/20', remark: 'Failing' }
+      ]
+    }
+  };
+
+  // Autosave & Draft State
+  hasUnsavedChanges = signal(false);
+  hasRecoverableDraft = signal(false);
+  draftSavedTime = signal<string>('');
+
+  // Lock State
+  isLocked = signal(false);
+  gradeStatus = signal<'DRAFT' | 'SUBMITTED' | 'LOCKED'>('DRAFT');
 
   // Terminal Evaluation & Remarks Modal State
   evalStudent = signal<Student | null>(null);
@@ -66,6 +157,12 @@ export class BulkGradingComponent implements OnInit {
   isEvalLoading = signal(false);
   isEvalSaving = signal(false);
   evalData = signal<any>({});
+
+  // Batch Tool State
+  activeBatchColumn = signal<string>('');
+  isBatchModalOpen = signal(false);
+  batchActionType = signal<'fill' | 'curve'>('fill');
+  batchValue = signal<number>(0);
 
   readonly headmasterTemplates = [
     'Promoted with Distinction. Outstanding academic capability and character.',
@@ -82,6 +179,10 @@ export class BulkGradingComponent implements OnInit {
     this.loadClasses();
     this.loadSubjects();
     this.loadTerms();
+  }
+
+  getStorageKey(): string {
+    return `schoollinx_grades_draft_${this.selectedClassId()}_${this.selectedSubjectId()}_${this.selectedTerm()}`;
   }
 
   getDisplayWeight(weight: number): number {
@@ -166,6 +267,7 @@ export class BulkGradingComponent implements OnInit {
 
   loadExistingGrades() {
     this.initDraftGrades();
+    this.hasUnsavedChanges.set(false);
     if (!this.selectedClassId()) return;
 
     this.isLoading.set(true);
@@ -178,7 +280,6 @@ export class BulkGradingComponent implements OnInit {
         const subId = selectedSub?.id || this.selectedSubjectId();
         const subCode = selectedSub?.code || '';
 
-        // Flexible subject matching (by id, name, or code)
         const matchSubject = (gSub: string) => {
           if (!this.selectedSubjectId()) return true;
           if (!gSub) return false;
@@ -188,7 +289,6 @@ export class BulkGradingComponent implements OnInit {
                  (subCode !== '' && sNorm === subCode.toLowerCase());
         };
 
-        // Flexible term matching (by exact, normalized, or ordinal number)
         const matchTerm = (gTerm: string) => {
           if (!this.selectedTerm()) return true;
           if (!gTerm) return false;
@@ -207,7 +307,6 @@ export class BulkGradingComponent implements OnInit {
         filtered.forEach(g => {
           const studentDraft = map.get(g.student_id);
           if (studentDraft) {
-            // Find matching column category case-insensitively or by category alias
             const matchingCol = this.configuredColumns().find(col => {
               const c1 = col.category.trim().toLowerCase();
               const c2 = (g.category || '').trim().toLowerCase();
@@ -218,12 +317,20 @@ export class BulkGradingComponent implements OnInit {
               return false;
             });
             const targetCategory = matchingCol ? matchingCol.category : g.category;
-            studentDraft[targetCategory] = { score: g.score, id: g.id };
+            
+            // Check if score is marked with a flag in remarks
+            let flag: string | undefined;
+            if (g.remarks?.includes('[ABS]')) flag = 'ABS';
+            else if (g.remarks?.includes('[EX]')) flag = 'EX';
+            else if (g.remarks?.includes('[INC]')) flag = 'INC';
+
+            studentDraft[targetCategory] = { score: g.score, flag, id: g.id };
           }
         });
-        // Trigger signal update so the template re-renders
+
         this.draftGrades.set(new Map(map));
         this.isLoading.set(false);
+        this.checkLocalStorageDraft();
       },
       error: () => {
         this.isLoading.set(false);
@@ -242,7 +349,7 @@ export class BulkGradingComponent implements OnInit {
   }
 
   initDraftGrades() {
-    const newMap = new Map<string, { [category: string]: { score: number | null, id?: string } }>();
+    const newMap = new Map<string, { [category: string]: { score: number | null, flag?: string, id?: string } }>();
     this.students().forEach(student => {
       if (student.id) {
         const initialMap: any = {};
@@ -253,6 +360,374 @@ export class BulkGradingComponent implements OnInit {
       }
     });
     this.draftGrades.set(newMap);
+  }
+
+  // Autosave & Recovery
+  checkLocalStorageDraft() {
+    const key = this.getStorageKey();
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.drafts && Object.keys(parsed.drafts).length > 0) {
+          this.hasRecoverableDraft.set(true);
+          this.draftSavedTime.set(parsed.savedAt ? new Date(parsed.savedAt).toLocaleTimeString() : '');
+        }
+      } catch {}
+    } else {
+      this.hasRecoverableDraft.set(false);
+    }
+  }
+
+  saveToLocalStorage() {
+    if (!this.selectedClassId() || !this.selectedSubjectId()) return;
+    const map = this.draftGrades();
+    const serializable: Record<string, any> = {};
+    map.forEach((val, key) => {
+      serializable[key] = val;
+    });
+    localStorage.setItem(this.getStorageKey(), JSON.stringify({
+      savedAt: new Date().toISOString(),
+      drafts: serializable
+    }));
+    this.hasUnsavedChanges.set(true);
+  }
+
+  restoreLocalDraft() {
+    const key = this.getStorageKey();
+    const raw = localStorage.getItem(key);
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.drafts) {
+        const map = new Map<string, any>();
+        Object.keys(parsed.drafts).forEach(studentId => {
+          map.set(studentId, parsed.drafts[studentId]);
+        });
+        this.draftGrades.set(map);
+        this.hasUnsavedChanges.set(true);
+        this.hasRecoverableDraft.set(false);
+        this.dialog.alert('Restored unsaved draft from local backup.', 'Draft Restored', 'success');
+      }
+    } catch {}
+  }
+
+  discardLocalDraft() {
+    localStorage.removeItem(this.getStorageKey());
+    this.hasRecoverableDraft.set(false);
+    this.loadExistingGrades();
+  }
+
+  // --- Keyboard Navigation & Cell Management ---
+  handleKeyDown(event: KeyboardEvent, studentIndex: number, colIndex: number) {
+    if (this.isLocked()) return;
+    const numStudents = this.students().length;
+    const numCols = this.configuredColumns().length;
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      const nextRow = event.shiftKey ? studentIndex - 1 : studentIndex + 1;
+      if (nextRow >= 0 && nextRow < numStudents) {
+        this.focusCell(nextRow, colIndex);
+      }
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (studentIndex + 1 < numStudents) {
+        this.focusCell(studentIndex + 1, colIndex);
+      }
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (studentIndex - 1 >= 0) {
+        this.focusCell(studentIndex - 1, colIndex);
+      }
+    } else if (event.key === 'ArrowRight' && (event.target as HTMLInputElement).selectionEnd === (event.target as HTMLInputElement).value.length) {
+      if (colIndex + 1 < numCols) {
+        this.focusCell(studentIndex, colIndex + 1);
+      }
+    } else if (event.key === 'ArrowLeft' && (event.target as HTMLInputElement).selectionStart === 0) {
+      if (colIndex - 1 >= 0) {
+        this.focusCell(studentIndex, colIndex - 1);
+      }
+    }
+  }
+
+  focusCell(studentIndex: number, colIndex: number) {
+    setTimeout(() => {
+      const id = `grade-input-${studentIndex}-${colIndex}`;
+      const el = document.getElementById(id) as HTMLInputElement | null;
+      if (el) {
+        el.focus();
+        el.select();
+      }
+    }, 10);
+  }
+
+  handlePaste(event: ClipboardEvent, startStudentIndex: number, colCategory: string) {
+    if (this.isLocked()) return;
+    event.preventDefault();
+    const clipboardData = event.clipboardData?.getData('text') || '';
+    if (!clipboardData) return;
+
+    const lines = clipboardData.split(/\r\n|\n|\r/).filter(l => l.trim() !== '');
+    if (lines.length === 0) return;
+
+    const studentsList = this.students();
+    const map = this.draftGrades();
+    let updatedCount = 0;
+
+    lines.forEach((line, offset) => {
+      const targetStudentIdx = startStudentIndex + offset;
+      if (targetStudentIdx < studentsList.length) {
+        const student = studentsList[targetStudentIdx];
+        const valStr = line.split('\t')[0].trim();
+        this.processRawInput(student.id!, colCategory, valStr, map);
+        updatedCount++;
+      }
+    });
+
+    this.draftGrades.set(new Map(map));
+    this.saveToLocalStorage();
+    this.dialog.alert(`Pasted ${updatedCount} score(s) into ${colCategory}.`, 'Clipboard Paste', 'info');
+  }
+
+  private processRawInput(studentId: string, category: string, rawVal: string, map: Map<string, any>) {
+    let studentDraft = map.get(studentId);
+    if (!studentDraft) {
+      studentDraft = {};
+      map.set(studentId, studentDraft);
+    }
+    if (!studentDraft[category]) {
+      studentDraft[category] = { score: null };
+    }
+
+    const clean = rawVal.toUpperCase().trim();
+    if (clean === 'ABS' || clean === 'EX' || clean === 'INC') {
+      studentDraft[category].score = clean === 'ABS' ? 0 : null;
+      studentDraft[category].flag = clean;
+    } else if (clean === '' || isNaN(Number(clean))) {
+      studentDraft[category].score = null;
+      studentDraft[category].flag = undefined;
+    } else {
+      const num = Math.min(100, Math.max(0, parseFloat(clean)));
+      studentDraft[category].score = num;
+      studentDraft[category].flag = undefined;
+    }
+  }
+
+  // --- Score Value Handling ---
+  getDraftDisplayValue(studentId: string, category: string): string {
+    const studentDraft = this.draftGrades().get(studentId);
+    if (!studentDraft || !studentDraft[category]) return '';
+    const item = studentDraft[category];
+    if (item.flag) return item.flag;
+    return item.score !== null && item.score !== undefined ? String(item.score) : '';
+  }
+
+  updateDraftValue(studentId: string, category: string, rawValue: string) {
+    if (this.isLocked()) return;
+    const map = this.draftGrades();
+    this.processRawInput(studentId, category, rawValue, map);
+    this.draftGrades.set(new Map(map));
+    this.saveToLocalStorage();
+  }
+
+  getDraftFlag(studentId: string, category: string): string | undefined {
+    const studentDraft = this.draftGrades().get(studentId);
+    return studentDraft?.[category]?.flag;
+  }
+
+  // --- Calculation Methods ---
+  getTotalPercentage(studentId: string): string {
+    const studentDraft = this.draftGrades().get(studentId);
+    if (!studentDraft) return '—';
+
+    let total = 0;
+    let hasAnyScore = false;
+
+    this.configuredColumns().forEach(col => {
+      const draft = studentDraft[col.category];
+      if (draft) {
+        if (draft.score !== null && draft.score !== undefined) {
+          total += (draft.score * col.weight);
+          hasAnyScore = true;
+        } else if (draft.flag === 'ABS') {
+          hasAnyScore = true; // Absent is counted as 0
+        }
+      }
+    });
+
+    return hasAnyScore ? total.toFixed(1) + '%' : '—';
+  }
+
+  getGradeColor(studentId: string): string {
+    const totalStr = this.getTotalPercentage(studentId);
+    if (totalStr === '—') return 'text-text-muted';
+
+    const pct = parseFloat(totalStr);
+    if (pct >= 80) return 'text-emerald-500';
+    if (pct >= 60) return 'text-blue-500';
+    if (pct >= 40) return 'text-amber-500';
+    return 'text-rose-500';
+  }
+
+  // Multi-Scale Grade Calculations
+  getScaleBand(studentId: string): GradeScaleBand | null {
+    const totalStr = this.getTotalPercentage(studentId);
+    if (totalStr === '—') return null;
+    const pct = parseFloat(totalStr);
+    const scale = this.gradingScales[this.selectedScale()];
+    return scale.bands.find(b => pct >= b.min && pct <= b.max) || null;
+  }
+
+  getFormattedGrade(studentId: string): string {
+    const band = this.getScaleBand(studentId);
+    return band ? band.label : '—';
+  }
+
+  getGradeBadgeClass(studentId: string): string {
+    const band = this.getScaleBand(studentId);
+    return band ? band.badgeClass : 'bg-bg-tertiary text-text-muted border-border-primary';
+  }
+
+  // Ranking & Positions
+  studentRankings = computed(() => {
+    const scored = this.students()
+      .map(s => {
+        const pctStr = this.getTotalPercentage(s.id!);
+        const pct = pctStr === '—' ? -1 : parseFloat(pctStr);
+        return { studentId: s.id!, score: pct };
+      })
+      .filter(s => s.score >= 0)
+      .sort((a, b) => b.score - a.score);
+
+    const ranks = new Map<string, { rank: number; suffix: string; medal?: string }>();
+    scored.forEach((item, index) => {
+      const rank = index + 1;
+      let suffix = 'th';
+      if (rank === 1) suffix = 'st';
+      else if (rank === 2) suffix = 'nd';
+      else if (rank === 3) suffix = 'rd';
+      else if (rank % 10 === 1 && rank !== 11) suffix = 'st';
+      else if (rank % 10 === 2 && rank !== 12) suffix = 'nd';
+      else if (rank % 10 === 3 && rank !== 13) suffix = 'rd';
+
+      let medal: string | undefined;
+      if (rank === 1) medal = '🥇';
+      else if (rank === 2) medal = '🥈';
+      else if (rank === 3) medal = '🥉';
+
+      ranks.set(item.studentId, { rank, suffix, medal });
+    });
+
+    return ranks;
+  });
+
+  getStudentRank(studentId: string) {
+    return this.studentRankings().get(studentId);
+  }
+
+  isAtRisk(studentId: string): boolean {
+    const totalStr = this.getTotalPercentage(studentId);
+    if (totalStr === '—') return false;
+    return parseFloat(totalStr) < 40;
+  }
+
+  // Statistics
+  getAverageColor(avg: string): string {
+    if (avg === '—') return 'text-text-muted';
+    const n = parseFloat(avg);
+    if (n >= 80) return 'text-emerald-500';
+    if (n >= 60) return 'text-blue-500';
+    if (n >= 40) return 'text-amber-500';
+    return 'text-rose-500';
+  }
+
+  getClassAverage(): string {
+    const scored = this.students().filter(s => this.getTotalPercentage(s.id!) !== '—');
+    if (scored.length === 0) return '—';
+    const sum = scored.reduce((acc, s) => acc + parseFloat(this.getTotalPercentage(s.id!)), 0);
+    return (sum / scored.length).toFixed(1) + '%';
+  }
+
+  getPassRate(): string {
+    const scored = this.students().filter(s => this.getTotalPercentage(s.id!) !== '—');
+    if (scored.length === 0) return '—';
+    const passing = scored.filter(s => parseFloat(this.getTotalPercentage(s.id!)) >= 40).length;
+    return ((passing / scored.length) * 100).toFixed(0) + '%';
+  }
+
+  getTopScore(): string {
+    const scored = this.students().map(s => this.getTotalPercentage(s.id!)).filter(v => v !== '—').map(v => parseFloat(v));
+    if (scored.length === 0) return '—';
+    return Math.max(...scored).toFixed(1) + '%';
+  }
+
+  getGradedCount(): number {
+    return this.students().filter(s => this.getTotalPercentage(s.id!) !== '—').length;
+  }
+
+  getGradeDistribution() {
+    const scale = this.gradingScales[this.selectedScale()];
+    const bands = scale.bands.map(b => ({ ...b, count: 0 }));
+
+    this.students().forEach(s => {
+      const total = this.getTotalPercentage(s.id!);
+      if (total === '—') return;
+      const pct = parseFloat(total);
+      const band = bands.find(b => pct >= b.min && pct <= b.max);
+      if (band) band.count++;
+    });
+    return bands;
+  }
+
+  // Lock Toggle
+  toggleLock() {
+    if (!this.isHeadmasterOrAdmin()) {
+      this.dialog.alert('Only Administrators or Headmasters can lock or unlock grade submissions.', 'Permission Denied', 'warning');
+      return;
+    }
+    this.isLocked.update(v => !v);
+    this.gradeStatus.set(this.isLocked() ? 'LOCKED' : 'DRAFT');
+    this.dialog.alert(
+      this.isLocked() ? 'Grades for this class & subject have been LOCKED. Score inputs are now protected.' : 'Grades have been UNLOCKED for editing.',
+      this.isLocked() ? 'Grades Locked' : 'Grades Unlocked',
+      this.isLocked() ? 'warning' : 'info'
+    );
+  }
+
+  // Batch Tool (Fill / Curve)
+  openBatchTool(category: string, type: 'fill' | 'curve') {
+    if (this.isLocked()) return;
+    this.activeBatchColumn.set(category);
+    this.batchActionType.set(type);
+    this.batchValue.set(type === 'fill' ? 100 : 5);
+    this.isBatchModalOpen.set(true);
+  }
+
+  applyBatchTool() {
+    const cat = this.activeBatchColumn();
+    const type = this.batchActionType();
+    const val = this.batchValue();
+    const map = this.draftGrades();
+
+    this.students().forEach(s => {
+      const studentDraft = map.get(s.id!);
+      if (studentDraft) {
+        if (!studentDraft[cat]) studentDraft[cat] = { score: null };
+        if (type === 'fill') {
+          studentDraft[cat].score = Math.min(100, Math.max(0, val));
+          studentDraft[cat].flag = undefined;
+        } else if (type === 'curve') {
+          const current = studentDraft[cat].score ?? 0;
+          studentDraft[cat].score = Math.min(100, Math.max(0, current + val));
+        }
+      }
+    });
+
+    this.draftGrades.set(new Map(map));
+    this.saveToLocalStorage();
+    this.isBatchModalOpen.set(false);
+    this.dialog.alert(`Applied batch ${type} to ${cat} across all students.`, 'Batch Operation', 'success');
   }
 
   // Terminal Evaluation & Remarks Handlers
@@ -321,138 +796,13 @@ export class BulkGradingComponent implements OnInit {
     this.evalData.update(d => ({ ...d, head_teacher_remark: text }));
   }
 
-  getDraft(studentId: string, category: string) {
-    const studentDraft = this.draftGrades().get(studentId);
-    return studentDraft ? studentDraft[category] : { score: null };
-  }
-
-  updateDraft(studentId: string, category: string, value: any) {
-    const map = this.draftGrades();
-    const studentDraft = map.get(studentId);
-    if (studentDraft) {
-      if (!studentDraft[category]) studentDraft[category] = { score: null };
-      studentDraft[category].score = value === '' ? null : Number(value);
-      this.draftGrades.set(new Map(map));
-    }
-  }
-
-  getTotalPercentage(studentId: string): string {
-    const studentDraft = this.draftGrades().get(studentId);
-    if (!studentDraft) return '—';
-
-    let total = 0;
-    let hasAnyScore = false;
-
-    this.configuredColumns().forEach(col => {
-      const draft = studentDraft[col.category];
-      if (draft && draft.score !== null) {
-        // weight is normalized to decimal (0.2 = 20%), score is out of 100
-        total += (draft.score * col.weight);
-        hasAnyScore = true;
-      }
-    });
-
-    return hasAnyScore ? total.toFixed(1) + '%' : '—';
-  }
-
-  getGradeColor(studentId: string): string {
-    const totalStr = this.getTotalPercentage(studentId);
-    if (totalStr === '—') return 'text-text-muted';
-
-    const pct = parseFloat(totalStr);
-    if (pct >= 80) return 'text-emerald-500';
-    if (pct >= 60) return 'text-blue-500';
-    if (pct >= 40) return 'text-amber-500';
-    return 'text-rose-500';
-  }
-
-  getLetterGrade(studentId: string): string {
-    const totalStr = this.getTotalPercentage(studentId);
-    if (totalStr === '—') return '—';
-    const pct = parseFloat(totalStr);
-    if (pct >= 80) return 'A';
-    if (pct >= 70) return 'B';
-    if (pct >= 60) return 'C';
-    if (pct >= 50) return 'D';
-    if (pct >= 40) return 'E';
-    return 'F';
-  }
-
-  getLetterGradeBadgeClass(studentId: string): string {
-    const letter = this.getLetterGrade(studentId);
-    const map: Record<string, string> = {
-      'A': 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
-      'B': 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-      'C': 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-      'D': 'bg-amber-500/10 text-amber-500 border-amber-500/20',
-      'E': 'bg-orange-500/10 text-orange-500 border-orange-500/20',
-      'F': 'bg-rose-500/10 text-rose-500 border-rose-500/20',
-    };
-    return map[letter] || 'bg-bg-tertiary text-text-muted border-border-primary';
-  }
-
-  getAverageColor(avg: string): string {
-    if (avg === '—') return 'text-text-muted';
-    const n = parseFloat(avg);
-    if (n >= 80) return 'text-emerald-500';
-    if (n >= 60) return 'text-blue-500';
-    if (n >= 40) return 'text-amber-500';
-    return 'text-rose-500';
-  }
-
-  getClassAverage(): string {
-    const scored = this.students().filter(s => this.getTotalPercentage(s.id!) !== '—');
-    if (scored.length === 0) return '—';
-    const sum = scored.reduce((acc, s) => acc + parseFloat(this.getTotalPercentage(s.id!)), 0);
-    return (sum / scored.length).toFixed(1) + '%';
-  }
-
-  getPassRate(): string {
-    const scored = this.students().filter(s => this.getTotalPercentage(s.id!) !== '—');
-    if (scored.length === 0) return '—';
-    const passing = scored.filter(s => parseFloat(this.getTotalPercentage(s.id!)) >= 40).length;
-    return ((passing / scored.length) * 100).toFixed(0) + '%';
-  }
-
-  getTopScore(): string {
-    const scored = this.students().map(s => this.getTotalPercentage(s.id!)).filter(v => v !== '—').map(v => parseFloat(v));
-    if (scored.length === 0) return '—';
-    return Math.max(...scored).toFixed(1) + '%';
-  }
-
-  getGradedCount(): number {
-    return this.students().filter(s => this.getTotalPercentage(s.id!) !== '—').length;
-  }
-
-  getGradeDistribution() {
-    const bands = [
-      { label: 'A', min: 80, max: 100, color: 'bg-emerald-500', textColor: 'text-emerald-500', count: 0 },
-      { label: 'B', min: 70, max: 79, color: 'bg-blue-500', textColor: 'text-blue-500', count: 0 },
-      { label: 'C', min: 60, max: 69, color: 'bg-blue-500', textColor: 'text-blue-500', count: 0 },
-      { label: 'D', min: 50, max: 59, color: 'bg-amber-500', textColor: 'text-amber-500', count: 0 },
-      { label: 'E', min: 40, max: 49, color: 'bg-orange-500', textColor: 'text-orange-500', count: 0 },
-      { label: 'F', min: 0, max: 39, color: 'bg-rose-500', textColor: 'text-rose-500', count: 0 },
-    ];
-    this.students().forEach(s => {
-      const total = this.getTotalPercentage(s.id!);
-      if (total === '—') return;
-      const pct = parseFloat(total);
-      const band = bands.find(b => pct >= b.min && pct <= b.max);
-      if (band) band.count++;
-    });
-    return bands;
-  }
-
-  readonly gradeKey = [
-    { label: 'A', range: '80–100%', badgeClass: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
-    { label: 'B', range: '70–79%', badgeClass: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
-    { label: 'C', range: '60–69%', badgeClass: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
-    { label: 'D', range: '50–59%', badgeClass: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
-    { label: 'E', range: '40–49%', badgeClass: 'bg-orange-500/10 text-orange-500 border-orange-500/20' },
-    { label: 'F', range: '0–39%', badgeClass: 'bg-rose-500/10 text-rose-500 border-rose-500/20' },
-  ];
-
+  // --- Save to Server ---
   saveGrades() {
+    if (this.isLocked()) {
+      this.dialog.alert('These grades are currently locked. Unlock first to make modifications.', 'Locked', 'warning').subscribe();
+      return;
+    }
+
     if (!this.selectedClassId() || !this.selectedSubjectId()) {
       this.dialog.alert('Please select a class and a subject.', 'Validation Error', 'error').subscribe();
       return;
@@ -469,17 +819,22 @@ export class BulkGradingComponent implements OnInit {
         if (studentDraft) {
           this.configuredColumns().forEach(col => {
             const draft = studentDraft[col.category];
-            if (draft && draft.score !== null) {
+            if (draft && (draft.score !== null || draft.flag)) {
+              let remarkText = 'Verified & Saved via Admin Console';
+              if (draft.flag) {
+                remarkText = `[${draft.flag}] ${remarkText}`;
+              }
+
               gradesToSave.push({
                 id: draft.id,
                 student_id: student.id,
                 class_id: this.selectedClassId(),
                 subject: resolvedSubject,
                 category: col.category,
-                score: draft.score,
+                score: draft.score ?? 0,
                 max_score: 100,
                 term: this.selectedTerm(),
-                remarks: 'Verified & Saved via Admin Console'
+                remarks: remarkText
               });
             }
           });
@@ -496,7 +851,10 @@ export class BulkGradingComponent implements OnInit {
     this.gradeService.bulkCreateGrades(gradesToSave).subscribe({
       next: (res) => {
         this.isSaving.set(false);
-        this.dialog.alert(`Successfully saved ${res.imported} grades.`, 'Success', 'success').subscribe();
+        this.hasUnsavedChanges.set(false);
+        localStorage.removeItem(this.getStorageKey());
+        this.hasRecoverableDraft.set(false);
+        this.dialog.alert(`Successfully saved ${res.imported} grades to server.`, 'Success', 'success').subscribe();
         this.loadExistingGrades();
       },
       error: () => {
@@ -527,7 +885,6 @@ export class BulkGradingComponent implements OnInit {
 
     this.gradeService.upsertGradeWeight(newWeight).subscribe({
       next: (res) => {
-        // Normalize the returned weight to decimal (API may return 20 for 20%)
         const normalized = { ...res, weight: res.weight > 1 ? res.weight / 100 : res.weight };
         this.configuredColumns.update(cols => [...cols, normalized]);
         this.newColumnCategory.set('');
@@ -551,7 +908,6 @@ export class BulkGradingComponent implements OnInit {
 
   getTotalWeightPercentage(): number {
     return Math.round(this.configuredColumns().reduce((sum, col) => {
-      // weight is always stored as decimal (0.2 = 20%) after normalization
       const pct = col.weight > 1 ? col.weight : col.weight * 100;
       return sum + pct;
     }, 0));

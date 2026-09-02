@@ -439,6 +439,82 @@ export class TeacherPortalComponent implements OnInit {
         }
     }
 
+    handleKeyDown(event: KeyboardEvent, studentIndex: number, colIndex: number) {
+        if (this.isTermLocked() || !this.canGrade()) return;
+        const numStudents = this.students().length;
+        const numCols = this.gradeColumns().length;
+
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            const nextRow = event.shiftKey ? studentIndex - 1 : studentIndex + 1;
+            if (nextRow >= 0 && nextRow < numStudents) {
+                this.focusCell(nextRow, colIndex);
+            }
+        } else if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            if (studentIndex + 1 < numStudents) {
+                this.focusCell(studentIndex + 1, colIndex);
+            }
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            if (studentIndex - 1 >= 0) {
+                this.focusCell(studentIndex - 1, colIndex);
+            }
+        } else if (event.key === 'ArrowRight' && (event.target as HTMLInputElement).selectionEnd === (event.target as HTMLInputElement).value.length) {
+            if (colIndex + 1 < numCols) {
+                this.focusCell(studentIndex, colIndex + 1);
+            }
+        } else if (event.key === 'ArrowLeft' && (event.target as HTMLInputElement).selectionStart === 0) {
+            if (colIndex - 1 >= 0) {
+                this.focusCell(studentIndex, colIndex - 1);
+            }
+        }
+    }
+
+    focusCell(studentIndex: number, colIndex: number) {
+        setTimeout(() => {
+            const id = `teacher-grade-input-${studentIndex}-${colIndex}`;
+            const el = document.getElementById(id) as HTMLInputElement | null;
+            if (el) {
+                el.focus();
+                el.select();
+            }
+        }, 10);
+    }
+
+    handlePaste(event: ClipboardEvent, startStudentIndex: number, colIndex: number) {
+        if (this.isTermLocked() || !this.canGrade()) return;
+        event.preventDefault();
+        const clipboardData = event.clipboardData?.getData('text') || '';
+        if (!clipboardData) return;
+
+        const lines = clipboardData.split(/\r\n|\n|\r/).filter(l => l.trim() !== '');
+        if (lines.length === 0) return;
+
+        const studentsList = this.students();
+        const grid = { ...this.gradeGrid() };
+        let updatedCount = 0;
+
+        lines.forEach((line, offset) => {
+            const targetStudentIdx = startStudentIndex + offset;
+            if (targetStudentIdx < studentsList.length) {
+                const student = studentsList[targetStudentIdx];
+                const valStr = line.split('\t')[0].trim();
+                const score = Math.max(0, Math.min(100, parseFloat(valStr) || 0));
+                if (!grid[student.id]) grid[student.id] = new Array(this.gradeColumns().length).fill(0);
+                grid[student.id][colIndex] = score;
+                updatedCount++;
+            }
+        });
+
+        this.gradeGrid.set(grid);
+        this.runCalculations();
+        if (this.canGrade() && !this.isTermLocked()) {
+            this.autoSaveStatus.set('saving');
+            this.autoSaveTrigger$.next();
+        }
+    }
+
     onScoreBlur() {
         // Immediate save on blur if changes are pending
         if (this.canGrade() && !this.isTermLocked() && this.autoSaveStatus() === 'saving') {
