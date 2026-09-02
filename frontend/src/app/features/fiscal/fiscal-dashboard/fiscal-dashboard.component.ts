@@ -33,7 +33,7 @@ export class FiscalDashboardComponent implements OnInit {
     recommendations = signal<FinancialRecommendation[]>([]);
     defaulters = signal<FiscalRecord[]>([]);
     defaultersCount = signal(0);
-    activeTab = signal<'records' | 'defaulters'>('records');
+    activeTab = signal<'classes' | 'roster' | 'intelligence'>('classes');
     feeTab = signal<'all' | 'term' | 'daily'>('all');
     statusFilter = signal<'all' | 'PENDING' | 'OVERDUE' | 'PAID' | 'partial'>('all');
     sendingDefaultersSMS = signal(false);

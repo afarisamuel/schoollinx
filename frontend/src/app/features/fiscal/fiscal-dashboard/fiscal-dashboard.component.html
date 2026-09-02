@@ -372,13 +372,81 @@
           }
         </div>
       </div>
+
+    <!-- Navigation Tabs for Class Overview, Fiscal Roster, and Intelligence -->
+    <div class="flex items-center gap-2 p-1.5 bg-bg-secondary/80 backdrop-blur-xl border border-border-primary/60 rounded-2xl w-full sm:w-fit overflow-x-auto custom-scrollbar shadow-sm">
+      <button 
+        type="button"
+        (click)="activeTab.set('classes')"
+        [class.bg-blue-600]="activeTab() === 'classes'"
+        [class.text-white]="activeTab() === 'classes'"
+        [class.shadow-md]="activeTab() === 'classes'"
+        [class.text-text-muted]="activeTab() !== 'classes'"
+        class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 hover:text-text-primary whitespace-nowrap cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+        <span>Class Financial Overview</span>
+      </button>
+
+      <button 
+        type="button"
+        (click)="activeTab.set('roster')"
+        [class.bg-blue-600]="activeTab() === 'roster'"
+        [class.text-white]="activeTab() === 'roster'"
+        [class.shadow-md]="activeTab() === 'roster'"
+        [class.text-text-muted]="activeTab() !== 'roster'"
+        class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 hover:text-text-primary whitespace-nowrap cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+        </svg>
+        <span>Fiscal Roster</span>
+        @if (records().length > 0) {
+        <span 
+          class="px-2 py-0.5 rounded-full text-[10px] font-black"
+          [class.bg-white/20]="activeTab() === 'roster'"
+          [class.text-white]="activeTab() === 'roster'"
+          [class.bg-bg-tertiary]="activeTab() !== 'roster'"
+          [class.text-text-muted]="activeTab() !== 'roster'">
+          {{ records().length }}
+        </span>
+        }
+      </button>
+
+      <button 
+        type="button"
+        (click)="activeTab.set('intelligence')"
+        [class.bg-blue-600]="activeTab() === 'intelligence'"
+        [class.text-white]="activeTab() === 'intelligence'"
+        [class.shadow-md]="activeTab() === 'intelligence'"
+        [class.text-text-muted]="activeTab() !== 'intelligence'"
+        class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 hover:text-text-primary whitespace-nowrap cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="m12 14 4-4" />
+          <path d="M3.34 19a10 10 0 1 1 17.32 0" />
+        </svg>
+        <span>System Intelligence &amp; Recommendations</span>
+        @if (recommendations().length > 0) {
+        <span 
+          class="px-2 py-0.5 rounded-full text-[10px] font-black"
+          [class.bg-white/20]="activeTab() === 'intelligence'"
+          [class.text-white]="activeTab() === 'intelligence'"
+          [class.bg-blue-500/20]="activeTab() !== 'intelligence'"
+          [class.text-blue-400]="activeTab() !== 'intelligence'">
+          {{ recommendations().length }}
+        </span>
+        }
+      </button>
     </div>
 
-
-
-    <!-- Class-Level Statistics -->
+    <!-- TAB 1: Class-Level Statistics -->
+    @if (activeTab() === 'classes') {
     <div
-      class="mt-8 mb-8 relative p-6 bg-bg-secondary border border-border-primary rounded-3xl shadow-xl overflow-hidden">
+      class="relative p-6 bg-bg-secondary border border-border-primary rounded-3xl shadow-xl overflow-hidden animate-fade-in">
       <div class="absolute inset-0 bg-blue-500/5 opacity-50"></div>
       <div class="relative z-10">
         <div class="flex items-center gap-3 mb-6">
@@ -392,7 +460,10 @@
               <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
           </div>
-          <h2 class="text-lg font-black text-text-primary">Class Financial Overview</h2>
+          <div>
+            <h2 class="text-lg font-black text-text-primary">Class Financial Overview</h2>
+            <p class="text-xs text-text-secondary">Class-by-class fee revenue collection breakdown</p>
+          </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -455,60 +526,112 @@
         </div>
       </div>
     </div>
+    }
 
-
-    <!-- AI Financial Insights Engine Link -->
-    <div
-      class="relative p-6 md:p-8 overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/30 bg-bg-secondary border border-blue-500/20 hover:border-blue-500/40 rounded-3xl group flex items-center justify-between shadow-[0_0_15px_rgba(37,99,235,0.1)]">
-      <!-- Animated glow background -->
+    <!-- TAB 2: System Intelligence & Recommendations -->
+    @if (activeTab() === 'intelligence') {
+    <div class="flex flex-col gap-6 animate-fade-in">
+      <!-- AI Financial Insights Engine Banner -->
       <div
-        class="absolute inset-0 bg-blue-500/10 opacity-50 group-hover:opacity-100 transition-opacity duration-700 rounded-3xl">
-      </div>
-      <!-- Decorative orbs -->
-      <div
-        class="absolute -right-20 -top-20 w-48 h-48 bg-blue-500/20 rounded-full blur-[60px] group-hover:bg-blue-500/30 transition-all duration-700 pointer-events-none animate-pulse">
-      </div>
-      <div
-        class="absolute -left-10 -bottom-10 w-32 h-32 bg-blue-500/20 rounded-full blur-[40px] pointer-events-none animate-pulse"
-        style="animation-delay: 1s;"></div>
-
-      <div class="flex items-center gap-5 relative z-10">
+        class="relative p-6 md:p-8 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/30 bg-bg-secondary border border-blue-500/20 rounded-3xl group flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-[0_0_15px_rgba(37,99,235,0.1)]">
+        <!-- Animated glow background -->
         <div
-          class="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-blue-500/20 border border-blue-500/30 text-blue-400 group-hover:scale-110 group-hover:shadow-[0_0_25px_rgba(37,99,235,0.4)] transition-all duration-500 relative">
-          <div class="absolute inset-0 rounded-2xl border border-blue-400/50 animate-ping opacity-20"></div>
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2">
-            <path d="m12 14 4-4" />
-            <path d="M3.34 19a10 10 0 1 1 17.32 0" />
+          class="absolute inset-0 bg-blue-500/10 opacity-50 group-hover:opacity-100 transition-opacity duration-700 rounded-3xl">
+        </div>
+        <!-- Decorative orbs -->
+        <div
+          class="absolute -right-20 -top-20 w-48 h-48 bg-blue-500/20 rounded-full blur-[60px] group-hover:bg-blue-500/30 transition-all duration-700 pointer-events-none animate-pulse">
+        </div>
+        <div
+          class="absolute -left-10 -bottom-10 w-32 h-32 bg-blue-500/20 rounded-full blur-[40px] pointer-events-none animate-pulse"
+          style="animation-delay: 1s;"></div>
+
+        <div class="flex items-center gap-5 relative z-10">
+          <div
+            class="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 bg-blue-500/20 border border-blue-500/30 text-blue-400 group-hover:scale-110 group-hover:shadow-[0_0_25px_rgba(37,99,235,0.4)] transition-all duration-500 relative">
+            <div class="absolute inset-0 rounded-2xl border border-blue-400/50 animate-ping opacity-20"></div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <path d="m12 14 4-4" />
+              <path d="M3.34 19a10 10 0 1 1 17.32 0" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span
+                class="text-[9px] font-black uppercase tracking-widest text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full">AI
+                Powered</span>
+            </div>
+            <h3 class="text-lg font-black text-text-primary tracking-tight">
+              System Intelligence &amp; Recommendations
+            </h3>
+            <p class="text-sm font-medium text-text-secondary mt-0.5">
+              Automated institutional financial insights and proactive revenue optimizations
+            </p>
+          </div>
+        </div>
+
+        <a routerLink="/fiscal/intelligence"
+          class="relative z-10 flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all duration-300 border border-blue-500/30 shrink-0">
+          View Full Intelligence
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5">
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+        </a>
+      </div>
+
+      <!-- Recommendation Cards Grid -->
+      @if (recommendations().length > 0) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (rec of recommendations(); track rec.title) {
+        <div
+          class="p-6 rounded-3xl backdrop-blur-xl border bg-bg-secondary transition-all hover:-translate-y-1 hover:shadow-xl relative overflow-hidden group"
+          [ngClass]="{
+            'border-rose-500/30 hover:border-rose-500/50 shadow-rose-500/5': rec.severity === 'CRITICAL',
+            'border-blue-500/30 hover:border-blue-500/50 shadow-blue-500/5': rec.severity === 'HIGH',
+            'border-amber-500/30 hover:border-amber-500/50 shadow-amber-500/5': rec.severity === 'MEDIUM',
+            'border-emerald-500/30 hover:border-emerald-500/50 shadow-emerald-500/5': rec.severity === 'LOW'
+          }">
+          <div class="flex items-center gap-2 mb-4">
+            <span
+              class="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border"
+              [ngClass]="{
+                'bg-rose-500/10 text-rose-400 border-rose-500/20': rec.severity === 'CRITICAL',
+                'bg-blue-500/10 text-blue-400 border-blue-500/20': rec.severity === 'HIGH',
+                'bg-amber-500/10 text-amber-400 border-amber-500/20': rec.severity === 'MEDIUM',
+                'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': rec.severity === 'LOW'
+              }">
+              {{ rec.severity }} {{ rec.type }}
+            </span>
+          </div>
+          <h4 class="text-sm font-black text-text-primary mb-2">{{ rec.title }}</h4>
+          <p class="text-xs text-text-secondary mb-4 leading-relaxed">{{ rec.description }}</p>
+
+          <div class="pt-4 border-t border-border-primary/50">
+            <p class="text-[9px] font-black tracking-widest text-blue-400 uppercase">Suggested Action:</p>
+            <p class="text-xs text-text-primary mt-1.5 font-medium bg-bg-tertiary p-2.5 rounded-xl border border-border-primary/40">{{ rec.action }}</p>
+          </div>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="p-12 text-center bg-bg-secondary border border-border-primary rounded-3xl flex flex-col items-center gap-3">
+        <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12" />
           </svg>
         </div>
-        <div>
-          <div class="flex items-center gap-2 mb-1">
-            <span
-              class="text-[9px] font-black uppercase tracking-widest text-blue-500 text-blue-400/10 border border-blue-500/20 px-2 py-0.5 rounded-full">AI
-              Powered</span>
-          </div>
-          <h3 class="text-lg font-black text-text-primary tracking-tight">
-            System Intelligence &amp; Recommendations
-          </h3>
-          <p class="text-sm font-medium text-text-secondary mt-0.5">
-            AI-driven financial insights and proactive recommendations
-          </p>
-        </div>
+        <h4 class="text-sm font-bold text-text-primary">All Financial Systems Healthy</h4>
+        <p class="text-xs text-text-secondary max-w-md">No anomalies or critical recommendations detected. Fee collection and ledger records are operating normally.</p>
       </div>
-
-      <a routerLink="/fiscal/intelligence"
-        class="relative z-10 flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all duration-300 border border-blue-500/30 shrink-0">
-        View Insights
-        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2.5">
-          <path d="m9 18 6-6-6-6" />
-        </svg>
-      </a>
+      }
     </div>
+    }
 
-    <!-- Master Financial Roster -->
-    <div class="bg-bg-secondary border border-border-primary rounded-[2.5rem] overflow-hidden relative shadow-premium">
+    <!-- TAB 3: Master Financial Roster -->
+    @if (activeTab() === 'roster') {
+    <div class="bg-bg-secondary border border-border-primary rounded-[2.5rem] overflow-hidden relative shadow-premium animate-fade-in">
       <div class="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none">
       </div>
 
@@ -585,7 +708,7 @@
         </div>
 
         <!-- Status Filter Chips -->
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap gap-2 mt-4">
           <!-- All -->
           <button (click)="statusFilter.set('all'); pagination.update(p => ({...p, currentPage: 1}))"
             class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200 border"
@@ -750,50 +873,55 @@
                     <div class="flex-1 h-1 rounded-full bg-border-primary">
                       <div class="h-full rounded-full transition-all duration-500"
                         [style.width.%]="(record.amount_paid / record.amount) * 100"
-                        [class]="record.amount_paid >= record.amount ? 'bg-emerald-500' : 'bg-blue-500'">
+                        [class]="record.amount_paid >= record.amount ? 'bg-emerald-500' : 'bg-blue-600'">
                       </div>
                     </div>
-                    <span class="text-[9px] font-black text-text-muted">{{ (record.amount_paid / record.amount * 100) |
-                      number:'1.0-0' }}%</span>
+                    <span class="text-[9px] font-black text-emerald-500 shrink-0">
+                      {{ (record.amount_paid / record.amount) * 100 | number:'1.0-0' }}%
+                    </span>
                   </div>
-                  <span class="text-[9px] text-text-muted">Total: GH₵{{ record.amount | number:'1.2-2' }} | Paid: GH₵{{
-                    record.amount_paid | number:'1.2-2' }}</span>
                   }
                 </div>
               </td>
               <!-- Due Date -->
-              <td class="px-6 py-4" data-label="Due">
-                <div class="flex flex-col gap-0.5">
-                  <span class="text-xs font-bold text-text-primary">{{ record.due_date | date: 'MMM d, y' }}</span>
-                  @if (getDaysLabel(record); as dl) {
-                  <span class="text-[10px] font-black" [ngClass]="dl.cls">{{ dl.text }}</span>
-                  }
+              <td class="px-6 py-4 text-xs font-medium text-text-secondary whitespace-nowrap" data-label="Due">
+                <div class="flex items-center gap-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" class="text-text-muted">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                  <span>{{ record.due_date | date:'mediumDate' }}</span>
                 </div>
               </td>
-              <!-- Status -->
+              <!-- Status Badge -->
               <td class="px-6 py-4" data-label="Status">
                 <span
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
                   [ngClass]="{
-                      'bg-amber-500/10 border-amber-500/20 text-amber-500': record.status === 'PENDING',
-                      'bg-rose-500/10 border-rose-500/20 text-rose-500': record.status === 'OVERDUE',
-                      'bg-emerald-500/10 border-emerald-500/20 text-emerald-500': record.status === 'PAID',
-                    }">
+                    'bg-emerald-500/10 text-emerald-500 border-emerald-500/20': record.status === 'PAID',
+                    'bg-amber-500/10 text-amber-500 border-amber-500/20': record.status === 'PENDING',
+                    'bg-rose-500/10 text-rose-500 border-rose-500/20': record.status === 'OVERDUE',
+                    'bg-blue-500/10 text-blue-500 border-blue-500/20': record.status === 'PARTIAL'
+                  }">
                   <span class="w-1.5 h-1.5 rounded-full" [ngClass]="{
-                        'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)] animate-pulse': record.status === 'PENDING',
-                        'bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.8)] animate-pulse': record.status === 'OVERDUE',
-                        'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]': record.status === 'PAID',
-                      }"></span>
+                    'bg-emerald-500': record.status === 'PAID',
+                    'bg-amber-500': record.status === 'PENDING',
+                    'bg-rose-500': record.status === 'OVERDUE',
+                    'bg-blue-500': record.status === 'PARTIAL'
+                  }"></span>
                   {{ record.status }}
                 </span>
               </td>
-              <td class="px-6 py-4" data-label="Actions">
-                <div
-                  class="flex items-center justify-end gap-2 opacity-100 md:opacity-60 group-hover/row:opacity-100 transition-opacity duration-300">
+              <!-- Actions -->
+              <td class="px-6 py-4 text-right" data-label="Actions">
+                <div class="flex items-center justify-end gap-1.5">
                   @if (record.status !== 'PAID') {
                   <button
-                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-bg-tertiary border border-border-primary text-blue-500 hover:bg-blue-500/10 hover:border-blue-500/30 hover:scale-110 transition-all duration-300 shadow-sm"
-                    (click)="payOnline(record)" title="Pay Online via Paystack">
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 hover:bg-blue-500 hover:text-white hover:scale-110 transition-all duration-300 shadow-sm"
+                    (click)="openPaymentModal(record)" title="Pay Online (Paystack)">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                       stroke="currentColor" stroke-width="2.5">
                       <rect x="2" y="5" width="20" height="14" rx="2" />
@@ -801,57 +929,14 @@
                     </svg>
                   </button>
                   <button
-                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-bg-tertiary border border-border-primary text-emerald-500 hover:bg-emerald-500/10 hover:border-emerald-500/30 hover:scale-110 transition-all duration-300 shadow-sm"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500 hover:text-white hover:scale-110 transition-all duration-300 shadow-sm"
                     (click)="payRecord(record)" title="Manual Settlement">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                       stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M20 6L9 17l-5-5" />
                     </svg>
                   </button>
-                  <button
-                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-bg-tertiary border border-border-primary text-amber-500 hover:bg-amber-500/10 hover:border-amber-500/30 hover:scale-110 transition-all duration-300 shadow-sm"
-                    (click)="openPartialPaymentModal(record)" title="Partial Payment">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                    </svg>
-                  </button>
                   }
-                  <button
-                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-bg-tertiary border border-border-primary text-blue-500 hover:bg-blue-500/10 hover:border-blue-500/30 hover:scale-110 transition-all duration-300 shadow-sm"
-                    (click)="openTopUpModal(record.student_id)" title="Top-Up Student Wallet">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <rect x="2" y="5" width="20" height="14" rx="2" />
-                      <line x1="2" x2="22" y1="10" y2="10" />
-                    </svg>
-                  </button>
-                  <button
-                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-bg-tertiary border border-border-primary hover:scale-110 transition-all duration-300 shadow-sm"
-                    [ngClass]="(record.amount_paid ?? 0) > 0
-                        ? 'text-emerald-500 hover:bg-emerald-500/10 hover:border-emerald-500/30'
-                        : 'text-text-muted opacity-40 cursor-not-allowed'" (click)="printReceipt(record)"
-                    [title]="(record.amount_paid ?? 0) > 0 ? 'Print Payment Receipt' : 'No receipt — no payment made yet'">
-                    @if ((record.amount_paid ?? 0) > 0) {
-                    <!-- receipt icon -->
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z" />
-                      <path d="M14 8H8" />
-                      <path d="M16 12H8" />
-                      <path d="M13 16H8" />
-                    </svg>
-                    } @else {
-                    <!-- blocked icon -->
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z" />
-                      <path d="M14 8H8" />
-                      <path d="M16 12H8" />
-                      <path d="M13 16H8" />
-                    </svg>
-                    }
-                  </button>
                   <button
                     class="w-9 h-9 flex items-center justify-center rounded-xl bg-bg-tertiary border border-border-primary text-text-muted hover:text-text-primary hover:bg-bg-tertiary hover:border-border-primary/80 hover:scale-110 transition-all duration-300 shadow-sm"
                     (click)="viewAudit(record)" title="View Audit">
@@ -916,11 +1001,10 @@
               <path d="m9 18 6-6-6-6" />
             </svg>
           </button>
-        </div>
       </div>
     </div>
+    }
   </div>
-
 </div>
 
 <!-- Top-Up Wallet Modal -->
