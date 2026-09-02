@@ -45,6 +45,8 @@ type User struct {
 	ResetTokenExpiresAt *time.Time                               `json:"-"`
 	TwoFactorEnabled    bool                                     `json:"two_factor_enabled" gorm:"default:false"`
 	TwoFactorSecret     *encryption.DeterministicEncryptedString `json:"-"`
+	OTPCode             *string                                  `json:"-" gorm:"index"`
+	OTPExpiresAt        *time.Time                               `json:"-"`
 	CustomPermissions   pq.StringArray                           `json:"custom_permissions" gorm:"type:text[]"`
 	CreatedAt           time.Time                                `json:"created_at"`
 	UpdatedAt           time.Time                                `json:"updated_at"`

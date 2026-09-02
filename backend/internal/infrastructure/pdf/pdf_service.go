@@ -534,8 +534,8 @@ func (s *PDFService) GeneratePaymentReceipt(w io.Writer, tenantName string, tena
 
 	// Student full name
 	studentName := "N/A"
-	enrollNum := "—"
-	className := "—"
+	enrollNum := "N/A"
+	className := "N/A"
 	if record.Student != nil {
 		studentName = fmt.Sprintf("%s %s", string(record.Student.FirstName), string(record.Student.LastName))
 		if record.Student.EnrollmentNum != "" {
@@ -560,7 +560,7 @@ func (s *PDFService) GeneratePaymentReceipt(w io.Writer, tenantName string, tena
 	// Row 2: Category | Class
 	termLabel := record.TermName
 	if termLabel == "" {
-		termLabel = "—"
+		termLabel = "N/A"
 	}
 	pdf.SetXY(20, 76)
 	pdf.CellFormat(80, 5, "Category:  "+feeCategoryLabel(record.Category), "", 0, "L", false, 0, "")
@@ -570,7 +570,7 @@ func (s *PDFService) GeneratePaymentReceipt(w io.Writer, tenantName string, tena
 	// Row 3: Term | Description
 	desc := record.Description
 	if desc == "" {
-		desc = "—"
+		desc = "N/A"
 	}
 	pdf.SetXY(20, 84)
 	pdf.CellFormat(80, 5, "Term:  "+termLabel, "", 0, "L", false, 0, "")
@@ -589,11 +589,11 @@ func (s *PDFService) GeneratePaymentReceipt(w io.Writer, tenantName string, tena
 		balanceDue = 0
 	}
 
-	paidAtStr := "—"
+	paidAtStr := "Pending"
 	if record.PaidAt != nil {
 		paidAtStr = record.PaidAt.Format("02 Jan 2006  15:04")
 	}
-	dueDateStr := "—"
+	dueDateStr := "N/A"
 	if !record.DueDate.IsZero() {
 		dueDateStr = record.DueDate.Format("02 Jan 2006")
 	}
@@ -652,7 +652,7 @@ func (s *PDFService) GeneratePaymentReceipt(w io.Writer, tenantName string, tena
 		pdf.SetTextColor(51, 65, 85)
 		for _, b := range record.Breakdown {
 			pdf.SetXY(20, y)
-			pdf.CellFormat(100, 6, "• "+feeCategoryLabel(b.Category), "", 0, "L", false, 0, "")
+			pdf.CellFormat(100, 6, "- "+feeCategoryLabel(b.Category), "", 0, "L", false, 0, "")
 			pdf.SetXY(120, y)
 			pdf.CellFormat(75, 6, fmt.Sprintf("GHS %.2f", b.Amount), "", 0, "R", false, 0, "")
 			y += 7
@@ -804,7 +804,7 @@ func (s *PDFService) GenerateExecutiveReportPDF(stats ExecutiveStats) ([]byte, e
 	pdf.SetY(-20)
 	pdf.SetFont("Arial", "I", 8)
 	pdf.SetTextColor(148, 163, 184)
-	pdf.CellFormat(190, 6, "Confidential — School Administration Use Only | "+time.Now().Format("2006-01-02"), "", 0, "C", false, 0, "")
+	pdf.CellFormat(190, 6, "Confidential - School Administration Use Only | "+time.Now().Format("2006-01-02"), "", 0, "C", false, 0, "")
 
 	var buf []byte
 	var writer bytesWriter

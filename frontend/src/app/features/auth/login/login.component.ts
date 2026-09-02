@@ -1,4 +1,4 @@
-import { Component, Inject, PLATFORM_ID, signal } from '@angular/core';
+import { Component, Inject, PLATFORM_ID, signal, OnDestroy } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -12,15 +12,25 @@ import { AuthService } from '../../../core/infrastructure/auth/auth.service';
     templateUrl: './login.component.html',
     styleUrl: './login.component.css'
 })
-export class LoginComponent {
+export class LoginComponent implements OnDestroy {
     loginForm: FormGroup;
     twoFaForm: FormGroup;
+    phoneForm: FormGroup;
+    otpForm: FormGroup;
 
     readonly loading     = signal(false);
     readonly error       = signal('');
+    readonly successMsg  = signal('');
     readonly tenantName  = signal('School Portal');
     readonly requires2FA = signal(false);
     readonly pendingToken = signal('');
+
+    // Phone OTP login state
+    readonly loginMode   = signal<'password' | 'otp'>('password');
+    readonly otpStep     = signal<'phone' | 'code'>('phone');
+    readonly maskedPhone = signal('');
+    readonly countdown   = signal(0);
+    private timerHandle: any = null;
 
     constructor(
         private fb: FormBuilder,
@@ -39,13 +49,32 @@ export class LoginComponent {
         this.twoFaForm = this.fb.group({
             token: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]]
         });
+        this.phoneForm = this.fb.group({
+            phoneNumber: ['', [Validators.required, Validators.minLength(9)]]
+        });
+        this.otpForm = this.fb.group({
+            otp: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]]
+        });
+    }
+
+    ngOnDestroy() {
+        this.clearTimer();
+    }
+
+    switchMode(mode: 'password' | 'otp') {
+        this.loginMode.set(mode);
+        this.error.set('');
+        this.successMsg.set('');
+        if (mode === 'password') {
+            this.otpStep.set('phone');
+            this.clearTimer();
+        }
     }
 
     private getSubdomain(): string {
         const hostname = window.location.hostname;
         const parts = hostname.split('.');
 
-        // 1. Try URL subdomain (e.g. school.schoollinx.com or school.localhost)
         if (parts.length >= 2) {
             const sub = parts[0];
             if (sub !== 'www' && sub !== 'localhost' && sub !== '127') {
@@ -53,8 +82,6 @@ export class LoginComponent {
             }
         }
 
-        // 2. Fall back to localStorage (matches the tenant interceptor's fallback,
-        //    used during local dev on plain localhost)
         return localStorage.getItem('tenant_subdomain') || '';
     }
 
@@ -65,18 +92,14 @@ export class LoginComponent {
             return;
         }
 
-        // Optimistically show a formatted subdomain while the request is in-flight
         this.tenantName.set(subdomain.charAt(0).toUpperCase() + subdomain.slice(1));
 
-        // The tenant interceptor will also attach X-Tenant-Subdomain automatically,
-        // but we set it explicitly here too for clarity.
         this.http.get<{ name: string; subdomain: string; logo_url: string }>(
             '/api/public/tenant-info',
             { headers: { 'X-Tenant-Subdomain': subdomain } }
         ).subscribe({
             next: (info) => this.tenantName.set(info.name),
             error: (err) => {
-                // Keeps the formatted subdomain as fallback; log for debugging
                 console.error('[Login] Could not fetch tenant name:', err?.status, err?.error);
             }
         });
@@ -86,6 +109,7 @@ export class LoginComponent {
         if (this.loginForm.invalid) return;
         this.loading.set(true);
         this.error.set('');
+        this.successMsg.set('');
 
         const { identifier, password } = this.loginForm.value;
         this.authService.login(identifier, password).subscribe({
@@ -108,6 +132,87 @@ export class LoginComponent {
                 this.loading.set(false);
             }
         });
+    }
+
+    onRequestOTP() {
+        if (this.phoneForm.invalid) return;
+        this.loading.set(true);
+        this.error.set('');
+        this.successMsg.set('');
+
+        const rawPhone = this.phoneForm.value.phoneNumber.trim();
+        this.authService.requestOTP(rawPhone).subscribe({
+            next: (res) => {
+                this.loading.set(false);
+                this.maskedPhone.set(res.phone_masked || rawPhone);
+                this.otpStep.set('code');
+                this.successMsg.set('Verification code sent via SMS!');
+                this.startCountdown(60);
+                this.otpForm.reset();
+            },
+            error: (err) => {
+                this.loading.set(false);
+                this.error.set(err.error?.error || 'Failed to send verification code. Please check your phone number.');
+            }
+        });
+    }
+
+    onVerifyOTP() {
+        if (this.otpForm.invalid) return;
+        this.loading.set(true);
+        this.error.set('');
+        this.successMsg.set('');
+
+        const rawPhone = this.phoneForm.value.phoneNumber.trim();
+        const code = this.otpForm.value.otp.trim();
+
+        this.authService.verifyOTP(rawPhone, code).subscribe({
+            next: (res: any) => {
+                this.authService.handleLoginSuccess(res.token, res.tenant_subdomain);
+                if (res.must_change_password) {
+                    this.router.navigate(['/change-password']);
+                } else {
+                    this.navigateByRole();
+                }
+            },
+            error: (err) => {
+                this.loading.set(false);
+                this.error.set(err.error?.error || 'Invalid verification code');
+            }
+        });
+    }
+
+    onResendOTP() {
+        if (this.countdown() > 0 || this.loading()) return;
+        this.onRequestOTP();
+    }
+
+    changePhoneNumber() {
+        this.otpStep.set('phone');
+        this.error.set('');
+        this.successMsg.set('');
+        this.clearTimer();
+    }
+
+    private startCountdown(seconds: number) {
+        this.clearTimer();
+        this.countdown.set(seconds);
+        this.timerHandle = setInterval(() => {
+            const next = this.countdown() - 1;
+            if (next <= 0) {
+                this.countdown.set(0);
+                this.clearTimer();
+            } else {
+                this.countdown.set(next);
+            }
+        }, 1000);
+    }
+
+    private clearTimer() {
+        if (this.timerHandle) {
+            clearInterval(this.timerHandle);
+            this.timerHandle = null;
+        }
     }
 
     on2FASubmit() {
@@ -143,4 +248,5 @@ export class LoginComponent {
         }
     }
 }
+
 

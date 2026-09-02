@@ -82,11 +82,11 @@ func (a *App) setupRoutes() {
 	// Auth Handlers (Tenant-scoped, for school frontends)
 	authGroup := a.Router.Group("/api/auth")
 	authGroup.Use(middleware.TenantMiddleware(a.DB))
-	handler.NewAuthHandler(authGroup, repos.User, repos.Tenant, repos.Blacklist, usecases.Audit, infra.SMTP, a.Config)
+	handler.NewAuthHandler(authGroup, repos.User, repos.Tenant, repos.Blacklist, usecases.Audit, infra.SMTP, infra.SMS, a.DB, a.Config)
 
 	// System Auth (No tenant middleware — for the super admin portal)
 	sysAuthGroup := a.Router.Group("/api/system/auth")
-	handler.NewAuthHandler(sysAuthGroup, repos.User, repos.Tenant, repos.Blacklist, usecases.Audit, infra.SMTP, a.Config)
+	handler.NewAuthHandler(sysAuthGroup, repos.User, repos.Tenant, repos.Blacklist, usecases.Audit, infra.SMTP, infra.SMS, a.DB, a.Config)
 
 	// Webhooks (Public/Signature Verified)
 	webhookGroup := a.Router.Group("/api/webhooks")

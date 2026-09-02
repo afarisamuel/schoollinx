@@ -1,23 +1,27 @@
 package handler
 
 import (
-	"net/http"
-
-	"time"
-
 	"context"
+	"crypto/rand"
+	"errors"
+	"fmt"
+	"math/big"
+	"net/http"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/pquerna/otp/totp"
 	"github.com/user/high-school-management/backend/config"
 	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/domain"
 	"github.com/user/high-school-management/backend/internal/infrastructure/logger"
+	"github.com/user/high-school-management/backend/internal/infrastructure/mailer"
 	"github.com/user/high-school-management/backend/pkg/encryption"
 	"github.com/user/high-school-management/backend/pkg/utils"
 	"go.uber.org/zap"
-	"github.com/pquerna/otp/totp"
-	"github.com/user/high-school-management/backend/internal/infrastructure/mailer"
+	"gorm.io/gorm"
 )
 
 type AuthHandler struct {
@@ -27,6 +31,8 @@ type AuthHandler struct {
 	auditUC       domain.AuditUseCase
 	cfg           *config.Config
 	mailer        mailer.MailService
+	smsProvider   domain.SMSProvider
+	db            *gorm.DB
 }
 
 type ForgotPasswordRequest struct {
@@ -41,6 +47,15 @@ type ResetPasswordRequest struct {
 type LoginRequest struct {
 	Identifier string `json:"identifier" binding:"required"`
 	Password   string `json:"password" binding:"required"`
+}
+
+type RequestOTPRequest struct {
+	PhoneNumber string `json:"phone_number" binding:"required"`
+}
+
+type VerifyOTPRequest struct {
+	PhoneNumber string `json:"phone_number" binding:"required"`
+	OTP         string `json:"otp" binding:"required"`
 }
 
 type SignupRequest struct {
@@ -61,13 +76,15 @@ type ChangePasswordRequest struct {
 	NewPassword string `json:"new_password" binding:"required,min=8"`
 }
 
-func NewAuthHandler(r *gin.RouterGroup, userRepo domain.UserRepository, tenantRepo domain.TenantRepository, blacklistRepo domain.TokenBlacklistRepository, auditUC domain.AuditUseCase, mailService mailer.MailService, cfg *config.Config) {
+func NewAuthHandler(r *gin.RouterGroup, userRepo domain.UserRepository, tenantRepo domain.TenantRepository, blacklistRepo domain.TokenBlacklistRepository, auditUC domain.AuditUseCase, mailService mailer.MailService, smsProvider domain.SMSProvider, db *gorm.DB, cfg *config.Config) {
 	h := &AuthHandler{
 		userRepo:      userRepo,
 		tenantRepo:    tenantRepo,
 		blacklistRepo: blacklistRepo,
 		auditUC:       auditUC,
 		mailer:        mailService,
+		smsProvider:   smsProvider,
+		db:            db,
 		cfg:           cfg,
 	}
 
@@ -75,6 +92,8 @@ func NewAuthHandler(r *gin.RouterGroup, userRepo domain.UserRepository, tenantRe
 
 	r.POST("/login", limiter, h.Login)
 	r.POST("/signup", limiter, h.Signup)
+	r.POST("/otp/request", limiter, h.RequestOTP)
+	r.POST("/otp/verify", limiter, h.VerifyOTP)
 
 	// Strict limiter for setup token to prevent brute forcing
 	setupLimiter := middleware.NewRateLimiter(5, 5).Middleware()
@@ -724,3 +743,278 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Password has been reset successfully. You can now log in."})
 }
+
+// normalizePhoneCandidates generates common format variants for a given phone number
+func normalizePhoneCandidates(phone string) []string {
+	cleaned := strings.Map(func(r rune) rune {
+		if (r >= '0' && r <= '9') || r == '+' {
+			return r
+		}
+		return -1
+	}, strings.TrimSpace(phone))
+
+	if cleaned == "" {
+		return nil
+	}
+
+	candidates := []string{strings.TrimSpace(phone), cleaned}
+	digitsOnly := strings.TrimPrefix(cleaned, "+")
+	candidates = append(candidates, digitsOnly)
+
+	// Ghana specific formatting (e.g. 0244123456 <-> 233244123456 <-> +233244123456)
+	if strings.HasPrefix(cleaned, "+233") && len(cleaned) == 13 {
+		local := "0" + cleaned[4:]
+		candidates = append(candidates, local, "233"+cleaned[4:])
+	} else if strings.HasPrefix(cleaned, "233") && len(cleaned) == 12 {
+		local := "0" + cleaned[3:]
+		candidates = append(candidates, local, "+"+cleaned)
+	} else if strings.HasPrefix(cleaned, "0") && len(cleaned) == 10 {
+		candidates = append(candidates, "+233"+cleaned[1:], "233"+cleaned[1:])
+	}
+
+	seen := make(map[string]bool)
+	var result []string
+	for _, c := range candidates {
+		if c != "" && !seen[c] {
+			seen[c] = true
+			result = append(result, c)
+		}
+	}
+	return result
+}
+
+func maskPhoneNumber(phone string) string {
+	phone = strings.TrimSpace(phone)
+	if len(phone) <= 4 {
+		return "****"
+	}
+	return strings.Repeat("•", len(phone)-4) + " " + phone[len(phone)-4:]
+}
+
+func generateNumericOTP(length int) (string, error) {
+	const digits = "0123456789"
+	b := make([]byte, length)
+	for i := range b {
+		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(digits))))
+		if err != nil {
+			return "", err
+		}
+		b[i] = digits[num.Int64()]
+	}
+	return string(b), nil
+}
+
+func (h *AuthHandler) findUserByPhoneCandidates(ctx context.Context, candidates []string) (*domain.User, string, error) {
+	// 1. Direct match on users table
+	for _, cand := range candidates {
+		encPhone, err := encryption.EncryptDeterministic(cand, "")
+		if err != nil {
+			continue
+		}
+		var user domain.User
+		if err := h.db.WithContext(ctx).Where("phone_number = ?", encPhone).First(&user).Error; err == nil {
+			return &user, cand, nil
+		}
+	}
+
+	// 2. Search teachers table
+	for _, cand := range candidates {
+		var teacher domain.Teacher
+		encPhone, _ := encryption.EncryptDeterministic(cand, "")
+		if err := h.db.WithContext(ctx).Where("phone_number = ? OR email = ?", encPhone, encPhone).First(&teacher).Error; err == nil && teacher.UserID != nil {
+			var user domain.User
+			if err := h.db.WithContext(ctx).First(&user, "id = ?", *teacher.UserID).Error; err == nil {
+				encVal := encryption.DeterministicEncryptedString(cand)
+				user.PhoneNumber = &encVal
+				_ = h.db.WithContext(ctx).Save(&user)
+				return &user, cand, nil
+			}
+		}
+	}
+
+	// 3. Search guardians table
+	for _, cand := range candidates {
+		var guardian domain.Guardian
+		encPhone, _ := encryption.EncryptDeterministic(cand, "")
+		if err := h.db.WithContext(ctx).Where("phone_number = ? OR email = ?", encPhone, encPhone).First(&guardian).Error; err == nil && guardian.UserID != uuid.Nil {
+			var user domain.User
+			if err := h.db.WithContext(ctx).First(&user, "id = ?", guardian.UserID).Error; err == nil {
+				encVal := encryption.DeterministicEncryptedString(cand)
+				user.PhoneNumber = &encVal
+				_ = h.db.WithContext(ctx).Save(&user)
+				return &user, cand, nil
+			}
+		}
+	}
+
+	// 4. Search students table
+	for _, cand := range candidates {
+		var student domain.Student
+		encPhone, _ := encryption.EncryptDeterministic(cand, "")
+		if err := h.db.WithContext(ctx).Where("emergency_contact_phone = ? OR phone_number = ? OR email = ?", encPhone, encPhone, encPhone).First(&student).Error; err == nil && student.UserID != nil {
+			var user domain.User
+			if err := h.db.WithContext(ctx).First(&user, "id = ?", *student.UserID).Error; err == nil {
+				encVal := encryption.DeterministicEncryptedString(cand)
+				user.PhoneNumber = &encVal
+				_ = h.db.WithContext(ctx).Save(&user)
+				return &user, cand, nil
+			}
+		}
+	}
+
+	return nil, "", errors.New("no user found matching phone number")
+}
+
+// @Summary      Request Phone OTP for Login
+// @Description  Sends a 6-digit one-time password via SMS to the user's registered phone number
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      RequestOTPRequest  true  "Phone number"
+// @Success      200      {object}  map[string]interface{}
+// @Failure      400      {object}  map[string]string
+// @Failure      404      {object}  map[string]string
+// @Failure      500      {object}  map[string]string
+// @Router       /auth/otp/request [post]
+func (h *AuthHandler) RequestOTP(c *gin.Context) {
+	var req RequestOTPRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Phone number is required"})
+		return
+	}
+
+	candidates := normalizePhoneCandidates(req.PhoneNumber)
+	if len(candidates) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Please enter a valid phone number"})
+		return
+	}
+
+	user, matchedPhone, err := h.findUserByPhoneCandidates(c.Request.Context(), candidates)
+	if err != nil || user == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No account found registered with this phone number. Please contact your school administrator."})
+		return
+	}
+
+	otp, err := generateNumericOTP(6)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate verification code"})
+		return
+	}
+
+	expiresAt := time.Now().Add(10 * time.Minute)
+	user.OTPCode = &otp
+	user.OTPExpiresAt = &expiresAt
+
+	if err := h.userRepo.Update(c.Request.Context(), user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save verification code"})
+		return
+	}
+
+	// Dispatch SMS
+	senderID := "SchoolLinx"
+	tenantSubdomain, exists := c.Get("tenantSubdomain")
+	if exists && tenantSubdomain != "" {
+		sub := tenantSubdomain.(string)
+		if len(sub) > 0 && len(sub) <= 11 {
+			senderID = sub
+		}
+	}
+
+	smsMessage := fmt.Sprintf("Your School Linx verification code is: %s. Valid for 10 minutes. Do not share this code.", otp)
+	recipient := matchedPhone
+	if !strings.HasPrefix(recipient, "+") && strings.HasPrefix(recipient, "0") {
+		recipient = "233" + recipient[1:]
+	} else if strings.HasPrefix(recipient, "+") {
+		recipient = strings.TrimPrefix(recipient, "+")
+	}
+
+	go func() {
+		if h.smsProvider != nil {
+			_ = h.smsProvider.SendSMS(context.Background(), senderID, []string{recipient}, smsMessage)
+		} else {
+			logger.Info("Sandbox SMS OTP Dispatch", zap.String("recipient", recipient), zap.String("otp", otp))
+		}
+	}()
+
+	logger.Info("OTP generated for phone login", zap.String("recipient", recipient), zap.String("masked", maskPhoneNumber(req.PhoneNumber)))
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":      "Verification code sent successfully",
+		"phone_masked": maskPhoneNumber(req.PhoneNumber),
+		"expires_in":   600,
+	})
+}
+
+// @Summary      Verify Phone OTP and Login
+// @Description  Verifies the SMS OTP and returns a JWT authentication session
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      VerifyOTPRequest  true  "Phone and OTP"
+// @Success      200      {object}  map[string]interface{}
+// @Failure      400      {object}  map[string]string
+// @Failure      401      {object}  map[string]string
+// @Failure      500      {object}  map[string]string
+// @Router       /auth/otp/verify [post]
+func (h *AuthHandler) VerifyOTP(c *gin.Context) {
+	var req VerifyOTPRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Phone number and verification code are required"})
+		return
+	}
+
+	candidates := normalizePhoneCandidates(req.PhoneNumber)
+	if len(candidates) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid phone number"})
+		return
+	}
+
+	user, _, err := h.findUserByPhoneCandidates(c.Request.Context(), candidates)
+	if err != nil || user == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid phone number or verification code"})
+		return
+	}
+
+	if user.OTPCode == nil || *user.OTPCode != req.OTP {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid verification code. Please check and try again."})
+		return
+	}
+
+	if user.OTPExpiresAt == nil || user.OTPExpiresAt.Before(time.Now()) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Verification code has expired. Please request a new code."})
+		return
+	}
+
+	// Invalidate OTP so it cannot be re-used
+	user.OTPCode = nil
+	user.OTPExpiresAt = nil
+	_ = h.userRepo.Update(c.Request.Context(), user)
+
+	token, err := utils.GenerateToken(user, h.cfg)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate authentication token"})
+		return
+	}
+
+	// Log security ledger audit log
+	h.auditUC.Log(c.Request.Context(), &domain.AuditLog{
+		UserID:     user.ID,
+		UserEmail:  string(user.Email),
+		Action:     domain.ActionCreate,
+		EntityType: "USER_AUTH",
+		EntityID:   user.ID.String(),
+		Changes:    "User logged in via Phone Number & SMS OTP",
+		IPAddress:  c.ClientIP(),
+	})
+
+	tenantSubdomain, _ := c.Get("tenantSubdomain")
+
+	c.JSON(http.StatusOK, gin.H{
+		"token":                token,
+		"user":                 user,
+		"must_change_password": user.MustChangePassword,
+		"requires_2fa":         false,
+		"tenant_subdomain":     tenantSubdomain,
+	})
+}
+

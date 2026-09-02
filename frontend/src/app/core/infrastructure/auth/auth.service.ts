@@ -51,6 +51,22 @@ export class AuthService {
         });
     }
 
+    requestOTP(phoneNumber: string): Observable<{ message: string; phone_masked: string; expires_in: number }> {
+        return this.http.post<{ message: string; phone_masked: string; expires_in: number }>(
+            `${environment.apiUrl}/auth/otp/request`,
+            { phone_number: phoneNumber },
+            { headers: this.getSubdomainHeader() }
+        );
+    }
+
+    verifyOTP(phoneNumber: string, otp: string): Observable<any> {
+        return this.http.post<any>(
+            `${environment.apiUrl}/auth/otp/verify`,
+            { phone_number: phoneNumber, otp },
+            { headers: this.getSubdomainHeader() }
+        );
+    }
+
     login2FA(pendingToken: string, token: string): Observable<any> {
         const headers = {
             ...this.getSubdomainHeader(),
