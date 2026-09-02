@@ -28,17 +28,28 @@ export const tenantInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, 
         let subdomain = '';
         const parts = hostname.split('.');
         
-        // Simple heuristic to extract subdomain if it exists (e.g. org1.example.com -> org1, org1.localhost -> org1)
-        if (parts.length >= 2) {
-            subdomain = parts[0];
-            if (subdomain === 'www' || subdomain === 'localhost' || subdomain === '127') {
-                subdomain = '';
+        // Accurate subdomain detection:
+        // - "myschool.schoollinx.com" (parts.length >= 3) -> "myschool"
+        // - "myschool.localhost" (parts.length === 2 && parts[1] === 'localhost') -> "myschool"
+        // - "schoollinx.com" (parts.length === 2) -> apex domain, no tenant subdomain
+        // - "localhost" / "127.0.0.1" -> no subdomain
+        const isIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname);
+        if (!isIp) {
+            if (parts.length >= 3) {
+                const sub = parts[0].toLowerCase();
+                if (sub !== 'www' && sub !== 'api' && sub !== 'admin' && sub !== 'app') {
+                    subdomain = sub;
+                }
+            } else if (parts.length === 2 && parts[1].toLowerCase() === 'localhost') {
+                const sub = parts[0].toLowerCase();
+                if (sub !== 'www') {
+                    subdomain = sub;
+                }
             }
         }
         
-        // Fall back to the subdomain cached in localStorage during login.
-        // This is the primary mechanism for localhost development where there is no real subdomain.
-        if (!subdomain) {
+        // Fall back to the subdomain cached in localStorage during login ONLY if we're on localhost or an internal route.
+        if (!subdomain && (hostname === 'localhost' || hostname === '127.0.0.1')) {
             subdomain = localStorage.getItem('tenant_subdomain') || '';
         }
 

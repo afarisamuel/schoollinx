@@ -41,8 +41,8 @@ export const errorToastInterceptor: HttpInterceptorFn = (req: HttpRequest<unknow
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      // Allow requests to opt out of global error toasts via headers
-      if (req.headers.has('x-skip-toast-error') || req.headers.has('skip-toast')) {
+      // Allow requests to opt out of global error toasts via headers or public tenant queries
+      if (req.headers.has('x-skip-toast-error') || req.headers.has('skip-toast') || req.url.includes('/api/public/tenant-info')) {
         return throwError(() => error);
       }
 

@@ -79,13 +79,21 @@ func (h *TenantProfileHandler) SubmitContactForm(c *gin.Context) {
 func (h *TenantProfileHandler) GetPublicInfo(c *gin.Context) {
 	subdomain := c.GetHeader("X-Tenant-Subdomain")
 	if subdomain == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "X-Tenant-Subdomain header is required"})
+		c.JSON(http.StatusOK, gin.H{
+			"name":      "School Linx",
+			"subdomain": "",
+			"logo_url":  "",
+		})
 		return
 	}
 
 	var t domain.Tenant
 	if err := h.db.Where("subdomain = ?", subdomain).First(&t).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Tenant not found"})
+		c.JSON(http.StatusOK, gin.H{
+			"name":      "School Linx",
+			"subdomain": subdomain,
+			"logo_url":  "",
+		})
 		return
 	}
 
