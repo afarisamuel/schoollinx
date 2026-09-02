@@ -182,8 +182,8 @@
                          [class.items-start]="!isSentByMe(msg)">
 
                         <!-- Quoted Message (if reply) -->
-                        @if (msg.parent_message_id && getParentMessage(msg.parent_message_id)) {
-                        @let parent = getParentMessage(msg.parent_message_id)!;
+                        @if (msg.parent_id && getParentMessage(msg.parent_id)) {
+                        @let parent = getParentMessage(msg.parent_id)!;
                         <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] bg-bg-tertiary/70 border-l-2 border-blue-500 text-text-muted max-w-full truncate">
                             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
                             <span class="truncate">{{ parent.content }}</span>
@@ -215,7 +215,7 @@
 
                         <!-- Meta Row -->
                         <div class="flex items-center gap-1.5 px-1">
-                            <span class="text-[9px] text-text-muted">{{ formatTime(msg.created_at) }}</span>
+                            <span class="text-[9px] text-text-muted">{{ formatDate(msg.created_at) }}</span>
                             @if (isSentByMe(msg)) {
                             <span class="text-[9px] font-black"
                                   [class.text-blue-400]="msg.is_read"

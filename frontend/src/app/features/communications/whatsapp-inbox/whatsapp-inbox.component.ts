@@ -64,6 +64,7 @@ export class WhatsappInboxComponent implements OnInit {
   });
 
   newMessageText = '';
+  replyText = signal('');
   isSending = signal(false);
   private pollInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -106,10 +107,30 @@ export class WhatsappInboxComponent implements OnInit {
     });
   }
 
+  sendReply() {
+    const text = this.replyText().trim();
+    const phone = this.selectedPhone();
+    if (!text || !phone || this.isSending()) return;
+
+    this.isSending.set(true);
+    this.commService.sendWhatsAppMessage(phone, text).subscribe({
+      next: () => {
+        this.replyText.set('');
+        this.newMessageText = '';
+        this.loadMessages();
+        this.isSending.set(false);
+      },
+      error: () => {
+        this.dialog.alert('Failed to send message. Please try again.', 'Send Error', 'error');
+        this.isSending.set(false);
+      }
+    });
+  }
+
   onKeydown(event: KeyboardEvent) {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
-      this.sendMessage();
+      this.sendReply();
     }
   }
 
@@ -127,6 +148,6 @@ export class WhatsappInboxComponent implements OnInit {
   }
 
   get hasConversation(): boolean {
-    return this.selectedPhone() !== null;
+    return !!this.selectedPhone();
   }
 }
