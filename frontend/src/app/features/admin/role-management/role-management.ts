@@ -100,12 +100,12 @@ export class RoleManagement implements OnInit {
 
     getRoleClass(role: string): string {
         const map: Record<string, string> = {
-            'ADMIN': 'bg-teal-500/10 text-teal-400 border-teal-500/20',
+            'ADMIN': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
             'TEACHER': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
             'STUDENT': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
             'GUARDIAN': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-            'LIBRARIAN': 'bg-teal-500/10 text-teal-400 border-teal-500/20',
-            'ACCOUNTANT': 'bg-teal-500/10 text-teal-400 border-teal-500/20',
+            'LIBRARIAN': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+            'ACCOUNTANT': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
             'BURSAR': 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
             'HR_MANAGER': 'bg-rose-500/10 text-rose-400 border-rose-500/20',
             'LOGISTICS_MANAGER': 'bg-orange-500/10 text-orange-400 border-orange-500/20',

@@ -3,7 +3,7 @@
   <!-- Header -->
   <header class="flex justify-between items-center">
     <div>
-      <h1 class="text-3xl font-extrabold text-teal-400">Operations Centre</h1>
+      <h1 class="text-3xl font-extrabold text-blue-400">Operations Centre</h1>
       <p class="text-slate-400 text-sm mt-1">Inventory, Stock Control & Procurement</p>
     </div>
   </header>
@@ -30,16 +30,16 @@
 
   <!-- Tab Bar -->
   <div class="flex gap-1 bg-slate-800/50 p-1 rounded-xl w-fit border border-slate-700">
-    <button (click)="activeTab.set('stock')" class="px-5 py-2 rounded-lg text-sm font-semibold transition-all" [ngClass]="activeTab() === 'stock' ? 'bg-teal-600 text-white shadow' : 'text-slate-400 hover:text-white'">Stock Control</button>
-    <button (click)="activeTab.set('orders')" class="px-5 py-2 rounded-lg text-sm font-semibold transition-all" [ngClass]="activeTab() === 'orders' ? 'bg-teal-600 text-white shadow' : 'text-slate-400 hover:text-white'">Purchase Orders</button>
-    <button (click)="activeTab.set('suppliers')" class="px-5 py-2 rounded-lg text-sm font-semibold transition-all" [ngClass]="activeTab() === 'suppliers' ? 'bg-teal-600 text-white shadow' : 'text-slate-400 hover:text-white'">Suppliers</button>
+    <button (click)="activeTab.set('stock')" class="px-5 py-2 rounded-lg text-sm font-semibold transition-all" [ngClass]="activeTab() === 'stock' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'">Stock Control</button>
+    <button (click)="activeTab.set('orders')" class="px-5 py-2 rounded-lg text-sm font-semibold transition-all" [ngClass]="activeTab() === 'orders' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'">Purchase Orders</button>
+    <button (click)="activeTab.set('suppliers')" class="px-5 py-2 rounded-lg text-sm font-semibold transition-all" [ngClass]="activeTab() === 'suppliers' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'">Suppliers</button>
   </div>
 
   <!-- Tab: Stock Control -->
   <div *ngIf="activeTab() === 'stock'" class="flex-1 flex flex-col min-h-0">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-lg font-bold text-slate-200">Stock Items</h2>
-      <button (click)="showItemForm.set(true)" class="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors shadow-lg shadow-orange-900/40">
+      <button (click)="showItemForm.set(true)" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors shadow-lg shadow-orange-900/40">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
         Add Item
       </button>
@@ -97,7 +97,7 @@
   <div *ngIf="activeTab() === 'orders'" class="flex-1 flex flex-col min-h-0">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-lg font-bold text-slate-200">Purchase Orders</h2>
-      <button (click)="showPOForm.set(true)" class="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors shadow-lg shadow-orange-900/40">
+      <button (click)="showPOForm.set(true)" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors shadow-lg shadow-orange-900/40">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
         New PO
       </button>
@@ -141,13 +141,13 @@
   <div *ngIf="activeTab() === 'suppliers'" class="flex-1 flex flex-col min-h-0">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-lg font-bold text-slate-200">Suppliers</h2>
-      <button (click)="showSupplierForm.set(true)" class="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors shadow-lg shadow-orange-900/40">
+      <button (click)="showSupplierForm.set(true)" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors shadow-lg shadow-orange-900/40">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
         Add Supplier
       </button>
     </div>
     <div class="flex-1 overflow-y-auto grid grid-cols-3 gap-4 content-start">
-      <div *ngFor="let s of suppliers()" class="bg-slate-800 rounded-xl border border-slate-700 p-5 hover:border-teal-500/50 transition-colors shadow">
+      <div *ngFor="let s of suppliers()" class="bg-slate-800 rounded-xl border border-slate-700 p-5 hover:border-blue-500/50 transition-colors shadow">
         <div class="flex justify-between items-start mb-3">
           <h3 class="font-bold text-slate-100">{{ s.name }}</h3>
           <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-900/40 text-emerald-400">{{ s.status }}</span>
@@ -184,15 +184,15 @@
     <form [formGroup]="itemForm" (ngSubmit)="submitItem()" class="p-5 grid grid-cols-2 gap-4">
       <div class="col-span-2">
         <label class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Item Name</label>
-        <input formControlName="name" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-teal-500 focus:ring-1 focus:ring-teal-500">
+        <input formControlName="name" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
       </div>
       <div>
         <label class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">SKU</label>
-        <input formControlName="sku" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-teal-500 focus:ring-1 focus:ring-teal-500">
+        <input formControlName="sku" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
       </div>
       <div>
         <label class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Category</label>
-        <select formControlName="category" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-teal-500">
+        <select formControlName="category" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-blue-500">
           <option value="CONSUMABLE">Consumable</option>
           <option value="EQUIPMENT">Equipment</option>
           <option value="ASSET">Asset</option>
@@ -200,23 +200,23 @@
       </div>
       <div>
         <label class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Unit</label>
-        <input formControlName="unit" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-teal-500" placeholder="pcs, kg, boxes...">
+        <input formControlName="unit" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-blue-500" placeholder="pcs, kg, boxes...">
       </div>
       <div>
         <label class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Unit Cost (GH₵)</label>
-        <input formControlName="unit_cost" type="number" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-teal-500">
+        <input formControlName="unit_cost" type="number" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-blue-500">
       </div>
       <div>
         <label class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Reorder Level</label>
-        <input formControlName="reorder_level" type="number" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-teal-500">
+        <input formControlName="reorder_level" type="number" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-blue-500">
       </div>
       <div class="col-span-2">
         <label class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Location Notes</label>
-        <input formControlName="location_notes" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-teal-500" placeholder="e.g. Storeroom B, Shelf 3">
+        <input formControlName="location_notes" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-blue-500" placeholder="e.g. Storeroom B, Shelf 3">
       </div>
       <div class="col-span-2 flex justify-end gap-3 pt-2 border-t border-slate-700">
         <button type="button" (click)="showItemForm.set(false)" class="px-4 py-2 text-sm text-slate-300 hover:text-white">Cancel</button>
-        <button type="submit" [disabled]="itemForm.invalid" class="bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white px-5 py-2 rounded-lg text-sm font-bold">Add Item</button>
+        <button type="submit" [disabled]="itemForm.invalid" class="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-5 py-2 rounded-lg text-sm font-bold">Add Item</button>
       </div>
     </form>
   </div>
@@ -234,15 +234,15 @@
     <form [formGroup]="movementForm" (ngSubmit)="submitMovement()" class="p-5 space-y-4">
       <div>
         <label class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Quantity</label>
-        <input formControlName="quantity" type="number" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-teal-500">
+        <input formControlName="quantity" type="number" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-blue-500">
       </div>
       <div>
         <label class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Reference (optional)</label>
-        <input formControlName="reference" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-teal-500" placeholder="PO number, delivery note...">
+        <input formControlName="reference" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-blue-500" placeholder="PO number, delivery note...">
       </div>
       <div>
         <label class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Remarks</label>
-        <textarea formControlName="remarks" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-teal-500"></textarea>
+        <textarea formControlName="remarks" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-blue-500"></textarea>
       </div>
       <div class="flex justify-end gap-3 pt-2 border-t border-slate-700">
         <button type="button" (click)="showMovementForm.set(false)" class="px-4 py-2 text-sm text-slate-300">Cancel</button>
@@ -262,25 +262,25 @@
     <form [formGroup]="supplierForm" (ngSubmit)="submitSupplier()" class="p-5 space-y-4">
       <div>
         <label class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Company Name</label>
-        <input formControlName="name" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-teal-500">
+        <input formControlName="name" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-blue-500">
       </div>
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Contact Person</label>
-          <input formControlName="contact_name" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-teal-500">
+          <input formControlName="contact_name" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-blue-500">
         </div>
         <div>
           <label class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Phone</label>
-          <input formControlName="phone" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-teal-500">
+          <input formControlName="phone" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-blue-500">
         </div>
       </div>
       <div>
         <label class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-1">Email</label>
-        <input formControlName="email" type="email" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-teal-500">
+        <input formControlName="email" type="email" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 focus:border-blue-500">
       </div>
       <div class="flex justify-end gap-3 pt-2 border-t border-slate-700">
         <button type="button" (click)="showSupplierForm.set(false)" class="px-4 py-2 text-sm text-slate-300">Cancel</button>
-        <button type="submit" [disabled]="supplierForm.invalid" class="bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white px-5 py-2 rounded-lg text-sm font-bold">Save Supplier</button>
+        <button type="submit" [disabled]="supplierForm.invalid" class="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-5 py-2 rounded-lg text-sm font-bold">Save Supplier</button>
       </div>
     </form>
   </div>

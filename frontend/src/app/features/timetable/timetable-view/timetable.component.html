@@ -6,7 +6,7 @@
             <p class="text-sm font-medium text-text-secondary mt-1">Weekly schedule & room allocations</p>
         </div>
         <select [(ngModel)]="selectedClassId" (change)="onClassChange()"
-            class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-teal-500/50 transition-all cursor-pointer min-w-[220px]">
+            class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-blue-500/50 transition-all cursor-pointer min-w-[220px]">
             <option value="">Select a Class…</option>
             @for (c of classes(); track c.id) {
             <option [value]="c.id">{{ c.name }}</option>
@@ -26,7 +26,7 @@
     </div>
     } @else if (isLoading()) {
     <div class="flex items-center justify-center py-24 gap-3 text-text-muted">
-        <div class="w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+        <div class="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
         <span class="text-sm font-bold">Loading schedule…</span>
     </div>
     } @else {
@@ -37,7 +37,7 @@
                 <tr class="bg-bg-tertiary">
                     <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-widest text-left w-24">Time</th>
                     @for (day of days; track day) {
-                    <th class="px-5 py-4 text-[10px] font-black text-teal-400 uppercase tracking-widest text-left">{{ day }}</th>
+                    <th class="px-5 py-4 text-[10px] font-black text-blue-400 uppercase tracking-widest text-left">{{ day }}</th>
                     }
                 </tr>
             </thead>
@@ -48,8 +48,8 @@
                     @for (day of [1,2,3,4,5]; track day) {
                     <td class="px-3 py-3 align-top min-w-[150px]">
                         @for (entry of getEntriesForDayAndTime(day - 1, slot); track entry.id) {
-                        <div class="bg-teal-500/10 border border-teal-500/20 rounded-xl px-3 py-2 mb-1.5">
-                            <div class="text-xs font-black text-teal-300 truncate">{{ subjectMap()[entry.subject_id] || '–' }}</div>
+                        <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl px-3 py-2 mb-1.5">
+                            <div class="text-xs font-black text-blue-300 truncate">{{ subjectMap()[entry.subject_id] || '–' }}</div>
                             <div class="text-[10px] text-text-muted mt-0.5">{{ entry.start_time }}–{{ entry.end_time }}</div>
                             @if (entry.room) {
                             <div class="text-[9px] text-text-muted font-bold uppercase tracking-widest mt-0.5">Rm {{ entry.room }}</div>

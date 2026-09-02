@@ -19,7 +19,7 @@ export class CourseDemandComponent implements OnInit {
     isLoading = signal(true);
 
     colorScheme: any = {
-        domain: ['#14b8a6', '#0d9488', '#10b981', '#059669', '#0f766e', '#2dd4bf', '#5eead4', '#047857']
+        domain: ['#2563EB', '#1D4ED8', '#10b981', '#059669', '#0f766e', '#2dd4bf', '#5eead4', '#047857']
     };
 
     ngOnInit() {

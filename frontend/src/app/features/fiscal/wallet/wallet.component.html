@@ -2,7 +2,7 @@
 
   <header class="mb-6 flex justify-between items-end">
     <div>
-      <h1 class="text-3xl font-extrabold text-teal-400">Digital Wallet & Canteen</h1>
+      <h1 class="text-3xl font-extrabold text-blue-400">Digital Wallet & Canteen</h1>
       <p class="text-text-secondary mt-1">Manage prepaid balances and cashless transactions</p>
     </div>
   </header>
@@ -18,20 +18,20 @@
   @if (selectedStudentId()) {
     @if (isLoading()) {
       <div class="flex justify-center p-12">
-        <div class="w-10 h-10 border-4 border-teal-500/30 border-t-teal-500 rounded-full animate-spin"></div>
+        <div class="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
       </div>
     } @else {
       <!-- Bento Grid Layout -->
       <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
 
         <!-- Balance Card (Col 4) -->
-        <div class="md:col-span-4 bg-teal-600 rounded-3xl p-6 border border-teal-500/50 shadow-[0_0_40px_-10px_rgba(20,184,166,0.4)] relative overflow-hidden flex flex-col justify-between group">
+        <div class="md:col-span-4 bg-blue-600 rounded-3xl p-6 border border-blue-500/50 shadow-[0_0_40px_-10px_rgba(37,99,235,0.4)] relative overflow-hidden flex flex-col justify-between group">
           <!-- decorative background element -->
           <div class="absolute -right-10 -top-10 w-40 h-40 bg-white opacity-5 rounded-full blur-3xl group-hover:opacity-10 transition-opacity"></div>
           
           <div>
-            <h3 class="text-teal-100 font-bold uppercase tracking-widest text-xs mb-1">Available Balance</h3>
-            <p class="text-teal-200 text-xs">Ready for cashless transactions</p>
+            <h3 class="text-blue-100 font-bold uppercase tracking-widest text-xs mb-1">Available Balance</h3>
+            <p class="text-blue-200 text-xs">Ready for cashless transactions</p>
           </div>
           
           <div class="mt-8 mb-4">
@@ -40,7 +40,7 @@
             </div>
           </div>
           
-          <div class="flex justify-between items-center text-teal-200 text-xs font-medium">
+          <div class="flex justify-between items-center text-blue-200 text-xs font-medium">
             <span>Student Wallet</span>
             <svg class="w-6 h-6 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
           </div>
@@ -49,7 +49,7 @@
         <!-- Canteen Point of Sale (Col 8) -->
         <div class="md:col-span-8 bg-bg-secondary rounded-3xl p-6 border border-border-primary shadow-xl flex flex-col justify-between">
           <div class="flex items-center gap-3 mb-6">
-            <div class="p-3 bg-teal-500/10 rounded-xl text-teal-500">
+            <div class="p-3 bg-blue-500/10 rounded-xl text-blue-500">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
             </div>
             <h3 class="text-xl font-bold text-text-primary">Canteen Checkout</h3>
@@ -59,18 +59,18 @@
             <div>
               <label class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Item Description</label>
               <input type="text" [ngModel]="purchaseItem()" (ngModelChange)="purchaseItem.set($event)" placeholder="e.g. Lunch Combo"
-                     class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-5 py-3.5 text-text-primary focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all font-medium placeholder:text-text-muted">
+                     class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-5 py-3.5 text-text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium placeholder:text-text-muted">
             </div>
             <div>
               <label class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Amount (₵)</label>
               <input type="number" [ngModel]="purchaseAmount()" (ngModelChange)="purchaseAmount.set($event)" placeholder="0.00"
-                     class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-5 py-3.5 text-text-primary focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all font-medium placeholder:text-text-muted text-lg">
+                     class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-5 py-3.5 text-text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium placeholder:text-text-muted text-lg">
             </div>
           </div>
 
           <div class="flex justify-end border-t border-border-primary pt-6 mt-auto">
             <button (click)="processPurchase()" [disabled]="purchaseLoading() || purchaseAmount() <= 0 || !purchaseItem()"
-                    class="px-8 py-3.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 shadow-[0_0_20px_-5px_rgba(20,184,166,0.5)] active:scale-95">
+                    class="px-8 py-3.5 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 shadow-[0_0_20px_-5px_rgba(37,99,235,0.5)] active:scale-95">
               @if (purchaseLoading()) {
                 <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
               }

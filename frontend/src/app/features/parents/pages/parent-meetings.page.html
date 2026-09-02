@@ -1,6 +1,6 @@
 <div class="max-w-[1400px] mx-auto p-4 md:p-8 animate-fade-in pb-24">
     <div class="mb-7">
-        <h1 class="text-3xl font-black text-teal-400 mb-1">Teacher Meetings</h1>
+        <h1 class="text-3xl font-black text-blue-400 mb-1">Teacher Meetings</h1>
         <p class="text-text-muted text-sm">Book a consultation with your child's teachers and view upcoming meetings.</p>
     </div>
 
@@ -14,13 +14,13 @@
     <!-- Tab Navigation -->
     <div class="flex items-center gap-2 p-1.5 bg-bg-secondary border border-border-primary rounded-2xl mb-6 overflow-x-auto">
         <button (click)="activeTab.set('book')"
-                [ngClass]="activeTab() === 'book' ? 'bg-teal-600 text-white font-black shadow-md shadow-teal-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                [ngClass]="activeTab() === 'book' ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
                 class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer">
             <i class="fas fa-calendar-plus"></i>
             <span>Book a Conference</span>
         </button>
         <button (click)="activeTab.set('meetings')"
-                [ngClass]="activeTab() === 'meetings' ? 'bg-teal-600 text-white font-black shadow-md shadow-teal-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
+                [ngClass]="activeTab() === 'meetings' ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
                 class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer">
             <i class="fas fa-handshake"></i>
             <span>Scheduled Meetings</span>
@@ -40,7 +40,7 @@
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">For Student</label>
                     <select [ngModel]="studentId()" (ngModelChange)="studentId.set($event)"
-                            class="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-teal-500">
+                            class="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500">
                         @for (s of state.profile()?.students || []; track s.id) {
                             <option [value]="s.id">{{ s.first_name }} {{ s.last_name }}</option>
                         }
@@ -51,8 +51,8 @@
                     <div class="flex gap-2">
                         <input type="text" [ngModel]="teacherId()" (ngModelChange)="teacherId.set($event)"
                                placeholder="Enter Teacher ID..."
-                               class="flex-1 px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-teal-500" />
-                        <button (click)="findSlots()" class="px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-xl cursor-pointer">
+                               class="flex-1 px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500" />
+                        <button (click)="findSlots()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl cursor-pointer">
                             <i class="fas fa-search"></i> Find Slots
                         </button>
                     </div>
@@ -68,7 +68,7 @@
                                         <div class="text-xs font-bold text-text-primary">{{ slot.date | date:'mediumDate' }}</div>
                                         <div class="text-[10px] text-text-muted">{{ slot.start_time }} – {{ slot.end_time }}</div>
                                     </div>
-                                    <button (click)="bookSlot(slot.id!)" class="px-3 py-1.5 bg-teal-600 text-white font-bold text-xs rounded-lg hover:bg-teal-500 cursor-pointer">Book</button>
+                                    <button (click)="bookSlot(slot.id!)" class="px-3 py-1.5 bg-blue-600 text-white font-bold text-xs rounded-lg hover:bg-blue-500 cursor-pointer">Book</button>
                                 </div>
                             }
                         </div>
@@ -86,7 +86,7 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Discussion Topic</label>
                     <textarea [ngModel]="reason()" (ngModelChange)="reason.set($event)" rows="3"
                               placeholder="e.g., Mathematics progress, homework habits, behavioral consultation..."
-                              class="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-teal-500 resize-none"></textarea>
+                              class="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 resize-none"></textarea>
                 </div>
             </div>
         </div>
@@ -116,7 +116,7 @@
                         <p class="text-xs font-bold text-text-primary">{{ b.reason || 'General Academic Consultation' }}</p>
                         @if (b.slot) {
                             <div class="text-[10px] text-text-muted mt-1">
-                                <i class="fas fa-calendar text-teal-400 mr-1"></i>
+                                <i class="fas fa-calendar text-blue-400 mr-1"></i>
                                 {{ b.slot.date | date:'mediumDate' }} at {{ b.slot.start_time }}
                             </div>
                         }

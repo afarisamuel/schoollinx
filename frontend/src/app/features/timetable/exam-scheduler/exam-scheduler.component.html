@@ -2,7 +2,7 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
         <div>
-            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-teal-400 uppercase italic">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-blue-400 uppercase italic">
                 Temporal Exam Scheduler
             </h1>
             <p class="text-sm font-medium text-text-secondary mt-2">
@@ -13,16 +13,16 @@
 
     <!-- Controls Panel -->
     <div class="bg-bg-secondary/40 backdrop-blur-xl border border-border-primary/60 rounded-3xl p-8 mb-8 shadow-2xl relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+        <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[100px] rounded-full pointer-events-none"></div>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end relative z-10">
             <!-- Period Selector -->
             <div class="flex flex-col gap-3">
                 <label class="text-[11px] font-black text-text-muted uppercase tracking-[0.2em] flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span> Academic Period
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Academic Period
                 </label>
                 <select [ngModel]="selectedPeriodId()" (ngModelChange)="selectedPeriodId.set($event)"
-                    class="bg-bg-tertiary/60 border border-border-secondary/80 rounded-2xl px-5 py-4 text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all cursor-pointer shadow-inner">
+                    class="bg-bg-tertiary/60 border border-border-secondary/80 rounded-2xl px-5 py-4 text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all cursor-pointer shadow-inner">
                     <option value="">Select Period…</option>
                     @for (p of periods(); track p.id) {
                     <option [value]="p.id">{{ p.name }} ({{ p.term_type }})</option>
@@ -33,10 +33,10 @@
             <!-- Class Selector -->
             <div class="flex flex-col gap-3">
                 <label class="text-[11px] font-black text-text-muted uppercase tracking-[0.2em] flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span> View Exams for Class
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> View Exams for Class
                 </label>
                 <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event); loadExamSchedule()"
-                    class="bg-bg-tertiary/60 border border-border-secondary/80 rounded-2xl px-5 py-4 text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all cursor-pointer shadow-inner">
+                    class="bg-bg-tertiary/60 border border-border-secondary/80 rounded-2xl px-5 py-4 text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all cursor-pointer shadow-inner">
                     <option value="">Select Class…</option>
                     @for (c of classes(); track c.id) {
                     <option [value]="c.id">{{ c.name }}</option>
@@ -46,7 +46,7 @@
 
             <!-- Auto-Generate Action Button -->
             <button (click)="generate()" [disabled]="isGenerating() || !selectedPeriodId()"
-                class="px-8 py-4 bg-teal-600 hover:bg-teal-500 disabled:opacity-40 disabled:pointer-events-none text-white text-xs font-black rounded-2xl shadow-xl shadow-teal-500/10 hover:shadow-teal-500/25 transition-all active:scale-[0.98] whitespace-nowrap flex items-center justify-center gap-3 border border-teal-400/20 group">
+                class="px-8 py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:pointer-events-none text-white text-xs font-black rounded-2xl shadow-xl shadow-blue-500/10 hover:shadow-blue-500/25 transition-all active:scale-[0.98] whitespace-nowrap flex items-center justify-center gap-3 border border-blue-400/20 group">
                 @if (isGenerating()) {
                 <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 Compiling Schedule…
@@ -76,10 +76,10 @@
     @if (isLoading()) {
     <div class="flex flex-col items-center justify-center py-24 gap-4 text-text-muted">
         <div class="relative w-12 h-12">
-            <div class="absolute inset-0 border-4 border-teal-500/20 rounded-full"></div>
-            <div class="absolute inset-0 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+            <div class="absolute inset-0 border-4 border-blue-500/20 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
-        <span class="text-sm font-black tracking-wider uppercase text-teal-400/80 animate-pulse">Resolving Timetable Matrix…</span>
+        <span class="text-sm font-black tracking-wider uppercase text-blue-400/80 animate-pulse">Resolving Timetable Matrix…</span>
     </div>
     } @else if (examSessions().length > 0) {
     <!-- Main Content Area -->
@@ -98,18 +98,18 @@
             <!-- List layout of elegant cards -->
             <div class="flex flex-col gap-4">
                 @for (session of examSessions(); track session.id; let idx = $index) {
-                <div class="bg-bg-secondary/40 hover:bg-bg-secondary/70 border border-border-primary hover:border-teal-500/30 rounded-3xl p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-xl hover:shadow-teal-500/[0.02] flex flex-col md:flex-row md:items-center justify-between gap-6 group">
+                <div class="bg-bg-secondary/40 hover:bg-bg-secondary/70 border border-border-primary hover:border-blue-500/30 rounded-3xl p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-xl hover:shadow-blue-500/[0.02] flex flex-col md:flex-row md:items-center justify-between gap-6 group">
                     <!-- Date Card section -->
                     <div class="flex items-center gap-5">
-                        <div class="w-16 h-16 rounded-2xl bg-bg-tertiary flex flex-col items-center justify-center border border-border-secondary shadow-md group-hover:border-teal-500/20 transition-colors">
+                        <div class="w-16 h-16 rounded-2xl bg-bg-tertiary flex flex-col items-center justify-center border border-border-secondary shadow-md group-hover:border-blue-500/20 transition-colors">
                             <span class="text-[10px] font-black text-text-muted uppercase tracking-widest">{{ session.date | date:'LLL' }}</span>
-                            <span class="text-2xl font-black text-teal-500 mt-0.5 leading-none">{{ session.date | date:'dd' }}</span>
+                            <span class="text-2xl font-black text-blue-500 mt-0.5 leading-none">{{ session.date | date:'dd' }}</span>
                         </div>
                         <div>
                             <h3 class="text-sm font-black text-text-primary uppercase tracking-wider">{{ session.date | date:'EEEE' }}</h3>
                             <!-- Morning/Afternoon session tag -->
                             <div class="flex items-center gap-2 mt-1.5">
-                                <span class="w-2 h-2 rounded-full" [ngClass]="session.start_time < '12:00' ? 'bg-amber-500' : 'bg-teal-500'"></span>
+                                <span class="w-2 h-2 rounded-full" [ngClass]="session.start_time < '12:00' ? 'bg-amber-500' : 'bg-blue-500'"></span>
                                 <span class="text-xs font-bold text-text-secondary">
                                     {{ session.start_time }} – {{ session.end_time }}
                                 </span>
@@ -120,7 +120,7 @@
                     <!-- Subject and Details -->
                     <div class="flex flex-col md:items-end gap-2">
                         <div class="flex items-center gap-3">
-                            <span class="px-3.5 py-1.5 bg-teal-500/10 border border-teal-500/20 text-teal-400 text-xs font-black rounded-xl uppercase tracking-widest">
+                            <span class="px-3.5 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-black rounded-xl uppercase tracking-widest">
                                 {{ getSubjectDetail(session.subject_id).code }}
                             </span>
                             <span class="text-sm font-black text-text-primary">
@@ -141,7 +141,7 @@
         <!-- Sidebar Summary / Action center (Right) -->
         <div class="flex flex-col gap-6">
             <h2 class="text-lg font-black tracking-wider text-text-primary uppercase flex items-center gap-3">
-                <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span> Summary Details
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Summary Details
             </h2>
 
             <div class="bg-bg-secondary/40 border border-border-primary rounded-3xl p-6 shadow-xl flex flex-col gap-6">
@@ -161,8 +161,8 @@
                 </div>
 
                 <!-- Guidelines info block -->
-                <div class="bg-teal-500/5 border border-teal-500/10 rounded-2xl p-5 mt-2">
-                    <h4 class="text-xs font-black text-teal-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <div class="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-5 mt-2">
+                    <h4 class="text-xs font-black text-blue-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                         Invigilation Rules
                     </h4>
@@ -177,7 +177,7 @@
     <!-- Empty State -->
     <div class="flex flex-col items-center justify-center py-28 gap-6 bg-bg-secondary/20 border border-dashed border-border-primary rounded-3xl">
         <div class="w-20 h-20 rounded-3xl bg-bg-tertiary flex items-center justify-center border border-border-secondary shadow-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="teal-500" stroke-width="1.5"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.5"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg>
         </div>
         <div class="text-center max-w-sm">
             <h3 class="text-base font-black text-text-primary uppercase tracking-wider mb-2">No Evaluations Registered</h3>

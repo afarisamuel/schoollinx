@@ -1,14 +1,14 @@
 <!-- ===== Payment Modal ===== -->
 @if (showPaymentModal()) {
     <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" (click)="closePaymentModal()">
-        <div class="relative w-full max-w-md bg-teal-600 from-[#0F172A] to-[#1E293B] border border-slate-700/60 rounded-3xl shadow-2xl p-8" (click)="$event.stopPropagation()">
+        <div class="relative w-full max-w-md bg-blue-600 from-[#0F172A] to-[#1E293B] border border-slate-700/60 rounded-3xl shadow-2xl p-8" (click)="$event.stopPropagation()">
             <!-- Glow -->
-            <div class="absolute top-0 right-0 w-48 h-48 bg-teal-500/10 rounded-full blur-[60px] pointer-events-none"></div>
+            <div class="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] pointer-events-none"></div>
 
             <!-- Header -->
             <div class="flex items-start justify-between mb-6 relative z-10">
                 <div>
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/20 border border-teal-500/30 text-teal-400 text-[10px] font-black uppercase tracking-widest mb-3">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-400 text-[10px] font-black uppercase tracking-widest mb-3">
                         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
                         Secure Payment
                     </div>
@@ -54,7 +54,7 @@
                         [max]="selectedRecordForPayment()?.balance_due || (selectedRecordForPayment()!.amount - (selectedRecordForPayment()!.amount_paid || 0))"
                         [value]="paymentAmount()"
                         (input)="paymentAmount.set($any($event.target).valueAsNumber)"
-                        class="w-full bg-slate-900/80 border border-slate-700 hover:border-slate-500 focus:border-teal-500 rounded-xl pl-11 pr-4 py-3.5 text-sm text-white placeholder:text-slate-600 outline-none transition-all font-mono"
+                        class="w-full bg-slate-900/80 border border-slate-700 hover:border-slate-500 focus:border-blue-500 rounded-xl pl-11 pr-4 py-3.5 text-sm text-white placeholder:text-slate-600 outline-none transition-all font-mono"
                     />
                 </div>
                 <p class="text-[11px] text-slate-500 mt-2">You can modify the amount for a partial payment.</p>
@@ -71,7 +71,7 @@
                 <button
                     (click)="confirmPayment()"
                     [disabled]="isPaymentLoading()"
-                    class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-teal-600 hover:bg-teal-500 text-white transition-all shadow-lg shadow-teal-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     @if (isPaymentLoading()) {
                         <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -110,7 +110,7 @@
             <div class="child-info">
                 <h3>{{ child.first_name }} {{ child.last_name }}</h3>
                 <span class="badge badge-outline">Grade Level/Class Info</span>
-                <a [routerLink]="['/students', child.id, 'report-card']" class="mt-2 text-xs font-bold text-teal-400 hover:text-teal-300 inline-flex items-center gap-1" (click)="$event.stopPropagation()">
+                <a [routerLink]="['/students', child.id, 'report-card']" class="mt-2 text-xs font-bold text-blue-400 hover:text-blue-300 inline-flex items-center gap-1" (click)="$event.stopPropagation()">
                     View Report Card
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                 </a>
@@ -184,7 +184,7 @@
                         @for (record of fiscalRecords(); track record.id) {
                             <tr class="hover:bg-bg-tertiary transition-all">
                                 <td class="px-6 py-4">
-                                    <span class="text-xs font-bold text-teal-400 uppercase">{{ record.category }}</span>
+                                    <span class="text-xs font-bold text-blue-400 uppercase">{{ record.category }}</span>
                                 </td>
                                 <td class="px-6 py-4">
                                     <span class="text-xs text-text-secondary">{{ record.description }}</span>
@@ -208,7 +208,7 @@
                                 <td class="px-6 py-4 text-right">
                                     @if (record.status !== 'PAID') {
                                         <button (click)="payOnline(record)" 
-                                            class="inline-flex items-center px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg hover:shadow-teal-500/20 gap-2 ml-auto">
+                                            class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg hover:shadow-blue-500/20 gap-2 ml-auto">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
                                             Pay Online
                                         </button>

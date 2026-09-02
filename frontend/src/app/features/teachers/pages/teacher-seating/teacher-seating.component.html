@@ -3,7 +3,7 @@
 
   <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm">
     <div class="flex items-center gap-4">
-      <div class="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-400 flex items-center justify-center text-xl">
+      <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl">
         <i class="fas fa-chair"></i>
       </div>
       <div>
@@ -16,7 +16,7 @@
       <div class="flex items-center gap-3">
         <label class="text-[10px] font-black uppercase text-text-muted">Class:</label>
         <select [ngModel]="selectedAssignment()" (ngModelChange)="selectAssignment($event)"
-                class="px-4 py-2 bg-bg-tertiary border border-border-primary rounded-2xl text-xs font-bold text-text-primary focus:outline-none focus:border-teal-500">
+                class="px-4 py-2 bg-bg-tertiary border border-border-primary rounded-2xl text-xs font-bold text-text-primary focus:outline-none focus:border-blue-500">
           @for (a of assignments(); track a.id) {
             <option [ngValue]="a">{{ a.class?.name }} • {{ a.subject?.name || 'Subject' }}</option>
           }
@@ -61,7 +61,7 @@
           <i class="fas fa-random"></i> Shuffle
         </button>
         <button (click)="saveLayout()"
-                class="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-sm">
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-sm">
           <i class="fas fa-save"></i> Save Arrangement
         </button>
       </div>
@@ -74,7 +74,7 @@
           <h2 class="text-base font-black text-text-primary">Interactive Classroom Grid</h2>
           <p class="text-xs text-text-muted">Desks facing the front chalkboard. Tap desks to adjust attendance or trigger micro-actions.</p>
         </div>
-        <div class="px-6 py-2 bg-bg-tertiary border border-border-primary rounded-full text-xs font-black uppercase tracking-widest text-teal-400 flex items-center gap-2">
+        <div class="px-6 py-2 bg-bg-tertiary border border-border-primary rounded-full text-xs font-black uppercase tracking-widest text-blue-400 flex items-center gap-2">
           <i class="fas fa-chalkboard"></i> Front / Teacher's Podium
         </div>
       </div>
@@ -84,7 +84,7 @@
           @let st = getStudentById(desk.studentId);
           @let att = st ? quickAttendanceMap()[st.id] : null;
 
-          <div class="p-4 bg-bg-tertiary/80 border border-border-primary rounded-2xl relative transition-all hover:border-teal-500/40">
+          <div class="p-4 bg-bg-tertiary/80 border border-border-primary rounded-2xl relative transition-all hover:border-blue-500/40">
             <div class="flex items-center justify-between mb-2">
               <span class="px-2 py-0.5 bg-bg-secondary text-[9px] font-black uppercase tracking-wider rounded text-text-muted">
                 Desk #{{ desk.desk }}
@@ -93,7 +93,7 @@
 
             @if (st) {
               <div class="flex items-center gap-2.5 mb-3">
-                <div class="w-9 h-9 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center font-black text-sm shrink-0">
+                <div class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-black text-sm shrink-0">
                   {{ st.first_name[0] }}
                 </div>
                 <div class="min-w-0">
@@ -112,7 +112,7 @@
                         [ngClass]="att === 'LATE' ? 'bg-amber-500 text-black' : 'text-text-muted hover:text-text-primary'">L</button>
                 <button (click)="setAttendanceStatus(st.id, 'EXCUSED')"
                         class="py-1 text-[9px] font-black rounded transition-all cursor-pointer"
-                        [ngClass]="att === 'EXCUSED' ? 'bg-teal-500 text-white' : 'text-text-muted hover:text-text-primary'">E</button>
+                        [ngClass]="att === 'EXCUSED' ? 'bg-blue-500 text-white' : 'text-text-muted hover:text-text-primary'">E</button>
                 <button (click)="setAttendanceStatus(st.id, 'ABSENT')"
                         class="py-1 text-[9px] font-black rounded transition-all cursor-pointer"
                         [ngClass]="att === 'ABSENT' ? 'bg-rose-500 text-white' : 'text-text-muted hover:text-text-primary'">A</button>

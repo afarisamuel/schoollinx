@@ -357,7 +357,7 @@ export class TeacherAssignmentsComponent implements OnInit {
             case 'OVERLOADED':
                 return { text: 'Overloaded', cls: 'bg-rose-500/10 text-rose-400 border-rose-500/20', icon: 'fa-fire' };
             default:
-                return { text: 'Standard', cls: 'bg-teal-500/10 text-teal-400 border-teal-500/20', icon: 'fa-user' };
+                return { text: 'Standard', cls: 'bg-blue-500/10 text-blue-400 border-blue-500/20', icon: 'fa-user' };
         }
     }
 

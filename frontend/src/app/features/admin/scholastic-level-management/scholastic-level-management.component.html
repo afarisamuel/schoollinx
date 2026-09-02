@@ -1,8 +1,8 @@
 <div class="relative min-h-screen">
   <!-- Background -->
   <div class="absolute inset-x-0 top-0 h-[500px] overflow-hidden pointer-events-none z-0">
-    <div class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-teal-500/5 blur-[140px] rounded-full"></div>
-    <div class="absolute top-1/3 right-1/3 w-[350px] h-[350px] bg-teal-500/5 blur-[120px] rounded-full"></div>
+    <div class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-500/5 blur-[140px] rounded-full"></div>
+    <div class="absolute top-1/3 right-1/3 w-[350px] h-[350px] bg-blue-500/5 blur-[120px] rounded-full"></div>
   </div>
 
   <div class="relative z-10 px-6 py-10 md:px-12 max-w-[1600px] mx-auto animate-fade-in">
@@ -12,10 +12,10 @@
       <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
         <div>
           <div class="flex items-center gap-3 mb-3">
-            <span class="px-3 py-1 bg-teal-500/10 text-teal-400 border border-teal-400/20 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">Academic Hierarchy</span>
+            <span class="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-400/20 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">Academic Hierarchy</span>
           </div>
           <h1 class="text-2xl md:text-4xl font-black text-text-primary tracking-tighter leading-none mb-2">
-            Scholastic <span class="text-teal-400">Levels</span>
+            Scholastic <span class="text-blue-400">Levels</span>
           </h1>
           <p class="text-text-muted text-lg max-w-2xl font-medium">Define the grade-level hierarchy and progression sequence for the institution.</p>
         </div>
@@ -24,10 +24,10 @@
         <div class="flex items-center gap-4">
           <div class="hidden lg:block bg-bg-tertiary border border-border-primary rounded-2xl p-5 text-center min-w-[120px]">
             <p class="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] mb-1">Levels</p>
-            <p class="text-2xl font-black text-teal-400 font-mono tracking-tighter">{{ levels().length }}</p>
+            <p class="text-2xl font-black text-blue-400 font-mono tracking-tighter">{{ levels().length }}</p>
           </div>
           @if (!showForm()) {
-          <button class="group flex items-center gap-2 px-6 py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shadow-teal-500/20 transition-all active:scale-95" (click)="showForm.set(true)">
+          <button class="group flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95" (click)="showForm.set(true)">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Add Level
           </button>
@@ -40,8 +40,8 @@
     @if (showForm()) {
     <div class="bg-bg-secondary border border-border-primary rounded-2xl p-8 mb-8 animate-fade-in">
       <div class="flex items-center gap-3 mb-6">
-        <div class="w-8 h-8 bg-teal-500/10 rounded-lg flex items-center justify-center">
-          <svg class="text-teal-400" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        <div class="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
+          <svg class="text-blue-400" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         </div>
         <h2 class="text-sm font-black text-text-primary uppercase tracking-wider">{{ levelForm.value.id ? 'Modify Level' : 'Create New Level' }}</h2>
       </div>
@@ -49,17 +49,17 @@
       <form [formGroup]="levelForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="flex flex-col gap-2">
           <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.15em]">Level Name (e.g. Grade 1, Year 3)</label>
-          <input type="text" formControlName="name" placeholder="Full Designation" class="bg-bg-primary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all">
+          <input type="text" formControlName="name" placeholder="Full Designation" class="bg-bg-primary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
         </div>
 
         <div class="flex flex-col gap-2">
           <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.15em]">Sequence Ordinal (Lower = Earlier)</label>
-          <input type="number" formControlName="ordinal" min="1" max="20" class="bg-bg-primary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all">
+          <input type="number" formControlName="ordinal" min="1" max="20" class="bg-bg-primary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
         </div>
 
         <div class="md:col-span-2 flex justify-end gap-3 mt-2">
           <button type="button" (click)="resetForm()" class="px-5 py-2.5 bg-bg-tertiary hover:bg-bg-primary border border-border-primary text-text-primary text-xs font-bold rounded-xl transition-all">Cancel</button>
-          <button type="submit" class="px-6 py-2.5 bg-teal-600 hover:bg-teal-500 disabled:opacity-40 text-white text-xs font-bold rounded-xl shadow-lg shadow-teal-500/20 transition-all flex items-center gap-2" [disabled]="levelForm.invalid || isSubmitting()">
+          <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2" [disabled]="levelForm.invalid || isSubmitting()">
             @if (isSubmitting()) {
             <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
             }
@@ -73,7 +73,7 @@
     <!-- Loading -->
     @if (isLoading()) {
     <div class="py-20 flex flex-col items-center justify-center gap-3">
-      <div class="w-10 h-10 border-2 border-teal-500/30 border-t-teal-500 rounded-full animate-spin"></div>
+      <div class="w-10 h-10 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
       <p class="text-sm text-text-muted font-semibold">Loading levels...</p>
     </div>
     }
@@ -83,8 +83,8 @@
     <div class="bg-bg-secondary border border-border-primary rounded-2xl overflow-hidden">
       <div class="flex items-center justify-between px-6 py-4 border-b border-border-primary">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 bg-teal-500/10 rounded-lg flex items-center justify-center">
-            <svg class="text-teal-400" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <div class="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
+            <svg class="text-blue-400" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           </div>
           <h3 class="text-sm font-black text-text-primary uppercase tracking-wider">Progression Hierarchy</h3>
         </div>
@@ -105,7 +105,7 @@
           @for (level of levels(); track level.id; let i = $index) {
           <tr class="hover:bg-bg-tertiary/50 transition-colors group">
             <td class="px-6 py-4">
-              <div class="w-10 h-10 rounded-xl bg-teal-500/15 border border-border-primary flex items-center justify-center text-sm font-black text-teal-400 font-mono">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/15 border border-border-primary flex items-center justify-center text-sm font-black text-blue-400 font-mono">
                 {{ level.ordinal }}
               </div>
             </td>
@@ -118,8 +118,8 @@
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Entry Point
               </span>
               } @else if ($last) {
-              <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[10px] font-black rounded-lg uppercase tracking-wider">
-                <span class="w-1.5 h-1.5 rounded-full bg-teal-400"></span> Final Level
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black rounded-lg uppercase tracking-wider">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span> Final Level
               </span>
               } @else {
               <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-bg-tertiary border border-border-primary text-text-muted text-[10px] font-black rounded-lg uppercase tracking-wider">
@@ -129,7 +129,7 @@
             </td>
             <td class="px-6 py-4 text-right">
               <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button (click)="onEdit(level)" class="p-2 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-400 hover:bg-teal-500/20 transition-all" title="Edit">
+                <button (click)="onEdit(level)" class="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-all" title="Edit">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 </button>
                 <button (click)="onDelete(level.id)" class="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all" title="Delete">
@@ -155,7 +155,7 @@
         <p class="text-text-primary font-bold text-lg">No Levels Defined</p>
         <p class="text-text-muted text-sm mt-1">Create scholastic levels to define the institutional hierarchy and enable student classification.</p>
       </div>
-      <button (click)="showForm.set(true)" class="mt-2 px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shadow-teal-500/20 transition-all active:scale-95 flex items-center gap-2">
+      <button (click)="showForm.set(true)" class="mt-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Create First Level
       </button>

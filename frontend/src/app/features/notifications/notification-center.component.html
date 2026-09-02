@@ -1,13 +1,13 @@
 <div class="min-h-screen p-6 md:p-10 max-w-[1400px] mx-auto animate-fade-in">
 
   <!-- ── Ambient Glow ──────────────────────────────────────── -->
-  <div class="absolute -left-20 -top-10 w-72 h-72 bg-teal-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+  <div class="absolute -left-20 -top-10 w-72 h-72 bg-blue-500/10 rounded-full blur-[120px] pointer-events-none"></div>
 
   <!-- ── Top Header ───────────────────────────────────────── -->
   <div class="flex flex-col md:flex-row items-start md:items-end justify-between mb-8 gap-4 relative z-10">
     <div>
       <div class="flex items-center gap-3 mb-2">
-        <div class="w-10 h-10 rounded-2xl bg-teal-600 flex items-center justify-center shadow-lg shadow-teal-500/30">
+        <div class="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
             <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
             <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
@@ -22,10 +22,10 @@
 
       <div class="flex items-center gap-3">
         <h1 class="text-3xl md:text-5xl font-black tracking-tighter text-text-primary">
-          Notification <span class="text-teal-400">Center</span>
+          Notification <span class="text-blue-400">Center</span>
         </h1>
         @if (unreadCount() > 0) {
-          <span class="px-3 py-1 rounded-full bg-teal-500 text-white font-black text-xs shadow-md shadow-teal-500/30 animate-pulse">
+          <span class="px-3 py-1 rounded-full bg-blue-500 text-white font-black text-xs shadow-md shadow-blue-500/30 animate-pulse">
             {{ unreadCount() }} Unread
           </span>
         }
@@ -50,7 +50,7 @@
       @if (unreadCount() > 0) {
         <button
           (click)="markAllAsRead()"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/20 transition-all cursor-pointer"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 transition-all cursor-pointer"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
           Mark all as read
@@ -73,7 +73,7 @@
   <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8 relative z-10">
     <div (click)="activeFilter.set('ALL')"
          class="p-4 rounded-2xl border transition-all cursor-pointer group"
-         [ngClass]="activeFilter() === 'ALL' ? 'bg-teal-500/10 border-teal-500/40' : 'bg-bg-secondary/40 border-border-primary/60 hover:bg-bg-tertiary/40'">
+         [ngClass]="activeFilter() === 'ALL' ? 'bg-blue-500/10 border-blue-500/40' : 'bg-bg-secondary/40 border-border-primary/60 hover:bg-bg-tertiary/40'">
       <span class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Total Received</span>
       <div class="flex items-baseline justify-between">
         <span class="text-2xl font-black text-text-primary">{{ notifications().length }}</span>
@@ -83,11 +83,11 @@
 
     <div (click)="activeFilter.set('UNREAD')"
          class="p-4 rounded-2xl border transition-all cursor-pointer group"
-         [ngClass]="activeFilter() === 'UNREAD' ? 'bg-teal-500/15 border-teal-500/40' : 'bg-bg-secondary/40 border-border-primary/60 hover:bg-bg-tertiary/40'">
-      <span class="text-[10px] font-black uppercase tracking-widest text-teal-400 block mb-1">Unread Alerts</span>
+         [ngClass]="activeFilter() === 'UNREAD' ? 'bg-blue-500/15 border-blue-500/40' : 'bg-bg-secondary/40 border-border-primary/60 hover:bg-bg-tertiary/40'">
+      <span class="text-[10px] font-black uppercase tracking-widest text-blue-400 block mb-1">Unread Alerts</span>
       <div class="flex items-baseline justify-between">
-        <span class="text-2xl font-black text-teal-400">{{ unreadCount() }}</span>
-        <span class="text-xs text-teal-400 font-bold">Pending</span>
+        <span class="text-2xl font-black text-blue-400">{{ unreadCount() }}</span>
+        <span class="text-xs text-blue-400 font-bold">Pending</span>
       </div>
     </div>
 
@@ -103,11 +103,11 @@
 
     <div (click)="activeFilter.set('GRADE')"
          class="p-4 rounded-2xl border transition-all cursor-pointer group"
-         [ngClass]="activeFilter() === 'GRADE' ? 'bg-teal-500/10 border-teal-500/40' : 'bg-bg-secondary/40 border-border-primary/60 hover:bg-bg-tertiary/40'">
-      <span class="text-[10px] font-black uppercase tracking-widest text-teal-400 block mb-1">Academic & Grades</span>
+         [ngClass]="activeFilter() === 'GRADE' ? 'bg-blue-500/10 border-blue-500/40' : 'bg-bg-secondary/40 border-border-primary/60 hover:bg-bg-tertiary/40'">
+      <span class="text-[10px] font-black uppercase tracking-widest text-blue-400 block mb-1">Academic & Grades</span>
       <div class="flex items-baseline justify-between">
-        <span class="text-2xl font-black text-teal-400">{{ gradeCount() }}</span>
-        <span class="text-xs text-teal-400 font-bold">Assessments</span>
+        <span class="text-2xl font-black text-blue-400">{{ gradeCount() }}</span>
+        <span class="text-xs text-blue-400 font-bold">Assessments</span>
       </div>
     </div>
   </div>
@@ -119,14 +119,14 @@
       <button
         (click)="activeFilter.set('ALL')"
         class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-        [ngClass]="activeFilter() === 'ALL' ? 'bg-teal-600 text-white shadow-md shadow-teal-500/30' : 'bg-bg-secondary/60 text-text-secondary hover:text-text-primary border border-border-primary'">
+        [ngClass]="activeFilter() === 'ALL' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30' : 'bg-bg-secondary/60 text-text-secondary hover:text-text-primary border border-border-primary'">
         All ({{ notifications().length }})
       </button>
 
       <button
         (click)="activeFilter.set('UNREAD')"
         class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-        [ngClass]="activeFilter() === 'UNREAD' ? 'bg-teal-600 text-white shadow-md shadow-teal-500/30' : 'bg-bg-secondary/60 text-text-secondary hover:text-text-primary border border-border-primary'">
+        [ngClass]="activeFilter() === 'UNREAD' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30' : 'bg-bg-secondary/60 text-text-secondary hover:text-text-primary border border-border-primary'">
         Unread ({{ unreadCount() }})
       </button>
 
@@ -141,7 +141,7 @@
       <button
         (click)="activeFilter.set('GRADE')"
         class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
-        [ngClass]="activeFilter() === 'GRADE' ? 'bg-teal-600 text-white shadow-md shadow-teal-500/30' : 'bg-bg-secondary/60 text-text-secondary hover:text-text-primary border border-border-primary'">
+        [ngClass]="activeFilter() === 'GRADE' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30' : 'bg-bg-secondary/60 text-text-secondary hover:text-text-primary border border-border-primary'">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
         Academic ({{ gradeCount() }})
       </button>
@@ -171,7 +171,7 @@
         [ngModel]="searchQuery()"
         (ngModelChange)="searchQuery.set($event)"
         placeholder="Filter by keyword..."
-        class="w-full bg-bg-secondary/80 border border-border-primary rounded-xl pl-9 pr-4 py-2 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+        class="w-full bg-bg-secondary/80 border border-border-primary rounded-xl pl-9 pr-4 py-2 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/50"
       />
     </div>
   </div>
@@ -182,7 +182,7 @@
       <div
         (click)="markAsRead(n.id)"
         class="p-5 rounded-2xl border transition-all duration-200 cursor-pointer relative overflow-hidden group flex flex-col md:flex-row md:items-center justify-between gap-4"
-        [ngClass]="!n.read ? 'bg-bg-secondary/90 border-teal-500/40 shadow-lg shadow-teal-500/5' : 'bg-bg-secondary/40 border-border-primary/50 hover:bg-bg-tertiary/40'"
+        [ngClass]="!n.read ? 'bg-bg-secondary/90 border-blue-500/40 shadow-lg shadow-blue-500/5' : 'bg-bg-secondary/40 border-border-primary/50 hover:bg-bg-tertiary/40'"
       >
         <!-- Left color indicator -->
         <div class="absolute left-0 top-0 bottom-0 w-1.5"
@@ -225,8 +225,8 @@
               </span>
 
               @if (!n.read) {
-                <span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
-                <span class="text-[10px] font-black text-teal-400">NEW</span>
+                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                <span class="text-[10px] font-black text-blue-400">NEW</span>
               }
 
               <span class="text-[11px] text-text-muted font-medium ml-auto">
@@ -234,7 +234,7 @@
               </span>
             </div>
 
-            <h3 class="text-sm font-black text-text-primary tracking-tight group-hover:text-teal-400 transition-colors">
+            <h3 class="text-sm font-black text-text-primary tracking-tight group-hover:text-blue-400 transition-colors">
               {{ n.title }}
             </h3>
 
@@ -250,7 +250,7 @@
             <a
               [routerLink]="route"
               (click)="$event.stopPropagation()"
-              class="px-3.5 py-1.5 rounded-xl bg-bg-tertiary hover:bg-teal-600 text-text-secondary hover:text-white text-xs font-bold border border-border-primary hover:border-transparent transition-all cursor-pointer"
+              class="px-3.5 py-1.5 rounded-xl bg-bg-tertiary hover:bg-blue-600 text-text-secondary hover:text-white text-xs font-bold border border-border-primary hover:border-transparent transition-all cursor-pointer"
             >
               {{ getNotificationActionLabel(n) }}
             </a>
@@ -259,7 +259,7 @@
           @if (!n.read) {
             <button
               (click)="markAsRead(n.id, $event)"
-              class="p-2 rounded-xl text-text-muted hover:text-teal-400 hover:bg-teal-500/10 border border-transparent hover:border-teal-500/20 transition-all cursor-pointer"
+              class="p-2 rounded-xl text-text-muted hover:text-blue-400 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/20 transition-all cursor-pointer"
               title="Mark as read"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -270,7 +270,7 @@
     } @empty {
       <!-- ── Empty State ───────────────────────────────────── -->
       <div class="flex flex-col items-center justify-center py-24 px-6 text-center bg-bg-secondary/30 border border-border-primary/50 rounded-3xl backdrop-blur-xl">
-        <div class="w-20 h-20 rounded-3xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 mb-4 shadow-xl shadow-teal-500/10">
+        <div class="w-20 h-20 rounded-3xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4 shadow-xl shadow-blue-500/10">
           <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
         </div>
         <h3 class="text-lg font-black text-text-primary">All Caught Up!</h3>

@@ -14,9 +14,9 @@ export class FeaturesComponent {
         {
             title: 'Academic Hub',
             icon: 'fa-book-reader',
-            color: 'text-teal-400',
-            bg: 'bg-teal-500/10',
-            border: 'border-teal-500/20',
+            color: 'text-blue-400',
+            bg: 'bg-blue-500/10',
+            border: 'border-blue-500/20',
             items: ['Interactive Gradebooks', 'Automated Report Cards', 'Assignment Tracking', 'Curriculum Planning']
         },
         {
@@ -30,9 +30,9 @@ export class FeaturesComponent {
         {
             title: 'HR & Payroll',
             icon: 'fa-user-tie',
-            color: 'text-teal-400',
-            bg: 'bg-teal-500/10',
-            border: 'border-teal-500/20',
+            color: 'text-blue-400',
+            bg: 'bg-blue-500/10',
+            border: 'border-blue-500/20',
             items: ['Staff Attendance', 'Payroll Processing', 'Leave Management', 'Performance Reviews']
         },
         {
