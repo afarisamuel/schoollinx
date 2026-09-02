@@ -238,29 +238,35 @@
 
 <!-- ═══════════════════════ AWARD FORM MODAL ═══════════════════════ -->
 @if (showForm()) {
-    <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" (click)="closeForm()">
-        <div class="relative w-full max-w-lg bg-blue-600 from-[#0F172A] to-[#1E293B] border border-slate-700/60 rounded-3xl shadow-2xl p-8" (click)="$event.stopPropagation()">
-            <div class="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-[60px] pointer-events-none"></div>
+    <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" (click)="closeForm()">
+        <div class="relative w-full max-w-lg bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl p-6 md:p-8 overflow-hidden" (click)="$event.stopPropagation()">
+            <!-- Subtle decorative glow -->
+            <div class="absolute -top-16 -right-16 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] pointer-events-none"></div>
 
             <div class="flex items-start justify-between mb-6 relative z-10">
                 <div>
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase tracking-widest mb-3">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest mb-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
                         Financial Aid
                     </div>
-                    <h2 class="text-xl font-black text-white">Award Scholarship</h2>
-                    <p class="text-sm text-slate-400 mt-1">For <strong class="text-amber-400">{{ selectedStudent()?.first_name }} {{ selectedStudent()?.last_name }}</strong></p>
+                    <h2 class="text-xl font-black text-text-primary">Award Scholarship</h2>
+                    @if (selectedStudent()) {
+                        <p class="text-xs text-text-muted mt-1">For <strong class="text-blue-400">{{ selectedStudent()?.first_name }} {{ selectedStudent()?.last_name }}</strong></p>
+                    } @else {
+                        <p class="text-xs text-text-muted mt-1">Assign financial aid or discount to a student</p>
+                    }
                 </div>
-                <button (click)="closeForm()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                <button (click)="closeForm()" class="p-2 rounded-xl bg-bg-tertiary hover:bg-bg-primary text-text-muted hover:text-text-primary border border-border-primary transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
 
             <div class="space-y-4 relative z-10">
                 @if (!selectedStudent()) {
                     <div>
-                        <label class="form-label">Recipient Student *</label>
-                        <select id="scholarship-student" [value]="form().student_id" (change)="updateForm('student_id', $any($event.target).value)" class="form-input">
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Recipient Student *</label>
+                        <select id="scholarship-student" [value]="form().student_id" (change)="updateForm('student_id', $any($event.target).value)"
+                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary outline-none focus:border-blue-500 transition-all cursor-pointer">
                             <option value="">Select Student...</option>
                             @for (s of students(); track s.id) {
                                 <option [value]="s.id">{{ s.first_name }} {{ s.last_name }} ({{ s.enrollment_num || 'No ID' }})</option>
@@ -270,56 +276,59 @@
                 }
 
                 <div>
-                    <label class="form-label">Scholarship Name *</label>
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Scholarship Name *</label>
                     <input type="text" id="scholarship-name" placeholder="e.g. Merit Award, Staff Discount"
                         [value]="form().name" (input)="updateForm('name', $any($event.target).value)"
-                        class="form-input" />
+                        class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-blue-500 transition-all" />
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="form-label">Type *</label>
-                        <select id="scholarship-type" [value]="form().type" (change)="updateForm('type', $any($event.target).value)" class="form-input">
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Type *</label>
+                        <select id="scholarship-type" [value]="form().type" (change)="updateForm('type', $any($event.target).value)"
+                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary outline-none focus:border-blue-500 transition-all cursor-pointer">
                             <option value="PERCENTAGE">Percentage (%)</option>
                             <option value="FIXED_AMOUNT">Fixed Amount (GH₵)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="form-label">Value *</label>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Value *</label>
                         <input type="number" id="scholarship-value" min="0.01"
                             [placeholder]="form().type === 'PERCENTAGE' ? 'e.g. 50' : 'e.g. 500'"
                             [value]="form().value" (input)="updateForm('value', +$any($event.target).value)"
-                            class="form-input" />
+                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-blue-500 transition-all font-mono" />
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="form-label">Valid From *</label>
-                        <input type="date" id="scholarship-valid-from" [value]="form().valid_from" (input)="updateForm('valid_from', $any($event.target).value)" class="form-input" />
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Valid From *</label>
+                        <input type="date" id="scholarship-valid-from" [value]="form().valid_from" (input)="updateForm('valid_from', $any($event.target).value)"
+                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary outline-none focus:border-blue-500 transition-all" />
                     </div>
                     <div>
-                        <label class="form-label">Valid Until *</label>
-                        <input type="date" id="scholarship-valid-until" [value]="form().valid_until" (input)="updateForm('valid_until', $any($event.target).value)" class="form-input" />
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Valid Until *</label>
+                        <input type="date" id="scholarship-valid-until" [value]="form().valid_until" (input)="updateForm('valid_until', $any($event.target).value)"
+                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary outline-none focus:border-blue-500 transition-all" />
                     </div>
                 </div>
 
                 <div>
-                    <label class="form-label">Reason / Notes</label>
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Reason / Notes</label>
                     <textarea id="scholarship-reason" rows="3" placeholder="Reason for awarding this scholarship..."
                         [value]="form().reason || ''" (input)="updateForm('reason', $any($event.target).value)"
-                        class="form-input resize-none"></textarea>
+                        class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-blue-500 transition-all resize-none"></textarea>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 mt-6 relative z-10">
-                <button (click)="closeForm()" class="flex-1 py-3 rounded-xl font-bold text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700">
+            <div class="flex items-center gap-3 mt-8 relative z-10">
+                <button (click)="closeForm()" class="flex-1 py-3 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-primary transition-all border border-border-primary">
                     Cancel
                 </button>
                 <button (click)="submit()" [disabled]="isSubmitting()"
-                    class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                    class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
                     @if (isSubmitting()) {
-                        <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     } @else {
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
                     }
