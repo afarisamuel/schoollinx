@@ -1,12 +1,12 @@
 <!-- Mobile Backdrop Overlay -->
 @if (isMobileOpen()) {
-<div class="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 lg:hidden transition-opacity duration-300"
+<div class="fixed inset-0 bg-black/70 backdrop-blur-xs z-40 lg:hidden transition-opacity duration-300"
   (click)="closeMobile.emit()"></div>
 }
 
-<!-- Sidebar Container -->
+<!-- Sidebar Container (Always Dark Mode) -->
 <aside
-  class="fixed lg:static top-0 bottom-0 left-0 z-50 h-full max-h-screen flex flex-col bg-white/95 dark:bg-bg-secondary/95 lg:bg-white/90 lg:dark:bg-bg-secondary/60 backdrop-blur-2xl lg:rounded-3xl border border-slate-200/80 dark:border-border-primary/70 shadow-xl transition-all duration-300 select-none overflow-hidden"
+  class="fixed lg:static top-0 bottom-0 left-0 z-50 h-full max-h-screen flex flex-col bg-[#0b1120] lg:bg-[#0d1526]/95 backdrop-blur-2xl lg:rounded-3xl border border-white/[0.08] shadow-2xl transition-all duration-300 select-none overflow-hidden text-slate-200"
   [ngClass]="{
     'translate-x-0': isMobileOpen(),
     '-translate-x-full lg:translate-x-0': !isMobileOpen(),
@@ -15,10 +15,10 @@
   }">
   <!-- ── Sidebar Brand Header ───────────────────────────── -->
   <div
-    class="h-18 md:h-20 flex items-center px-4 border-b border-slate-200/80 dark:border-border-primary/60 shrink-0 gap-3 relative">
+    class="h-18 md:h-20 flex items-center px-4 border-b border-white/[0.08] shrink-0 gap-3 relative">
     <a routerLink="/dashboard" (click)="onNavClick()" class="flex items-center gap-3 min-w-0 group cursor-pointer">
       <div
-        class="w-10 h-10 shrink-0 rounded-xl overflow-hidden flex items-center justify-center bg-slate-50 dark:bg-bg-tertiary border border-slate-200 dark:border-border-primary shadow-xs group-hover:scale-105 transition-transform duration-300">
+        class="w-10 h-10 shrink-0 rounded-xl overflow-hidden flex items-center justify-center bg-slate-800/80 border border-white/10 shadow-xs group-hover:scale-105 transition-transform duration-300">
         @if (tenantProfile()?.logo_url) {
         <img [src]="tenantProfile()!.logo_url" [alt]="tenantProfile()!.name" class="w-full h-full object-contain"
           (error)="$event.target.src='assets/images/app-icon.png'">
@@ -30,41 +30,22 @@
       @if (!isCollapsed()) {
       <div class="min-w-0 flex-1 animate-fade-in">
         <h2
-          class="text-sm font-black tracking-tight text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight truncate">
+          class="text-sm font-black tracking-tight text-white group-hover:text-blue-400 transition-colors leading-tight truncate">
           {{ tenantProfile()?.name || 'SchoolLinx' }}
         </h2>
         <div class="flex items-center gap-1.5 mt-0.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           <span
-            class="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider leading-none">OS
+            class="text-[10px] font-black text-emerald-400 uppercase tracking-wider leading-none">OS
             Active</span>
         </div>
       </div>
       }
     </a>
 
-    <!-- Desktop Collapse Toggle Button -->
-    <!-- @if (!isCollapsed()) {
-      <button
-        (click)="toggleCollapse.emit()"
-        class="hidden lg:flex ml-auto w-8 h-8 rounded-xl bg-slate-100 hover:bg-blue-50 dark:bg-bg-tertiary dark:hover:bg-blue-500/15 text-slate-500 hover:text-blue-600 dark:text-text-muted dark:hover:text-blue-400 items-center justify-center border border-slate-200/80 dark:border-border-primary/60 transition-all cursor-pointer shadow-2xs"
-        title="Collapse sidebar"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
-      </button>
-    } @else {
-      <button
-        (click)="toggleCollapse.emit()"
-        class="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-blue-600 text-white items-center justify-center shadow-lg shadow-blue-500/30 hover:scale-110 transition-all cursor-pointer z-10"
-        title="Expand sidebar"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m9 18 6-6-6-6"/></svg>
-      </button>
-    } -->
-
     <!-- Mobile Close Button -->
     <button (click)="closeMobile.emit()"
-      class="lg:hidden ml-auto w-9 h-9 rounded-xl bg-slate-100 dark:bg-bg-tertiary text-slate-500 dark:text-text-muted hover:text-slate-900 dark:hover:text-text-primary flex items-center justify-center cursor-pointer">
+      class="lg:hidden ml-auto w-9 h-9 rounded-xl bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer transition-colors">
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2.5">
         <path d="M18 6 6 18" />
@@ -77,15 +58,15 @@
   @if (!isCollapsed()) {
   <div class="px-3 pt-3 pb-1 shrink-0 animate-fade-in">
     <div class="relative flex items-center">
-      <svg class="w-4 h-4 absolute left-3 text-slate-400 dark:text-text-muted pointer-events-none"
+      <svg class="w-4 h-4 absolute left-3 text-slate-400 pointer-events-none"
         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
       <input type="text" [value]="searchQuery()" (input)="onSearchInput($event)" placeholder="Quick find module..."
-        class="w-full pl-9 pr-14 py-2 bg-slate-100/90 hover:bg-slate-100 dark:bg-bg-tertiary/70 dark:hover:bg-bg-tertiary border border-slate-200/80 dark:border-border-primary/60 focus:bg-white dark:focus:bg-bg-tertiary focus:border-blue-500 rounded-xl text-xs font-semibold text-slate-900 dark:text-text-primary placeholder:text-slate-400 dark:placeholder:text-text-muted/60 focus:outline-none transition-all shadow-inner" />
+        class="w-full pl-9 pr-14 py-2 bg-slate-900/80 hover:bg-slate-900 border border-white/[0.08] focus:bg-slate-900 focus:border-blue-500 rounded-xl text-xs font-semibold text-white placeholder:text-slate-500 focus:outline-none transition-all shadow-inner" />
       @if (searchQuery().length > 0) {
       <button (click)="clearSearch()"
-        class="absolute right-2.5 text-slate-400 hover:text-slate-700 dark:text-text-muted dark:hover:text-text-primary transition-colors cursor-pointer"
+        class="absolute right-2.5 text-slate-400 hover:text-white transition-colors cursor-pointer"
         title="Clear search">
         <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
           stroke-width="2.5">
@@ -94,7 +75,7 @@
       </button>
       } @else {
       <span
-        class="absolute right-2.5 px-1.5 py-0.5 rounded bg-slate-200/80 dark:bg-white/10 text-[10px] font-mono font-bold text-slate-500 dark:text-text-muted pointer-events-none">/</span>
+        class="absolute right-2.5 px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono font-bold text-slate-400 pointer-events-none">/</span>
       }
     </div>
   </div>
@@ -107,12 +88,12 @@
       <!-- Group Header -->
       @if (!isCollapsed()) {
       <div (click)="toggleGroup(group.id)"
-        class="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-100/70 dark:hover:bg-bg-tertiary/50 cursor-pointer text-slate-400 dark:text-text-muted hover:text-slate-800 dark:hover:text-text-primary transition-colors group/hdr select-none">
+        class="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 cursor-pointer text-slate-400 hover:text-white transition-colors group/hdr select-none">
         <div class="flex items-center gap-2 min-w-0">
           @if (group.accent) {
           <span class="w-2 h-2 rounded-full shrink-0 shadow-2xs" [style.backgroundColor]="group.accent"></span>
           } @else {
-          <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-slate-300 dark:bg-slate-600"></span>
+          <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-slate-600"></span>
           }
           <p class="text-[10px] font-black tracking-wider uppercase truncate">
             {{ group.title }}
@@ -123,7 +104,7 @@
           <!-- Hub Portal Quick Direct Link (if available) -->
           @if (group.hubRoute) {
           <a [routerLink]="group.hubRoute" (click)="$event.stopPropagation(); onNavClick()"
-            class="p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:text-text-muted dark:hover:text-blue-400 dark:hover:bg-blue-500/10 transition-colors"
+            class="p-1 rounded-md text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
             title="Open Hub View">
             <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
               stroke="currentColor" stroke-width="2">
@@ -135,7 +116,7 @@
 
           <!-- Expand/Collapse Chevron -->
           <svg
-            class="w-3.5 h-3.5 text-slate-400 group-hover/hdr:text-slate-700 dark:text-text-muted dark:group-hover/hdr:text-text-primary transition-transform duration-200"
+            class="w-3.5 h-3.5 text-slate-400 group-hover/hdr:text-white transition-transform duration-200"
             [class.rotate-90]="isGroupExpanded(group.id)" xmlns="http://www.w3.org/2000/svg" fill="none"
             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
@@ -144,7 +125,7 @@
       </div>
       } @else {
       <!-- Divider in collapsed mode -->
-      <div class="w-8 mx-auto my-2 border-b border-slate-200 dark:border-border-primary/50"></div>
+      <div class="w-8 mx-auto my-2 border-b border-white/10"></div>
       }
 
       <!-- Group Nav Items -->
@@ -154,21 +135,21 @@
         <a [routerLink]="item.route" (click)="onNavClick()"
           class="relative flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs transition-all duration-150 group cursor-pointer border"
           [ngClass]="{
-                  'bg-blue-50/90 dark:bg-blue-500/15 text-blue-900 dark:text-blue-200 border-blue-200/90 dark:border-blue-500/30 font-bold shadow-2xs': isItemActive(item),
-                  'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-white/5 border-transparent font-semibold': !isItemActive(item),
+                  'bg-blue-500/15 text-blue-200 border-blue-500/30 font-bold shadow-2xs': isItemActive(item),
+                  'text-slate-300 hover:text-white hover:bg-white/5 border-transparent font-semibold': !isItemActive(item),
                   'justify-center': isCollapsed()
                 }">
           <!-- Left active highlight bar -->
           @if (isItemActive(item)) {
-          <div class="absolute left-0 top-2 bottom-2 w-1 bg-blue-600 dark:bg-blue-400 rounded-r-full shadow-xs">
+          <div class="absolute left-0 top-2 bottom-2 w-1 bg-blue-400 rounded-r-full shadow-xs">
           </div>
           }
 
           <!-- Structured Icon Badge Container -->
           <div class="w-7.5 h-7.5 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150"
             [ngClass]="{
-                    'bg-blue-600 dark:bg-blue-500 text-white shadow-2xs shadow-blue-600/30': isItemActive(item),
-                    'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 dark:group-hover:bg-blue-950/60 dark:group-hover:text-blue-300': !isItemActive(item)
+                    'bg-blue-600 text-white shadow-2xs shadow-blue-600/30': isItemActive(item),
+                    'bg-white/5 text-slate-400 group-hover:bg-blue-950/60 group-hover:text-blue-300': !isItemActive(item)
                   }">
             <svg class="w-4 h-4 shrink-0 transition-transform duration-150 group-hover:scale-110"
               xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -185,7 +166,7 @@
           <!-- Unread or Count Badge -->
           @if (item.badge && item.badge() !== null) {
           <span
-            class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-600 dark:bg-blue-500 text-white ring-1 ring-white/20 shadow-2xs animate-pulse">
+            class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500 text-white ring-1 ring-white/20 shadow-2xs animate-pulse">
             {{ item.badge() }}
           </span>
           }
@@ -194,7 +175,7 @@
           <!-- Collapsed Icon Rail Tooltip Flyout -->
           @if (isCollapsed()) {
           <span
-            class="pointer-events-none absolute left-full ml-3 px-3 py-1.5 bg-slate-900 dark:bg-bg-secondary text-white dark:text-text-primary border border-slate-800 dark:border-border-primary rounded-xl text-xs font-bold shadow-2xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 flex items-center gap-2">
+            class="pointer-events-none absolute left-full ml-3 px-3 py-1.5 bg-[#0d1526] text-white border border-slate-700 rounded-xl text-xs font-bold shadow-2xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 flex items-center gap-2">
             {{ item.label }}
             @if (item.badge && item.badge() !== null) {
             <span class="px-1.5 py-0.2 rounded-full text-[9px] bg-blue-500 text-white">
@@ -206,7 +187,7 @@
           <!-- Collapsed Badge Dot -->
           @if (item.badge && item.badge() !== null) {
           <span
-            class="absolute top-2 right-2 w-2 h-2 rounded-full bg-blue-600 ring-2 ring-white dark:ring-bg-secondary animate-ping"></span>
+            class="absolute top-2 right-2 w-2 h-2 rounded-full bg-blue-500 ring-2 ring-[#0d1526] animate-ping"></span>
           }
           }
         </a>
@@ -216,9 +197,9 @@
     </div>
     } @empty {
     <div class="px-4 py-8 text-center animate-fade-in">
-      <p class="text-xs font-medium text-slate-500 dark:text-text-muted">No matching modules found</p>
+      <p class="text-xs font-medium text-slate-400">No matching modules found</p>
       <button (click)="clearSearch()"
-        class="mt-2 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline uppercase tracking-wider cursor-pointer">
+        class="mt-2 text-xs font-bold text-blue-400 hover:underline uppercase tracking-wider cursor-pointer">
         Clear filter
       </button>
     </div>
@@ -227,9 +208,9 @@
 
   <!-- ── Sidebar Bottom User Card ────────────────────────── -->
   <div
-    class="p-3 border-t border-slate-200/80 dark:border-border-primary/70 bg-slate-50/90 dark:bg-bg-tertiary/40 shrink-0 space-y-2">
+    class="p-3 border-t border-white/[0.08] bg-slate-900/40 shrink-0 space-y-2">
     <div
-      class="flex items-center gap-3 p-1.5 rounded-2xl hover:bg-slate-200/60 dark:hover:bg-bg-tertiary transition-colors"
+      class="flex items-center gap-3 p-1.5 rounded-2xl hover:bg-white/5 transition-colors"
       [ngClass]="{'justify-center': isCollapsed()}">
       <div routerLink="/profile" (click)="onNavClick()"
         class="w-9 h-9 shrink-0 rounded-xl bg-blue-600 text-white font-black text-xs flex items-center justify-center cursor-pointer hover:scale-105 transition-transform shadow-xs shadow-blue-500/25"
@@ -239,12 +220,12 @@
 
       @if (!isCollapsed()) {
       <div routerLink="/profile" (click)="onNavClick()" class="min-w-0 flex-1 cursor-pointer">
-        <p class="text-xs font-black text-slate-900 dark:text-white truncate leading-tight">
+        <p class="text-xs font-black text-white truncate leading-tight">
           {{ userName() }}
         </p>
         <div class="flex items-center gap-1.5 mt-0.5">
           <span
-            class="inline-block px-1.5 py-0.2 rounded text-[9px] font-black uppercase tracking-wider bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 leading-tight truncate">
+            class="inline-block px-1.5 py-0.2 rounded text-[9px] font-black uppercase tracking-wider bg-blue-950/80 text-blue-300 border border-blue-800/60 leading-tight truncate">
             {{ userRoleLabel() }}
           </span>
         </div>
@@ -254,7 +235,7 @@
 
     @if (!isCollapsed()) {
     <button (click)="logout()"
-      class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-text-muted hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 border border-slate-200/90 dark:border-border-primary/60 transition-all cursor-pointer shadow-2xs bg-white dark:bg-transparent">
+      class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-rose-400 hover:bg-rose-950/20 border border-white/[0.08] transition-all cursor-pointer shadow-2xs bg-transparent">
       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />

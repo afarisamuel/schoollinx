@@ -1,4 +1,4 @@
-<div class="p-4 md:p-8 max-w-[1600px] mx-auto flex flex-col gap-6 animate-fade-in pb-24">
+<div class="p-2 sm:p-4 md:p-8 max-w-[1600px] mx-auto flex flex-col gap-4 sm:gap-6 animate-fade-in pb-24 min-w-0">
 
     <!-- Header & Action Bar -->
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -9,80 +9,80 @@
                 </span>
                 <span class="text-xs text-text-muted font-bold">&bull; Academic Year: {{ academicYear() }}</span>
             </div>
-            <h1 class="text-2xl md:text-3xl font-black text-text-primary tracking-tight">
+            <h1 class="text-xl sm:text-2xl md:text-3xl font-black text-text-primary tracking-tight">
                 Teacher Class & Subject Allocations
             </h1>
-            <p class="text-sm text-text-secondary mt-1 max-w-2xl font-medium">
+            <p class="text-xs sm:text-sm text-text-secondary mt-1 max-w-2xl font-medium">
                 Assign educators to classes and subjects, balance faculty workloads, configure Class Masters, and auto-resolve curriculum gaps.
             </p>
         </div>
 
-        <div class="flex items-center gap-3 flex-wrap">
+        <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
             <button (click)="openAssignModal()"
-                    class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs tracking-wide flex items-center gap-2 shadow-lg shadow-blue-600/25 transition-all cursor-pointer">
-                <i class="fas fa-plus"></i>
+                    class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs tracking-wide flex items-center gap-2 shadow-lg shadow-blue-600/25 transition-all cursor-pointer">
+                <i class="fas fa-plus text-xs"></i>
                 <span>Assign Teacher</span>
             </button>
             <button (click)="refreshAssignments()"
-                    class="p-2.5 rounded-xl bg-bg-secondary border border-border-primary hover:bg-bg-tertiary text-text-muted hover:text-text-primary text-xs font-bold transition-all cursor-pointer"
+                    class="p-2 sm:p-2.5 rounded-xl bg-bg-secondary border border-border-primary hover:bg-bg-tertiary text-text-muted hover:text-text-primary text-xs font-bold transition-all cursor-pointer"
                     title="Refresh Data & Recommendations">
-                <i class="fas fa-sync-alt" [ngClass]="loadingRecommendations() ? 'fa-spin' : ''"></i>
+                <i class="fas fa-sync-alt text-xs" [ngClass]="loadingRecommendations() ? 'fa-spin' : ''"></i>
             </button>
         </div>
     </div>
 
     <!-- Quick Metrics Bento Grid -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="p-4 bg-bg-secondary border border-border-primary rounded-2xl flex items-center justify-between">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div class="p-3.5 sm:p-4 bg-bg-secondary border border-border-primary rounded-2xl flex items-center justify-between">
             <div>
-                <span class="text-[11px] font-bold text-text-muted uppercase tracking-wider block">Active Allocations</span>
-                <span class="text-2xl font-black text-blue-400 mt-1 block">{{ totalAssignmentsCount() }}</span>
-                <span class="text-[10px] text-text-muted">Subject-Class pairings</span>
+                <span class="text-[10px] sm:text-[11px] font-bold text-text-muted uppercase tracking-wider block">Active Allocations</span>
+                <span class="text-xl sm:text-2xl font-black text-blue-400 mt-1 block">{{ totalAssignmentsCount() }}</span>
+                <span class="text-[9px] sm:text-[10px] text-text-muted">Subject-Class pairings</span>
             </div>
-            <div class="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-lg">
+            <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-sm sm:text-lg shrink-0">
                 <i class="fas fa-chalkboard-teacher"></i>
             </div>
         </div>
 
-        <div class="p-4 bg-bg-secondary border border-border-primary rounded-2xl flex items-center justify-between">
+        <div class="p-3.5 sm:p-4 bg-bg-secondary border border-border-primary rounded-2xl flex items-center justify-between">
             <div>
-                <span class="text-[11px] font-bold text-text-muted uppercase tracking-wider block">Faculty Deployed</span>
-                <span class="text-2xl font-black text-emerald-400 mt-1 block">
+                <span class="text-[10px] sm:text-[11px] font-bold text-text-muted uppercase tracking-wider block">Faculty Deployed</span>
+                <span class="text-xl sm:text-2xl font-black text-emerald-400 mt-1 block">
                     {{ assignedTeachersCount() }} <span class="text-xs font-normal text-text-muted font-sans">/ {{ teachers().length }}</span>
                 </span>
-                <span class="text-[10px] text-text-muted">
+                <span class="text-[9px] sm:text-[10px] text-text-muted">
                     {{ auditReport()?.underutilized_teachers_count || 0 }} available &bull; {{ auditReport()?.overloaded_teachers_count || 0 }} overloaded
                 </span>
             </div>
-            <div class="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
+            <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm sm:text-lg shrink-0">
                 <i class="fas fa-user-check"></i>
             </div>
         </div>
 
-        <div class="p-4 bg-bg-secondary border border-border-primary rounded-2xl flex items-center justify-between">
+        <div class="p-3.5 sm:p-4 bg-bg-secondary border border-border-primary rounded-2xl flex items-center justify-between">
             <div>
-                <span class="text-[11px] font-bold text-text-muted uppercase tracking-wider block">Classrooms Staffed</span>
-                <span class="text-2xl font-black text-blue-400 mt-1 block">
+                <span class="text-[10px] sm:text-[11px] font-bold text-text-muted uppercase tracking-wider block">Classrooms Staffed</span>
+                <span class="text-xl sm:text-2xl font-black text-blue-400 mt-1 block">
                     {{ classesCoveredCount() }} <span class="text-xs font-normal text-text-muted font-sans">/ {{ classes().length }}</span>
                 </span>
-                <span class="text-[10px]" [ngClass]="(auditReport()?.classes_without_master_count || 0) > 0 ? 'text-amber-400 font-bold' : 'text-text-muted'">
+                <span class="text-[9px] sm:text-[10px]" [ngClass]="(auditReport()?.classes_without_master_count || 0) > 0 ? 'text-amber-400 font-bold' : 'text-text-muted'">
                     {{ auditReport()?.classes_without_master_count || 0 }} missing Class Master
                 </span>
             </div>
-            <div class="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-lg">
+            <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-sm sm:text-lg shrink-0">
                 <i class="fas fa-door-open"></i>
             </div>
         </div>
 
-        <div class="p-4 bg-bg-secondary border border-border-primary rounded-2xl flex items-center justify-between">
+        <div class="p-3.5 sm:p-4 bg-bg-secondary border border-border-primary rounded-2xl flex items-center justify-between">
             <div>
-                <span class="text-[11px] font-bold text-text-muted uppercase tracking-wider block">Unassigned Gaps</span>
-                <span class="text-2xl font-black mt-1 block" [ngClass]="(auditReport()?.unassigned_subjects_count || 0) > 0 ? 'text-amber-400' : 'text-cyan-400'">
+                <span class="text-[10px] sm:text-[11px] font-bold text-text-muted uppercase tracking-wider block">Unassigned Gaps</span>
+                <span class="text-xl sm:text-2xl font-black mt-1 block" [ngClass]="(auditReport()?.unassigned_subjects_count || 0) > 0 ? 'text-amber-400' : 'text-cyan-400'">
                     {{ auditReport()?.unassigned_subjects_count || 0 }}
                 </span>
-                <span class="text-[10px] text-text-muted">Subjects need teachers</span>
+                <span class="text-[9px] sm:text-[10px] text-text-muted">Subjects need teachers</span>
             </div>
-            <div class="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center text-lg">
+            <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center text-sm sm:text-lg shrink-0">
                 <i class="fas fa-magic"></i>
             </div>
         </div>
@@ -91,26 +91,26 @@
     @if (isLoading()) {
         <app-page-loader text="Loading curriculum allocation data..." subtext="Syncing educators, classrooms, curriculum subjects, and active assignments."></app-page-loader>
     } @else {
-        <!-- View Mode Selector Pill Tabs -->
+        <!-- View Mode Selector Pill Tabs (Smooth Horizontal Scroll on Mobile) -->
         <div class="flex items-center justify-between border-b border-border-primary pb-3 flex-wrap gap-3">
-            <div class="flex items-center p-1 bg-bg-secondary border border-border-primary rounded-xl flex-wrap gap-1">
+            <div class="flex items-center p-1 bg-bg-secondary border border-border-primary rounded-xl overflow-x-auto custom-scrollbar max-w-full gap-1">
                 <button (click)="viewMode.set('by-class')"
                         [ngClass]="viewMode() === 'by-class' ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20' : 'text-text-muted hover:text-text-primary'"
-                        class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
+                        class="px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0">
                     <i class="fas fa-layer-group text-[11px]"></i>
-                    <span>By Class (Recommended)</span>
+                    <span>By Class</span>
                 </button>
                 <button (click)="viewMode.set('by-teacher')"
                         [ngClass]="viewMode() === 'by-teacher' ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20' : 'text-text-muted hover:text-text-primary'"
-                        class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
+                        class="px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0">
                     <i class="fas fa-th text-[11px]"></i>
-                    <span>Teacher Workload Matrix</span>
+                    <span>Workload Matrix</span>
                 </button>
                 <button (click)="viewMode.set('recommendations')"
                         [ngClass]="viewMode() === 'recommendations' ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20' : 'text-text-muted hover:text-text-primary'"
-                        class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
+                        class="px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0">
                     <i class="fas fa-sparkles text-[11px] text-amber-300"></i>
-                    <span>Smart AI Recommendations & Audit</span>
+                    <span>Recommendations & Audit</span>
                     @if ((auditReport()?.unassigned_subjects_count || 0) > 0) {
                         <span class="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-amber-400 text-black">
                             {{ auditReport()?.unassigned_subjects_count }}
@@ -119,9 +119,9 @@
                 </button>
                 <button (click)="viewMode.set('master-roster')"
                         [ngClass]="viewMode() === 'master-roster' ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20' : 'text-text-muted hover:text-text-primary'"
-                        class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
+                        class="px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0">
                     <i class="fas fa-list text-[11px]"></i>
-                    <span>Master Allocation Roster</span>
+                    <span>Master Roster</span>
                 </button>
             </div>
 

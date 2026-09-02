@@ -1,5 +1,5 @@
 <div
-    class="flex h-screen bg-[#F4F6FB] dark:bg-bg-primary font-sans leading-relaxed text-slate-900 dark:text-text-primary overflow-hidden p-2 md:p-3.5 gap-3 md:gap-3.5">
+    class="flex h-screen bg-[#F4F6FB] dark:bg-bg-primary font-sans leading-relaxed text-slate-900 dark:text-text-primary overflow-hidden p-1 sm:p-2 md:p-3.5 gap-2 sm:gap-3 md:gap-3.5">
 
     <!-- 1. Modular Sidebar Panel (Floating Card) -->
     <app-sidebar class="h-full flex shrink-0" [isCollapsed]="isSidebarCollapsed()"
@@ -7,19 +7,19 @@
         (closeMobile)="closeMobileSidebar()"></app-sidebar>
 
     <!-- 2. Main Column (Navbar + Main Canvas) -->
-    <div class="flex-1 flex flex-col min-w-0 h-full gap-3 md:gap-3.5 overflow-hidden"
+    <div class="flex-1 flex flex-col min-w-0 h-full gap-2 sm:gap-3 md:gap-3.5 overflow-hidden"
         [class.blur-sm]="isBillingLocked() || !isOnline()">
 
         <!-- Global Announcements Banner (if active) -->
         @for (ann of activeAnnouncements(); track ann.id) {
-        <div class="w-full text-white text-xs font-bold px-4 py-2 rounded-2xl flex items-center justify-center gap-3 relative z-50 shadow-md shrink-0"
+        <div class="w-full text-white text-xs font-bold px-3 sm:px-4 py-2 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 sm:gap-3 relative z-50 shadow-md shrink-0"
             [ngClass]="{
                      'bg-blue-600': ann.priority === 'INFO',
                      'bg-amber-500': ann.priority === 'WARNING',
                      'bg-rose-600': ann.priority === 'CRITICAL'
                  }">
-            <i class="fas fa-bullhorn text-sm"></i>
-            <span class="tracking-wide"><strong>{{ ann.title }}:</strong> {{ ann.content }}</span>
+            <i class="fas fa-bullhorn text-xs sm:text-sm"></i>
+            <span class="tracking-wide text-[11px] sm:text-xs truncate"><strong>{{ ann.title }}:</strong> {{ ann.content }}</span>
         </div>
         }
 
@@ -30,7 +30,7 @@
 
         <!-- 4. Modular Main Page Canvas (Floating Card) -->
         <main
-            class="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-[#F8FAFC] dark:bg-bg-secondary/40 rounded-2xl md:rounded-3xl border border-slate-200/90 dark:border-border-primary/80 shadow-xs relative z-0 p-3 sm:p-4 md:p-6 lg:p-7">
+            class="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-[#F8FAFC] dark:bg-bg-secondary/40 rounded-xl sm:rounded-2xl md:rounded-3xl border border-slate-200/90 dark:border-border-primary/80 shadow-xs relative z-0 p-2 sm:p-4 md:p-6 lg:p-7">
             <router-outlet />
         </main>
     </div>
