@@ -40,13 +40,25 @@ export class StudentSearchDropdownComponent implements OnInit {
   }
 
   filteredStudents = computed(() => {
-    const term = this.searchTerm().toLowerCase();
-    return this.students().filter(s => 
-        s.first_name?.toLowerCase().includes(term) || 
-        s.last_name?.toLowerCase().includes(term) ||
-        (s.id && s.id.toLowerCase().includes(term)) ||
-        (s.enrollment_num && s.enrollment_num.toLowerCase().includes(term))
-    );
+    const rawTerm = this.searchTerm().toLowerCase().trim();
+    if (!rawTerm) return this.students();
+
+    const tokens = rawTerm.split(/\s+/).filter(t => t.length > 0);
+    return this.students().filter(s => {
+      const fullName = `${s.first_name || ''} ${s.last_name || ''}`.toLowerCase();
+      const reverseName = `${s.last_name || ''} ${s.first_name || ''}`.toLowerCase();
+      const otherNames = (s.other_name || '').toLowerCase();
+      const id = (s.id || '').toLowerCase();
+      const enrollment = (s.enrollment_num || '').toLowerCase();
+
+      return tokens.every(token =>
+        fullName.includes(token) ||
+        reverseName.includes(token) ||
+        otherNames.includes(token) ||
+        id.includes(token) ||
+        enrollment.includes(token)
+      );
+    });
   });
 
   ngOnInit() {

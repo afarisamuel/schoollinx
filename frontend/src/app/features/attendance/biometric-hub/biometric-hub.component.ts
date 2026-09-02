@@ -59,12 +59,16 @@ export class BiometricHubComponent implements OnInit, OnDestroy {
   allStudents = signal<Student[]>([]);
 
   filteredStudents = computed(() => {
-    const search = this.linkStudentSearch().toLowerCase();
-    return this.allStudents().filter(s => 
-      s.first_name.toLowerCase().includes(search) || 
-      s.last_name.toLowerCase().includes(search) || 
-      (s.enrollment_num && s.enrollment_num.toLowerCase().includes(search))
-    );
+    const rawSearch = this.linkStudentSearch().toLowerCase().trim();
+    if (!rawSearch) return this.allStudents();
+
+    const tokens = rawSearch.split(/\s+/).filter(t => t.length > 0);
+    return this.allStudents().filter(s => {
+      const fullName = `${s.first_name || ''} ${s.last_name || ''}`.toLowerCase();
+      const reverseName = `${s.last_name || ''} ${s.first_name || ''}`.toLowerCase();
+      const enroll = (s.enrollment_num || '').toLowerCase();
+      return tokens.every(t => fullName.includes(t) || reverseName.includes(t) || enroll.includes(t));
+    });
   });
 
   ngOnInit()    { 

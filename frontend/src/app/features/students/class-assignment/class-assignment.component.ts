@@ -47,14 +47,17 @@ export class ClassAssignmentComponent implements OnInit {
     isSubmitting = false;
 
     filteredStudents = computed(() => {
-        const term = this.searchTerm().toLowerCase();
+        const rawTerm = this.searchTerm().toLowerCase().trim();
         const allStudents = this.students();
-        if (!term) return allStudents;
-        
-        return allStudents.filter(s => 
-            s.first_name.toLowerCase().includes(term) || 
-            s.last_name.toLowerCase().includes(term) 
-        );
+        if (!rawTerm) return allStudents;
+
+        const tokens = rawTerm.split(/\s+/).filter(t => t.length > 0);
+        return allStudents.filter(s => {
+            const fullName = `${s.first_name || ''} ${s.last_name || ''}`.toLowerCase();
+            const reverseName = `${s.last_name || ''} ${s.first_name || ''}`.toLowerCase();
+            const enroll = (s.enrollment_num || '').toLowerCase();
+            return tokens.every(t => fullName.includes(t) || reverseName.includes(t) || enroll.includes(t));
+        });
     });
 
     private route = inject(ActivatedRoute);

@@ -64,10 +64,16 @@ export class StudentListComponent implements OnInit {
         const targetLevel = this.selectedLevel();
 
         if (term) {
-            list = list.filter(s => 
-                s.first_name.toLowerCase().includes(term) || 
-                s.last_name.toLowerCase().includes(term)
-            );
+            const tokens = term.trim().split(/\s+/).filter(t => t.length > 0);
+            if (tokens.length > 0) {
+                list = list.filter(s => {
+                    const fullName = `${s.first_name || ''} ${s.last_name || ''}`.toLowerCase();
+                    const reverseName = `${s.last_name || ''} ${s.first_name || ''}`.toLowerCase();
+                    const otherNames = (s.other_name || '').toLowerCase();
+                    const enroll = (s.enrollment_num || '').toLowerCase();
+                    return tokens.every(t => fullName.includes(t) || reverseName.includes(t) || otherNames.includes(t) || enroll.includes(t));
+                });
+            }
         }
 
         if (classId) {
