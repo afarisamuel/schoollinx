@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
   selector: 'app-for-principals',
   imports: [RouterModule],
   templateUrl: './for-principals.html',
+  styleUrl: './for-principals.css'
 })
 export class ForPrincipals implements OnInit {
   constructor(private meta: Meta, private title: Title) {}

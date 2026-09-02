@@ -1,107 +1,132 @@
-<div class="page-root">
-  <div class="page-header">
-    <div class="section-badge">Get in Touch</div>
-    <h1 class="page-title">We'd love to hear from you.</h1>
-    <p class="page-sub">Whether you have a question about features, pricing, or need a demo, our team is ready to answer all your questions.</p>
-  </div>
-
-  <div class="contact-grid">
-    <!-- Contact Info Cards -->
-    <div class="contact-info">
-      <div class="info-card">
-        <div class="info-icon text-teal-500"><i class="fas fa-comments"></i></div>
-        <h3 class="info-title">Chat with Sales</h3>
-        <p class="info-desc">Speak to our friendly team.</p>
-        <a href="mailto:sales@schoollinx.com" class="info-link">sales@schoollinx.com</a>
+<div class="public-page-wrapper">
+  <!-- Page Hero -->
+  <section class="page-hero-section">
+    <div class="page-container">
+      <div class="section-badge-pill">
+        <i class="fas fa-headset"></i>
+        <span>Institutional Support &amp; Sales</span>
       </div>
-      
-      <div class="info-card">
-        <div class="info-icon text-teal-500"><i class="fas fa-life-ring"></i></div>
-        <h3 class="info-title">Chat to Support</h3>
-        <p class="info-desc">We're here to help.</p>
-        <a href="mailto:support@schoollinx.com" class="info-link">support@schoollinx.com</a>
-      </div>
-      
-      <div class="info-card">
-        <div class="info-icon text-blue-500"><i class="fas fa-map-marker-alt"></i></div>
-        <h3 class="info-title">Visit Us</h3>
-        <p class="info-desc">Visit our global HQ.</p>
-        <p class="info-link">100 Education Way, Accra</p>
-      </div>
-      
-      <div class="info-card">
-        <div class="info-icon text-green-500"><i class="fas fa-phone-alt"></i></div>
-        <h3 class="info-title">Call Us</h3>
-        <p class="info-desc">Mon-Fri from 8am to 5pm.</p>
-        <a href="tel:+233201234567" class="info-link">+233 20 123 4567</a>
-      </div>
+      <h1 class="page-main-heading">
+        We're Here to Support Your <span class="text-teal-solid">School's Mission</span>.
+      </h1>
+      <p class="page-lead-desc">
+        Whether you are evaluating School Linx for a single primary school or a nationwide educational network, our technical specialists are ready to help.
+      </p>
     </div>
+  </section>
 
-    <!-- Contact Form -->
-    <div class="contact-form-container">
-      <div class="form-tabs mb-6 flex border-b">
-        <button class="flex-1 pb-2 font-bold text-teal-600 border-b-2 border-teal-600">Send Message</button>
-        <button class="flex-1 pb-2 font-bold text-slate-400 border-b-2 border-transparent">Book Demo (Calendly)</button>
-      </div>
+  <!-- Contact Grid & Form -->
+  <section class="content-section bg-subtle">
+    <div class="page-container">
+      <div class="contact-main-grid">
 
-      @if (submitted) {
-        <div class="p-8 bg-green-50/50 border border-green-100 rounded-xl text-center flex flex-col items-center justify-center">
-          <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-2xl mb-4">
-            <i class="fas fa-check"></i>
+        <!-- Left: Institutional Channels -->
+        <div class="channels-stack">
+          <div class="channel-card">
+            <div class="channel-icon-box"><i class="fas fa-comments"></i></div>
+            <div>
+              <h3 class="channel-title">Institutional Sales</h3>
+              <p class="channel-desc">Discuss school migration, pricing tiers &amp; demos.</p>
+              <a href="mailto:sales@schoollinx.com" class="channel-link text-teal-solid font-bold">sales&#64;schoollinx.com</a>
+            </div>
           </div>
-          <h3 class="text-xl font-bold text-gray-900 mb-2">Message Received</h3>
-          <p class="text-gray-600 mb-6">Thanks for reaching out! A member of our team will get back to you shortly.</p>
-          <button type="button" class="btn-primary" (click)="resetForm()">Send Another Message</button>
+
+          <div class="channel-card">
+            <div class="channel-icon-box"><i class="fas fa-life-ring"></i></div>
+            <div>
+              <h3 class="channel-title">Technical Support Concierge</h3>
+              <p class="channel-desc">Assistance for headmasters, ICT coordinators &amp; bursars.</p>
+              <a href="mailto:support@schoollinx.com" class="channel-link text-teal-solid font-bold">support&#64;schoollinx.com</a>
+            </div>
+          </div>
+
+          <div class="channel-card">
+            <div class="channel-icon-box"><i class="fas fa-phone-volume"></i></div>
+            <div>
+              <h3 class="channel-title">Direct Telephone &amp; WhatsApp</h3>
+              <p class="channel-desc">Monday to Friday, 8:00 AM – 5:00 PM GMT.</p>
+              <a href="tel:+233244123456" class="channel-link text-teal-solid font-bold">+233 24 412 3456</a>
+            </div>
+          </div>
+
+          <div class="channel-card">
+            <div class="channel-icon-box"><i class="fas fa-building"></i></div>
+            <div>
+              <h3 class="channel-title">Regional Headquarters</h3>
+              <p class="channel-desc">West Africa Technology Innovation Hub.</p>
+              <span class="channel-link">Accra &bull; Lagos &bull; Nairobi</span>
+            </div>
+          </div>
         </div>
-      } @else {
-        @if (errorMessage()) {
-          <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-            <i class="fas fa-exclamation-circle mr-2"></i>{{ errorMessage() }}
-          </div>
-        }
-        <form class="contact-form" (submit)="onSubmit($event)">
-          <div class="form-group">
-            <label>Full Name <span class="text-teal-500">*</span></label>
-            <input type="text" placeholder="e.g. Jane Doe" required
-              [ngModel]="form().full_name"
-              (ngModelChange)="form.set({...form(), full_name: $event})"
-              name="full_name">
-          </div>
-          
-          <div class="form-group">
-            <label>Work Email <span class="text-teal-500">*</span></label>
-            <input type="email" placeholder="you@school.edu" required
-              [ngModel]="form().work_email"
-              (ngModelChange)="form.set({...form(), work_email: $event})"
-              name="work_email">
-          </div>
-          
-          <div class="form-group">
-            <label>School Name <span class="text-teal-500">*</span></label>
-            <input type="text" placeholder="e.g. Lincoln High School" required
-              [ngModel]="form().school_name"
-              (ngModelChange)="form.set({...form(), school_name: $event})"
-              name="school_name">
-          </div>
 
-          <div class="form-group">
-            <label>Message <span class="text-slate-400 font-normal">(optional)</span></label>
-            <textarea placeholder="Tell us more about what you're looking for..." rows="3"
-              [ngModel]="form().message"
-              (ngModelChange)="form.set({...form(), message: $event})"
-              name="message"
-              style="width:100%;border-radius:8px;border:1px solid #e2e8f0;padding:10px 14px;font-size:0.95rem;outline:none;resize:vertical;"></textarea>
-          </div>
-          
-          <button type="submit" class="btn-primary w-full justify-center" [disabled]="isSubmitting()">
-            @if (isSubmitting()) {
-              <i class="fas fa-spinner fa-spin mr-2"></i> Sending...
-            } @else {
-              Get in Touch
+        <!-- Right: Contact Form Card -->
+        <div class="contact-form-card">
+          @if (submitted) {
+            <div class="success-message-box">
+              <div class="success-icon-box"><i class="fas fa-check-double"></i></div>
+              <h3 class="success-heading">Message Successfully Received</h3>
+              <p class="success-desc">Thank you for contacting School Linx. An education technology specialist has been assigned to your institution and will reply within 4 business hours.</p>
+              <button type="button" class="solid-btn primary-btn mt-4" (click)="resetForm()">Send Another Message</button>
+            </div>
+          } @else {
+            <div class="form-header-area">
+              <h3 class="form-heading">Send an Institutional Inquiry</h3>
+              <p class="form-sub">Fill out the form below and our team will get in touch promptly.</p>
+            </div>
+
+            @if (errorMessage()) {
+              <div class="form-error-alert">
+                <i class="fas fa-circle-exclamation mr-2"></i>
+                <span>{{ errorMessage() }}</span>
+              </div>
             }
-          </button>
-        </form>
-      }
+
+            <form class="solid-contact-form" (submit)="onSubmit($event)">
+              <div class="form-field-group">
+                <label class="field-label">Your Full Name <span class="required">*</span></label>
+                <input type="text" placeholder="e.g. Dr. Kwame Mensah" required
+                  [ngModel]="form().full_name"
+                  (ngModelChange)="form.set({...form(), full_name: $event})"
+                  name="full_name" class="solid-input">
+              </div>
+
+              <div class="form-field-group">
+                <label class="field-label">Official Work / School Email <span class="required">*</span></label>
+                <input type="email" placeholder="headmaster@school.edu" required
+                  [ngModel]="form().work_email"
+                  (ngModelChange)="form.set({...form(), work_email: $event})"
+                  name="work_email" class="solid-input">
+              </div>
+
+              <div class="form-field-group">
+                <label class="field-label">Institution / School Name <span class="required">*</span></label>
+                <input type="text" placeholder="e.g. Ridge International School" required
+                  [ngModel]="form().school_name"
+                  (ngModelChange)="form.set({...form(), school_name: $event})"
+                  name="school_name" class="solid-input">
+              </div>
+
+              <div class="form-field-group">
+                <label class="field-label">Message / Specific Requirements <span class="optional">(optional)</span></label>
+                <textarea placeholder="Tell us about your student population, current systems, or timeline..." rows="4"
+                  [ngModel]="form().message"
+                  (ngModelChange)="form.set({...form(), message: $event})"
+                  name="message" class="solid-input solid-textarea"></textarea>
+              </div>
+
+              <button type="submit" class="solid-btn primary-btn w-full" [disabled]="isSubmitting()">
+                @if (isSubmitting()) {
+                  <i class="fas fa-spinner fa-spin mr-2"></i> Submitting...
+                } @else {
+                  <span>Send Inquiry</span>
+                  <i class="fas fa-paper-plane ml-2"></i>
+                }
+              </button>
+            </form>
+          }
+        </div>
+
+      </div>
     </div>
-  </div>
+  </section>
 </div>

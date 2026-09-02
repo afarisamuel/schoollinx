@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
   selector: 'app-for-teachers',
   imports: [RouterModule],
   templateUrl: './for-teachers.html',
+  styleUrl: './for-teachers.css'
 })
 export class ForTeachers implements OnInit {
   constructor(private meta: Meta, private title: Title) {}

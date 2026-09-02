@@ -1,35 +1,210 @@
-.page-root {
-  padding: 8rem 2rem 6rem;
-  background: var(--bg-primary);
-  min-height: 100vh;
-}
-.page-header {
-  text-align: center;
-  max-width: 800px;
-  margin: 0 auto 6rem;
-}
-.section-badge {
-  display: inline-block;
-  padding: 0.4rem 1.2rem;
-  background: rgba(20, 184, 166, 0.1);
-  color: #14b8a6;
-  font-weight: 700;
-  font-size: 0.85rem;
-  border-radius: 100px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 1.5rem;
-}
-.page-title {
-  font-size: 3.5rem;
-  font-weight: 900;
+/* ══════════════════════════════════════════════════════════════
+   SCHOOLLINX UPDATES / CHANGELOG - SOLID CLEAN STYLESHEET
+   ══════════════════════════════════════════════════════════════ */
+
+.public-page-wrapper {
+  font-family: 'Inter', system-ui, sans-serif;
   color: var(--text-primary);
-  margin-bottom: 1.5rem;
-  letter-spacing: -0.04em;
-  line-height: 1.1;
+  background-color: var(--bg-primary);
+  width: 100%;
 }
-.page-sub {
-  font-size: 1.2rem;
-  color: var(--text-muted);
+
+.page-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.page-hero-section {
+  padding: 4.5rem 0 3.5rem 0;
+  text-align: center;
+}
+
+.section-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 1rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0d9488;
+  margin-bottom: 1.25rem;
+}
+
+.page-main-heading {
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  font-weight: 900;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  color: var(--text-primary);
+  margin-bottom: 1.25rem;
+}
+
+.page-lead-desc {
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  max-width: 760px;
+  margin: 0 auto;
   line-height: 1.6;
+}
+
+.content-section {
+  padding: 5rem 0;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.text-teal-solid { color: #0d9488; }
+:host-context([data-theme='dark']) .text-teal-solid { color: #14b8a6; }
+
+/* ── Changelog Timeline ────────────────────────────────────── */
+.changelog-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.changelog-entry {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 1.75rem;
+  margin-bottom: 3.5rem;
+}
+
+.changelog-marker-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 0.4rem;
+}
+
+.marker-dot {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background-color: var(--border-primary);
+  border: 2px solid var(--border-primary);
+  flex-shrink: 0;
+}
+
+.marker-dot.active {
+  background-color: #0d9488;
+  border-color: #0d9488;
+}
+
+.marker-line {
+  width: 2px;
+  flex: 1;
+  background-color: var(--border-primary);
+  margin-top: 0.5rem;
+  min-height: 2rem;
+}
+
+.changelog-version-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.version-label {
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.version-tag {
+  padding: 0.25rem 0.65rem;
+  border-radius: 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.version-tag.latest {
+  background-color: rgba(13, 148, 136, 0.12);
+  color: #0d9488;
+}
+
+.version-tag.major {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.version-tag.feature {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.version-tag.improvement {
+  background-color: var(--bg-secondary);
+  color: var(--text-muted);
+  border: 1px solid var(--border-primary);
+}
+
+.changelog-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.change-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.change-icon-box {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.6rem;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  color: #0d9488;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.change-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 0.3rem;
+}
+
+.change-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.changelog-history-note {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--border-primary);
+  font-weight: 600;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .page-hero-section { padding: 2.5rem 0 2rem 0; }
+  .content-section { padding: 3.5rem 0; }
+  .changelog-entry { grid-template-columns: 24px 1fr; gap: 1rem; }
+  .version-label { font-size: 1rem; }
 }
