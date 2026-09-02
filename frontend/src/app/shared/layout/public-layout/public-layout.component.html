@@ -1,127 +1,235 @@
 <div class="landing-root">
-  <!-- ── NAV ──────────────────────────────────────── -->
+  <!-- ── SOLID NAVIGATION BAR ────────────────────────── -->
   <nav class="nav-bar" [class.scrolled]="isScrolled">
     <div class="nav-inner">
       <a routerLink="/" class="nav-logo">
         <div class="logo-icon">
           @if (tenantProfile()?.logo_url) {
-            <img [src]="tenantProfile()!.logo_url" class="w-full h-full object-contain p-1" [alt]="tenantProfile()!.name" (error)="$event.target.src='assets/images/app-icon.png'">
+            <img [src]="tenantProfile()!.logo_url" class="logo-img" [alt]="tenantProfile()!.name" (error)="$event.target.src='assets/images/app-icon.png'">
           } @else {
-            <img src="assets/images/app-icon.png" class="w-full h-full object-contain p-1" alt="School Linx Logo">
+            <img src="assets/images/app-icon.png" class="logo-img" alt="School Linx Logo">
           }
         </div>
-        <span class="logo-text">{{ tenantProfile()?.name || 'School Linx' }}</span>
+        <div class="logo-text-group">
+          <span class="logo-text">{{ tenantProfile()?.name || 'School Linx' }}</span>
+          <span class="logo-tagline">School OS</span>
+        </div>
       </a>
+
+      <!-- Desktop Navigation Links -->
       <div class="nav-links">
-      <a routerLink="/features" class="nav-link">Features</a>
-        <a routerLink="/how-it-works" class="nav-link">How it Works</a>
-        <a routerLink="/" fragment="testimonials" class="nav-link">Success Stories</a>
+        <a routerLink="/features" class="nav-link">Modules</a>
+        <a routerLink="/how-it-works" class="nav-link">How It Works</a>
+        <a routerLink="/pricing" class="nav-link">Pricing</a>
+
         <!-- For Roles Dropdown -->
-        <div class="relative group">
-          <button class="nav-link cursor-pointer flex items-center">
-            For <i class="fas fa-chevron-down text-[10px] ml-1 group-hover:rotate-180 transition-transform duration-300"></i>
+        <div class="nav-dropdown-wrapper">
+          <button class="nav-link nav-dropdown-btn" type="button">
+            <span>Portals</span>
+            <i class="fas fa-chevron-down nav-chevron"></i>
           </button>
-          <div class="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-50">
-            <a routerLink="/for-principals" class="flex items-center gap-3 px-5 py-3.5 text-slate-700 dark:text-slate-200 hover:bg-orange-50 dark:hover:bg-slate-700 hover:text-teal-600 dark:hover:text-white transition-colors text-sm font-bold">
-              <i class="fas fa-user-tie text-teal-500 w-4"></i> Principals
+          <div class="nav-dropdown-menu">
+            <a routerLink="/for-principals" class="dropdown-item">
+              <div class="dropdown-icon-box"><i class="fas fa-user-tie"></i></div>
+              <div>
+                <span class="dropdown-title">Headmasters &amp; Principals</span>
+                <span class="dropdown-sub">Executive oversight, analytics &amp; approvals</span>
+              </div>
             </a>
-            <a routerLink="/for-teachers" class="flex items-center gap-3 px-5 py-3.5 text-slate-700 dark:text-slate-200 hover:bg-orange-50 dark:hover:bg-slate-700 hover:text-teal-600 dark:hover:text-white transition-colors text-sm font-bold">
-              <i class="fas fa-chalkboard-teacher text-teal-500 w-4"></i> Teachers
+            <a routerLink="/for-teachers" class="dropdown-item">
+              <div class="dropdown-icon-box"><i class="fas fa-chalkboard-teacher"></i></div>
+              <div>
+                <span class="dropdown-title">Faculty &amp; Form Teachers</span>
+                <span class="dropdown-sub">Speed gradebook, roll-call &amp; lesson logs</span>
+              </div>
             </a>
-            <a routerLink="/for-parents" class="flex items-center gap-3 px-5 py-3.5 text-slate-700 dark:text-slate-200 hover:bg-orange-50 dark:hover:bg-slate-700 hover:text-teal-600 dark:hover:text-white transition-colors text-sm font-bold">
-              <i class="fas fa-users text-teal-500 w-4"></i> Parents
+            <a routerLink="/for-parents" class="dropdown-item">
+              <div class="dropdown-icon-box"><i class="fas fa-users"></i></div>
+              <div>
+                <span class="dropdown-title">Parents &amp; Guardians</span>
+                <span class="dropdown-sub">Real-time grades, SMS alerts &amp; tuition pay</span>
+              </div>
             </a>
           </div>
         </div>
+
+        <a routerLink="/contact" class="nav-link">Contact</a>
       </div>
-      <div class="flex items-center gap-4">
-        <!-- Dark Mode Toggle -->
-        <button (click)="toggleDarkMode()" class="hidden md:flex w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 items-center justify-center transition-colors text-slate-600 dark:text-slate-300" [title]="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
-          <i class="fas" [class]="isDark ? 'fa-sun text-yellow-400' : 'fa-moon'"></i>
+
+      <!-- Action Items & Auth -->
+      <div class="nav-actions-group">
+        <!-- Dark/Light Mode Toggle -->
+        <button (click)="toggleDarkMode()" class="theme-toggle-btn" [title]="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'" aria-label="Toggle Theme">
+          <i class="fas" [class]="isDark ? 'fa-sun' : 'fa-moon'"></i>
         </button>
-        <a routerLink="/login" class="nav-link font-medium hidden md:block">Log In</a>
-        <a routerLink="/signup" class="nav-cta-btn hidden md:flex">
-          Get Started
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+
+        <a routerLink="/login" class="nav-login-btn">Log In</a>
+        <a routerLink="/signup" class="nav-primary-cta">
+          <span>Start Free Trial</span>
+          <i class="fas fa-arrow-right"></i>
         </a>
 
-        <!-- Mobile Menu Toggle -->
-        <button (click)="toggleMobileMenu()" class="md:hidden w-10 h-10 flex flex-col justify-center items-center gap-1.5 focus:outline-none z-50 relative ml-2">
-            <span class="w-6 h-0.5 bg-slate-800 dark:bg-slate-200 rounded-full transition-transform duration-300" [class.rotate-45]="isMobileMenuOpen" [class.translate-y-2]="isMobileMenuOpen"></span>
-            <span class="w-6 h-0.5 bg-slate-800 dark:bg-slate-200 rounded-full transition-opacity duration-300" [class.opacity-0]="isMobileMenuOpen"></span>
-            <span class="w-6 h-0.5 bg-slate-800 dark:bg-slate-200 rounded-full transition-transform duration-300" [class.-rotate-45]="isMobileMenuOpen" [class.-translate-y-2]="isMobileMenuOpen"></span>
+        <!-- Mobile Menu Toggle Button -->
+        <button (click)="toggleMobileMenu()" class="mobile-toggle-btn" aria-label="Toggle Navigation Menu">
+          <span class="bar" [class.rotate-top]="isMobileMenuOpen"></span>
+          <span class="bar" [class.fade-mid]="isMobileMenuOpen"></span>
+          <span class="bar" [class.rotate-bot]="isMobileMenuOpen"></span>
         </button>
       </div>
     </div>
   </nav>
 
-  <!-- Mobile Menu Dropdown -->
+  <!-- ── FULLSCREEN MOBILE DRAWER ─────────────────────── -->
   @if (isMobileMenuOpen) {
-    <div class="fixed inset-0 z-40 bg-white/95 dark:bg-slate-950/95 backdrop-blur-lg flex flex-col items-center justify-center gap-8 md:hidden px-6 animate-fade-in text-center" (click)="toggleMobileMenu()">
-      <a routerLink="/" fragment="features" class="text-2xl font-black text-slate-900 dark:text-white">Features</a>
-      <a routerLink="/how-it-works" class="text-2xl font-black text-slate-900 dark:text-white">How it Works</a>
-      <a routerLink="/for-principals" class="text-2xl font-black text-slate-900 dark:text-white">Principals</a>
-      <a routerLink="/for-teachers" class="text-2xl font-black text-slate-900 dark:text-white">Teachers</a>
-      <a routerLink="/for-parents" class="text-2xl font-black text-slate-900 dark:text-white">Parents</a>
-      
-      <div class="w-full max-w-sm h-px bg-slate-200 dark:bg-slate-800 my-4"></div>
-      
-      <a routerLink="/login" class="text-xl font-bold text-slate-600 dark:text-slate-400">Log In</a>
-      <a routerLink="/signup" class="w-full max-w-sm py-4 bg-teal-600 text-white rounded-2xl font-bold mt-4 shadow-lg shadow-teal-600/20">Get Started</a>
+    <div class="mobile-drawer-overlay" (click)="toggleMobileMenu()">
+      <div class="mobile-drawer-content" (click)="$event.stopPropagation()">
+        <div class="mobile-drawer-header">
+          <span class="mobile-drawer-title">Navigation</span>
+          <button (click)="toggleMobileMenu()" class="mobile-close-btn" aria-label="Close Menu">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="mobile-links-stack">
+          <a routerLink="/features" class="mobile-nav-link" (click)="toggleMobileMenu()">
+            <i class="fas fa-layer-group text-teal-solid"></i> Modules &amp; Features
+          </a>
+          <a routerLink="/how-it-works" class="mobile-nav-link" (click)="toggleMobileMenu()">
+            <i class="fas fa-route text-teal-solid"></i> How It Works
+          </a>
+          <a routerLink="/pricing" class="mobile-nav-link" (click)="toggleMobileMenu()">
+            <i class="fas fa-tags text-teal-solid"></i> Pricing Plans
+          </a>
+          <a routerLink="/for-principals" class="mobile-nav-link" (click)="toggleMobileMenu()">
+            <i class="fas fa-user-tie text-teal-solid"></i> For Principals &amp; Owners
+          </a>
+          <a routerLink="/for-teachers" class="mobile-nav-link" (click)="toggleMobileMenu()">
+            <i class="fas fa-chalkboard-teacher text-teal-solid"></i> For Teachers &amp; Faculty
+          </a>
+          <a routerLink="/for-parents" class="mobile-nav-link" (click)="toggleMobileMenu()">
+            <i class="fas fa-users text-teal-solid"></i> For Parents &amp; Guardians
+          </a>
+          <a routerLink="/contact" class="mobile-nav-link" (click)="toggleMobileMenu()">
+            <i class="fas fa-headset text-teal-solid"></i> Support &amp; Concierge
+          </a>
+        </div>
+
+        <div class="mobile-drawer-actions">
+          <a routerLink="/login" class="mobile-btn outline-btn w-full" (click)="toggleMobileMenu()">Log In</a>
+          <a routerLink="/signup" class="mobile-btn primary-btn w-full" (click)="toggleMobileMenu()">Start Free School Trial</a>
+        </div>
+      </div>
     </div>
   }
 
-  <main>
+  <!-- ── MAIN CONTENT ROUTER OUTLET ──────────────────── -->
+  <main class="main-content-area">
     <router-outlet></router-outlet>
   </main>
 
-  <!-- ── FOOTER ───────────────────────────────────── -->
-  <footer class="footer">
-    <div class="max-w-6xl mx-auto w-full px-6 flex flex-col md:flex-row items-center md:items-start justify-between">
-      <div class="footer-brand mb-8 md:mb-0">
-        <a routerLink="/" class="footer-logo justify-center md:justify-start">
-          <div class="logo-icon logo-icon-sm">
-            @if (tenantProfile()?.logo_url) {
-              <img [src]="tenantProfile()!.logo_url" class="w-full h-full object-contain p-1" [alt]="tenantProfile()!.name" (error)="$event.target.src='assets/images/app-icon.png'">
-            } @else {
-              <img src="assets/images/app-icon.png" class="w-full h-full object-contain p-1" alt="School Linx Logo">
-            }
+  <!-- ── SOLID INSTITUTIONAL FOOTER ──────────────────── -->
+  <footer class="site-footer">
+    <div class="footer-inner-container">
+
+      <!-- Top 5-Column Grid -->
+      <div class="footer-grid">
+        <!-- Column 1: Brand & Status -->
+        <div class="footer-col brand-col">
+          <a routerLink="/" class="footer-brand-link">
+            <div class="footer-logo-icon">
+              @if (tenantProfile()?.logo_url) {
+                <img [src]="tenantProfile()!.logo_url" class="logo-img" [alt]="tenantProfile()!.name" (error)="$event.target.src='assets/images/app-icon.png'">
+              } @else {
+                <img src="assets/images/app-icon.png" class="logo-img" alt="School Linx Logo">
+              }
+            </div>
+            <span class="footer-brand-title">{{ tenantProfile()?.name || 'School Linx' }}</span>
+          </a>
+          <p class="footer-brand-summary">
+            The unified institutional operating system for modern primary, secondary, and tertiary schools. Built for speed, security, and automated fiscal recovery.
+          </p>
+          <div class="system-status-badge">
+            <span class="status-indicator-dot"></span>
+            <span>All Systems Operational &bull; 99.99% Uptime</span>
           </div>
-          <span class="logo-text" style="font-size: 1rem;">{{ tenantProfile()?.name || 'School Linx' }}</span>
-        </a>
-        <p class="mt-4 text-sm text-slate-500 max-w-xs mx-auto md:mx-0">
-          The modern operating system for forward-thinking educational institutions.
+        </div>
+
+        <!-- Column 2: Platform Modules -->
+        <div class="footer-col">
+          <h4 class="footer-col-title">Core Modules</h4>
+          <ul class="footer-nav-list">
+            <li><a routerLink="/features">Student 360° Registry</a></li>
+            <li><a routerLink="/features">Speed Gradebook</a></li>
+            <li><a routerLink="/features">Conflict-Free Timetables</a></li>
+            <li><a routerLink="/features">Biometric Attendance</a></li>
+            <li><a routerLink="/features">Fiscal Billing &amp; POS</a></li>
+            <li><a routerLink="/features">Multi-Carrier SMS</a></li>
+          </ul>
+        </div>
+
+        <!-- Column 3: Portals & Roles -->
+        <div class="footer-col">
+          <h4 class="footer-col-title">Role Portals</h4>
+          <ul class="footer-nav-list">
+            <li><a routerLink="/for-principals">School Owners &amp; Principals</a></li>
+            <li><a routerLink="/for-teachers">Faculty &amp; Form Teachers</a></li>
+            <li><a routerLink="/for-parents">Parents &amp; Guardians</a></li>
+            <li><a routerLink="/features">Accountants &amp; Bursars</a></li>
+            <li><a routerLink="/features">ICT Administrators</a></li>
+            <li><a routerLink="/how-it-works">White-Glove Onboarding</a></li>
+          </ul>
+        </div>
+
+        <!-- Column 4: Security & Compliance -->
+        <div class="footer-col">
+          <h4 class="footer-col-title">Security &amp; Trust</h4>
+          <ul class="footer-nav-list">
+            <li><a routerLink="/contact">Tenant Schema Isolation</a></li>
+            <li><a routerLink="/contact">AES-256 Cloud Encryption</a></li>
+            <li><a routerLink="/contact">Daily Geo-Redundant Backups</a></li>
+            <li><a routerLink="/contact">WAEC &amp; GES Compliance</a></li>
+            <li><a routerLink="/contact">Cambridge &amp; IB Ready</a></li>
+            <li><a routerLink="/contact">Privacy Policy &amp; GDPR</a></li>
+          </ul>
+        </div>
+
+        <!-- Column 5: Newsletter & Concierge -->
+        <div class="footer-col newsletter-col">
+          <h4 class="footer-col-title">Institutional Concierge</h4>
+          <p class="footer-newsletter-desc">Get the monthly SchoolLinx bulletin on curriculum trends and school administration best practices.</p>
+
+          <form class="footer-subscribe-form" (submit)="$event.preventDefault()">
+            <input type="email" placeholder="official@school.edu" class="subscribe-input" required>
+            <button type="submit" class="subscribe-btn">Subscribe</button>
+          </form>
+
+          <div class="direct-contact-links">
+            <a href="mailto:support@schoollinx.com" class="direct-link">
+              <i class="fas fa-envelope text-teal-solid"></i>
+              <span>support&#64;schoollinx.com</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Sub-Footer Bar -->
+      <div class="footer-bottom-bar">
+        <p class="copyright-text">
+          &copy; {{ currentYear }} School Linx Inc. All rights reserved. Operating with dedicated data isolation.
         </p>
+        <div class="bottom-legal-links">
+          <a routerLink="/contact">Terms of Service</a>
+          <span class="divider">&bull;</span>
+          <a routerLink="/contact">Privacy Policy</a>
+          <span class="divider">&bull;</span>
+          <a routerLink="/contact">Security Whitepaper</a>
+          <span class="divider">&bull;</span>
+          <a routerLink="/contact">Contact Support</a>
+        </div>
       </div>
 
-      <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 w-full max-w-sm mb-8 md:mb-0 mx-auto md:mx-0">
-        <h4 class="font-bold text-slate-900 dark:text-slate-100 mb-2">Subscribe to The Linx Ledger</h4>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Get monthly edtech insights and school administration best practices.</p>
-        <form class="flex flex-col sm:flex-row gap-2">
-          <input type="email" placeholder="Email address" class="flex-1 min-w-0 px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-teal-500 dark:focus:border-teal-400">
-          <button type="button" class="w-full sm:w-auto bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-800 dark:hover:bg-white transition whitespace-nowrap">Subscribe</button>
-        </form>
-      </div>
-    </div>
-
-    <div class="max-w-6xl mx-auto w-full px-4 sm:px-6 mt-10 pt-8 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
-      <div class="text-sm text-slate-500 dark:text-slate-400 text-center md:text-left">&copy; {{ currentYear }} School Linx Inc. All rights reserved.</div>
-      <div class="flex gap-4 flex-wrap justify-center mt-2 md:mt-0">
-        <a routerLink="/features" class="footer-link">Features</a>
-        <a routerLink="/how-it-works" class="footer-link">How it Works</a>
-        <a routerLink="/case-studies" class="footer-link">Case Studies</a>
-        <a routerLink="/blog" class="footer-link">Blog</a>
-        <a routerLink="/updates" class="footer-link">Changelog</a>
-        <a routerLink="/press" class="footer-link">Press Kit</a>
-        <a routerLink="/contact" class="footer-link">Contact</a>
-      </div>
     </div>
   </footer>
 
   <app-exit-intent-popup></app-exit-intent-popup>
-
-  <!-- Mobile Floating CTA -->
-  <div class="mobile-floating-cta">
-    <a routerLink="/signup" class="btn-primary w-full">Get Started Free</a>
-  </div>
 </div>
