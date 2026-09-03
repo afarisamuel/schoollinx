@@ -1,0 +1,117 @@
+<header class="w-full bg-white dark:bg-bg-secondary rounded-2xl md:rounded-3xl border border-slate-200/80 dark:border-border-primary/80 shadow-xs px-4 md:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-3 relative z-30 select-none transition-colors">
+
+  <!-- Left: Hamburger Toggle & Route Heading -->
+  <div class="flex items-center gap-3 md:gap-4 shrink-0 min-w-0">
+    <button
+      (click)="toggleSidebar.emit()"
+      class="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl sm:rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-bg-tertiary dark:hover:bg-bg-tertiary/80 text-slate-600 dark:text-text-secondary border border-slate-200/80 dark:border-border-primary cursor-pointer active:scale-95 transition-all shadow-2xs"
+      title="Toggle Sidebar"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="4" x2="20" y1="12" y2="12"/>
+        <line x1="4" x2="20" y1="6" y2="6"/>
+        <line x1="4" x2="20" y1="18" y2="18"/>
+      </svg>
+    </button>
+
+    @if (canGoBack()) {
+      <button
+        (click)="goBack.emit()"
+        class="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl sm:rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-bg-tertiary text-slate-600 dark:text-text-secondary border border-slate-200/80 dark:border-border-primary cursor-pointer active:scale-95 transition-all shadow-2xs"
+        title="Go Back"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+      </button>
+    }
+
+    <div class="min-w-0">
+      <h1 class="text-sm md:text-base font-bold text-slate-900 dark:text-white tracking-tight truncate leading-tight">
+        {{ currentRouteTitle() }}
+      </h1>
+      <p class="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-text-muted mt-0.5 truncate">
+        SuperAdmin Control Plane
+      </p>
+    </div>
+  </div>
+
+  <!-- Center: Global Quick Command Search Bar (Interactive ⌘K) -->
+  <div class="hidden md:flex items-center flex-1 max-w-md mx-2 lg:mx-6">
+    <div (click)="openCommandPalette.emit()" class="relative w-full cursor-pointer group">
+      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-hover:text-accent-primary transition-colors">
+        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+        </svg>
+      </div>
+      <input
+        type="text"
+        readonly
+        placeholder="Search actions, schools or commands... ⌘K"
+        class="w-full pl-10 pr-12 py-2 bg-slate-50 dark:bg-bg-primary border border-slate-200/80 dark:border-border-primary rounded-2xl text-xs font-semibold text-slate-700 dark:text-text-primary placeholder:text-slate-400 dark:placeholder:text-text-muted focus:outline-none cursor-pointer shadow-2xs group-hover:border-accent-primary/40 group-hover:bg-slate-100/80 dark:group-hover:bg-bg-tertiary transition-all"
+      />
+      <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+        <kbd class="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-white dark:bg-bg-secondary text-slate-400 group-hover:text-accent-primary border border-slate-200/80 dark:border-border-primary rounded-md shadow-2xs transition-colors">⌘K</kbd>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: System Status, Alerts, Theme Toggle & Avatar -->
+  <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
+
+    <!-- Mobile Search Icon Trigger -->
+    <button
+      (click)="openCommandPalette.emit()"
+      class="md:hidden w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl sm:rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-bg-tertiary text-slate-600 dark:text-text-secondary border border-slate-200/80 dark:border-border-primary cursor-pointer active:scale-95 transition-all shadow-2xs"
+      title="Search (⌘K)"
+    >
+      <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+      </svg>
+    </button>
+
+    <!-- Operational Alerts Bell with Badge -->
+    <a
+      routerLink="/billing/alerts"
+      class="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl sm:rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-bg-tertiary dark:hover:bg-bg-tertiary/80 text-slate-600 dark:text-text-secondary border border-slate-200/80 dark:border-border-primary cursor-pointer active:scale-95 transition-all shadow-2xs"
+      title="Operational & Billing Alerts"
+    >
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+      </svg>
+      @if (alertCount() > 0) {
+        <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center animate-pulse shadow-sm">
+          {{ alertCount() }}
+        </span>
+      }
+    </a>
+
+    <!-- Theme Toggle Quick Button -->
+    <button
+      (click)="toggleTheme()"
+      class="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl sm:rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-bg-tertiary dark:hover:bg-bg-tertiary/80 text-slate-600 dark:text-text-secondary border border-slate-200/80 dark:border-border-primary cursor-pointer active:scale-95 transition-all shadow-2xs"
+      [title]="themeService.isDark() ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+    >
+      @if (themeService.isDark()) {
+        <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      } @else {
+        <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+      }
+    </button>
+
+    <!-- Superadmin Profile Chip -->
+    <div class="hidden sm:flex items-center gap-2.5 pl-2 border-l border-slate-200/80 dark:border-border-primary/80">
+      <div class="w-9 h-9 rounded-xl bg-accent-primary/10 border border-accent-primary/20 flex items-center justify-center text-xs font-bold text-accent-primary shrink-0">
+        AD
+      </div>
+      <div class="hidden lg:flex flex-col text-left">
+        <span class="text-xs font-bold text-slate-900 dark:text-white leading-tight">SuperAdmin</span>
+        <span class="text-[9px] text-slate-500 dark:text-text-muted">ROOT</span>
+      </div>
+    </div>
+  </div>
+</header>
