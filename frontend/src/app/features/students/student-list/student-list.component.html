@@ -387,7 +387,7 @@
 
                     <!-- Enrollment num -->
                     <td>
-                      <span class="text-xs font-mono font-bold text-slate-300 tracking-wider">
+                      <span class="text-xs font-mono font-bold text-slate-700 dark:text-slate-300 tracking-wider">
                         {{ student.enrollment_num || '—' }}
                       </span>
                     </td>
@@ -396,34 +396,37 @@
                     <td>
                       @if (student.level) {
                         <span class="table-pill indigo">{{ getLevelName(student.level) }}</span>
-                      } @else { <span class="text-slate-500 font-bold">—</span> }
+                      } @else { <span class="text-text-muted font-bold">—</span> }
                     </td>
 
                     <!-- Class -->
                     <td>
                       @if (student.class?.name || student.class_name || student.class_id) {
                         <span class="table-pill purple">{{ student.class?.name || student.class_name || getClassName(student.class_id) }}</span>
-                      } @else { <span class="text-slate-500 font-bold">—</span> }
+                      } @else { <span class="text-text-muted font-bold">—</span> }
                     </td>
 
                     <!-- Residence -->
                     <td>
                       @if (student.placed_residence_type) {
                         <span class="table-pill slate">{{ student.placed_residence_type }}</span>
-                      } @else { <span class="text-slate-500 font-bold">—</span> }
+                      } @else { <span class="text-text-muted font-bold">—</span> }
                     </td>
 
                     <!-- Status -->
                     <td>
                       <div class="flex items-center gap-1.5">
                         <span class="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                          [class.bg-emerald-400]="student.status === 'active' || !student.status"
-                          [class.bg-amber-400]="student.status && student.status !== 'active' && student.status !== 'graduated' && student.status !== 'withdrawn'"
-                          [class.bg-slate-500]="student.status === 'graduated' || student.status === 'withdrawn'"></span>
+                          [class.bg-emerald-500]="student.status === 'active' || !student.status"
+                          [class.bg-amber-500]="student.status && student.status !== 'active' && student.status !== 'graduated' && student.status !== 'withdrawn'"
+                          [class.bg-slate-400]="student.status === 'graduated' || student.status === 'withdrawn'"></span>
                         <span class="text-[10px] font-black uppercase tracking-widest"
-                          [class.text-emerald-400]="student.status === 'active' || !student.status"
-                          [class.text-amber-400]="student.status && student.status !== 'active' && student.status !== 'graduated' && student.status !== 'withdrawn'"
-                          [class.text-slate-400]="student.status === 'graduated' || student.status === 'withdrawn'">
+                          [class.text-emerald-600]="student.status === 'active' || !student.status"
+                          [class.dark:text-emerald-400]="student.status === 'active' || !student.status"
+                          [class.text-amber-600]="student.status && student.status !== 'active' && student.status !== 'graduated' && student.status !== 'withdrawn'"
+                          [class.dark:text-amber-400]="student.status && student.status !== 'active' && student.status !== 'graduated' && student.status !== 'withdrawn'"
+                          [class.text-slate-600]="student.status === 'graduated' || student.status === 'withdrawn'"
+                          [class.dark:text-slate-400]="student.status === 'graduated' || student.status === 'withdrawn'">
                           {{ student.status || 'Active' }}
                         </span>
                       </div>

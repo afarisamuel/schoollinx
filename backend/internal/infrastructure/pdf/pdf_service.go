@@ -375,7 +375,7 @@ func (s *PDFService) GeneratePayslip(w io.Writer, pr *domain.PayrollRecord) erro
 }
 
 // GeneratePupilBill generates a printable bill for a student
-func (s *PDFService) GeneratePupilBill(w io.Writer, tenantName string, tenant *domain.Tenant, student *domain.Student, records []domain.FiscalRecord, config *domain.BillTemplateConfig) error {
+func (s *PDFService) GeneratePupilBill(w io.Writer, tenantName string, tenant *domain.Tenant, student *domain.Student, records []domain.FiscalRecord, config *domain.BillTemplateConfig, termName string) error {
 	pdf := gofpdf.New("P", "mm", "A4", "")
 	pdf.AddPage()
 
@@ -383,9 +383,9 @@ func (s *PDFService) GeneratePupilBill(w io.Writer, tenantName string, tenant *d
 		s.drawWatermark(pdf, tenant.LogoURL)
 	}
 
-	s.drawBillHeader(pdf, tenantName, tenant, config)
-	s.drawBillStudentInfo(pdf, student)
-	s.drawBillTable(pdf, records)
+	s.drawBillHeader(pdf, tenantName, tenant, config, termName)
+	s.drawBillStudentInfo(pdf, student, termName)
+	s.drawBillTable(pdf, records, termName)
 	if config == nil || config.ShowSuppliesTable {
 		s.drawBillSuppliesTable(pdf, config)
 	}
@@ -407,7 +407,7 @@ type StudentBillData struct {
 }
 
 // GenerateBulkPupilBills generates a printable multi-page bill for multiple students
-func (s *PDFService) GenerateBulkPupilBills(w io.Writer, tenantName string, tenant *domain.Tenant, bills []StudentBillData, config *domain.BillTemplateConfig) error {
+func (s *PDFService) GenerateBulkPupilBills(w io.Writer, tenantName string, tenant *domain.Tenant, bills []StudentBillData, config *domain.BillTemplateConfig, termName string) error {
 	pdf := gofpdf.New("P", "mm", "A4", "")
 
 	for _, bill := range bills {
@@ -415,9 +415,9 @@ func (s *PDFService) GenerateBulkPupilBills(w io.Writer, tenantName string, tena
 		if tenant != nil && tenant.LogoURL != "" {
 			s.drawWatermark(pdf, tenant.LogoURL)
 		}
-		s.drawBillHeader(pdf, tenantName, tenant, config)
-		s.drawBillStudentInfo(pdf, bill.Student)
-		s.drawBillTable(pdf, bill.Records)
+		s.drawBillHeader(pdf, tenantName, tenant, config, termName)
+		s.drawBillStudentInfo(pdf, bill.Student, termName)
+		s.drawBillTable(pdf, bill.Records, termName)
 		if config == nil || config.ShowSuppliesTable {
 			s.drawBillSuppliesTable(pdf, config)
 		}

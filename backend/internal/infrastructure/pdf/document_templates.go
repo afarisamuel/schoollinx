@@ -76,7 +76,7 @@ func (s *PDFService) generateConductReport(pdf *gofpdf.Fpdf, student *domain.Stu
 	pdf.MultiCell(190, 8, "The student has consistently demonstrated respect for school policies and peers. No disciplinary actions are on record for the current period.", "", "L", false)
 }
 
-func (s *PDFService) drawBillHeader(pdf *gofpdf.Fpdf, tenantName string, tenant *domain.Tenant, config *domain.BillTemplateConfig) {
+func (s *PDFService) drawBillHeader(pdf *gofpdf.Fpdf, tenantName string, tenant *domain.Tenant, config *domain.BillTemplateConfig, termName string) {
 	// Top primary bar
 	pdf.SetFillColor(30, 41, 59) // Slate 800
 	pdf.Rect(0, 0, 210, 4, "F")
@@ -118,10 +118,20 @@ func (s *PDFService) drawBillHeader(pdf *gofpdf.Fpdf, tenantName string, tenant 
 	pdf.Ln(2)
 
 	// Document Title Banner
-	title := "PUPIL BILL FOR TERM"
+	title := "PUPIL BILL"
 	if config != nil && config.Title != "" {
 		title = strings.ToUpper(config.Title)
 	}
+	if termName != "" && termName != "N/A" {
+		if strings.Contains(title, "FOR TERM") {
+			title = strings.Replace(title, "FOR TERM", "— "+strings.ToUpper(termName), 1)
+		} else if !strings.Contains(title, strings.ToUpper(termName)) {
+			title = title + " — " + strings.ToUpper(termName)
+		}
+	} else if title == "PUPIL BILL" {
+		title = "PUPIL BILL FOR TERM"
+	}
+
 	pdf.SetFillColor(241, 245, 249) // Slate 100
 	pdf.SetDrawColor(203, 213, 225) // Slate 300
 	pdf.SetLineWidth(0.3)
@@ -131,7 +141,7 @@ func (s *PDFService) drawBillHeader(pdf *gofpdf.Fpdf, tenantName string, tenant 
 	pdf.Ln(3)
 }
 
-func (s *PDFService) drawBillStudentInfo(pdf *gofpdf.Fpdf, student *domain.Student) {
+func (s *PDFService) drawBillStudentInfo(pdf *gofpdf.Fpdf, student *domain.Student, termName string) {
 	studentName := fmt.Sprintf("%s %s", string(student.FirstName), string(student.LastName))
 	studentID := student.EnrollmentNum
 	if studentID == "" {
@@ -146,6 +156,15 @@ func (s *PDFService) drawBillStudentInfo(pdf *gofpdf.Fpdf, student *domain.Stude
 		className = "General"
 	}
 
+	if termName == "" {
+		termName = "Current Term"
+	}
+
+	academicYear := student.AcademicYear
+	if academicYear == "" {
+		academicYear = "N/A"
+	}
+
 	issuanceDate := time.Now().Format("02 Jan 2006")
 	billRef := fmt.Sprintf("BIL-%s", student.ID.String()[:8])
 
@@ -153,7 +172,7 @@ func (s *PDFService) drawBillStudentInfo(pdf *gofpdf.Fpdf, student *domain.Stude
 	pdf.SetFillColor(248, 250, 252) // Slate 50
 	pdf.SetDrawColor(226, 232, 240) // Slate 200
 	pdf.SetLineWidth(0.3)
-	pdf.RoundedRect(10, startY, 190, 20, 2, "1234", "FD")
+	pdf.RoundedRect(10, startY, 190, 25, 2, "1234", "FD")
 
 	// Row 1: Student Name & Bill Ref
 	pdf.SetXY(14, startY+2.5)
@@ -172,7 +191,7 @@ func (s *PDFService) drawBillStudentInfo(pdf *gofpdf.Fpdf, student *domain.Stude
 	pdf.SetTextColor(15, 23, 42)
 	pdf.Cell(50, 4.5, billRef)
 
-	// Row 2: Student ID & Issuance Date
+	// Row 2: Student ID & Academic Term
 	pdf.SetXY(14, startY+7.5)
 	pdf.SetFont("Arial", "B", 8)
 	pdf.SetTextColor(100, 116, 139)
@@ -184,12 +203,12 @@ func (s *PDFService) drawBillStudentInfo(pdf *gofpdf.Fpdf, student *domain.Stude
 	pdf.SetXY(110, startY+7.5)
 	pdf.SetFont("Arial", "B", 8)
 	pdf.SetTextColor(100, 116, 139)
-	pdf.Cell(28, 4.5, "ISSUANCE DATE:")
-	pdf.SetFont("Arial", "", 8.5)
-	pdf.SetTextColor(15, 23, 42)
-	pdf.Cell(50, 4.5, issuanceDate)
+	pdf.Cell(28, 4.5, "ACADEMIC TERM:")
+	pdf.SetFont("Arial", "B", 8.5)
+	pdf.SetTextColor(79, 70, 229) // Indigo
+	pdf.Cell(50, 4.5, termName)
 
-	// Row 3: Class & Currency
+	// Row 3: Class & Issuance Date
 	pdf.SetXY(14, startY+12.5)
 	pdf.SetFont("Arial", "B", 8)
 	pdf.SetTextColor(100, 116, 139)
@@ -201,18 +220,39 @@ func (s *PDFService) drawBillStudentInfo(pdf *gofpdf.Fpdf, student *domain.Stude
 	pdf.SetXY(110, startY+12.5)
 	pdf.SetFont("Arial", "B", 8)
 	pdf.SetTextColor(100, 116, 139)
+	pdf.Cell(28, 4.5, "ISSUANCE DATE:")
+	pdf.SetFont("Arial", "", 8.5)
+	pdf.SetTextColor(15, 23, 42)
+	pdf.Cell(50, 4.5, issuanceDate)
+
+	// Row 4: Academic Year & Currency
+	pdf.SetXY(14, startY+17.5)
+	pdf.SetFont("Arial", "B", 8)
+	pdf.SetTextColor(100, 116, 139)
+	pdf.Cell(28, 4.5, "ACADEMIC YEAR:")
+	pdf.SetFont("Arial", "", 8.5)
+	pdf.SetTextColor(15, 23, 42)
+	pdf.Cell(65, 4.5, academicYear)
+
+	pdf.SetXY(110, startY+17.5)
+	pdf.SetFont("Arial", "B", 8)
+	pdf.SetTextColor(100, 116, 139)
 	pdf.Cell(28, 4.5, "CURRENCY:")
 	pdf.SetFont("Arial", "B", 8.5)
 	pdf.SetTextColor(16, 185, 129) // Emerald
 	pdf.Cell(50, 4.5, "GHc (Ghana Cedi)")
 
-	pdf.SetY(startY + 23)
+	pdf.SetY(startY + 28)
 }
 
-func (s *PDFService) drawBillTable(pdf *gofpdf.Fpdf, records []domain.FiscalRecord) {
+func (s *PDFService) drawBillTable(pdf *gofpdf.Fpdf, records []domain.FiscalRecord, termName string) {
+	sectionTitle := "1. SCHOOL FEES & FINANCIAL CHARGES"
+	if termName != "" && termName != "N/A" {
+		sectionTitle = fmt.Sprintf("1. SCHOOL FEES & FINANCIAL CHARGES (%s)", strings.ToUpper(termName))
+	}
 	pdf.SetFont("Arial", "B", 9.5)
 	pdf.SetTextColor(30, 41, 59)
-	pdf.CellFormat(190, 5.5, "1. SCHOOL FEES & FINANCIAL CHARGES", "", 1, "L", false, 0, "")
+	pdf.CellFormat(190, 5.5, sectionTitle, "", 1, "L", false, 0, "")
 	pdf.Ln(1)
 
 	// Table Header
