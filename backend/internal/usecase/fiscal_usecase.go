@@ -1043,7 +1043,7 @@ func (u *fiscalUseCase) CalculateSiblingDiscount(ctx context.Context, studentID 
 		reason = "2nd Ward Sibling Discount (10% Off)"
 	} else if childOrder >= 3 {
 		discountPct = 20.0
-		reason = fmt.Sprintf("%dth Ward Multi-Sibling Discount (20% Off)", childOrder)
+		reason = fmt.Sprintf("%dth Ward Multi-Sibling Discount (20%% Off)", childOrder)
 	}
 
 	discountAmount := (baseTuition * discountPct) / 100.0

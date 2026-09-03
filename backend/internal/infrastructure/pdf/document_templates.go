@@ -298,16 +298,6 @@ func (s *PDFService) drawBillSuppliesTable(pdf *gofpdf.Fpdf, config *domain.Bill
 	pdf.CellFormat(190, 5.5, suppliesTitle, "", 1, "L", false, 0, "")
 	pdf.Ln(1)
 
-	// Table Header
-	pdf.SetFillColor(51, 65, 85) // Slate 700
-	pdf.SetDrawColor(51, 65, 85)
-	pdf.SetTextColor(255, 255, 255)
-	pdf.SetFont("Arial", "B", 8)
-	pdf.CellFormat(32, 6.5, "CATEGORY", "1", 0, "L", true, 0, "")
-	pdf.CellFormat(88, 6.5, "ITEM DESCRIPTION & SPECIFICATION", "1", 0, "L", true, 0, "")
-	pdf.CellFormat(28, 6.5, "QUANTITY", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(42, 6.5, "REMARKS / SOURCE", "1", 1, "L", true, 0, "")
-
 	var items []domain.BillSupplyItem
 	if config != nil && len(config.RequiredItems) > 0 {
 		items = config.RequiredItems
@@ -322,19 +312,82 @@ func (s *PDFService) drawBillSuppliesTable(pdf *gofpdf.Fpdf, config *domain.Bill
 		}
 	}
 
-	pdf.SetFont("Arial", "", 8)
-	pdf.SetDrawColor(226, 232, 240)
-	for i, item := range items {
-		if i%2 == 0 {
-			pdf.SetFillColor(255, 255, 255)
-		} else {
-			pdf.SetFillColor(248, 250, 252)
+	hasPrices := false
+	var suppliesTotal float64 = 0
+	for _, item := range items {
+		if item.Price != nil && *item.Price > 0 {
+			hasPrices = true
+			suppliesTotal += *item.Price
 		}
-		pdf.SetTextColor(30, 41, 59)
-		pdf.CellFormat(32, 5.8, "  "+item.Category, "1", 0, "L", true, 0, "")
-		pdf.CellFormat(88, 5.8, "  "+item.Description, "1", 0, "L", true, 0, "")
-		pdf.CellFormat(28, 5.8, item.Quantity, "1", 0, "C", true, 0, "")
-		pdf.CellFormat(42, 5.8, "  "+item.Note, "1", 1, "L", true, 0, "")
+	}
+
+	// Table Header
+	pdf.SetFillColor(51, 65, 85) // Slate 700
+	pdf.SetDrawColor(51, 65, 85)
+	pdf.SetTextColor(255, 255, 255)
+	pdf.SetFont("Arial", "B", 8)
+
+	if hasPrices {
+		// Category (28mm), Description (74mm), Quantity (22mm), Price (28mm), Remarks (38mm) = 190mm
+		pdf.CellFormat(28, 6.5, "CATEGORY", "1", 0, "L", true, 0, "")
+		pdf.CellFormat(74, 6.5, "ITEM DESCRIPTION & SPECIFICATION", "1", 0, "L", true, 0, "")
+		pdf.CellFormat(22, 6.5, "QUANTITY", "1", 0, "C", true, 0, "")
+		pdf.CellFormat(28, 6.5, "PRICE (GHc)", "1", 0, "R", true, 0, "")
+		pdf.CellFormat(38, 6.5, "REMARKS / SOURCE", "1", 1, "L", true, 0, "")
+
+		pdf.SetFont("Arial", "", 8)
+		pdf.SetDrawColor(226, 232, 240)
+		for i, item := range items {
+			if i%2 == 0 {
+				pdf.SetFillColor(255, 255, 255)
+			} else {
+				pdf.SetFillColor(248, 250, 252)
+			}
+			pdf.SetTextColor(30, 41, 59)
+			priceStr := "-  "
+			if item.Price != nil && *item.Price > 0 {
+				priceStr = fmt.Sprintf("%.2f  ", *item.Price)
+			}
+			pdf.CellFormat(28, 5.8, "  "+item.Category, "1", 0, "L", true, 0, "")
+			pdf.CellFormat(74, 5.8, "  "+item.Description, "1", 0, "L", true, 0, "")
+			pdf.CellFormat(22, 5.8, item.Quantity, "1", 0, "C", true, 0, "")
+			pdf.CellFormat(28, 5.8, priceStr, "1", 0, "R", true, 0, "")
+			pdf.CellFormat(38, 5.8, "  "+item.Note, "1", 1, "L", true, 0, "")
+		}
+
+		// Total Row for supplies if prices exist
+		if suppliesTotal > 0 {
+			pdf.SetFont("Arial", "B", 8.5)
+			pdf.SetFillColor(241, 245, 249)
+			pdf.SetTextColor(15, 23, 42)
+			pdf.CellFormat(124, 6.5, "ESTIMATED SUPPLIES & BOOKS TOTAL", "1", 0, "R", true, 0, "")
+			pdf.SetTextColor(79, 70, 229) // Indigo
+			pdf.CellFormat(28, 6.5, fmt.Sprintf("GHc %.2f  ", suppliesTotal), "1", 0, "R", true, 0, "")
+			pdf.SetTextColor(100, 116, 139)
+			pdf.SetFont("Arial", "I", 7.5)
+			pdf.CellFormat(38, 6.5, " Estimated Total", "1", 1, "L", true, 0, "")
+		}
+	} else {
+		// Category (32mm), Description (88mm), Quantity (28mm), Remarks (42mm) = 190mm
+		pdf.CellFormat(32, 6.5, "CATEGORY", "1", 0, "L", true, 0, "")
+		pdf.CellFormat(88, 6.5, "ITEM DESCRIPTION & SPECIFICATION", "1", 0, "L", true, 0, "")
+		pdf.CellFormat(28, 6.5, "QUANTITY", "1", 0, "C", true, 0, "")
+		pdf.CellFormat(42, 6.5, "REMARKS / SOURCE", "1", 1, "L", true, 0, "")
+
+		pdf.SetFont("Arial", "", 8)
+		pdf.SetDrawColor(226, 232, 240)
+		for i, item := range items {
+			if i%2 == 0 {
+				pdf.SetFillColor(255, 255, 255)
+			} else {
+				pdf.SetFillColor(248, 250, 252)
+			}
+			pdf.SetTextColor(30, 41, 59)
+			pdf.CellFormat(32, 5.8, "  "+item.Category, "1", 0, "L", true, 0, "")
+			pdf.CellFormat(88, 5.8, "  "+item.Description, "1", 0, "L", true, 0, "")
+			pdf.CellFormat(28, 5.8, item.Quantity, "1", 0, "C", true, 0, "")
+			pdf.CellFormat(42, 5.8, "  "+item.Note, "1", 1, "L", true, 0, "")
+		}
 	}
 	pdf.Ln(3.5)
 }

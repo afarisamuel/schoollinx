@@ -58,7 +58,10 @@ export class ConfigureFeesComponent implements OnInit {
     ]
   });
   savingBillConfig = signal(false);
-  newSupplyItem: BillSupplyItem = { category: 'BOOKS', description: '', quantity: '1', note: '' };
+  newSupplyItem: BillSupplyItem = { category: 'BOOKS', description: '', quantity: '1', note: '', price: null };
+  suppliesTotal = computed(() =>
+    (this.billConfig().required_items || []).reduce((sum, item) => sum + (Number(item.price) || 0), 0)
+  );
 
   // Installment Plan Configuration State
   installmentPlan = signal<InstallmentPlanTemplate>({
@@ -461,10 +464,23 @@ export class ConfigureFeesComponent implements OnInit {
       this.toast.error('Please enter an item description');
       return;
     }
+    const rawPrice = this.newSupplyItem.price;
+    const priceVal = rawPrice !== null && rawPrice !== undefined && !isNaN(Number(rawPrice)) && Number(rawPrice) > 0
+      ? Number(rawPrice)
+      : undefined;
+
+    const itemToAdd: BillSupplyItem = {
+      category: this.newSupplyItem.category,
+      description: this.newSupplyItem.description.trim(),
+      quantity: this.newSupplyItem.quantity || '1',
+      note: this.newSupplyItem.note || '',
+      price: priceVal
+    };
+
     const current = this.billConfig();
-    const updatedItems = [...(current.required_items || []), { ...this.newSupplyItem }];
+    const updatedItems = [...(current.required_items || []), itemToAdd];
     this.billConfig.set({ ...current, required_items: updatedItems });
-    this.newSupplyItem = { category: 'BOOKS', description: '', quantity: '1', note: '' };
+    this.newSupplyItem = { category: 'BOOKS', description: '', quantity: '1', note: '', price: null };
     this.toast.success('Item added to supplies table. Click Save to persist changes.');
   }
 

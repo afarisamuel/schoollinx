@@ -528,10 +528,11 @@ func (btc *BillTemplateConfig) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 type BillSupplyItem struct {
-	Category    string `json:"category"`    // e.g. "BOOKS", "STATIONERY", "TOILETRIES", "UNIFORMS"
-	Description string `json:"description"` // e.g. "Core Mathematics Textbook SHS 1"
-	Quantity    string `json:"quantity"`    // e.g. "1 copy" or "2 bottles"
-	Note        string `json:"note"`        // e.g. "Compulsory" or "Available at School Bookstore"
+	Category    string   `json:"category"`    // e.g. "BOOKS", "STATIONERY", "TOILETRIES", "UNIFORMS"
+	Description string   `json:"description"` // e.g. "Core Mathematics Textbook SHS 1"
+	Quantity    string   `json:"quantity"`    // e.g. "1 copy" or "2 bottles"
+	Note        string   `json:"note"`        // e.g. "Compulsory" or "Available at School Bookstore"
+	Price       *float64 `json:"price,omitempty"`
 }
 
 

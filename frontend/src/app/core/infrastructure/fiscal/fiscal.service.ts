@@ -333,6 +333,7 @@ export interface BillSupplyItem {
     description: string;
     quantity: string;
     note: string;
+    price?: number | null;
 }
 
 export interface BillTemplateConfig {
