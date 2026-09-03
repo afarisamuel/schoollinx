@@ -340,14 +340,21 @@
                 <div class="flex flex-col gap-1.5">
                     <label class="field-label">Search Student</label>
                     <div class="input-wrapper">
-                        <input type="text" [(ngModel)]="linkStudentSearch" class="field-input" placeholder="Name or Enrollment ID...">
+                        <input type="text"
+                               [value]="linkStudentSearch()"
+                               (input)="linkStudentSearch.set($any($event.target).value)"
+                               class="field-input"
+                               placeholder="Name or Enrollment ID...">
                     </div>
                 </div>
                 
                 <div class="flex flex-col gap-1.5">
                     <label class="field-label">Select Student</label>
                     <div class="input-wrapper">
-                        <select [(ngModel)]="linkStudentId" class="field-input appearance-none pr-10 cursor-pointer" size="4" style="height: auto; min-height: 120px;">
+                        <select [value]="linkStudentId()"
+                                (change)="linkStudentId.set($any($event.target).value)"
+                                class="field-input appearance-none pr-10 cursor-pointer"
+                                size="4" style="height: auto; min-height: 120px;">
                             @for (s of filteredStudents(); track s.id) {
                             <option [value]="s.id" class="p-2 border-b border-border-secondary hover:bg-bg-secondary">{{ s.first_name }} {{ s.last_name }} ({{ s.enrollment_num || 'N/A' }})</option>
                             }
