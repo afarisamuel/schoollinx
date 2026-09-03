@@ -116,23 +116,17 @@ func (u *fiscalUseCase) GeneratePupilBill(ctx context.Context, studentID uuid.UU
 
 	// 3. Resolve Active Academic Term & Year
 	termName := ""
+	academicYear := ""
 	if activePeriod, err := u.academicRepo.GetActive(ctx); err == nil && activePeriod != nil {
+		academicYear = activePeriod.Name
 		for _, t := range activePeriod.Terms {
 			if t.TermNumber == activePeriod.CurrentTerm {
-				if activePeriod.Name != "" {
-					termName = fmt.Sprintf("%s (%s)", t.Name, activePeriod.Name)
-				} else {
-					termName = t.Name
-				}
+				termName = t.Name
 				break
 			}
 		}
 		if termName == "" {
-			if activePeriod.Name != "" {
-				termName = fmt.Sprintf("Term %d (%s)", activePeriod.CurrentTerm, activePeriod.Name)
-			} else {
-				termName = fmt.Sprintf("Term %d", activePeriod.CurrentTerm)
-			}
+			termName = fmt.Sprintf("Term %d", activePeriod.CurrentTerm)
 		}
 	}
 	if termName == "" {
@@ -153,7 +147,7 @@ func (u *fiscalUseCase) GeneratePupilBill(ctx context.Context, studentID uuid.UU
 	// Generate PDF
 	var buf bytes.Buffer
 	pdfService := pdf.NewPDFService()
-	if err := pdfService.GeneratePupilBill(&buf, tenantName, tenant, student, records, billConfig, termName); err != nil {
+	if err := pdfService.GeneratePupilBill(&buf, tenantName, tenant, student, records, billConfig, termName, academicYear); err != nil {
 		return nil, fmt.Errorf("failed to generate PDF: %w", err)
 	}
 
@@ -186,23 +180,17 @@ func (u *fiscalUseCase) GenerateClassBills(ctx context.Context, classID uuid.UUI
 
 	// Resolve Active Academic Term & Year
 	termName := ""
+	academicYear := ""
 	if activePeriod, err := u.academicRepo.GetActive(ctx); err == nil && activePeriod != nil {
+		academicYear = activePeriod.Name
 		for _, t := range activePeriod.Terms {
 			if t.TermNumber == activePeriod.CurrentTerm {
-				if activePeriod.Name != "" {
-					termName = fmt.Sprintf("%s (%s)", t.Name, activePeriod.Name)
-				} else {
-					termName = t.Name
-				}
+				termName = t.Name
 				break
 			}
 		}
 		if termName == "" {
-			if activePeriod.Name != "" {
-				termName = fmt.Sprintf("Term %d (%s)", activePeriod.CurrentTerm, activePeriod.Name)
-			} else {
-				termName = fmt.Sprintf("Term %d", activePeriod.CurrentTerm)
-			}
+			termName = fmt.Sprintf("Term %d", activePeriod.CurrentTerm)
 		}
 	}
 	if termName == "" {
@@ -232,7 +220,7 @@ func (u *fiscalUseCase) GenerateClassBills(ctx context.Context, classID uuid.UUI
 	// Generate PDF
 	var buf bytes.Buffer
 	pdfService := pdf.NewPDFService()
-	if err := pdfService.GenerateBulkPupilBills(&buf, tenantName, tenant, bills, billConfig, termName); err != nil {
+	if err := pdfService.GenerateBulkPupilBills(&buf, tenantName, tenant, bills, billConfig, termName, academicYear); err != nil {
 		return nil, fmt.Errorf("failed to generate bulk PDF: %w", err)
 	}
 

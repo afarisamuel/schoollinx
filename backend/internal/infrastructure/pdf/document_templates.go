@@ -124,9 +124,9 @@ func (s *PDFService) drawBillHeader(pdf *gofpdf.Fpdf, tenantName string, tenant 
 	}
 	if termName != "" && termName != "N/A" {
 		if strings.Contains(title, "FOR TERM") {
-			title = strings.Replace(title, "FOR TERM", "— "+strings.ToUpper(termName), 1)
+			title = strings.Replace(title, "FOR TERM", "- "+strings.ToUpper(termName), 1)
 		} else if !strings.Contains(title, strings.ToUpper(termName)) {
-			title = title + " — " + strings.ToUpper(termName)
+			title = title + " - " + strings.ToUpper(termName)
 		}
 	} else if title == "PUPIL BILL" {
 		title = "PUPIL BILL FOR TERM"
@@ -141,7 +141,7 @@ func (s *PDFService) drawBillHeader(pdf *gofpdf.Fpdf, tenantName string, tenant 
 	pdf.Ln(3)
 }
 
-func (s *PDFService) drawBillStudentInfo(pdf *gofpdf.Fpdf, student *domain.Student, termName string) {
+func (s *PDFService) drawBillStudentInfo(pdf *gofpdf.Fpdf, student *domain.Student, termName string, academicYear string) {
 	studentName := fmt.Sprintf("%s %s", string(student.FirstName), string(student.LastName))
 	studentID := student.EnrollmentNum
 	if studentID == "" {
@@ -160,7 +160,9 @@ func (s *PDFService) drawBillStudentInfo(pdf *gofpdf.Fpdf, student *domain.Stude
 		termName = "Current Term"
 	}
 
-	academicYear := student.AcademicYear
+	if academicYear == "" {
+		academicYear = student.AcademicYear
+	}
 	if academicYear == "" {
 		academicYear = "N/A"
 	}
@@ -230,7 +232,7 @@ func (s *PDFService) drawBillStudentInfo(pdf *gofpdf.Fpdf, student *domain.Stude
 	pdf.SetFont("Arial", "B", 8)
 	pdf.SetTextColor(100, 116, 139)
 	pdf.Cell(28, 4.5, "ACADEMIC YEAR:")
-	pdf.SetFont("Arial", "", 8.5)
+	pdf.SetFont("Arial", "B", 8.5)
 	pdf.SetTextColor(15, 23, 42)
 	pdf.Cell(65, 4.5, academicYear)
 
