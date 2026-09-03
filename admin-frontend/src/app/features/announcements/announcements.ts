@@ -1,12 +1,12 @@
 import { Component, inject, signal, ChangeDetectionStrategy, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TenantService } from '../../core/services/tenant.service';
 
 @Component({
   selector: 'app-announcements',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './announcements.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -14,10 +14,20 @@ export class AnnouncementsComponent implements OnInit {
   private tenantService = inject(TenantService);
   private fb = inject(FormBuilder);
 
+  // Active top tab
+  activeTab = signal<'BANNERS' | 'EMAIL_BROADCAST'>('BANNERS');
+
   // State
   announcements = signal<any[]>([]);
   isLoading = signal(true);
   
+  // Email Broadcast State
+  emailSubject = signal('');
+  emailBody = signal('');
+  emailAudience = signal('ALL');
+  emailPlan = signal('');
+  isSendingEmail = signal(false);
+
   // Filtering & Sorting State
   searchQuery = signal('');
   priorityFilter = signal('ALL');
@@ -194,11 +204,32 @@ export class AnnouncementsComponent implements OnInit {
     this.searchQuery.set((event.target as HTMLInputElement).value);
   }
   
-  onPriorityChange(event: Event) {
-    this.priorityFilter.set((event.target as HTMLSelectElement).value);
-  }
-  
   onStatusChange(event: Event) {
     this.statusFilter.set((event.target as HTMLSelectElement).value);
+  }
+
+  sendEmailBroadcast() {
+    const subject = this.emailSubject().trim();
+    const body = this.emailBody().trim();
+    if (!subject || !body) return;
+
+    this.isSendingEmail.set(true);
+    this.tenantService.sendAdminEmailBroadcast({
+      subject,
+      body,
+      target_audience: this.emailAudience(),
+      target_plan: this.emailPlan()
+    }).subscribe({
+      next: (res) => {
+        this.isSendingEmail.set(false);
+        this.emailSubject.set('');
+        this.emailBody.set('');
+        this.showSuccess(res?.message || 'Email broadcast dispatched to administrators.');
+      },
+      error: (err) => {
+        this.isSendingEmail.set(false);
+        this.showError(err?.error?.error || 'Failed to dispatch email broadcast.');
+      }
+    });
   }
 }

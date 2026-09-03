@@ -1,12 +1,13 @@
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { TenantService, Tenant } from '../../core/services/tenant.service';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './dashboard.html'
 })
 export class DashboardComponent implements OnInit, OnDestroy {
@@ -14,6 +15,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   stats = signal<any>(null);
   recentTenants = signal<Tenant[]>([]);
+  billingAlerts = signal<any[]>([]);
   isLoading = signal(true);
   
   private sub = new Subscription();
@@ -45,12 +47,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
         error: () => this.checkDone()
       })
     );
+
+    this.sub.add(
+      this.tenantService.getBillingAlerts().subscribe({
+        next: (alerts) => {
+          this.billingAlerts.set(alerts || []);
+          this.checkDone();
+        },
+        error: () => this.checkDone()
+      })
+    );
   }
 
   private completed = 0;
   private checkDone() {
     this.completed++;
-    if (this.completed >= 2) {
+    if (this.completed >= 3) {
       this.isLoading.set(false);
     }
   }

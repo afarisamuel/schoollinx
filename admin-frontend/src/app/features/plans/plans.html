@@ -1,0 +1,187 @@
+<div class="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-accent-primary/10 border border-accent-primary/20 flex items-center justify-center text-accent-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-text-primary tracking-tight">Subscription Plan Tier Manager & Pricing</h1>
+          <p class="text-xs text-text-muted mt-0.5">Configure platform pricing tiers, default SMS credit quotas, disk storage limits and bundled feature modules</p>
+        </div>
+      </div>
+    </div>
+
+    <button (click)="loadPlans()" class="inline-flex items-center gap-2 px-4 py-2 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary rounded-lg text-xs font-semibold text-text-secondary hover:text-white transition-all">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      Refresh Tiers
+    </button>
+  </div>
+
+  <!-- Messages -->
+  @if (successMsg()) {
+    <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+      {{ successMsg() }}
+    </div>
+  }
+  @if (errorMsg()) {
+    <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+      {{ errorMsg() }}
+    </div>
+  }
+
+  <!-- Plan Tiers Grid -->
+  @if (isLoading()) {
+    <div class="p-16 text-center text-text-muted">
+      <div class="inline-block w-8 h-8 border-3 border-accent-primary border-t-transparent rounded-full animate-spin"></div>
+      <span class="block mt-2 text-xs">Loading subscription plans...</span>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      @for (plan of plans(); track plan.id) {
+        <div [class.border-accent-primary]="plan.is_popular"
+             [class.shadow-accent-primary/10]="plan.is_popular"
+             class="bg-bg-secondary border border-border-primary rounded-2xl p-6 flex flex-col justify-between space-y-6 hover:border-border-secondary transition-all shadow-xl relative overflow-hidden">
+          
+          @if (plan.is_popular) {
+            <div class="absolute top-0 right-0 bg-accent-primary text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-bl-xl shadow">
+              RECOMMENDED
+            </div>
+          }
+
+          <div class="space-y-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-bg-primary text-accent-primary border border-border-primary font-bold">{{ plan.badge }}</span>
+                <span class="text-[10px] font-mono text-text-muted">{{ plan.tenant_count || 0 }} schools</span>
+              </div>
+              <h2 class="text-xl font-bold text-white mt-2">{{ plan.name }}</h2>
+              <p class="text-xs text-text-muted mt-1 leading-relaxed">{{ plan.description }}</p>
+            </div>
+
+            <!-- Price -->
+            <div class="p-4 bg-bg-primary border border-border-primary rounded-xl">
+              <span class="text-[10px] font-bold uppercase text-text-muted block">Per-Student Rate</span>
+              <div class="flex items-baseline gap-1 mt-1">
+                <span class="text-2xl font-black text-white font-mono">GHS {{ plan.per_student_rate | number:'1.2-2' }}</span>
+                <span class="text-[11px] text-text-muted">/ term</span>
+              </div>
+            </div>
+
+            <!-- Inclusions -->
+            <div class="space-y-2.5 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-text-muted flex items-center gap-2">
+                  <svg class="w-3.5 h-3.5 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                  SMS Credits:
+                </span>
+                <span class="font-mono font-bold text-white">{{ plan.included_sms | number }} / term</span>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <span class="text-text-muted flex items-center gap-2">
+                  <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+                  Cloud Storage:
+                </span>
+                <span class="font-mono font-bold text-white">{{ plan.storage_limit_gb }} GB</span>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <span class="text-text-muted flex items-center gap-2">
+                  <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  Bundled Modules:
+                </span>
+                <span class="font-mono font-bold text-accent-primary">{{ plan.included_modules.length }} modules</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-border-primary">
+            <button (click)="openEditModal(plan)" class="w-full py-2.5 bg-bg-tertiary hover:bg-white/10 border border-border-primary rounded-xl text-xs font-bold text-text-secondary hover:text-white transition-all flex items-center justify-center gap-2">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              Configure Tier Limits
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Edit Plan Tier Modal -->
+  @if (showEditModal() && editingPlan()) {
+    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-bg-secondary border border-border-primary rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-6 animate-fade-in max-h-[90vh] overflow-y-auto custom-scrollbar">
+        <div class="flex items-center justify-between pb-4 border-b border-border-primary">
+          <div>
+            <span class="text-[10px] font-mono uppercase text-accent-primary font-bold">Tier Configuration</span>
+            <h2 class="text-lg font-bold text-white mt-0.5">Edit {{ editingPlan()?.name }}</h2>
+          </div>
+          <button (click)="closeEditModal()" class="text-text-muted hover:text-white">&times;</button>
+        </div>
+
+        <div class="space-y-4 text-xs">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="font-bold text-text-secondary uppercase text-[10px]">Tier Name</label>
+              <input type="text" [(ngModel)]="editingPlan()!.name" class="w-full bg-bg-primary border border-border-primary rounded-lg px-3 py-2 text-white mt-1 focus:outline-none focus:border-accent-primary" />
+            </div>
+            <div>
+              <label class="font-bold text-text-secondary uppercase text-[10px]">Badge Text</label>
+              <input type="text" [(ngModel)]="editingPlan()!.badge" class="w-full bg-bg-primary border border-border-primary rounded-lg px-3 py-2 text-white mt-1 focus:outline-none focus:border-accent-primary" />
+            </div>
+          </div>
+
+          <div>
+            <label class="font-bold text-text-secondary uppercase text-[10px]">Description</label>
+            <input type="text" [(ngModel)]="editingPlan()!.description" class="w-full bg-bg-primary border border-border-primary rounded-lg px-3 py-2 text-white mt-1 focus:outline-none focus:border-accent-primary" />
+          </div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="font-bold text-text-secondary uppercase text-[10px]">Rate / Student (GHS)</label>
+              <input type="number" step="0.50" [(ngModel)]="editingPlan()!.per_student_rate" class="w-full bg-bg-primary border border-border-primary rounded-lg px-3 py-2 text-white mt-1 font-mono focus:outline-none focus:border-accent-primary" />
+            </div>
+            <div>
+              <label class="font-bold text-text-secondary uppercase text-[10px]">Included SMS</label>
+              <input type="number" step="500" [(ngModel)]="editingPlan()!.included_sms" class="w-full bg-bg-primary border border-border-primary rounded-lg px-3 py-2 text-white mt-1 font-mono focus:outline-none focus:border-accent-primary" />
+            </div>
+            <div>
+              <label class="font-bold text-text-secondary uppercase text-[10px]">Storage (GB)</label>
+              <input type="number" step="5" [(ngModel)]="editingPlan()!.storage_limit_gb" class="w-full bg-bg-primary border border-border-primary rounded-lg px-3 py-2 text-white mt-1 font-mono focus:outline-none focus:border-accent-primary" />
+            </div>
+          </div>
+
+          <!-- Module Inclusions Checklist -->
+          <div class="space-y-2 pt-3 border-t border-border-primary">
+            <label class="font-bold text-text-secondary uppercase text-[10px] block">Bundled Feature Modules</label>
+            <div class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto custom-scrollbar p-1">
+              @for (mod of availableModules; track mod.key) {
+                <div (click)="toggleModuleInPlan(mod.key)"
+                     [class.border-accent-primary]="isModuleIncluded(mod.key)"
+                     [class.bg-accent-primary/10]="isModuleIncluded(mod.key)"
+                     class="p-2.5 bg-bg-primary border border-border-primary rounded-lg flex items-center justify-between cursor-pointer transition-all">
+                  <span class="text-[11px] font-semibold text-white">{{ mod.name }}</span>
+                  <input type="checkbox" [checked]="isModuleIncluded(mod.key)" class="rounded accent-indigo-500 pointer-events-none" />
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-3 pt-3 border-t border-border-primary">
+          <button (click)="closeEditModal()" class="flex-1 py-2.5 bg-bg-primary hover:bg-bg-tertiary border border-border-primary rounded-lg text-xs font-semibold text-text-secondary">Cancel</button>
+          <button (click)="savePlanChanges()" [disabled]="isSaving()" class="flex-1 py-2.5 bg-accent-primary hover:bg-indigo-500 rounded-lg text-xs font-bold text-white shadow-lg shadow-indigo-600/20 disabled:opacity-50">
+            {{ isSaving() ? 'Saving Changes...' : 'Save Plan Tier' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

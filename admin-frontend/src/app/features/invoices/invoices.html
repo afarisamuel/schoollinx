@@ -1,0 +1,233 @@
+<div class="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in print:p-0">
+  <!-- Controls Bar (Hidden during print) -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
+    <div>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-text-primary tracking-tight">Institutional Invoice Generator</h1>
+          <p class="text-xs text-text-muted mt-0.5">Generate, customize & print professional billing invoices for partner institutions</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button (click)="printInvoice()" class="px-5 py-2.5 bg-accent-primary hover:bg-indigo-500 text-white rounded-lg text-xs font-bold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+        </svg>
+        Print / Save PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Layout: Editor Sidebar + Invoice Preview -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+    <!-- Invoice Configuration Editor (Hidden on print) -->
+    <div class="lg:col-span-1 bg-bg-secondary border border-border-primary rounded-2xl p-6 space-y-5 print:hidden">
+      <h2 class="text-sm font-bold text-white uppercase tracking-wider">Invoice Parameters</h2>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="font-bold text-text-secondary uppercase text-[10px]">Select Institution</label>
+          <select [(ngModel)]="selectedTenantId" class="w-full bg-bg-primary border border-border-primary rounded-lg px-3 py-2 text-white mt-1 focus:outline-none focus:border-accent-primary">
+            @for (t of tenants(); track t.id) {
+              <option [value]="t.id">{{ t.name }} ({{ t.subdomain }})</option>
+            }
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-text-secondary uppercase text-[10px]">Invoice #</label>
+            <input type="text" [(ngModel)]="invoiceNumber" class="w-full bg-bg-primary border border-border-primary rounded-lg px-3 py-2 text-white mt-1 font-mono focus:outline-none focus:border-accent-primary" />
+          </div>
+          <div>
+            <label class="font-bold text-text-secondary uppercase text-[10px]">Billing Period</label>
+            <input type="text" [(ngModel)]="billingPeriod" class="w-full bg-bg-primary border border-border-primary rounded-lg px-3 py-2 text-white mt-1 focus:outline-none focus:border-accent-primary" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-text-secondary uppercase text-[10px]">Issue Date</label>
+            <input type="date" [(ngModel)]="invoiceDate" class="w-full bg-bg-primary border border-border-primary rounded-lg px-3 py-2 text-white mt-1 focus:outline-none focus:border-accent-primary" />
+          </div>
+          <div>
+            <label class="font-bold text-text-secondary uppercase text-[10px]">Due Date</label>
+            <input type="date" [(ngModel)]="dueDate" class="w-full bg-bg-primary border border-border-primary rounded-lg px-3 py-2 text-white mt-1 focus:outline-none focus:border-accent-primary" />
+          </div>
+        </div>
+
+        <!-- Line Item Toggles -->
+        <div class="space-y-3 pt-3 border-t border-border-primary">
+          <span class="font-bold text-text-muted uppercase text-[10px] block">Billable Items</span>
+
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" [(ngModel)]="includeStudentFees" class="rounded accent-indigo-500" />
+            <span class="text-text-primary">Per-Student Term Platform Fee</span>
+          </label>
+
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" [(ngModel)]="includeSMSCredits" class="rounded accent-indigo-500" />
+            <span class="text-text-primary">SMS Broadcast Credits Top-up</span>
+          </label>
+
+          @if (includeSMSCredits()) {
+            <div class="pl-6 grid grid-cols-2 gap-2">
+              <input type="number" [(ngModel)]="smsUnits" placeholder="Credits" class="bg-bg-primary border border-border-primary rounded px-2 py-1 text-white text-[11px]" />
+              <input type="number" [(ngModel)]="smsRate" placeholder="Rate" step="0.01" class="bg-bg-primary border border-border-primary rounded px-2 py-1 text-white text-[11px]" />
+            </div>
+          }
+
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" [(ngModel)]="includeStorageFee" class="rounded accent-indigo-500" />
+            <span class="text-text-primary">Extra Cloud Storage Quota</span>
+          </label>
+
+          @if (includeStorageFee()) {
+            <div class="pl-6 grid grid-cols-2 gap-2">
+              <input type="number" [(ngModel)]="storageGB" placeholder="GB" class="bg-bg-primary border border-border-primary rounded px-2 py-1 text-white text-[11px]" />
+              <input type="number" [(ngModel)]="storageRate" placeholder="Rate/GB" class="bg-bg-primary border border-border-primary rounded px-2 py-1 text-white text-[11px]" />
+            </div>
+          }
+        </div>
+
+        <div>
+          <label class="font-bold text-text-secondary uppercase text-[10px]">Payment Terms & Notes</label>
+          <textarea [(ngModel)]="notes" rows="3" class="w-full bg-bg-primary border border-border-primary rounded-lg px-3 py-2 text-white mt-1 focus:outline-none focus:border-accent-primary"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rendered Invoice Document (White theme for high-fidelity printing) -->
+    <div class="lg:col-span-2 bg-white text-neutral-900 rounded-2xl p-10 shadow-2xl border border-neutral-200 print:border-none print:shadow-none print:p-0 print:m-0">
+      <!-- Invoice Header -->
+      <div class="flex justify-between items-start pb-8 border-b border-neutral-200">
+        <div>
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">SL</div>
+            <span class="text-xl font-black tracking-tight text-neutral-900">SCHOOLLINX</span>
+          </div>
+          <p class="text-xs text-neutral-500 mt-1">Next-Generation School Infrastructure & SaaS Platform</p>
+          <p class="text-[11px] text-neutral-400 mt-0.5">Accra, Ghana &bull; billing@schoollinx.com</p>
+        </div>
+
+        <div class="text-right">
+          <span class="text-2xl font-black tracking-wider text-neutral-800 uppercase">INVOICE</span>
+          <p class="text-xs font-mono font-bold text-indigo-600 mt-1">{{ invoiceNumber() }}</p>
+          <p class="text-[11px] text-neutral-500 mt-1">Date: {{ invoiceDate() }}</p>
+          <p class="text-[11px] font-bold text-rose-600">Due: {{ dueDate() }}</p>
+        </div>
+      </div>
+
+      <!-- Bill To & Account Details -->
+      <div class="grid grid-cols-2 gap-8 py-6 border-b border-neutral-200 text-xs">
+        <div>
+          <span class="font-bold text-neutral-400 uppercase text-[10px] tracking-wider block">Billed To</span>
+          <h3 class="text-base font-bold text-neutral-900 mt-1">{{ selectedTenant()?.name }}</h3>
+          <p class="text-neutral-600 mt-0.5 font-mono">{{ selectedTenant()?.subdomain }}.schoollinx.com</p>
+          <p class="text-neutral-500">{{ selectedTenant()?.contact_email || 'admin@' + selectedTenant()?.subdomain + '.edu' }}</p>
+        </div>
+
+        <div class="text-right">
+          <span class="font-bold text-neutral-400 uppercase text-[10px] tracking-wider block">Billing Summary</span>
+          <p class="text-neutral-800 mt-1"><span class="font-bold">Subscription Plan:</span> {{ selectedTenant()?.subscription_plan || 'BASIC' }}</p>
+          <p class="text-neutral-800"><span class="font-bold">Billing Cycle:</span> {{ billingPeriod() }}</p>
+          <p class="text-neutral-800"><span class="font-bold">Enrolled Students:</span> {{ studentCount() }}</p>
+        </div>
+      </div>
+
+      <!-- Line Items Table -->
+      <table class="w-full text-left text-xs my-6">
+        <thead>
+          <tr class="border-b-2 border-neutral-900 text-neutral-600 font-bold uppercase text-[10px]">
+            <th class="py-3">Description</th>
+            <th class="py-3 text-center">Qty / Count</th>
+            <th class="py-3 text-right">Unit Rate (GHS)</th>
+            <th class="py-3 text-right">Amount (GHS)</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-neutral-200">
+          @if (includeStudentFees()) {
+            <tr>
+              <td class="py-3.5">
+                <span class="font-bold text-neutral-900 block">SaaS Term License & Infrastructure</span>
+                <span class="text-[11px] text-neutral-500">Includes core SIS, grading, report cards & cloud hosting</span>
+              </td>
+              <td class="py-3.5 text-center font-mono">{{ studentCount() }} pupils</td>
+              <td class="py-3.5 text-right font-mono">{{ perStudentRate() | number:'1.2-2' }}</td>
+              <td class="py-3.5 text-right font-mono font-bold">{{ studentFeeSubtotal() | number:'1.2-2' }}</td>
+            </tr>
+          }
+
+          @if (includeSMSCredits()) {
+            <tr>
+              <td class="py-3.5">
+                <span class="font-bold text-neutral-900 block">Institutional SMS Broadcast Pack</span>
+                <span class="text-[11px] text-neutral-500">Dedicated Sender ID gateway delivery units</span>
+              </td>
+              <td class="py-3.5 text-center font-mono">{{ smsUnits() | number }} units</td>
+              <td class="py-3.5 text-right font-mono">{{ smsRate() | number:'1.2-2' }}</td>
+              <td class="py-3.5 text-right font-mono font-bold">{{ smsSubtotal() | number:'1.2-2' }}</td>
+            </tr>
+          }
+
+          @if (includeStorageFee()) {
+            <tr>
+              <td class="py-3.5">
+                <span class="font-bold text-neutral-900 block">Cloud Document Storage Expansion</span>
+                <span class="text-[11px] text-neutral-500">Encrypted student archive file quota</span>
+              </td>
+              <td class="py-3.5 text-center font-mono">{{ storageGB() }} GB</td>
+              <td class="py-3.5 text-right font-mono">{{ storageRate() | number:'1.2-2' }}</td>
+              <td class="py-3.5 text-right font-mono font-bold">{{ storageSubtotal() | number:'1.2-2' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <!-- Totals Breakdown -->
+      <div class="flex justify-end pt-4 border-t-2 border-neutral-900">
+        <div class="w-64 space-y-2 text-xs">
+          <div class="flex justify-between text-neutral-600">
+            <span>Subtotal:</span>
+            <span class="font-mono font-bold">GHS {{ subtotal() | number:'1.2-2' }}</span>
+          </div>
+
+          @if (discountAmount() > 0) {
+            <div class="flex justify-between text-emerald-600 font-bold">
+              <span>Partner Discount ({{ selectedTenant()?.discount_percentage }}%):</span>
+              <span class="font-mono">- GHS {{ discountAmount() | number:'1.2-2' }}</span>
+            </div>
+          }
+
+          <div class="flex justify-between text-base font-black text-neutral-900 pt-2 border-t border-neutral-300">
+            <span>Total Due:</span>
+            <span class="font-mono text-indigo-600">GHS {{ totalDue() | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Instructions & Footer -->
+      <div class="mt-12 pt-6 border-t border-neutral-200 text-[11px] text-neutral-500 space-y-2">
+        <p class="font-bold text-neutral-700 uppercase tracking-wider text-[10px]">Payment Instructions</p>
+        <p>{{ notes() }}</p>
+        <div class="grid grid-cols-2 gap-4 pt-2 font-mono text-[10px] text-neutral-600">
+          <div>
+            <span class="font-bold block">Mobile Money / Bank Transfer:</span>
+            <span>Bank: Standard Chartered &bull; Acc: 0100234892100</span>
+          </div>
+          <div class="text-right">
+            <span class="font-bold block">Support & Inquiries:</span>
+            <span>finance@schoollinx.com &bull; +233 24 000 0000</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

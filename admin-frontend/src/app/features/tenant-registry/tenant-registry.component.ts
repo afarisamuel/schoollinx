@@ -3,10 +3,11 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } 
 import { TenantService, Tenant, SubscriptionPayment } from '../../core/services/tenant.service';
 import { CommonModule, DatePipe } from '@angular/common';
 import { environment } from '../../../environments/environment';
+import { TenantDrawerComponent } from '../../core/components/tenant-drawer/tenant-drawer';
 
 @Component({
   selector: 'app-tenant-registry',
-  imports: [ReactiveFormsModule, CommonModule, FormsModule, DatePipe],
+  imports: [ReactiveFormsModule, CommonModule, FormsModule, DatePipe, TenantDrawerComponent],
   templateUrl: './tenant-registry.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: []
@@ -19,6 +20,10 @@ export class TenantRegistryComponent implements OnInit {
   isLoadingTenants = signal(false);
   successMessage = signal('');
   errorMessage = signal('');
+
+  // Quick-View Drawer (#Phase 3)
+  showDrawer = signal(false);
+  selectedTenantForDrawer = signal<Tenant | null>(null);
 
   // Per-row loading state (#8)
   loadingRowIds = signal<Set<string>>(new Set());
@@ -448,5 +453,15 @@ export class TenantRegistryComponent implements OnInit {
         error: () => this.showError(`Failed to update 2FA for ${tenant.name}`)
       });
     }
+  }
+
+  openDrawer(tenant: Tenant) {
+    this.selectedTenantForDrawer.set(tenant);
+    this.showDrawer.set(true);
+  }
+
+  closeDrawer() {
+    this.showDrawer.set(false);
+    this.selectedTenantForDrawer.set(null);
   }
 }

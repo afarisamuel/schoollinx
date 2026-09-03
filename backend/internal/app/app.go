@@ -181,7 +181,7 @@ func (a *App) setupRoutes() {
 	superAdmin.Use(middleware.AuthMiddleware(a.Config, repos.Blacklist))
 	superAdmin.Use(middleware.RoleMiddleware(domain.RoleEcopowerAdmin))
 	superAdmin.Use(middleware.AuditMiddleware(usecases.Audit))
-	handler.NewTenantHandler(superAdmin, usecases.Tenant)
+	handler.NewTenantHandler(superAdmin, usecases.Tenant, a.DB)
 	handler.NewSystemHandler(superAdmin, a.DB, a.Config)
 	handler.NewAuditHandler(superAdmin, usecases.Audit)
 

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"sort"
 	"time"
@@ -21,6 +22,8 @@ func NewFinanceHandler(r *gin.RouterGroup, db *gorm.DB) {
 	r.GET("/overview", h.GetOverview)
 	r.GET("/revenue-by-plan", h.GetRevenueByPlan)
 	r.GET("/tenant-health", h.GetTenantHealth)
+	r.GET("/billing-alerts", h.GetBillingAlerts)
+	r.GET("/storage-usage", h.GetStorageUsage)
 }
 
 func (h *FinanceHandler) calculateMonthlyRevenue(t domain.Tenant) float64 {
@@ -172,19 +175,19 @@ func (h *FinanceHandler) GetTenantHealth(c *gin.Context) {
 	}
 
 	type TenantHealth struct {
-		ID               string  `json:"id"`
-		Name             string  `json:"name"`
-		Subdomain        string  `json:"subdomain"`
-		Plan             string  `json:"plan"`
-		Monthly          float64 `json:"monthly"`
-		SMSCredits       int     `json:"sms_credits"`
-		StorageUsedGB    float64 `json:"storage_used_gb"`
-		StorageLimitGB   int     `json:"storage_limit_gb"`
-		StorageUsedPct   float64 `json:"storage_used_pct"`
-		DPASigned        bool    `json:"dpa_signed"`
-		Require2FA       bool    `json:"require_2fa"`
-		Discount         float64 `json:"discount"`
-		BillingDue       *time.Time `json:"billing_due"`
+		ID             string     `json:"id"`
+		Name           string     `json:"name"`
+		Subdomain      string     `json:"subdomain"`
+		Plan           string     `json:"plan"`
+		Monthly        float64    `json:"monthly"`
+		SMSCredits     int        `json:"sms_credits"`
+		StorageUsedGB  float64    `json:"storage_used_gb"`
+		StorageLimitGB int        `json:"storage_limit_gb"`
+		StorageUsedPct float64    `json:"storage_used_pct"`
+		DPASigned      bool       `json:"dpa_signed"`
+		Require2FA     bool       `json:"require_2fa"`
+		Discount       float64    `json:"discount"`
+		BillingDue     *time.Time `json:"billing_due"`
 	}
 
 	result := make([]TenantHealth, 0, len(tenants))
@@ -240,7 +243,7 @@ func (h *FinanceHandler) GetMRR(c *gin.Context) {
 		if !tenant.IsActive {
 			continue
 		}
-		
+
 		mrr += h.calculateMonthlyRevenue(tenant)
 	}
 
@@ -286,4 +289,161 @@ func (h *FinanceHandler) GetChurnRisk(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, atRisk)
+}
+
+// GetBillingAlerts returns overdue payments, expiring trials, low SMS credits, and high storage warnings.
+func (h *FinanceHandler) GetBillingAlerts(c *gin.Context) {
+	var tenants []domain.Tenant
+	if err := h.db.Find(&tenants).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch tenants"})
+		return
+	}
+
+	now := time.Now()
+	sevenDaysFromNow := now.Add(7 * 24 * time.Hour)
+
+	type AlertItem struct {
+		TenantID    string      `json:"tenant_id"`
+		Name        string      `json:"name"`
+		Subdomain   string      `json:"subdomain"`
+		AlertType   string      `json:"alert_type"` // OVERDUE, TRIAL_EXPIRING, LOW_SMS, HIGH_STORAGE
+		Severity    string      `json:"severity"`   // CRITICAL, WARNING, INFO
+		Description string      `json:"description"`
+		DueDate     *time.Time  `json:"due_date,omitempty"`
+		Value       interface{} `json:"value,omitempty"`
+	}
+
+	var alerts []AlertItem
+
+	for _, t := range tenants {
+		if !t.IsActive {
+			continue
+		}
+
+		// Overdue billing check
+		if t.BillingDueDate != nil && t.BillingDueDate.Before(now) {
+			daysOverdue := int(now.Sub(*t.BillingDueDate).Hours() / 24)
+			alerts = append(alerts, AlertItem{
+				TenantID:    t.ID.String(),
+				Name:        t.Name,
+				Subdomain:   t.Subdomain,
+				AlertType:   "OVERDUE",
+				Severity:    "CRITICAL",
+				Description: fmt.Sprintf("Subscription billing is %d day(s) overdue", daysOverdue),
+				DueDate:     t.BillingDueDate,
+				Value:       daysOverdue,
+			})
+		}
+
+		// Expiring trial check
+		if t.TrialEndsAt != nil && t.TrialEndsAt.After(now) && t.TrialEndsAt.Before(sevenDaysFromNow) {
+			daysRemaining := int(t.TrialEndsAt.Sub(now).Hours() / 24)
+			alerts = append(alerts, AlertItem{
+				TenantID:    t.ID.String(),
+				Name:        t.Name,
+				Subdomain:   t.Subdomain,
+				AlertType:   "TRIAL_EXPIRING",
+				Severity:    "WARNING",
+				Description: fmt.Sprintf("Trial period ends in %d day(s)", daysRemaining),
+				DueDate:     t.TrialEndsAt,
+				Value:       daysRemaining,
+			})
+		}
+
+		// Low SMS credits (< 50)
+		if t.SMSCredits < 50 {
+			alerts = append(alerts, AlertItem{
+				TenantID:    t.ID.String(),
+				Name:        t.Name,
+				Subdomain:   t.Subdomain,
+				AlertType:   "LOW_SMS",
+				Severity:    "WARNING",
+				Description: fmt.Sprintf("SMS credit balance is critically low (%d credits remaining)", t.SMSCredits),
+				Value:       t.SMSCredits,
+			})
+		}
+
+		// High Storage (> 80% used)
+		if t.StorageLimitGB > 0 {
+			usedGB := float64(t.StorageUsedMB) / 1024.0
+			pct := (usedGB / float64(t.StorageLimitGB)) * 100
+			if pct >= 80 {
+				alerts = append(alerts, AlertItem{
+					TenantID:    t.ID.String(),
+					Name:        t.Name,
+					Subdomain:   t.Subdomain,
+					AlertType:   "HIGH_STORAGE",
+					Severity:    "WARNING",
+					Description: fmt.Sprintf("Storage is at %.1f%% of quota (%.1f GB / %d GB)", pct, usedGB, t.StorageLimitGB),
+					Value:       pct,
+				})
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, alerts)
+}
+
+// GetStorageUsage returns detailed storage consumption across all tenants.
+func (h *FinanceHandler) GetStorageUsage(c *gin.Context) {
+	var tenants []domain.Tenant
+	if err := h.db.Find(&tenants).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch tenants"})
+		return
+	}
+
+	type TenantStorage struct {
+		ID             string  `json:"id"`
+		Name           string  `json:"name"`
+		Subdomain      string  `json:"subdomain"`
+		Plan           string  `json:"plan"`
+		StorageUsedMB  int     `json:"storage_used_mb"`
+		StorageUsedGB  float64 `json:"storage_used_gb"`
+		StorageLimitGB int     `json:"storage_limit_gb"`
+		UsagePct       float64 `json:"usage_pct"`
+		IsWarning      bool    `json:"is_warning"`
+	}
+
+	var results []TenantStorage
+	var totalUsedMB int
+	var totalLimitGB int
+
+	for _, t := range tenants {
+		usedGB := float64(t.StorageUsedMB) / 1024.0
+		limitGB := t.StorageLimitGB
+		if limitGB == 0 {
+			limitGB = 5
+		}
+		pct := (usedGB / float64(limitGB)) * 100
+		if pct > 100 {
+			pct = 100
+		}
+
+		totalUsedMB += t.StorageUsedMB
+		totalLimitGB += limitGB
+
+		results = append(results, TenantStorage{
+			ID:             t.ID.String(),
+			Name:           t.Name,
+			Subdomain:      t.Subdomain,
+			Plan:           t.SubscriptionPlan,
+			StorageUsedMB:  t.StorageUsedMB,
+			StorageUsedGB:  usedGB,
+			StorageLimitGB: limitGB,
+			UsagePct:       pct,
+			IsWarning:      pct >= 80,
+		})
+	}
+
+	// Sort by storage used desc
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].StorageUsedMB > results[j].StorageUsedMB
+	})
+
+	c.JSON(http.StatusOK, gin.H{
+		"tenants":        results,
+		"total_used_gb":  float64(totalUsedMB) / 1024.0,
+		"total_limit_gb": totalLimitGB,
+		"platform_pct":   (float64(totalUsedMB) / (float64(totalLimitGB) * 1024.0)) * 100,
+	})
 }

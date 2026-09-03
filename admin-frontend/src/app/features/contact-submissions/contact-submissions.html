@@ -1,25 +1,25 @@
-<div class="p-12">
-  <div class="max-w-7xl mx-auto">
+<div class="p-4 sm:p-6 md:p-8 lg:p-12">
+  <div class="max-w-7xl mx-auto space-y-6">
 
-    <header class="mb-12 flex items-end justify-between border-b border-border-primary pb-10">
+    <header class="mb-8 sm:mb-12 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border-primary pb-6 sm:pb-8">
       <div>
-        <div class="flex items-center gap-2 mb-3">
+        <div class="flex items-center gap-2 mb-2">
           <span class="px-2 py-0.5 rounded bg-accent-primary/10 border border-accent-primary/20 text-[9px] font-black text-accent-primary uppercase tracking-widest">Public Inbox</span>
           @if (unreadCount() > 0) {
             <span class="px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-[9px] font-black text-rose-400 uppercase tracking-widest">{{ unreadCount() }} Unread</span>
           }
         </div>
-        <h1 class="text-5xl font-black text-white tracking-tighter">Contact <span class="text-accent-primary text-opacity-80">Submissions</span></h1>
-        <p class="text-text-secondary mt-3 max-w-xl text-sm leading-relaxed">Messages submitted by prospective schools via the public contact form.</p>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tighter">Contact <span class="text-accent-primary text-opacity-80">Submissions</span></h1>
+        <p class="text-text-secondary mt-2 max-w-xl text-xs sm:text-sm leading-relaxed">Messages submitted by prospective schools via the public contact form.</p>
       </div>
-      <button (click)="loadSubmissions()" class="admin-btn-primary px-5 py-2.5 rounded-xl flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
+      <button (click)="loadSubmissions()" class="admin-btn-primary px-5 py-2.5 rounded-xl flex items-center gap-2 text-xs font-bold uppercase tracking-wider self-start sm:self-auto">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
         Refresh
       </button>
     </header>
 
     <!-- Filter Tabs -->
-    <div class="flex gap-2 mb-8">
+    <div class="flex gap-2 mb-8 overflow-x-auto whitespace-nowrap custom-scrollbar pb-1">
       @for (tab of ['ALL', 'UNREAD', 'READ', 'REPLIED']; track tab) {
         <button
           (click)="filter.set($any(tab))"
@@ -71,11 +71,11 @@
                     <h3 class="text-base font-black text-white truncate">{{ sub.full_name }}</h3>
                     <span class="px-2.5 py-0.5 rounded-lg text-[9px] font-black border uppercase tracking-widest shrink-0" [class]="statusColor(sub.status)">{{ sub.status }}</span>
                   </div>
-                  <span class="text-[10px] text-text-muted shrink-0 font-mono">{{ sub.created_at | date:'MMM d, y · h:mm a' }}</span>
+                  <span class="text-[10px] text-text-muted shrink-0 font-mono">{{ sub.created_at | date:'MMM d, y, h:mm a' }}</span>
                 </div>
                 <div class="flex items-center gap-3 mb-3">
                   <a [href]="'mailto:' + sub.work_email" class="text-xs text-accent-primary hover:underline font-mono">{{ sub.work_email }}</a>
-                  <span class="text-text-muted">·</span>
+                  <span class="text-text-muted">&bull;</span>
                   <span class="text-xs text-text-secondary font-semibold">{{ sub.school_name }}</span>
                 </div>
                 @if (sub.message) {

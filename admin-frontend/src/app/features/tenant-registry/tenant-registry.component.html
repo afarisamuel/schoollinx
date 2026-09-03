@@ -1,24 +1,24 @@
-<div class="p-12">
-  <div class="max-w-7xl mx-auto">
-      <header class="mb-16 flex items-end justify-between border-b border-border-primary pb-10">
+<div class="p-4 sm:p-6 md:p-8 lg:p-12">
+  <div class="max-w-7xl mx-auto space-y-6">
+      <header class="mb-8 sm:mb-12 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border-primary pb-6 sm:pb-8">
         <div>
-          <div class="flex items-center gap-2 mb-3">
+          <div class="flex items-center gap-2 mb-2">
             <span class="px-2 py-0.5 rounded bg-accent-primary/10 border border-accent-primary/20 text-[9px] font-black text-accent-primary uppercase tracking-widest">Global Administrative Hub</span>
           </div>
-          <h1 class="text-5xl font-black text-white tracking-tighter">Registry <span class="text-accent-primary text-opacity-80">Management</span></h1>
-          <p class="text-text-secondary mt-3 max-w-xl text-sm leading-relaxed">Overview of all isolated data schemas and provisioned infrastructure nodes.</p>
+          <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tighter">Registry <span class="text-accent-primary text-opacity-80">Management</span></h1>
+          <p class="text-text-secondary mt-2 max-w-xl text-xs sm:text-sm leading-relaxed">Overview of all isolated data schemas and provisioned infrastructure nodes.</p>
         </div>
       </header>
 
       @if (successMessage()) {
-        <div class="mb-8 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold animate-fade-in flex items-center gap-3">
+        <div class="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold animate-fade-in flex items-center gap-3">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           <span>{{ successMessage() }}</span>
         </div>
       }
 
       @if (errorMessage()) {
-        <div class="mb-8 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold animate-fade-in flex items-center gap-3">
+        <div class="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold animate-fade-in flex items-center gap-3">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
           <span>{{ errorMessage() }}</span>
         </div>
@@ -26,7 +26,7 @@
 
       <!-- Tenant List -->
       <div class="admin-card !p-0 overflow-hidden border-border-primary/50 shadow-premium">
-        <div class="p-10 border-b border-border-primary bg-bg-secondary/30 flex items-center justify-between">
+        <div class="p-4 sm:p-6 md:p-8 border-b border-border-primary bg-bg-secondary/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h2 class="text-2xl font-black text-white tracking-tight">Active Registry</h2>
             <p class="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em] mt-1">Subdomain Schema Distribution</p>
@@ -104,8 +104,9 @@
                           {{ tenant.name.substring(0, 2).toUpperCase() }}
                         </div>
                         <div>
-                          <div class="font-bold text-text-primary text-sm group-hover:text-accent-primary transition-colors">
+                          <div (click)="openDrawer(tenant)" class="font-bold text-text-primary text-sm group-hover:text-accent-primary transition-colors cursor-pointer hover:underline flex items-center gap-1.5">
                             {{ tenant.name }}
+                            <svg class="w-3 h-3 text-text-muted group-hover:text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                           </div>
                           <div class="flex items-center gap-4 mt-1">
                             <div class="text-[10px] font-mono text-text-secondary font-bold">
@@ -128,7 +129,7 @@
                     <td class="py-5">
                       <div class="flex flex-col gap-1">
                          <span class="text-xs font-bold text-white">{{ tenant.subscription_plan || 'BASIC' }}</span>
-                         <span class="text-[10px] text-text-muted">{{ tenant.student_count || 0 }} students · {{ tenant.sms_credits || 0 }} SMS</span>
+                         <span class="text-[10px] text-text-muted">{{ tenant.student_count || 0 }} students &bull; {{ tenant.sms_credits || 0 }} SMS</span>
                       </div>
                     </td>
                     <td class="py-5">
@@ -600,3 +601,7 @@
   </div>
 </div>
 }
+
+<!-- Quick-View Drawer (#Phase 3) -->
+<app-tenant-drawer [tenant]="selectedTenantForDrawer()" [isOpen]="showDrawer()" (close)="closeDrawer()" (tenantUpdated)="loadTenants()"></app-tenant-drawer>
+

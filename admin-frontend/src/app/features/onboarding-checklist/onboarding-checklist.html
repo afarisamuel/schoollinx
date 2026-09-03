@@ -1,0 +1,198 @@
+<div class="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-text-primary tracking-tight">Tenant Onboarding Checklist & Launch Readiness</h1>
+          <p class="text-xs text-text-muted mt-0.5">Track real-time setup progress across classrooms, student rosters, payment keys & SMS sender IDs</p>
+        </div>
+      </div>
+    </div>
+
+    <button (click)="loadAllChecklists()" class="inline-flex items-center gap-2 px-4 py-2 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary rounded-lg text-xs font-semibold text-text-secondary hover:text-white transition-all">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      Refresh Progress
+    </button>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-6">
+      <span class="text-xs font-bold uppercase tracking-wider text-text-muted">Total Onboarding Pipeline</span>
+      <div class="text-3xl font-black text-white mt-2">{{ checklists().length }}</div>
+      <span class="text-[11px] text-text-muted mt-1 block">Institutions currently provisioned</span>
+    </div>
+
+    <div class="bg-bg-secondary border border-emerald-500/20 rounded-2xl p-6">
+      <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">Launch-Ready Schools</span>
+      <div class="text-3xl font-black text-emerald-400 mt-2">{{ readyCount() }}</div>
+      <span class="text-[11px] text-text-muted mt-1 block">Completed &ge;4 key setup milestones</span>
+    </div>
+
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-6">
+      <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Setup In Progress</span>
+      <div class="text-3xl font-black text-amber-400 mt-2">{{ inProgressCount() }}</div>
+      <span class="text-[11px] text-text-muted mt-1 block">Awaiting admin or roster configuration</span>
+    </div>
+  </div>
+
+  <!-- Filter & Search -->
+  <div class="bg-bg-secondary border border-border-primary rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
+    <div class="flex items-center gap-2">
+      <button (click)="filterReady.set('ALL')" [class.bg-accent-primary]="filterReady() === 'ALL'" [class.text-white]="filterReady() === 'ALL'" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-bg-primary text-text-secondary border border-border-primary hover:text-white transition-all">All Schools</button>
+      <button (click)="filterReady.set('READY')" [class.bg-emerald-500]="filterReady() === 'READY'" [class.text-white]="filterReady() === 'READY'" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-bg-primary text-text-secondary border border-border-primary hover:text-white transition-all">Ready for Launch</button>
+      <button (click)="filterReady.set('IN_PROGRESS')" [class.bg-amber-500]="filterReady() === 'IN_PROGRESS'" [class.text-white]="filterReady() === 'IN_PROGRESS'" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-bg-primary text-text-secondary border border-border-primary hover:text-white transition-all">In Progress</button>
+    </div>
+
+    <div class="w-full md:w-72">
+      <input type="text" [(ngModel)]="searchQuery" placeholder="Filter by school name..." class="w-full bg-bg-primary border border-border-primary rounded-lg px-3.5 py-2 text-xs text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-primary" />
+    </div>
+  </div>
+
+  <!-- Cards Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    @if (isLoading()) {
+      <div class="col-span-3 p-12 text-center text-text-muted">
+        <div class="inline-block w-6 h-6 border-2 border-accent-primary border-t-transparent rounded-full animate-spin"></div>
+        <span class="block mt-2 text-xs">Auditing schema readiness across schools...</span>
+      </div>
+    } @else {
+      @for (item of filteredChecklists(); track item.tenant.id) {
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-6 space-y-5 hover:border-border-secondary transition-all shadow-xl">
+          <!-- Card Header -->
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="font-bold text-white text-sm">{{ item.tenant.name }}</h3>
+              <span class="text-[11px] font-mono text-text-muted">{{ item.tenant.subdomain }}.schoollinx.com</span>
+            </div>
+
+            @if (item.status?.is_ready_for_launch) {
+              <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 shrink-0">
+                READY
+              </span>
+            } @else {
+              <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-400 shrink-0">
+                IN SETUP
+              </span>
+            }
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-xs font-mono">
+              <span class="text-text-muted">Readiness Score</span>
+              <span class="font-bold" [class.text-emerald-400]="item.status?.progress_percentage >= 66" [class.text-amber-400]="item.status?.progress_percentage < 66">
+                {{ item.status?.progress_percentage || 0 }}%
+              </span>
+            </div>
+            <div class="w-full bg-bg-primary h-2 rounded-full overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-500"
+                   [class.bg-emerald-500]="item.status?.progress_percentage >= 66"
+                   [class.bg-amber-500]="item.status?.progress_percentage < 66"
+                   [style.width.%]="item.status?.progress_percentage || 0"></div>
+            </div>
+          </div>
+
+          <!-- Checklist Items -->
+          <div class="space-y-2 pt-2 border-t border-border-primary text-xs">
+            <!-- Admin Account -->
+            <div class="flex items-center justify-between">
+              <span class="text-text-secondary flex items-center gap-2">
+                @if (item.status?.has_admin) {
+                  <span class="text-emerald-400 font-bold">&check;</span>
+                } @else {
+                  <span class="text-text-muted">&bull;</span>
+                }
+                Admin Account Provisioned
+              </span>
+              <span class="text-[10px] font-mono text-text-muted">{{ item.status?.has_admin ? 'Done' : 'Pending' }}</span>
+            </div>
+
+            <!-- Classrooms -->
+            <div class="flex items-center justify-between">
+              <span class="text-text-secondary flex items-center gap-2">
+                @if (item.status?.class_count > 0) {
+                  <span class="text-emerald-400 font-bold">&check;</span>
+                } @else {
+                  <span class="text-text-muted">&bull;</span>
+                }
+                Classrooms Created
+              </span>
+              <span class="text-[10px] font-mono text-text-muted">{{ item.status?.class_count || 0 }} classes</span>
+            </div>
+
+            <!-- Student Roster -->
+            <div class="flex items-center justify-between">
+              <span class="text-text-secondary flex items-center gap-2">
+                @if (item.status?.student_count > 0) {
+                  <span class="text-emerald-400 font-bold">&check;</span>
+                } @else {
+                  <span class="text-text-muted">&bull;</span>
+                }
+                Students Enrolled
+              </span>
+              <span class="text-[10px] font-mono text-text-muted">{{ item.status?.student_count || 0 }} students</span>
+            </div>
+
+            <!-- Academic Period -->
+            <div class="flex items-center justify-between">
+              <span class="text-text-secondary flex items-center gap-2">
+                @if (item.status?.has_academic_period) {
+                  <span class="text-emerald-400 font-bold">&check;</span>
+                } @else {
+                  <span class="text-text-muted">&bull;</span>
+                }
+                Active Academic Term Set
+              </span>
+              <span class="text-[10px] font-mono text-text-muted">{{ item.status?.has_academic_period ? 'Configured' : 'Missing' }}</span>
+            </div>
+
+            <!-- Payment Gateway -->
+            <div class="flex items-center justify-between">
+              <span class="text-text-secondary flex items-center gap-2">
+                @if (item.status?.has_paystack) {
+                  <span class="text-emerald-400 font-bold">&check;</span>
+                } @else {
+                  <span class="text-text-muted">&bull;</span>
+                }
+                Paystack Gateway
+              </span>
+              <span class="text-[10px] font-mono text-text-muted">{{ item.status?.has_paystack ? 'Connected' : 'Unset' }}</span>
+            </div>
+
+            <!-- SMS Integration -->
+            <div class="flex items-center justify-between">
+              <span class="text-text-secondary flex items-center gap-2">
+                @if (item.status?.has_sms) {
+                  <span class="text-emerald-400 font-bold">&check;</span>
+                } @else {
+                  <span class="text-text-muted">&bull;</span>
+                }
+                SMS & Sender ID
+              </span>
+              <span class="text-[10px] font-mono text-text-muted">{{ item.status?.sms_credits || 0 }} credits</span>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="pt-3 border-t border-border-primary flex gap-2">
+            <a [routerLink]="['/tenants/registry']" class="flex-1 text-center py-2 bg-bg-tertiary hover:bg-white/10 border border-border-primary rounded-lg text-xs font-semibold text-text-secondary hover:text-white transition-all">
+              Manage School
+            </a>
+            <a [routerLink]="['/feature-flags']" class="px-3 py-2 bg-accent-primary/10 hover:bg-accent-primary text-accent-primary hover:text-white border border-accent-primary/20 rounded-lg text-xs font-semibold transition-all">
+              Flags
+            </a>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

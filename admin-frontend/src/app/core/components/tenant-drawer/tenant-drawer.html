@@ -1,0 +1,232 @@
+@if (isOpen && tenant) {
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-end animate-fade-in" (click)="close.emit()">
+    <div class="w-full max-w-2xl bg-bg-secondary border-l border-border-primary h-full shadow-2xl flex flex-col animate-fade-in overflow-hidden" (click)="$event.stopPropagation()">
+      <!-- Drawer Header -->
+      <div class="p-6 border-b border-border-primary bg-bg-tertiary/40 flex items-start justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-xl font-bold text-white">{{ tenant.name }}</h2>
+            @if (tenant.is_active) {
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">ACTIVE</span>
+            } @else {
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">SUSPENDED</span>
+            }
+          </div>
+          <p class="text-xs text-text-muted font-mono mt-1">{{ tenant.subdomain }}.schoollinx.com &bull; Schema: {{ tenant.schema_name }}</p>
+        </div>
+
+        <button (click)="close.emit()" class="p-2 text-text-muted hover:text-white rounded-lg hover:bg-bg-tertiary transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="flex border-b border-border-primary bg-bg-primary/50 text-xs px-4 sm:px-6 gap-2 overflow-x-auto whitespace-nowrap custom-scrollbar">
+        <button (click)="activeTab.set('OVERVIEW')" [class.border-accent-primary]="activeTab() === 'OVERVIEW'" [class.text-white]="activeTab() === 'OVERVIEW'" class="py-3 px-3 font-bold border-b-2 border-transparent text-text-muted hover:text-white transition-all shrink-0">Overview</button>
+        <button (click)="activeTab.set('ONBOARDING')" [class.border-accent-primary]="activeTab() === 'ONBOARDING'" [class.text-white]="activeTab() === 'ONBOARDING'" class="py-3 px-3 font-bold border-b-2 border-transparent text-text-muted hover:text-white transition-all shrink-0">Readiness Checklist</button>
+        <button (click)="activeTab.set('FLAGS')" [class.border-accent-primary]="activeTab() === 'FLAGS'" [class.text-white]="activeTab() === 'FLAGS'" class="py-3 px-3 font-bold border-b-2 border-transparent text-text-muted hover:text-white transition-all shrink-0">Feature Flags</button>
+        <button (click)="activeTab.set('NOTES')" [class.border-accent-primary]="activeTab() === 'NOTES'" [class.text-white]="activeTab() === 'NOTES'" class="py-3 px-3 font-bold border-b-2 border-transparent text-text-muted hover:text-white transition-all shrink-0">CRM Timeline</button>
+      </div>
+
+      <!-- Messages -->
+      @if (successMsg()) {
+        <div class="mx-6 mt-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+          {{ successMsg() }}
+        </div>
+      }
+      @if (errorMsg()) {
+        <div class="mx-6 mt-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium">
+          {{ errorMsg() }}
+        </div>
+      }
+
+      <!-- Tab Body -->
+      <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar text-xs">
+        <!-- OVERVIEW TAB -->
+        @if (activeTab() === 'OVERVIEW') {
+          <div class="space-y-6">
+            <!-- Key Metrics Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="bg-bg-primary border border-border-primary p-3.5 rounded-xl">
+                <span class="text-[10px] uppercase font-bold text-text-muted block">Plan Tier</span>
+                <span class="text-sm font-bold text-white mt-1 block">{{ tenant.subscription_plan || 'BASIC' }}</span>
+              </div>
+              <div class="bg-bg-primary border border-border-primary p-3.5 rounded-xl">
+                <span class="text-[10px] uppercase font-bold text-text-muted block">SMS Balance</span>
+                <span class="text-sm font-bold text-sky-400 mt-1 block">{{ tenant.sms_credits || 0 }}</span>
+              </div>
+              <div class="bg-bg-primary border border-border-primary p-3.5 rounded-xl">
+                <span class="text-[10px] uppercase font-bold text-text-muted block">Storage</span>
+                <span class="text-sm font-bold text-white mt-1 block">{{ tenant.storage_used_mb || 0 }} MB</span>
+              </div>
+              <div class="bg-bg-primary border border-border-primary p-3.5 rounded-xl">
+                <span class="text-[10px] uppercase font-bold text-text-muted block">2FA Enforced</span>
+                <span class="text-sm font-bold mt-1 block" [class.text-emerald-400]="tenant.require_2fa" [class.text-text-muted]="!tenant.require_2fa">{{ tenant.require_2fa ? 'YES' : 'NO' }}</span>
+              </div>
+            </div>
+
+            <!-- Profile Details List -->
+            <div class="bg-bg-primary border border-border-primary rounded-xl divide-y divide-border-primary">
+              <div class="p-3.5 flex justify-between">
+                <span class="text-text-muted">Contact Email</span>
+                <span class="font-mono text-white">{{ tenant.contact_email || '—' }}</span>
+              </div>
+              <div class="p-3.5 flex justify-between">
+                <span class="text-text-muted">Per-Student Rate</span>
+                <span class="font-mono font-bold text-white">GHS {{ tenant.per_student_per_term_rate || tenant.per_student_rate || 0 }}</span>
+              </div>
+              <div class="p-3.5 flex justify-between">
+                <span class="text-text-muted">Discount Applied</span>
+                <span class="font-mono text-emerald-400">{{ tenant.discount_percentage || 0 }}%</span>
+              </div>
+              <div class="p-3.5 flex justify-between">
+                <span class="text-text-muted">Fixed Price Override</span>
+                <span class="font-mono text-white">{{ tenant.fixed_price_override ? ('GHS ' + tenant.fixed_price_override) : 'None' }}</span>
+              </div>
+              <div class="p-3.5 flex justify-between">
+                <span class="text-text-muted">DPA Signed At</span>
+                <span class="font-mono" [class.text-white]="tenant.dpa_signed_at" [class.text-amber-400]="!tenant.dpa_signed_at">{{ tenant.dpa_signed_at ? (tenant.dpa_signed_at | date:'mediumDate') : 'Unsigned' }}</span>
+              </div>
+              <div class="p-3.5 flex justify-between">
+                <span class="text-text-muted">Billing Cycle Due Date</span>
+                <span class="font-mono text-white">{{ tenant.billing_due_date ? (tenant.billing_due_date | date:'mediumDate') : 'Not Set' }}</span>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- ONBOARDING CHECKLIST TAB -->
+        @if (activeTab() === 'ONBOARDING') {
+          <div class="space-y-4">
+            <div class="bg-bg-primary border border-border-primary p-4 rounded-xl flex items-center justify-between">
+              <div>
+                <span class="text-[10px] uppercase font-bold text-text-muted">Readiness Score</span>
+                <div class="text-2xl font-black text-emerald-400 mt-1">{{ onboardingStatus()?.progress_percentage || 0 }}% Complete</div>
+              </div>
+              <span class="px-3 py-1 rounded-full text-xs font-bold"
+                    [class.bg-emerald-500/10]="onboardingStatus()?.is_ready_for_launch"
+                    [class.text-emerald-400]="onboardingStatus()?.is_ready_for_launch"
+                    [class.bg-amber-500/10]="!onboardingStatus()?.is_ready_for_launch"
+                    [class.text-amber-400]="!onboardingStatus()?.is_ready_for_launch">
+                {{ onboardingStatus()?.is_ready_for_launch ? 'Ready for Launch' : 'In Setup' }}
+              </span>
+            </div>
+
+            <div class="space-y-2">
+              <div class="p-3 bg-bg-primary border border-border-primary rounded-xl flex items-center justify-between">
+                <span class="text-white flex items-center gap-2">
+                  <span [class.text-emerald-400]="onboardingStatus()?.has_admin" [class.text-text-muted]="!onboardingStatus()?.has_admin">&bull;</span>
+                  Admin Account
+                </span>
+                <span class="font-mono text-text-muted">{{ onboardingStatus()?.has_admin ? 'Created' : 'Missing' }}</span>
+              </div>
+
+              <div class="p-3 bg-bg-primary border border-border-primary rounded-xl flex items-center justify-between">
+                <span class="text-white flex items-center gap-2">
+                  <span [class.text-emerald-400]="onboardingStatus()?.class_count > 0" [class.text-text-muted]="!onboardingStatus()?.class_count">&bull;</span>
+                  Classes Provisioned
+                </span>
+                <span class="font-mono text-text-muted">{{ onboardingStatus()?.class_count || 0 }} classes</span>
+              </div>
+
+              <div class="p-3 bg-bg-primary border border-border-primary rounded-xl flex items-center justify-between">
+                <span class="text-white flex items-center gap-2">
+                  <span [class.text-emerald-400]="onboardingStatus()?.student_count > 0" [class.text-text-muted]="!onboardingStatus()?.student_count">&bull;</span>
+                  Students Enrolled
+                </span>
+                <span class="font-mono text-text-muted">{{ onboardingStatus()?.student_count || 0 }} pupils</span>
+              </div>
+
+              <div class="p-3 bg-bg-primary border border-border-primary rounded-xl flex items-center justify-between">
+                <span class="text-white flex items-center gap-2">
+                  <span [class.text-emerald-400]="onboardingStatus()?.has_academic_period" [class.text-text-muted]="!onboardingStatus()?.has_academic_period">&bull;</span>
+                  Academic Term Set
+                </span>
+                <span class="font-mono text-text-muted">{{ onboardingStatus()?.has_academic_period ? 'Active' : 'Unset' }}</span>
+              </div>
+
+              <div class="p-3 bg-bg-primary border border-border-primary rounded-xl flex items-center justify-between">
+                <span class="text-white flex items-center gap-2">
+                  <span [class.text-emerald-400]="onboardingStatus()?.has_paystack" [class.text-text-muted]="!onboardingStatus()?.has_paystack">&bull;</span>
+                  Paystack Integration
+                </span>
+                <span class="font-mono text-text-muted">{{ onboardingStatus()?.has_paystack ? 'Connected' : 'Missing' }}</span>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- FEATURE FLAGS TAB -->
+        @if (activeTab() === 'FLAGS') {
+          <div class="space-y-4">
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-text-muted">Toggle specific platform modules for this institution:</span>
+              <button (click)="saveFlags()" [disabled]="isSavingFlags()" class="px-4 py-1.5 bg-accent-primary hover:bg-indigo-500 text-white font-bold rounded-lg text-xs shadow disabled:opacity-50">
+                {{ isSavingFlags() ? 'Saving...' : 'Save Flags' }}
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              @for (mod of availableModules; track mod.key) {
+                <div (click)="toggleModule(mod.key)"
+                     class="p-3 bg-bg-primary border border-border-primary hover:border-border-secondary rounded-xl flex items-center justify-between cursor-pointer transition-all">
+                  <div>
+                    <span class="font-bold text-white block">{{ mod.name }}</span>
+                    <span class="text-[10px] text-text-muted">{{ mod.category }}</span>
+                  </div>
+
+                  <div class="w-9 h-5 rounded-full transition-colors relative border border-border-primary shrink-0"
+                       [class.bg-accent-primary]="currentFlags()[mod.key]"
+                       [class.bg-bg-tertiary]="!currentFlags()[mod.key]">
+                    <div class="w-4 h-4 bg-white rounded-full transition-transform absolute top-0.5 shadow"
+                         [class.translate-x-4]="currentFlags()[mod.key]"
+                         [class.translate-x-0.5]="!currentFlags()[mod.key]"></div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- CRM NOTES TAB -->
+        @if (activeTab() === 'NOTES') {
+          <div class="space-y-4">
+            <!-- Add Note -->
+            <div class="bg-bg-primary border border-border-primary p-4 rounded-xl space-y-3">
+              <div class="flex gap-2">
+                <select [(ngModel)]="newNoteCat" class="bg-bg-secondary border border-border-primary rounded-lg px-2.5 py-1.5 text-xs text-white">
+                  <option value="GENERAL">General</option>
+                  <option value="BILLING">Billing</option>
+                  <option value="SUPPORT">Support</option>
+                  <option value="SALES">Expansion</option>
+                </select>
+                <input type="text" [(ngModel)]="newNoteText" placeholder="Add a private note regarding this school..." class="flex-1 bg-bg-secondary border border-border-primary rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-accent-primary" />
+                <button (click)="addNote()" [disabled]="isSavingNote() || !newNoteText().trim()" class="px-4 py-1.5 bg-accent-primary text-white font-bold rounded-lg text-xs disabled:opacity-50">
+                  Save
+                </button>
+              </div>
+            </div>
+
+            <!-- Notes List -->
+            <div class="space-y-2.5">
+              @for (n of notes(); track n.id) {
+                <div class="p-3.5 bg-bg-primary border border-border-primary rounded-xl space-y-1.5">
+                  <div class="flex items-center justify-between text-[10px] font-mono">
+                    <span class="font-bold text-accent-primary">{{ n.category }} &bull; {{ n.author }}</span>
+                    <span class="text-text-muted">{{ n.created_at | date:'mediumDate' }}</span>
+                  </div>
+                  <p class="text-xs text-text-primary whitespace-pre-wrap">{{ n.content }}</p>
+                </div>
+              }
+              @if (notes().length === 0) {
+                <div class="p-8 text-center text-text-muted">No notes recorded yet.</div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

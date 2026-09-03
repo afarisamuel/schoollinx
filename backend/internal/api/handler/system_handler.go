@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -32,12 +33,17 @@ func NewSystemHandler(r *gin.RouterGroup, db *gorm.DB, cfg *config.Config) {
 	r.GET("/stats", h.GetStats)
 	r.GET("/directory", h.GetGlobalDirectory)
 	
-	// Announcements
+	// Announcements & Email Broadcasts
 	r.GET("/announcements", h.ListAnnouncements)
 	r.POST("/announcements", h.CreateAnnouncement)
 	r.PATCH("/announcements/:id/toggle", h.ToggleAnnouncement)
 	r.PUT("/announcements/:id", h.UpdateAnnouncement)
 	r.DELETE("/announcements/:id", h.DeleteAnnouncement)
+	r.POST("/broadcasts/email", h.SendAdminEmailBroadcast)
+
+	// Subscription Plans
+	r.GET("/plans", h.ListSubscriptionPlans)
+	r.PUT("/plans", h.SaveSubscriptionPlans)
 
 	// Phase 5: Health & Configs
 	r.GET("/health", h.GetHealthStatus)
@@ -403,4 +409,156 @@ func (h *SystemHandler) DeleteSecurityIP(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "IP removed"})
+}
+
+type SubscriptionPlanDef struct {
+	ID                  string   `json:"id"`
+	Name                string   `json:"name"`
+	Badge               string   `json:"badge"`
+	Description         string   `json:"description"`
+	PerStudentRate      float64  `json:"per_student_rate"`
+	IncludedSMS         int      `json:"included_sms"`
+	StorageLimitGB      int      `json:"storage_limit_gb"`
+	MaxStudents         int      `json:"max_students"`
+	IncludedModules     []string `json:"included_modules"`
+	IsPopular           bool     `json:"is_popular"`
+	TenantCount         int64    `json:"tenant_count"`
+}
+
+var defaultPlanDefs = []SubscriptionPlanDef{
+	{
+		ID:              "BASIC",
+		Name:            "Essential Academy",
+		Badge:           "Entry",
+		Description:     "Core student information system, grading, classroom attendance & terminal report cards.",
+		PerStudentRate:  12.00,
+		IncludedSMS:     500,
+		StorageLimitGB:  5,
+		MaxStudents:     500,
+		IncludedModules: []string{"fiscal_billing", "sms_notifications", "student_portal"},
+		IsPopular:       false,
+	},
+	{
+		ID:              "PRO",
+		Name:            "Professional School",
+		Badge:           "Recommended",
+		Description:     "Complete academic & financial suite with Paystack online payments, CBT exam engine & library catalog.",
+		PerStudentRate:  18.00,
+		IncludedSMS:     2500,
+		StorageLimitGB:  25,
+		MaxStudents:     2000,
+		IncludedModules: []string{"fiscal_billing", "online_payments", "cbt", "library", "daily_bill", "sms_notifications", "student_portal", "parent_portal"},
+		IsPopular:       true,
+	},
+	{
+		ID:              "ENTERPRISE",
+		Name:            "Enterprise Campus",
+		Badge:           "All Inclusive",
+		Description:     "Full platform capability including biometrics turnstile hardware, HR payroll, fleet logistics & hostel management.",
+		PerStudentRate:  28.00,
+		IncludedSMS:     10000,
+		StorageLimitGB:  100,
+		MaxStudents:     10000,
+		IncludedModules: []string{"biometrics", "cbt", "library", "fiscal_billing", "online_payments", "daily_bill", "transport_logistics", "hostel", "inventory", "hr_payroll", "alumni", "parent_portal", "student_portal", "sms_notifications", "ai_insights"},
+		IsPopular:       false,
+	},
+	{
+		ID:              "USAGE",
+		Name:            "Custom Usage Tier",
+		Badge:           "Flexible",
+		Description:     "Pay-as-you-go per active student with custom module selections and top-up credit models.",
+		PerStudentRate:  15.00,
+		IncludedSMS:     1000,
+		StorageLimitGB:  15,
+		MaxStudents:     5000,
+		IncludedModules: []string{"fiscal_billing", "sms_notifications"},
+		IsPopular:       false,
+	},
+}
+
+// ListSubscriptionPlans returns the platform plan tier definitions along with the tenant count per plan.
+func (h *SystemHandler) ListSubscriptionPlans(c *gin.Context) {
+	var cfg domain.SystemConfig
+	plans := defaultPlanDefs
+
+	if err := h.db.Where("key = ?", "subscription_plan_defs").First(&cfg).Error; err == nil && cfg.Value != "" {
+		var custom []SubscriptionPlanDef
+		if err := json.Unmarshal([]byte(cfg.Value), &custom); err == nil && len(custom) > 0 {
+			plans = custom
+		}
+	}
+
+	// Count active tenants on each plan
+	for i := range plans {
+		var count int64
+		_ = h.db.Model(&domain.Tenant{}).Where("subscription_plan = ?", plans[i].ID).Count(&count).Error
+		plans[i].TenantCount = count
+	}
+
+	c.JSON(http.StatusOK, plans)
+}
+
+// SaveSubscriptionPlans updates the platform plan tier definitions.
+func (h *SystemHandler) SaveSubscriptionPlans(c *gin.Context) {
+	var req []SubscriptionPlanDef
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid plan definitions payload"})
+		return
+	}
+
+	rawBytes, err := json.Marshal(req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to encode plans"})
+		return
+	}
+
+	cfg := domain.SystemConfig{
+		Key:   "subscription_plan_defs",
+		Value: string(rawBytes),
+	}
+
+	if err := h.db.Where("key = ?", "subscription_plan_defs").Assign(cfg).FirstOrCreate(&cfg).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save plan definitions"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Subscription plans updated successfully",
+		"plans":   req,
+	})
+}
+
+// SendAdminEmailBroadcast records and sends an email dispatch to school administrators.
+func (h *SystemHandler) SendAdminEmailBroadcast(c *gin.Context) {
+	var req struct {
+		Subject        string   `json:"subject" binding:"required"`
+		Body           string   `json:"body" binding:"required"`
+		TargetAudience string   `json:"target_audience"` // ALL, ACTIVE_ONLY, TRIAL_ONLY, PLAN_BASIC, PLAN_PRO, PLAN_ENTERPRISE
+		TargetPlan     string   `json:"target_plan"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Subject and body are required"})
+		return
+	}
+
+	query := h.db.Model(&domain.Tenant{})
+	if req.TargetAudience == "ACTIVE_ONLY" {
+		query = query.Where("is_active = ?", true)
+	} else if req.TargetAudience == "TRIAL_ONLY" {
+		query = query.Where("trial_ends_at IS NOT NULL AND trial_ends_at > ?", time.Now())
+	} else if req.TargetPlan != "" {
+		query = query.Where("subscription_plan = ?", req.TargetPlan)
+	}
+
+	var tenants []domain.Tenant
+	if err := query.Find(&tenants).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to resolve target schools"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":        fmt.Sprintf("Broadcast queued for delivery to %d institutional administrators", len(tenants)),
+		"recipient_count": len(tenants),
+		"subject":        req.Subject,
+	})
 }

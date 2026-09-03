@@ -28,6 +28,9 @@ func NewAttendanceHandler(r *gin.RouterGroup, useCase domain.AttendanceUseCase) 
 		g.POST("/hardware/scan", h.ProcessHardwareScan)
 		g.GET("/hardware/scans", middleware.RoleMiddleware(domain.RoleAdmin), h.GetRecentScanEvents)
 
+		// ZKTeco ADMS-compatible adapter (no auth — device pushes directly)
+		g.POST("/hardware/zkteco", h.ProcessZKTecoScan)
+
 		// Device Management
 		g.GET("/hardware/devices", middleware.RoleMiddleware(domain.RoleAdmin), h.GetDevices)
 		g.POST("/hardware/devices", middleware.RoleMiddleware(domain.RoleAdmin), h.RegisterDevice)
@@ -261,4 +264,83 @@ func (h *AttendanceHandler) DeleteDevice(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Device deleted successfully"})
+}
+
+// ProcessZKTecoScan godoc
+// @Summary      ZKTeco ADMS-compatible scan adapter
+// @Description  Accepts ZKTeco push payloads and translates them into the internal scan event format.
+//
+//	ZKTeco devices send: { "sn": "DEVICESERIAL", "table": "ATTLOG", "Stamp": "UID\tDATE\tTIME\tSTATUS" }
+//
+// @Tags         Attendance
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Router       /attendance/hardware/zkteco [post]
+func (h *AttendanceHandler) ProcessZKTecoScan(c *gin.Context) {
+	// ZKTeco sends either JSON or form-encoded data depending on firmware version.
+	// We try JSON first, fall back to form fields.
+	type ZKPayload struct {
+		// JSON mode (newer firmware)
+		SN    string `json:"sn" form:"sn"`       // Device serial number
+		Table string `json:"table" form:"table"` // "ATTLOG" for attendance
+		Stamp string `json:"Stamp" form:"Stamp"` // "UID\tDATE TIME\tSTATUS"
+		// Some models send these directly
+		UID       string `json:"uid" form:"uid"`
+		UserID    string `json:"user_id" form:"user_id"`
+		Timestamp string `json:"timestamp" form:"timestamp"`
+	}
+
+	var payload ZKPayload
+	_ = c.ShouldBindJSON(&payload)
+	if payload.SN == "" {
+		// Try form-encoded fallback
+		_ = c.ShouldBind(&payload)
+	}
+
+	deviceID := payload.SN
+	if deviceID == "" {
+		deviceID = "ZK-UNKNOWN"
+	}
+
+	// Extract RFID/user token: prefer direct uid, fall back to parsing Stamp field.
+	rfidToken := payload.UID
+	if rfidToken == "" {
+		rfidToken = payload.UserID
+	}
+	if rfidToken == "" && payload.Stamp != "" {
+		// Stamp format: "UID\tDATE\tTIME\tSTATUS" or "UID\tDATETIME\t..."
+		parts := splitTab(payload.Stamp)
+		if len(parts) > 0 {
+			rfidToken = parts[0]
+		}
+	}
+
+	if rfidToken == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not extract user token from payload"})
+		return
+	}
+
+	if err := h.useCase.ProcessHardwareScan(c.Request.Context(), deviceID, rfidToken); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// ZKTeco expects "OK" plain text response — some firmware requires this.
+	c.String(http.StatusOK, "OK")
+}
+
+// splitTab splits a string by tab character.
+func splitTab(s string) []string {
+	var parts []string
+	start := 0
+	for i, c := range s {
+		if c == '\t' {
+			parts = append(parts, s[start:i])
+			start = i + 1
+		}
+	}
+	parts = append(parts, s[start:])
+	return parts
 }

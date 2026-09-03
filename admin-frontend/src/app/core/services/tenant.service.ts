@@ -190,4 +190,54 @@ export class TenantService {
   updatePaymentConfig(tenantId: string, config: any): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/${tenantId}/payment-config`, config);
   }
+
+  // Phase 1-5 additions
+  getBillingAlerts(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.systemUrl}/finance/billing-alerts`);
+  }
+
+  getStorageUsage(): Observable<any> {
+    return this.http.get<any>(`${this.systemUrl}/finance/storage-usage`);
+  }
+
+  getFeatureFlags(tenantId: string): Observable<{ tenant_id: string, feature_flags: Record<string, boolean> }> {
+    return this.http.get<{ tenant_id: string, feature_flags: Record<string, boolean> }>(`${this.apiUrl}/${tenantId}/feature-flags`);
+  }
+
+  updateFeatureFlags(tenantId: string, flags: Record<string, boolean>): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/${tenantId}/feature-flags`, { flags });
+  }
+
+  getTenantNotes(tenantId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${tenantId}/notes`);
+  }
+
+  addTenantNote(tenantId: string, note: { category?: string, content: string, author?: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${tenantId}/notes`, note);
+  }
+
+  getOnboardingStatus(tenantId: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${tenantId}/onboarding-status`);
+  }
+
+  getSupportTickets(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.systemUrl}/tickets`);
+  }
+
+  updateTicketStatus(id: string, status: string): Observable<any> {
+    return this.http.patch<any>(`${this.systemUrl}/tickets/${id}`, { status });
+  }
+
+  // Subscription Plans
+  getSubscriptionPlans(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.systemUrl}/plans`);
+  }
+
+  saveSubscriptionPlans(plans: any[]): Observable<any> {
+    return this.http.put<any>(`${this.systemUrl}/plans`, plans);
+  }
+
+  sendAdminEmailBroadcast(payload: { subject: string; body: string; target_audience?: string; target_plan?: string }): Observable<any> {
+    return this.http.post<any>(`${this.systemUrl}/broadcasts/email`, payload);
+  }
 }

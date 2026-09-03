@@ -24,15 +24,15 @@
 }
 
 :root {
-  /* Admin Neutral Dark Theme (Deep Obsidian) */
+  /* Default: Dark Theme (Deep Obsidian) */
   --bg-primary: #050505;
   --bg-secondary: #0a0a0a;
-  --bg-tertiary: #111111;
+  --bg-tertiary: #141414;
   --text-primary: #ffffff;
   --text-secondary: #a3a3a3;
-  --text-muted: #525252;
+  --text-muted: #666666;
   --border-primary: rgba(255, 255, 255, 0.08);
-  --border-secondary: rgba(255, 255, 255, 0.12);
+  --border-secondary: rgba(255, 255, 255, 0.14);
   --shadow-main: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
   
   --accent-primary: #6366f1;
@@ -46,11 +46,46 @@
   --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+html.light, [data-theme="light"] {
+  /* Professional Light Theme (Slate / Ice) */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --border-primary: rgba(15, 23, 42, 0.08);
+  --border-secondary: rgba(15, 23, 42, 0.14);
+  --shadow-main: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  
+  --accent-primary: #4f46e5;
+  --accent-secondary: #7c3aed;
+}
+
 html, body {
   @apply bg-bg-primary text-text-primary min-h-screen antialiased;
   margin: 0;
   padding: 0;
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+/* Light mode text adaptions where text-white is used for primary text headings */
+html.light h1.text-white,
+html.light h2.text-white,
+html.light h3.text-white,
+html.light th.text-white,
+html.light .font-bold.text-white:not([class*="bg-"]):not([class*="badge"]),
+html.light .font-black.text-white:not([class*="bg-"]):not([class*="badge"]) {
+  color: #0f172a !important;
+}
+
+html.light .font-mono.text-white:not([class*="bg-"]) {
+  color: #1e293b !important;
+}
+
+html.light span.text-white:not([class*="bg-"]):not([class*="badge"]) {
+  color: #0f172a;
 }
 
 @utility animate-fade-in {
@@ -62,15 +97,38 @@ html, body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Custom Scrollbars */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
 /* Administrative Components */
 @utility admin-card {
-  @apply bg-bg-secondary border border-border-primary shadow-premium rounded-lg p-8;
+  @apply bg-bg-secondary border border-border-primary shadow-premium rounded-lg p-6 sm:p-8 transition-colors;
 }
 
 @utility admin-btn-primary {
-  @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent-primary hover:bg-indigo-500 text-white text-xs font-bold rounded-md shadow-lg shadow-indigo-600/20 transition-all active:scale-[0.98];
+  @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-accent-primary hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/20 transition-all active:scale-[0.98];
+}
+
+@utility admin-btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-bg-tertiary hover:bg-bg-secondary text-text-primary border border-border-primary text-xs font-bold rounded-xl transition-all active:scale-[0.98];
 }
 
 @utility admin-input {
-  @apply w-full bg-bg-primary border border-border-primary rounded-md px-4 py-3.5 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/40 focus:border-accent-primary/50 transition-all;
+  @apply w-full bg-bg-primary border border-border-primary rounded-xl px-4 py-3 text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/40 focus:border-accent-primary/50 transition-all text-xs;
 }
