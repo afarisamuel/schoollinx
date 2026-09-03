@@ -58,15 +58,15 @@
   @if (!isCollapsed()) {
   <div class="px-3 pt-3 pb-1 shrink-0 animate-fade-in">
     <div class="relative flex items-center">
-      <svg class="w-4 h-4 absolute left-3 text-slate-400 pointer-events-none"
+      <svg class="w-4 h-4 absolute left-3 text-slate-300 pointer-events-none"
         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
       <input type="text" [value]="searchQuery()" (input)="onSearchInput($event)" placeholder="Quick find module..."
-        class="w-full pl-9 pr-14 py-2 bg-slate-900/80 hover:bg-slate-900 border border-white/[0.08] focus:bg-slate-900 focus:border-blue-500 rounded-xl text-xs font-semibold text-white placeholder:text-slate-500 focus:outline-none transition-all shadow-inner" />
+        class="w-full pl-9 pr-14 py-2 bg-slate-900/90 hover:bg-slate-900 border border-white/15 focus:bg-slate-900 focus:border-blue-500 rounded-xl text-xs font-semibold text-white placeholder:text-slate-400 focus:outline-none transition-all shadow-inner" />
       @if (searchQuery().length > 0) {
       <button (click)="clearSearch()"
-        class="absolute right-2.5 text-slate-400 hover:text-white transition-colors cursor-pointer"
+        class="absolute right-2.5 text-slate-300 hover:text-white transition-colors cursor-pointer"
         title="Clear search">
         <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
           stroke-width="2.5">
@@ -75,7 +75,7 @@
       </button>
       } @else {
       <span
-        class="absolute right-2.5 px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono font-bold text-slate-400 pointer-events-none">/</span>
+        class="absolute right-2.5 px-1.5 py-0.5 rounded bg-white/15 text-[10px] font-mono font-bold text-slate-300 pointer-events-none">/</span>
       }
     </div>
   </div>
@@ -88,14 +88,14 @@
       <!-- Group Header -->
       @if (!isCollapsed()) {
       <div (click)="toggleGroup(group.id)"
-        class="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 cursor-pointer text-slate-400 hover:text-white transition-colors group/hdr select-none">
+        class="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 cursor-pointer text-slate-300 hover:text-white transition-colors group/hdr select-none">
         <div class="flex items-center gap-2 min-w-0">
           @if (group.accent) {
           <span class="w-2 h-2 rounded-full shrink-0 shadow-2xs" [style.backgroundColor]="group.accent"></span>
           } @else {
-          <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-slate-600"></span>
+          <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-slate-400"></span>
           }
-          <p class="text-[10px] font-black tracking-wider uppercase truncate">
+          <p class="text-[10px] font-black tracking-wider uppercase truncate text-slate-300 group-hover/hdr:text-white">
             {{ group.title }}
           </p>
         </div>
@@ -104,7 +104,7 @@
           <!-- Hub Portal Quick Direct Link (if available) -->
           @if (group.hubRoute) {
           <a [routerLink]="group.hubRoute" (click)="$event.stopPropagation(); onNavClick()"
-            class="p-1 rounded-md text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
+            class="p-1 rounded-md text-slate-300 hover:text-blue-300 hover:bg-blue-500/20 transition-colors"
             title="Open Hub View">
             <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
               stroke="currentColor" stroke-width="2">
@@ -116,7 +116,7 @@
 
           <!-- Expand/Collapse Chevron -->
           <svg
-            class="w-3.5 h-3.5 text-slate-400 group-hover/hdr:text-white transition-transform duration-200"
+            class="w-3.5 h-3.5 text-slate-300 group-hover/hdr:text-white transition-transform duration-200"
             [class.rotate-90]="isGroupExpanded(group.id)" xmlns="http://www.w3.org/2000/svg" fill="none"
             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
@@ -135,8 +135,8 @@
         <a [routerLink]="item.route" (click)="onNavClick()"
           class="relative flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs transition-all duration-150 group cursor-pointer border"
           [ngClass]="{
-                  'bg-blue-500/15 text-blue-200 border-blue-500/30 font-bold shadow-2xs': isItemActive(item),
-                  'text-slate-300 hover:text-white hover:bg-white/5 border-transparent font-semibold': !isItemActive(item),
+                  'bg-blue-600/25 text-white border-blue-500/40 font-bold shadow-2xs': isItemActive(item),
+                  'text-slate-100 hover:text-white hover:bg-white/10 border-transparent font-medium': !isItemActive(item),
                   'justify-center': isCollapsed()
                 }">
           <!-- Left active highlight bar -->
@@ -148,8 +148,8 @@
           <!-- Structured Icon Badge Container -->
           <div class="w-7.5 h-7.5 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150"
             [ngClass]="{
-                    'bg-blue-600 text-white shadow-2xs shadow-blue-600/30': isItemActive(item),
-                    'bg-white/5 text-slate-400 group-hover:bg-blue-950/60 group-hover:text-blue-300': !isItemActive(item)
+                    'bg-blue-600 text-white shadow-2xs shadow-blue-600/40': isItemActive(item),
+                    'bg-white/10 text-slate-200 group-hover:bg-blue-600 group-hover:text-white': !isItemActive(item)
                   }">
             <svg class="w-4 h-4 shrink-0 transition-transform duration-150 group-hover:scale-110"
               xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -197,7 +197,7 @@
     </div>
     } @empty {
     <div class="px-4 py-8 text-center animate-fade-in">
-      <p class="text-xs font-medium text-slate-400">No matching modules found</p>
+      <p class="text-xs font-medium text-slate-300">No matching modules found</p>
       <button (click)="clearSearch()"
         class="mt-2 text-xs font-bold text-blue-400 hover:underline uppercase tracking-wider cursor-pointer">
         Clear filter
@@ -235,7 +235,7 @@
 
     @if (!isCollapsed()) {
     <button (click)="logout()"
-      class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-rose-400 hover:bg-rose-950/20 border border-white/[0.08] transition-all cursor-pointer shadow-2xs bg-transparent">
+      class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-200 hover:text-rose-300 hover:bg-rose-950/30 border border-white/[0.12] transition-all cursor-pointer shadow-2xs bg-transparent">
       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
