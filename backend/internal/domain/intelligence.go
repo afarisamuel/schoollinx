@@ -41,6 +41,20 @@ type CourseDemand struct {
 	TeacherShortage   bool      `json:"teacher_shortage"`
 }
 
+type AtRiskStudentSummary struct {
+	StudentID       uuid.UUID `json:"student_id"`
+	StudentName     string    `json:"student_name"`
+	ClassName       string    `json:"class_name"`
+	RiskLevel       string    `json:"risk_level"` // HIGH, MEDIUM, LOW
+	RiskScore       float64   `json:"risk_score"` // 0 to 100
+	AttendancePct   float64   `json:"attendance_pct"`
+	AverageScore    float64   `json:"average_score"`
+	FeeArrearsGHS   float64   `json:"fee_arrears_ghs"`
+	DemeritCount    int       `json:"demerit_count"`
+	PrimaryDrivers  []string  `json:"primary_drivers"`
+	RecommendedPlan string    `json:"recommended_plan"`
+}
+
 type IntelligenceRepository interface {
 	GetAggregateKPIs(ctx context.Context) (*InstitutionalKPI, error)
 	GetRetentionRisks(ctx context.Context, threshold float64) ([]RetentionRisk, error)
@@ -53,6 +67,7 @@ type IntelligenceUseCase interface {
 	ForecastCourseDemand(ctx context.Context) ([]CourseDemand, error)
 	GenerateExecutiveReportCSV(ctx context.Context) ([]byte, error)
 	GenerateInterventions(ctx context.Context) error
+	GetAtRiskStudents(ctx context.Context) ([]AtRiskStudentSummary, error)
 }
 
 type InterventionStatus string

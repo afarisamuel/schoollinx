@@ -44,6 +44,16 @@ export class HrService {
         window.open(`${this.apiUrl}/payroll/${payrollId}/payslip`, '_blank');
     }
 
+    downloadSSNITSchedule(month?: string): void {
+        const query = month ? `?month=${month}` : '';
+        window.open(`${this.apiUrl}/payroll/ssnit-schedule${query}`, '_blank');
+    }
+
+    downloadGRASchedule(month?: string): void {
+        const query = month ? `?month=${month}` : '';
+        window.open(`${this.apiUrl}/payroll/gra-schedule${query}`, '_blank');
+    }
+
     // Leave
     getLeaveRequests(): Observable<LeaveRequest[]> {
         return this.http.get<LeaveRequest[]>(`${this.apiUrl}/leave`);

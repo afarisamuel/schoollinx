@@ -40,6 +40,7 @@ export const routes: Routes = [
       { path: 'telemetry', loadComponent: () => import('./features/telemetry/telemetry').then(m => m.TelemetryComponent) },
       { path: 'security', loadComponent: () => import('./features/security/security').then(m => m.SecurityComponent) },
       { path: 'health', loadComponent: () => import('./features/health/health').then(m => m.HealthComponent) },
+      { path: 'system/jobs', loadComponent: () => import('./features/jobs/jobs').then(m => m.JobsComponent) },
       { path: 'contact-submissions', loadComponent: () => import('./features/contact-submissions/contact-submissions').then(m => m.ContactSubmissionsComponent) },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]

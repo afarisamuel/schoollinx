@@ -464,4 +464,86 @@ export class TenantRegistryComponent implements OnInit {
     this.showDrawer.set(false);
     this.selectedTenantForDrawer.set(null);
   }
+
+  // Bulk Import CSV State & Actions
+  showBulkImportModal = signal(false);
+  bulkImportCsvText = signal('');
+  bulkImportParsed = signal<any[]>([]);
+  isBulkImporting = signal(false);
+  bulkImportResult = signal<any | null>(null);
+
+  openBulkImportModal() {
+    this.showBulkImportModal.set(true);
+    this.bulkImportCsvText.set('');
+    this.bulkImportParsed.set([]);
+    this.bulkImportResult.set(null);
+  }
+
+  closeBulkImportModal() {
+    this.showBulkImportModal.set(false);
+    this.bulkImportResult.set(null);
+  }
+
+  onCsvFileSelected(event: any) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      this.bulkImportCsvText.set(text);
+      this.parseCsv(text);
+    };
+    reader.readAsText(file);
+  }
+
+  parseCsv(text: string) {
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    if (lines.length < 2) {
+      this.bulkImportParsed.set([]);
+      return;
+    }
+
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    const items = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const parts = lines[i].split(',').map(p => p.trim());
+      if (parts.length < 2) continue;
+
+      const name = parts[0] || '';
+      const subdomain = parts[1] || name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const adminEmail = parts[2] || `admin@${subdomain}.com`;
+      const plan = parts[3] || 'BASIC';
+      const studentRate = parseFloat(parts[4] || '15') || 15;
+
+      items.push({
+        name,
+        subdomain,
+        admin_email: adminEmail,
+        plan,
+        student_rate: studentRate
+      });
+    }
+
+    this.bulkImportParsed.set(items);
+  }
+
+  executeBulkImport() {
+    const items = this.bulkImportParsed();
+    if (items.length === 0) return;
+
+    this.isBulkImporting.set(true);
+    this.tenantService.bulkImportTenants(items).subscribe({
+      next: (res) => {
+        this.isBulkImporting.set(false);
+        this.bulkImportResult.set(res);
+        this.loadTenants();
+      },
+      error: () => {
+        this.isBulkImporting.set(false);
+        this.showError('Failed to execute bulk import pipeline');
+      }
+    });
+  }
 }

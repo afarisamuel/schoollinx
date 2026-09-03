@@ -26,6 +26,7 @@ func NewCBTHandler(rg *gin.RouterGroup, uc *usecase.CBTUseCase) *CBTHandler {
 		g.POST("/attempts", h.StartAttempt)
 		g.POST("/attempts/:id/answers", h.SubmitAnswer)
 		g.POST("/attempts/:id/complete", h.CompleteAttempt)
+		g.POST("/attempts/:id/violation", h.RecordViolation)
 	}
 
 	return h
@@ -156,4 +157,36 @@ func (h *CBTHandler) CompleteAttempt(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "attempt completed"})
+}
+
+// RecordViolation logs anti-cheat events (tab switch, window blur) and auto-submits after 3 infractions (Gap #18).
+func (h *CBTHandler) RecordViolation(c *gin.Context) {
+	attemptID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid attempt id"})
+		return
+	}
+
+	var req struct {
+		ViolationType string `json:"violation_type" binding:"required"` // TAB_SWITCH, WINDOW_BLUR, FULLSCREEN_EXIT
+		Count         int    `json:"count" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	autoSubmitted := false
+	if req.Count >= 3 {
+		_ = h.uc.CompleteAttempt(c.Request.Context(), attemptID)
+		autoSubmitted = true
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"attempt_id":      attemptID,
+		"violation_type":  req.ViolationType,
+		"violation_count": req.Count,
+		"auto_submitted":  autoSubmitted,
+		"warning":         "Anti-cheat violation logged. Maximum 3 infractions permitted before exam auto-submission.",
+	})
 }

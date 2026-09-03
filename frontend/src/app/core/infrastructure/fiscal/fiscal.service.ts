@@ -158,6 +158,17 @@ export class FiscalService {
         return this.http.post<{ status: string }>(`${this.apiUrl}/records/${recordId}/partial-pay`, { amount, note });
     }
 
+    applyLateFees(penaltyRatePct = 5.0, daysGracePeriod = 7): Observable<{ message: string; applied_count: number }> {
+        return this.http.post<{ message: string; applied_count: number }>(`${this.apiUrl}/apply-late-fees`, {
+            penalty_rate_pct: penaltyRatePct,
+            days_grace_period: daysGracePeriod
+        });
+    }
+
+    getConsolidatedFamilyInvoice(guardianId: string): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/family-invoice/${guardianId}`);
+    }
+
     getReceipt(recordId: string): Observable<Blob> {
         return this.http.get(`${this.apiUrl}/records/${recordId}/receipt`, { responseType: 'blob' });
     }

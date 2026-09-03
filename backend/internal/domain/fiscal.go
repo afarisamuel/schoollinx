@@ -263,6 +263,29 @@ type FiscalUseCase interface {
 	// Bill Customization & Supplies Template
 	GetBillTemplateConfig(ctx context.Context) (*BillTemplateConfig, error)
 	SaveBillTemplateConfig(ctx context.Context, config *BillTemplateConfig) (*BillTemplateConfig, error)
+
+	// Automated Late Fees & Consolidated Family Billing
+	ApplyLateFees(ctx context.Context, penaltyRatePct float64, daysGracePeriod int) (int, error)
+	GetConsolidatedFamilyInvoice(ctx context.Context, guardianID uuid.UUID) (*ConsolidatedFamilyInvoice, error)
+}
+
+type FamilyInvoiceItem struct {
+	StudentID   uuid.UUID `json:"student_id"`
+	StudentName string    `json:"student_name"`
+	ClassName   string    `json:"class_name"`
+	TotalDue    float64   `json:"total_due"`
+	AmountPaid  float64   `json:"amount_paid"`
+	Balance     float64   `json:"balance"`
+}
+
+type ConsolidatedFamilyInvoice struct {
+	GuardianID     uuid.UUID           `json:"guardian_id"`
+	GuardianName   string              `json:"guardian_name"`
+	GuardianPhone  string              `json:"guardian_phone"`
+	TotalFamilyDue float64             `json:"total_family_due"`
+	TotalPaid      float64             `json:"total_paid"`
+	FamilyBalance  float64             `json:"family_balance"`
+	Children       []FamilyInvoiceItem `json:"children"`
 }
 
 // Donation represents a financial contribution from an Alumni or external sponsor

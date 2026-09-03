@@ -2,11 +2,15 @@ package usecase
 
 import (
 	"context"
+	"fmt"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/user/high-school-management/backend/internal/domain"
 )
+
+var scanDebounceMap sync.Map // Map[string]time.Time (Gap #12)
 
 type AttendanceUseCase struct {
 	repo         domain.AttendanceRepository
@@ -106,10 +110,21 @@ func (u *AttendanceUseCase) AnalyzeAbsences(ctx context.Context, threshold int) 
 }
 
 func (u *AttendanceUseCase) ProcessHardwareScan(ctx context.Context, deviceID, rfidToken string) error {
+	// Gap #12: 60-Second Scan Debounce Guard per device & token
+	debounceKey := fmt.Sprintf("%s:%s", deviceID, rfidToken)
+	now := time.Now()
+	if lastScanVal, exists := scanDebounceMap.Load(debounceKey); exists {
+		if lastScanTime, ok := lastScanVal.(time.Time); ok && now.Sub(lastScanTime) < 60*time.Second {
+			// Debounced duplicate scan within 60s
+			return nil
+		}
+	}
+	scanDebounceMap.Store(debounceKey, now)
+
 	scan := &domain.ScanEvent{
 		DeviceID:  deviceID,
 		RFIDToken: rfidToken,
-		Timestamp: time.Now(),
+		Timestamp: now,
 		Processed: false,
 	}
 
@@ -132,7 +147,15 @@ func (u *AttendanceUseCase) ProcessHardwareScan(ctx context.Context, deviceID, r
 		}
 	}
 
+	// Gap #13: Security alert on unregistered badge scanned at physical gate turnstile
 	if matchedStudent == nil {
+		if u.notifUC != nil {
+			_ = u.notifUC.Broadcast(domain.Notification{
+				Type:    domain.NotificationSystem,
+				Title:   "Security Alert: Unregistered Token Scanned",
+				Message: fmt.Sprintf("Unrecognized RFID token [%s] presented at hardware terminal [%s]", rfidToken, deviceID),
+			})
+		}
 		return nil // Token not mapped yet
 	}
 
@@ -153,6 +176,15 @@ func (u *AttendanceUseCase) ProcessHardwareScan(ctx context.Context, deviceID, r
 	// 3b. Trigger billing for the attendance if an active period exists
 	if activePeriod, pErr := u.academicRepo.GetActive(ctx); pErr == nil && activePeriod != nil {
 		_ = u.fiscalUC.ProcessAttendanceBilling(ctx, attendance.StudentID, activePeriod.ID)
+	}
+
+	// 3c. Send real-time Gate Ingress / Egress notification
+	if u.notifUC != nil {
+		_ = u.notifUC.SendToUser(matchedStudent.ID, domain.Notification{
+			Type:    domain.NotificationAttendance,
+			Title:   "Gate Check-In Verified",
+			Message: "Campus gate entry scanned at " + time.Now().Format("3:04 PM") + " via " + deviceID,
+		})
 	}
 
 	// 4. Mark scan as processed

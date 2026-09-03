@@ -21,7 +21,9 @@ func NewInventoryHandler(rg *gin.RouterGroup, uc *usecase.StockUseCase) *Invento
 		g.POST("/items", h.CreateItem)
 		g.GET("/items", h.ListItems)
 		g.GET("/items/low-stock", h.GetLowStock)
+		g.GET("/items/reorder-alerts", h.GetReorderAlerts)
 		g.GET("/items/:id/movements", h.GetMovements)
+		g.GET("/items/:id/qr-label", h.GetItemQRLabel)
 
 		g.POST("/movements/in", h.RecordIn)
 		g.POST("/movements/out", h.RecordOut)
@@ -127,4 +129,36 @@ func (h *InventoryHandler) Adjust(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "stock adjusted"})
+}
+
+// GetReorderAlerts returns items that have breached minimum inventory thresholds (Gap #27).
+func (h *InventoryHandler) GetReorderAlerts(c *gin.Context) {
+	tenantID, _ := uuid.Parse(c.GetString("tenantID"))
+	lowStock, err := h.uc.GetLowStock(c.Request.Context(), tenantID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"critical_items_count": len(lowStock),
+		"requires_procurement": len(lowStock) > 0,
+		"items":                lowStock,
+	})
+}
+
+// GetItemQRLabel outputs structured QR barcode data for physical asset tagging (Gap #28).
+func (h *InventoryHandler) GetItemQRLabel(c *gin.Context) {
+	itemID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid item ID format"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"item_id":     itemID,
+		"qr_payload":  "SCHOOLLINX-ASSET:" + itemID.String(),
+		"label_size":  "50mm x 30mm (Thermal Label Standard)",
+		"print_ready": true,
+	})
 }

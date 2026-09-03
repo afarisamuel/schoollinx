@@ -37,6 +37,22 @@ func (m *mockAttendanceRepo) GetRecentScanEvents(ctx context.Context, limit int)
 	return nil, nil
 }
 
+func (m *mockAttendanceRepo) RegisterDevice(ctx context.Context, device *domain.BiometricDevice) error {
+	return nil
+}
+func (m *mockAttendanceRepo) UpdateDevice(ctx context.Context, device *domain.BiometricDevice) error {
+	return nil
+}
+func (m *mockAttendanceRepo) DeleteDevice(ctx context.Context, id string) error {
+	return nil
+}
+func (m *mockAttendanceRepo) GetDevices(ctx context.Context) ([]domain.BiometricDevice, error) {
+	return nil, nil
+}
+func (m *mockAttendanceRepo) GetDeviceByID(ctx context.Context, id string) (*domain.BiometricDevice, error) {
+	return nil, nil
+}
+
 func (m *mockAttendanceRepo) GetAttendanceStats(ctx context.Context) (map[string]int, error) {
 	args := m.Called(ctx)
 	return args.Get(0).(map[string]int), args.Error(1)

@@ -31,6 +31,27 @@ export interface CourseDemand {
     teacher_shortage: boolean;
 }
 
+export interface AtRiskStudent {
+    student_id: string;
+    student_name: string;
+    class_name: string;
+    risk_level: 'HIGH' | 'MEDIUM' | 'LOW';
+    risk_score: number;
+    attendance_pct: number;
+    average_score: number;
+    fee_arrears_ghs: number;
+    demerit_count: number;
+    primary_drivers: string[];
+    recommended_plan: string;
+}
+
+export interface NaturalQueryResponse {
+    prompt: string;
+    answer: string;
+    confidence_score: number;
+    data_points: any;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -50,5 +71,13 @@ export class IntelligenceService {
 
     getCourseDemand(): Observable<CourseDemand[]> {
         return this.http.get<CourseDemand[]>(`${this.apiUrl}/predictions/demand`).pipe(map(res => res || []));
+    }
+
+    getAtRiskStudents(): Observable<AtRiskStudent[]> {
+        return this.http.get<AtRiskStudent[]>(`${this.apiUrl}/at-risk-students`).pipe(map(res => res || []));
+    }
+
+    askNaturalLanguageQuery(prompt: string): Observable<NaturalQueryResponse> {
+        return this.http.post<NaturalQueryResponse>(`${this.apiUrl}/natural-query`, { prompt });
     }
 }

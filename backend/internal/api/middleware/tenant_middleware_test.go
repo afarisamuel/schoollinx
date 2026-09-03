@@ -49,7 +49,7 @@ func TestExtractSubdomain(t *testing.T) {
 			// 	req.Header.Set("X-Tenant-Subdomain", tt.header)
 			// }
 
-			subdomain := extractSubdomain(req)
+			subdomain := ExtractSubdomain(req)
 			assert.Equal(t, tt.expected, subdomain)
 		})
 	}

@@ -349,4 +349,14 @@ export class PayrollManager implements OnInit {
   get selectedMonthName(): string {
     return this.months.find(m => m.value == this.selectedMonth)?.label || '';
   }
+
+  downloadSSNITSchedule(): void {
+    const period = `${this.selectedYear}-${String(this.selectedMonth).padStart(2, '0')}`;
+    this.hrService.downloadSSNITSchedule(period);
+  }
+
+  downloadGRASchedule(): void {
+    const period = `${this.selectedYear}-${String(this.selectedMonth).padStart(2, '0')}`;
+    this.hrService.downloadGRASchedule(period);
+  }
 }

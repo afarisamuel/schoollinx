@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/user/high-school-management/backend/internal/api/middleware"
 )
 
 func init() {
@@ -41,7 +42,7 @@ func TestExtractSubdomain_IsolationScenarios(t *testing.T) {
 			require.NoError(t, err)
 			req.Host = tc.host
 
-			got := extractSubdomainForTest(req)
+			got := middleware.ExtractSubdomain(req)
 			assert.Equal(t, tc.wantTenant, got,
 				"host=%q: expected tenant=%q, got=%q", tc.host, tc.wantTenant, got)
 		})
@@ -152,40 +153,4 @@ func TestTenantMiddleware_XTenantHeaderOverride(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "devtenant_schema", w.Body.String())
-}
-
-// extractSubdomainForTest is a thin shim so we can call the unexported
-// extractSubdomain function from the middleware package in black-box tests.
-// In the test binary the middleware package functions are accessible because
-// this file is in package middleware_test (same directory, separate package).
-// We replicate the extraction logic here to test the specification, not the
-// implementation detail.
-func extractSubdomainForTest(req *http.Request) string {
-	import_strings := func(s, sep string) []string {
-		// inline split to avoid import cycle in _test package
-		result := []string{}
-		start := 0
-		for i := 0; i < len(s); i++ {
-			if string(s[i]) == sep {
-				result = append(result, s[start:i])
-				start = i + 1
-			}
-		}
-		result = append(result, s[start:])
-		return result
-	}
-
-	host := req.Host
-	parts := import_strings(host, ".")
-	if len(parts) >= 2 {
-		sub := parts[0]
-		// if sub contains ":" it's bare localhost with port
-		for _, ch := range sub {
-			if ch == ':' {
-				return ""
-			}
-		}
-		return sub
-	}
-	return ""
 }

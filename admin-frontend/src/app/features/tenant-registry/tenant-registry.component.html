@@ -8,6 +8,13 @@
           <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tighter">Registry <span class="text-accent-primary text-opacity-80">Management</span></h1>
           <p class="text-text-secondary mt-2 max-w-xl text-xs sm:text-sm leading-relaxed">Overview of all isolated data schemas and provisioned infrastructure nodes.</p>
         </div>
+
+        <div class="flex items-center gap-3 self-start sm:self-auto">
+          <button (click)="openBulkImportModal()" class="admin-btn-secondary px-4 py-2.5 text-xs font-bold flex items-center gap-2">
+            <svg class="w-4 h-4 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            <span>BATCH CSV ONBOARDING</span>
+          </button>
+        </div>
       </header>
 
       @if (successMessage()) {
@@ -598,6 +605,99 @@
         </button>
       </div>
     </form>
+  </div>
+</div>
+}
+
+<!-- Bulk Onboarding Modal -->
+@if (showBulkImportModal()) {
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" (click)="closeBulkImportModal()">
+  <div class="relative w-full max-w-2xl bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6" (click)="$event.stopPropagation()">
+    <div class="flex items-center justify-between border-b border-border-primary pb-4">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-accent-primary/10 border border-accent-primary/20 text-accent-primary flex items-center justify-center">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white">Batch CSV Institutional Onboarding</h3>
+          <p class="text-[10px] text-text-muted uppercase tracking-wider">Multi-Tenant Schema Provisioning Pipeline</p>
+        </div>
+      </div>
+      <button (click)="closeBulkImportModal()" class="text-text-muted hover:text-white text-lg">&times;</button>
+    </div>
+
+    <!-- Upload Input -->
+    <div class="space-y-4">
+      <div class="p-6 border-2 border-dashed border-border-primary rounded-2xl text-center bg-bg-primary/50 hover:border-accent-primary/50 transition-colors cursor-pointer relative">
+        <input type="file" accept=".csv" (change)="onCsvFileSelected($event)" class="absolute inset-0 opacity-0 cursor-pointer">
+        <svg class="w-8 h-8 text-accent-primary mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+        <p class="text-xs font-bold text-white">Click or drag CSV file here to upload</p>
+        <p class="text-[10px] text-text-muted mt-1 font-mono">Format: School Name, Subdomain, Admin Email, Plan (BASIC/PRO/ENTERPRISE), Per Student Rate</p>
+      </div>
+
+      <!-- Preview Table -->
+      @if (bulkImportParsed().length > 0) {
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-white">Manifest Preview ({{ bulkImportParsed().length }} institutions detected)</span>
+            <span class="text-emerald-400 font-bold text-[11px]">Ready to provision</span>
+          </div>
+
+          <div class="max-h-48 overflow-y-auto custom-scrollbar border border-border-primary rounded-xl overflow-hidden">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-bg-tertiary text-[10px] text-text-muted uppercase tracking-wider">
+                <tr>
+                  <th class="p-2.5">Institution</th>
+                  <th class="p-2.5">Subdomain</th>
+                  <th class="p-2.5">Plan</th>
+                  <th class="p-2.5 text-right">Student Rate</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border-primary/50">
+                @for (item of bulkImportParsed(); track item.subdomain) {
+                  <tr class="hover:bg-bg-tertiary/30">
+                    <td class="p-2.5 font-bold text-white">{{ item.name }}</td>
+                    <td class="p-2.5 font-mono text-[11px] text-accent-primary">{{ item.subdomain }}</td>
+                    <td class="p-2.5">
+                      <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-accent-primary/10 text-accent-primary">{{ item.plan }}</span>
+                    </td>
+                    <td class="p-2.5 text-right font-mono text-white">₵{{ item.student_rate | number:'1.2-2' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      @if (bulkImportResult(); as result) {
+        <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold space-y-1">
+          <p class="font-bold">{{ result.message }}</p>
+          @if (result.errors?.length) {
+            <p class="text-rose-400 text-[11px]">{{ result.errors.length }} warnings encountered during batch creation.</p>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="flex gap-3 pt-2">
+      <button (click)="closeBulkImportModal()" class="flex-1 py-3 rounded-xl border border-border-primary text-xs font-bold text-text-secondary hover:text-white transition-colors">
+        {{ bulkImportResult() ? 'DONE' : 'CANCEL' }}
+      </button>
+
+      @if (!bulkImportResult()) {
+        <button (click)="executeBulkImport()"
+                [disabled]="isBulkImporting() || bulkImportParsed().length === 0"
+                class="flex-1 admin-btn-primary py-3 text-xs tracking-wider flex items-center justify-center gap-2 disabled:opacity-50">
+          @if (isBulkImporting()) {
+            <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span>PROVISIONING SCHEMAS...</span>
+          } @else {
+            <span>PROVISION {{ bulkImportParsed().length }} INSTITUTIONS</span>
+          }
+        </button>
+      }
+    </div>
   </div>
 </div>
 }

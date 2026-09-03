@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -22,19 +23,33 @@ const (
 	TenantNameKey   schemaKey = "tenantName"
 )
 
-func extractSubdomain(req *http.Request) string {
+func ExtractSubdomain(req *http.Request) string {
 	host := req.Host
-	subdomain := ""
+	if h, _, err := net.SplitHostPort(host); err == nil {
+		host = h
+	}
+
+	// Check if host is an IP address
+	if net.ParseIP(host) != nil {
+		return ""
+	}
+
+	// Handle localhost (e.g. "tenant2.localhost" or "localhost")
+	if strings.HasSuffix(host, "localhost") {
+		parts := strings.Split(host, ".")
+		if len(parts) >= 2 && parts[0] != "localhost" && parts[0] != "" {
+			return parts[0]
+		}
+		return ""
+	}
 
 	parts := strings.Split(host, ".")
-	if len(parts) >= 2 {
-		subdomain = parts[0]
-		// Handle 'localhost:8080' vs 'tenant.localhost:8080'
-		if strings.Contains(subdomain, ":") {
-			subdomain = ""
-		}
+	// e.g. "tenant1.basic-sms.com" -> len 3 -> "tenant1"
+	if len(parts) >= 3 {
+		return parts[0]
 	}
-	return subdomain
+
+	return ""
 }
 
 // TenantMiddleware extracts the subdomain from the request Host,
@@ -42,7 +57,7 @@ func extractSubdomain(req *http.Request) string {
 // and injects the TenantID and SchemaName into the context.
 func TenantMiddleware(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		subdomain := extractSubdomain(c.Request)
+		subdomain := ExtractSubdomain(c.Request)
 
 		// 1. Try X-Tenant-Subdomain header (Developer convenience/resilience)
 		if sub := c.GetHeader("X-Tenant-Subdomain"); sub != "" {
@@ -91,7 +106,7 @@ func TenantMiddleware(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		host := c.Request.Host
-		subdomain = extractSubdomain(c.Request)
+		subdomain = ExtractSubdomain(c.Request)
 
 		// 1. First, check if there's a custom domain mapped to the exact Host
 		var t domain.Tenant

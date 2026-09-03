@@ -32,6 +32,15 @@ func (m *mockGradeRepo) Update(ctx context.Context, g *domain.Grade) error {
 func (m *mockGradeRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	return m.Called(ctx, id).Error(0)
 }
+func (m *mockGradeRepo) GetGeneralWeights(ctx context.Context) ([]domain.GradeWeight, error) {
+	return nil, nil
+}
+func (m *mockGradeRepo) ReplaceWeights(ctx context.Context, classID *uuid.UUID, weights []domain.GradeWeight) error {
+	return nil
+}
+func (m *mockGradeRepo) DeleteWeightsByClassID(ctx context.Context, classID uuid.UUID) error {
+	return nil
+}
 func (m *mockGradeRepo) GetWeightsByClassID(ctx context.Context, id uuid.UUID) ([]domain.GradeWeight, error) {
 	args := m.Called(ctx, id); return args.Get(0).([]domain.GradeWeight), args.Error(1)
 }

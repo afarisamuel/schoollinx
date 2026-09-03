@@ -74,6 +74,7 @@ export class SidebarComponent {
       items: [
         { name: 'Security Center', route: '/security', icon: 'shield' },
         { name: 'System Health', route: '/health', icon: 'heart' },
+        { name: 'Scheduled Daemons', route: '/system/jobs', icon: 'activity' },
         { name: 'Telemetry & Logs', route: '/telemetry', icon: 'activity' },
         { name: 'Global Directory', route: '/users/directory', icon: 'directory' },
         { name: 'Audit Trail', route: '/audit-logs', icon: 'ledger' }

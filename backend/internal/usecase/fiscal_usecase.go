@@ -316,23 +316,46 @@ func (u *fiscalUseCase) ProcessPartialPayment(ctx context.Context, recordID uuid
 		if record.Status == domain.PaymentStatusPaid {
 			return fmt.Errorf("this invoice is already fully paid")
 		}
-
 		rem := record.Amount - record.AmountPaid
+		excess := 0.0
+		appliedAmount := amount
+
 		if amount > rem {
-			return fmt.Errorf("payment of %.2f exceeds the outstanding balance of %.2f", amount, rem)
+			excess = amount - rem
+			appliedAmount = rem
 		}
 
-		record.AmountPaid += amount
+		record.AmountPaid += appliedAmount
 		remaining = record.Amount - record.AmountPaid
+		if remaining < 0 {
+			remaining = 0
+		}
 
 		// Record a wallet transaction as an audit trail
 		_ = txRepo.CreateWalletTransaction(ctx, &domain.WalletTransaction{
 			StudentID:   record.StudentID,
 			Type:        domain.WalletTransactionDebit,
-			Amount:      amount,
-			Balance:     0, // balance not wallet-based here
-			Description: fmt.Sprintf("Partial payment on invoice %s: %s", record.ID.String()[:8], note),
+			Amount:      appliedAmount,
+			Balance:     0,
+			Description: fmt.Sprintf("Payment applied to invoice %s: %s", record.ID.String()[:8], note),
 		})
+
+		// Auto-credit excess overpayment directly into the student's prepaid wallet (Gap #7)
+		if excess > 0 {
+			student, sErr := u.studentRepo.GetByID(ctx, record.StudentID)
+			if sErr == nil && student != nil {
+				student.PrepaidBalance += excess
+				_ = u.studentRepo.Update(ctx, student)
+
+				_ = txRepo.CreateWalletTransaction(ctx, &domain.WalletTransaction{
+					StudentID:   record.StudentID,
+					Type:        domain.WalletTransactionCredit,
+					Amount:      excess,
+					Balance:     student.PrepaidBalance,
+					Description: fmt.Sprintf("Surplus overpayment auto-credited from invoice %s", record.ID.String()[:8]),
+				})
+			}
+		}
 
 		// Mark fully paid if balance is cleared
 		if record.AmountPaid >= record.Amount {
@@ -1225,6 +1248,115 @@ func (u *fiscalUseCase) SaveBillTemplateConfig(ctx context.Context, config *doma
 		return nil, fmt.Errorf("failed to save bill template config: %w", err)
 	}
 	return u.fiscalRepo.GetBillTemplateConfig(ctx)
+}
+
+// ApplyLateFees adds a compound/fixed late penalty to overdue invoices past their grace period (Gap #8).
+func (u *fiscalUseCase) ApplyLateFees(ctx context.Context, penaltyRatePct float64, daysGracePeriod int) (int, error) {
+	if penaltyRatePct <= 0 {
+		penaltyRatePct = 5.0 // Default 5% late penalty
+	}
+	if daysGracePeriod <= 0 {
+		daysGracePeriod = 7 // Default 7-day grace period
+	}
+
+	defaulters, err := u.fiscalRepo.GetDefaultersOlderThan(ctx, daysGracePeriod)
+	if err != nil {
+		return 0, err
+	}
+
+	appliedCount := 0
+	for _, rec := range defaulters {
+		if rec.Status == domain.PaymentStatusPaid {
+			continue
+		}
+
+		outstanding := rec.Amount - rec.AmountPaid
+		if outstanding <= 0 {
+			continue
+		}
+
+		penalty := math.Round((outstanding*(penaltyRatePct/100.0))*100) / 100
+		if penalty < 5.0 {
+			penalty = 5.0 // Minimum GHS 5 penalty
+		}
+
+		rec.Amount += penalty
+		_ = u.fiscalRepo.Update(ctx, &rec)
+		appliedCount++
+	}
+
+	return appliedCount, nil
+}
+
+// GetConsolidatedFamilyInvoice aggregates all pending fee records for siblings under one guardian (Gap #9).
+func (u *fiscalUseCase) GetConsolidatedFamilyInvoice(ctx context.Context, guardianID uuid.UUID) (*domain.ConsolidatedFamilyInvoice, error) {
+	students, err := u.studentRepo.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var children []domain.FamilyInvoiceItem
+	var totalDue, totalPaid, familyBalance float64
+	guardianName := "Valued Guardian"
+	guardianPhone := ""
+
+	for _, s := range students {
+		isChild := false
+		for _, g := range s.Guardians {
+			if g.ID == guardianID {
+				isChild = true
+				if string(g.FirstName) != "" {
+					guardianName = fmt.Sprintf("%s %s", string(g.FirstName), string(g.LastName))
+				}
+				if string(g.PhoneNumber) != "" {
+					guardianPhone = string(g.PhoneNumber)
+				}
+				break
+			}
+		}
+
+		if !isChild {
+			continue
+		}
+
+		records, rErr := u.fiscalRepo.GetByStudent(ctx, s.ID)
+		if rErr != nil {
+			continue
+		}
+
+		var sDue, sPaid float64
+		for _, r := range records {
+			sDue += r.Amount
+			sPaid += r.AmountPaid
+		}
+		sBal := sDue - sPaid
+		if sBal < 0 {
+			sBal = 0
+		}
+
+		totalDue += sDue
+		totalPaid += sPaid
+		familyBalance += sBal
+
+		children = append(children, domain.FamilyInvoiceItem{
+			StudentID:   s.ID,
+			StudentName: fmt.Sprintf("%s %s", s.FirstName, s.LastName),
+			ClassName:   s.ClassID.String(),
+			TotalDue:    sDue,
+			AmountPaid:  sPaid,
+			Balance:     sBal,
+		})
+	}
+
+	return &domain.ConsolidatedFamilyInvoice{
+		GuardianID:     guardianID,
+		GuardianName:   guardianName,
+		GuardianPhone:  guardianPhone,
+		TotalFamilyDue: totalDue,
+		TotalPaid:      totalPaid,
+		FamilyBalance:  familyBalance,
+		Children:       children,
+	}, nil
 }
 
 

@@ -22,6 +22,7 @@ func NewHostelHandler(r *gin.RouterGroup, uc domain.HostelUseCase) *HostelHandle
 		hostels.POST("", h.CreateHostel)
 		hostels.GET("/:id/rooms", h.GetRooms)
 		hostels.POST("/:id/rooms", h.AddRoom)
+		hostels.GET("/:id/capacity-overview", h.GetCapacityOverview)
 		hostels.POST("/allocate", h.AllocateStudent)
 		hostels.GET("/student/:student_id", h.GetStudentAllocation)
 		hostels.POST("/student/:student_id/vacate", h.VacateStudent)
@@ -137,4 +138,62 @@ func (h *HostelHandler) VacateStudent(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Bed vacated successfully"})
+}
+
+// GetCapacityOverview calculates real-time room capacity, occupied beds, and vacancy rates.
+func (h *HostelHandler) GetCapacityOverview(c *gin.Context) {
+	hostelID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid hostel ID"})
+		return
+	}
+
+	rooms, err := h.hostelUseCase.GetRooms(c.Request.Context(), hostelID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	totalCapacity := 0
+	totalOccupied := 0
+
+	type RoomSummary struct {
+		RoomID       uuid.UUID `json:"room_id"`
+		RoomNumber   string    `json:"room_number"`
+		Capacity     int       `json:"capacity"`
+		OccupiedBeds int       `json:"occupied_beds"`
+		VacantBeds   int       `json:"vacant_beds"`
+	}
+
+	var roomSummaries []RoomSummary
+	for _, r := range rooms {
+		totalCapacity += r.Capacity
+		vacant := r.Capacity - r.BedsOccupied
+		if vacant < 0 {
+			vacant = 0
+		}
+		totalOccupied += r.BedsOccupied
+
+		roomSummaries = append(roomSummaries, RoomSummary{
+			RoomID:       r.ID,
+			RoomNumber:   r.RoomNumber,
+			Capacity:     r.Capacity,
+			OccupiedBeds: r.BedsOccupied,
+			VacantBeds:   vacant,
+		})
+	}
+
+	occupancyRate := 0.0
+	if totalCapacity > 0 {
+		occupancyRate = (float64(totalOccupied) / float64(totalCapacity)) * 100.0
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"hostel_id":      hostelID,
+		"total_capacity": totalCapacity,
+		"total_occupied": totalOccupied,
+		"total_vacant":   totalCapacity - totalOccupied,
+		"occupancy_rate": occupancyRate,
+		"rooms":          roomSummaries,
+	})
 }

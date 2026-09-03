@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { SmsAdminService, SenderIDRequest, SMSPricingData, SMSTelemetry, SmsLedgerItem } from '../../core/services/sms-admin.service';
+import { TenantService } from '../../core/services/tenant.service';
 
 @Component({
   selector: 'app-sms-management',
@@ -13,9 +14,15 @@ import { SmsAdminService, SenderIDRequest, SMSPricingData, SMSTelemetry, SmsLedg
 })
 export class SmsManagementComponent implements OnInit {
   private smsAdmin = inject(SmsAdminService);
+  private tenantService = inject(TenantService);
 
-  activeTab = signal<'requests' | 'pricing' | 'tenants' | 'ledger'>('requests');
+  activeTab = signal<'requests' | 'pricing' | 'tenants' | 'ledger' | 'carriers'>('requests');
   isLoading = signal(true);
+
+  // Carrier Gateways
+  carriers = signal<any[]>([]);
+  isSavingCarriers = signal(false);
+  carrierSaveSuccess = signal(false);
 
   // Telemetry & Stats
   telemetry = signal<SMSTelemetry | null>(null);
@@ -85,8 +92,9 @@ export class SmsManagementComponent implements OnInit {
       this.smsAdmin.getRequests(),
       this.smsAdmin.getPricing(),
       this.smsAdmin.getLedger(),
+      this.tenantService.getCarrierConfigs()
     ]).subscribe({
-      next: ([telemetry, requests, pricing, ledger]) => {
+      next: ([telemetry, requests, pricing, ledger, carriers]) => {
         this.telemetry.set(telemetry);
         this.requests.set(requests || []);
         this.pricingData.set(pricing);
@@ -94,14 +102,31 @@ export class SmsManagementComponent implements OnInit {
           this.globalRateInput.set(pricing.global_cost_per_sms);
         }
         this.ledgerItems.set(ledger || []);
+        this.carriers.set(carriers || []);
         this.isLoading.set(false);
       },
       error: () => this.isLoading.set(false)
     });
   }
 
-  setTab(tab: 'requests' | 'pricing' | 'tenants' | 'ledger') {
+  setTab(tab: 'requests' | 'pricing' | 'tenants' | 'ledger' | 'carriers') {
     this.activeTab.set(tab);
+  }
+
+  saveCarrierSettings() {
+    this.isSavingCarriers.set(true);
+    this.tenantService.saveCarrierConfigs(this.carriers()).subscribe({
+      next: (res) => {
+        this.isSavingCarriers.set(false);
+        this.carrierSaveSuccess.set(true);
+        if (res.carriers) this.carriers.set(res.carriers);
+        setTimeout(() => this.carrierSaveSuccess.set(false), 3000);
+      },
+      error: () => {
+        this.isSavingCarriers.set(false);
+        alert('Failed to save carrier gateway settings');
+      }
+    });
   }
 
   approveRequest(req: SenderIDRequest) {

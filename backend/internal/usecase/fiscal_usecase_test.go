@@ -92,6 +92,23 @@ func (m *mockFiscalRepo) GetFiscalSummaryStats(ctx context.Context, month, year 
 	args := m.Called(ctx, month, year); return args.Get(0).(*domain.FiscalSummary), args.Error(1)
 }
 
+func (m *mockFiscalRepo) CreateScholarship(ctx context.Context, scholarship *domain.Scholarship) error { return nil }
+func (m *mockFiscalRepo) GetScholarshipByID(ctx context.Context, id uuid.UUID) (*domain.Scholarship, error) { return nil, nil }
+func (m *mockFiscalRepo) GetScholarshipsByStudent(ctx context.Context, studentID uuid.UUID) ([]domain.Scholarship, error) { return nil, nil }
+func (m *mockFiscalRepo) GetAllScholarships(ctx context.Context) ([]domain.Scholarship, error) { return nil, nil }
+func (m *mockFiscalRepo) GetActiveScholarships(ctx context.Context) ([]domain.Scholarship, error) { return nil, nil }
+func (m *mockFiscalRepo) UpdateScholarship(ctx context.Context, scholarship *domain.Scholarship) error { return nil }
+
+func (m *mockFiscalRepo) CreateInstallmentAgreement(ctx context.Context, agreement *domain.InstallmentAgreement) error { return nil }
+func (m *mockFiscalRepo) GetInstallmentAgreementsByStudent(ctx context.Context, studentID uuid.UUID) ([]domain.InstallmentAgreement, error) { return nil, nil }
+func (m *mockFiscalRepo) GetInstallmentAgreementByID(ctx context.Context, id uuid.UUID) (*domain.InstallmentAgreement, error) { return nil, nil }
+func (m *mockFiscalRepo) GetInstallmentMilestoneByID(ctx context.Context, id uuid.UUID) (*domain.InstallmentMilestone, error) { return nil, nil }
+func (m *mockFiscalRepo) UpdateInstallmentMilestone(ctx context.Context, id uuid.UUID, amountPaid float64, status string) error { return nil }
+func (m *mockFiscalRepo) GetInstallmentPlanTemplate(ctx context.Context) (*domain.InstallmentPlanTemplate, error) { return nil, nil }
+func (m *mockFiscalRepo) SaveInstallmentPlanTemplate(ctx context.Context, template *domain.InstallmentPlanTemplate) error { return nil }
+func (m *mockFiscalRepo) GetBillTemplateConfig(ctx context.Context) (*domain.BillTemplateConfig, error) { return nil, nil }
+func (m *mockFiscalRepo) SaveBillTemplateConfig(ctx context.Context, config *domain.BillTemplateConfig) error { return nil }
+
 // --- Mock: StudentRepository ---
 type mockStudentRepo struct{ mock.Mock }
 
@@ -100,8 +117,12 @@ func (m *mockStudentRepo) BulkUpsert(ctx context.Context, students []domain.Stud
 func (m *mockStudentRepo) GetByID(ctx context.Context, id uuid.UUID) (*domain.Student, error) {
 	args := m.Called(ctx, id); return args.Get(0).(*domain.Student), args.Error(1)
 }
+func (m *mockStudentRepo) GetByEnrollmentNumber(ctx context.Context, num string) (*domain.Student, error) { return nil, nil }
 func (m *mockStudentRepo) GetAll(ctx context.Context) ([]domain.Student, error) { return nil, nil }
 func (m *mockStudentRepo) GetAllPaginated(ctx context.Context, q domain.PaginationQuery) (int64, []domain.Student, error) {
+	return 0, nil, nil
+}
+func (m *mockStudentRepo) GetStudentsForTeacherPaginated(ctx context.Context, userID uuid.UUID, query domain.PaginationQuery) (int64, []domain.Student, error) {
 	return 0, nil, nil
 }
 func (m *mockStudentRepo) Update(ctx context.Context, s *domain.Student) error {
@@ -181,6 +202,9 @@ func (m *mockTenantRepo) GetBySetupToken(ctx context.Context, token string) (*do
 func (m *mockTenantRepo) UpdateStatus(ctx context.Context, id uuid.UUID, isActive bool) error {
 	return nil
 }
+func (m *mockTenantRepo) Update(ctx context.Context, t *domain.Tenant) error {
+	return nil
+}
 
 // --- Tests ---
 
@@ -188,7 +212,7 @@ func TestFiscalUseCase_TopUpWallet(t *testing.T) {
 	fiscalRepo := new(mockFiscalRepo)
 	studentRepo := new(mockStudentRepo)
 
-	uc := usecase.NewFiscalUseCase(fiscalRepo, studentRepo, new(mockDonationRepo), new(mockAcademicRepo), new(mockTenantRepo))
+	uc := usecase.NewFiscalUseCase(fiscalRepo, studentRepo, new(mockDonationRepo), new(mockAcademicRepo), new(mockTenantRepo), nil)
 
 	studentID := uuid.New()
 	student := &domain.Student{ID: studentID, PrepaidBalance: 100.0}
@@ -207,7 +231,7 @@ func TestFiscalUseCase_TopUpWallet(t *testing.T) {
 func TestFiscalUseCase_ListAllRecords(t *testing.T) {
 	fiscalRepo := new(mockFiscalRepo)
 
-	uc := usecase.NewFiscalUseCase(fiscalRepo, new(mockStudentRepo), new(mockDonationRepo), new(mockAcademicRepo), new(mockTenantRepo))
+	uc := usecase.NewFiscalUseCase(fiscalRepo, new(mockStudentRepo), new(mockDonationRepo), new(mockAcademicRepo), new(mockTenantRepo), nil)
 
 	records := []domain.FiscalRecord{
 		{ID: uuid.New(), Amount: 200.0},
@@ -222,7 +246,7 @@ func TestFiscalUseCase_ListAllRecords(t *testing.T) {
 
 func TestFiscalUseCase_ProcessPayment(t *testing.T) {
 	fiscalRepo := new(mockFiscalRepo)
-	uc := usecase.NewFiscalUseCase(fiscalRepo, new(mockStudentRepo), new(mockDonationRepo), new(mockAcademicRepo), new(mockTenantRepo))
+	uc := usecase.NewFiscalUseCase(fiscalRepo, new(mockStudentRepo), new(mockDonationRepo), new(mockAcademicRepo), new(mockTenantRepo), nil)
 
 	recordID := uuid.New()
 	record := &domain.FiscalRecord{ID: recordID, Amount: 150.0, AmountPaid: 0, Status: domain.PaymentStatusPending}
@@ -239,7 +263,7 @@ func TestFiscalUseCase_ProcessPayment(t *testing.T) {
 
 func TestFiscalUseCase_ProcessPartialPayment(t *testing.T) {
 	fiscalRepo := new(mockFiscalRepo)
-	uc := usecase.NewFiscalUseCase(fiscalRepo, new(mockStudentRepo), new(mockDonationRepo), new(mockAcademicRepo), new(mockTenantRepo))
+	uc := usecase.NewFiscalUseCase(fiscalRepo, new(mockStudentRepo), new(mockDonationRepo), new(mockAcademicRepo), new(mockTenantRepo), nil)
 
 	recordID := uuid.New()
 	record := &domain.FiscalRecord{ID: recordID, Amount: 200.0, AmountPaid: 50.0, Status: domain.PaymentStatusPending}

@@ -200,3 +200,66 @@ func (h *ReportHandler) GenerateTerminalReportHandler(c *gin.Context) {
 		return
 	}
 }
+
+// GenerateReportRemarks produces context-aware automated terminal report remarks.
+func (h *ReportHandler) GenerateReportRemarks(c *gin.Context) {
+	ctx := c.Request.Context()
+	studentID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid student ID"})
+		return
+	}
+
+	student, err := h.studentRepo.GetByID(ctx, studentID)
+	if err != nil || student == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "student not found"})
+		return
+	}
+
+	grades, _ := h.gradeRepo.GetByStudentID(ctx, studentID)
+	var totalScore float64
+	var count int
+	for _, g := range grades {
+		totalScore += float64(g.Score)
+		count++
+	}
+
+	avgScore := 0.0
+	if count > 0 {
+		avgScore = totalScore / float64(count)
+	}
+
+	formMasterRemark := ""
+	principalRemark := ""
+	conductSummary := "Well-mannered, respectful, and observant of campus regulations."
+
+	firstName := student.FirstName
+	if firstName == "" {
+		firstName = "The student"
+	}
+
+	if avgScore >= 80 {
+		formMasterRemark = fmt.Sprintf("%s has maintained an outstanding academic standard this term with sharp analytical comprehension across all subjects. Keep aiming for the pinnacle.", firstName)
+		principalRemark = "A distinguished academic performance. Commended for scholastic excellence and exemplary diligence."
+		conductSummary = "Exemplary conduct, polite demeanor, and a positive influence on peers."
+	} else if avgScore >= 65 {
+		formMasterRemark = fmt.Sprintf("%s has shown commendable effort and steady progress this term. Further focus on revision in core subjects will yield even higher honors.", firstName)
+		principalRemark = "Good overall performance with strong potential. Encouraged to sustain this momentum into the next academic term."
+	} else if avgScore >= 50 {
+		formMasterRemark = fmt.Sprintf("%s is capable of better results with dedicated classroom participation and prompt submission of assignments.", firstName)
+		principalRemark = "Satisfactory progress, but there is significant room for improvement. Regular study sessions are advised."
+	} else {
+		formMasterRemark = fmt.Sprintf("%s struggled in core conceptual assessments this term. Intensive remedial support and closer parental supervision are strongly recommended.", firstName)
+		principalRemark = "Below expectations. Requires immediate academic intervention and structured after-school tutoring."
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"student_id":         studentID,
+		"student_name":       fmt.Sprintf("%s %s", student.FirstName, student.LastName),
+		"average_score":      avgScore,
+		"subject_count":      count,
+		"form_master_remark": formMasterRemark,
+		"principal_remark":   principalRemark,
+		"conduct_summary":    conductSummary,
+	})
+}

@@ -279,6 +279,30 @@ export class FiscalDashboardComponent implements OnInit {
         });
     }
 
+    applyingLateFees = signal(false);
+
+    applyLateFeesAction() {
+        this.dialog.confirm(
+            'Apply standard 5% late penalty to all fee balances that have exceeded the 7-day grace period?',
+            'Apply Late Penalties',
+            'warning',
+            'Compound Fees'
+        ).subscribe(confirmed => {
+            if (!confirmed) return;
+            this.applyingLateFees.set(true);
+            this.fiscalService.applyLateFees(5.0, 7).subscribe({
+                next: (res) => {
+                    this.applyingLateFees.set(false);
+                    this.dialog.alert(`Compounded late fees applied to ${res.applied_count} overdue accounts.`, 'Late Fees Applied', 'success');
+                    this.loadData();
+                },
+                error: (err) => {
+                    this.applyingLateFees.set(false);
+                    this.dialog.alert(err?.error?.error || 'Failed to apply late fees.', 'Error', 'danger');
+                }
+            });
+        });
+    }
 
     // Wallet State
     showTopUpModal = signal(false);

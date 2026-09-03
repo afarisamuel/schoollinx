@@ -240,4 +240,32 @@ export class TenantService {
   sendAdminEmailBroadcast(payload: { subject: string; body: string; target_audience?: string; target_plan?: string }): Observable<any> {
     return this.http.post<any>(`${this.systemUrl}/broadcasts/email`, payload);
   }
+
+  // Cross-Tenant Impersonation
+  impersonateUser(userId: string, subdomain: string): Observable<any> {
+    return this.http.post<any>(`${this.systemUrl}/impersonate/${userId}?subdomain=${subdomain}`, {});
+  }
+
+  // Scheduled Jobs
+  getScheduledJobs(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.systemUrl}/jobs`);
+  }
+
+  runScheduledJob(jobId: string): Observable<any> {
+    return this.http.post<any>(`${this.systemUrl}/jobs/${jobId}/run`, {});
+  }
+
+  // Carrier Gateway Failover
+  getCarrierConfigs(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.systemUrl}/sms/carriers`);
+  }
+
+  saveCarrierConfigs(carriers: any[]): Observable<any> {
+    return this.http.put<any>(`${this.systemUrl}/sms/carriers`, carriers);
+  }
+
+  // Bulk Institutional Onboarding
+  bulkImportTenants(manifest: any[]): Observable<any> {
+    return this.http.post<any>(`${this.systemUrl}/tenants/bulk-import`, manifest);
+  }
 }

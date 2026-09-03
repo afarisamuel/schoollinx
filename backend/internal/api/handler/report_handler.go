@@ -55,6 +55,7 @@ func NewReportHandler(
 		g.GET("/students/:id/document", h.GenerateDocument)
 		g.GET("/students/:id/id-card", h.DownloadStudentIDCard)
 		g.GET("/students/:id/terminal", h.GenerateTerminalReportHandler)
+		g.POST("/students/:id/generate-remarks", h.GenerateReportRemarks)
 		g.GET("/ministry/export", h.ExportMinistryData)
 	}
 }

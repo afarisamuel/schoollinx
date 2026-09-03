@@ -124,6 +124,15 @@
       <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
       Global SMS Audit Ledger
     </button>
+
+    <button (click)="setTab('carriers')"
+            [class.bg-accent-primary]="activeTab() === 'carriers'"
+            [class.text-white]="activeTab() === 'carriers'"
+            [class.text-text-muted]="activeTab() !== 'carriers'"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      Carrier Gateways & Failover
+    </button>
   </div>
 
   <!-- TAB 1: SENDER ID REQUESTS -->
@@ -483,6 +492,98 @@
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 5: CARRIER GATEWAYS & FAILOVER -->
+  @if (activeTab() === 'carriers') {
+    <div class="space-y-6 animate-fade-in">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-black text-white">Multi-Carrier Failover Routing</h2>
+          <p class="text-xs text-text-secondary mt-1">Configure automated fallback thresholds and inspect carrier delivery latencies.</p>
+        </div>
+        
+        <button (click)="saveCarrierSettings()" [disabled]="isSavingCarriers()"
+                class="admin-btn-primary px-6 py-2.5 text-xs font-bold flex items-center gap-2">
+          @if (isSavingCarriers()) {
+            <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span>SAVING...</span>
+          } @else {
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span>SAVE ROUTING RULES</span>
+          }
+        </button>
+      </div>
+
+      @if (carrierSaveSuccess()) {
+        <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold animate-fade-in flex items-center gap-3">
+          <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <span>Carrier failover rules and routing weights updated successfully.</span>
+        </div>
+      }
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        @for (carrier of carriers(); track carrier.id) {
+          <div class="admin-card !p-6 space-y-5 border-t-2" [ngClass]="{
+            'border-t-emerald-500': carrier.type === 'PRIMARY',
+            'border-t-blue-500': carrier.type === 'SECONDARY',
+            'border-t-purple-500': carrier.type === 'BACKUP'
+          }">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider" [ngClass]="{
+                'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20': carrier.type === 'PRIMARY',
+                'bg-blue-500/10 text-blue-400 border border-blue-500/20': carrier.type === 'SECONDARY',
+                'bg-purple-500/10 text-purple-400 border border-purple-500/20': carrier.type === 'BACKUP'
+              }">
+                {{ carrier.type }} CARRIER
+              </span>
+
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" [(ngModel)]="carrier.is_active" class="sr-only peer">
+                <div class="w-9 h-5 bg-bg-tertiary peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent-primary relative"></div>
+                <span class="text-[10px] font-bold" [ngClass]="carrier.is_active ? 'text-emerald-400' : 'text-text-muted'">
+                  {{ carrier.is_active ? 'ACTIVE' : 'OFFLINE' }}
+                </span>
+              </label>
+            </div>
+
+            <div>
+              <h3 class="text-base font-black text-white">{{ carrier.name }}</h3>
+              <div class="flex items-center gap-4 mt-3">
+                <div>
+                  <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Delivery Rate</span>
+                  <span class="text-xl font-black text-emerald-400">{{ carrier.delivery_rate_pct }}%</span>
+                </div>
+                <div class="border-l border-border-primary pl-4">
+                  <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Avg Latency</span>
+                  <span class="text-xl font-black text-white font-mono">{{ carrier.latency_ms }}ms</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-3 pt-3 border-t border-border-primary/60 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-text-secondary">Auto-Failover:</span>
+                <label class="flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" [(ngModel)]="carrier.auto_failover" class="accent-accent-primary">
+                  <span class="text-[11px] font-bold text-white">Enabled</span>
+                </label>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-[11px] mb-1">
+                  <span class="text-text-muted">Failover Trigger Threshold:</span>
+                  <span class="font-bold text-amber-400 font-mono">{{ carrier.failover_thresh_pct }}%</span>
+                </div>
+                <input type="range" min="50" max="95" step="5" [(ngModel)]="carrier.failover_thresh_pct"
+                       class="w-full accent-amber-400 h-1.5 bg-bg-tertiary rounded-lg cursor-pointer">
+                <p class="text-[9px] text-text-muted mt-1">If delivery drops below {{ carrier.failover_thresh_pct }}%, traffic routes to next carrier.</p>
+              </div>
+            </div>
+          </div>
+        }
       </div>
     </div>
   }
