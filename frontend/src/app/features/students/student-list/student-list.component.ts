@@ -49,6 +49,8 @@ export class StudentListComponent implements OnInit {
     searchTerm = signal('');
     selectedClassId = signal('');
     selectedLevel = signal<number | null>(null);
+    selectedResidence = signal<'all' | 'day' | 'boarding'>('all');
+    selectedStatus = signal<'all' | 'active' | 'graduated' | 'inactive'>('all');
     classes = signal<Class[]>([]);
     scholasticLevels = signal<ScholasticLevel[]>([]);
 
@@ -57,11 +59,17 @@ export class StudentListComponent implements OnInit {
     reportService = inject(ReportService);
     slService = inject(ScholasticLevelService);
 
+    activeCount = computed(() => this.students().filter(s => s.status === 'active' || !s.status).length);
+    boardingCount = computed(() => this.students().filter(s => (s.placed_residence_type || '').toLowerCase().includes('board')).length);
+    dayCount = computed(() => this.students().filter(s => (s.placed_residence_type || '').toLowerCase().includes('day')).length);
+
     filteredStudents = computed(() => {
         let list = this.students();
         const term = this.searchTerm().toLowerCase();
         const classId = this.selectedClassId();
         const targetLevel = this.selectedLevel();
+        const residence = this.selectedResidence();
+        const status = this.selectedStatus();
 
         if (term) {
             const tokens = term.trim().split(/\s+/).filter(t => t.length > 0);
@@ -84,6 +92,20 @@ export class StudentListComponent implements OnInit {
             list = list.filter(s => s.level === targetLevel);
         }
 
+        if (residence !== 'all') {
+            list = list.filter(s => (s.placed_residence_type || '').toLowerCase().includes(residence));
+        }
+
+        if (status !== 'all') {
+            if (status === 'active') {
+                list = list.filter(s => s.status === 'active' || !s.status);
+            } else if (status === 'graduated') {
+                list = list.filter(s => s.status === 'graduated');
+            } else if (status === 'inactive') {
+                list = list.filter(s => s.status && s.status !== 'active' && s.status !== 'graduated');
+            }
+        }
+
         return list;
     });
 
@@ -92,6 +114,7 @@ export class StudentListComponent implements OnInit {
     );
 
     hasSelection = computed(() => this.selectedIds().size > 0);
+
 
     pageRange = computed(() => Array.from({ length: this.pagination().totalPages }, (_, i) => i + 1));
 
