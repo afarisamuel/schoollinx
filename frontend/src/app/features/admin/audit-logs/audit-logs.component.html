@@ -1,281 +1,517 @@
-<div class="space-y-4 sm:space-y-6 animate-fade-in pb-12">
-  <!-- Header Section -->
-  <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-4 sm:mb-6 gap-4 sm:gap-6">
-    <div class="flex items-center gap-5">
-      <div
-        class="w-14 h-14 rounded-2xl bg-bg-secondary border border-border-primary flex items-center justify-center text-blue-500 shadow-xl"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-        >
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-          <path d="m9 12 2 2 4-4" />
-        </svg>
+<div class="max-w-[1600px] mx-auto animate-fade-in pb-20 px-2 sm:px-4 space-y-6 relative">
+  
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- 0. AMBIENT BACKDROP LIGHTING                               -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="absolute -top-10 left-1/4 w-96 h-96 bg-blue-500/10 dark:bg-blue-600/15 rounded-full blur-3xl pointer-events-none -z-10"></div>
+  <div class="absolute top-60 right-10 w-96 h-96 bg-purple-500/10 dark:bg-purple-600/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- 1. TOP HERO HEADER & CONTROLS                              -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2">
+    <div>
+      <div class="flex items-center gap-2 text-xs font-bold text-text-muted mb-1.5 flex-wrap">
+        <span class="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          SOC Compliance
+        </span>
+        <span class="text-text-muted/40">/</span>
+        <span class="text-text-muted">System & Settings</span>
+        <span class="text-text-muted/40">/</span>
+        <span class="text-text-primary font-black">Audit Registry</span>
       </div>
-      <div>
-        <h1 class="text-xl md:text-2xl font-black text-text-primary tracking-tight">
-          System Audit Registry
-        </h1>
-        <p class="text-sm font-medium text-text-secondary mt-1 flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          Live immutable security ledger with real-time triangulation
-        </p>
-      </div>
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+        <span>System Audit & Security Registry</span>
+      </h1>
+      <p class="text-xs sm:text-sm font-medium text-text-muted mt-1 max-w-3xl">
+        Live immutable security ledger tracking administrative operations, entity mutations, payload changes, and IP triangulation.
+      </p>
     </div>
-    <div class="flex items-center gap-3">
-      <div
-        class="bg-bg-tertiary border border-border-primary px-4 py-2 rounded-xl flex items-center gap-3 shadow-inner"
-      >
-        <div class="text-right">
-          <p class="text-[10px] font-black text-text-muted uppercase tracking-widest">
-            Registry Status
-          </p>
-          <p class="text-sm font-black text-emerald-500 uppercase">Synchronized</p>
-        </div>
-      </div>
+
+    <!-- Header Actions -->
+    <div class="flex items-center gap-2.5 shrink-0 flex-wrap">
+      <button (click)="loadLogs()" [disabled]="isLoading()"
+        class="px-4 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-xl transition-all flex items-center gap-2 shadow-xs cursor-pointer active:scale-95 hover:border-blue-500/40">
+        <i class="fas fa-rotate text-xs text-blue-500" [class.animate-spin]="isLoading()"></i>
+        <span>Refresh Ledger</span>
+      </button>
+
+      <button (click)="exportToCSV()"
+        class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white border border-blue-500/30 text-xs font-bold rounded-xl transition-all flex items-center gap-2 shadow-md shadow-blue-500/20 cursor-pointer active:scale-95">
+        <i class="fas fa-download text-xs"></i>
+        <span>Export Audit CSV</span>
+      </button>
     </div>
   </div>
 
-  <!-- Main Content Container -->
-  <div
-    class="bg-bg-secondary border border-border-primary rounded-[32px] overflow-hidden shadow-2xl relative"
-  >
-    <div
-      class="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[100px] rounded-full pointer-events-none"
-    ></div>
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- 2. FORENSIC TELEMETRY & KPI STRIP                          -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    
+    <!-- Metric 1: Total Events Recorded -->
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between group hover:border-blue-500/40 transition-all">
+      <div>
+        <p class="text-[10px] font-black uppercase tracking-wider text-text-muted">Total Security Logs</p>
+        <h3 class="text-xl sm:text-2xl md:text-3xl font-black text-text-primary mt-1 tracking-tight font-mono">
+          {{ totalEventsCount() }}
+        </h3>
+        <p class="text-[10px] text-text-muted font-bold mt-1">
+          From {{ uniqueActorsCount() }} active actor sessions
+        </p>
+      </div>
+      <div class="w-11 h-11 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+        <i class="fas fa-shield-halved"></i>
+      </div>
+    </div>
 
-    <div class="overflow-x-auto w-full">
-      <table class="w-full text-left border-collapse">
+    <!-- Metric 2: Creation Events -->
+    <div class="bg-gradient-to-br from-emerald-500/10 via-bg-secondary to-bg-secondary border border-emerald-500/20 rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between group hover:border-emerald-500/40 transition-all">
+      <div>
+        <p class="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Creation Events</p>
+        <h3 class="text-xl sm:text-2xl md:text-3xl font-black text-text-primary mt-1 tracking-tight font-mono">
+          {{ createEventsCount() }}
+        </h3>
+        <p class="text-[10px] text-text-muted font-bold mt-1 flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Entity creations
+        </p>
+      </div>
+      <div class="w-11 h-11 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+        <i class="fas fa-plus"></i>
+      </div>
+    </div>
+
+    <!-- Metric 3: Mutation Events -->
+    <div class="bg-gradient-to-br from-amber-500/10 via-bg-secondary to-bg-secondary border border-amber-500/20 rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between group hover:border-amber-500/40 transition-all">
+      <div>
+        <p class="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">State Mutations</p>
+        <h3 class="text-xl sm:text-2xl md:text-3xl font-black text-text-primary mt-1 tracking-tight font-mono">
+          {{ updateEventsCount() }}
+        </h3>
+        <p class="text-[10px] text-text-muted font-bold mt-1">
+          Entity updates & delta changes
+        </p>
+      </div>
+      <div class="w-11 h-11 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+        <i class="fas fa-pen-to-square"></i>
+      </div>
+    </div>
+
+    <!-- Metric 4: Expunged / Deletions -->
+    <div class="bg-gradient-to-br from-rose-500/10 via-bg-secondary to-bg-secondary border border-rose-500/20 rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between group hover:border-rose-500/40 transition-all">
+      <div>
+        <p class="text-[10px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">Expunged Entities</p>
+        <h3 class="text-xl sm:text-2xl md:text-3xl font-black text-text-primary mt-1 tracking-tight font-mono">
+          {{ deleteEventsCount() }}
+        </h3>
+        <p class="text-[10px] text-text-muted font-bold mt-1 flex items-center gap-1">
+          <i class="fas fa-trash-can text-[9px]"></i> Deletions recorded
+        </p>
+      </div>
+      <div class="w-11 h-11 rounded-2xl bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+        <i class="fas fa-trash-can"></i>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- 3. ADVANCED FORENSIC FILTER & SEARCH HUB                   -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="bg-bg-secondary border border-border-primary rounded-3xl p-4 sm:p-6 shadow-sm space-y-4 relative z-20">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      
+      <!-- Live Search Query Bar -->
+      <div class="flex-1 relative">
+        <i class="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-sm pointer-events-none"></i>
+        <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+          placeholder="Search audit trail by user email, entity type, UUID, IP, or payload delta..."
+          class="w-full bg-bg-tertiary border border-border-primary hover:border-blue-500/40 focus:border-blue-500 rounded-2xl pl-11 pr-4 py-3 text-xs sm:text-sm font-medium text-text-primary placeholder-text-muted outline-none transition-all shadow-inner">
+        
+        @if (searchQuery()) {
+          <button (click)="searchQuery.set('')"
+            class="absolute right-3.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary flex items-center justify-center text-xs transition-colors cursor-pointer">
+            <i class="fas fa-times"></i>
+          </button>
+        }
+      </div>
+
+      <!-- Action Type Selector Pills -->
+      <div class="flex items-center gap-1.5 p-1 bg-bg-tertiary rounded-2xl border border-border-primary shrink-0 overflow-x-auto custom-scrollbar">
+        <button (click)="actionFilter.set('ALL')"
+          class="px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap"
+          [ngClass]="actionFilter() === 'ALL' ? 'bg-bg-secondary text-text-primary shadow-xs' : 'text-text-muted hover:text-text-primary'">
+          All Actions
+        </button>
+        
+        <button (click)="actionFilter.set('CREATE')"
+          class="px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+          [ngClass]="actionFilter() === 'CREATE' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' : 'text-text-muted hover:text-emerald-500'">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          <span>Created</span>
+        </button>
+
+        <button (click)="actionFilter.set('UPDATE')"
+          class="px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+          [ngClass]="actionFilter() === 'UPDATE' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30' : 'text-text-muted hover:text-amber-500'">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+          <span>Mutated</span>
+        </button>
+
+        <button (click)="actionFilter.set('DELETE')"
+          class="px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+          [ngClass]="actionFilter() === 'DELETE' ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30' : 'text-text-muted hover:text-rose-500'">
+          <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+          <span>Expunged</span>
+        </button>
+      </div>
+
+      <!-- Entity Type Selector Dropdown -->
+      @if (availableEntityTypes().length > 0) {
+        <div class="relative shrink-0">
+          <select [ngModel]="entityTypeFilter()" (ngModelChange)="entityTypeFilter.set($event)"
+            class="bg-bg-tertiary border border-border-primary rounded-2xl px-4 py-2.5 text-xs font-black text-text-primary outline-none hover:border-blue-500/40 focus:border-blue-500 cursor-pointer appearance-none pr-8">
+            <option value="ALL">All Entity Domains</option>
+            @for (et of availableEntityTypes(); track et) {
+              <option [value]="et">{{ et }}</option>
+            }
+          </select>
+          <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-muted pointer-events-none"></i>
+        </div>
+      }
+
+    </div>
+
+    <!-- Active Filter Status Indicator -->
+    <div class="flex items-center justify-between text-xs text-text-muted pt-2 border-t border-border-primary/60 flex-wrap gap-2">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-text-primary">Showing {{ filteredLogs().length }}</span>
+        <span>of {{ totalEventsCount() }} filtered security events</span>
+      </div>
+
+      @if (searchQuery() || actionFilter() !== 'ALL' || entityTypeFilter() !== 'ALL') {
+        <button (click)="searchQuery.set(''); actionFilter.set('ALL'); entityTypeFilter.set('ALL')"
+          class="text-blue-500 hover:text-blue-400 font-bold flex items-center gap-1 cursor-pointer">
+          <i class="fas fa-rotate-left text-[10px]"></i>
+          <span>Reset Filters</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- 4. MAIN AUDIT LOG LEDGER TABLE                             -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-sm relative">
+    
+    <div class="overflow-x-auto w-full custom-scrollbar">
+      <table class="w-full text-left border-collapse min-w-[900px]">
         <thead>
           <tr class="bg-bg-tertiary border-b border-border-primary">
-            <th class="px-8 py-6 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
-              Temporal Stamp
+            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
+              Timestamp
             </th>
-            <th class="px-6 py-6 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
-              Actor Identity
+            <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
+              Actor / Account
             </th>
-            <th class="px-6 py-6 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
-              Security Event
+            <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
+              Action
             </th>
-            <th class="px-6 py-6 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
-              Entity Context
+            <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
+              Target Entity
             </th>
-            <th class="px-6 py-6 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
-              Modification Delta
+            <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
+              Delta Snippet
             </th>
-            <th
-              class="px-8 py-6 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] text-right"
-            >
+            <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
               Origin IP
+            </th>
+            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] text-right">
+              Inspect
             </th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-border-primary">
+        
+        <tbody class="divide-y divide-border-primary/60">
           @if (isLoading()) {
-            @for (i of [1,2,3,4,5,6,7,8]; track i) {
-            <tr class="animate-pulse">
-              <td class="px-8 py-5">
-                <div class="flex flex-col gap-1.5">
-                  <div class="h-3.5 w-24 bg-bg-tertiary rounded"></div>
-                  <div class="h-2.5 w-20 bg-bg-tertiary rounded"></div>
-                </div>
-              </td>
-              <td class="px-6 py-5">
-                <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-lg bg-bg-tertiary"></div>
-                  <div class="h-3 w-32 bg-bg-tertiary rounded"></div>
-                </div>
-              </td>
-              <td class="px-6 py-5"><div class="h-6 w-24 bg-bg-tertiary rounded-lg"></div></td>
-              <td class="px-6 py-5">
-                <div class="flex flex-col gap-1.5">
-                  <div class="h-3 w-20 bg-bg-tertiary rounded"></div>
-                  <div class="h-2.5 w-28 bg-bg-tertiary rounded"></div>
-                </div>
-              </td>
-              <td class="px-6 py-5"><div class="h-14 w-full bg-bg-tertiary rounded-xl"></div></td>
-              <td class="px-8 py-5 text-right"><div class="h-6 w-20 bg-bg-tertiary rounded-md ml-auto"></div></td>
-            </tr>
+            @for (i of [1,2,3,4,5,6]; track i) {
+              <tr class="animate-pulse">
+                <td class="px-6 py-4.5"><div class="h-4 w-28 bg-bg-tertiary rounded-lg"></div></td>
+                <td class="px-5 py-4.5"><div class="h-4 w-36 bg-bg-tertiary rounded-lg"></div></td>
+                <td class="px-5 py-4.5"><div class="h-6 w-24 bg-bg-tertiary rounded-full"></div></td>
+                <td class="px-5 py-4.5"><div class="h-4 w-24 bg-bg-tertiary rounded-lg"></div></td>
+                <td class="px-5 py-4.5"><div class="h-8 w-full bg-bg-tertiary rounded-xl"></div></td>
+                <td class="px-5 py-4.5"><div class="h-4 w-20 bg-bg-tertiary rounded-lg"></div></td>
+                <td class="px-6 py-4.5 text-right"><div class="h-8 w-16 bg-bg-tertiary rounded-xl ml-auto"></div></td>
+              </tr>
             }
           } @else {
-          @for (log of logs(); track log.id) {
-          <tr class="group hover:bg-bg-tertiary transition-all duration-300">
-            <td class="px-8 py-5">
-              <div class="flex flex-col">
-                <span class="text-sm font-bold text-text-primary">{{ log.created_at | date:'MMM d, yyyy' }}</span>
-                <span class="text-[10px] text-text-muted font-mono tracking-tighter">
-                  {{ log.created_at | date:'HH:mm:ss.SSS' }}
-                </span>
-              </div>
-            </td>
-            <td class="px-6 py-5">
-              <div class="flex items-center gap-3">
-                <div
-                  class="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xs font-black"
-                >
-                  {{ (log.user_email || 'U')[0].toUpperCase() }}
-                </div>
-                <span class="text-xs font-bold text-text-primary">
-                  {{ log.user_email || 'System' }}
-                </span>
-              </div>
-            </td>
-            <td class="px-6 py-5">
-              @if (log.action === 'CREATE') {
-              <span
-                class="inline-flex items-center px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-black text-emerald-500 uppercase tracking-widest"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="4"
-                  class="mr-1.5"
-                >
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                Instance Created
-              </span>
-              } @else if (log.action === 'UPDATE') {
-              <span
-                class="inline-flex items-center px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[10px] font-black text-amber-500 uppercase tracking-widest"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="4"
-                  class="mr-1.5"
-                >
-                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                  <path d="m15 5 4 4" />
-                </svg>
-                State Mutation
-              </span>
-              } @else if (log.action === 'DELETE') {
-              <span
-                class="inline-flex items-center px-2.5 py-1 rounded-lg bg-rose-500/10 border border-rose-500/20 text-[10px] font-black text-rose-500 uppercase tracking-widest"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="4"
-                  class="mr-1.5"
-                >
-                  <path d="M3 6h18" />
-                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                </svg>
-                Entity Expunged
-              </span>
-              } @else {
-              <span
-                class="inline-flex items-center px-2.5 py-1 rounded-lg bg-bg-tertiary border border-border-primary text-[10px] font-black text-text-muted uppercase tracking-widest"
-              >
-                {{ log.action }}
-              </span>
-              }
-            </td>
-            <td class="px-6 py-5">
-              <div class="flex flex-col">
-                <span class="text-xs font-bold text-text-primary uppercase tracking-tight">
-                  {{ log.entity_type }}
-                </span>
-                <span class="text-[10px] text-text-muted font-mono">{{ log.entity_id || 'ID: UNSPECIFIED' }}</span>
-              </div>
-            </td>
-            <td class="px-6 py-5">
-              <p
-                class="text-[11px] text-text-secondary leading-relaxed bg-bg-tertiary p-3 rounded-xl border border-border-primary italic group-hover:border-blue-500/30 transition-all font-medium"
-              >
-                "{{ log.changes }}"
-              </p>
-            </td>
-            <td class="px-8 py-5 text-right">
-              <span
-                class="text-[10px] font-black text-text-muted font-mono bg-bg-tertiary px-2 py-1 rounded-md border border-border-primary"
-              >
-                {{ log.ip_address }}
-              </span>
-            </td>
-          </tr>
-          } @empty {
-          <tr>
-            <td colspan="6" class="px-8 py-32 text-center">
-              <div class="flex flex-col items-center gap-6 max-w-sm mx-auto">
-                <div
-                  class="w-20 h-20 rounded-[2.5rem] bg-bg-tertiary border border-dashed border-border-secondary flex items-center justify-center text-text-muted"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="32"
-                    height="32"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                  >
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-                    <path d="m9 12 2 2 4-4" />
-                  </svg>
-                </div>
-                <div class="flex flex-col gap-2">
-                  <span class="text-lg font-black text-text-primary tracking-tight">
-                    Ledger Synchronized & Empty
-                  </span>
-                  <span class="text-xs text-text-muted font-medium">
-                    No security events have been registered in the immutable temporal ledger yet.
-                  </span>
-                </div>
-              </div>
-            </td>
-          </tr>
+            @for (log of filteredLogs(); track log.id || log.created_at) {
+              <tr class="group hover:bg-bg-tertiary/60 transition-all duration-200">
+                
+                <!-- 1. Timestamp -->
+                <td class="px-6 py-4.5 whitespace-nowrap">
+                  <div class="flex flex-col">
+                    <span class="text-xs font-bold text-text-primary">
+                      {{ log.created_at | date:'mediumDate' }}
+                    </span>
+                    <span class="text-[10px] text-text-muted font-mono tracking-tighter mt-0.5">
+                      {{ log.created_at | date:'HH:mm:ss.SSS' }}
+                    </span>
+                  </div>
+                </td>
+
+                <!-- 2. Actor / Email -->
+                <td class="px-5 py-4.5">
+                  <div class="flex items-center gap-2.5 max-w-[220px]">
+                    <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white text-xs font-black flex items-center justify-center shrink-0 shadow-xs">
+                      {{ (log.user_email || 'S')[0].toUpperCase() }}
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-xs font-bold text-text-primary truncate" [title]="log.user_email || 'System Operation'">
+                        {{ log.user_email || 'System Service' }}
+                      </p>
+                      <p class="text-[9px] text-text-muted font-mono uppercase">
+                        Admin Session
+                      </p>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- 3. Security Action Badge -->
+                <td class="px-5 py-4.5 whitespace-nowrap">
+                  @if (log.action === 'CREATE') {
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider">
+                      <i class="fas fa-plus text-[9px]"></i>
+                      <span>Created</span>
+                    </span>
+                  } @else if (log.action === 'UPDATE') {
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase tracking-wider">
+                      <i class="fas fa-pen text-[9px]"></i>
+                      <span>Mutated</span>
+                    </span>
+                  } @else if (log.action === 'DELETE' || log.action === 'BULK_DELETE') {
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-wider">
+                      <i class="fas fa-trash-can text-[9px]"></i>
+                      <span>Expunged</span>
+                    </span>
+                  } @else {
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-bg-tertiary border border-border-primary text-text-muted text-[10px] font-black uppercase tracking-wider">
+                      {{ log.action }}
+                    </span>
+                  }
+                </td>
+
+                <!-- 4. Target Entity & ID -->
+                <td class="px-5 py-4.5 whitespace-nowrap">
+                  <div class="flex flex-col">
+                    <span class="text-xs font-black text-text-primary uppercase tracking-tight">
+                      {{ log.entity_type || 'SYSTEM' }}
+                    </span>
+                    <span class="text-[10px] text-text-muted font-mono mt-0.5" [title]="log.entity_id">
+                      {{ log.entity_id ? ('#' + log.entity_id.slice(-8)) : 'Global Scope' }}
+                    </span>
+                  </div>
+                </td>
+
+                <!-- 5. Structured Delta Snippet -->
+                <td class="px-5 py-4.5 max-w-[320px]">
+                  <div (click)="openInspector(log)"
+                    class="p-2.5 rounded-xl bg-bg-tertiary/70 hover:bg-bg-tertiary border border-border-primary/80 hover:border-blue-500/40 text-xs text-text-secondary cursor-pointer transition-all flex items-center justify-between gap-2 group/snippet">
+                    <span class="truncate font-mono text-[11px]">
+                      {{ getSnippet(log.changes) }}
+                    </span>
+                    <i class="fas fa-arrow-up-right-from-square text-[10px] text-text-muted group-hover/snippet:text-blue-500 shrink-0"></i>
+                  </div>
+                </td>
+
+                <!-- 6. Origin IP -->
+                <td class="px-5 py-4.5 whitespace-nowrap">
+                  <div class="flex items-center gap-1.5 text-[11px] font-mono font-bold text-text-muted bg-bg-tertiary/80 px-2.5 py-1 rounded-lg border border-border-primary w-fit">
+                    <i class="fas fa-network-wired text-[9px] text-blue-500"></i>
+                    <span>{{ log.ip_address || '127.0.0.1' }}</span>
+                  </div>
+                </td>
+
+                <!-- 7. Inspect Action Button -->
+                <td class="px-6 py-4.5 text-right whitespace-nowrap">
+                  <button (click)="openInspector(log)"
+                    class="px-3 py-1.5 rounded-xl bg-bg-tertiary hover:bg-blue-600 hover:text-white text-text-primary border border-border-primary hover:border-blue-600 text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-xs flex items-center gap-1.5 ml-auto">
+                    <i class="fas fa-eye text-xs"></i>
+                    <span>Inspect</span>
+                  </button>
+                </td>
+
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="px-8 py-24 text-center">
+                  <div class="flex flex-col items-center gap-4 max-w-md mx-auto">
+                    <div class="w-16 h-16 rounded-3xl bg-bg-tertiary border border-border-primary flex items-center justify-center text-text-muted text-2xl shadow-inner">
+                      <i class="fas fa-shield-cat"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-base font-black text-text-primary">No Audit Logs Found</h3>
+                      <p class="text-xs text-text-muted mt-1">No security logs match your current search query or filter criteria.</p>
+                    </div>
+                    <button (click)="searchQuery.set(''); actionFilter.set('ALL'); entityTypeFilter.set('ALL')"
+                      class="px-4 py-2 rounded-xl bg-bg-tertiary hover:bg-bg-primary text-text-primary text-xs font-bold border border-border-primary transition-all cursor-pointer">
+                      Clear Search Filters
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
           }
-          } <!-- end @else -->
         </tbody>
       </table>
     </div>
 
-    <!-- Pagination Controls -->
-    <div
-      class="px-6 py-4 border-t border-border-primary bg-bg-tertiary flex items-center justify-between"
-    >
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 5. PAGINATION CONTROLS                                     -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="px-6 py-4 border-t border-border-primary bg-bg-tertiary/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <span class="text-xs font-bold text-text-muted">
-        Showing page {{ pagination().currentPage }} of {{ pagination().totalPages }} ({{ pagination().totalCount }} total logs)
+        Showing Page {{ pagination().currentPage }} of {{ pagination().totalPages }} ({{ pagination().totalCount }} Total Security Records)
       </span>
       <div class="flex items-center gap-2">
-        <button
-          [disabled]="pagination().currentPage <= 1"
+        <button [disabled]="pagination().currentPage <= 1 || isLoading()"
           (click)="changePage(pagination().currentPage - 1)"
-          class="px-4 py-2 bg-bg-secondary hover:bg-bg-tertiary disabled:opacity-50 disabled:cursor-not-allowed border border-border-primary text-text-primary text-xs font-bold rounded-lg transition-all"
-        >
-          Previous
+          class="px-4 py-2 bg-bg-secondary hover:bg-bg-tertiary disabled:opacity-40 disabled:cursor-not-allowed border border-border-primary text-text-primary text-xs font-bold rounded-xl transition-all cursor-pointer active:scale-95 shadow-xs flex items-center gap-1.5">
+          <i class="fas fa-chevron-left text-[10px]"></i>
+          <span>Previous</span>
         </button>
-        <button
-          [disabled]="pagination().currentPage >= pagination().totalPages"
+        
+        <span class="px-3 py-1.5 rounded-xl bg-bg-secondary text-xs font-black font-mono text-text-primary border border-border-primary">
+          {{ pagination().currentPage }} / {{ pagination().totalPages || 1 }}
+        </span>
+
+        <button [disabled]="pagination().currentPage >= pagination().totalPages || isLoading()"
           (click)="changePage(pagination().currentPage + 1)"
-          class="px-4 py-2 bg-bg-secondary hover:bg-bg-tertiary disabled:opacity-50 disabled:cursor-not-allowed border border-border-primary text-text-primary text-xs font-bold rounded-lg transition-all"
-        >
-          Next
+          class="px-4 py-2 bg-bg-secondary hover:bg-bg-tertiary disabled:opacity-40 disabled:cursor-not-allowed border border-border-primary text-text-primary text-xs font-bold rounded-xl transition-all cursor-pointer active:scale-95 shadow-xs flex items-center gap-1.5">
+          <span>Next</span>
+          <i class="fas fa-chevron-right text-[10px]"></i>
         </button>
       </div>
     </div>
+
   </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- 6. FORENSIC JSON PAYLOAD INSPECTOR MODAL                   -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  @if (isInspectorOpen() && selectedLog()) {
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in" (click)="closeInspector()">
+      <div class="bg-bg-secondary w-full max-w-2xl rounded-3xl border border-border-primary shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-slide-up relative" (click)="$event.stopPropagation()">
+        
+        <!-- Modal Header -->
+        <div class="p-5 sm:p-6 border-b border-border-primary bg-bg-tertiary flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center text-sm shadow-xs shrink-0">
+              <i class="fas fa-terminal"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-base font-black text-text-primary">Forensic Payload Delta</h3>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase"
+                      [ngClass]="selectedLog()?.action === 'CREATE' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' : (selectedLog()?.action === 'UPDATE' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30')">
+                  {{ selectedLog()?.action }}
+                </span>
+              </div>
+              <p class="text-xs text-text-muted mt-0.5 font-mono">
+                Log ID: {{ selectedLog()?.id || 'N/A' }}
+              </p>
+            </div>
+          </div>
+
+          <button (click)="closeInspector()"
+            class="w-8 h-8 rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary flex items-center justify-center text-xs transition-colors cursor-pointer border border-border-primary">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Telemetry Details Grid -->
+        <div class="p-5 sm:p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+          
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div class="p-3 rounded-2xl bg-bg-tertiary border border-border-primary">
+              <p class="text-[9px] font-black uppercase text-text-muted">Actor</p>
+              <p class="text-xs font-bold text-text-primary truncate mt-0.5" [title]="selectedLog()?.user_email">
+                {{ selectedLog()?.user_email || 'System' }}
+              </p>
+            </div>
+            
+            <div class="p-3 rounded-2xl bg-bg-tertiary border border-border-primary">
+              <p class="text-[9px] font-black uppercase text-text-muted">Entity Domain</p>
+              <p class="text-xs font-bold text-text-primary mt-0.5 uppercase">
+                {{ selectedLog()?.entity_type }}
+              </p>
+            </div>
+
+            <div class="p-3 rounded-2xl bg-bg-tertiary border border-border-primary">
+              <p class="text-[9px] font-black uppercase text-text-muted">Origin IP</p>
+              <p class="text-xs font-mono font-bold text-text-primary mt-0.5">
+                {{ selectedLog()?.ip_address }}
+              </p>
+            </div>
+
+            <div class="p-3 rounded-2xl bg-bg-tertiary border border-border-primary">
+              <p class="text-[9px] font-black uppercase text-text-muted">Temporal Stamp</p>
+              <p class="text-[11px] font-mono text-text-primary mt-0.5">
+                {{ selectedLog()?.created_at | date:'HH:mm:ss.SSS' }}
+              </p>
+            </div>
+          </div>
+
+          @if (selectedLog()?.entity_id) {
+            <div class="p-3 rounded-2xl bg-bg-tertiary border border-border-primary flex items-center justify-between">
+              <div class="min-w-0 pr-2">
+                <p class="text-[9px] font-black uppercase text-text-muted">Entity Target ID (UUID)</p>
+                <p class="text-xs font-mono font-bold text-text-primary truncate mt-0.5">
+                  {{ selectedLog()?.entity_id }}
+                </p>
+              </div>
+              <button (click)="copyToClipboard(selectedLog()?.entity_id || '', 'entity_id')"
+                class="px-2.5 py-1 rounded-lg bg-bg-secondary hover:bg-bg-primary text-text-muted hover:text-text-primary text-[10px] font-bold border border-border-primary cursor-pointer shrink-0">
+                <i class="fas" [class.fa-check]="copiedKey() === 'entity_id'" [class.fa-copy]="copiedKey() !== 'entity_id'"></i>
+                <span class="ml-1">{{ copiedKey() === 'entity_id' ? 'Copied' : 'Copy ID' }}</span>
+              </button>
+            </div>
+          }
+
+          <!-- Formatted Code Payload Block -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted flex items-center gap-1.5">
+                <i class="fas fa-code text-blue-500"></i>
+                <span>Raw Delta State (JSON Payload)</span>
+              </label>
+
+              <button (click)="copyToClipboard(formatJsonPayload(selectedLog()?.changes || ''), 'payload')"
+                class="px-2.5 py-1 rounded-lg bg-bg-tertiary hover:bg-bg-primary text-text-muted hover:text-text-primary text-[10px] font-bold border border-border-primary transition-all cursor-pointer flex items-center gap-1">
+                <i class="fas" [class.fa-check]="copiedKey() === 'payload'" [class.fa-copy]="copiedKey() !== 'payload'"></i>
+                <span>{{ copiedKey() === 'payload' ? 'Copied JSON' : 'Copy JSON' }}</span>
+              </button>
+            </div>
+
+            <div class="relative bg-slate-950 text-emerald-400 p-4 rounded-2xl border border-slate-800 shadow-inner overflow-x-auto max-h-72 custom-scrollbar">
+              <pre class="code-inspector text-xs leading-relaxed">{{ formatJsonPayload(selectedLog()?.changes || '') }}</pre>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-4 sm:p-5 border-t border-border-primary bg-bg-tertiary flex justify-end gap-2">
+          <button (click)="closeInspector()"
+            class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs transition-all cursor-pointer shadow-md shadow-blue-500/20">
+            Done
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
 </div>
