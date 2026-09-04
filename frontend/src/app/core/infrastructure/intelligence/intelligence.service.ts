@@ -60,9 +60,7 @@ export class IntelligenceService {
     private apiUrl = '/api/intelligence';
 
     getKPIs(): Observable<InstitutionalKPI> {
-        return this.http.get<InstitutionalKPI>(`${this.apiUrl}/kpis`, {
-            headers: { 'x-skip-toast-error': 'true' }
-        });
+        return this.http.get<InstitutionalKPI>(`${this.apiUrl}/kpis`);
     }
 
     getRetentionRisks(): Observable<RetentionRisk[]> {

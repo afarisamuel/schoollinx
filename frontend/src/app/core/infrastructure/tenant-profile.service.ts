@@ -36,9 +36,7 @@ export class TenantProfileService {
 
   /** No auth required — safe to call from public-facing pages. */
   getPublicInfo(): Observable<{ name: string; subdomain: string; logo_url: string }> {
-    return this.http.get<{ name: string; subdomain: string; logo_url: string }>('/api/public/tenant-info', {
-      headers: { 'x-skip-toast-error': 'true' }
-    });
+    return this.http.get<{ name: string; subdomain: string; logo_url: string }>('/api/public/tenant-info');
   }
 
   updateProfile(profile: Partial<TenantProfile>): Observable<TenantProfile> {
