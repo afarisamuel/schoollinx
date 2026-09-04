@@ -25,6 +25,7 @@ func NewTelemetryHandler(r *gin.RouterGroup, useCase usecase.TelemetryUseCase) {
 	admin.GET("/module-usage", h.GetModuleUsage)
 	admin.GET("/funnel", h.GetFunnelMetrics)
 	admin.GET("/errors", h.GetErrors)
+	admin.GET("/db-pool", h.GetDatabaseStats)
 }
 
 func (h *TelemetryHandler) LogEvent(c *gin.Context) {
@@ -80,6 +81,15 @@ func (h *TelemetryHandler) GetFunnelMetrics(c *gin.Context) {
 
 func (h *TelemetryHandler) GetErrors(c *gin.Context) {
 	data, err := h.useCase.GetErrors(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, data)
+}
+
+func (h *TelemetryHandler) GetDatabaseStats(c *gin.Context) {
+	data, err := h.useCase.GetDatabaseStats(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -67,7 +67,7 @@ func (m *mockAttendanceRepo) GetStudentAttendanceStats(ctx context.Context) ([]d
 
 func TestAnalyticsUseCase_GetAttendanceStats(t *testing.T) {
 	attendanceRepo := new(mockAttendanceRepo)
-	uc := usecase.NewAnalyticsUseCase(attendanceRepo, new(mockGradeRepo), new(mockStudentRepo), nil)
+	uc := usecase.NewAnalyticsUseCase(attendanceRepo, new(mockGradeRepo), new(mockStudentRepo), nil, nil)
 
 	statsMap := map[string]int{"Present": 10, "Absent": 2, "Tardy": 1}
 	attendanceRepo.On("GetAttendanceStats", mock.Anything).Return(statsMap, nil)
@@ -82,7 +82,7 @@ func TestAnalyticsUseCase_GetAttendanceStats(t *testing.T) {
 
 func TestAnalyticsUseCase_GetGradeDistribution(t *testing.T) {
 	gradeRepo := new(mockGradeRepo)
-	uc := usecase.NewAnalyticsUseCase(new(mockAttendanceRepo), gradeRepo, new(mockStudentRepo), nil)
+	uc := usecase.NewAnalyticsUseCase(new(mockAttendanceRepo), gradeRepo, new(mockStudentRepo), nil, nil)
 
 	distMap := map[string]int{"A": 5, "B": 3, "C": 2, "D": 1, "F": 0}
 	gradeRepo.On("GetGradeDistribution", mock.Anything).Return(distMap, nil)

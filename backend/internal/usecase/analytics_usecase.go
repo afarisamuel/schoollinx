@@ -13,6 +13,7 @@ type AnalyticsUseCase struct {
 	attendanceRepo domain.AttendanceRepository
 	gradeRepo      domain.GradeRepository
 	studentRepo    domain.StudentRepository
+	facilityRepo   domain.FacilityRepository
 	pdfService     *pdf.PDFService
 }
 
@@ -20,12 +21,14 @@ func NewAnalyticsUseCase(
 	attendanceRepo domain.AttendanceRepository,
 	gradeRepo domain.GradeRepository,
 	studentRepo domain.StudentRepository,
+	facilityRepo domain.FacilityRepository,
 	pdfService *pdf.PDFService,
 ) *AnalyticsUseCase {
 	return &AnalyticsUseCase{
 		attendanceRepo: attendanceRepo,
 		gradeRepo:      gradeRepo,
 		studentRepo:    studentRepo,
+		facilityRepo:   facilityRepo,
 		pdfService:     pdfService,
 	}
 }
@@ -247,10 +250,29 @@ type HeatmapData struct {
 }
 
 func (u *AnalyticsUseCase) GetResourceHeatmap(ctx context.Context) ([]HeatmapData, error) {
-	// Replaced mock data with an empty array until actual facility usage logging is fully implemented.
-	// This ensures the system exclusively serves real, accurate data as requested.
-	// TODO: Implement actual facility usage logging.
-	return []HeatmapData{}, nil
+	if u.facilityRepo == nil {
+		return []HeatmapData{}, nil
+	}
+	heatmaps, err := u.facilityRepo.GetResourceHeatmap(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get facility heatmap: %w", err)
+	}
+
+	days := []string{"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"}
+	var results []HeatmapData
+	for _, h := range heatmaps {
+		dayName := "Unknown"
+		if h.DayOfWeek >= 0 && h.DayOfWeek < len(days) {
+			dayName = days[h.DayOfWeek]
+		}
+		results = append(results, HeatmapData{
+			ResourceName: h.RoomName,
+			DayOfWeek:    dayName,
+			HourOfDay:    h.HourOfDay,
+			UsagePercent: h.Utilization,
+		})
+	}
+	return results, nil
 }
 
 type DemographicsStats struct {

@@ -15,6 +15,7 @@ type TelemetryUseCase interface {
 	GetModuleUsage(ctx context.Context) ([]map[string]interface{}, error)
 	GetFunnelMetrics(ctx context.Context) ([]map[string]interface{}, error)
 	GetErrors(ctx context.Context) ([]map[string]interface{}, error)
+	GetDatabaseStats(ctx context.Context) (map[string]interface{}, error)
 }
 
 type telemetryUseCase struct {
@@ -180,4 +181,27 @@ func (u *telemetryUseCase) GetErrors(ctx context.Context) ([]map[string]interfac
 		})
 	}
 	return result, nil
+}
+
+// GetDatabaseStats retrieves live connection pool metrics from the underlying sql.DB.
+func (u *telemetryUseCase) GetDatabaseStats(ctx context.Context) (map[string]interface{}, error) {
+	if u.db == nil {
+		return nil, nil
+	}
+	sqlDB, err := u.db.DB()
+	if err != nil {
+		return nil, err
+	}
+
+	stats := sqlDB.Stats()
+	return map[string]interface{}{
+		"max_open_connections": stats.MaxOpenConnections,
+		"open_connections":     stats.OpenConnections,
+		"in_use":               stats.InUse,
+		"idle":                 stats.Idle,
+		"wait_count":            stats.WaitCount,
+		"wait_duration_ms":      stats.WaitDuration.Milliseconds(),
+		"max_idle_closed":       stats.MaxIdleClosed,
+		"max_lifetime_closed":   stats.MaxLifetimeClosed,
+	}, nil
 }

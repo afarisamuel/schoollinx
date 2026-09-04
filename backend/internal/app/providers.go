@@ -212,7 +212,7 @@ func initUseCases(repos *Repositories, infra *Infrastructure, db *gorm.DB, cfg *
 		Grade:          usecase.NewGradeUseCase(repos.Grade, notifUC),
 		Subject:        usecase.NewSubjectUseCase(repos.Subject),
 		Timetable:      usecase.NewTimetableUseCase(repos.Timetable, repos.Assignment),
-		Analytics:      usecase.NewAnalyticsUseCase(repos.Attendance, repos.Grade, repos.Student, infra.PDF),
+		Analytics:      usecase.NewAnalyticsUseCase(repos.Attendance, repos.Grade, repos.Student, repos.Facility, infra.PDF),
 		Homework:       usecase.NewHomeworkUseCase(repos.Homework),
 		Search:         usecase.NewSearchUseCase(repos.Student, repos.Teacher),
 		Recommendation: usecase.NewRecommendationEngine(repos.Recommendation, repos.Grade, repos.Subject, repos.Student),

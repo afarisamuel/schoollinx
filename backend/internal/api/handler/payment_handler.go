@@ -171,7 +171,7 @@ func (h *PaymentHandler) HandleWebhook(c *gin.Context) {
 
 	err = h.paymentUseCase.HandlePaystackWebhook(c.Request.Context(), payload, signature)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"status": "received but failed processing"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 

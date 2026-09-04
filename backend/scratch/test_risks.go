@@ -25,7 +25,7 @@ func main() {
 	gradeRepo := repository.NewGradeRepository(db)
 	studentRepo := repository.NewStudentRepository(db)
 
-	analyticsUC := usecase.NewAnalyticsUseCase(attRepo, gradeRepo, studentRepo, nil)
+	analyticsUC := usecase.NewAnalyticsUseCase(attRepo, gradeRepo, studentRepo, nil, nil)
 
 	risks, err := analyticsUC.GetAtRiskStudents(ctx)
 	if err != nil {
