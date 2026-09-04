@@ -1,19 +1,24 @@
 <!-- ===== Payment Modal ===== -->
 @if (showPaymentModal()) {
-    <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" (click)="closePaymentModal()">
-        <div class="relative w-full max-w-md bg-blue-600 from-[#0F172A] to-[#1E293B] border border-slate-700/60 rounded-3xl shadow-2xl p-8" (click)="$event.stopPropagation()">
+    <div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm animate-fade-in" (click)="closePaymentModal()">
+        <div class="relative w-full max-w-md bg-slate-900 border border-slate-700/60 rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-8 max-h-[90vh] sm:max-h-[85vh] overflow-y-auto animate-slide-up sm:animate-fade-in flex flex-col" (click)="$event.stopPropagation()">
+            <!-- Mobile Handle -->
+            <div class="sm:hidden flex justify-center pb-2">
+                <div class="bottomsheet-handle"></div>
+            </div>
+
             <!-- Glow -->
             <div class="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] pointer-events-none"></div>
 
             <!-- Header -->
-            <div class="flex items-start justify-between mb-6 relative z-10">
+            <div class="flex items-start justify-between mb-5 sm:mb-6 relative z-10">
                 <div>
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-400 text-[10px] font-black uppercase tracking-widest mb-3">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-400 text-[10px] font-black uppercase tracking-widest mb-2 sm:mb-3">
                         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
                         Secure Payment
                     </div>
-                    <h2 class="text-xl font-black text-white">Pay Online</h2>
-                    <p class="text-sm text-slate-400 mt-1">Initialize secure payment via Paystack.</p>
+                    <h2 class="text-lg sm:text-xl font-black text-white">Pay Online</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-0.5 sm:mt-1">Initialize secure payment via Paystack.</p>
                 </div>
                 <button (click)="closePaymentModal()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -21,28 +26,28 @@
             </div>
 
             <!-- Invoice Details -->
-            <div class="bg-slate-900/60 rounded-2xl p-4 border border-slate-700/50 mb-6 relative z-10">
+            <div class="bg-slate-900/60 rounded-2xl p-4 border border-slate-700/50 mb-5 sm:mb-6 relative z-10">
                 <div class="flex justify-between items-center mb-2">
                     <span class="text-xs text-slate-400 font-bold uppercase tracking-widest">Fee Category</span>
-                    <span class="text-sm font-black text-white">{{ selectedRecordForPayment()?.category }}</span>
+                    <span class="text-xs sm:text-sm font-black text-white">{{ selectedRecordForPayment()?.category }}</span>
                 </div>
                 <div class="flex justify-between items-center mb-2">
                     <span class="text-xs text-slate-400 font-bold uppercase tracking-widest">Total Amount</span>
-                    <span class="text-sm font-black text-white">GH₵{{ selectedRecordForPayment()?.amount | number:'1.2-2' }}</span>
+                    <span class="text-xs sm:text-sm font-black text-white">GH₵{{ selectedRecordForPayment()?.amount | number:'1.2-2' }}</span>
                 </div>
                 <div class="flex justify-between items-center mb-2">
                     <span class="text-xs text-slate-400 font-bold uppercase tracking-widest">Amount Paid</span>
-                    <span class="text-sm font-black text-emerald-400">GH₵{{ selectedRecordForPayment()?.amount_paid || 0 | number:'1.2-2' }}</span>
+                    <span class="text-xs sm:text-sm font-black text-emerald-400">GH₵{{ selectedRecordForPayment()?.amount_paid || 0 | number:'1.2-2' }}</span>
                 </div>
                 <div class="flex justify-between items-center pt-2 border-t border-slate-700/50">
                     <span class="text-xs text-rose-400 font-black uppercase tracking-widest">Balance Due</span>
-                    <span class="text-lg font-black text-rose-400">GH₵{{ selectedRecordForPayment()?.balance_due || (selectedRecordForPayment()!.amount - (selectedRecordForPayment()!.amount_paid || 0)) | number:'1.2-2' }}</span>
+                    <span class="text-base sm:text-lg font-black text-rose-400">GH₵{{ selectedRecordForPayment()?.balance_due || (selectedRecordForPayment()!.amount - (selectedRecordForPayment()!.amount_paid || 0)) | number:'1.2-2' }}</span>
                 </div>
             </div>
 
             <!-- Amount Input -->
-            <div class="mb-6 relative z-10">
-                <label for="payment-amount" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Amount to Pay (GH₵)</label>
+            <div class="mb-5 sm:mb-6 relative z-10">
+                <label for="payment-amount" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 sm:mb-2">Amount to Pay (GH₵)</label>
                 <div class="relative">
                     <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-black">
                         ₵
@@ -54,24 +59,24 @@
                         [max]="selectedRecordForPayment()?.balance_due || (selectedRecordForPayment()!.amount - (selectedRecordForPayment()!.amount_paid || 0))"
                         [value]="paymentAmount()"
                         (input)="paymentAmount.set($any($event.target).valueAsNumber)"
-                        class="w-full bg-slate-900/80 border border-slate-700 hover:border-slate-500 focus:border-blue-500 rounded-xl pl-11 pr-4 py-3.5 text-sm text-white placeholder:text-slate-600 outline-none transition-all font-mono"
+                        class="w-full bg-slate-900/80 border border-slate-700 hover:border-slate-500 focus:border-blue-500 rounded-xl pl-11 pr-4 py-3 sm:py-3.5 text-sm text-white placeholder:text-slate-600 outline-none transition-all font-mono"
                     />
                 </div>
-                <p class="text-[11px] text-slate-500 mt-2">You can modify the amount for a partial payment.</p>
+                <p class="text-[11px] text-slate-500 mt-1.5">You can modify the amount for a partial payment.</p>
             </div>
 
             <!-- Actions -->
-            <div class="flex items-center gap-3 relative z-10">
+            <div class="flex flex-col-reverse sm:flex-row items-center gap-3 relative z-10">
                 <button
                     (click)="closePaymentModal()"
-                    class="flex-1 py-3 rounded-xl font-bold text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700"
+                    class="w-full sm:flex-1 py-3 rounded-xl font-bold text-xs sm:text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700"
                 >
                     Cancel
                 </button>
                 <button
                     (click)="confirmPayment()"
                     [disabled]="isPaymentLoading()"
-                    class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="w-full sm:flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs sm:text-sm bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     @if (isPaymentLoading()) {
                         <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>

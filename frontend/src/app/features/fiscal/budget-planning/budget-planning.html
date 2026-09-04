@@ -1,115 +1,177 @@
-<div class="max-w-[1400px] mx-auto space-y-4 sm:space-y-6 animate-fade-in">
-  <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 sm:mb-6 gap-4 sm:gap-6 md:gap-0 relative z-10">
-    <div class="header-content relative">
-      <div class="absolute -left-8 -top-8 w-24 h-24 bg-blue-500/20 rounded-full blur-2xl"></div>
-      <h1 class="text-3xl md:text-4xl font-black tracking-tight text-blue-400 relative z-10">
-        Budget Planning
-      </h1>
-      <p class="text-sm font-medium text-text-secondary mt-2 relative z-10">
-        Monitor school budget allocations and actual expenditures
-      </p>
-    </div>
-    
-    <div class="header-actions flex flex-wrap gap-3 w-full md:w-auto relative z-10">
-      <div class="relative w-full sm:w-48 group">
-        <select
-            [ngModel]="academicYear()"
-            (ngModelChange)="academicYear.set($event); loadBudgets()"
-            class="w-full bg-bg-secondary/50 backdrop-blur-xl border border-border-primary hover:border-blue-500/30 rounded-2xl px-4 py-3 text-text-primary text-sm font-black focus:outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer"
-        >
-            <option value="2023-2024">2023-2024</option>
-            <option value="2024-2025">2024-2025</option>
-        </select>
-        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-text-muted group-hover:text-blue-500 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+<div class="space-y-6 sm:space-y-8 animate-fade-in pb-20 text-text-primary">
+
+  <!-- ===== HERO HEADER ===== -->
+  <div class="relative overflow-hidden bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-sm transition-all duration-300">
+    <!-- Ambient Glows -->
+    <div class="absolute -top-24 -right-24 w-80 h-80 bg-blue-500/10 dark:bg-blue-500/15 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-emerald-500/10 dark:bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div class="space-y-3 max-w-2xl">
+        <div class="flex flex-wrap items-center gap-2.5">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Fiscal Strategy
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-bg-tertiary text-text-muted border border-border-secondary">
+            <i class="fas fa-chart-pie text-[11px]"></i>
+            Departmental Allocations
+          </span>
         </div>
+
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-text-primary">
+          Budget <span class="text-blue-600 dark:text-blue-400">Planning</span>
+        </h1>
+        <p class="text-sm sm:text-base text-text-muted leading-relaxed">
+          Monitor institutional budget thresholds, track category expenditure utilization, and maintain financial variance control.
+        </p>
       </div>
 
-      <button
-        class="flex-1 md:flex-none inline-flex justify-center items-center px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all duration-300 border border-blue-400/30"
-        (click)="openCreateModal()"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="mr-2">
-          <line x1="12" x2="12" y1="5" y2="19" />
-          <line x1="5" x2="19" y1="12" y2="12" />
-        </svg>
-        Allocate Budget
-      </button>
+      <!-- Controls & CTA -->
+      <div class="flex flex-wrap items-center gap-3">
+        <!-- Academic Year Selector -->
+        <div class="relative min-w-[150px]">
+          <select
+            [ngModel]="academicYear()"
+            (ngModelChange)="academicYear.set($event); loadBudgets()"
+            class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-3 text-xs sm:text-sm font-bold text-text-primary appearance-none cursor-pointer outline-none focus:ring-2 focus:ring-blue-500/40 transition-all pr-9"
+          >
+            <option value="2023-2024">2023 - 2024</option>
+            <option value="2024-2025">2024 - 2025</option>
+            <option value="2025-2026">2025 - 2026</option>
+          </select>
+          <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-text-muted">
+            <i class="fas fa-chevron-down text-xs"></i>
+          </div>
+        </div>
+
+        <button
+          (click)="openCreateModal()"
+          class="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 transition-all duration-300 flex items-center gap-2.5 active:scale-95 group"
+        >
+          <div class="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center group-hover:rotate-90 transition-transform">
+            <i class="fas fa-plus text-xs"></i>
+          </div>
+          <span>Allocate Budget</span>
+        </button>
+      </div>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 relative z-10">
+  <!-- ===== 3 TOP KPI CARDS ===== -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
     <!-- Total Allocated -->
-    <div class="relative p-6 flex flex-col gap-3 overflow-hidden transition-all duration-500 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-blue-500/20 bg-bg-secondary/40 backdrop-blur-xl border border-border-primary/50 rounded-3xl group">
-      <div class="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-      <div class="stat-icon w-12 h-12 rounded-2xl flex items-center justify-center bg-blue-500/20 border border-blue-500/20 text-blue-400">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>
+    <div class="bg-bg-secondary border border-border-primary p-6 rounded-2xl sm:rounded-3xl shadow-sm relative overflow-hidden group hover:border-blue-500/30 transition-all">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Total Allocated</span>
+        <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+          <i class="fas fa-wallet"></i>
+        </div>
       </div>
-      <div class="flex flex-col">
-        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted mb-1">Total Allocated</span>
-        <span class="text-3xl font-black tracking-tighter text-text-primary">{{ totalAllocated() | currency:'GHS':'symbol':'1.0-0' }}</span>
-      </div>
+      <p class="text-3xl font-black text-text-primary mt-3">{{ totalAllocated() | currency:'GHS':'symbol':'1.0-0' }}</p>
+      <p class="text-xs text-text-muted mt-1">Institutional cap for {{ academicYear() }}</p>
     </div>
     
     <!-- Total Spent -->
-    <div class="relative p-6 flex flex-col gap-3 overflow-hidden transition-all duration-500 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-rose-500/20 bg-bg-secondary/40 backdrop-blur-xl border border-border-primary/50 rounded-3xl group">
-      <div class="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-      <div class="stat-icon w-12 h-12 rounded-2xl flex items-center justify-center bg-blue-500/20 border border-rose-500/20 text-rose-400">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+    <div class="bg-bg-secondary border border-border-primary p-6 rounded-2xl sm:rounded-3xl shadow-sm relative overflow-hidden group hover:border-rose-500/30 transition-all">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Total Disbursed</span>
+        <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+          <i class="fas fa-hand-holding-usd"></i>
+        </div>
       </div>
-      <div class="flex flex-col">
-        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted mb-1">Total Spent</span>
-        <span class="text-3xl font-black tracking-tighter text-text-primary">{{ totalSpent() | currency:'GHS':'symbol':'1.0-0' }}</span>
-      </div>
+      <p class="text-3xl font-black text-rose-600 dark:text-rose-400 mt-3">{{ totalSpent() | currency:'GHS':'symbol':'1.0-0' }}</p>
+      <p class="text-xs text-text-muted mt-1">Total actual expenditure to date</p>
     </div>
 
-    <!-- Variance -->
-    <div class="relative p-6 flex flex-col gap-3 overflow-hidden transition-all duration-500 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-emerald-500/20 bg-bg-secondary/40 backdrop-blur-xl border border-border-primary/50 rounded-3xl group">
-      <div class="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-      <div class="stat-icon w-12 h-12 rounded-2xl flex items-center justify-center bg-blue-500/20 border border-emerald-500/20 text-emerald-400">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" /><path d="m16 10-4 4-4-4" /></svg>
+    <!-- Remaining Variance -->
+    <div class="bg-bg-secondary border border-border-primary p-6 rounded-2xl sm:rounded-3xl shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-all">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Remaining Buffer</span>
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+          <i class="fas fa-balance-scale"></i>
+        </div>
       </div>
-      <div class="flex flex-col">
-        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted mb-1">Remaining Budget</span>
-        <span class="text-3xl font-black tracking-tighter text-text-primary" [ngClass]="totalVariance() < 0 ? 'text-rose-500' : ''">
-          {{ totalVariance() | currency:'GHS':'symbol':'1.0-0' }}
-        </span>
-      </div>
+      <p class="text-3xl font-black mt-3" [ngClass]="totalVariance() < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'">
+        {{ totalVariance() | currency:'GHS':'symbol':'1.0-0' }}
+      </p>
+      <p class="text-xs text-text-muted mt-1">Available balance across accounts</p>
     </div>
   </div>
 
-  <div class="bg-bg-secondary/40 backdrop-blur-xl border border-border-primary/50 rounded-[2.5rem] overflow-hidden relative shadow-2xl z-10">
-    <div class="overflow-x-auto w-full relative z-10">
-      <table class="w-full border-separate border-spacing-0">
+  <!-- ===== BUDGET CATEGORIES TABLE ===== -->
+  <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl shadow-sm p-6 sm:p-8 space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-primary">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-base">
+          <i class="fas fa-layer-group"></i>
+        </div>
+        <div>
+          <h2 class="text-lg sm:text-xl font-bold text-text-primary">Departmental Allocations</h2>
+          <p class="text-xs text-text-muted mt-0.5">Categorized breakdown for {{ academicYear() }}</p>
+        </div>
+      </div>
+      <span class="text-xs text-text-muted font-medium">
+        {{ budgets().length }} active categories
+      </span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
         <thead>
-          <tr class="bg-bg-tertiary/50">
-            <th class="px-6 py-5 text-[10px] font-black text-text-muted uppercase tracking-widest text-left border-b border-border-primary/50">Category</th>
-            <th class="px-6 py-5 text-[10px] font-black text-text-muted uppercase tracking-widest text-right border-b border-border-primary/50">Allocated</th>
-            <th class="px-6 py-5 text-[10px] font-black text-text-muted uppercase tracking-widest text-right border-b border-border-primary/50">Spent</th>
-            <th class="px-6 py-5 text-[10px] font-black text-text-muted uppercase tracking-widest text-right border-b border-border-primary/50">Variance</th>
-            <th class="px-6 py-5 text-[10px] font-black text-text-muted uppercase tracking-widest text-right border-b border-border-primary/50">Status</th>
+          <tr class="border-b border-border-primary bg-bg-tertiary/50">
+            <th class="px-5 py-3.5 text-xs font-bold text-text-muted uppercase tracking-wider">Category</th>
+            <th class="px-5 py-3.5 text-xs font-bold text-text-muted uppercase tracking-wider text-right">Allocated</th>
+            <th class="px-5 py-3.5 text-xs font-bold text-text-muted uppercase tracking-wider text-right">Spent</th>
+            <th class="px-5 py-3.5 text-xs font-bold text-text-muted uppercase tracking-wider text-right">Variance</th>
+            <th class="px-5 py-3.5 text-xs font-bold text-text-muted uppercase tracking-wider text-right min-w-[160px]">Burn Rate</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-border-primary/50">
+        <tbody class="divide-y divide-border-primary">
           @for (budget of budgets(); track budget.id) {
-            <tr class="hover:bg-bg-tertiary transition-colors duration-300">
-              <td class="px-6 py-5 text-sm font-bold text-text-primary">{{ budget.category }}</td>
-              <td class="px-6 py-5 text-sm font-bold text-text-primary text-right">{{ budget.allocated_amount | currency:'GHS':'symbol':'1.0-0' }}</td>
-              <td class="px-6 py-5 text-sm font-medium text-text-secondary text-right">{{ budget.spent_amount | currency:'GHS':'symbol':'1.0-0' }}</td>
-              <td class="px-6 py-5 text-sm font-black text-right" [ngClass]="(budget.allocated_amount - budget.spent_amount) < 0 ? 'text-rose-500' : 'text-emerald-500'">
+            <tr class="hover:bg-bg-tertiary/60 transition-colors">
+              <td class="px-5 py-4 font-bold text-text-primary text-sm">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs">
+                    <i class="fas fa-tag"></i>
+                  </div>
+                  <span>{{ budget.category }}</span>
+                </div>
+              </td>
+              <td class="px-5 py-4 font-bold text-text-primary text-sm text-right whitespace-nowrap">
+                {{ budget.allocated_amount | currency:'GHS':'symbol':'1.0-0' }}
+              </td>
+              <td class="px-5 py-4 font-medium text-text-muted text-sm text-right whitespace-nowrap">
+                {{ budget.spent_amount | currency:'GHS':'symbol':'1.0-0' }}
+              </td>
+              <td class="px-5 py-4 font-black text-sm text-right whitespace-nowrap"
+                  [ngClass]="(budget.allocated_amount - budget.spent_amount) < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'">
                 {{ budget.allocated_amount - budget.spent_amount | currency:'GHS':'symbol':'1.0-0' }}
               </td>
-              <td class="px-6 py-5 text-right">
-                <div class="w-full bg-bg-tertiary rounded-full h-2.5 overflow-hidden">
-                  <div class="h-2.5 rounded-full" [style.width]="(budget.spent_amount / budget.allocated_amount * 100) + '%'" [ngClass]="(budget.spent_amount / budget.allocated_amount) > 1 ? 'bg-rose-500' : 'bg-emerald-500'"></div>
+              <td class="px-5 py-4 text-right whitespace-nowrap">
+                <div class="flex flex-col items-end gap-1">
+                  <div class="w-28 bg-bg-tertiary rounded-full h-2 overflow-hidden border border-border-secondary">
+                    <div class="h-2 rounded-full transition-all duration-500" 
+                         [style.width.%]="(budget.allocated_amount > 0 ? (budget.spent_amount / budget.allocated_amount * 100) : 0)" 
+                         [ngClass]="(budget.spent_amount / budget.allocated_amount) > 0.9 ? 'bg-rose-500' : (budget.spent_amount / budget.allocated_amount) > 0.7 ? 'bg-amber-500' : 'bg-emerald-500'"></div>
+                  </div>
+                  <span class="text-[10px] font-bold text-text-muted">
+                    {{ (budget.allocated_amount > 0 ? (budget.spent_amount / budget.allocated_amount) : 0) | percent }}
+                  </span>
                 </div>
-                <span class="text-[10px] font-bold text-text-muted mt-1 inline-block">{{ (budget.spent_amount / budget.allocated_amount) | percent }}</span>
               </td>
             </tr>
           } @empty {
             <tr>
               <td colspan="5" class="px-6 py-16 text-center">
-                <p class="text-sm font-bold text-text-primary">No budgets allocated for this academic year.</p>
+                <div class="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto mb-3 text-xl">
+                  <i class="fas fa-chart-pie"></i>
+                </div>
+                <p class="text-base font-bold text-text-primary">No Budgets Allocated</p>
+                <p class="text-xs text-text-muted mt-1 mb-4">No spending budgets have been set for the {{ academicYear() }} academic year.</p>
+                <button (click)="openCreateModal()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                  <i class="fas fa-plus mr-1"></i> Allocate First Category
+                </button>
               </td>
             </tr>
           }
@@ -117,38 +179,72 @@
       </table>
     </div>
   </div>
+
 </div>
 
-<!-- Modal -->
+<!-- ===== ALLOCATE BUDGET MODAL ===== -->
 @if (showModal()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-fade-in">
-    <div class="absolute inset-0 bg-bg-primary/80 backdrop-blur-sm" (click)="showModal.set(false)"></div>
-    <div class="relative w-full max-w-md bg-bg-secondary border border-border-primary rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-scale-in">
-      <div class="p-6 md:p-8 border-b border-border-primary flex items-center justify-between bg-bg-tertiary/30">
-        <h3 class="text-xl font-black text-text-primary tracking-tight">Allocate Budget</h3>
-        <button (click)="showModal.set(false)" class="w-10 h-10 rounded-2xl flex items-center justify-center text-text-muted hover:bg-bg-tertiary hover:text-text-primary transition-colors border border-transparent hover:border-border-primary">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+  <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in" (click)="showModal.set(false)">
+    <div class="relative w-full max-w-lg bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[85vh] animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
+      
+      <!-- Mobile Bottom Sheet Handle -->
+      <div class="pt-3 pb-1 sm:hidden">
+        <div class="bottomsheet-handle"></div>
+      </div>
+
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-6 border-b border-border-primary flex items-center justify-between bg-bg-tertiary">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm">
+            <i class="fas fa-plus-circle"></i>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-bold text-text-primary">Allocate Category Budget</h3>
+            <p class="text-xs text-text-muted mt-0.5">Session: {{ academicYear() }}</p>
+          </div>
+        </div>
+        <button (click)="showModal.set(false)" class="p-2 text-text-muted hover:text-text-primary hover:bg-bg-primary rounded-xl transition-colors">
+          <i class="fas fa-times text-sm"></i>
         </button>
       </div>
 
-      <div class="p-6 md:p-8 overflow-y-auto custom-scrollbar flex-1 flex flex-col gap-5">
-        <div class="flex flex-col gap-2">
-          <label class="text-xs font-black uppercase tracking-widest text-text-muted pl-1">Category</label>
-          <input type="text" [(ngModel)]="formData.category" placeholder="e.g. Science Dept, Library, IT" class="w-full bg-bg-tertiary border border-border-primary rounded-2xl px-5 py-4 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 transition-colors" />
+      <!-- Form Body -->
+      <div class="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto">
+        <div>
+          <label class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5 block">Category / Department</label>
+          <input type="text" 
+                 [(ngModel)]="formData.category" 
+                 placeholder="e.g. Science Laboratory, Athletics, IT Infrastructure" 
+                 class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-3 text-xs sm:text-sm font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all" />
         </div>
-        <div class="flex flex-col gap-2">
-          <label class="text-xs font-black uppercase tracking-widest text-text-muted pl-1">Allocated Amount (GHS)</label>
-          <input type="number" [(ngModel)]="formData.allocated_amount" class="w-full bg-bg-tertiary border border-border-primary rounded-2xl px-5 py-4 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 transition-colors" />
+        <div>
+          <label class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5 block">Allocated Ceiling (GHS ₵)</label>
+          <input type="number" 
+                 [(ngModel)]="formData.allocated_amount" 
+                 placeholder="0.00"
+                 class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-3 text-xs sm:text-sm font-black text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all" />
         </div>
       </div>
 
-      <div class="p-6 md:p-8 border-t border-border-primary bg-bg-tertiary/30 flex gap-3">
-        <button (click)="showModal.set(false)" class="flex-1 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest bg-bg-tertiary border border-border-primary text-text-secondary hover:text-text-primary hover:bg-border-primary/50 transition-all">Cancel</button>
-        <button (click)="submitBudget()" [disabled]="isSubmitting()" class="flex-1 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-500 text-white transition-all border border-blue-400/30 flex justify-center items-center gap-2">
-          <svg *ngIf="isSubmitting()" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="animate-spin"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24" /><path d="M21 3v9h-9" /></svg>
-          {{ isSubmitting() ? 'Saving...' : 'Save' }}
+      <!-- Modal Footer -->
+      <div class="p-4 sm:p-6 border-t border-border-primary bg-bg-tertiary flex justify-end gap-3">
+        <button (click)="showModal.set(false)" 
+                class="px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold text-text-muted hover:bg-bg-secondary transition-colors">
+          Cancel
+        </button>
+        <button (click)="submitBudget()" 
+                [disabled]="isSubmitting()" 
+                class="px-5 sm:px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 transition-all disabled:opacity-50 flex items-center gap-2">
+          @if (isSubmitting()) {
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Saving...</span>
+          } @else {
+            <i class="fas fa-check"></i>
+            <span>Save Allocation</span>
+          }
         </button>
       </div>
+
     </div>
   </div>
 }

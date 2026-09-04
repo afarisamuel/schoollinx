@@ -35,6 +35,10 @@ export class RoomBookingComponent implements OnInit {
     return this.bookings().filter(b => b.room_id === roomId);
   });
 
+  selectedRoomObj = computed(() => {
+    return this.rooms().find(r => r.id === this.selectedRoom());
+  });
+
   ngOnInit() { 
     this.loadRooms();
   }

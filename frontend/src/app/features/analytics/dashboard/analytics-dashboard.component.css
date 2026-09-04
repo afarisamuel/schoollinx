@@ -1,22 +1,43 @@
-@reference "../../../../styles.css";
-
-/* FIX: Ensure ngx-charts typography and gridlines align with the dark institutional theme */
+/* ── NgxCharts Theme Integration & Typography ───────────── */
 ::ng-deep .ngx-charts text {
-    fill: var(--text-muted);
+    fill: var(--text-muted) !important;
+    font-family: inherit !important;
 }
 
 ::ng-deep .ngx-charts .gridline-path {
-    stroke: var(--border-primary);
+    stroke: var(--border-primary) !important;
+    opacity: 0.6;
 }
 
 ::ng-deep .ngx-charts .tick text {
-    fill: var(--text-secondary);
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
+    fill: var(--text-secondary) !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+}
+
+::ng-deep .ngx-charts .axis-label text {
+    fill: var(--text-muted) !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
 }
 
 ::ng-deep .ngx-charts .legend-title-text {
     color: var(--text-primary) !important;
     font-weight: 800 !important;
 }
+
+::ng-deep .ngx-charts .chart-legend .legend-label-text {
+    color: var(--text-secondary) !important;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { height: 4px; width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--border-primary);
+    border-radius: 9999px;
+}
+.custom-scrollbar:hover::-webkit-scrollbar-thumb { background: var(--text-muted); }

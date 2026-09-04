@@ -1,182 +1,202 @@
-<div class="flex flex-col h-[calc(100vh-5.5rem)] animate-fade-in p-2 sm:p-4 lg:p-6 gap-3 sm:gap-4 min-w-0 overflow-hidden">
+<div class="flex flex-col h-[calc(100vh-6.5rem)] animate-fade-in gap-4 min-w-0 overflow-hidden text-text-primary">
 
     <!-- Header -->
-    <div class="flex items-center justify-between flex-shrink-0 gap-2 flex-wrap">
-        <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <div class="flex items-center justify-between flex-shrink-0 gap-3 flex-wrap">
+        <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0 text-blue-600 dark:text-blue-400">
+                <i class="fas fa-comments text-base"></i>
             </div>
             <div class="min-w-0">
-                <h1 class="text-xl sm:text-2xl font-black text-text-primary tracking-tight truncate">Message Center</h1>
-                <p class="text-[10px] sm:text-[11px] text-text-muted font-medium truncate">Direct messages between educators and guardians</p>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-xl sm:text-2xl font-black text-text-primary tracking-tight truncate">Messaging Center</h1>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 hidden sm:inline-block">
+                        Direct Channels
+                    </span>
+                </div>
+                <p class="text-xs text-text-muted font-medium truncate">Encrypted direct messaging between educators, administration, and guardians</p>
             </div>
         </div>
+
         <button (click)="showNewConv.set(!showNewConv())"
-            class="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95 cursor-pointer shrink-0">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all active:scale-95 cursor-pointer shrink-0">
+            <i class="fas fa-plus text-xs"></i>
             <span>New Message</span>
         </button>
     </div>
 
     <!-- New Conversation Drawer -->
     @if (showNewConv()) {
-    <div class="flex-shrink-0 flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-bg-secondary border border-blue-500/20 rounded-2xl shadow-xl animate-fade-in flex-wrap sm:flex-nowrap">
-        <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 hidden sm:flex items-center justify-center flex-shrink-0">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <div class="flex-shrink-0 flex items-center gap-3 p-4 bg-bg-secondary border border-blue-500/30 rounded-2xl shadow-xl animate-scale-in flex-wrap sm:flex-nowrap">
+        <div class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 hidden sm:flex items-center justify-center flex-shrink-0 text-blue-600 dark:text-blue-400">
+            <i class="fas fa-user-plus text-xs"></i>
         </div>
         <input
             type="text"
             [value]="newRecipientId()"
             (input)="newRecipientId.set($any($event.target).value)"
             (keyup.enter)="startNewConversation()"
-            placeholder="Enter recipient User ID..."
-            class="flex-1 min-w-[200px] bg-bg-tertiary border border-border-primary rounded-xl px-3 sm:px-4 py-2 text-xs sm:text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-blue-500/40 transition-all"
+            placeholder="Enter recipient Guardian / Staff ID..."
+            class="flex-1 min-w-[220px] bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-2.5 text-xs sm:text-sm font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all"
         >
         <div class="flex items-center gap-2">
             <button (click)="startNewConversation()" [disabled]="!newRecipientId().trim()"
-                class="px-3.5 sm:px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition-all cursor-pointer">
-                Start Thread
+                class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-md">
+                <i class="fas fa-paper-plane text-xs"></i>
+                <span>Start Thread</span>
             </button>
-            <button (click)="showNewConv.set(false)" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-bg-tertiary border border-border-primary text-text-muted hover:text-text-primary transition-all cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            <button (click)="showNewConv.set(false)" class="w-9 h-9 flex items-center justify-center rounded-xl bg-bg-tertiary border border-border-secondary text-text-muted hover:text-text-primary transition-all cursor-pointer">
+                <i class="fas fa-times text-xs"></i>
             </button>
         </div>
     </div>
     }
 
-    <!-- Main Layout: Responsive Master-Detail -->
+    <!-- Main Responsive Layout: Master-Detail -->
     <div class="flex flex-1 gap-4 min-h-0 min-w-0 relative">
 
-        <!-- Sidebar: Conversations List -->
-        <aside class="w-full lg:w-80 flex-shrink-0 flex-col bg-bg-secondary border border-border-primary rounded-2xl md:rounded-3xl shadow-xl overflow-hidden min-w-0"
+        <!-- Left Sidebar: Conversations List -->
+        <aside class="w-full lg:w-80 xl:w-96 flex-shrink-0 flex-col bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl shadow-sm overflow-hidden min-w-0"
                [ngClass]="activeConversation() ? 'hidden lg:flex' : 'flex'">
+            
             <!-- Sidebar Header -->
-            <div class="px-4 py-3.5 border-b border-border-primary flex-shrink-0 flex items-center justify-between">
-                <div>
-                    <p class="text-[9px] font-black text-text-muted uppercase tracking-widest">Conversations</p>
-                    <p class="text-base font-black text-text-primary">{{ conversations().length }} Threads</p>
+            <div class="px-5 py-4 border-b border-border-primary flex-shrink-0 flex items-center justify-between bg-bg-tertiary/40">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-inbox text-blue-500 text-xs"></i>
+                    <p class="text-xs font-bold uppercase tracking-wider text-text-muted">Conversations</p>
                 </div>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                    {{ conversations().length }} {{ conversations().length === 1 ? 'Thread' : 'Threads' }}
+                </span>
             </div>
 
-            <!-- Conversation List -->
-            <div class="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-1 p-2.5">
+            <!-- Conversation List Items -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-1.5 p-3">
                 @for (conv of conversations(); track conv.id) {
                 <button
                     (click)="selectConversation(conv)"
-                    class="w-full flex items-center gap-3 p-3 rounded-2xl text-left transition-all group cursor-pointer"
+                    class="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left transition-all duration-200 group cursor-pointer"
                     [class.bg-blue-500/10]="activeConversation()?.id === conv.id"
                     [class.border]="activeConversation()?.id === conv.id"
-                    [class.border-blue-500/20]="activeConversation()?.id === conv.id"
+                    [class.border-blue-500/30]="activeConversation()?.id === conv.id"
+                    [class.shadow-sm]="activeConversation()?.id === conv.id"
                     [class.hover:bg-bg-tertiary]="activeConversation()?.id !== conv.id">
 
                     <!-- Avatar -->
-                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center text-xs sm:text-sm font-black flex-shrink-0 transition-all"
-                         [class.bg-blue-500]="activeConversation()?.id === conv.id"
+                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-xs font-black flex-shrink-0 transition-all shadow-sm"
+                         [class.bg-gradient-to-tr]="true"
+                         [class.from-blue-600]="activeConversation()?.id === conv.id"
+                         [class.to-indigo-600]="activeConversation()?.id === conv.id"
                          [class.text-white]="activeConversation()?.id === conv.id"
-                         [class.bg-bg-tertiary]="activeConversation()?.id !== conv.id"
-                         [class.text-text-secondary]="activeConversation()?.id !== conv.id"
-                         [class.group-hover:bg-bg-secondary]="activeConversation()?.id !== conv.id">
+                         [class.from-bg-tertiary]="activeConversation()?.id !== conv.id"
+                         [class.to-bg-tertiary]="activeConversation()?.id !== conv.id"
+                         [class.text-text-primary]="activeConversation()?.id !== conv.id"
+                         [class.border]="activeConversation()?.id !== conv.id"
+                         [class.border-border-secondary]="activeConversation()?.id !== conv.id">
                         {{ getInitial(getOtherParticipant(conv)) }}
                     </div>
 
                     <!-- Meta -->
                     <div class="flex flex-col gap-0.5 min-w-0 flex-1">
-                        <span class="text-xs sm:text-sm font-bold truncate"
-                              [class.text-blue-400]="activeConversation()?.id === conv.id"
-                              [class.text-text-primary]="activeConversation()?.id !== conv.id">
-                            Thread #{{ conv.id.slice(0, 8) }}
-                        </span>
-                        <span class="text-[10px] text-text-muted truncate font-mono">
-                            {{ getOtherParticipant(conv).slice(0, 16) }}...
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs sm:text-sm font-bold truncate"
+                                  [class.text-blue-600]="activeConversation()?.id === conv.id"
+                                  [class.dark:text-blue-400]="activeConversation()?.id === conv.id"
+                                  [class.text-text-primary]="activeConversation()?.id !== conv.id">
+                                Thread #{{ conv.id.slice(0, 8) }}
+                            </span>
+                            <span class="text-[10px] text-text-muted font-medium flex-shrink-0 ml-2">{{ formatDate(conv.updated_at) }}</span>
+                        </div>
+                        <span class="text-[11px] text-text-muted truncate font-mono">
+                            User: {{ getOtherParticipant(conv).slice(0, 16) }}...
                         </span>
                     </div>
-
-                    <!-- Time -->
-                    <span class="text-[9px] text-text-muted font-medium flex-shrink-0">{{ formatDate(conv.updated_at) }}</span>
                 </button>
                 } @empty {
-                <div class="flex flex-col items-center justify-center gap-3 py-16 px-4">
-                    <div class="w-12 h-12 rounded-2xl bg-bg-tertiary border border-border-primary flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-text-muted"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <!-- Empty Threads State -->
+                <div class="flex flex-col items-center justify-center gap-3 py-16 px-4 text-center">
+                    <div class="w-12 h-12 rounded-2xl bg-bg-tertiary border border-border-secondary flex items-center justify-center text-text-muted">
+                        <i class="fas fa-comment-slash text-base"></i>
                     </div>
-                    <div class="text-center">
-                        <p class="text-xs font-bold text-text-primary">No conversations</p>
-                        <p class="text-[10px] text-text-muted mt-0.5">Start a new thread above</p>
+                    <div>
+                        <p class="text-xs font-bold text-text-primary">No conversations yet</p>
+                        <p class="text-[11px] text-text-muted mt-0.5">Click "New Message" to initiate a thread</p>
                     </div>
                 </div>
                 }
             </div>
         </aside>
 
-        <!-- Chat Pane -->
-        <main class="flex-1 flex-col bg-bg-secondary border border-border-primary rounded-2xl md:rounded-3xl shadow-xl overflow-hidden min-w-0"
+        <!-- Right Main Chat Pane -->
+        <main class="flex-1 flex-col bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl shadow-sm overflow-hidden min-w-0"
               [ngClass]="activeConversation() ? 'flex' : 'hidden lg:flex'">
 
             @if (!activeConversation()) {
-            <!-- Empty State (Desktop only) -->
-            <div class="flex-1 flex flex-col items-center justify-center gap-4 p-8 text-center">
-                <div class="w-16 h-16 rounded-3xl bg-bg-tertiary border border-border-primary flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="text-text-muted"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <!-- Empty State (No Active Conversation) -->
+            <div class="flex-1 flex flex-col items-center justify-center gap-4 p-8 text-center relative overflow-hidden">
+                <div class="w-20 h-20 rounded-3xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 text-3xl shadow-inner">
+                    <i class="fas fa-comments"></i>
                 </div>
                 <div class="text-center flex flex-col gap-1 max-w-sm">
-                    <p class="text-base font-black text-text-primary">Select a conversation</p>
-                    <p class="text-xs text-text-muted">Choose a thread from the list or start a new conversation</p>
+                    <h2 class="text-lg font-black text-text-primary">Select a Conversation</h2>
+                    <p class="text-xs text-text-muted leading-relaxed">Choose an active message thread from the sidebar or initiate a direct chat with guardians and teachers.</p>
                 </div>
                 <button (click)="showNewConv.set(true)"
-                    class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                    class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all cursor-pointer">
+                    <i class="fas fa-plus text-xs"></i>
                     <span>Start New Conversation</span>
                 </button>
             </div>
             }
 
             @if (activeConversation()) {
-            <!-- Chat Header with Mobile Back Button -->
-            <div class="flex items-center gap-3 px-4 sm:px-6 py-3.5 border-b border-border-primary flex-shrink-0">
+            <!-- Chat Header -->
+            <div class="flex items-center gap-3 px-5 py-4 border-b border-border-primary flex-shrink-0 bg-bg-tertiary/40">
                 <button (click)="activeConversation.set(null)"
-                        class="lg:hidden p-2 -ml-1 rounded-xl bg-bg-tertiary hover:bg-bg-primary text-text-muted hover:text-text-primary border border-border-primary flex items-center justify-center transition-colors cursor-pointer"
+                        class="lg:hidden p-2 -ml-1 rounded-xl bg-bg-tertiary hover:bg-bg-primary text-text-muted hover:text-text-primary border border-border-secondary flex items-center justify-center transition-colors cursor-pointer"
                         title="Back to Conversations">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                    <i class="fas fa-arrow-left text-xs"></i>
                 </button>
 
-                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-blue-500 flex items-center justify-center text-white font-black text-xs sm:text-sm shrink-0">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-xs shrink-0 shadow-sm">
                     {{ getInitial(getOtherParticipant(activeConversation()!)) }}
                 </div>
                 <div class="flex flex-col gap-0.5 min-w-0 flex-1">
-                    <p class="text-xs sm:text-sm font-black text-text-primary truncate">Thread #{{ activeConversation()!.id.slice(0, 8) }}</p>
-                    <p class="text-[10px] text-text-muted font-mono truncate">{{ getOtherParticipant(activeConversation()!) }}</p>
+                    <p class="text-sm font-bold text-text-primary truncate">Thread #{{ activeConversation()!.id.slice(0, 8) }}</p>
+                    <p class="text-[11px] text-text-muted font-mono truncate">Recipient: {{ getOtherParticipant(activeConversation()!) }}</p>
                 </div>
-                <div class="ml-auto flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full shrink-0">
+                <div class="ml-auto flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full shrink-0">
                     <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                    <span class="text-[9px] font-black text-emerald-400 uppercase tracking-wider">Secure</span>
+                    <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Direct Session</span>
                 </div>
             </div>
 
-            <!-- Messages -->
-            <div #messagesList class="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-3 sm:gap-4 p-3 sm:p-6 scroll-smooth">
+            <!-- Messages Stream -->
+            <div #messagesList class="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 p-4 sm:p-6 scroll-smooth bg-bg-tertiary/20">
                 @if (isLoading()) {
                 <div class="flex items-center justify-center gap-3 py-10">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-blue-400 animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                    <span class="text-xs sm:text-sm text-text-muted">Loading messages...</span>
+                    <i class="fas fa-spinner fa-spin text-blue-500 text-lg"></i>
+                    <span class="text-xs text-text-muted">Loading messages...</span>
                 </div>
                 }
 
                 @for (msg of messages(); track msg.id) {
-                <div class="flex gap-2 sm:gap-3 max-w-[85%] sm:max-w-[75%]"
+                <div class="flex gap-2.5 sm:gap-3 max-w-[85%] sm:max-w-[75%]"
                      [class.self-end]="isSentByMe(msg)"
                      [class.flex-row-reverse]="isSentByMe(msg)"
                      [class.self-start]="!isSentByMe(msg)">
 
-                    <!-- Avatar dot -->
-                    <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-xl flex items-center justify-center text-[9px] sm:text-[10px] font-black flex-shrink-0 mt-0.5"
-                         [class.bg-blue-500]="isSentByMe(msg)"
+                    <!-- Avatar initial -->
+                    <div class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5 shadow-sm"
+                         [class.bg-blue-600]="isSentByMe(msg)"
                          [class.text-white]="isSentByMe(msg)"
                          [class.bg-bg-tertiary]="!isSentByMe(msg)"
-                         [class.text-text-secondary]="!isSentByMe(msg)">
+                         [class.text-text-primary]="!isSentByMe(msg)"
+                         [class.border]="!isSentByMe(msg)"
+                         [class.border-border-secondary]="!isSentByMe(msg)">
                         {{ isSentByMe(msg) ? 'Me' : getInitial(msg.sender_id) }}
                     </div>
 
-                    <!-- Bubble Group -->
+                    <!-- Message Bubble Group -->
                     <div class="flex flex-col gap-1"
                          [class.items-end]="isSentByMe(msg)"
                          [class.items-start]="!isSentByMe(msg)">
@@ -184,83 +204,77 @@
                         <!-- Quoted Message (if reply) -->
                         @if (msg.parent_id && getParentMessage(msg.parent_id)) {
                         @let parent = getParentMessage(msg.parent_id)!;
-                        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] bg-bg-tertiary/70 border-l-2 border-blue-500 text-text-muted max-w-full truncate">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+                        <div class="flex items-center gap-2 px-3 py-1 rounded-xl text-[11px] bg-bg-tertiary border-l-2 border-blue-500 text-text-muted max-w-full truncate">
+                            <i class="fas fa-reply text-[10px]"></i>
                             <span class="truncate">{{ parent.content }}</span>
                         </div>
                         }
 
-                        <!-- Message Content -->
-                        <div class="group relative px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-sm break-words"
+                        <!-- Message Content Bubble -->
+                        <div class="group relative px-4 py-3 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-sm break-words"
                              [class.bg-blue-600]="isSentByMe(msg)"
                              [class.text-white]="isSentByMe(msg)"
                              [class.rounded-br-sm]="isSentByMe(msg)"
-                             [class.bg-bg-tertiary]="!isSentByMe(msg)"
+                             [class.bg-bg-secondary]="!isSentByMe(msg)"
                              [class.border]="!isSentByMe(msg)"
                              [class.border-border-primary]="!isSentByMe(msg)"
-                             [class.text-text-primary]="!isSentByMe(msg)"
-                             [class.rounded-bl-sm]="!isSentByMe(msg)">
+                             [class.text-text-primary]="!isSentByMe(msg)">
                             {{ msg.content }}
 
-                            <!-- Reply Action Button on Hover -->
-                            <button
-                                (click)="setReplyTo(msg)"
-                                class="absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg bg-bg-secondary border border-border-primary text-text-muted hover:text-text-primary shadow-md cursor-pointer"
-                                [class.-left-8]="isSentByMe(msg)"
-                                [class.-right-8]="!isSentByMe(msg)"
-                                title="Reply">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+                            <!-- Quick Reply Button on Hover -->
+                            <button (click)="setReplyTo(msg)"
+                                    class="absolute -top-3 right-2 hidden group-hover:flex items-center gap-1 px-2 py-0.5 rounded-md bg-bg-secondary border border-border-primary text-text-muted hover:text-blue-500 text-[10px] font-bold shadow-md transition-all">
+                                <i class="fas fa-reply text-[9px]"></i> Reply
                             </button>
                         </div>
 
-                        <!-- Meta Row -->
-                        <div class="flex items-center gap-1.5 px-1">
-                            <span class="text-[9px] text-text-muted">{{ formatDate(msg.created_at) }}</span>
-                            @if (isSentByMe(msg)) {
-                            <span class="text-[9px] font-black"
-                                  [class.text-blue-400]="msg.is_read"
-                                  [class.text-text-muted]="!msg.is_read">
-                                {{ msg.is_read ? '✓✓ Read' : '✓ Sent' }}
-                            </span>
-                            }
-                        </div>
+                        <!-- Timestamp -->
+                        <span class="text-[10px] text-text-muted px-1 font-medium">{{ formatDate(msg.created_at) }}</span>
                     </div>
+
+                </div>
+                } @empty {
+                <div class="flex-1 flex flex-col items-center justify-center gap-2 text-center text-text-muted py-16">
+                    <i class="fas fa-paper-plane text-2xl text-text-muted opacity-40 mb-2"></i>
+                    <p class="text-xs font-bold text-text-primary">No messages in this thread</p>
+                    <p class="text-[11px]">Send a greeting to start communicating</p>
                 </div>
                 }
             </div>
 
-            <!-- Reply Preview Bar -->
+            <!-- Reply Bar -->
             @if (replyingTo()) {
-            <div class="flex items-center justify-between px-4 sm:px-6 py-2 bg-bg-tertiary border-t border-border-primary text-xs flex-shrink-0 gap-2">
-                <div class="flex items-center gap-2 min-w-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-blue-400 flex-shrink-0"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
-                    <span class="text-text-muted text-[11px] truncate">Replying to: <strong class="text-text-primary font-medium">{{ replyingTo()!.content }}</strong></span>
+            <div class="px-5 py-2 bg-bg-tertiary border-t border-border-primary flex items-center justify-between text-xs text-text-muted">
+                <div class="flex items-center gap-2 truncate">
+                    <i class="fas fa-reply text-blue-500"></i>
+                    <span>Replying to: <em>"{{ replyingTo()!.content.slice(0, 40) }}..."</em></span>
                 </div>
-                <button (click)="cancelReply()" class="text-text-muted hover:text-text-primary p-1 flex-shrink-0 cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                <button (click)="cancelReply()" class="p-1 hover:text-text-primary">
+                    <i class="fas fa-times text-xs"></i>
                 </button>
             </div>
             }
 
-            <!-- Input Bar -->
-            <div class="p-3 sm:p-4 border-t border-border-primary bg-bg-secondary flex-shrink-0 flex items-center gap-2 sm:gap-3">
+            <!-- Message Input Composer -->
+            <div class="p-4 border-t border-border-primary bg-bg-secondary flex items-center gap-3">
                 <input
                     type="text"
-                    [value]="newMessage()"
-                    (input)="newMessage.set($any($event.target).value)"
+                    [(ngModel)]="newMessage"
                     (keyup.enter)="send()"
-                    placeholder="Type an auditable message..."
-                    class="flex-1 bg-bg-tertiary border border-border-primary rounded-xl px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-blue-500/50 transition-all shadow-inner"
+                    placeholder="Write your message..."
+                    class="flex-1 bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-3 text-xs sm:text-sm font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all"
                 >
-                <button
-                    (click)="send()"
-                    [disabled]="!newMessage().trim()"
-                    class="px-4 sm:px-5 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2 flex-shrink-0 cursor-pointer">
+                <button (click)="send()" 
+                        [disabled]="!newMessage().trim()"
+                        class="px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2 active:scale-95">
+                    <i class="fas fa-paper-plane text-xs"></i>
                     <span class="hidden sm:inline">Send</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 </button>
             </div>
             }
+
         </main>
+
     </div>
+
 </div>

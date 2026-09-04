@@ -1,9 +1,14 @@
 @if (currentRequest(); as req) {
-<div class="fixed inset-0 z-[999] flex items-center justify-center p-4 sm:p-6 select-none bg-bg-primary -sm transition-opacity">
+<div class="fixed inset-0 z-[999] flex items-end sm:items-center justify-center p-0 sm:p-4 select-none bg-black/70 backdrop-blur-sm transition-opacity">
     <div class="absolute inset-0" (click)="close(false)"></div>
     
-    <div [@dialogAnimation] class="bg-bg-secondary w-full max-w-sm sm:max-w-md rounded-[32px] border border-border-secondary p-6 sm:p-8 shadow-2xl relative z-10 overflow-hidden flex flex-col gap-6">
+    <div [@dialogAnimation] class="bg-bg-secondary w-full max-w-sm sm:max-w-md rounded-t-3xl sm:rounded-[32px] border border-border-secondary p-5 sm:p-8 shadow-2xl relative z-10 overflow-hidden flex flex-col gap-4 sm:gap-6 max-h-[92vh] sm:max-h-none animate-slide-up sm:animate-none">
         
+        <!-- Mobile Bottomsheet Handle -->
+        <div class="sm:hidden">
+            <div class="bottomsheet-handle"></div>
+        </div>
+
         <!-- Dynamic Glow background -->
         <div class="absolute top-0 right-0 w-48 h-48 blur-[80px] rounded-full pointer-events-none opacity-20"
              [ngClass]="{
@@ -14,9 +19,9 @@
              }"></div>
 
         <!-- Header -->
-        <div class="flex items-start gap-4">
+        <div class="flex items-start gap-3 sm:gap-4">
             <!-- Icon -->
-            <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-border-primary"
+            <div class="w-10 sm:w-12 h-10 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 border border-border-primary"
                  [ngClass]="{
                      'bg-blue-500/10 text-blue-400': req.type === 'info',
                      'bg-emerald-500/10 text-emerald-400': req.type === 'success',
@@ -25,35 +30,35 @@
                  }">
                 <!-- Info Icon -->
                 @if (req.type === 'info') {
-                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                  }
                 <!-- Success Icon -->
                 @if (req.type === 'success') {
-                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                  }
                 <!-- Warning Icon -->
                 @if (req.type === 'warning') {
-                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                  }
                 <!-- Danger/Error Icon -->
                 @if (req.type === 'danger' || req.type === 'error') {
-                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                  }
             </div>
 
-            <div class="flex flex-col gap-1.5 pt-1">
-                <h3 class="text-xl font-black text-text-primary tracking-tight">{{ req.title }}</h3>
-                <p class="text-sm font-medium leading-relaxed text-text-secondary" [innerHTML]="req.message"></p>
+            <div class="flex flex-col gap-1 pt-0.5">
+                <h3 class="text-base sm:text-xl font-black text-text-primary tracking-tight">{{ req.title }}</h3>
+                <p class="text-xs sm:text-sm font-medium leading-relaxed text-text-secondary" [innerHTML]="req.message"></p>
             </div>
         </div>
 
         <!-- Actions -->
-        <div class="flex gap-3 pt-2 w-full">
+        <div class="flex gap-3 pt-1 sm:pt-2 w-full">
             @if (req.isConfirm) {
-            <button class="flex-1 px-5 py-3.5 bg-bg-tertiary hover:bg-bg-secondary text-text-primary font-black text-xs uppercase tracking-widest rounded-2xl transition-all" (click)="close(false)">
+            <button class="flex-1 px-4 sm:px-5 py-3 sm:py-3.5 bg-bg-tertiary hover:bg-bg-secondary text-text-primary font-black text-xs uppercase tracking-widest rounded-2xl transition-all" (click)="close(false)">
                 Cancel
             </button>
-            <button class="flex-1 px-5 py-3.5 text-text-primary font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-xl active:scale-95 text-center" 
+            <button class="flex-1 px-4 sm:px-5 py-3 sm:py-3.5 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-xl active:scale-95 text-center" 
                     [ngClass]="{
                         'bg-red-600 hover:bg-red-500 shadow-red-500/20': req.type === 'danger' || req.type === 'error',
                         'bg-amber-600 hover:bg-amber-500 shadow-amber-500/20': req.type === 'warning',
@@ -64,7 +69,7 @@
                 {{ req.actionText }}
             </button>
             } @else {
-            <button class="w-full px-5 py-3.5 bg-bg-tertiary hover:bg-bg-secondary text-text-primary font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-lg border border-border-primary" (click)="close(true)">
+            <button class="w-full px-5 py-3 sm:py-3.5 bg-bg-tertiary hover:bg-bg-secondary text-text-primary font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-lg border border-border-primary" (click)="close(true)">
                 {{ req.actionText }}
             </button>
             }

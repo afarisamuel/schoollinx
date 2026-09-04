@@ -1,92 +1,185 @@
-<div class="max-w-[1400px] mx-auto space-y-4 sm:space-y-6 animate-fade-in">
-  <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 sm:mb-6 gap-4 sm:gap-6 md:gap-0 relative z-10">
-    <div class="header-content relative">
-      <div class="absolute -left-8 -top-8 w-24 h-24 bg-blue-500/20 rounded-full blur-2xl"></div>
-      <h1 class="text-3xl md:text-4xl font-black tracking-tight text-blue-400 relative z-10">
-        Expense Claims
-      </h1>
-      <p class="text-sm font-medium text-text-secondary mt-2 relative z-10">
-        Multi-tier approval workflow for staff reimbursements
+<div class="space-y-6 sm:space-y-8 animate-fade-in pb-20 text-text-primary">
+
+  <!-- ===== HERO HEADER ===== -->
+  <div class="relative overflow-hidden bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-sm transition-all duration-300">
+    <!-- Ambient Glows -->
+    <div class="absolute -top-24 -right-24 w-80 h-80 bg-blue-500/10 dark:bg-blue-500/15 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-indigo-500/10 dark:bg-indigo-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div class="space-y-3 max-w-2xl">
+        <div class="flex flex-wrap items-center gap-2.5">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Fiscal Auditing
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-bg-tertiary text-text-muted border border-border-secondary">
+            <i class="fas fa-receipt text-[11px]"></i>
+            Staff Reimbursement Workflow
+          </span>
+        </div>
+
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-text-primary">
+          Expense <span class="text-blue-600 dark:text-blue-400">Claims</span>
+        </h1>
+        <p class="text-sm sm:text-base text-text-muted leading-relaxed">
+          Multi-tier review workflow for departmental expenditures, staff requisitions, and approved institution disbursements.
+        </p>
+      </div>
+
+      <!-- Action CTA -->
+      <div class="flex items-center gap-3">
+        <button (click)="formData = { amount: 0, description: '' }; showModal.set(true)" 
+                class="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 transition-all duration-300 flex items-center gap-2.5 active:scale-95 group">
+          <div class="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center group-hover:rotate-90 transition-transform">
+            <i class="fas fa-plus text-xs"></i>
+          </div>
+          <span>Submit Claim</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== KPI METRIC ROW ===== -->
+  <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+    <div class="bg-bg-secondary border border-border-primary p-5 rounded-2xl shadow-sm">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Total Claims</span>
+        <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm">
+          <i class="fas fa-file-invoice-dollar"></i>
+        </div>
+      </div>
+      <p class="text-2xl sm:text-3xl font-black text-text-primary mt-2">{{ stats().total }}</p>
+      <p class="text-xs text-text-muted mt-0.5">All submitted requisitions</p>
+    </div>
+
+    <div class="bg-bg-secondary border border-border-primary p-5 rounded-2xl shadow-sm">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Pending Review</span>
+        <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm">
+          <i class="fas fa-clock"></i>
+        </div>
+      </div>
+      <p class="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400 mt-2 flex items-center gap-2">
+        <span>{{ stats().pendingCount }}</span>
+        @if (stats().pendingCount > 0) {
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 animate-pulse">Needs Action</span>
+        }
       </p>
+      <p class="text-xs text-text-muted mt-0.5">Awaiting manager audit</p>
     </div>
+
+    <div class="bg-bg-secondary border border-border-primary p-5 rounded-2xl shadow-sm">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Approved Sum</span>
+        <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm">
+          <i class="fas fa-check-double"></i>
+        </div>
+      </div>
+      <p class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-2 truncate">
+        {{ stats().approvedVal | currency:'GHS':'symbol':'1.0-0' }}
+      </p>
+      <p class="text-xs text-text-muted mt-0.5">Total approved amount</p>
+    </div>
+
+    <div class="bg-bg-secondary border border-border-primary p-5 rounded-2xl shadow-sm">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Rejected</span>
+        <div class="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center text-sm">
+          <i class="fas fa-times-circle"></i>
+        </div>
+      </div>
+      <p class="text-2xl sm:text-3xl font-black text-rose-600 dark:text-rose-400 mt-2">{{ stats().rejectedCount }}</p>
+      <p class="text-xs text-text-muted mt-0.5">Declined requisitions</p>
+    </div>
+  </div>
+
+  <!-- ===== TAB NAVIGATION & CLAIMS TABLE ===== -->
+  <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl shadow-sm p-5 sm:p-7 space-y-6">
     
-    <div class="header-actions flex flex-wrap gap-3 w-full md:w-auto relative z-10">
-      <button
-        class="flex-1 md:flex-none inline-flex justify-center items-center px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all duration-300 border border-blue-400/30"
-        (click)="formData = { amount: 0, description: '' }; showModal.set(true)"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="mr-2">
-          <line x1="12" x2="12" y1="5" y2="19" />
-          <line x1="5" x2="19" y1="12" y2="12" />
-        </svg>
-        Submit Claim
-      </button>
+    <!-- Tab Navigation -->
+    <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-border-primary">
+      <div class="flex gap-2 overflow-x-auto scrollbar-none">
+        @for (tab of ['ALL', 'PENDING', 'APPROVED', 'REJECTED']; track tab) {
+          <button
+            class="px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 border whitespace-nowrap"
+            [ngClass]="activeTab() === tab ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20' : 'bg-bg-tertiary text-text-muted border-border-secondary hover:text-text-primary hover:border-blue-500/30'"
+            (click)="setTab($any(tab))"
+          >
+            {{ tab }}
+          </button>
+        }
+      </div>
+
+      <span class="text-xs text-text-muted font-medium">
+        Showing <strong class="text-text-primary">{{ claims().length }}</strong> claims
+      </span>
     </div>
-  </div>
 
-  <!-- Tab Navigation -->
-  <div class="flex gap-2 overflow-x-auto pb-4 mb-4 custom-scrollbar relative z-10">
-    @for (tab of ['ALL', 'PENDING', 'APPROVED', 'REJECTED']; track tab) {
-      <button
-        class="px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-300 border"
-        [ngClass]="activeTab() === tab ? 'bg-bg-tertiary text-text-primary border-border-primary shadow-sm' : 'bg-transparent text-text-muted border-transparent hover:bg-bg-tertiary/50 hover:text-text-secondary'"
-        (click)="setTab($any(tab))"
-      >
-        {{ tab }}
-      </button>
-    }
-  </div>
-
-  <div class="bg-bg-secondary/40 backdrop-blur-xl border border-border-primary/50 rounded-[2.5rem] overflow-hidden relative shadow-2xl z-10">
-    <div class="overflow-x-auto w-full relative z-10">
-      <table class="w-full border-separate border-spacing-0">
+    <!-- Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
         <thead>
-          <tr class="bg-bg-tertiary/50">
-            <th class="px-6 py-5 text-[10px] font-black text-text-muted uppercase tracking-widest text-left border-b border-border-primary/50">Date</th>
-            <th class="px-6 py-5 text-[10px] font-black text-text-muted uppercase tracking-widest text-left border-b border-border-primary/50">Description</th>
-            <th class="px-6 py-5 text-[10px] font-black text-text-muted uppercase tracking-widest text-left border-b border-border-primary/50">Amount</th>
-            <th class="px-6 py-5 text-[10px] font-black text-text-muted uppercase tracking-widest text-left border-b border-border-primary/50">Status</th>
-            <th class="px-6 py-5 text-[10px] font-black text-text-muted uppercase tracking-widest text-right border-b border-border-primary/50">Actions</th>
+          <tr class="border-b border-border-primary bg-bg-tertiary/50">
+            <th class="px-5 py-3.5 text-xs font-bold text-text-muted uppercase tracking-wider">Date</th>
+            <th class="px-5 py-3.5 text-xs font-bold text-text-muted uppercase tracking-wider">Expense Details</th>
+            <th class="px-5 py-3.5 text-xs font-bold text-text-muted uppercase tracking-wider">Amount</th>
+            <th class="px-5 py-3.5 text-xs font-bold text-text-muted uppercase tracking-wider">Status</th>
+            <th class="px-5 py-3.5 text-xs font-bold text-text-muted uppercase tracking-wider text-right">Actions</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-border-primary/50">
+        <tbody class="divide-y divide-border-primary">
           @for (claim of claims(); track claim.id) {
-            <tr class="hover:bg-bg-tertiary transition-colors duration-300">
-              <td class="px-6 py-5 text-sm font-medium text-text-secondary">{{ claim.created_at | date: 'MMM d, y' }}</td>
-              <td class="px-6 py-5">
-                <span class="text-sm font-bold text-text-primary block">{{ claim.description }}</span>
-                <span class="text-xs text-text-muted font-medium block">Requestor: {{ claim.requestor_id.slice(0, 8) }}...</span>
+            <tr class="hover:bg-bg-tertiary/60 transition-colors">
+              <td class="px-5 py-4 text-xs sm:text-sm font-medium text-text-muted whitespace-nowrap">
+                {{ claim.created_at | date: 'MMM d, y' }}
               </td>
-              <td class="px-6 py-5 text-sm font-black text-text-primary">{{ claim.amount | currency:'GHS':'symbol':'1.0-0' }}</td>
-              <td class="px-6 py-5">
+              <td class="px-5 py-4">
+                <span class="text-sm font-bold text-text-primary block">{{ claim.description }}</span>
+                <span class="text-[11px] text-text-muted font-mono mt-0.5 block">Requestor: {{ claim.requestor_id.slice(0, 8) }}...</span>
+              </td>
+              <td class="px-5 py-4 text-sm font-black text-text-primary whitespace-nowrap">
+                {{ claim.amount | currency:'GHS':'symbol':'1.0-0' }}
+              </td>
+              <td class="px-5 py-4 whitespace-nowrap">
                 <span
-                  class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border backdrop-blur-sm"
+                  class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border inline-flex items-center gap-1.5"
                   [ngClass]="{
                     'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400': claim.status.startsWith('PENDING'),
                     'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400': claim.status === 'APPROVED' || claim.status === 'PAID',
                     'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400': claim.status === 'REJECTED'
                   }"
                 >
+                  <span class="w-1.5 h-1.5 rounded-full"
+                        [ngClass]="{
+                          'bg-amber-500': claim.status.startsWith('PENDING'),
+                          'bg-emerald-500': claim.status === 'APPROVED' || claim.status === 'PAID',
+                          'bg-rose-500': claim.status === 'REJECTED'
+                        }"></span>
                   {{ claim.status.replace('_', ' ') }}
                 </span>
               </td>
-              <td class="px-6 py-5">
+              <td class="px-5 py-4 text-right whitespace-nowrap">
                 <div class="flex items-center justify-end gap-2">
                   @if (claim.status.startsWith('PENDING')) {
                     <button
-                      class="w-9 h-9 flex items-center justify-center rounded-xl bg-bg-tertiary border border-border-primary text-emerald-500 hover:bg-emerald-500/20 hover:border-emerald-500/30 transition-all shadow-sm"
+                      class="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 text-xs font-bold transition-all flex items-center gap-1.5"
                       (click)="reviewClaim(claim, true)"
-                      title="Approve"
+                      title="Approve Requisition"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                      <i class="fas fa-check"></i>
+                      <span>Approve</span>
                     </button>
                     <button
-                      class="w-9 h-9 flex items-center justify-center rounded-xl bg-bg-tertiary border border-border-primary text-rose-500 hover:bg-rose-500/20 hover:border-rose-500/30 transition-all shadow-sm"
+                      class="px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 text-xs font-bold transition-all flex items-center gap-1.5"
                       (click)="reviewClaim(claim, false)"
-                      title="Reject"
+                      title="Reject Requisition"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      <i class="fas fa-times"></i>
+                      <span>Reject</span>
                     </button>
+                  } @else {
+                    <span class="text-xs text-text-muted font-medium">Processed</span>
                   }
                 </div>
               </td>
@@ -94,46 +187,85 @@
           } @empty {
             <tr>
               <td colspan="5" class="px-6 py-16 text-center">
-                <p class="text-sm font-bold text-text-primary">No claims found.</p>
+                <div class="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto mb-3 text-xl">
+                  <i class="fas fa-receipt"></i>
+                </div>
+                <p class="text-base font-bold text-text-primary">No Expense Claims Found</p>
+                <p class="text-xs text-text-muted mt-1">There are no expense claims matching this filter.</p>
               </td>
             </tr>
           }
         </tbody>
       </table>
     </div>
+
   </div>
+
 </div>
 
-<!-- Modal -->
+<!-- ===== SUBMIT CLAIM MODAL ===== -->
 @if (showModal()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-fade-in">
-    <div class="absolute inset-0 bg-bg-primary/80 backdrop-blur-sm" (click)="showModal.set(false)"></div>
-    <div class="relative w-full max-w-md bg-bg-secondary border border-border-primary rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-scale-in">
-      <div class="p-6 md:p-8 border-b border-border-primary flex items-center justify-between bg-bg-tertiary/30">
-        <h3 class="text-xl font-black text-text-primary tracking-tight">Submit Claim</h3>
-        <button (click)="showModal.set(false)" class="w-10 h-10 rounded-2xl flex items-center justify-center text-text-muted hover:bg-bg-tertiary hover:text-text-primary transition-colors border border-transparent hover:border-border-primary">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+  <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in" (click)="showModal.set(false)">
+    <div class="relative w-full max-w-lg bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[85vh] animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
+      
+      <!-- Mobile Bottom Sheet Handle -->
+      <div class="pt-3 pb-1 sm:hidden">
+        <div class="bottomsheet-handle"></div>
+      </div>
+
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-6 border-b border-border-primary flex items-center justify-between bg-bg-tertiary">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm">
+            <i class="fas fa-file-invoice-dollar"></i>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-bold text-text-primary">Submit Expense Claim</h3>
+            <p class="text-xs text-text-muted mt-0.5">Request staff reimbursement or petty cash payout</p>
+          </div>
+        </div>
+        <button (click)="showModal.set(false)" class="p-2 text-text-muted hover:text-text-primary hover:bg-bg-primary rounded-xl transition-colors">
+          <i class="fas fa-times text-sm"></i>
         </button>
       </div>
 
-      <div class="p-6 md:p-8 overflow-y-auto custom-scrollbar flex-1 flex flex-col gap-5">
-        <div class="flex flex-col gap-2">
-          <label class="text-xs font-black uppercase tracking-widest text-text-muted pl-1">Description</label>
-          <input type="text" [(ngModel)]="formData.description" placeholder="What was this expense for?" class="w-full bg-bg-tertiary border border-border-primary rounded-2xl px-5 py-4 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 transition-colors" />
+      <!-- Form Body -->
+      <div class="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto">
+        <div>
+          <label class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5 block">Expense Description</label>
+          <input type="text" 
+                 [(ngModel)]="formData.description" 
+                 placeholder="e.g. Science Lab Consumables, Bus Fuel" 
+                 class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-3 text-xs sm:text-sm font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all" />
         </div>
-        <div class="flex flex-col gap-2">
-          <label class="text-xs font-black uppercase tracking-widest text-text-muted pl-1">Amount (GHS)</label>
-          <input type="number" [(ngModel)]="formData.amount" class="w-full bg-bg-tertiary border border-border-primary rounded-2xl px-5 py-4 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 transition-colors" />
+        <div>
+          <label class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5 block">Amount (GHS ₵)</label>
+          <input type="number" 
+                 [(ngModel)]="formData.amount" 
+                 placeholder="0.00"
+                 class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-3 text-xs sm:text-sm font-black text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all" />
         </div>
       </div>
 
-      <div class="p-6 md:p-8 border-t border-border-primary bg-bg-tertiary/30 flex gap-3">
-        <button (click)="showModal.set(false)" class="flex-1 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest bg-bg-tertiary border border-border-primary text-text-secondary hover:text-text-primary hover:bg-border-primary/50 transition-all">Cancel</button>
-        <button (click)="submitClaim()" [disabled]="isSubmitting()" class="flex-1 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-500 text-white transition-all border border-blue-400/30 flex justify-center items-center gap-2">
-          <svg *ngIf="isSubmitting()" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="animate-spin"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24" /><path d="M21 3v9h-9" /></svg>
-          {{ isSubmitting() ? 'Submitting...' : 'Submit' }}
+      <!-- Footer -->
+      <div class="p-4 sm:p-6 border-t border-border-primary bg-bg-tertiary flex justify-end gap-3">
+        <button (click)="showModal.set(false)" 
+                class="px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold text-text-muted hover:bg-bg-secondary transition-colors">
+          Discard
+        </button>
+        <button (click)="submitClaim()" 
+                [disabled]="isSubmitting()" 
+                class="px-5 sm:px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 transition-all disabled:opacity-50 flex items-center gap-2">
+          @if (isSubmitting()) {
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Submitting...</span>
+          } @else {
+            <i class="fas fa-paper-plane"></i>
+            <span>Submit Requisition</span>
+          }
         </button>
       </div>
+
     </div>
   </div>
 }

@@ -324,14 +324,19 @@
 
 <!-- ═══════════════════════ ADD ENTRY MODAL ═══════════════════════ -->
 @if (isAdding()) {
-<div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in no-print" (click)="isAdding.set(false)">
-    <div class="bg-bg-secondary w-full max-w-lg rounded-3xl border border-border-primary shadow-2xl p-6 md:p-8 relative z-10" (click)="$event.stopPropagation()">
-        <div class="flex justify-between items-start mb-6">
+<div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in no-print" (click)="isAdding.set(false)">
+    <div class="bg-bg-secondary w-full max-w-lg rounded-t-3xl sm:rounded-3xl border border-border-primary shadow-2xl p-5 sm:p-8 relative z-10 max-h-[90vh] sm:max-h-[85vh] overflow-y-auto animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
+        <!-- Mobile Bottomsheet Handle -->
+        <div class="sm:hidden flex justify-center pb-2">
+            <div class="bottomsheet-handle"></div>
+        </div>
+
+        <div class="flex justify-between items-start mb-5 sm:mb-6">
             <div>
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest mb-2">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest mb-1.5 sm:mb-2">
                     Schedule Slot
                 </div>
-                <h3 class="text-xl font-black text-text-primary">Add Class Session</h3>
+                <h3 class="text-lg sm:text-xl font-black text-text-primary">Add Class Session</h3>
                 <p class="text-xs text-text-muted mt-0.5">Scheduling for <strong class="text-blue-400">{{ selectedClass()?.name }}</strong></p>
             </div>
             <button (click)="isAdding.set(false)" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all">
@@ -363,7 +368,7 @@
             </div>
 
             <!-- Day & Room -->
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Day of Week *</label>
                     <select [(ngModel)]="draft.day_of_week" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary outline-none focus:border-blue-500">
@@ -380,7 +385,7 @@
             </div>
 
             <!-- Time Slots -->
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Start Time *</label>
                     <select [(ngModel)]="draft.start_time" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary font-mono outline-none focus:border-blue-500">
@@ -400,12 +405,12 @@
             </div>
         </div>
 
-        <div class="flex gap-3 mt-8">
-            <button (click)="isAdding.set(false)" class="flex-1 py-3 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-primary border border-border-primary transition-all">
+        <div class="flex flex-col-reverse sm:flex-row gap-3 mt-6 sm:mt-8">
+            <button (click)="isAdding.set(false)" class="w-full sm:flex-1 py-3 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-primary border border-border-primary transition-all">
                 Cancel
             </button>
             <button (click)="addEntry()" [disabled]="isSaving()"
-                class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25 transition-all disabled:opacity-50">
+                class="w-full sm:flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25 transition-all disabled:opacity-50">
                 @if (isSaving()) {
                 <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                 Saving…
@@ -420,14 +425,19 @@
 
 <!-- ═══════════════════════ COPY SCHEDULE MODAL ═══════════════════════ -->
 @if (showCopyModal()) {
-<div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in no-print" (click)="showCopyModal.set(false)">
-    <div class="bg-bg-secondary w-full max-w-md rounded-3xl border border-border-primary shadow-2xl p-6 md:p-8 relative z-10" (click)="$event.stopPropagation()">
-        <div class="flex justify-between items-start mb-6">
+<div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in no-print" (click)="showCopyModal.set(false)">
+    <div class="bg-bg-secondary w-full max-w-md rounded-t-3xl sm:rounded-3xl border border-border-primary shadow-2xl p-5 sm:p-8 relative z-10 max-h-[90vh] sm:max-h-[85vh] overflow-y-auto animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
+        <!-- Mobile Bottomsheet Handle -->
+        <div class="sm:hidden flex justify-center pb-2">
+            <div class="bottomsheet-handle"></div>
+        </div>
+
+        <div class="flex justify-between items-start mb-5 sm:mb-6">
             <div>
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest mb-2">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest mb-1.5 sm:mb-2">
                     Clone Timetable
                 </div>
-                <h3 class="text-xl font-black text-text-primary">Copy Schedule</h3>
+                <h3 class="text-lg sm:text-xl font-black text-text-primary">Copy Schedule</h3>
                 <p class="text-xs text-text-muted mt-0.5">Copy all weekly sessions into <strong class="text-blue-400">{{ selectedClass()?.name }}</strong></p>
             </div>
             <button (click)="showCopyModal.set(false)" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all">
@@ -447,12 +457,12 @@
             </select>
         </div>
 
-        <div class="flex gap-3">
-            <button (click)="showCopyModal.set(false)" class="flex-1 py-3 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-primary border border-border-primary transition-all">
+        <div class="flex flex-col-reverse sm:flex-row gap-3">
+            <button (click)="showCopyModal.set(false)" class="w-full sm:flex-1 py-3 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-primary border border-border-primary transition-all">
                 Cancel
             </button>
             <button (click)="copySchedule()" [disabled]="isCopying() || !copySourceClassId()"
-                class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25 transition-all disabled:opacity-50">
+                class="w-full sm:flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25 transition-all disabled:opacity-50">
                 @if (isCopying()) {
                 <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                 Copying…

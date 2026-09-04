@@ -178,36 +178,40 @@
 
 <!-- Modal: New Quiz -->
 <div *ngIf="showQuizForm()"
-  class="fixed inset-0 bg-bg-primary/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+  class="fixed inset-0 bg-bg-primary/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in" (click)="showQuizForm.set(false)">
   <div
-    class="bg-bg-secondary rounded-3xl border border-border-primary shadow-2xl w-full max-w-md overflow-hidden animate-scale-in">
-    <div class="p-6 border-b border-border-primary flex justify-between items-center bg-bg-tertiary/50">
-      <h3 class="text-lg font-black text-text-primary tracking-tight">Create Assessment</h3>
+    class="bg-bg-secondary rounded-t-3xl sm:rounded-3xl border border-border-primary shadow-2xl w-full max-w-md overflow-hidden animate-slide-up sm:animate-scale-in max-h-[90vh] sm:max-h-[85vh] flex flex-col" (click)="$event.stopPropagation()">
+    <!-- Mobile Handle -->
+    <div class="sm:hidden flex justify-center pt-3 pb-1">
+      <div class="bottomsheet-handle"></div>
+    </div>
+    <div class="p-5 sm:p-6 border-b border-border-primary flex justify-between items-center bg-bg-tertiary/50">
+      <h3 class="text-base sm:text-lg font-black text-text-primary tracking-tight">Create Assessment</h3>
       <button (click)="showQuizForm.set(false)"
         class="w-8 h-8 rounded-xl bg-bg-primary border border-border-primary flex items-center justify-center text-text-muted hover:text-text-primary transition-colors"><svg
           class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
         </svg></button>
     </div>
-    <form [formGroup]="quizForm" (ngSubmit)="submitQuiz()" class="p-6 space-y-5">
+    <form [formGroup]="quizForm" (ngSubmit)="submitQuiz()" class="p-5 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto">
       <div>
-        <label class="block text-[10px] font-black text-text-muted mb-2 uppercase tracking-widest">Assessment
+        <label class="block text-[10px] font-black text-text-muted mb-1.5 sm:mb-2 uppercase tracking-widest">Assessment
           Title</label>
         <input type="text" formControlName="title"
-          class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted"
+          class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted"
           placeholder="e.g. Mid-Term Physics">
       </div>
       <div>
-        <label class="block text-[10px] font-black text-text-muted mb-2 uppercase tracking-widest">Description</label>
+        <label class="block text-[10px] font-black text-text-muted mb-1.5 sm:mb-2 uppercase tracking-widest">Description</label>
         <textarea formControlName="description" rows="3"
-          class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted resize-none"
+          class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted resize-none"
           placeholder="Brief instructions..."></textarea>
       </div>
       <div>
-        <label class="block text-[10px] font-black text-text-muted mb-2 uppercase tracking-widest">Time Limit
+        <label class="block text-[10px] font-black text-text-muted mb-1.5 sm:mb-2 uppercase tracking-widest">Time Limit
           (Minutes)</label>
         <input type="number" formControlName="time_limit_mins"
-          class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted">
+          class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted">
         <p class="text-[10px] font-bold text-text-muted mt-1.5 flex items-center gap-1"><svg
             xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2">
@@ -216,11 +220,11 @@
             <line x1="12" y1="8" x2="12.01" y2="8" />
           </svg> Set to 0 for untimed.</p>
       </div>
-      <div class="pt-4 flex justify-end gap-3 border-t border-border-primary mt-2">
+      <div class="pt-4 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 border-t border-border-primary mt-2">
         <button type="button" (click)="showQuizForm.set(false)"
-          class="px-5 py-2.5 rounded-xl border border-border-primary text-sm font-bold text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors">Cancel</button>
+          class="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-border-primary text-xs sm:text-sm font-bold text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors">Cancel</button>
         <button type="submit" [disabled]="quizForm.invalid"
-          class="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95">Create</button>
+          class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md active:scale-95">Create</button>
       </div>
     </form>
   </div>
@@ -228,11 +232,15 @@
 
 <!-- Modal: New Question -->
 <div *ngIf="showQuestionForm()"
-  class="fixed inset-0 bg-bg-primary/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+  class="fixed inset-0 bg-bg-primary/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in" (click)="showQuestionForm.set(false)">
   <div
-    class="bg-bg-secondary rounded-3xl border border-border-primary shadow-2xl w-full max-w-xl overflow-hidden animate-scale-in">
-    <div class="p-6 border-b border-border-primary flex justify-between items-center bg-bg-tertiary/50">
-      <h3 class="text-lg font-black text-text-primary tracking-tight">Add Question</h3>
+    class="bg-bg-secondary rounded-t-3xl sm:rounded-3xl border border-border-primary shadow-2xl w-full max-w-xl overflow-hidden animate-slide-up sm:animate-scale-in max-h-[92vh] sm:max-h-[85vh] flex flex-col" (click)="$event.stopPropagation()">
+    <!-- Mobile Handle -->
+    <div class="sm:hidden flex justify-center pt-3 pb-1">
+      <div class="bottomsheet-handle"></div>
+    </div>
+    <div class="p-5 sm:p-6 border-b border-border-primary flex justify-between items-center bg-bg-tertiary/50 shrink-0">
+      <h3 class="text-base sm:text-lg font-black text-text-primary tracking-tight">Add Question</h3>
       <button (click)="showQuestionForm.set(false)"
         class="w-8 h-8 rounded-xl bg-bg-primary border border-border-primary flex items-center justify-center text-text-muted hover:text-text-primary transition-colors"><svg
           class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
@@ -240,14 +248,14 @@
         </svg></button>
     </div>
     <form [formGroup]="questionForm" (ngSubmit)="submitQuestion()"
-      class="p-6 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar">
-      <div class="flex gap-5">
+      class="p-5 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto custom-scrollbar flex-1">
+      <div class="flex flex-col sm:flex-row gap-3 sm:gap-5">
         <div class="flex-1">
-          <label class="block text-[10px] font-black text-text-muted mb-2 uppercase tracking-widest">Question
+          <label class="block text-[10px] font-black text-text-muted mb-1.5 sm:mb-2 uppercase tracking-widest">Question
             Type</label>
           <div class="relative">
             <select formControlName="type"
-              class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none">
+              class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none">
               <option value="MULTIPLE_CHOICE">Multiple Choice</option>
               <option value="TRUE_FALSE">True / False</option>
               <option value="SHORT_ANSWER">Short Answer</option>
@@ -259,23 +267,23 @@
               </svg></div>
           </div>
         </div>
-        <div class="w-24">
-          <label class="block text-[10px] font-black text-text-muted mb-2 uppercase tracking-widest">Points</label>
+        <div class="w-full sm:w-24">
+          <label class="block text-[10px] font-black text-text-muted mb-1.5 sm:mb-2 uppercase tracking-widest">Points</label>
           <input type="number" formControlName="points"
-            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all">
+            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all">
         </div>
       </div>
 
       <div>
-        <label class="block text-[10px] font-black text-text-muted mb-2 uppercase tracking-widest">Question
+        <label class="block text-[10px] font-black text-text-muted mb-1.5 sm:mb-2 uppercase tracking-widest">Question
           Prompt</label>
         <textarea formControlName="content" rows="3"
-          class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted resize-none"
+          class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted resize-none"
           placeholder="Enter question text..."></textarea>
       </div>
 
       <ng-container *ngIf="questionForm.get('type')?.value === 'MULTIPLE_CHOICE'">
-        <div class="bg-bg-primary border border-border-primary rounded-2xl p-4">
+        <div class="bg-bg-primary border border-border-primary rounded-2xl p-3.5 sm:p-4">
           <div class="flex justify-between items-center mb-3">
             <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest">Options</label>
             <button type="button" (click)="addOption()"
@@ -283,15 +291,15 @@
               Add Option</button>
           </div>
           <div formArrayName="options" class="space-y-3">
-            <div *ngFor="let opt of optionsArray.controls; let i=index" class="flex gap-3 items-center">
+            <div *ngFor="let opt of optionsArray.controls; let i=index" class="flex gap-2 sm:gap-3 items-center">
               <span
-                class="w-8 h-8 flex items-center justify-center bg-bg-secondary border border-border-primary text-text-secondary rounded-xl text-xs font-black shadow-sm shrink-0">{{
+                class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-bg-secondary border border-border-primary text-text-secondary rounded-xl text-xs font-black shadow-sm shrink-0">{{
                 i + 1 }}</span>
               <input [formControlName]="i" type="text"
-                class="flex-1 bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted"
+                class="flex-1 bg-bg-tertiary border border-border-primary rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted"
                 placeholder="Option text">
               <button type="button" (click)="removeOption(i)" [disabled]="optionsArray.length <= 2"
-                class="w-8 h-8 flex items-center justify-center rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all shrink-0">
+                class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round"
                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
@@ -303,29 +311,29 @@
         </div>
 
         <div>
-          <label class="block text-[10px] font-black text-text-muted mb-2 uppercase tracking-widest">Correct Answer
+          <label class="block text-[10px] font-black text-text-muted mb-1.5 sm:mb-2 uppercase tracking-widest">Correct Answer
             Index (1-based)</label>
           <input type="text" formControlName="correct_answer"
-            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted"
+            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted"
             placeholder="e.g. 2">
         </div>
       </ng-container>
 
       <ng-container *ngIf="questionForm.get('type')?.value !== 'MULTIPLE_CHOICE'">
         <div>
-          <label class="block text-[10px] font-black text-text-muted mb-2 uppercase tracking-widest">Correct
+          <label class="block text-[10px] font-black text-text-muted mb-1.5 sm:mb-2 uppercase tracking-widest">Correct
             Answer</label>
           <input type="text" formControlName="correct_answer"
-            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted"
+            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted"
             placeholder="e.g. true, false, or short text">
         </div>
       </ng-container>
 
-      <div class="pt-5 flex justify-end gap-3 border-t border-border-primary mt-6">
+      <div class="pt-4 sm:pt-5 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 border-t border-border-primary mt-4 sm:mt-6">
         <button type="button" (click)="showQuestionForm.set(false)"
-          class="px-5 py-2.5 rounded-xl border border-border-primary text-sm font-bold text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors">Cancel</button>
+          class="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-border-primary text-xs sm:text-sm font-bold text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors">Cancel</button>
         <button type="submit" [disabled]="questionForm.invalid"
-          class="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95">Save
+          class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md active:scale-95">Save
           Question</button>
       </div>
     </form>

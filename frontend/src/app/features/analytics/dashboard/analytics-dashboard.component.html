@@ -1,363 +1,464 @@
-<div class="text-text-primary space-y-4 sm:space-y-6 animate-fade-in">
-    <!-- Header Section -->
-    <div class="max-w-7xl mx-auto mb-4 sm:mb-6">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6">
-            <div>
-                <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight text-blue-400 mb-2">
-                    Institutional Analytics
-                </h1>
-                <p class="text-text-muted text-sm md:text-base max-w-2xl">
-                    Comprehensive performance metrics, enrollment trends, and predictive intelligence to drive strategic decision-making.
-                </p>
+<div class="max-w-[1440px] mx-auto animate-fade-in pb-16">
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 1. TOP HEADER & ACTION BAR                                 -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+            <div class="flex items-center gap-2 text-xs font-bold text-text-muted mb-1.5">
+                <span class="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                    Institutional Intelligence
+                </span>
+                <span class="text-text-muted/40">/</span>
+                <span class="text-text-primary font-black">Executive Analytics</span>
             </div>
-            
-            <div class="flex gap-3">
-                <button (click)="downloadExecutiveReport()" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Executive Report
-                </button>
-                <button class="px-6 py-3 bg-bg-secondary border border-border-primary hover:border-blue-500/50 text-text-primary rounded-xl text-sm font-bold shadow-sm hover:shadow-md transition-all active:scale-95 flex items-center gap-3" (click)="loadData()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [class.animate-spin]="isLoading()" class="text-blue-500"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-                    Sync Data
-                </button>
-            </div>
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+                Institutional Analytics & Telemetry
+            </h1>
+            <p class="text-xs sm:text-sm font-medium text-text-muted mt-1 max-w-2xl">
+                Comprehensive performance metrics, enrollment trends, facility utilization, and predictive intelligence to drive strategic decisions.
+            </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button (click)="downloadExecutiveReport()"
+                class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                <i class="fas fa-file-pdf text-xs"></i>
+                <span>Executive Report</span>
+            </button>
+
+            <button (click)="loadData()"
+                class="px-4 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary rounded-xl text-xs font-bold shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                <i class="fas fa-rotate text-xs text-blue-500" [class.animate-spin]="isLoading()"></i>
+                <span>Sync Telemetry</span>
+            </button>
         </div>
     </div>
 
     @if (isLoading()) {
-    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        @for (i of [1,2,3,4]; track i) {
-            <div class="h-36 bg-bg-secondary/50 backdrop-blur-sm border border-border-primary rounded-3xl p-6 relative overflow-hidden">
-                <div class="absolute inset-0 bg-blue-600 -translate-x-full animate-[shimmer_2s_infinite]"></div>
-                <div class="w-12 h-12 rounded-full bg-bg-tertiary mb-4"></div>
-                <div class="w-24 h-6 bg-bg-tertiary rounded-lg mb-2"></div>
-                <div class="w-32 h-3 bg-bg-tertiary rounded-full"></div>
-            </div>
-        }
-    </div>
-    <div class="max-w-7xl mx-auto h-[500px] bg-bg-secondary/50 backdrop-blur-sm border border-border-primary rounded-[2.5rem] relative overflow-hidden mb-10 p-8">
-        <div class="absolute inset-0 bg-blue-600 -translate-x-full animate-[shimmer_2s_infinite]"></div>
-        <div class="flex items-center justify-center h-full">
-            <div class="flex flex-col items-center gap-4">
-                <div class="w-12 h-12 border-4 border-slate-300 border-t-slate-500 rounded-full animate-spin"></div>
-                <p class="text-sm font-bold text-text-muted animate-pulse">Aggregating telemetry...</p>
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- SKELETON LOADING STATE (CLEAN & SUBTLE)                     -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="space-y-6">
+        <!-- KPI Skeletons -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            @for (i of [1,2,3,4]; track i) {
+                <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-5 shadow-sm animate-pulse space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="w-10 h-10 rounded-xl bg-bg-tertiary"></div>
+                        <div class="w-16 h-4 rounded-md bg-bg-tertiary"></div>
+                    </div>
+                    <div class="w-24 h-7 rounded-lg bg-bg-tertiary"></div>
+                    <div class="w-32 h-3.5 rounded-md bg-bg-tertiary"></div>
+                </div>
+            }
+        </div>
+
+        <!-- Main Chart Skeleton -->
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-8 shadow-sm flex flex-col items-center justify-center py-24 gap-4 text-center">
+            <div class="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+            <div>
+                <p class="text-sm font-bold text-text-primary">Aggregating Institutional Telemetry...</p>
+                <p class="text-xs text-text-muted mt-0.5">Computing grades, facility utilization, attendance matrix, and retention models</p>
             </div>
         </div>
     </div>
     } @else {
-    
-    <!-- Key Performance Indicators Row -->
-    <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        <!-- Enrollment KPI -->
-        <div class="group bg-bg-secondary border border-border-primary hover:border-blue-500/30 rounded-3xl p-6 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 relative overflow-hidden">
-            <div class="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all duration-500"></div>
-            <div class="flex items-start justify-between mb-4 relative z-10">
-                <div class="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
-                    <i class="fas fa-users text-xl"></i>
+
+    <div class="space-y-6">
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- 2. KEY PERFORMANCE INDICATORS (KPIs)                   -->
+        <!-- ══════════════════════════════════════════════════════ -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            <!-- 1. Total Population -->
+            <div class="bg-bg-secondary border border-border-primary hover:border-blue-500/30 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-sm relative overflow-hidden transition-all duration-300 group">
+                <div class="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all duration-500"></div>
+                <div class="flex items-center justify-between mb-4 relative z-10">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 text-sm shadow-xs">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <span class="px-2.5 py-0.5 rounded-full bg-bg-tertiary border border-border-primary text-[10px] font-black uppercase tracking-wider text-text-muted">
+                        Population
+                    </span>
                 </div>
-                <span class="px-2.5 py-1 rounded-lg bg-bg-tertiary border border-border-primary text-[10px] font-bold text-text-muted uppercase tracking-wider">Population</span>
+                <div class="relative z-10">
+                    <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight">
+                        {{ kpis()?.total_students || 0 | number }}
+                    </p>
+                    <div class="flex items-center gap-1.5 mt-1 text-xs font-bold text-blue-600 dark:text-blue-400">
+                        <i class="fas fa-chalkboard-user text-[11px]"></i>
+                        <span>{{ kpis()?.total_teachers || 0 }} Faculty Instructors</span>
+                    </div>
+                </div>
             </div>
-            <div class="relative z-10">
-                <p class="text-3xl font-black text-text-primary tracking-tight">{{ kpis()?.total_students || 0 | number }}</p>
-                <div class="flex items-center gap-1.5 mt-1 text-xs font-bold text-blue-500">
-                    <i class="fas fa-chalkboard-teacher"></i>
-                    <span>{{ kpis()?.total_teachers || 0 }} Faculty</span>
+
+            <!-- 2. Global Attendance -->
+            <div class="bg-bg-secondary border border-border-primary hover:border-emerald-500/30 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-sm relative overflow-hidden transition-all duration-300 group">
+                <div class="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all duration-500"></div>
+                <div class="flex items-center justify-between mb-4 relative z-10">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-sm shadow-xs">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                        Engagement
+                    </span>
+                </div>
+                <div class="relative z-10">
+                    <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight">
+                        {{ kpis()?.average_attendance || 0 | number:'1.1-1' }}%
+                    </p>
+                    <div class="flex items-center gap-1.5 mt-1 text-xs font-bold text-text-muted">
+                        <i class="fas fa-chart-simple text-[11px] text-emerald-500"></i>
+                        <span>Global Attendance Average</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. GPA / Academic Standard -->
+            <div class="bg-bg-secondary border border-border-primary hover:border-amber-500/30 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-sm relative overflow-hidden transition-all duration-300 group">
+                <div class="absolute -right-6 -top-6 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all duration-500"></div>
+                <div class="flex items-center justify-between mb-4 relative z-10">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400 text-sm shadow-xs">
+                        <i class="fas fa-award"></i>
+                    </div>
+                    <span class="px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                        Scholastic
+                    </span>
+                </div>
+                <div class="relative z-10">
+                    <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight">
+                        {{ kpis()?.average_gpa || 0 | number:'1.2-2' }}
+                    </p>
+                    <div class="flex items-center gap-1.5 mt-1 text-xs font-bold text-text-muted">
+                        <i class="fas fa-medal text-[11px] text-amber-500"></i>
+                        <span>Institutional Grade Standard</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Resources & Library -->
+            <div class="bg-bg-secondary border border-border-primary hover:border-purple-500/30 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-sm relative overflow-hidden transition-all duration-300 group">
+                <div class="absolute -right-6 -top-6 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-all duration-500"></div>
+                <div class="flex items-center justify-between mb-4 relative z-10">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 text-sm shadow-xs">
+                        <i class="fas fa-book-bookmark"></i>
+                    </div>
+                    <span class="px-2.5 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-[10px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                        Resources
+                    </span>
+                </div>
+                <div class="relative z-10">
+                    <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight">
+                        {{ kpis()?.library_loans || 0 | number }}
+                    </p>
+                    <div class="flex items-center gap-1.5 mt-1 text-xs font-bold text-text-muted">
+                        <i class="fas fa-book-open-reader text-[11px] text-purple-500"></i>
+                        <span>Active Resource Loans</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Attendance KPI -->
-        <div class="group bg-bg-secondary border border-border-primary hover:border-emerald-500/30 rounded-3xl p-6 shadow-sm hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300 relative overflow-hidden">
-            <div class="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all duration-500"></div>
-            <div class="flex items-start justify-between mb-4 relative z-10">
-                <div class="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                    <i class="fas fa-calendar-check text-xl"></i>
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- 3. DEMOGRAPHICS & POPULATION STRUCTURE                 -->
+        <!-- ══════════════════════════════════════════════════════ -->
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-7 shadow-sm">
+            <div class="flex items-center justify-between mb-5 pb-4 border-b border-border-primary/80">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center text-xs shrink-0">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm sm:text-base font-black text-text-primary">Demographics & Enrollment Architecture</h3>
+                        <p class="text-[11px] font-bold text-text-muted">Gender composition, student lifecycles, and retention indicators</p>
+                    </div>
                 </div>
-                <span class="px-2.5 py-1 rounded-lg bg-bg-tertiary border border-border-primary text-[10px] font-bold text-text-muted uppercase tracking-wider">Engagement</span>
             </div>
-            <div class="relative z-10">
-                <p class="text-3xl font-black text-text-primary tracking-tight">{{ kpis()?.average_attendance || 0 | number:'1.1-1' }}%</p>
-                <div class="flex items-center gap-1.5 mt-1 text-xs font-bold text-text-muted">
-                    <span>Global Attendance Average</span>
-                </div>
-            </div>
-        </div>
 
-        <!-- GPA KPI -->
-        <div class="group bg-bg-secondary border border-border-primary hover:border-amber-500/30 rounded-3xl p-6 shadow-sm hover:shadow-xl hover:shadow-amber-500/5 transition-all duration-300 relative overflow-hidden">
-            <div class="absolute -right-6 -top-6 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all duration-500"></div>
-            <div class="flex items-start justify-between mb-4 relative z-10">
-                <div class="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
-                    <i class="fas fa-graduation-cap text-xl"></i>
-                </div>
-                <span class="px-2.5 py-1 rounded-lg bg-bg-tertiary border border-border-primary text-[10px] font-bold text-text-muted uppercase tracking-wider">Scholastic</span>
-            </div>
-            <div class="relative z-10">
-                <p class="text-3xl font-black text-text-primary tracking-tight">{{ kpis()?.average_gpa || 0 | number:'1.2-2' }}</p>
-                <div class="flex items-center gap-1.5 mt-1 text-xs font-bold text-text-muted">
-                    <span>Institution GPA</span>
-                </div>
-            </div>
-        </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+                <!-- 1. Gender Ratio -->
+                <div class="bg-bg-tertiary/60 border border-border-primary rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">Gender Distribution</span>
+                        <i class="fas fa-venus-mars text-xs text-text-muted"></i>
+                    </div>
 
-        <!-- Library/Resources KPI -->
-        <div class="group bg-bg-secondary border border-border-primary hover:border-blue-500/30 rounded-3xl p-6 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 relative overflow-hidden">
-            <div class="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all duration-500"></div>
-            <div class="flex items-start justify-between mb-4 relative z-10">
-                <div class="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
-                    <i class="fas fa-book-open text-xl"></i>
-                </div>
-                <span class="px-2.5 py-1 rounded-lg bg-bg-tertiary border border-border-primary text-[10px] font-bold text-text-muted uppercase tracking-wider">Resources</span>
-            </div>
-            <div class="relative z-10">
-                <p class="text-3xl font-black text-text-primary tracking-tight">{{ kpis()?.library_loans || 0 | number }}</p>
-                <div class="flex items-center gap-1.5 mt-1 text-xs font-bold text-text-muted">
-                    <span>Active Library Loans</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Demographics Overview Row -->
-    <div class="max-w-7xl mx-auto mb-10">
-        <h3 class="text-xl font-bold text-text-primary mb-4">Demographics & Enrollment Structure</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Gender Split -->
-            <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm flex items-center justify-between group">
-                <div>
-                    <p class="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-2">Gender Distribution</p>
-                    <div class="flex items-end gap-4">
-                        <div>
-                            <p class="text-2xl font-black text-blue-500">{{ demographics()?.male || 0 }}</p>
-                            <p class="text-xs text-text-muted font-semibold">Male</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="p-3 rounded-xl bg-bg-secondary border border-border-primary/60">
+                            <div class="flex items-center gap-1.5 text-xs font-bold text-blue-500 mb-0.5">
+                                <i class="fas fa-mars"></i>
+                                <span>Male</span>
+                            </div>
+                            <p class="text-xl font-black text-text-primary">{{ demographics()?.male || 0 }}</p>
                         </div>
-                        <div>
-                            <p class="text-2xl font-black text-rose-500">{{ demographics()?.female || 0 }}</p>
-                            <p class="text-xs text-text-muted font-semibold">Female</p>
+                        <div class="p-3 rounded-xl bg-bg-secondary border border-border-primary/60">
+                            <div class="flex items-center gap-1.5 text-xs font-bold text-pink-500 mb-0.5">
+                                <i class="fas fa-venus"></i>
+                                <span>Female</span>
+                            </div>
+                            <p class="text-xl font-black text-text-primary">{{ demographics()?.female || 0 }}</p>
                         </div>
                     </div>
                 </div>
-                <div class="w-12 h-12 rounded-full bg-bg-tertiary flex items-center justify-center text-text-muted group-hover:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                </div>
-            </div>
 
-            <!-- Enrollment Status -->
-            <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm flex items-center justify-between group">
-                <div>
-                    <p class="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-2">Enrollment Status</p>
-                    <div class="flex items-end gap-4">
-                        <div>
-                            <p class="text-2xl font-black text-emerald-500">{{ demographics()?.active || 0 }}</p>
-                            <p class="text-xs text-text-muted font-semibold">Active</p>
+                <!-- 2. Enrollment Status -->
+                <div class="bg-bg-tertiary/60 border border-border-primary rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">Enrollment Lifecycle</span>
+                        <i class="fas fa-graduation-cap text-xs text-text-muted"></i>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="p-3 rounded-xl bg-bg-secondary border border-border-primary/60">
+                            <div class="flex items-center gap-1.5 text-xs font-bold text-emerald-500 mb-0.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                <span>Active Scholars</span>
+                            </div>
+                            <p class="text-xl font-black text-text-primary">{{ demographics()?.active || 0 }}</p>
                         </div>
-                        <div>
-                            <p class="text-2xl font-black text-amber-500">{{ demographics()?.alumni || 0 }}</p>
-                            <p class="text-xs text-text-muted font-semibold">Alumni</p>
+                        <div class="p-3 rounded-xl bg-bg-secondary border border-border-primary/60">
+                            <div class="flex items-center gap-1.5 text-xs font-bold text-purple-500 mb-0.5">
+                                <i class="fas fa-user-graduate text-[10px]"></i>
+                                <span>Alumni</span>
+                            </div>
+                            <p class="text-xl font-black text-text-primary">{{ demographics()?.alumni || 0 }}</p>
                         </div>
                     </div>
                 </div>
-                <div class="w-12 h-12 rounded-full bg-bg-tertiary flex items-center justify-center text-text-muted group-hover:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                </div>
-            </div>
 
-            <!-- Withdrawals -->
-            <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm flex items-center justify-between group">
-                <div>
-                    <p class="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-2">Attrition</p>
-                    <div class="flex items-end gap-4">
-                        <div>
-                            <p class="text-2xl font-black text-text-primary">{{ demographics()?.withdrawn || 0 }}</p>
-                            <p class="text-xs text-text-muted font-semibold">Withdrawn</p>
+                <!-- 3. Attrition / Safety -->
+                <div class="bg-bg-tertiary/60 border border-border-primary rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">Retention & Attrition</span>
+                        <i class="fas fa-shield-halved text-xs text-text-muted"></i>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="p-3 rounded-xl bg-bg-secondary border border-border-primary/60">
+                            <div class="flex items-center gap-1.5 text-xs font-bold text-rose-500 mb-0.5">
+                                <i class="fas fa-user-minus text-[10px]"></i>
+                                <span>Withdrawn</span>
+                            </div>
+                            <p class="text-xl font-black text-text-primary">{{ demographics()?.withdrawn || 0 }}</p>
+                        </div>
+                        <div class="p-3 rounded-xl bg-bg-secondary border border-border-primary/60">
+                            <div class="flex items-center gap-1.5 text-xs font-bold text-emerald-500 mb-0.5">
+                                <i class="fas fa-check-double text-[10px]"></i>
+                                <span>Retention</span>
+                            </div>
+                            <p class="text-xl font-black text-text-primary">
+                                {{ demographics()?.active && (demographics()?.active + (demographics()?.withdrawn || 0)) > 0 ? (((demographics()?.active || 0) / ((demographics()?.active || 0) + (demographics()?.withdrawn || 0))) * 100 | number:'1.0-0') : 100 }}%
+                            </p>
                         </div>
                     </div>
                 </div>
-                <div class="w-12 h-12 rounded-full bg-bg-tertiary flex items-center justify-center text-text-muted group-hover:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Charts Area -->
-    <div class="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-6 mb-10">
-        
-        <!-- Academic Distribution Chart -->
-        <div class="xl:col-span-2 bg-bg-secondary border border-border-primary rounded-[2.5rem] p-8 shadow-sm relative overflow-hidden group">
-            <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-500/10 transition-all duration-1000"></div>
-            
-            <div class="flex items-center justify-between mb-8 relative z-10">
-                <div>
-                    <h3 class="text-xl font-bold text-text-primary mb-1">Academic Performance Distribution</h3>
-                    <p class="text-xs text-text-muted font-bold uppercase tracking-wider">Analysis of Institutional Grade Tiers</p>
-                </div>
-                <div class="px-3 py-1.5 bg-blue-500/10 text-blue-500 rounded-lg text-xs font-bold flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Live
-                </div>
-            </div>
-            
-            <div class="h-[400px] w-full relative z-10">
-                <ngx-charts-bar-vertical
-                    [results]="gradeData()"
-                    [scheme]="colorScheme"
-                    [xAxis]="true"
-                    [yAxis]="true"
-                    [legend]="false"
-                    [showXAxisLabel]="true"
-                    [showYAxisLabel]="true"
-                    xAxisLabel="Grade Category"
-                    yAxisLabel="Student Volume"
-                    [roundDomains]="true"
-                    [animations]="true">
-                </ngx-charts-bar-vertical>
             </div>
         </div>
 
-        <!-- Attendance Breakdown -->
-        <div class="xl:col-span-1 bg-bg-secondary border border-border-primary rounded-[2.5rem] p-8 shadow-sm flex flex-col relative overflow-hidden group">
-            <div class="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none group-hover:bg-emerald-500/10 transition-all duration-1000"></div>
-            
-            <div class="mb-8 relative z-10">
-                <h3 class="text-xl font-bold text-text-primary mb-1">Engagement Matrix</h3>
-                <p class="text-xs text-text-muted font-bold uppercase tracking-wider">Overall Presence Ratio</p>
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- 4. CORE ANALYTICS CHARTS GRID                          -->
+        <!-- ══════════════════════════════════════════════════════ -->
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <!-- Academic Performance Bar Chart -->
+            <div class="xl:col-span-2 bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-sm relative overflow-hidden flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-6 pb-4 border-b border-border-primary/80">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-base sm:text-lg font-black text-text-primary">Academic Grade Tier Distribution</h3>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/10 text-blue-500 border border-blue-500/20">
+                                Realtime
+                            </span>
+                        </div>
+                        <p class="text-xs text-text-muted mt-0.5">Statistical volume of student assessment marks across grade levels</p>
+                    </div>
+                </div>
+
+                <div class="h-[340px] sm:h-[380px] w-full relative">
+                    <ngx-charts-bar-vertical
+                        [results]="gradeData()"
+                        [scheme]="colorScheme"
+                        [xAxis]="true"
+                        [yAxis]="true"
+                        [legend]="false"
+                        [showXAxisLabel]="true"
+                        [showYAxisLabel]="true"
+                        xAxisLabel="Grade Classification"
+                        yAxisLabel="Enrolled Scholars"
+                        [roundDomains]="true"
+                        [animations]="true">
+                    </ngx-charts-bar-vertical>
+                </div>
             </div>
-            
-            <div class="flex-1 flex flex-col justify-between relative z-10">
-                <div class="h-[280px] w-full mb-6">
+
+            <!-- Attendance & Presence Donut Chart -->
+            <div class="xl:col-span-1 bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-sm relative overflow-hidden flex flex-col justify-between">
+                <div class="mb-4 pb-4 border-b border-border-primary/80">
+                    <h3 class="text-base sm:text-lg font-black text-text-primary">Engagement Matrix</h3>
+                    <p class="text-xs text-text-muted mt-0.5">Presence ratio aggregated across all classrooms</p>
+                </div>
+
+                <div class="h-[220px] w-full mb-4">
                     <ngx-charts-pie-chart
                         [results]="attendanceData()"
                         [scheme]="attendanceColorScheme"
                         [legend]="false"
                         [explodeSlices]="false"
-                        [labels]="true"
+                        [labels]="false"
                         [doughnut]="true"
-                        [arcWidth]="0.25">
+                        [arcWidth]="0.3">
                     </ngx-charts-pie-chart>
                 </div>
 
-                <div class="flex flex-col gap-3">
+                <div class="space-y-2">
                     @for (item of attendanceData(); track item.name) {
-                        <div class="flex items-center justify-between p-4 bg-bg-tertiary border border-border-primary rounded-2xl hover:border-text-muted/30 transition-all shadow-sm">
-                            <div class="flex items-center gap-3">
-                                <div class="w-3 h-3 rounded-full" [style.background-color]="item.name === 'Present' ? '#10b981' : item.name === 'Absent' ? '#ef4444' : '#f59e0b'"></div>
-                                <span class="text-sm font-bold text-text-primary">{{ item.name }}</span>
+                        <div class="flex items-center justify-between p-3 bg-bg-tertiary/60 border border-border-primary/60 rounded-xl">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-3 h-3 rounded-full shadow-xs" [style.background-color]="item.name === 'Present' ? '#10b981' : item.name === 'Absent' ? '#ef4444' : '#f59e0b'"></span>
+                                <span class="text-xs font-bold text-text-primary">{{ item.name }}</span>
                             </div>
-                            <span class="text-sm font-black text-text-primary">{{ item.value }}%</span>
+                            <span class="text-xs font-black text-text-primary">{{ item.value }}%</span>
                         </div>
                     }
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Additional Analytics -->
-    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        <!-- Retention Risk Table -->
-        <div class="bg-bg-secondary border border-border-primary rounded-[2.5rem] p-8 shadow-sm relative overflow-hidden">
-            <div class="flex items-center justify-between mb-8">
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- 5. PREDICTIVE RETENTION & FACILITY UTILIZATION         -->
+        <!-- ══════════════════════════════════════════════════════ -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Retention Risk Candidates Table -->
+            <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-sm flex flex-col justify-between">
                 <div>
-                    <h3 class="text-xl font-bold text-text-primary mb-1">At-Risk Candidates</h3>
-                    <p class="text-xs text-text-muted font-bold uppercase tracking-wider">Predictive Retention Alerts</p>
-                </div>
-            </div>
-
-            <div class="overflow-hidden bg-bg-tertiary border border-border-primary rounded-2xl">
-                <table class="w-full text-left">
-                    <thead class="bg-bg-secondary border-b border-border-primary">
-                        <tr>
-                            <th class="px-6 py-4 text-xs font-bold text-text-muted uppercase tracking-wider">Student</th>
-                            <th class="px-6 py-4 text-xs font-bold text-text-muted uppercase tracking-wider">Risk Level</th>
-                            <th class="px-6 py-4 text-xs font-bold text-text-muted uppercase tracking-wider hidden sm:table-cell">Factors</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-border-primary">
-                        @for (risk of risks().slice(0, 4); track risk.student_id) {
-                        <tr class="hover:bg-bg-secondary transition-colors">
-                            <td class="px-6 py-4">
-                                <p class="text-sm font-bold text-text-primary">{{ risk.student_name }}</p>
-                                <p class="text-xs text-text-muted font-mono mt-0.5">{{ risk.student_id.slice(0, 6) | uppercase }}</p>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-20 h-2 bg-bg-primary rounded-full overflow-hidden border border-border-primary">
-                                        <div class="h-full rounded-full" [style.width.%]="risk.risk_score * 100" [class]="risk.risk_score > 0.7 ? 'bg-red-500' : 'bg-amber-500'"></div>
-                                    </div>
-                                    <span class="text-xs font-bold" [class]="risk.risk_score > 0.7 ? 'text-red-500' : 'text-amber-500'">{{ risk.risk_score | percent:'1.0-0' }}</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 hidden sm:table-cell">
-                                <div class="flex flex-wrap gap-2">
-                                    @for (factor of risk.primary_factors.slice(0, 1); track factor) {
-                                        <span class="px-2 py-1 bg-bg-primary border border-border-primary rounded-md text-[10px] font-bold text-text-muted">{{ factor }}</span>
-                                    }
-                                </div>
-                            </td>
-                        </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-            <button routerLink="/analytics/at-risk" class="w-full mt-6 py-4 border border-border-primary rounded-xl text-sm font-bold text-blue-500 hover:bg-blue-500/5 transition-colors">
-                View Full Retention Matrix →
-            </button>
-        </div>
-
-        <!-- Resource Heatmap -->
-        <div class="bg-bg-secondary border border-border-primary rounded-[2.5rem] p-8 shadow-sm relative overflow-hidden">
-             <div class="flex items-center justify-between mb-8">
-                <div>
-                    <h3 class="text-xl font-bold text-text-primary mb-1">Facility Utilization Heatmap</h3>
-                    <p class="text-xs text-text-muted font-bold uppercase tracking-wider">Time-Series Resource Allocation</p>
-                </div>
-            </div>
-            
-            <div class="h-[350px] w-full">
-                <ngx-charts-heat-map
-                    [results]="heatmapData()"
-                    [scheme]="colorScheme"
-                    [legend]="false"
-                    [showXAxisLabel]="false"
-                    [showYAxisLabel]="false"
-                    [xAxis]="true"
-                    [yAxis]="true"
-                    [animations]="true"
-                    [innerPadding]="4">
-                </ngx-charts-heat-map>
-            </div>
-        </div>
-    </div>
-
-    <!-- Attendance Anomalies -->
-    @if (anomalies().length > 0) {
-    <div class="max-w-7xl mx-auto mt-6 bg-bg-secondary border border-border-primary rounded-[2.5rem] p-8 shadow-sm relative overflow-hidden">
-        <div class="flex items-center justify-between mb-8">
-            <div>
-                <h3 class="text-xl font-bold text-text-primary mb-1">Attendance Anomalies</h3>
-                <p class="text-xs text-text-muted font-bold uppercase tracking-wider">Automated Alerts for Irregular Patterns</p>
-            </div>
-            <div class="px-3 py-1.5 bg-rose-500/10 text-rose-500 rounded-lg text-xs font-bold flex items-center gap-2">
-                {{ anomalies().length }} Alert{{ anomalies().length === 1 ? '' : 's' }}
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            @for (anomaly of anomalies(); track anomaly.student_id) {
-                <div class="p-5 bg-bg-tertiary border border-border-primary rounded-2xl">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-sm font-bold text-text-primary">{{ anomaly.student_name }}</span>
-                        <span class="text-[10px] font-bold uppercase px-2 py-1 rounded-full border shadow-sm"
-                              [ngClass]="anomaly.severity === 'HIGH' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'">
-                            {{ anomaly.severity }}
-                        </span>
+                    <div class="flex items-center justify-between mb-5 pb-4 border-b border-border-primary/80">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-base sm:text-lg font-black text-text-primary">At-Risk Retention Candidates</h3>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                                    Predictive AI
+                                </span>
+                            </div>
+                            <p class="text-xs text-text-muted mt-0.5">Scholars exhibiting irregular attendance or grade decline patterns</p>
+                        </div>
                     </div>
-                    <p class="text-xs text-text-muted mb-2">{{ anomaly.description }}</p>
-                    <p class="text-[10px] font-bold text-text-muted/50 uppercase">{{ anomaly.date_detected }} &bull; {{ anomaly.anomaly_type.replace('_', ' ') }}</p>
+
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-bg-tertiary/50 text-[10px] font-black uppercase tracking-widest text-text-muted border-b border-border-primary">
+                                    <th class="py-2.5 px-3 rounded-l-lg">Scholar</th>
+                                    <th class="py-2.5 px-3">Risk Level</th>
+                                    <th class="py-2.5 px-3 rounded-r-lg hidden sm:table-cell">Primary Risk Factors</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border-primary/60">
+                                @for (risk of risks().slice(0, 4); track risk.student_id) {
+                                <tr class="hover:bg-bg-tertiary/40 transition-colors">
+                                    <td class="py-3 px-3">
+                                        <p class="text-xs font-bold text-text-primary">{{ risk.student_name }}</p>
+                                        <p class="text-[10px] text-text-muted font-mono mt-0.5">ID: #{{ risk.student_id.slice(0, 6) | uppercase }}</p>
+                                    </td>
+                                    <td class="py-3 px-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-16 h-2 bg-bg-tertiary rounded-full overflow-hidden border border-border-primary">
+                                                <div class="h-full rounded-full" [style.width.%]="risk.risk_score * 100" [class]="risk.risk_score > 0.7 ? 'bg-rose-500' : 'bg-amber-500'"></div>
+                                            </div>
+                                            <span class="text-xs font-black" [class]="risk.risk_score > 0.7 ? 'text-rose-500' : 'text-amber-500'">{{ risk.risk_score | percent:'1.0-0' }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-3 hidden sm:table-cell">
+                                        <div class="flex flex-wrap gap-1.5">
+                                            @for (factor of risk.primary_factors.slice(0, 2); track factor) {
+                                                <span class="px-2 py-0.5 bg-bg-tertiary border border-border-primary rounded-md text-[10px] font-bold text-text-muted">{{ factor }}</span>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                                }
+                                @if (risks().length === 0) {
+                                    <tr>
+                                        <td colspan="3" class="py-8 text-center text-xs font-bold text-emerald-500">
+                                            <i class="fas fa-circle-check mr-1.5"></i> No critical retention risks detected across student records.
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            }
+
+                <a routerLink="/analytics/at-risk" class="w-full mt-4 py-3 bg-bg-tertiary hover:bg-blue-600 hover:text-white border border-border-primary hover:border-blue-500 rounded-xl text-xs font-bold text-blue-600 dark:text-blue-400 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs">
+                    <span>Explore Full Predictive Retention Matrix</span>
+                    <i class="fas fa-arrow-right text-[10px]"></i>
+                </a>
+            </div>
+
+            <!-- Facility Utilization Heatmap -->
+            <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-sm">
+                <div class="flex items-center justify-between mb-5 pb-4 border-b border-border-primary/80">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-black text-text-primary">Facility & Lab Utilization Heatmap</h3>
+                        <p class="text-xs text-text-muted mt-0.5">Time-series resource and classroom occupancy distribution</p>
+                    </div>
+                </div>
+
+                <div class="h-[320px] w-full">
+                    <ngx-charts-heat-map
+                        [results]="heatmapData()"
+                        [scheme]="colorScheme"
+                        [legend]="false"
+                        [showXAxisLabel]="false"
+                        [showYAxisLabel]="false"
+                        [xAxis]="true"
+                        [yAxis]="true"
+                        [animations]="true"
+                        [innerPadding]="4">
+                    </ngx-charts-heat-map>
+                </div>
+            </div>
         </div>
+
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- 6. ATTENDANCE ANOMALIES & TRUANCY ALERTS               -->
+        <!-- ══════════════════════════════════════════════════════ -->
+        @if (anomalies().length > 0) {
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-sm">
+            <div class="flex items-center justify-between mb-5 pb-4 border-b border-border-primary/80">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center text-xs shrink-0">
+                        <i class="fas fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-black text-text-primary">Attendance Anomalies & Truancy Alerts</h3>
+                        <p class="text-xs text-text-muted mt-0.5">Automated detection flags for unverified departures and irregular patterns</p>
+                    </div>
+                </div>
+
+                <span class="px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-black">
+                    {{ anomalies().length }} Flags Active
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @for (anomaly of anomalies(); track anomaly.student_id) {
+                    <div class="p-4 bg-bg-tertiary/60 border border-border-primary rounded-2xl hover:border-border-secondary transition-all">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs sm:text-sm font-black text-text-primary">{{ anomaly.student_name }}</span>
+                            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full border shadow-xs"
+                                [ngClass]="anomaly.severity === 'HIGH' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'">
+                                {{ anomaly.severity }} Severity
+                            </span>
+                        </div>
+                        <p class="text-xs text-text-muted font-medium mb-3">{{ anomaly.description }}</p>
+                        <div class="flex items-center justify-between text-[10px] font-mono font-bold text-text-muted border-t border-border-primary/60 pt-2">
+                            <span>{{ anomaly.date_detected }}</span>
+                            <span class="uppercase">{{ anomaly.anomaly_type.replace('_', ' ') }}</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        }
     </div>
-    }
     }
 </div>

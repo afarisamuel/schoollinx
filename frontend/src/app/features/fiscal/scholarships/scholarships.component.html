@@ -238,18 +238,23 @@
 
 <!-- ═══════════════════════ AWARD FORM MODAL ═══════════════════════ -->
 @if (showForm()) {
-    <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" (click)="closeForm()">
-        <div class="relative w-full max-w-lg bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl p-6 md:p-8 overflow-hidden" (click)="$event.stopPropagation()">
+    <div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm animate-fade-in" (click)="closeForm()">
+        <div class="relative w-full max-w-lg bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-8 max-h-[92vh] sm:max-h-[85vh] overflow-y-auto animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
+            <!-- Mobile Bottomsheet Handle -->
+            <div class="pt-1 pb-1 sm:hidden">
+                <div class="bottomsheet-handle"></div>
+            </div>
+
             <!-- Subtle decorative glow -->
             <div class="absolute -top-16 -right-16 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] pointer-events-none"></div>
 
-            <div class="flex items-start justify-between mb-6 relative z-10">
+            <div class="flex items-start justify-between mb-5 sm:mb-6 relative z-10">
                 <div>
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest mb-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
                         Financial Aid
                     </div>
-                    <h2 class="text-xl font-black text-text-primary">Award Scholarship</h2>
+                    <h2 class="text-lg sm:text-xl font-black text-text-primary">Award Scholarship</h2>
                     @if (selectedStudent()) {
                         <p class="text-xs text-text-muted mt-1">For <strong class="text-blue-400">{{ selectedStudent()?.first_name }} {{ selectedStudent()?.last_name }}</strong></p>
                     } @else {
@@ -261,12 +266,12 @@
                 </button>
             </div>
 
-            <div class="space-y-4 relative z-10">
+            <div class="space-y-4 relative z-10 overflow-y-auto">
                 @if (!selectedStudent()) {
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Recipient Student *</label>
                         <select id="scholarship-student" [value]="form().student_id" (change)="updateForm('student_id', $any($event.target).value)"
-                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary outline-none focus:border-blue-500 transition-all cursor-pointer">
+                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-text-primary outline-none focus:border-blue-500 transition-all cursor-pointer">
                             <option value="">Select Student...</option>
                             @for (s of students(); track s.id) {
                                 <option [value]="s.id">{{ s.first_name }} {{ s.last_name }} ({{ s.enrollment_num || 'No ID' }})</option>
@@ -279,14 +284,14 @@
                     <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Scholarship Name *</label>
                     <input type="text" id="scholarship-name" placeholder="e.g. Merit Award, Staff Discount"
                         [value]="form().name" (input)="updateForm('name', $any($event.target).value)"
-                        class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-blue-500 transition-all" />
+                        class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-blue-500 transition-all" />
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Type *</label>
                         <select id="scholarship-type" [value]="form().type" (change)="updateForm('type', $any($event.target).value)"
-                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary outline-none focus:border-blue-500 transition-all cursor-pointer">
+                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-text-primary outline-none focus:border-blue-500 transition-all cursor-pointer">
                             <option value="PERCENTAGE">Percentage (%)</option>
                             <option value="FIXED_AMOUNT">Fixed Amount (GH₵)</option>
                         </select>
@@ -296,20 +301,20 @@
                         <input type="number" id="scholarship-value" min="0.01"
                             [placeholder]="form().type === 'PERCENTAGE' ? 'e.g. 50' : 'e.g. 500'"
                             [value]="form().value" (input)="updateForm('value', +$any($event.target).value)"
-                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-blue-500 transition-all font-mono" />
+                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-blue-500 transition-all font-mono" />
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Valid From *</label>
                         <input type="date" id="scholarship-valid-from" [value]="form().valid_from" (input)="updateForm('valid_from', $any($event.target).value)"
-                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary outline-none focus:border-blue-500 transition-all" />
+                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-text-primary outline-none focus:border-blue-500 transition-all" />
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Valid Until *</label>
                         <input type="date" id="scholarship-valid-until" [value]="form().valid_until" (input)="updateForm('valid_until', $any($event.target).value)"
-                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary outline-none focus:border-blue-500 transition-all" />
+                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-text-primary outline-none focus:border-blue-500 transition-all" />
                     </div>
                 </div>
 
@@ -317,16 +322,16 @@
                     <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Reason / Notes</label>
                     <textarea id="scholarship-reason" rows="3" placeholder="Reason for awarding this scholarship..."
                         [value]="form().reason || ''" (input)="updateForm('reason', $any($event.target).value)"
-                        class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-blue-500 transition-all resize-none"></textarea>
+                        class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-blue-500 transition-all resize-none"></textarea>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 mt-8 relative z-10">
-                <button (click)="closeForm()" class="flex-1 py-3 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-primary transition-all border border-border-primary">
+            <div class="flex items-center gap-3 mt-6 sm:mt-8 relative z-10 pt-2 border-t border-border-primary/50">
+                <button (click)="closeForm()" class="flex-1 py-2.5 sm:py-3 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-primary transition-all border border-border-primary">
                     Cancel
                 </button>
                 <button (click)="submit()" [disabled]="isSubmitting()"
-                    class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
+                    class="flex-1 flex items-center justify-center gap-2 py-2.5 sm:py-3 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
                     @if (isSubmitting()) {
                         <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     } @else {

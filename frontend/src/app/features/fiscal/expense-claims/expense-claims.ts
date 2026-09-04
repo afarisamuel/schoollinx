@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FiscalService, ExpenseClaim } from '../../../core/infrastructure/fiscal/fiscal.service';
@@ -18,6 +18,20 @@ export class ExpenseClaimsComponent implements OnInit {
   claims = signal<ExpenseClaim[]>([]);
   activeTab = signal<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
   
+  stats = computed(() => {
+    const list = this.claims();
+    const pending = list.filter(c => c.status.startsWith('PENDING'));
+    const approved = list.filter(c => c.status === 'APPROVED' || c.status === 'PAID');
+    const rejected = list.filter(c => c.status === 'REJECTED');
+    const totalApprovedVal = approved.reduce((sum, c) => sum + (c.amount || 0), 0);
+    return {
+      total: list.length,
+      pendingCount: pending.length,
+      approvedVal: totalApprovedVal,
+      rejectedCount: rejected.length
+    };
+  });
+
   // Submit state
   showModal = signal(false);
   formData = { amount: 0, description: '' };

@@ -77,24 +77,28 @@
   </div>
 
   <!-- Homework Form Modal -->
-  <div *ngIf="showForm" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-bg-primary/80 backdrop-blur-sm animate-fade-in">
-    <div class="bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-in">
-      <div class="p-6 border-b border-border-primary flex justify-between items-center bg-bg-tertiary/50">
-        <h3 class="text-lg font-black text-text-primary tracking-tight">{{ editingId ? 'Edit Assignment' : 'New Assignment' }}</h3>
+  <div *ngIf="showForm" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-bg-primary/80 backdrop-blur-sm animate-fade-in">
+    <div class="bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] flex flex-col overflow-hidden animate-slide-up sm:animate-scale-in">
+      <!-- Mobile Handle -->
+      <div class="sm:hidden flex justify-center pt-3 pb-1">
+        <div class="bottomsheet-handle"></div>
+      </div>
+      <div class="p-5 sm:p-6 border-b border-border-primary flex justify-between items-center bg-bg-tertiary/50">
+        <h3 class="text-base sm:text-lg font-black text-text-primary tracking-tight">{{ editingId ? 'Edit Assignment' : 'New Assignment' }}</h3>
         <button (click)="closeForm()" class="w-8 h-8 flex items-center justify-center bg-bg-primary hover:bg-white text-text-muted hover:text-text-primary border border-border-primary rounded-xl transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
       
-      <div class="p-8 space-y-6">
+      <div class="p-5 sm:p-8 space-y-4 sm:space-y-6 overflow-y-auto">
         <div>
-          <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Assignment Title <span class="text-rose-500">*</span></label>
+          <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 sm:mb-2">Assignment Title <span class="text-rose-500">*</span></label>
           <input type="text" [(ngModel)]="formData.title" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted" placeholder="e.g. Chapter 4 Review Questions">
         </div>
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <div>
-            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Class <span class="text-rose-500">*</span></label>
+            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 sm:mb-2">Class <span class="text-rose-500">*</span></label>
             <div class="relative">
               <select [(ngModel)]="formData.class_id" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none">
                 <option value="">Select a class...</option>
@@ -106,7 +110,7 @@
             </div>
           </div>
           <div>
-            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Subject <span class="text-rose-500">*</span></label>
+            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 sm:mb-2">Subject <span class="text-rose-500">*</span></label>
             <div class="relative">
               <select [(ngModel)]="formData.subject" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none">
                 <option value="">Select a subject...</option>
@@ -120,36 +124,41 @@
         </div>
 
         <div>
-          <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Due Date <span class="text-rose-500">*</span></label>
+          <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 sm:mb-2">Due Date <span class="text-rose-500">*</span></label>
           <input type="date" [(ngModel)]="formData.due_date" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all">
         </div>
         
         <div>
-          <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Description / Instructions</label>
+          <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 sm:mb-2">Description / Instructions</label>
           <textarea [(ngModel)]="formData.description" rows="4" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted resize-none" placeholder="Provide detailed instructions for the students..."></textarea>
         </div>
       </div>
       
-      <div class="p-6 bg-bg-tertiary border-t border-border-primary flex justify-end gap-3">
-        <button (click)="closeForm()" class="px-6 py-2.5 bg-bg-primary border border-border-primary hover:bg-white text-text-secondary hover:text-text-primary rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-sm">Cancel</button>
-        <button (click)="saveHomework()" [disabled]="isSaving" class="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95">
+      <div class="p-4 sm:p-6 bg-bg-tertiary border-t border-border-primary flex flex-col-reverse sm:flex-row justify-end gap-3">
+        <button (click)="closeForm()" class="w-full sm:w-auto px-6 py-2.5 bg-bg-primary border border-border-primary hover:bg-white text-text-secondary hover:text-text-primary rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-sm">Cancel</button>
+        <button (click)="saveHomework()" [disabled]="isSaving" class="w-full sm:w-auto px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95">
           {{ isSaving ? 'Saving...' : 'Publish Assignment' }}
         </button>
       </div>
     </div>
   </div>
+
   <!-- Submissions Modal -->
-  <div *ngIf="showSubmissions" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-bg-primary/80 backdrop-blur-sm animate-fade-in">
-    <div class="bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-scale-in">
-      <div class="p-6 border-b border-border-primary flex justify-between items-center bg-bg-tertiary/50 shrink-0">
+  <div *ngIf="showSubmissions" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-bg-primary/80 backdrop-blur-sm animate-fade-in">
+    <div class="bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-4xl max-h-[92vh] sm:max-h-[90vh] overflow-hidden flex flex-col animate-slide-up sm:animate-scale-in">
+      <!-- Mobile Handle -->
+      <div class="sm:hidden flex justify-center pt-3 pb-1">
+        <div class="bottomsheet-handle"></div>
+      </div>
+      <div class="p-5 sm:p-6 border-b border-border-primary flex justify-between items-center bg-bg-tertiary/50 shrink-0">
         <div>
-          <h3 class="text-lg font-black text-text-primary tracking-tight">Student Submissions</h3>
-          <p class="text-xs text-text-secondary mt-1">{{ selectedHomework?.title }}</p>
+          <h3 class="text-base sm:text-lg font-black text-text-primary tracking-tight">Student Submissions</h3>
+          <p class="text-xs text-text-secondary mt-0.5 sm:mt-1">{{ selectedHomework?.title }}</p>
         </div>
-        <div class="flex items-center gap-3">
-          <button (click)="toggleBlindGrading()" class="px-3.5 py-1.5 rounded-xl border text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer"
+        <div class="flex items-center gap-2 sm:gap-3">
+          <button (click)="toggleBlindGrading()" class="px-2.5 sm:px-3.5 py-1.5 rounded-xl border text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer"
                   [ngClass]="blindGradingMode ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-600/30' : 'bg-bg-primary text-text-muted border-border-primary hover:text-text-primary'">
-            <i class="fas fa-user-secret"></i> {{ blindGradingMode ? 'Blind Mode: ON' : 'Blind Mode: OFF' }}
+            <i class="fas fa-user-secret"></i> <span class="hidden sm:inline">{{ blindGradingMode ? 'Blind Mode: ON' : 'Blind Mode: OFF' }}</span><span class="sm:hidden">{{ blindGradingMode ? 'Blind' : 'Normal' }}</span>
           </button>
           <button (click)="closeSubmissions()" class="w-8 h-8 flex items-center justify-center bg-bg-primary hover:bg-white text-text-muted hover:text-text-primary border border-border-primary rounded-xl transition-colors cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -157,109 +166,110 @@
         </div>
       </div>
       
-      <div class="p-8 overflow-y-auto custom-scrollbar">
+      <div class="p-5 sm:p-8 overflow-y-auto custom-scrollbar">
         <div *ngIf="isLoadingSubmissions" class="py-12 flex justify-center">
            <div class="w-10 h-10 border-4 border-slate-300 border-t-slate-500 rounded-full animate-spin"></div>
         </div>
 
         <div *ngIf="!isLoadingSubmissions && submissions.length === 0" class="text-center py-12 text-text-muted">
-           <p class="font-medium text-sm">No submissions found for this assignment.</p>
+          <div class="w-16 h-16 rounded-full bg-bg-tertiary flex items-center justify-center mx-auto mb-4 border border-border-primary">
+            <i class="fas fa-inbox text-2xl"></i>
+          </div>
+          <p class="font-bold text-sm">No Submissions Yet</p>
+          <p class="text-xs mt-1">Students have not turned in any work for this assignment.</p>
         </div>
 
-        <div *ngIf="!isLoadingSubmissions && submissions.length > 0" class="space-y-6">
-           <div *ngFor="let sub of submissions" class="bg-bg-tertiary border border-border-primary rounded-2xl p-6 shadow-sm">
-              <div class="flex justify-between items-start mb-4">
-                 <div>
-                    <h4 class="text-sm font-bold text-text-primary">Candidate: <span class="font-mono text-blue-400">{{ getMaskedStudentId(sub.student_id) }}</span></h4>
-                    <p class="text-[10px] text-text-muted uppercase tracking-widest mt-1">Submitted: {{ sub.submitted_at | date:'medium' }}</p>
-                 </div>
-                 <span class="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg border"
-                       [ngClass]="{
-                          'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': sub.status === 'GRADED',
-                          'bg-amber-500/10 text-amber-400 border-amber-500/20': sub.status === 'LATE',
-                          'bg-blue-500/10 text-blue-400 border-blue-500/20': sub.status === 'SUBMITTED'
-                       }">
-                    {{ sub.status }}
-                 </span>
+        <div *ngIf="!isLoadingSubmissions && submissions.length > 0" class="space-y-4">
+          <div *ngFor="let sub of submissions" class="p-4 sm:p-5 bg-bg-tertiary/50 border border-border-primary rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="font-black text-sm text-text-primary">
+                  {{ blindGradingMode ? getMaskedStudentId(sub.student_id) : ('Student #' + sub.student_id) }}
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase"
+                      [ngClass]="sub.status === 'GRADED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'">
+                  {{ sub.status }}
+                </span>
               </div>
-
-              <div class="bg-bg-secondary p-4 rounded-xl border border-border-primary/50 mb-6">
-                 <p class="text-sm text-text-primary whitespace-pre-wrap">{{ sub.content || 'No text content provided.' }}</p>
-                 <a *ngIf="sub.file_url" [href]="sub.file_url" target="_blank" class="mt-4 inline-flex items-center gap-2 text-xs font-bold text-blue-500 hover:text-blue-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-                    View Attachment
-                 </a>
-              </div>
-
-              <div class="flex items-center gap-4 border-t border-border-primary/50 pt-4">
-                 <div class="w-24">
-                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Score</label>
-                    <input type="number" #scoreInput [value]="sub.score || ''" class="w-full bg-bg-secondary border border-border-primary rounded-lg px-3 py-2 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500" placeholder="0-100">
-                 </div>
-                 <div class="flex-1">
-                    <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Feedback</label>
-                    <input type="text" #feedbackInput [value]="sub.feedback || ''" class="w-full bg-bg-secondary border border-border-primary rounded-lg px-3 py-2 text-sm font-medium text-text-primary focus:outline-none focus:border-blue-500" placeholder="Optional feedback...">
-                 </div>
-                  <button (click)="gradeSubmission(sub, scoreInput.value, feedbackInput.value)" class="mt-5 px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-black uppercase tracking-widest transition-colors shadow-lg shadow-blue-500/25 cursor-pointer">
-                     Grade
-                  </button>
-                  <button (click)="openSpeedGrader(sub)" class="mt-5 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-lg text-xs font-black uppercase tracking-widest transition-colors flex items-center gap-1.5 cursor-pointer">
-                     <i class="fas fa-columns"></i> SpeedGrader
-                  </button>
-               </div>
+              <p class="text-xs text-text-muted">Submitted {{ sub.submitted_at | date:'medium' }}</p>
+              <p *ngIf="sub.content" class="text-xs text-text-secondary mt-2 p-3 bg-bg-secondary border border-border-primary rounded-xl line-clamp-2">
+                {{ sub.content }}
+              </p>
             </div>
-         </div>
+
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
+              <div>
+                <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Score</label>
+                <input type="number" #scoreInput [value]="sub.score !== null ? sub.score : ''" class="w-20 bg-bg-secondary border border-border-primary rounded-lg px-3 py-2 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500" placeholder="0-100">
+              </div>
+              <div class="flex-1 min-w-[140px]">
+                <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Feedback</label>
+                <input type="text" #feedbackInput [value]="sub.feedback || ''" class="w-full bg-bg-secondary border border-border-primary rounded-lg px-3 py-2 text-sm font-medium text-text-primary focus:outline-none focus:border-blue-500" placeholder="Optional feedback...">
+              </div>
+              <button (click)="gradeSubmission(sub, scoreInput.value, feedbackInput.value)" class="mt-4 sm:mt-5 px-4 sm:px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-black uppercase tracking-widest transition-colors shadow-lg shadow-blue-500/25 cursor-pointer">
+                 Grade
+              </button>
+              <button (click)="openSpeedGrader(sub)" class="mt-4 sm:mt-5 px-3 sm:px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-lg text-xs font-black uppercase tracking-widest transition-colors flex items-center gap-1.5 cursor-pointer">
+                 <i class="fas fa-columns"></i> <span class="hidden sm:inline">SpeedGrader</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- ── SPEEDGRADER SPLIT-SCREEN STUDIO MODAL ── -->
-  <div *ngIf="speedGraderActive && activeSubmission" class="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-6 bg-black/80 backdrop-blur-md animate-fade-in">
-    <div class="bg-bg-secondary border border-border-primary rounded-[2.5rem] shadow-2xl w-full max-w-6xl h-[92vh] flex flex-col overflow-hidden animate-scale-in">
+  <div *ngIf="speedGraderActive && activeSubmission" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-2 md:p-6 bg-black/80 backdrop-blur-md animate-fade-in">
+    <div class="bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-[2.5rem] shadow-2xl w-full max-w-6xl h-[94vh] sm:h-[92vh] flex flex-col overflow-hidden animate-slide-up sm:animate-scale-in">
+      <!-- Mobile Handle -->
+      <div class="sm:hidden flex justify-center pt-3 pb-1">
+        <div class="bottomsheet-handle"></div>
+      </div>
       <!-- SpeedGrader Header -->
-      <div class="px-8 py-5 border-b border-border-primary flex justify-between items-center bg-bg-tertiary/60 shrink-0">
-        <div class="flex items-center gap-4">
-          <div class="w-10 h-10 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg">
+      <div class="px-5 sm:px-8 py-3.5 sm:py-5 border-b border-border-primary flex justify-between items-center bg-bg-tertiary/60 shrink-0">
+        <div class="flex items-center gap-3 sm:gap-4">
+          <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-sm sm:text-lg">
              <i class="fas fa-bolt"></i>
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="text-xs font-black uppercase tracking-wider text-blue-400">SpeedGrader Studio</span>
+              <span class="text-[10px] sm:text-xs font-black uppercase tracking-wider text-blue-400">SpeedGrader Studio</span>
               <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-bg-secondary border border-border-primary text-text-muted">
                 {{ getMaskedStudentId(activeSubmission.student_id) }}
               </span>
             </div>
-            <h3 class="text-base font-black text-text-primary truncate">{{ selectedHomework?.title }}</h3>
+            <h3 class="text-sm sm:text-base font-black text-text-primary truncate max-w-[200px] sm:max-w-none">{{ selectedHomework?.title }}</h3>
           </div>
         </div>
 
-        <div class="flex items-center gap-3">
-          <div class="px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-2xl text-right">
-            <span class="text-[9px] font-black uppercase tracking-widest text-text-muted block">Rubric Score</span>
-            <span class="text-xl font-black text-blue-400">{{ getRubricTotal() }}<span class="text-xs text-text-muted">/100</span></span>
+        <div class="flex items-center gap-2 sm:gap-3">
+          <div class="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl sm:rounded-2xl text-right">
+            <span class="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-text-muted block">Rubric Score</span>
+            <span class="text-base sm:text-xl font-black text-blue-400">{{ getRubricTotal() }}<span class="text-xs text-text-muted">/100</span></span>
           </div>
-          <button (click)="closeSpeedGrader()" class="w-9 h-9 rounded-xl bg-bg-primary hover:bg-white text-text-muted hover:text-text-primary border border-border-primary flex items-center justify-center transition-colors cursor-pointer">
+          <button (click)="closeSpeedGrader()" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-bg-primary hover:bg-white text-text-muted hover:text-text-primary border border-border-primary flex items-center justify-center transition-colors cursor-pointer">
             <i class="fas fa-times"></i>
           </button>
         </div>
       </div>
 
       <!-- Split-Screen Workspace -->
-      <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+      <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-y-auto lg:overflow-hidden">
         <!-- Left Pane: Student Submission Document / Text -->
-        <div class="lg:col-span-7 p-6 md:p-8 overflow-y-auto border-r border-border-primary custom-scrollbar bg-bg-primary/40 space-y-5">
+        <div class="lg:col-span-7 p-5 sm:p-6 md:p-8 overflow-y-auto border-b lg:border-b-0 lg:border-r border-border-primary custom-scrollbar bg-bg-primary/40 space-y-4 sm:space-y-5">
           <div class="flex items-center justify-between">
             <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Submission Content</span>
             <span class="text-xs text-text-muted">Submitted {{ activeSubmission.submitted_at | date:'medium' }}</span>
           </div>
 
-          <div class="p-6 bg-bg-secondary border border-border-primary rounded-3xl min-h-[300px] leading-relaxed text-sm text-text-primary whitespace-pre-wrap selection:bg-blue-500 selection:text-white">
+          <div class="p-4 sm:p-6 bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl min-h-[200px] sm:min-h-[300px] leading-relaxed text-xs sm:text-sm text-text-primary whitespace-pre-wrap selection:bg-blue-500 selection:text-white">
             {{ activeSubmission.content || 'No text submitted directly. Please check attached file below.' }}
           </div>
 
-          <div *ngIf="activeSubmission.file_url" class="p-5 bg-blue-500/5 border border-blue-500/20 rounded-3xl flex items-center justify-between">
+          <div *ngIf="activeSubmission.file_url" class="p-4 sm:p-5 bg-blue-500/5 border border-blue-500/20 rounded-2xl sm:rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg shrink-0">
                 <i class="fas fa-paperclip"></i>
               </div>
               <div>
@@ -267,23 +277,23 @@
                 <p class="text-[10px] text-text-muted truncate max-w-xs">{{ activeSubmission.file_url }}</p>
               </div>
             </div>
-            <a [href]="activeSubmission.file_url" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md">
+            <a [href]="activeSubmission.file_url" target="_blank" class="w-full sm:w-auto text-center px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md">
               Download File
             </a>
           </div>
         </div>
 
         <!-- Right Pane: Interactive Rubrics & Comment Bank -->
-        <div class="lg:col-span-5 p-6 md:p-8 overflow-y-auto custom-scrollbar flex flex-col justify-between space-y-6 bg-bg-secondary">
-          <div class="space-y-6">
+        <div class="lg:col-span-5 p-5 sm:p-6 md:p-8 overflow-y-auto custom-scrollbar flex flex-col justify-between space-y-5 sm:space-y-6 bg-bg-secondary">
+          <div class="space-y-5 sm:space-y-6">
             <!-- Criteria Rubric Sliders -->
             <div>
-              <h4 class="text-xs font-black uppercase tracking-widest text-text-primary mb-4 flex items-center gap-2">
+              <h4 class="text-xs font-black uppercase tracking-widest text-text-primary mb-3 sm:mb-4 flex items-center gap-2">
                 <i class="fas fa-tasks text-blue-400"></i> Interactive Scoring Rubric
               </h4>
-              <div class="space-y-4">
+              <div class="space-y-3 sm:space-y-4">
                 <!-- Dimension 1 -->
-                <div class="p-3.5 bg-bg-tertiary border border-border-primary rounded-2xl">
+                <div class="p-3 sm:p-3.5 bg-bg-tertiary border border-border-primary rounded-2xl">
                   <div class="flex justify-between items-center text-xs font-bold mb-2">
                     <span class="text-text-primary">Concept & Understanding</span>
                     <span class="font-black text-blue-400">{{ rubricScores.content }}/40</span>
@@ -292,7 +302,7 @@
                 </div>
 
                 <!-- Dimension 2 -->
-                <div class="p-3.5 bg-bg-tertiary border border-border-primary rounded-2xl">
+                <div class="p-3 sm:p-3.5 bg-bg-tertiary border border-border-primary rounded-2xl">
                   <div class="flex justify-between items-center text-xs font-bold mb-2">
                     <span class="text-text-primary">Working & Methodology</span>
                     <span class="font-black text-blue-400">{{ rubricScores.methodology }}/40</span>
@@ -301,7 +311,7 @@
                 </div>
 
                 <!-- Dimension 3 -->
-                <div class="p-3.5 bg-bg-tertiary border border-border-primary rounded-2xl">
+                <div class="p-3 sm:p-3.5 bg-bg-tertiary border border-border-primary rounded-2xl">
                   <div class="flex justify-between items-center text-xs font-bold mb-2">
                     <span class="text-text-primary">Neatness & Punctuality</span>
                     <span class="font-black text-blue-400">{{ rubricScores.presentation }}/20</span>
@@ -316,7 +326,7 @@
               <h4 class="text-xs font-black uppercase tracking-widest text-text-primary mb-2 flex items-center gap-2">
                 <i class="fas fa-comment-dots text-amber-400"></i> Comment Bank Snippets
               </h4>
-              <p class="text-[10px] text-text-muted mb-3">Click any snippet to append it to your feedback.</p>
+              <p class="text-[10px] text-text-muted mb-2.5">Click any snippet to append it to your feedback.</p>
               <div class="flex flex-wrap gap-1.5">
                 <button *ngFor="let comment of commentBank"
                         (click)="speedFeedback.value = speedFeedback.value ? (speedFeedback.value + ' ' + comment) : comment"
@@ -336,12 +346,12 @@
           </div>
 
           <!-- Commit Grade Button -->
-          <div class="pt-4 border-t border-border-primary flex items-center justify-between">
-            <button (click)="closeSpeedGrader()" class="px-5 py-2.5 text-xs font-bold text-text-muted hover:text-text-primary cursor-pointer">
+          <div class="pt-4 border-t border-border-primary flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <button (click)="closeSpeedGrader()" class="px-5 py-2.5 text-xs font-bold text-text-muted hover:text-text-primary cursor-pointer text-center">
               Cancel
             </button>
             <button (click)="gradeSubmission(activeSubmission, getRubricTotal().toString(), speedFeedback.value)"
-                    class="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-600/30 transition-all cursor-pointer flex items-center gap-2">
+                    class="px-6 sm:px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl sm:rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-600/30 transition-all cursor-pointer flex items-center justify-center gap-2">
               <i class="fas fa-check-circle"></i> Commit Rubric Grade
             </button>
           </div>

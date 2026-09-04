@@ -1,168 +1,392 @@
-<div class="h-full bg-bg-primary p-6 flex flex-col font-sans text-text-primary overflow-y-auto">
-
-  <header class="mb-6 flex justify-between items-end">
+<div class="max-w-[1440px] mx-auto animate-fade-in pb-16">
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- 1. TOP HEADER & ACTION BAR                                 -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
     <div>
-      <h1 class="text-3xl font-extrabold text-blue-400">Digital Wallet & Canteen</h1>
-      <p class="text-text-secondary mt-1">Manage prepaid balances and cashless transactions</p>
+      <div class="flex items-center gap-2 text-xs font-bold text-text-muted mb-1.5">
+        <span class="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+          Fiscal Terminal
+        </span>
+        <span class="text-text-muted/40">/</span>
+        <span class="text-text-primary font-black">Digital Wallet & POS</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+        Digital Wallet & Canteen Terminal
+      </h1>
+      <p class="text-xs sm:text-sm font-medium text-text-muted mt-1">
+        Manage student cashless prepaid accounts, rapid canteen checkout, manual deposits, and real-time transaction ledgers.
+      </p>
     </div>
-  </header>
 
-  <!-- Student Selection -->
-  <div class="bg-bg-secondary rounded-2xl p-6 border border-border-primary shadow-xl mb-6 flex flex-col md:flex-row gap-6 items-center">
-    <div class="flex-1 w-full relative">
-      <label class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Select Student</label>
-      <app-student-search-dropdown (studentSelected)="onStudentSelected($event)"></app-student-search-dropdown>
+    @if (selectedStudentId()) {
+      <div class="flex items-center gap-2.5 shrink-0">
+        <button (click)="loadWalletInfo()"
+          class="px-3.5 py-2 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-xl transition-all flex items-center gap-2 shadow-xs cursor-pointer active:scale-95">
+          <i class="fas fa-rotate text-xs text-blue-500" [class.animate-spin]="isLoading()"></i>
+          <span>Sync Wallet</span>
+        </button>
+
+        <button (click)="clearStudent()"
+          class="px-3.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+          <i class="fas fa-user-xmark text-xs"></i>
+          <span>Switch Student</span>
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- 2. STUDENT SEARCH & IDENTITY SELECTOR                      -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm mb-6 relative overflow-hidden">
+    <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <div class="flex-1 min-w-0">
+        <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">
+          Find Enrolled Scholar
+        </label>
+        <app-student-search-dropdown (studentSelected)="onStudentSelected($event)"></app-student-search-dropdown>
+      </div>
+
+      <!-- Active Student Badge (when selected) -->
+      @if (selectedStudent()) {
+        <div class="flex items-center gap-3 p-3 bg-bg-tertiary/80 border border-border-primary rounded-2xl shrink-0">
+          <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-sm shadow-xs shrink-0">
+            {{ selectedStudent()?.first_name?.[0] }}{{ selectedStudent()?.last_name?.[0] }}
+          </div>
+          <div class="min-w-0 pr-2">
+            <h3 class="text-xs sm:text-sm font-black text-text-primary truncate">
+              {{ selectedStudent()?.first_name }} {{ selectedStudent()?.last_name }}
+            </h3>
+            <div class="flex items-center gap-2 text-[10px] font-bold text-text-muted mt-0.5">
+              <span class="px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-500 font-mono">
+                ID: #{{ selectedStudent()?.id?.slice(-6) | uppercase }}
+              </span>
+              <span>&bull; {{ selectedStudent()?.class?.name || 'Class Assigned' }}</span>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   </div>
 
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- 3. WALLET CONTENT (ACTIVE STUDENT STATE)                   -->
+  <!-- ══════════════════════════════════════════════════════════ -->
   @if (selectedStudentId()) {
     @if (isLoading()) {
-      <div class="flex justify-center p-12">
-        <div class="w-10 h-10 border-4 border-slate-300 border-t-slate-500 rounded-full animate-spin"></div>
+      <div class="flex flex-col items-center justify-center py-24 gap-4 bg-bg-secondary border border-border-primary rounded-3xl p-8 shadow-sm">
+        <div class="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+        <p class="text-sm font-bold text-text-muted animate-pulse">Syncing student wallet balance and transaction ledger...</p>
       </div>
     } @else {
-      <!-- Bento Grid Layout -->
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+      <div class="space-y-6">
+        <!-- Top Row: Smart Digital Card + Canteen Checkout POS -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        <!-- Balance Card (Col 4) -->
-        <div class="md:col-span-4 bg-blue-600 rounded-3xl p-6 border border-blue-500/50 shadow-md relative overflow-hidden flex flex-col justify-between group">
-          <!-- decorative background element -->
-          <div class="absolute -right-10 -top-10 w-40 h-40 bg-white opacity-5 rounded-full blur-3xl group-hover:opacity-10 transition-opacity"></div>
-          
-          <div>
-            <h3 class="text-blue-100 font-bold uppercase tracking-widest text-xs mb-1">Available Balance</h3>
-            <p class="text-blue-200 text-xs">Ready for cashless transactions</p>
-          </div>
-          
-          <div class="mt-8 mb-4">
-            <div class="text-6xl font-black text-white tracking-tighter">
-              <span class="text-3xl align-top mr-1 opacity-80">₵</span>{{ balance() | number:'1.2-2' }}
+          <!-- Col 1: Smart NFC Card Widget (Col 5) -->
+          <div class="lg:col-span-5 flex flex-col justify-between">
+            <!-- Modern Debit / Digital Card -->
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-950 text-white rounded-3xl p-6 sm:p-7 shadow-xl border border-white/10 flex flex-col justify-between h-[230px] sm:h-[250px] group">
+              <!-- Glow and card texture -->
+              <div class="absolute -right-12 -top-12 w-44 h-44 bg-blue-500/20 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-500/30 transition-all duration-700"></div>
+              <div class="absolute -left-12 -bottom-12 w-44 h-44 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+              <!-- Top Card Bar -->
+              <div class="flex items-center justify-between relative z-10">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
+                  <span class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-200">SchoolLinx Pass</span>
+                </div>
+                <div class="flex items-center gap-2 text-white/70">
+                  <i class="fas fa-wifi text-xs rotate-90"></i>
+                  <i class="fas fa-credit-card text-sm"></i>
+                </div>
+              </div>
+
+              <!-- Middle: Available Balance -->
+              <div class="relative z-10 my-auto">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-white/60 mb-0.5">Available Balance</p>
+                <div class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white flex items-baseline gap-1.5">
+                  <span class="text-xl sm:text-2xl text-emerald-400 font-bold">₵</span>
+                  <span>{{ balance() | number:'1.2-2' }}</span>
+                </div>
+              </div>
+
+              <!-- Bottom Card Details -->
+              <div class="flex items-end justify-between relative z-10 pt-2 border-t border-white/10 text-xs">
+                <div>
+                  <p class="text-[9px] font-black uppercase tracking-widest text-white/50">Card Holder</p>
+                  <p class="font-black text-white tracking-wide truncate max-w-[180px]">
+                    {{ selectedStudent()?.first_name }} {{ selectedStudent()?.last_name }}
+                  </p>
+                </div>
+                <div class="text-right font-mono text-[11px] text-white/75 font-bold">
+                  •••• {{ selectedStudent()?.id?.slice(-4) | uppercase }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Telemetry Under Card -->
+            <div class="grid grid-cols-2 gap-3 mt-3">
+              <div class="p-3 rounded-2xl bg-bg-secondary border border-border-primary shadow-xs">
+                <p class="text-[9px] font-black uppercase tracking-wider text-text-muted">Total Ledger Tx</p>
+                <p class="text-base font-black text-text-primary mt-0.5">{{ transactions().length }} Transactions</p>
+              </div>
+              <div class="p-3 rounded-2xl bg-bg-secondary border border-border-primary shadow-xs">
+                <p class="text-[9px] font-black uppercase tracking-wider text-text-muted">Wallet Status</p>
+                <p class="text-base font-black text-emerald-600 dark:text-emerald-400 mt-0.5 flex items-center gap-1.5">
+                  <i class="fas fa-circle-check text-xs"></i> Active
+                </p>
+              </div>
             </div>
           </div>
-          
-          <div class="flex justify-between items-center text-blue-200 text-xs font-medium">
-            <span>Student Wallet</span>
-            <svg class="w-6 h-6 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+
+          <!-- Col 2: Canteen Checkout POS Terminal (Col 7) -->
+          <div class="lg:col-span-7 bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-5 pb-4 border-b border-border-primary/80">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm shadow-xs shrink-0">
+                    <i class="fas fa-cash-register"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm sm:text-base font-black text-text-primary">Canteen Checkout & POS</h3>
+                    <p class="text-[11px] font-bold text-text-muted">Instant contactless deduction from scholar prepaid wallet</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Fast Quick Presets -->
+              <div class="mb-4">
+                <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">
+                  Fast Canteen Presets
+                </label>
+                <div class="flex flex-wrap gap-2">
+                  @for (preset of commonItems; track preset.name) {
+                    <button type="button" (click)="selectItemPreset(preset)"
+                      class="px-3 py-1.5 rounded-xl bg-bg-tertiary hover:bg-blue-500/10 hover:border-blue-500/30 border border-border-primary text-xs font-bold text-text-primary hover:text-blue-500 transition-all cursor-pointer active:scale-95 flex items-center gap-1.5 shadow-xs">
+                      <span>{{ preset.name }}</span>
+                      <span class="px-1.5 py-0.2 rounded-md bg-bg-secondary text-[10px] font-black text-blue-500">
+                        ₵{{ preset.price }}
+                      </span>
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Inputs Grid -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">
+                    Item / Meal Description
+                  </label>
+                  <div class="relative">
+                    <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs pointer-events-none">
+                      <i class="fas fa-utensils"></i>
+                    </div>
+                    <input type="text" [ngModel]="purchaseItem()" (ngModelChange)="purchaseItem.set($event)"
+                      placeholder="e.g. Lunch Combo & Juice"
+                      class="w-full bg-bg-tertiary border border-border-primary hover:border-blue-500/50 focus:border-blue-500 rounded-xl pl-9 pr-4 py-2.5 text-xs font-bold text-text-primary placeholder-text-muted outline-none transition-all">
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">
+                    Total Amount (₵)
+                  </label>
+                  <div class="relative">
+                    <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs font-black pointer-events-none">
+                      ₵
+                    </div>
+                    <input type="number" [ngModel]="purchaseAmount()" (ngModelChange)="purchaseAmount.set($event)"
+                      placeholder="0.00" min="0" step="0.5"
+                      class="w-full bg-bg-tertiary border border-border-primary hover:border-blue-500/50 focus:border-blue-500 rounded-xl pl-9 pr-4 py-2.5 text-sm font-mono font-black text-text-primary placeholder-text-muted outline-none transition-all">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-4 border-t border-border-primary/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="text-xs text-text-muted">
+                @if (purchaseAmount() > balance()) {
+                  <span class="text-rose-500 font-bold flex items-center gap-1">
+                    <i class="fas fa-circle-exclamation"></i> Amount exceeds available balance
+                  </span>
+                } @else if (purchaseAmount() > 0) {
+                  <span>New Balance after charge: <strong class="text-emerald-500 font-black">₵{{ (balance() - purchaseAmount()) | number:'1.2-2' }}</strong></span>
+                }
+              </div>
+
+              <button (click)="processPurchase()"
+                [disabled]="purchaseLoading() || purchaseAmount() <= 0 || !purchaseItem() || purchaseAmount() > balance()"
+                class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 cursor-pointer active:scale-95 shrink-0">
+                @if (purchaseLoading()) {
+                  <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span>Processing...</span>
+                } @else {
+                  <i class="fas fa-check-circle text-xs"></i>
+                  <span>Charge ₵{{ purchaseAmount() | number:'1.2-2' }}</span>
+                }
+              </button>
+            </div>
           </div>
+
         </div>
 
-        <!-- Canteen Point of Sale (Col 8) -->
-        <div class="md:col-span-8 bg-bg-secondary rounded-3xl p-6 border border-border-primary shadow-sm flex flex-col justify-between">
-          <div class="flex items-center gap-3 mb-6">
-            <div class="p-3 bg-blue-500/10 rounded-xl text-blue-500">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-            </div>
-            <h3 class="text-xl font-bold text-text-primary">Canteen Checkout</h3>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-              <label class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Item Description</label>
-              <input type="text" [ngModel]="purchaseItem()" (ngModelChange)="purchaseItem.set($event)" placeholder="e.g. Lunch Combo"
-                     class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-5 py-3.5 text-text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium placeholder:text-text-muted">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Amount (₵)</label>
-              <input type="number" [ngModel]="purchaseAmount()" (ngModelChange)="purchaseAmount.set($event)" placeholder="0.00"
-                     class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-5 py-3.5 text-text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium placeholder:text-text-muted text-lg">
-            </div>
-          </div>
+        <!-- Bottom Row: Manual Top-Up & Live Transaction History -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-          <div class="flex justify-end border-t border-border-primary pt-6 mt-auto">
-            <button (click)="processPurchase()" [disabled]="purchaseLoading() || purchaseAmount() <= 0 || !purchaseItem()"
-                    class="px-8 py-3.5 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 shadow-sm active:scale-95">
-              @if (purchaseLoading()) {
-                <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+          <!-- Manual Top-Up Card (Col 4) -->
+          <div class="lg:col-span-4 bg-bg-secondary border border-border-primary hover:border-emerald-500/30 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col justify-between transition-colors">
+            <div>
+              <div class="flex items-center gap-3 mb-5 pb-4 border-b border-border-primary/80">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm shadow-xs shrink-0">
+                  <i class="fas fa-money-bill-transfer"></i>
+                </div>
+                <div>
+                  <h3 class="text-sm sm:text-base font-black text-text-primary">Manual Deposit & Top-Up</h3>
+                  <p class="text-[11px] font-bold text-text-muted">Direct cash credit to student wallet</p>
+                </div>
+              </div>
+
+              <!-- Quick Top-Up Pills -->
+              <div class="mb-4">
+                <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">
+                  Quick Amount Presets
+                </label>
+                <div class="flex flex-wrap gap-2">
+                  @for (amt of quickTopups; track amt) {
+                    <button type="button" (click)="selectTopupPreset(amt)"
+                      class="px-3 py-1 rounded-xl bg-bg-tertiary hover:bg-emerald-500/10 hover:border-emerald-500/30 border border-border-primary text-xs font-black text-emerald-600 dark:text-emerald-400 transition-all cursor-pointer active:scale-95 shadow-xs">
+                      +₵{{ amt }}
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <div class="mb-5">
+                <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">
+                  Deposit Amount (₵)
+                </label>
+                <div class="relative">
+                  <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs font-black pointer-events-none">
+                    ₵
+                  </div>
+                  <input type="number" [ngModel]="topupAmount()" (ngModelChange)="topupAmount.set($event)"
+                    placeholder="0.00" min="0" step="5"
+                    class="w-full bg-bg-tertiary border border-border-primary hover:border-emerald-500/50 focus:border-emerald-500 rounded-xl pl-9 pr-4 py-2.5 text-sm font-mono font-black text-text-primary placeholder-text-muted outline-none transition-all">
+                </div>
+              </div>
+            </div>
+
+            <button (click)="processTopUp()" [disabled]="topupLoading() || topupAmount() <= 0"
+              class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md shadow-emerald-500/25 cursor-pointer active:scale-95">
+              @if (topupLoading()) {
+                <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <span>Crediting Wallet...</span>
+              } @else {
+                <i class="fas fa-plus-circle text-xs"></i>
+                <span>Credit ₵{{ topupAmount() | number:'1.2-2' }}</span>
               }
-              Process Payment
             </button>
           </div>
-        </div>
 
-        <!-- Manual Top Up (Col 4) -->
-        <div class="md:col-span-4 bg-bg-secondary rounded-3xl p-6 border border-border-primary shadow-sm flex flex-col justify-between hover:border-emerald-500/30 transition-colors group">
-          <div>
-            <div class="flex items-center gap-3 mb-6">
-              <div class="p-3 bg-emerald-500/10 rounded-xl text-emerald-500">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+          <!-- Transaction History Ledger (Col 8) -->
+          <div class="lg:col-span-8 bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-5 pb-4 border-b border-border-primary/80">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-bg-tertiary border border-border-primary text-text-muted flex items-center justify-center text-sm shadow-xs shrink-0">
+                  <i class="fas fa-receipt"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-sm sm:text-base font-black text-text-primary">Wallet Transaction Ledger</h3>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-bg-tertiary border border-border-primary text-text-muted">
+                      {{ transactions().length }} Records
+                    </span>
+                  </div>
+                  <p class="text-[11px] font-bold text-text-muted">Complete audit trail of deposits and canteen deductions</p>
+                </div>
               </div>
-              <h3 class="text-xl font-bold text-text-primary">Manual Top-Up</h3>
             </div>
-            
-            <div class="mb-6">
-              <label class="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Amount (₵)</label>
-              <input type="number" [ngModel]="topupAmount()" (ngModelChange)="topupAmount.set($event)" placeholder="0.00"
-                     class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-5 py-3.5 text-text-primary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-medium placeholder:text-text-muted text-lg">
-            </div>
-          </div>
 
-          <button (click)="processTopUp()" [disabled]="topupLoading() || topupAmount() <= 0"
-                  class="w-full py-3.5 rounded-xl bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm">
-            @if (topupLoading()) {
-              <div class="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-            }
-            Add Funds
-          </button>
-        </div>
-
-        <!-- Transaction History (Col 8) -->
-        <div class="md:col-span-8 bg-bg-secondary rounded-3xl p-6 border border-border-primary shadow-xl flex flex-col">
-          <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center gap-3">
-              <div class="p-3 bg-bg-tertiary rounded-xl text-text-secondary">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-              </div>
-              <h3 class="text-xl font-bold text-text-primary">Transaction History</h3>
-            </div>
-            <span class="text-xs font-bold text-text-muted bg-bg-tertiary px-3 py-1.5 rounded-full border border-border-primary">{{ transactions().length }} Records</span>
-          </div>
-          
-          <div class="flex-1 overflow-y-auto max-h-[300px] pr-2 custom-scrollbar">
-            @if (transactions().length === 0) {
-              <div class="flex flex-col items-center justify-center h-full text-text-muted">
-                <svg class="w-12 h-12 mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
-                <p class="text-sm font-medium">No recent transactions</p>
-              </div>
-            } @else {
-              <div class="space-y-3">
+            <!-- Transactions List -->
+            <div class="flex-1 overflow-y-auto max-h-[340px] pr-1 custom-scrollbar space-y-2.5">
+              @if (transactions().length === 0) {
+                <div class="py-12 flex flex-col items-center justify-center text-center">
+                  <div class="w-12 h-12 rounded-2xl bg-bg-tertiary text-text-muted flex items-center justify-center text-lg mb-2">
+                    <i class="fas fa-receipt"></i>
+                  </div>
+                  <p class="text-xs font-bold text-text-muted">No transactions recorded for this wallet yet.</p>
+                </div>
+              } @else {
                 @for (tx of transactions(); track tx.id) {
-                  <div class="flex items-center justify-between p-4 rounded-2xl bg-bg-tertiary border border-border-primary hover:bg-bg-tertiary/80 transition-colors">
-                    <div class="flex items-center gap-4">
-                      <div class="w-10 h-10 rounded-full flex items-center justify-center shadow-inner"
-                           [ngClass]="tx.type === 'CREDIT' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'">
-                        @if (tx.type === 'CREDIT') {
-                          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                        } @else {
-                          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-                        }
+                  <div class="flex items-center justify-between p-3.5 rounded-2xl bg-bg-tertiary/60 hover:bg-bg-tertiary border border-border-primary/60 transition-all">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs shrink-0 shadow-xs"
+                           [ngClass]="tx.type === 'CREDIT' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'">
+                        <i class="fas" [class.fa-arrow-down-left]="tx.type === 'CREDIT'" [class.fa-arrow-up-right]="tx.type !== 'CREDIT'"></i>
                       </div>
                       <div>
-                        <p class="font-bold text-text-primary">{{ tx.description }}</p>
-                        <p class="text-xs text-text-secondary">{{ tx.created_at | date:'MMM d, y, h:mm a' }}</p>
+                        <p class="text-xs font-black text-text-primary">{{ tx.description }}</p>
+                        <p class="text-[10px] text-text-muted font-bold">{{ tx.created_at | date:'medium' }}</p>
                       </div>
                     </div>
+
                     <div class="text-right">
-                      <p class="font-black text-lg font-mono tracking-tight" [ngClass]="tx.type === 'CREDIT' ? 'text-emerald-500' : 'text-rose-500'">
+                      <p class="text-sm font-black font-mono tracking-tight"
+                         [ngClass]="tx.type === 'CREDIT' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
                         {{ tx.type === 'CREDIT' ? '+' : '-' }}₵{{ tx.amount | number:'1.2-2' }}
                       </p>
-                      <p class="text-[10px] text-text-muted font-bold uppercase tracking-wider">Bal: ₵{{ tx.balance | number:'1.2-2' }}</p>
+                      <p class="text-[10px] text-text-muted font-mono">Bal: ₵{{ tx.balance | number:'1.2-2' }}</p>
                     </div>
                   </div>
                 }
-              </div>
-            }
+              }
+            </div>
           </div>
-        </div>
 
+        </div>
       </div>
     }
   } @else {
-    <div class="flex-1 flex flex-col items-center justify-center text-center p-12 bg-bg-secondary border border-border-primary rounded-3xl shadow-inner mt-4">
-      <div class="w-24 h-24 rounded-full bg-bg-tertiary flex items-center justify-center mb-6 shadow-inner border border-border-primary">
-        <svg class="w-12 h-12 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 4. IDLE TERMINAL STATE: NO STUDENT SELECTED               -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-8 sm:p-14 shadow-sm text-center">
+      <div class="max-w-md mx-auto space-y-4">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-2xl sm:text-3xl mx-auto border border-blue-500/20 shadow-inner">
+          <i class="fas fa-id-card-clip"></i>
+        </div>
+        <div>
+          <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            Terminal Ready & Awaiting Scholar
+          </h2>
+          <p class="text-xs sm:text-sm text-text-muted mt-1 leading-relaxed">
+            Select or scan any enrolled student using the search dropdown above to activate their prepaid wallet card, fast canteen POS checkout, and deposit funds.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-left">
+          <div class="p-3.5 rounded-xl bg-bg-tertiary border border-border-primary">
+            <i class="fas fa-bolt text-blue-500 text-xs mb-1.5 block"></i>
+            <h4 class="text-xs font-black text-text-primary">Instant POS</h4>
+            <p class="text-[10px] text-text-muted mt-0.5">One-click canteen preset meal deductions.</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-bg-tertiary border border-border-primary">
+            <i class="fas fa-shield-check text-emerald-500 text-xs mb-1.5 block"></i>
+            <h4 class="text-xs font-black text-text-primary">Cashless Safety</h4>
+            <p class="text-[10px] text-text-muted mt-0.5">Secure student smart card balance.</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-bg-tertiary border border-border-primary">
+            <i class="fas fa-file-invoice text-purple-500 text-xs mb-1.5 block"></i>
+            <h4 class="text-xs font-black text-text-primary">Real-Time Audit</h4>
+            <p class="text-[10px] text-text-muted mt-0.5">Automated timestamped transaction records.</p>
+          </div>
+        </div>
       </div>
-      <h2 class="text-2xl font-black text-text-primary mb-2">Select a Student to Begin</h2>
-      <p class="text-text-secondary max-w-sm">Use the search bar above to find a student and access their digital wallet and transaction history.</p>
     </div>
   }
 </div>

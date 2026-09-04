@@ -184,46 +184,50 @@
 
     <!-- Onboard Modal -->
     @if (isAdding()) {
-    <div class="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-fade-in">
-        <div class="absolute inset-0 bg-bg-primary" (click)="isAdding.set(false)"></div>
-        <div class="bg-bg-secondary w-full max-w-lg rounded-[40px] border border-border-secondary p-10 shadow-3xl relative z-10 overflow-hidden">
+    <div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 animate-fade-in" (click)="isAdding.set(false)">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div class="bg-bg-secondary w-full max-w-lg rounded-t-3xl sm:rounded-[40px] border border-border-secondary p-5 sm:p-10 shadow-3xl relative z-10 overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[88vh] animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
+            <!-- Mobile Handle -->
+            <div class="pt-1 pb-1 sm:hidden flex justify-center">
+                <div class="bottomsheet-handle"></div>
+            </div>
             <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[100px] rounded-full pointer-events-none"></div>
-            <h2 class="text-2xl font-black text-text-primary tracking-tighter uppercase italic mb-8">Onboard Organisation</h2>
-            <div class="flex flex-col gap-5">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-2">
+            <h2 class="text-xl sm:text-2xl font-black text-text-primary tracking-tighter uppercase italic mb-4 sm:mb-8">Onboard Organisation</h2>
+            <div class="flex flex-col gap-3.5 sm:gap-5 overflow-y-auto flex-1">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+                    <div class="flex flex-col gap-1.5 sm:gap-2">
                         <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Organisation Name</label>
                         <input type="text" [(ngModel)]="draft.name" placeholder="e.g. Accra High School"
-                            class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-blue-500/50">
+                            class="bg-bg-tertiary border border-border-secondary rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-blue-500/50">
                     </div>
-                    <div class="flex flex-col gap-2">
+                    <div class="flex flex-col gap-1.5 sm:gap-2">
                         <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Subdomain</label>
                         <input type="text" [(ngModel)]="draft.subdomain" placeholder="e.g. accra-high"
-                            class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-blue-500/50">
+                            class="bg-bg-tertiary border border-border-secondary rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-blue-500/50">
                     </div>
                 </div>
-                <div class="flex flex-col gap-2">
+                <div class="flex flex-col gap-1.5 sm:gap-2">
                     <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Admin Email</label>
                     <input type="email" [(ngModel)]="draft.admin_email" placeholder="admin@school.edu.gh"
-                        class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-blue-500/50">
+                        class="bg-bg-tertiary border border-border-secondary rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+                    <div class="flex flex-col gap-1.5 sm:gap-2">
                         <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Admin First Name</label>
                         <input type="text" [(ngModel)]="draft.admin_first_name" placeholder="Kwame"
-                            class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-blue-500/50">
+                            class="bg-bg-tertiary border border-border-secondary rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-blue-500/50">
                     </div>
-                    <div class="flex flex-col gap-2">
+                    <div class="flex flex-col gap-1.5 sm:gap-2">
                         <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Admin Last Name</label>
                         <input type="text" [(ngModel)]="draft.admin_last_name" placeholder="Mensah"
-                            class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-blue-500/50">
+                            class="bg-bg-tertiary border border-border-secondary rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-blue-500/50">
                     </div>
                 </div>
-                <div class="flex gap-4 pt-2">
+                <div class="flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-4 pt-2">
                     <button type="button" (click)="isAdding.set(false)"
-                        class="flex-1 py-4 bg-bg-tertiary hover:bg-bg-secondary text-text-primary font-black text-[10px] uppercase tracking-widest rounded-2xl border border-border-primary transition-all">Cancel</button>
+                        class="w-full sm:flex-1 py-3 sm:py-4 bg-bg-tertiary hover:bg-bg-secondary text-text-primary font-black text-[10px] uppercase tracking-widest rounded-2xl border border-border-primary transition-all">Cancel</button>
                     <button type="button" (click)="onboard()" [disabled]="isSaving()"
-                        class="flex-[2] py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-500/20 transition-all active:scale-95">
+                        class="w-full sm:flex-[2] py-3 sm:py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-500/20 transition-all active:scale-95 flex items-center justify-center">
                         {{ isSaving() ? 'Onboarding…' : 'Onboard & Send Setup Email' }}
                     </button>
                 </div>
@@ -234,35 +238,39 @@
 
     <!-- Announcement Modal -->
     @if (showAnnouncementModal()) {
-    <div class="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-fade-in">
-        <div class="absolute inset-0 bg-bg-primary" (click)="showAnnouncementModal.set(false)"></div>
-        <div class="bg-bg-secondary w-full max-w-lg rounded-[40px] border border-border-secondary p-10 shadow-3xl relative z-10">
-            <h2 class="text-2xl font-black text-text-primary tracking-tighter uppercase italic mb-8">New Announcement</h2>
-            <div class="flex flex-col gap-5">
-                <div class="flex flex-col gap-2">
+    <div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 animate-fade-in" (click)="showAnnouncementModal.set(false)">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div class="bg-bg-secondary w-full max-w-lg rounded-t-3xl sm:rounded-[40px] border border-border-secondary p-5 sm:p-10 shadow-3xl relative z-10 flex flex-col max-h-[92vh] sm:max-h-[88vh] animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
+            <!-- Mobile Handle -->
+            <div class="pt-1 pb-1 sm:hidden flex justify-center">
+                <div class="bottomsheet-handle"></div>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-black text-text-primary tracking-tighter uppercase italic mb-4 sm:mb-8">New Announcement</h2>
+            <div class="flex flex-col gap-3.5 sm:gap-5 overflow-y-auto flex-1">
+                <div class="flex flex-col gap-1.5 sm:gap-2">
                     <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Title</label>
                     <input type="text" [(ngModel)]="announcementDraft().title" placeholder="System Maintenance..."
-                        class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-blue-500/50">
+                        class="bg-bg-tertiary border border-border-secondary rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
-                <div class="flex flex-col gap-2">
+                <div class="flex flex-col gap-1.5 sm:gap-2">
                     <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Content</label>
                     <textarea [(ngModel)]="announcementDraft().content" placeholder="Details..." rows="4"
-                        class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"></textarea>
+                        class="bg-bg-tertiary border border-border-secondary rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-text-primary placeholder-text-muted outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"></textarea>
                 </div>
-                <div class="flex flex-col gap-2">
+                <div class="flex flex-col gap-1.5 sm:gap-2">
                     <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Priority</label>
                     <select [(ngModel)]="announcementDraft().priority"
-                        class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none">
+                        class="bg-bg-tertiary border border-border-secondary rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none">
                         <option value="INFO">Info (Blue)</option>
                         <option value="WARNING">Warning (Yellow)</option>
                         <option value="CRITICAL">Critical (Red)</option>
                     </select>
                 </div>
-                <div class="flex gap-4 pt-2">
+                <div class="flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-4 pt-2">
                     <button type="button" (click)="showAnnouncementModal.set(false)"
-                        class="flex-1 py-4 bg-bg-tertiary hover:bg-bg-secondary text-text-primary font-black text-[10px] uppercase tracking-widest rounded-2xl border border-border-primary transition-all">Cancel</button>
+                        class="w-full sm:flex-1 py-3 sm:py-4 bg-bg-tertiary hover:bg-bg-secondary text-text-primary font-black text-[10px] uppercase tracking-widest rounded-2xl border border-border-primary transition-all">Cancel</button>
                     <button type="button" (click)="createAnnouncement()"
-                        class="flex-[2] py-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-500/20 transition-all active:scale-95">
+                        class="w-full sm:flex-[2] py-3 sm:py-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-500/20 transition-all active:scale-95 flex items-center justify-center">
                         Publish
                     </button>
                 </div>

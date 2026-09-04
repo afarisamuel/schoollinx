@@ -16,76 +16,77 @@
 
 <!-- ===== Pay Subscription Modal ===== -->
 @if (showPayModal()) {
-  <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" (click)="closePayModal()">
-    <div class="relative w-full max-w-md bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl p-8" (click)="$event.stopPropagation()">
+  <div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-md animate-fade-in" (click)="closePayModal()">
+    <div class="relative w-full max-w-md bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-8 max-h-[92vh] sm:max-h-[85vh] overflow-y-auto animate-slide-up" (click)="$event.stopPropagation()">
+      <div class="bottomsheet-handle sm:hidden"></div>
       <!-- Glow -->
-      <div class="absolute top-0 right-0 w-48 h-48 bg-rose-500/10 rounded-full blur-[60px] pointer-events-none"></div>
+      <div class="absolute -top-12 -right-12 w-48 h-48 bg-blue-500/15 rounded-full blur-[70px] pointer-events-none"></div>
 
       <!-- Header -->
-      <div class="flex items-start justify-between mb-6">
+      <div class="flex items-start justify-between mb-6 relative z-10">
         <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] font-black uppercase tracking-widest mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-widest mb-2">
+            <i class="fas fa-file-invoice text-[10px]"></i>
             Term Subscription
           </div>
-          <h2 class="text-xl font-black text-text-primary">Pay Subscription</h2>
-          <p class="text-sm text-text-secondary mt-1">Complete your subscription payment for this term.</p>
+          <h2 class="text-xl font-black text-text-primary">Pay Platform Subscription</h2>
+          <p class="text-xs text-text-muted mt-1">Activate institutional services for the upcoming academic term.</p>
         </div>
-        <button (click)="closePayModal()" class="p-2 rounded-xl bg-bg-tertiary hover:bg-border-primary text-text-muted hover:text-text-primary transition-all">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        <button (click)="closePayModal()" class="w-8 h-8 rounded-xl bg-bg-tertiary hover:bg-bg-primary text-text-muted hover:text-text-primary transition-all flex items-center justify-center cursor-pointer">
+          <i class="fas fa-times text-xs"></i>
         </button>
       </div>
 
       <!-- Summary row -->
-      <div class="grid grid-cols-3 gap-3 mb-6">
+      <div class="grid grid-cols-3 gap-2.5 mb-6 relative z-10">
         <div class="text-center p-3 rounded-2xl bg-bg-tertiary border border-border-primary">
-          <p class="text-[9px] font-black uppercase tracking-widest text-text-muted mb-1">Students</p>
-          <p class="text-xl font-black text-text-primary">{{ activeStudentCount() | number }}</p>
+          <p class="text-[9px] font-black uppercase tracking-wider text-text-muted mb-1">Scholars</p>
+          <p class="text-lg font-black text-text-primary">{{ activeStudentCount() | number }}</p>
         </div>
         <div class="text-center p-3 rounded-2xl bg-bg-tertiary border border-border-primary">
-          <p class="text-[9px] font-black uppercase tracking-widest text-text-muted mb-1">Rate/Student</p>
-          <p class="text-xl font-black text-text-primary">₵{{ tenantProfile()?.per_student_per_term_rate || 0 | number:'1.2-2' }}</p>
+          <p class="text-[9px] font-black uppercase tracking-wider text-text-muted mb-1">Rate/Student</p>
+          <p class="text-lg font-black text-text-primary">₵{{ tenantProfile()?.per_student_per_term_rate || 0 | number:'1.2-2' }}</p>
         </div>
-        <div class="text-center p-3 rounded-2xl bg-blue-500/10 border border-rose-500/20">
-          <p class="text-[9px] font-black uppercase tracking-widest text-rose-500 mb-1">Total Due</p>
-          <p class="text-xl font-black text-blue-400">₵{{ totalDue | number:'1.2-2' }}</p>
+        <div class="text-center p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20">
+          <p class="text-[9px] font-black uppercase tracking-wider text-blue-500 mb-1">Total Due</p>
+          <p class="text-lg font-black text-blue-600 dark:text-blue-400">₵{{ totalDue | number:'1.2-2' }}</p>
         </div>
       </div>
 
       <!-- Email input -->
-      <div class="mb-6">
-        <label for="payer-email" class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Billing Email</label>
+      <div class="mb-6 relative z-10">
+        <label for="payer-email" class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Billing Confirmation Email</label>
         <div class="relative">
-          <div class="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          <div class="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-xs pointer-events-none">
+            <i class="fas fa-envelope"></i>
           </div>
           <input
             id="payer-email"
             type="email"
-            placeholder="admin@yourschool.edu"
+            placeholder="admin@school.edu.gh"
             [value]="payerEmail()"
             (input)="payerEmail.set($any($event.target).value)"
             (keyup.enter)="confirmPayment()"
-            class="w-full bg-bg-tertiary border border-border-primary hover:border-border-secondary focus:border-rose-500 rounded-xl pl-11 pr-4 py-3.5 text-sm text-text-primary placeholder-text-muted outline-none transition-all"
+            class="w-full bg-bg-tertiary border border-border-primary hover:border-blue-500/50 focus:border-blue-500 rounded-xl pl-10 pr-4 py-3 text-xs font-bold text-text-primary placeholder-text-muted outline-none transition-all"
           />
         </div>
-        <p class="text-[11px] text-text-secondary mt-1.5">The Paystack payment link will be sent / opened for this email.</p>
+        <p class="text-[11px] text-text-muted mt-1.5">Official payment receipt and Paystack checkout session will be routed to this address.</p>
       </div>
 
       <!-- Actions -->
-      <div class="flex items-center gap-3">
+      <div class="flex flex-col-reverse sm:flex-row items-center gap-3 relative z-10">
         <button
           (click)="closePayModal()"
-          class="flex-1 py-3 rounded-xl font-bold text-sm bg-bg-tertiary hover:bg-border-primary text-text-secondary transition-all border border-border-primary"
+          class="w-full sm:flex-1 py-3 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-secondary transition-all border border-border-primary cursor-pointer active:scale-95"
         >
           Cancel
         </button>
         <button
           (click)="confirmPayment()"
-          class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-rose-500/20"
+          class="w-full sm:flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-blue-500/25 cursor-pointer active:scale-95"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          Proceed to Payment
+          <i class="fas fa-shield-alt text-xs"></i>
+          <span>Pay with Paystack</span>
         </button>
       </div>
     </div>
@@ -93,154 +94,188 @@
 }
 <!-- ===== / Pay Subscription Modal ===== -->
 
-<div class="p-4 md:p-10 max-w-[1400px] mx-auto animate-fade-in">
-  <!-- Header Area -->
-  <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-6 md:gap-0 relative z-10">
-    <div class="header-content relative">
-      <div class="absolute -left-8 -top-8 w-24 h-24 bg-rose-500/20 rounded-full blur-2xl pointer-events-none"></div>
-      <h1 class="text-3xl md:text-4xl font-black tracking-tight text-blue-400 relative z-10">
-        Subscription & Billing
+<div class="max-w-[1440px] mx-auto animate-fade-in pb-16">
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- 1. TOP HEADER BAR                                          -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div>
+      <div class="flex items-center gap-2 text-xs font-bold text-text-muted mb-1.5">
+        <span class="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+          Institutional SaaS Portal
+        </span>
+        <span class="text-text-muted/40">/</span>
+        <span class="text-text-primary font-black">Fiscal Billing</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+        Subscription & Billing Engine
       </h1>
-      <p class="text-sm font-medium text-text-secondary mt-2 relative z-10">
-        Manage your institutional SaaS plan, rates, and resource allocations
+      <p class="text-xs sm:text-sm font-medium text-text-muted mt-1">
+        Manage your institutional software plan, resource allocations, communications quotas, and automated Paystack fee settlement.
       </p>
+    </div>
+
+    <!-- Quick Top Actions -->
+    <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+      <button (click)="loadTenantProfile(); loadHistory(); loadSubaccountConfig()"
+        class="px-3.5 py-2 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-xl transition-all flex items-center gap-2 shadow-xs cursor-pointer active:scale-95">
+        <i class="fas fa-rotate text-xs text-text-muted" [class.animate-spin]="loading() || loadingHistory()"></i>
+        <span>Refresh</span>
+      </button>
+
+      <button (click)="handleBuyCredits()"
+        class="px-3.5 py-2 bg-emerald-600/10 hover:bg-emerald-600/20 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-xl transition-all flex items-center gap-2 shadow-xs cursor-pointer active:scale-95">
+        <i class="fas fa-comment-sms text-xs"></i>
+        <span>Top Up SMS</span>
+      </button>
     </div>
   </div>
 
-  <div class="mt-8 space-y-8 relative z-10">
+  <div class="space-y-6">
     @if (loading()) {
-      <div class="flex flex-col items-center justify-center py-24 gap-4">
-        <div class="w-12 h-12 rounded-2xl border-4 border-rose-500/30 border-t-rose-500 animate-spin"></div>
-        <p class="text-sm font-bold text-text-muted">Loading subscription details...</p>
+      <div class="flex flex-col items-center justify-center py-28 gap-4 bg-bg-secondary border border-border-primary rounded-3xl p-8 shadow-sm">
+        <div class="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+        <p class="text-sm font-bold text-text-muted animate-pulse">Synchronizing subscription & billing records...</p>
       </div>
     } @else if (tenantProfile()) {
-      <!-- Current Fiscal Allocation -->
-      <div class="relative overflow-hidden bg-bg-secondary border border-border-primary rounded-3xl p-8 shadow-2xl">
-        <!-- Premium decorative background elements -->
-        <div class="absolute top-0 right-0 w-64 h-64 bg-rose-500/10 rounded-full blur-[80px] pointer-events-none mix-blend-screen"></div>
-        <div class="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none mix-blend-screen"></div>
-        <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50"></div>
 
-        <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pb-6 border-b border-border-primary">
-          <div>
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] font-black uppercase tracking-widest mb-3 shadow-[0_0_15px_rgba(244,63,94,0.1)]">
-              <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-              Active Plan
+      <!-- ══════════════════════════════════════════════════════════ -->
+      <!-- 2. HERO SUBSCRIPTION & FISCAL ALLOCATION HUB               -->
+      <!-- ══════════════════════════════════════════════════════════ -->
+      <div class="relative overflow-hidden bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-5 sm:p-7 md:p-8 shadow-sm">
+        <!-- Ambient Background Glows -->
+        <div class="absolute -top-24 -right-24 w-80 h-80 bg-blue-500/10 rounded-full blur-[90px] pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-indigo-500/10 rounded-full blur-[90px] pointer-events-none"></div>
+
+        <div class="relative z-10">
+          <!-- Top Row: Plan Details & Rate Card -->
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-border-primary/80">
+            <!-- Left Column: Plan Identity -->
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-wrap items-center gap-2 mb-2.5">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-widest">
+                  <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                  Active Tier
+                </span>
+
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-bg-tertiary border border-border-primary text-text-muted">
+                  Domain: {{ tenantProfile()?.subdomain || 'INSTITUTION' }}.schoollinx.com
+                </span>
+              </div>
+
+              <h2 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                {{ tenantProfile()?.subscription_plan || 'PRO ENTERPRISE' }}
+                <span class="text-xs px-2.5 py-1 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black tracking-wider uppercase shadow-xs">
+                  SaaS
+                </span>
+              </h2>
+              <p class="text-xs sm:text-sm font-medium text-text-muted mt-1.5 max-w-xl">
+                Usage-based institutional billing model calculated dynamically per enrolled scholar each academic term.
+              </p>
             </div>
-            <h2 class="text-3xl md:text-4xl font-black text-text-primary tracking-tight flex items-center gap-3">
-              {{ tenantProfile()?.subscription_plan || 'STANDARD' }}
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            </h2>
-            <p class="text-text-secondary text-sm mt-2 font-medium tracking-wide">Usage-based institutional billing model</p>
-          </div>
-          
-          <div class="mt-6 md:mt-0 text-left md:text-right">
-            <p class="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Per Student Rate</p>
-            <div class="text-4xl font-black text-blue-400">
-              ₵{{ tenantProfile()?.per_student_per_term_rate || 0 | number:'1.2-2' }}<span class="text-lg text-text-muted">/term</span>
-            </div>
-            <div class="mt-3">
-              @if (loadingStudents()) {
-                <div class="flex items-center gap-2 justify-end">
-                  <div class="w-4 h-4 border-2 border-rose-500/30 border-t-rose-500 rounded-full animate-spin"></div>
-                  <span class="text-xs text-text-muted">Loading students...</span>
+
+            <!-- Right Column: Rate Card & Instant Pay Trigger -->
+            <div class="flex flex-col sm:flex-row lg:flex-col sm:items-center lg:items-end justify-between gap-4 p-4 rounded-2xl bg-bg-tertiary/60 border border-border-primary shrink-0 lg:w-80">
+              <div class="text-left sm:text-left lg:text-right">
+                <p class="text-[10px] font-black uppercase tracking-widest text-text-muted">Per-Scholar Tariff</p>
+                <div class="text-2xl sm:text-3xl font-black text-blue-600 dark:text-blue-400 mt-0.5">
+                  ₵{{ tenantProfile()?.per_student_per_term_rate || 0 | number:'1.2-2' }}
+                  <span class="text-xs font-bold text-text-muted tracking-normal">/ scholar / term</span>
                 </div>
-              } @else {
-                <p class="text-xs text-text-secondary mb-2">{{ activeStudentCount() }} active students · Total: <span class="text-text-primary font-bold">₵{{ totalDue | number:'1.2-2' }}</span></p>
-              }
+                <p class="text-[11px] font-bold text-text-muted mt-1">
+                  {{ activeStudentCount() }} scholars enrolled &bull; Total: <span class="text-text-primary font-black">₵{{ totalDue | number:'1.2-2' }}</span>
+                </p>
+              </div>
+
               <button
                 (click)="handleUpgrade()"
                 [disabled]="isPaymentLoading()"
-                class="mt-1 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-lg shadow-rose-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                class="w-full sm:w-auto lg:w-full px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50"
               >
                 @if (isPaymentLoading()) {
                   <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Processing...
+                  <span>Processing...</span>
                 } @else {
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                  Pay Subscription
+                  <i class="fas fa-credit-card text-xs"></i>
+                  <span>Pay / Renew Subscription</span>
                 }
               </button>
             </div>
           </div>
-        </div>
 
-        <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <!-- ===== TERM PAYMENT STATUS CARD ===== -->
-          <div class="lg:col-span-4">
+          <!-- Middle Row: Term Payment Status Banner -->
+          <div class="mt-6">
             @if (termPaymentStatus() === 'PAID') {
-              <!-- PAID banner -->
-              <div class="relative overflow-hidden flex items-center justify-between gap-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl px-6 py-4">
-                <div class="flex items-center gap-4 relative z-10">
-                  <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><polyline points="9 12 11 14 15 10"/></svg>
+              <!-- PAID Banner -->
+              <div class="relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-emerald-500/10 border border-emerald-500/25 rounded-2xl p-4 sm:p-5">
+                <div class="flex items-start sm:items-center gap-3.5">
+                  <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-base shrink-0 border border-emerald-500/30 shadow-xs">
+                    <i class="fas fa-shield-check"></i>
                   </div>
                   <div>
-                    <p class="text-lg font-black text-emerald-300 flex items-center gap-2">
-                      Subscription Paid
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                    </p>
-                    <p class="text-xs text-emerald-400/70 mt-0.5">
-                      Access valid until <strong class="text-emerald-300">{{ tenantProfile()?.billing_due_date | date:'longDate' }}</strong>
+                    <div class="flex items-center gap-2">
+                      <h3 class="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400">Subscription Active & Validated</h3>
+                      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    </div>
+                    <p class="text-xs text-emerald-700 dark:text-emerald-300/80 font-medium mt-0.5">
+                      Platform access authorized until <strong class="text-emerald-800 dark:text-emerald-200 font-black">{{ tenantProfile()?.billing_due_date | date:'longDate' }}</strong>
                       @if (latestPayment()) {
-                        · Last payment: <strong class="text-emerald-300">₵{{ latestPayment()!.amount | number:'1.2-2' }}</strong> on {{ latestPayment()!.created_at | date:'mediumDate' }}
+                        &bull; Last payment: <strong class="text-emerald-800 dark:text-emerald-200 font-bold">₵{{ latestPayment()!.amount | number:'1.2-2' }}</strong> on {{ latestPayment()!.created_at | date:'mediumDate' }}
                       }
                     </p>
                   </div>
                 </div>
-                <div class="relative z-10 shrink-0">
-                  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[11px] font-black uppercase tracking-widest">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Active
+
+                <div class="shrink-0">
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[10px] font-black uppercase tracking-widest border border-emerald-500/30">
+                    <i class="fas fa-check-circle text-[10px]"></i> Current Term Paid
                   </span>
                 </div>
               </div>
             } @else if (termPaymentStatus() === 'PENDING') {
-              <!-- PENDING banner -->
-              <div class="relative overflow-hidden flex items-center justify-between gap-4 bg-blue-500/10 border border-blue-500/30 rounded-2xl px-6 py-4">
-                <div class="flex items-center gap-4 relative z-10">
-                  <div class="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <!-- PENDING Banner -->
+              <div class="relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-amber-500/10 border border-amber-500/25 rounded-2xl p-4 sm:p-5">
+                <div class="flex items-start sm:items-center gap-3.5">
+                  <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-base shrink-0 border border-amber-500/30 shadow-xs">
+                    <i class="fas fa-hourglass-half"></i>
                   </div>
                   <div>
-                    <p class="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-0.5">Current Term Status</p>
-                    <p class="text-lg font-black text-orange-300">Payment Pending</p>
-                    <p class="text-xs text-blue-400/70 mt-0.5">A payment was initiated but not yet confirmed. Click <strong class="text-orange-300">Verify</strong> in the history table below.</p>
+                    <h3 class="text-sm sm:text-base font-black text-amber-600 dark:text-amber-400">Payment Pending Confirmation</h3>
+                    <p class="text-xs text-amber-700 dark:text-amber-300/80 font-medium mt-0.5">
+                      A payment session was initiated. Click <strong>Verify</strong> in the payment ledger below to complete reconciliation.
+                    </p>
                   </div>
                 </div>
-                <div class="relative z-10 shrink-0">
-                  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/20 border border-blue-500/30 text-orange-300 text-[11px] font-black uppercase tracking-widest">
-                    <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-                    Pending
+
+                <div class="shrink-0">
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase tracking-widest border border-amber-500/30">
+                    <i class="fas fa-clock text-[10px]"></i> Pending Verification
                   </span>
                 </div>
               </div>
             } @else {
-              <!-- OVERDUE banner -->
-              <div class="relative overflow-hidden flex items-center justify-between gap-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl px-6 py-4">
-                <div class="flex items-center gap-4 relative z-10">
-                  <div class="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <!-- OVERDUE Banner -->
+              <div class="relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-rose-500/10 border border-rose-500/25 rounded-2xl p-4 sm:p-5">
+                <div class="flex items-start sm:items-center gap-3.5">
+                  <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center text-base shrink-0 border border-rose-500/30 shadow-xs">
+                    <i class="fas fa-triangle-exclamation"></i>
                   </div>
                   <div>
-                    <p class="text-[10px] font-black uppercase tracking-widest text-rose-400 mb-0.5">Current Term Status</p>
-                    <p class="text-lg font-black text-rose-300">Subscription Unpaid</p>
-                    <p class="text-xs text-rose-400/70 mt-0.5">
+                    <h3 class="text-sm sm:text-base font-black text-rose-600 dark:text-rose-400">Subscription Unpaid / Expired</h3>
+                    <p class="text-xs text-rose-700 dark:text-rose-300/80 font-medium mt-0.5">
                       @if (tenantProfile()?.billing_due_date) {
-                        Billing cycle ended on <strong class="text-rose-300">{{ tenantProfile()?.billing_due_date | date:'longDate' }}</strong>. Pay now to restore full access.
+                        Billing cycle ended on <strong class="text-rose-800 dark:text-rose-200 font-bold">{{ tenantProfile()?.billing_due_date | date:'longDate' }}</strong>. Please complete payment to avoid service interruption.
                       } @else {
-                        No subscription payment on record for this term. Pay now to activate your plan.
+                        No term subscription payment recorded. Pay now to activate full institutional modules.
                       }
                     </p>
                   </div>
                 </div>
-                <div class="relative z-10 shrink-0">
-                  <button (click)="handleUpgrade()" [disabled]="isPaymentLoading()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-rose-500/20 disabled:opacity-50">
-                    @if (isPaymentLoading()) {
-                      <div class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    } @else {
-                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    }
+
+                <div class="shrink-0">
+                  <button (click)="handleUpgrade()" [disabled]="isPaymentLoading()"
+                    class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-rose-500/25 cursor-pointer active:scale-95 disabled:opacity-50">
                     Pay Now
                   </button>
                 </div>
@@ -248,127 +283,150 @@
             }
           </div>
 
-          <!-- Student Quota Status -->
-
-          <div class="bg-bg-tertiary rounded-2xl p-5 border border-border-primary">
-            <div class="flex items-center gap-3 mb-3">
-              <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center border border-blue-500/20">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <!-- Bottom Row: Resource Allocation Quota Tiles Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mt-6">
+            <!-- 1. Enrollment Quota -->
+            <div class="bg-bg-tertiary/60 hover:bg-bg-tertiary border border-border-primary hover:border-border-secondary rounded-2xl p-4 sm:p-5 transition-all shadow-xs flex flex-col justify-between gap-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/20 flex items-center justify-center text-xs shrink-0">
+                    <i class="fas fa-user-graduate"></i>
+                  </div>
+                  <span class="text-xs font-bold text-text-primary">Enrolled Scholars</span>
+                </div>
+                <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20">
+                  Active
+                </span>
               </div>
-              <span class="text-xs font-bold text-text-secondary">Enrollment</span>
-            </div>
-            <div class="flex items-end justify-between">
+
               <div>
-                <p class="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Active Students</p>
+                <p class="text-[10px] font-black uppercase tracking-wider text-text-muted">Total Student Registry</p>
                 @if (loadingStudents()) {
-                  <div class="flex items-center gap-2">
-                    <div class="w-4 h-4 border-2 border-slate-300 border-t-slate-500 rounded-full animate-spin"></div>
-                    <span class="text-sm text-text-muted">Loading...</span>
+                  <div class="flex items-center gap-2 mt-1">
+                    <div class="w-3.5 h-3.5 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+                    <span class="text-xs text-text-muted">Counting...</span>
                   </div>
                 } @else {
-                  <p class="text-2xl font-black text-text-primary">{{ activeStudentCount() | number }}</p>
+                  <p class="text-2xl sm:text-3xl font-black text-text-primary mt-0.5">{{ activeStudentCount() | number }}</p>
                 }
               </div>
             </div>
-          </div>
 
-          <!-- Add-on: SMS Credits -->
-          <div class="bg-bg-tertiary rounded-2xl p-5 border border-border-primary group">
-            <div class="flex items-center justify-between mb-3">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <!-- 2. SMS Communications Quota -->
+            <div class="bg-bg-tertiary/60 hover:bg-bg-tertiary border border-border-primary hover:border-border-secondary rounded-2xl p-4 sm:p-5 transition-all shadow-xs flex flex-col justify-between gap-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center text-xs shrink-0">
+                    <i class="fas fa-comment-sms"></i>
+                  </div>
+                  <span class="text-xs font-bold text-text-primary">SMS Credits</span>
                 </div>
-                <span class="text-xs font-bold text-text-secondary flex items-center gap-2">SMS Credits <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 text-[8px] uppercase font-black">On-Demand</span></span>
+                <button (click)="handleBuyCredits()"
+                  class="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer active:scale-95">
+                  <i class="fas fa-plus text-[9px]"></i> Top Up
+                </button>
               </div>
-              <button (click)="handleBuyCredits()" class="p-1.5 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-lg transition-colors flex items-center gap-1 text-[10px] font-bold" title="Purchase Credits">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                Top Up
-              </button>
+
+              <div class="flex items-end justify-between">
+                <div>
+                  <p class="text-[10px] font-black uppercase tracking-wider text-text-muted">Available Message Balance</p>
+                  <p class="text-2xl sm:text-3xl font-black text-text-primary mt-0.5"
+                     [class.text-rose-500]="(tenantProfile()?.sms_credits || 0) < 500">
+                    {{ tenantProfile()?.sms_credits || 0 | number }}
+                  </p>
+                </div>
+                <button (click)="handleOpenSenderId()"
+                  class="text-[11px] font-bold text-blue-500 hover:text-blue-600 hover:underline transition-all cursor-pointer flex items-center gap-1">
+                  <i class="fas fa-id-badge text-[10px]"></i> Sender ID
+                </button>
+              </div>
             </div>
-            <div class="flex items-end justify-between">
+
+            <!-- 3. Cloud Storage Quota -->
+            <div class="bg-bg-tertiary/60 hover:bg-bg-tertiary border border-border-primary hover:border-border-secondary rounded-2xl p-4 sm:p-5 transition-all shadow-xs flex flex-col justify-between gap-3 sm:col-span-2 lg:col-span-1">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-500 border border-purple-500/20 flex items-center justify-center text-xs shrink-0">
+                    <i class="fas fa-cloud-arrow-up"></i>
+                  </div>
+                  <span class="text-xs font-bold text-text-primary">Cloud Assets Storage</span>
+                </div>
+                <button (click)="handleStorageUpgrade()"
+                  class="px-2.5 py-1 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer">
+                  Expand
+                </button>
+              </div>
+
               <div>
-                <p class="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Remaining Balance</p>
-                <p class="text-2xl font-black text-text-primary" [ngClass]="{'text-rose-500': tenantProfile()?.sms_credits && tenantProfile()!.sms_credits < 500}">
-                  {{ tenantProfile()?.sms_credits || 0 | number }}
-                </p>
-              </div>
-              <button (click)="handleOpenSenderId()" class="text-[10px] text-text-muted hover:text-accent-primary font-bold underline transition-colors">
-                Sender ID
-              </button>
-            </div>
-          </div>
-
-          <!-- Add-on: Cloud Storage -->
-          <div class="bg-bg-tertiary rounded-2xl p-5 border border-border-primary lg:col-span-2 group">
-            <div class="flex items-center justify-between mb-3">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center border border-blue-500/20">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m8 17 4 4 4-4"/></svg>
+                <div class="flex justify-between items-end mb-1.5">
+                  <p class="text-[10px] font-black uppercase tracking-wider text-text-muted">Storage Utilization</p>
+                  <p class="text-xs font-bold text-text-primary">
+                    {{ (tenantProfile()?.storage_used_mb || 0) / 1024 | number:'1.2-2' }} GB
+                    <span class="text-text-muted font-normal">/ {{ tenantProfile()?.storage_limit_gb || 0 }} GB</span>
+                  </p>
                 </div>
-                <span class="text-xs font-bold text-text-secondary flex items-center gap-2">Cloud Storage <span class="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-500 text-[8px] uppercase font-black">Add-on</span></span>
-              </div>
-              <button (click)="handleStorageUpgrade()" class="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg" title="Expand Storage">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-              </button>
-            </div>
-            
-            <div class="flex flex-col gap-2 mt-4">
-              <div class="flex justify-between items-end">
-                <p class="text-[10px] font-black uppercase tracking-widest text-text-muted">Usage Tracker</p>
-                <p class="text-sm font-bold text-text-primary">{{ (tenantProfile()?.storage_used_mb || 0) / 1024 | number:'1.2-2' }} GB <span class="text-text-muted font-medium">/ {{ tenantProfile()?.storage_limit_gb || 0 }} GB</span></p>
-              </div>
-              
-              <!-- Progress Bar -->
-              <div class="h-2 w-full bg-border-primary rounded-full overflow-hidden">
-                <div class="h-full bg-blue-600 rounded-full transition-all duration-1000"
-                     [style.width.%]="tenantProfile()?.storage_limit_gb ? (((tenantProfile()!.storage_used_mb || 0) / 1024) / tenantProfile()!.storage_limit_gb) * 100 : 0"
-                     [ngClass]="{'from-rose-500 to-blue-500': tenantProfile()?.storage_limit_gb && (((tenantProfile()!.storage_used_mb || 0) / 1024) / tenantProfile()!.storage_limit_gb) > 0.9}">
+
+                <!-- Progress Bar -->
+                <div class="h-2 w-full bg-border-primary/60 rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-1000"
+                       [style.width.%]="tenantProfile()?.storage_limit_gb ? (((tenantProfile()!.storage_used_mb || 0) / 1024) / tenantProfile()!.storage_limit_gb) * 100 : 0">
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
     } @else {
-      <div class="flex flex-col items-center justify-center py-10 px-4 bg-bg-tertiary/50 border border-dashed border-border-primary rounded-3xl text-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-text-muted mb-3"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
-          <p class="text-sm font-bold text-text-primary">Failed to load subscription details</p>
+      <div class="flex flex-col items-center justify-center py-16 px-4 bg-bg-secondary border border-border-primary rounded-3xl text-center shadow-sm">
+        <div class="w-14 h-14 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center text-2xl mb-3">
+          <i class="fas fa-circle-exclamation"></i>
+        </div>
+        <h3 class="text-base font-black text-text-primary">Subscription Telemetry Unavailable</h3>
+        <p class="text-xs text-text-muted mt-1 max-w-sm">Failed to retrieve institutional profile and billing configuration.</p>
+        <button (click)="loadTenantProfile()" class="mt-4 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-500 transition-all cursor-pointer">
+          Retry
+        </button>
       </div>
     }
 
-    <!-- ===== Payment Gateway & Settlement Configuration ===== -->
-    <div class="relative overflow-hidden bg-bg-secondary border border-border-primary rounded-3xl p-8 shadow-2xl">
-      <!-- Decorative glows -->
-      <div class="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-[90px] pointer-events-none"></div>
-      <div class="absolute bottom-0 left-0 w-80 h-80 bg-cyan-500/10 rounded-full blur-[90px] pointer-events-none"></div>
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 3. PAYSTACK DIRECT SETTLEMENT & FEES ROUTING HUB           -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-5 sm:p-7 md:p-8 shadow-sm relative overflow-hidden">
+      <!-- Ambient Glow -->
+      <div class="absolute -top-24 -right-24 w-80 h-80 bg-emerald-500/10 rounded-full blur-[90px] pointer-events-none"></div>
 
       <div class="relative z-10">
-        <!-- Header -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b border-border-primary">
+        <!-- Section Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-5 border-b border-border-primary/80">
           <div>
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-widest mb-3">
-              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-              Direct Settlement Hub
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-2">
+              <i class="fas fa-building-columns text-[10px]"></i>
+              Direct Revenue Routing
             </div>
-            <h2 class="text-2xl font-black text-text-primary tracking-tight">Paystack Settlement & Fees Routing</h2>
-            <p class="text-text-secondary text-sm mt-1 max-w-xl">
-              Configure where all student school fees and digital wallet top-ups are routed. Funds settle directly into your verified school bank or Mobile Money account.
+            <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              Paystack Settlement & Fees Routing
+            </h2>
+            <p class="text-xs sm:text-sm font-medium text-text-muted mt-1 max-w-2xl">
+              Configure where student school fees, payments, and wallet top-ups are routed. Funds settle directly into your verified school bank account or Mobile Money wallet.
             </p>
           </div>
 
           <!-- Mode Toggle Tabs -->
-          <div class="flex items-center bg-bg-tertiary p-1.5 rounded-2xl border border-border-primary shrink-0 self-start md:self-auto">
+          <div class="flex items-center bg-bg-tertiary p-1 rounded-2xl border border-border-primary shrink-0 self-start md:self-auto">
             <button
               type="button"
               (click)="gatewayMode.set('subaccount')"
-              [class.bg-emerald-500]="gatewayMode() === 'subaccount'"
+              [class.bg-emerald-600]="gatewayMode() === 'subaccount'"
               [class.text-white]="gatewayMode() === 'subaccount'"
-              [class.text-text-secondary]="gatewayMode() !== 'subaccount'"
-              class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm"
+              [class.shadow-xs]="gatewayMode() === 'subaccount'"
+              [class.text-text-muted]="gatewayMode() !== 'subaccount'"
+              class="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v4M12 14v4M16 14v4"/></svg>
-              Bank Subaccount
+              <i class="fas fa-building-columns text-xs"></i>
+              <span>Bank Subaccount</span>
               @if (subaccountConfig()?.has_subaccount) {
                 <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
               }
@@ -376,13 +434,14 @@
             <button
               type="button"
               (click)="gatewayMode.set('keys')"
-              [class.bg-emerald-500]="gatewayMode() === 'keys'"
+              [class.bg-emerald-600]="gatewayMode() === 'keys'"
               [class.text-white]="gatewayMode() === 'keys'"
-              [class.text-text-secondary]="gatewayMode() !== 'keys'"
-              class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all"
+              [class.shadow-xs]="gatewayMode() === 'keys'"
+              [class.text-text-muted]="gatewayMode() !== 'keys'"
+              class="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-              Custom API Keys
+              <i class="fas fa-key text-xs"></i>
+              <span>Custom API Keys</span>
             </button>
           </div>
         </div>
@@ -391,45 +450,49 @@
         @if (gatewayMode() === 'subaccount') {
           <!-- Active Subaccount Card if already connected -->
           @if (subaccountConfig()?.has_subaccount) {
-            <div class="relative overflow-hidden bg-blue-500/15 border-2 border-emerald-500/30 rounded-2xl p-6 mb-8">
+            <div class="relative overflow-hidden bg-emerald-500/10 border border-emerald-500/30 rounded-2xl sm:rounded-3xl p-5 sm:p-6 mb-4">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                 <div class="flex items-start gap-4">
-                  <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/40 shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v4M12 14v4M16 14v4"/></svg>
+                  <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl border border-emerald-500/30 shrink-0 shadow-xs">
+                    <i class="fas fa-building-columns"></i>
                   </div>
                   <div>
-                    <div class="flex items-center gap-2 mb-1">
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider">
+                    <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                         Active Settlement Account
                       </span>
-                      <span class="text-xs text-text-muted font-mono">{{ subaccountConfig()?.subaccount_code }}</span>
+                      <span class="text-xs text-text-muted font-mono bg-bg-secondary px-2 py-0.5 rounded-md border border-border-primary font-bold">
+                        Code: {{ subaccountConfig()?.subaccount_code }}
+                      </span>
                     </div>
-                    <h3 class="text-xl font-black text-text-primary">{{ subaccountConfig()?.bank_name }}</h3>
-                    <p class="text-sm font-semibold text-emerald-400 mt-0.5 flex items-center gap-1.5">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                      Verified Account: <span class="text-text-primary font-bold">{{ subaccountConfig()?.account_name }}</span>
+
+                    <h3 class="text-lg sm:text-xl font-black text-text-primary">{{ subaccountConfig()?.bank_name }}</h3>
+                    <p class="text-xs sm:text-sm font-bold text-emerald-700 dark:text-emerald-400 mt-0.5 flex items-center gap-1.5">
+                      <i class="fas fa-circle-check text-xs"></i>
+                      <span>Verified Beneficiary: <strong class="text-text-primary">{{ subaccountConfig()?.account_name }}</strong></span>
                     </p>
                     <p class="text-xs text-text-secondary mt-1 font-mono">
-                      Account / MoMo: <strong class="text-text-primary">{{ subaccountConfig()?.account_number }}</strong>
+                      Account / Mobile Number: <strong class="text-text-primary">{{ subaccountConfig()?.account_number }}</strong>
                     </p>
                   </div>
                 </div>
 
-                <div class="flex flex-col sm:items-end gap-2 shrink-0">
-                  <div class="text-[11px] text-emerald-400 font-bold bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20 flex items-center gap-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    All fees & wallet top-ups route here
+                <div class="flex flex-col sm:items-end gap-2.5 shrink-0">
+                  <div class="text-[11px] text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-500/15 px-3 py-1.5 rounded-xl border border-emerald-500/30 flex items-center gap-1.5">
+                    <i class="fas fa-arrow-down-to-bracket text-xs"></i>
+                    <span>100% of student fee payments route here directly</span>
                   </div>
                   <button
                     (click)="unlinkSubaccount()"
                     [disabled]="isUnlinking()"
-                    class="px-4 py-2 rounded-xl text-xs font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-rose-500/20 transition-all disabled:opacity-50"
+                    class="px-4 py-2 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 border border-rose-500/25 transition-all cursor-pointer disabled:opacity-50"
                   >
                     @if (isUnlinking()) {
-                      Disconnecting...
+                      <span>Disconnecting...</span>
                     } @else {
-                      Disconnect / Change Account
+                      <i class="fas fa-unlink text-xs mr-1.5"></i>
+                      <span>Disconnect / Switch Account</span>
                     }
                   </button>
                 </div>
@@ -439,36 +502,36 @@
             <!-- Subaccount 4-Step Setup Wizard -->
             <div class="space-y-6">
               <!-- Wizard Step Headers -->
-              <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-6">
-                <div class="p-3 rounded-xl bg-bg-tertiary border border-border-primary flex items-center gap-3">
-                  <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-black flex items-center justify-center border border-emerald-500/30 shrink-0">1</span>
-                  <span class="text-xs font-bold text-text-primary">Choose Country</span>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+                <div class="p-3 rounded-xl bg-bg-tertiary border border-border-primary flex items-center gap-2.5">
+                  <span class="w-6 h-6 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-xs font-black flex items-center justify-center shrink-0">1</span>
+                  <span class="text-xs font-bold text-text-primary truncate">Choose Region</span>
                 </div>
-                <div class="p-3 rounded-xl bg-bg-tertiary border border-border-primary flex items-center gap-3">
-                  <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-black flex items-center justify-center border border-emerald-500/30 shrink-0">2</span>
-                  <span class="text-xs font-bold text-text-primary">Select Bank / MoMo</span>
+                <div class="p-3 rounded-xl bg-bg-tertiary border border-border-primary flex items-center gap-2.5">
+                  <span class="w-6 h-6 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-xs font-black flex items-center justify-center shrink-0">2</span>
+                  <span class="text-xs font-bold text-text-primary truncate">Bank / MoMo</span>
                 </div>
-                <div class="p-3 rounded-xl bg-bg-tertiary border border-border-primary flex items-center gap-3">
-                  <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-black flex items-center justify-center border border-emerald-500/30 shrink-0">3</span>
-                  <span class="text-xs font-bold text-text-primary">Account Number</span>
+                <div class="p-3 rounded-xl bg-bg-tertiary border border-border-primary flex items-center gap-2.5">
+                  <span class="w-6 h-6 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-xs font-black flex items-center justify-center shrink-0">3</span>
+                  <span class="text-xs font-bold text-text-primary truncate">Account Number</span>
                 </div>
-                <div class="p-3 rounded-xl bg-bg-tertiary border border-border-primary flex items-center gap-3">
-                  <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-black flex items-center justify-center border border-emerald-500/30 shrink-0">4</span>
-                  <span class="text-xs font-bold text-text-primary">Verify & Link</span>
+                <div class="p-3 rounded-xl bg-bg-tertiary border border-border-primary flex items-center gap-2.5">
+                  <span class="w-6 h-6 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-xs font-black flex items-center justify-center shrink-0">4</span>
+                  <span class="text-xs font-bold text-text-primary truncate">Verify & Link</span>
                 </div>
               </div>
 
               <!-- Form Inputs -->
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
                 <!-- 1. Country Selection -->
                 <div>
-                  <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">
-                    1. Country
+                  <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">
+                    1. Operating Country
                   </label>
                   <select
                     [value]="selectedCountry()"
                     (change)="onCountryChange($any($event.target).value)"
-                    class="w-full bg-bg-tertiary border border-border-primary hover:border-border-secondary focus:border-emerald-500 rounded-xl px-4 py-3 text-sm text-text-primary outline-none transition-all cursor-pointer font-bold"
+                    class="w-full bg-bg-tertiary border border-border-primary hover:border-emerald-500/50 focus:border-emerald-500 rounded-xl px-4 py-2.5 text-xs font-bold text-text-primary outline-none transition-all cursor-pointer"
                   >
                     @for (c of countries(); track c.code) {
                       <option [value]="c.code">
@@ -483,25 +546,25 @@
                       <option value="cote d'ivoire">Côte d'Ivoire (XOF)</option>
                     }
                   </select>
-                  <p class="text-[11px] text-text-secondary mt-1.5">Official Paystack operating regions.</p>
+                  <p class="text-[11px] text-text-muted mt-1">Official Paystack operating regions.</p>
                 </div>
 
                 <!-- 2. Bank / Provider Selection -->
                 <div>
-                  <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">
+                  <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">
                     2. Bank / Mobile Money Provider
                   </label>
-                  <div class="relative">
+                  <div>
                     @if (loadingBanks()) {
-                      <div class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-muted flex items-center gap-2">
+                      <div class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 text-xs text-text-muted flex items-center gap-2">
                         <div class="w-3.5 h-3.5 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin"></div>
-                        Fetching banks...
+                        <span>Fetching banks...</span>
                       </div>
                     } @else {
                       <select
                         [value]="selectedBankCode()"
                         (change)="onBankSelect($any($event.target).value)"
-                        class="w-full bg-bg-tertiary border border-border-primary hover:border-border-secondary focus:border-emerald-500 rounded-xl px-4 py-3 text-sm text-text-primary outline-none transition-all cursor-pointer font-bold"
+                        class="w-full bg-bg-tertiary border border-border-primary hover:border-emerald-500/50 focus:border-emerald-500 rounded-xl px-4 py-2.5 text-xs font-bold text-text-primary outline-none transition-all cursor-pointer"
                       >
                         <option value="">-- Choose Bank or Provider --</option>
                         @for (b of banks(); track b.code) {
@@ -510,12 +573,12 @@
                       </select>
                     }
                   </div>
-                  <p class="text-[11px] text-text-secondary mt-1.5">Traditional banks and MoMo wallets supported.</p>
+                  <p class="text-[11px] text-text-muted mt-1">Traditional banks and MoMo wallets supported.</p>
                 </div>
 
                 <!-- 3. Account Number Input -->
                 <div>
-                  <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">
+                  <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">
                     3. Account / Mobile Number
                   </label>
                   <input
@@ -523,31 +586,31 @@
                     placeholder="e.g. 0244123456 or 1002345678"
                     [value]="accountNumber()"
                     (input)="onAccountChange($any($event.target).value)"
-                    class="w-full bg-bg-tertiary border border-border-primary hover:border-border-secondary focus:border-emerald-500 rounded-xl px-4 py-3 text-sm text-text-primary placeholder-text-muted outline-none transition-all font-mono font-bold"
+                    class="w-full bg-bg-tertiary border border-border-primary hover:border-emerald-500/50 focus:border-emerald-500 rounded-xl px-4 py-2.5 text-xs font-mono font-bold text-text-primary placeholder-text-muted outline-none transition-all"
                   />
-                  <p class="text-[11px] text-text-secondary mt-1.5">Account or registered MoMo number.</p>
+                  <p class="text-[11px] text-text-muted mt-1">Account number or registered MoMo phone.</p>
                 </div>
               </div>
 
               <!-- Verification Row -->
               <div class="pt-2">
                 @if (resolveError()) {
-                  <div class="p-4 mb-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <div class="p-3.5 mb-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center gap-2.5">
+                    <i class="fas fa-circle-exclamation text-sm shrink-0"></i>
                     <span>{{ resolveError() }}</span>
                   </div>
                 }
 
                 @if (resolvedAccount()) {
-                  <div class="p-5 mb-4 rounded-2xl bg-emerald-500/10 border-2 border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in">
+                  <div class="p-4 sm:p-5 mb-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in">
                     <div class="flex items-center gap-3.5">
-                      <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                      <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-base border border-emerald-500/30 shrink-0">
+                        <i class="fas fa-circle-check"></i>
                       </div>
                       <div>
-                        <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400">Account Verified via Paystack</span>
-                        <h4 class="text-base font-black text-text-primary">{{ resolvedAccount()?.account_name }}</h4>
-                        <p class="text-xs text-text-secondary font-mono">{{ selectedBank()?.name }} • {{ resolvedAccount()?.account_number }}</p>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Account Verified via Paystack</span>
+                        <h4 class="text-sm sm:text-base font-black text-text-primary">{{ resolvedAccount()?.account_name }}</h4>
+                        <p class="text-xs text-text-muted font-mono">{{ selectedBank()?.name }} &bull; {{ resolvedAccount()?.account_number }}</p>
                       </div>
                     </div>
 
@@ -555,34 +618,34 @@
                       type="button"
                       (click)="createAndLinkSubaccount()"
                       [disabled]="isCreatingSubaccount()"
-                      class="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 shrink-0"
+                      class="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-md shadow-emerald-500/25 disabled:opacity-50 shrink-0 cursor-pointer active:scale-95"
                     >
                       @if (isCreatingSubaccount()) {
-                        <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        Creating Subaccount...
+                        <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <span>Linking Subaccount...</span>
                       } @else {
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-                        Create & Link Subaccount
+                        <i class="fas fa-link text-xs"></i>
+                        <span>Create & Link Subaccount</span>
                       }
                     </button>
                   </div>
                 } @else {
-                  <div class="flex items-center justify-between">
-                    <p class="text-xs text-text-secondary">
-                      Click <strong class="text-emerald-400 font-bold">Verify Account</strong> to confirm account ownership with the bank before creating the subaccount.
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-bg-tertiary/60 border border-border-primary">
+                    <p class="text-xs text-text-muted">
+                      Click <strong class="text-emerald-600 dark:text-emerald-400 font-bold">Verify Account</strong> to validate the account title against bank records before linking.
                     </p>
                     <button
                       type="button"
                       (click)="verifyAccount()"
                       [disabled]="isResolving() || !accountNumber() || !selectedBankCode()"
-                      class="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm bg-bg-tertiary hover:bg-bg-tertiary/80 border border-emerald-500/30 text-emerald-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      class="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs bg-bg-secondary hover:bg-bg-tertiary border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-95"
                     >
                       @if (isResolving()) {
-                        <div class="w-4 h-4 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin"></div>
-                        Verifying with Paystack...
+                        <div class="w-3.5 h-3.5 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin"></div>
+                        <span>Verifying with Paystack...</span>
                       } @else {
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                        Verify Account
+                        <i class="fas fa-magnifying-glass text-xs"></i>
+                        <span>Verify Account</span>
                       }
                     </button>
                   </div>
@@ -592,82 +655,81 @@
           }
         } @else {
           <!-- ==================== CUSTOM API KEYS MODE ==================== -->
-          <div class="space-y-5">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
               <!-- Public Key -->
               <div>
-                <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">
+                <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">
                   Paystack Public Key
                 </label>
                 <div class="relative">
-                  <div class="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs pointer-events-none">
+                    <i class="fas fa-key"></i>
                   </div>
                   <input
                     type="text"
                     placeholder="pk_live_••••••••••"
                     [value]="paystackPublicKey()"
                     (input)="paystackPublicKey.set($any($event.target).value)"
-                    class="w-full bg-bg-tertiary border border-border-primary hover:border-border-secondary focus:border-emerald-500 rounded-xl pl-11 pr-4 py-3.5 text-sm text-text-primary placeholder-text-muted outline-none transition-all font-mono"
+                    class="w-full bg-bg-tertiary border border-border-primary hover:border-emerald-500/50 focus:border-emerald-500 rounded-xl pl-9 pr-4 py-2.5 text-xs font-mono font-bold text-text-primary placeholder-text-muted outline-none transition-all"
                   />
                 </div>
-                <p class="text-[11px] text-text-secondary mt-1.5">Used in browser popups when direct keys mode is preferred.</p>
+                <p class="text-[11px] text-text-muted mt-1">Used for client-side transaction initializations.</p>
               </div>
 
               <!-- Secret Key -->
               <div>
-                <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">
+                <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">
                   Paystack Secret Key
                 </label>
                 <div class="relative">
-                  <div class="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                  <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs pointer-events-none">
+                    <i class="fas fa-lock"></i>
                   </div>
                   <input
                     type="password"
                     [placeholder]="hasConfigured() ? '••••••••••••••••••••••••' : 'sk_live_••••••••••'"
                     [value]="paystackSecretKey()"
                     (input)="paystackSecretKey.set($any($event.target).value)"
-                    class="w-full bg-bg-tertiary border border-border-primary hover:border-border-secondary focus:border-emerald-500 rounded-xl pl-11 pr-4 py-3.5 text-sm text-text-primary placeholder-text-muted outline-none transition-all font-mono"
+                    class="w-full bg-bg-tertiary border border-border-primary hover:border-emerald-500/50 focus:border-emerald-500 rounded-xl pl-9 pr-4 py-2.5 text-xs font-mono font-bold text-text-primary placeholder-text-muted outline-none transition-all"
                   />
                 </div>
-                <p class="text-[11px] text-text-secondary mt-1.5 flex items-center gap-1">
+                <p class="text-[11px] text-text-muted mt-1 flex items-center gap-1">
                   @if (hasConfigured()) {
-                    <span class="text-emerald-500 inline-flex items-center gap-1 font-bold">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                      Key is configured.
-                    </span> Enter a new key to replace it.
+                    <span class="text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1 font-bold">
+                      <i class="fas fa-check-circle text-[10px]"></i> Keys configured.
+                    </span> Enter a new key to overwrite.
                   } @else {
-                    Encrypted with AES-256 before storage.
+                    <span>Encrypted with AES-256 before storage in secure database vault.</span>
                   }
                 </p>
               </div>
             </div>
 
             <!-- Action row -->
-            <div class="flex items-center justify-between pt-2">
-              <div class="flex items-center gap-2 text-xs text-slate-500">
-                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
-                Your keys are stored encrypted. Only your school's transactions use them.
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3">
+              <div class="flex items-center gap-2 text-xs text-text-muted">
+                <i class="fas fa-shield-alt text-emerald-500"></i>
+                <span>Your API keys are encrypted at rest and restricted exclusively to your school domain.</span>
               </div>
               <div class="flex items-center gap-3">
                 @if (configSaved()) {
-                  <div class="flex items-center gap-2 text-emerald-400 text-sm font-bold animate-fade-in">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                    Configuration saved!
+                  <div class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-bold animate-fade-in">
+                    <i class="fas fa-check"></i>
+                    <span>Configuration saved!</span>
                   </div>
                 }
                 <button
                   (click)="savePaymentConfig()"
                   [disabled]="isSavingConfig()"
-                  class="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="px-5 py-2.5 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-md shadow-emerald-500/25 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-95"
                 >
                   @if (isSavingConfig()) {
-                    <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Saving...
+                    <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>Saving...</span>
                   } @else {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                    Save Configuration
+                    <i class="fas fa-save text-xs mr-1.5"></i>
+                    <span>Save API Keys</span>
                   }
                 </button>
               </div>
@@ -676,66 +738,90 @@
         }
       </div>
     </div>
-    <!-- ===== / Payment Gateway & Settlement Configuration ===== -->
 
-    <!-- ===== Subscription History ===== -->
-    <div class="relative overflow-hidden bg-bg-secondary border border-border-primary rounded-3xl p-8 shadow-xl mt-8">
-      <div class="flex items-center justify-between mb-6 border-b border-border-primary pb-4">
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 4. SUBSCRIPTION PAYMENT HISTORY LEDGER                     -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-5 sm:p-7 md:p-8 shadow-sm">
+      <div class="flex items-center justify-between mb-5 pb-4 border-b border-border-primary/80">
         <div>
-          <h2 class="text-xl font-black text-text-primary">Payment History</h2>
-          <p class="text-sm text-text-secondary mt-1">Record of your platform subscription payments</p>
+          <div class="flex items-center gap-2">
+            <h2 class="text-base sm:text-lg font-black text-text-primary">Subscription Payment History</h2>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-bg-tertiary border border-border-primary text-text-muted">
+              {{ history().length }} Records
+            </span>
+          </div>
+          <p class="text-xs text-text-muted mt-0.5">Historical log of platform SaaS payments, references, and verification statuses.</p>
         </div>
-        <button (click)="loadHistory()" class="p-2 rounded-xl bg-bg-tertiary hover:bg-border-primary text-text-muted hover:text-text-primary transition-all">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" [class.animate-spin]="loadingHistory()"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+        <button (click)="loadHistory()" class="w-8 h-8 rounded-xl bg-bg-tertiary hover:bg-bg-primary text-text-muted hover:text-text-primary transition-all flex items-center justify-center cursor-pointer shadow-xs">
+          <i class="fas fa-rotate text-xs" [class.animate-spin]="loadingHistory()"></i>
         </button>
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
+      <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-left border-collapse min-w-[680px]">
           <thead>
-            <tr>
-              <th class="py-3 px-4 text-[10px] font-black uppercase tracking-widest text-text-muted border-b border-border-primary">Date</th>
-              <th class="py-3 px-4 text-[10px] font-black uppercase tracking-widest text-text-muted border-b border-border-primary">Reference</th>
-              <th class="py-3 px-4 text-[10px] font-black uppercase tracking-widest text-text-muted border-b border-border-primary">Amount</th>
-              <th class="py-3 px-4 text-[10px] font-black uppercase tracking-widest text-text-muted border-b border-border-primary">Students</th>
-              <th class="py-3 px-4 text-[10px] font-black uppercase tracking-widest text-text-muted border-b border-border-primary">Status</th>
+            <tr class="bg-bg-tertiary/50 border-b border-border-primary text-[10px] font-black uppercase tracking-widest text-text-muted">
+              <th class="py-3 px-4 rounded-l-xl">Transaction Date</th>
+              <th class="py-3 px-4">Paystack Reference</th>
+              <th class="py-3 px-4">Scholars Headcount</th>
+              <th class="py-3 px-4">Total Amount</th>
+              <th class="py-3 px-4 rounded-r-xl">Status & Verification</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="divide-y divide-border-primary/60">
             @if (loadingHistory()) {
               <tr>
-                <td colspan="5" class="py-8 text-center text-text-secondary text-sm">
+                <td colspan="5" class="py-10 text-center text-text-muted text-xs">
                   <div class="flex items-center justify-center gap-2">
-                    <div class="w-4 h-4 border-2 border-rose-500/30 border-t-rose-500 rounded-full animate-spin"></div>
-                    Loading history...
+                    <div class="w-4 h-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+                    <span>Loading payment transactions...</span>
                   </div>
                 </td>
               </tr>
             } @else if (history().length === 0) {
               <tr>
-                <td colspan="5" class="py-8 text-center text-text-secondary text-sm">No subscription payments found.</td>
+                <td colspan="5" class="py-10 text-center">
+                  <div class="w-10 h-10 rounded-xl bg-bg-tertiary flex items-center justify-center text-text-muted text-base mx-auto mb-2">
+                    <i class="fas fa-receipt"></i>
+                  </div>
+                  <p class="text-xs font-bold text-text-muted">No historical subscription payments on file.</p>
+                </td>
               </tr>
             } @else {
               @for (item of history(); track item.id) {
-                <tr class="hover:bg-bg-tertiary transition-colors">
-                  <td class="py-3 px-4 text-sm text-text-secondary">{{ item.created_at | date:'mediumDate' }}</td>
-                  <td class="py-3 px-4 text-xs font-mono text-text-muted">{{ item.reference }}</td>
-                  <td class="py-3 px-4 text-sm font-bold text-text-primary">₵{{ item.amount | number:'1.2-2' }}</td>
-                  <td class="py-3 px-4 text-sm text-text-secondary">{{ item.student_count }}</td>
-                  <td class="py-3 px-4">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest"
-                          [ngClass]="{
-                            'bg-emerald-500/10 text-emerald-500': item.status === 'SUCCESS' || item.status === 'PAID',
-                            'bg-blue-500/10 text-blue-500': item.status === 'PENDING',
-                            'bg-rose-500/10 text-rose-500': item.status === 'FAILED'
-                          }">
-                      {{ item.status }}
-                    </span>
-                    @if (item.status === 'PENDING') {
-                      <button (click)="verifyPayment(item.reference)" class="ml-2 px-2 py-1 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white rounded text-[10px] font-black uppercase tracking-widest transition-colors">
-                        Verify
-                      </button>
-                    }
+                <tr class="hover:bg-bg-tertiary/40 transition-colors">
+                  <td class="py-3.5 px-4 text-xs font-bold text-text-primary">
+                    <div class="flex items-center gap-2">
+                      <i class="far fa-calendar-alt text-text-muted text-xs"></i>
+                      <span>{{ item.created_at | date:'mediumDate' }}</span>
+                    </div>
+                  </td>
+                  <td class="py-3.5 px-4 text-xs font-mono font-bold text-text-muted">
+                    {{ item.reference }}
+                  </td>
+                  <td class="py-3.5 px-4 text-xs font-bold text-text-secondary">
+                    {{ item.student_count }} scholars
+                  </td>
+                  <td class="py-3.5 px-4 text-xs font-black text-text-primary">
+                    ₵{{ item.amount | number:'1.2-2' }}
+                  </td>
+                  <td class="py-3.5 px-4">
+                    <div class="flex items-center gap-2">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider"
+                            [ngClass]="{
+                              'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20': item.status === 'SUCCESS' || item.status === 'PAID',
+                              'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20': item.status === 'PENDING',
+                              'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20': item.status === 'FAILED'
+                            }">
+                        {{ item.status }}
+                      </span>
+                      @if (item.status === 'PENDING') {
+                        <button (click)="verifyPayment(item.reference)" class="px-2.5 py-1 bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 dark:text-blue-400 rounded-lg text-[10px] font-black uppercase tracking-wider border border-blue-500/20 transition-all cursor-pointer active:scale-95">
+                          Verify Now
+                        </button>
+                      }
+                    </div>
                   </td>
                 </tr>
               }
@@ -744,7 +830,7 @@
         </table>
       </div>
     </div>
-    <!-- ===== / Subscription History ===== -->
 
   </div>
 </div>
+

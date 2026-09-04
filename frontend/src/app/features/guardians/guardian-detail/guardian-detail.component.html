@@ -343,8 +343,9 @@
 
   <!-- LINK STUDENT MODAL -->
   @if (showLinkModal()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div class="bg-bg-secondary border border-border-primary rounded-3xl w-full max-w-lg p-6 md:p-8 shadow-2xl animate-fade-in">
+    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4" (click)="closeLinkModal()">
+      <div class="bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl w-full max-w-lg p-5 sm:p-8 shadow-2xl max-h-[92vh] sm:max-h-[85vh] overflow-y-auto animate-slide-up" (click)="$event.stopPropagation()">
+        <div class="bottomsheet-handle sm:hidden"></div>
         
         <div class="flex items-center justify-between pb-4 border-b border-border-primary mb-6">
           <div>
@@ -387,12 +388,12 @@
           }
         </div>
 
-        <div class="flex items-center justify-end gap-3 pt-4 border-t border-border-primary">
-          <button type="button" (click)="closeLinkModal()" class="px-5 py-2.5 bg-bg-tertiary hover:bg-bg-tertiary/70 text-text-primary font-bold text-sm rounded-xl transition-colors">
+        <div class="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-4 border-t border-border-primary">
+          <button type="button" (click)="closeLinkModal()" class="w-full sm:w-auto px-5 py-2.5 bg-bg-tertiary hover:bg-bg-tertiary/70 text-text-primary font-bold text-sm rounded-xl transition-colors">
             Cancel
           </button>
           <button type="button" (click)="submitLinkStudent()" [disabled]="!selectedStudentToLink() || isLinking()"
-                  class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2 transition-all disabled:opacity-50">
+                  class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50">
             @if (isLinking()) {
               <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
               <span>Linking Student...</span>
@@ -409,8 +410,9 @@
 
   <!-- EDIT GUARDIAN MODAL -->
   @if (showEditModal()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div class="bg-bg-secondary border border-border-primary rounded-3xl w-full max-w-xl p-6 md:p-8 shadow-2xl animate-fade-in my-8 max-h-[90vh] overflow-y-auto custom-scrollbar">
+    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 overflow-y-auto" (click)="closeEditModal()">
+      <div class="bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl w-full max-w-xl p-5 sm:p-8 shadow-2xl max-h-[92vh] sm:max-h-[90vh] overflow-y-auto custom-scrollbar animate-slide-up" (click)="$event.stopPropagation()">
+        <div class="bottomsheet-handle sm:hidden"></div>
         
         <div class="flex items-center justify-between pb-4 border-b border-border-primary mb-6">
           <div>
@@ -493,12 +495,12 @@
             </label>
           </div>
 
-          <div class="flex items-center justify-end gap-3 pt-4 border-t border-border-primary">
-            <button type="button" (click)="closeEditModal()" class="px-5 py-2.5 bg-bg-tertiary hover:bg-bg-tertiary/70 text-text-primary font-bold text-sm rounded-xl transition-colors">
+          <div class="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-4 border-t border-border-primary">
+            <button type="button" (click)="closeEditModal()" class="w-full sm:w-auto px-5 py-2.5 bg-bg-tertiary hover:bg-bg-tertiary/70 text-text-primary font-bold text-sm rounded-xl transition-colors">
               Cancel
             </button>
             <button type="submit" [disabled]="isUpdating()"
-                    class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2 transition-all disabled:opacity-50">
+                    class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50">
               @if (isUpdating()) {
                 <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                 <span>Saving Changes...</span>

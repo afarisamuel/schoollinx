@@ -1,38 +1,41 @@
-<div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" (click)="closeModal()">
-    <!-- Backdrop -->
-    <div class="absolute inset-0 bg-bg-primary/80 backdrop-blur-sm transition-opacity"></div>
+<div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm animate-fade-in" (click)="closeModal()">
     
     <!-- Modal -->
-    <div class="relative w-full max-w-4xl bg-bg-secondary border border-border-secondary rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden" (click)="$event.stopPropagation()">
+    <div class="relative w-full max-w-4xl bg-bg-secondary border border-border-secondary rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[90vh] overflow-hidden animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
+        <!-- Mobile Bottomsheet Handle -->
+        <div class="pt-3 pb-1 sm:hidden">
+            <div class="bottomsheet-handle"></div>
+        </div>
+
         <!-- Header -->
-        <div class="flex items-center justify-between p-6 border-b border-border-secondary bg-bg-tertiary">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-lg uppercase shadow-inner">
+        <div class="flex items-center justify-between p-4 sm:p-6 border-b border-border-secondary bg-bg-tertiary">
+            <div class="flex items-center gap-3 sm:gap-4">
+                <div class="w-10 sm:w-12 h-10 sm:h-12 rounded-xl bg-blue-500/20 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-sm sm:text-lg uppercase shadow-inner">
                     {{ staff.first_name[0] }}{{ staff.last_name[0] }}
                 </div>
                 <div>
-                    <h2 class="text-xl font-bold text-text-primary uppercase tracking-wide">
+                    <h2 class="text-base sm:text-xl font-bold text-text-primary uppercase tracking-wide">
                         {{ staff.first_name }} {{ staff.last_name }}
                     </h2>
-                    <div class="flex gap-2 text-xs font-semibold tracking-widest text-text-muted mt-1">
+                    <div class="flex flex-wrap gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-semibold tracking-widest text-text-muted mt-0.5 sm:mt-1">
                         <span class="uppercase text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">{{ staff.department || 'Unassigned' }}</span>
                         <span class="uppercase">{{ staff.job_title }}</span>
                     </div>
                 </div>
             </div>
             <button (click)="closeModal()" class="p-2 hover:bg-bg-primary rounded-lg text-text-muted hover:text-text-primary transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
         </div>
 
         <!-- Tabs -->
-        <div class="flex gap-4 px-6 pt-4 border-b border-border-secondary bg-bg-tertiary">
+        <div class="flex gap-2 sm:gap-4 px-4 sm:px-6 pt-2 sm:pt-4 border-b border-border-secondary bg-bg-tertiary overflow-x-auto scrollbar-none">
             <button 
                 (click)="activeTab.set('overview')"
                 [class.text-blue-400]="activeTab() === 'overview'"
                 [class.border-blue-500]="activeTab() === 'overview'"
                 [class.border-transparent]="activeTab() !== 'overview'"
-                class="px-4 py-3 text-sm font-bold tracking-wider uppercase border-b-2 text-text-muted hover:text-text-primary transition-colors">
+                class="px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold tracking-wider uppercase border-b-2 text-text-muted hover:text-text-primary transition-colors whitespace-nowrap">
                 Overview
             </button>
             <button 
@@ -40,7 +43,7 @@
                 [class.text-blue-400]="activeTab() === 'attendance'"
                 [class.border-blue-500]="activeTab() === 'attendance'"
                 [class.border-transparent]="activeTab() !== 'attendance'"
-                class="px-4 py-3 text-sm font-bold tracking-wider uppercase border-b-2 text-text-muted hover:text-text-primary transition-colors">
+                class="px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold tracking-wider uppercase border-b-2 text-text-muted hover:text-text-primary transition-colors whitespace-nowrap">
                 Attendance
             </button>
             <button 
@@ -48,7 +51,7 @@
                 [class.text-blue-400]="activeTab() === 'leave'"
                 [class.border-blue-500]="activeTab() === 'leave'"
                 [class.border-transparent]="activeTab() !== 'leave'"
-                class="px-4 py-3 text-sm font-bold tracking-wider uppercase border-b-2 text-text-muted hover:text-text-primary transition-colors">
+                class="px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold tracking-wider uppercase border-b-2 text-text-muted hover:text-text-primary transition-colors whitespace-nowrap">
                 Leave
             </button>
             <button 
@@ -56,13 +59,13 @@
                 [class.text-blue-400]="activeTab() === 'performance'"
                 [class.border-blue-500]="activeTab() === 'performance'"
                 [class.border-transparent]="activeTab() !== 'performance'"
-                class="px-4 py-3 text-sm font-bold tracking-wider uppercase border-b-2 text-text-muted hover:text-text-primary transition-colors">
+                class="px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold tracking-wider uppercase border-b-2 text-text-muted hover:text-text-primary transition-colors whitespace-nowrap">
                 Performance
             </button>
         </div>
 
         <!-- Content -->
-        <div class="flex-1 overflow-y-auto p-6">
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6">
             @if (isLoading()) {
                 <div class="flex flex-col items-center justify-center py-12 opacity-50">
                     <svg class="animate-spin w-8 h-8 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -71,37 +74,37 @@
             } @else {
                 <!-- Overview Tab -->
                 @if (activeTab() === 'overview') {
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                         <!-- Contact Info -->
-                        <div class="p-5 rounded-2xl bg-bg-tertiary border border-border-secondary">
-                            <h3 class="text-xs font-bold text-text-muted uppercase tracking-widest mb-4">Contact Details</h3>
-                            <div class="space-y-4">
+                        <div class="p-4 sm:p-5 rounded-2xl bg-bg-tertiary border border-border-secondary">
+                            <h3 class="text-xs font-bold text-text-muted uppercase tracking-widest mb-3 sm:mb-4">Contact Details</h3>
+                            <div class="space-y-3 sm:space-y-4">
                                 <div>
                                     <p class="text-[10px] text-text-muted uppercase font-bold tracking-widest">Email Address</p>
-                                    <p class="text-sm font-semibold text-text-primary mt-1">{{ staff.email || 'N/A' }}</p>
+                                    <p class="text-xs sm:text-sm font-semibold text-text-primary mt-1">{{ staff.email || 'N/A' }}</p>
                                 </div>
                                 <div>
                                     <p class="text-[10px] text-text-muted uppercase font-bold tracking-widest">Phone Number</p>
-                                    <p class="text-sm font-semibold text-text-primary mt-1">{{ staff.phone_number || 'N/A' }}</p>
+                                    <p class="text-xs sm:text-sm font-semibold text-text-primary mt-1">{{ staff.phone_number || 'N/A' }}</p>
                                 </div>
                             </div>
                         </div>
                         
                         <!-- Employment Info -->
-                        <div class="p-5 rounded-2xl bg-bg-tertiary border border-border-secondary">
-                            <h3 class="text-xs font-bold text-text-muted uppercase tracking-widest mb-4">Employment Details</h3>
-                            <div class="space-y-4">
+                        <div class="p-4 sm:p-5 rounded-2xl bg-bg-tertiary border border-border-secondary">
+                            <h3 class="text-xs font-bold text-text-muted uppercase tracking-widest mb-3 sm:mb-4">Employment Details</h3>
+                            <div class="space-y-3 sm:space-y-4">
                                 <div>
                                     <p class="text-[10px] text-text-muted uppercase font-bold tracking-widest">Hire Date</p>
-                                    <p class="text-sm font-semibold text-text-primary mt-1">{{ staff.hire_date | date:'mediumDate' }}</p>
+                                    <p class="text-xs sm:text-sm font-semibold text-text-primary mt-1">{{ staff.hire_date | date:'mediumDate' }}</p>
                                 </div>
                                 <div>
                                     <p class="text-[10px] text-text-muted uppercase font-bold tracking-widest">Staff ID</p>
-                                    <p class="text-sm font-semibold text-text-primary mt-1">{{ staff.id }}</p>
+                                    <p class="text-xs sm:text-sm font-semibold text-text-primary mt-1">{{ staff.id }}</p>
                                 </div>
                                 <div>
                                     <p class="text-[10px] text-text-muted uppercase font-bold tracking-widest">Base Salary</p>
-                                    <p class="text-sm font-semibold text-text-primary mt-1">${{ staff.base_salary }}</p>
+                                    <p class="text-xs sm:text-sm font-semibold text-text-primary mt-1">${{ staff.base_salary }}</p>
                                 </div>
                             </div>
                         </div>
@@ -110,23 +113,23 @@
 
                 <!-- Attendance Tab -->
                 @if (activeTab() === 'attendance') {
-                    <div class="bg-bg-tertiary rounded-2xl border border-border-secondary overflow-hidden">
+                    <div class="bg-bg-tertiary rounded-2xl border border-border-secondary overflow-x-auto">
                         <table class="w-full text-left">
                             <thead class="bg-bg-secondary border-b border-border-secondary">
                                 <tr>
-                                    <th class="px-6 py-3 text-[10px] font-bold tracking-widest uppercase text-text-muted">Date</th>
-                                    <th class="px-6 py-3 text-[10px] font-bold tracking-widest uppercase text-text-muted">Clock In</th>
-                                    <th class="px-6 py-3 text-[10px] font-bold tracking-widest uppercase text-text-muted">Clock Out</th>
-                                    <th class="px-6 py-3 text-[10px] font-bold tracking-widest uppercase text-text-muted">Status</th>
+                                    <th class="px-4 sm:px-6 py-3 text-[10px] font-bold tracking-widest uppercase text-text-muted">Date</th>
+                                    <th class="px-4 sm:px-6 py-3 text-[10px] font-bold tracking-widest uppercase text-text-muted">Clock In</th>
+                                    <th class="px-4 sm:px-6 py-3 text-[10px] font-bold tracking-widest uppercase text-text-muted">Clock Out</th>
+                                    <th class="px-4 sm:px-6 py-3 text-[10px] font-bold tracking-widest uppercase text-text-muted">Status</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-border-secondary">
                                 @for (log of attendanceLogs(); track log.id) {
                                 <tr>
-                                    <td class="px-6 py-3 text-sm font-semibold text-text-primary">{{ log.date | date:'mediumDate' }}</td>
-                                    <td class="px-6 py-3 text-sm text-text-secondary">{{ log.clock_in || '—' }}</td>
-                                    <td class="px-6 py-3 text-sm text-text-secondary">{{ log.clock_out || '—' }}</td>
-                                    <td class="px-6 py-3">
+                                    <td class="px-4 sm:px-6 py-3 text-xs sm:text-sm font-semibold text-text-primary">{{ log.date | date:'mediumDate' }}</td>
+                                    <td class="px-4 sm:px-6 py-3 text-xs sm:text-sm text-text-secondary">{{ log.clock_in || '—' }}</td>
+                                    <td class="px-4 sm:px-6 py-3 text-xs sm:text-sm text-text-secondary">{{ log.clock_out || '—' }}</td>
+                                    <td class="px-4 sm:px-6 py-3">
                                         <span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest"
                                             [class.bg-emerald-500]="log.status === 'PRESENT'" [class.text-white]="log.status === 'PRESENT'"
                                             [class.bg-rose-500]="log.status === 'ABSENT'" [class.text-white]="log.status === 'ABSENT'"
@@ -152,7 +155,7 @@
                 @if (activeTab() === 'leave') {
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         @for (balance of leaveBalances(); track balance.id) {
-                        <div class="p-5 rounded-2xl bg-bg-tertiary border border-border-secondary flex flex-col">
+                        <div class="p-4 sm:p-5 rounded-2xl bg-bg-tertiary border border-border-secondary flex flex-col">
                             <h4 class="text-xs font-bold text-text-primary tracking-widest uppercase">{{ balance.leave_type }}</h4>
                             <p class="text-[10px] text-text-muted font-bold tracking-widest uppercase mb-4">Year: {{ balance.year }}</p>
                             
@@ -179,17 +182,17 @@
                 @if (activeTab() === 'performance') {
                     <div class="space-y-4">
                         @for (review of performanceReviews(); track review.id) {
-                        <div class="p-5 rounded-2xl bg-bg-tertiary border border-border-secondary">
-                            <div class="flex justify-between items-start mb-4">
+                        <div class="p-4 sm:p-5 rounded-2xl bg-bg-tertiary border border-border-secondary">
+                            <div class="flex justify-between items-start mb-3 sm:mb-4">
                                 <div>
                                     <span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest bg-blue-500/10 text-blue-400">
                                         Score: {{ review.score }} / 5.0
                                     </span>
-                                    <h4 class="text-sm font-bold text-text-primary mt-2">Review Period: {{ review.review_period }}</h4>
+                                    <h4 class="text-xs sm:text-sm font-bold text-text-primary mt-2">Review Period: {{ review.review_period }}</h4>
                                     <p class="text-[10px] text-text-muted font-bold tracking-widest uppercase">Reviewed by: {{ review.reviewer_id }}</p>
                                 </div>
                             </div>
-                            <div class="text-sm text-text-secondary mt-2">
+                            <div class="text-xs sm:text-sm text-text-secondary mt-2">
                                 {{ review.comments }}
                             </div>
                         </div>

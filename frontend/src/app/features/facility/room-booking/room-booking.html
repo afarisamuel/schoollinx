@@ -1,110 +1,329 @@
-<div class="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in pb-24">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-            <h1 class="text-4xl font-black tracking-tight text-text-primary">Room Booking</h1>
-            <p class="text-sm font-medium text-text-muted mt-2">Manage reservations for labs, halls, and meeting rooms.</p>
-        </div>
-        <div class="flex gap-4">
-            <button (click)="openAdd()" class="px-6 py-3 bg-brand-primary text-white font-bold rounded-2xl shadow-lg hover:shadow-brand-primary/30 transition-all flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                Book Room
-            </button>
-        </div>
-    </div>
+<div class="space-y-6 sm:space-y-8 animate-fade-in pb-20 text-text-primary">
 
-    <!-- Controls -->
-    <div class="flex flex-col md:flex-row gap-6 bg-bg-secondary p-6 rounded-3xl border border-border-primary shadow-xl">
-        <div class="flex-1">
-            <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Select Facility</label>
-            <div class="flex gap-2 overflow-x-auto pb-2">
-                @for (room of rooms(); track room.id) {
-                    <button 
-                        (click)="onRoomChange(room.id)"
-                        [class.bg-brand-primary]="selectedRoom() === room.id"
-                        [class.text-white]="selectedRoom() === room.id"
-                        [class.bg-bg-tertiary]="selectedRoom() !== room.id"
-                        [class.text-text-primary]="selectedRoom() !== room.id"
-                        class="px-5 py-3 rounded-xl text-sm font-bold border border-border-secondary transition-all whitespace-nowrap shadow-sm">
-                        {{ room.name }}
-                        <span class="ml-2 text-[10px] uppercase opacity-70">Cap: {{ room.capacity }}</span>
-                    </button>
-                } @empty {
-                    <div class="text-sm text-text-muted py-3">No facilities defined.</div>
-                }
+    <!-- ===== HERO HEADER ===== -->
+    <div class="relative overflow-hidden bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-sm transition-all duration-300">
+        <!-- Ambient Glow -->
+        <div class="absolute -top-24 -right-24 w-80 h-80 bg-blue-500/10 dark:bg-blue-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-emerald-500/10 dark:bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="space-y-3 max-w-2xl">
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Campus Facilities
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-bg-tertiary text-text-muted border border-border-secondary">
+                        <i class="fas fa-calendar-alt text-[11px]"></i>
+                        Reservations & Scheduling
+                    </span>
+                </div>
+
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-text-primary">
+                    Room & Space <span class="text-blue-600 dark:text-blue-400">Booking</span>
+                </h1>
+                <p class="text-sm sm:text-base text-text-muted leading-relaxed">
+                    Manage real-time reservations, laboratory access, examination halls, and collaborative meeting spaces across the campus.
+                </p>
+            </div>
+
+            <!-- Action CTA -->
+            <div class="flex items-center gap-3">
+                <button (click)="openAdd()" 
+                        class="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 transition-all duration-300 flex items-center gap-2.5 active:scale-95 group">
+                    <div class="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center group-hover:rotate-90 transition-transform">
+                        <i class="fas fa-plus text-xs"></i>
+                    </div>
+                    <span>Book Room</span>
+                </button>
             </div>
         </div>
-        <div>
-            <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Date</label>
-            <input type="date" [ngModel]="selectedDate()" (ngModelChange)="onDateChange($event)" class="bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm font-bold outline-none text-text-primary h-[46px]">
+    </div>
+
+    <!-- ===== METRIC STATS ROW ===== -->
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        <!-- Metric 1 -->
+        <div class="bg-bg-secondary border border-border-primary p-5 rounded-2xl shadow-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Active Space</span>
+                <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm">
+                    <i class="fas fa-door-open"></i>
+                </div>
+            </div>
+            <p class="text-xl sm:text-2xl font-black text-text-primary mt-2 truncate">{{ selectedRoomObj()?.name || 'All Spaces' }}</p>
+            <p class="text-xs text-text-muted mt-0.5">Currently selected room</p>
+        </div>
+
+        <!-- Metric 2 -->
+        <div class="bg-bg-secondary border border-border-primary p-5 rounded-2xl shadow-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Booked Slots</span>
+                <div class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+            <p class="text-xl sm:text-2xl font-black text-text-primary mt-2">{{ filteredBookings().length }}</p>
+            <p class="text-xs text-text-muted mt-0.5">Scheduled for selected date</p>
+        </div>
+
+        <!-- Metric 3 -->
+        <div class="bg-bg-secondary border border-border-primary p-5 rounded-2xl shadow-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Capacity</span>
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+            <p class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-2">
+                {{ selectedRoomObj()?.capacity || 0 }} <span class="text-xs font-bold text-text-muted uppercase">Seats</span>
+            </p>
+            <p class="text-xs text-text-muted mt-0.5">Seating & workstation limit</p>
+        </div>
+
+        <!-- Metric 4 -->
+        <div class="bg-bg-secondary border border-border-primary p-5 rounded-2xl shadow-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Availability</span>
+                <div class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-sm">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+            <p class="text-base sm:text-lg font-black text-text-primary mt-2 flex items-center gap-1.5">
+                @if (filteredBookings().length === 0) {
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <span class="text-emerald-600 dark:text-emerald-400">Available All Day</span>
+                } @else {
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                    <span class="text-amber-600 dark:text-amber-400">{{ filteredBookings().length }} Active Slots</span>
+                }
+            </p>
+            <p class="text-xs text-text-muted mt-0.5">Schedule status</p>
         </div>
     </div>
 
-    <!-- Schedule View -->
-    <div class="bg-bg-secondary rounded-3xl border border-border-primary shadow-xl p-6">
-        <h2 class="text-xl font-bold mb-6 text-text-primary">Schedule for {{ selectedDate() | date:'fullDate' }}</h2>
-        
-        <div class="space-y-4">
-            @for (booking of filteredBookings(); track booking.id) {
-                <div class="flex items-center justify-between p-4 bg-bg-tertiary border border-border-secondary rounded-2xl shadow-sm hover:border-brand-primary/30 transition-all">
-                    <div class="flex items-center gap-6">
-                        <div class="text-center px-4 border-r border-border-secondary">
-                            <div class="text-lg font-black text-brand-primary">{{ booking.start_time | date:'HH:mm' }}</div>
-                            <div class="text-[10px] font-bold text-text-muted">TO</div>
-                            <div class="text-lg font-black text-text-primary">{{ booking.end_time | date:'HH:mm' }}</div>
+    <!-- ===== FACILITY SELECTOR & DATE CONTROLS ===== -->
+    <div class="bg-bg-secondary p-5 sm:p-6 rounded-2xl sm:rounded-3xl border border-border-primary shadow-sm space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            
+            <!-- Facility Pill Buttons -->
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="text-xs font-bold text-text-muted uppercase tracking-wider flex items-center gap-2">
+                        <i class="fas fa-building text-blue-500"></i> Select Campus Facility
+                    </label>
+                    <span class="text-xs text-text-muted font-medium">{{ rooms().length }} spaces registered</span>
+                </div>
+
+                <div class="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none">
+                    @for (room of rooms(); track room.id) {
+                        <button 
+                            (click)="onRoomChange(room.id)"
+                            [class.bg-blue-600]="selectedRoom() === room.id"
+                            [class.text-white]="selectedRoom() === room.id"
+                            [class.border-blue-500]="selectedRoom() === room.id"
+                            [class.shadow-md]="selectedRoom() === room.id"
+                            [class.shadow-blue-600/20]="selectedRoom() === room.id"
+                            [class.bg-bg-tertiary]="selectedRoom() !== room.id"
+                            [class.text-text-primary]="selectedRoom() !== room.id"
+                            [class.border-border-secondary]="selectedRoom() !== room.id"
+                            class="px-4 py-2.5 rounded-xl text-xs font-bold border transition-all duration-200 whitespace-nowrap flex items-center gap-2.5 hover:border-blue-500/40">
+                            <i class="fas fa-door-closed text-xs opacity-70"></i>
+                            <span>{{ room.name }}</span>
+                            <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold"
+                                  [class.bg-white/20]="selectedRoom() === room.id"
+                                  [class.bg-bg-secondary]="selectedRoom() !== room.id"
+                                  [class.text-text-muted]="selectedRoom() !== room.id">
+                                {{ room.capacity }} seats
+                            </span>
+                        </button>
+                    } @empty {
+                        <div class="text-sm text-text-muted py-2 flex items-center gap-2">
+                            <i class="fas fa-info-circle"></i> No facility rooms defined yet.
                         </div>
-                        <div>
-                            <div class="font-bold text-text-primary">{{ booking.purpose }}</div>
-                            <div class="text-xs text-text-muted mt-1">Booked by: {{ booking.booker_id | slice:0:8 }}...</div>
+                    }
+                </div>
+            </div>
+
+            <!-- Date Picker Selector -->
+            <div class="w-full lg:w-64 shrink-0">
+                <label class="text-xs font-bold text-text-muted uppercase tracking-wider mb-2 block flex items-center gap-2">
+                    <i class="fas fa-calendar-day text-indigo-500"></i> Reservation Date
+                </label>
+                <div class="relative">
+                    <input type="date" 
+                           [ngModel]="selectedDate()" 
+                           (ngModelChange)="onDateChange($event)" 
+                           class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold outline-none text-text-primary focus:ring-2 focus:ring-blue-500/40 transition-all">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ===== SCHEDULE TIMELINE / VIEW ===== -->
+    <div class="bg-bg-secondary rounded-2xl sm:rounded-3xl border border-border-primary shadow-sm p-6 sm:p-8 space-y-6">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-primary">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-base">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg sm:text-xl font-bold text-text-primary">
+                        Schedule for {{ selectedDate() | date:'EEEE, MMMM d, y' }}
+                    </h2>
+                    <p class="text-xs text-text-muted mt-0.5">
+                        Viewing reservations for <span class="font-bold text-text-primary">{{ selectedRoomObj()?.name || 'Selected Facility' }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-bg-tertiary border border-border-secondary text-text-muted">
+                    {{ filteredBookings().length }} {{ filteredBookings().length === 1 ? 'Slot' : 'Slots' }} Reserved
+                </span>
+            </div>
+        </div>
+        
+        <div class="space-y-3.5">
+            @for (booking of filteredBookings(); track booking.id) {
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 bg-bg-tertiary/70 border border-border-secondary hover:border-blue-500/40 rounded-2xl shadow-sm transition-all duration-200 gap-4">
+                    
+                    <div class="flex items-center gap-4 sm:gap-6">
+                        <!-- Time Box -->
+                        <div class="text-center px-4 py-2 bg-bg-secondary border border-border-primary rounded-xl shrink-0 min-w-[100px]">
+                            <div class="text-base font-black text-blue-600 dark:text-blue-400">{{ booking.start_time | date:'HH:mm' }}</div>
+                            <div class="text-[9px] font-bold text-text-muted uppercase tracking-widest my-0.5">UNTIL</div>
+                            <div class="text-sm font-bold text-text-primary">{{ booking.end_time | date:'HH:mm' }}</div>
+                        </div>
+
+                        <!-- Info -->
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-bold text-text-primary text-base sm:text-lg">{{ booking.purpose }}</h3>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                    Confirmed
+                                </span>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-3 text-xs text-text-muted">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fas fa-user-circle text-text-muted"></i>
+                                    Booker ID: <code class="font-mono text-[11px] bg-bg-secondary px-1.5 py-0.5 rounded">{{ booking.booker_id | slice:0:8 }}</code>
+                                </span>
+                            </div>
                         </div>
                     </div>
-                    <button (click)="cancelBooking(booking.id)" class="p-2.5 text-rose-400 hover:bg-rose-500/10 hover:text-rose-500 rounded-xl transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                    </button>
+
+                    <!-- Cancel / Actions -->
+                    <div class="flex items-center justify-end">
+                        <button (click)="cancelBooking(booking.id)" 
+                                title="Cancel this reservation"
+                                class="px-3.5 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 border border-rose-500/20 rounded-xl transition-colors flex items-center gap-2">
+                            <i class="fas fa-trash-alt text-xs"></i>
+                            <span>Cancel Booking</span>
+                        </button>
+                    </div>
+
                 </div>
             } @empty {
-                <div class="text-center py-16">
-                    <div class="inline-flex p-4 rounded-full bg-bg-tertiary mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-text-muted"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <!-- Empty State -->
+                <div class="text-center py-16 px-4 bg-bg-tertiary/30 border border-dashed border-border-secondary rounded-2xl">
+                    <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-4 text-2xl">
+                        <i class="fas fa-calendar-check"></i>
                     </div>
-                    <h3 class="text-lg font-bold text-text-primary">No Bookings</h3>
-                    <p class="text-sm text-text-muted mt-1">This room is completely available on this day.</p>
+                    <h3 class="text-lg font-bold text-text-primary">No Bookings Scheduled</h3>
+                    <p class="text-sm text-text-muted max-w-md mx-auto mt-1 mb-6 leading-relaxed">
+                        This facility is completely available on {{ selectedDate() | date:'MMMM d, y' }}. Reserve a time slot for classes, events, or workshops.
+                    </p>
+                    <button (click)="openAdd()" 
+                            class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-600/20 transition-all">
+                        <i class="fas fa-plus"></i>
+                        <span>Book This Space</span>
+                    </button>
                 </div>
             }
         </div>
     </div>
+
 </div>
 
-<!-- Modal -->
+<!-- ===== BOOKING MODAL ===== -->
 @if (showModal()) {
-    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-bg-secondary w-full max-w-md rounded-3xl shadow-2xl border border-border-primary overflow-hidden">
-            <div class="p-6 border-b border-border-secondary flex justify-between items-center bg-bg-tertiary">
-                <h2 class="text-xl font-bold text-text-primary">Book Room</h2>
-                <button (click)="showModal.set(false)" class="p-2 hover:bg-bg-primary rounded-xl transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in" (click)="showModal.set(false)">
+        <div class="bg-bg-secondary w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-border-primary overflow-hidden max-h-[92vh] sm:max-h-[85vh] flex flex-col animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
+            <!-- Mobile Bottomsheet Handle -->
+            <div class="pt-3 pb-1 sm:hidden">
+                <div class="bottomsheet-handle"></div>
             </div>
             
-            <div class="p-6 space-y-5">
-                <div>
-                    <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Purpose</label>
-                    <input [(ngModel)]="formData.purpose" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm focus:ring-2 focus:ring-brand-primary/50 outline-none transition-all" placeholder="e.g. Science Club Meeting">
+            <!-- Modal Header -->
+            <div class="p-4 sm:p-6 border-b border-border-primary flex justify-between items-center bg-bg-tertiary">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm">
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-text-primary">Reserve Facility Space</h2>
+                        <p class="text-xs text-text-muted mt-0.5">Booking for {{ selectedRoomObj()?.name || 'Selected Room' }}</p>
+                    </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <button (click)="showModal.set(false)" class="p-2 text-text-muted hover:text-text-primary hover:bg-bg-primary rounded-xl transition-colors">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+            
+            <!-- Form Body -->
+            <div class="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto">
+                <div>
+                    <label class="text-[11px] sm:text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5 block">
+                        Reservation Purpose / Event Title
+                    </label>
+                    <input [(ngModel)]="formData.purpose" 
+                           class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-3 text-xs sm:text-sm text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-blue-500/40 outline-none transition-all font-medium" 
+                           placeholder="e.g. Senior Science Lab Experiment, Faculty Briefing">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                        <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Start Time</label>
-                        <input [(ngModel)]="formData.start_time" type="time" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm outline-none">
+                        <label class="text-[11px] sm:text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5 block">
+                            Start Time
+                        </label>
+                        <input [(ngModel)]="formData.start_time" 
+                                type="time" 
+                                class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-blue-500/40 transition-all">
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">End Time</label>
-                        <input [(ngModel)]="formData.end_time" type="time" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm outline-none">
+                        <label class="text-[11px] sm:text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5 block">
+                            End Time
+                        </label>
+                        <input [(ngModel)]="formData.end_time" 
+                                type="time" 
+                                class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-blue-500/40 transition-all">
                     </div>
+                </div>
+
+                <div class="p-3.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-xs text-blue-700 dark:text-blue-300 flex items-start gap-2.5">
+                    <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                    <span>Booking will be registered on <strong>{{ selectedDate() | date:'mediumDate' }}</strong>. Ensure times do not overlap with existing reservations.</span>
                 </div>
             </div>
 
-            <div class="p-6 border-t border-border-secondary bg-bg-tertiary flex justify-end gap-3">
-                <button (click)="showModal.set(false)" class="px-5 py-2.5 rounded-xl text-sm font-bold text-text-muted hover:bg-bg-secondary transition-colors">Cancel</button>
-                <button (click)="submit()" [disabled]="isSubmitting()" class="px-6 py-2.5 bg-brand-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 transition-all disabled:opacity-50">
-                    {{ isSubmitting() ? 'Booking...' : 'Confirm Booking' }}
+            <!-- Modal Footer -->
+            <div class="p-4 sm:p-6 border-t border-border-primary bg-bg-tertiary flex justify-end gap-3">
+                <button (click)="showModal.set(false)" 
+                        class="px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold text-text-muted hover:bg-bg-secondary transition-colors">
+                    Discard
+                </button>
+                <button (click)="submit()" 
+                        [disabled]="isSubmitting()" 
+                        class="px-5 sm:px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 transition-all disabled:opacity-50 flex items-center gap-2">
+                    @if (isSubmitting()) {
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Processing...</span>
+                    } @else {
+                        <i class="fas fa-check"></i>
+                        <span>Confirm Reservation</span>
+                    }
                 </button>
             </div>
         </div>

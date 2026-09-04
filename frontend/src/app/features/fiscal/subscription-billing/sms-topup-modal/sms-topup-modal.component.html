@@ -1,17 +1,22 @@
-<div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" (click)="close.emit()">
-  <div class="relative w-full max-w-lg bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl p-6 md:p-8 overflow-hidden" (click)="$event.stopPropagation()">
+<div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm animate-fade-in" (click)="close.emit()">
+  <div class="relative w-full max-w-lg bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-8 max-h-[92vh] sm:max-h-[85vh] overflow-y-auto animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
+    <!-- Mobile Bottomsheet Handle -->
+    <div class="pt-1 pb-1 sm:hidden">
+      <div class="bottomsheet-handle"></div>
+    </div>
+
     <!-- Decorative Ambient Glows -->
     <div class="absolute top-0 right-0 w-56 h-56 bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none"></div>
     <div class="absolute bottom-0 left-0 w-56 h-56 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none"></div>
 
     <!-- Modal Header -->
-    <div class="flex items-start justify-between mb-6 relative z-10">
+    <div class="flex items-start justify-between mb-5 sm:mb-6 relative z-10">
       <div>
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-widest mb-2">
           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
           Direct Credit Gateway
         </div>
-        <h2 class="text-2xl font-black text-text-primary">Top Up SMS Credits</h2>
+        <h2 class="text-lg sm:text-2xl font-black text-text-primary">Top Up SMS Credits</h2>
         <p class="text-xs text-text-secondary mt-1">Purchase on-demand broadcast units. Independent from your term subscription plan.</p>
       </div>
       <button (click)="close.emit()" class="p-2 rounded-xl bg-bg-tertiary hover:bg-border-primary text-text-muted hover:text-text-primary transition-all">
@@ -20,21 +25,21 @@
     </div>
 
     <!-- Current Balance & Unit Rate Pill -->
-    <div class="grid grid-cols-2 gap-3 mb-6 relative z-10">
+    <div class="grid grid-cols-2 gap-3 mb-5 sm:mb-6 relative z-10">
       <div class="p-3.5 rounded-2xl bg-bg-tertiary border border-border-primary">
         <p class="text-[9px] font-black uppercase tracking-widest text-text-muted mb-0.5">Current Balance</p>
-        <div class="text-xl font-black text-emerald-400 font-mono">{{ overview()?.sms_credits || initialBalance | number }} <span class="text-xs text-text-muted font-normal">credits</span></div>
+        <div class="text-lg sm:text-xl font-black text-emerald-400 font-mono">{{ overview()?.sms_credits || initialBalance | number }} <span class="text-xs text-text-muted font-normal">credits</span></div>
       </div>
       <div class="p-3.5 rounded-2xl bg-bg-tertiary border border-border-primary">
         <p class="text-[9px] font-black uppercase tracking-widest text-text-muted mb-0.5">SMS Unit Rate</p>
-        <div class="text-xl font-black text-text-primary font-mono">₵{{ costPerSms() | number:'1.2-4' }} <span class="text-xs text-text-muted font-normal">/ SMS</span></div>
+        <div class="text-lg sm:text-xl font-black text-text-primary font-mono">₵{{ costPerSms() | number:'1.2-4' }} <span class="text-xs text-text-muted font-normal">/ SMS</span></div>
       </div>
     </div>
 
     <!-- Package Bundles -->
-    <div class="mb-6 relative z-10">
-      <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2.5">Select Bundle</label>
-      <div class="grid grid-cols-3 gap-2.5 mb-3">
+    <div class="mb-5 sm:mb-6 relative z-10">
+      <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Select Bundle</label>
+      <div class="grid grid-cols-3 gap-2 sm:gap-2.5 mb-3">
         @for (b of presetBundles; track b.amount) {
           <button
             type="button"
@@ -43,16 +48,16 @@
             [class.bg-emerald-500/10]="!isCustom() && selectedAmount() === b.amount"
             [class.shadow-lg]="!isCustom() && selectedAmount() === b.amount"
             [class.shadow-emerald-500/10]="!isCustom() && selectedAmount() === b.amount"
-            class="p-3 rounded-2xl bg-bg-tertiary hover:bg-border-primary/50 border border-border-primary text-left transition-all relative overflow-hidden"
+            class="p-2.5 sm:p-3 rounded-2xl bg-bg-tertiary hover:bg-border-primary/50 border border-border-primary text-left transition-all relative overflow-hidden"
           >
             @if (b.badge) {
-              <span class="absolute top-2 right-2 text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
+              <span class="absolute top-1.5 right-1.5 text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
                 {{ b.badge }}
               </span>
             }
-            <div class="text-base font-black text-text-primary font-mono">₵{{ b.amount }}</div>
-            <div class="text-[10px] text-text-muted mt-0.5 font-medium">{{ b.label }}</div>
-            <div class="text-[11px] font-bold text-emerald-400 font-mono mt-1.5">
+            <div class="text-sm sm:text-base font-black text-text-primary font-mono">₵{{ b.amount }}</div>
+            <div class="text-[9px] sm:text-[10px] text-text-muted mt-0.5 font-medium truncate">{{ b.label }}</div>
+            <div class="text-[10px] sm:text-[11px] font-bold text-emerald-400 font-mono mt-1">
               {{ (b.amount / costPerSms()) | number:'1.0-0' }} SMS
             </div>
           </button>
@@ -64,11 +69,11 @@
           (click)="enableCustom()"
           [class.border-emerald-500]="isCustom()"
           [class.bg-emerald-500/10]="isCustom()"
-          class="p-3 rounded-2xl bg-bg-tertiary hover:bg-border-primary/50 border border-border-primary text-left transition-all"
+          class="p-2.5 sm:p-3 rounded-2xl bg-bg-tertiary hover:bg-border-primary/50 border border-border-primary text-left transition-all"
         >
-          <div class="text-base font-black text-text-primary">Custom</div>
-          <div class="text-[10px] text-text-muted mt-0.5 font-medium">Enter amount</div>
-          <div class="text-[11px] font-bold text-accent-primary font-mono mt-1.5">Any GHS</div>
+          <div class="text-sm sm:text-base font-black text-text-primary">Custom</div>
+          <div class="text-[9px] sm:text-[10px] text-text-muted mt-0.5 font-medium">Enter amount</div>
+          <div class="text-[10px] sm:text-[11px] font-bold text-accent-primary font-mono mt-1">Any GHS</div>
         </button>
       </div>
 
@@ -84,7 +89,7 @@
               step="5"
               [(ngModel)]="customAmount"
               placeholder="e.g. 75"
-              class="w-full bg-bg-secondary border border-border-primary focus:border-emerald-500 rounded-xl pl-8 pr-4 py-2.5 text-text-primary font-mono font-bold text-base outline-none transition-all"
+              class="w-full bg-bg-secondary border border-border-primary focus:border-emerald-500 rounded-xl pl-8 pr-4 py-2 text-text-primary font-mono font-bold text-sm sm:text-base outline-none transition-all"
             />
           </div>
         </div>
@@ -92,22 +97,22 @@
     </div>
 
     <!-- Conversion Highlight Box -->
-    <div class="p-4 rounded-2xl bg-blue-500/10 border border-emerald-500/20 mb-6 flex items-center justify-between relative z-10">
+    <div class="p-4 rounded-2xl bg-blue-500/10 border border-emerald-500/20 mb-5 sm:mb-6 flex items-center justify-between relative z-10">
       <div>
-        <p class="text-[9px] font-black uppercase tracking-widest text-emerald-400 mb-0.5">Calculated Credits Received</p>
-        <div class="text-2xl font-black text-emerald-300 font-mono flex items-baseline gap-2">
+        <p class="text-[9px] font-black uppercase tracking-widest text-emerald-400 mb-0.5">Calculated Credits</p>
+        <div class="text-lg sm:text-2xl font-black text-emerald-300 font-mono flex items-baseline gap-1.5 sm:gap-2">
           {{ calculatedCredits() | number }}
-          <span class="text-xs text-text-muted font-normal">SMS Messages</span>
+          <span class="text-xs text-text-muted font-normal">SMS</span>
         </div>
       </div>
       <div class="text-right font-mono">
         <p class="text-[9px] font-black uppercase tracking-widest text-text-muted mb-0.5">Total Charge</p>
-        <p class="text-lg font-black text-text-primary">₵{{ effectiveAmount() | number:'1.2-2' }}</p>
+        <p class="text-base sm:text-lg font-black text-text-primary">₵{{ effectiveAmount() | number:'1.2-2' }}</p>
       </div>
     </div>
 
     <!-- Payer Email (Optional) -->
-    <div class="mb-6 relative z-10">
+    <div class="mb-5 sm:mb-6 relative z-10">
       <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Receipt Email (Optional)</label>
       <input
         type="email"
@@ -121,21 +126,21 @@
     <div class="flex items-center gap-3 relative z-10">
       <button
         (click)="close.emit()"
-        class="flex-1 py-3 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-border-primary text-text-secondary transition-all border border-border-primary"
+        class="flex-1 py-2.5 sm:py-3 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-border-primary text-text-secondary transition-all border border-border-primary"
       >
         Cancel
       </button>
       <button
         (click)="handleTopUp()"
         [disabled]="isSubmitting() || calculatedCredits() <= 0"
-        class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-black transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed font-mono uppercase tracking-wider"
+        class="flex-1 flex items-center justify-center gap-2 py-2.5 sm:py-3 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed font-mono uppercase tracking-wider"
       >
         @if (isSubmitting()) {
-          <div class="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+          <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
           Processing...
         } @else {
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          Pay ₵{{ effectiveAmount() | number:'1.2-2' }} Now
+          Pay ₵{{ effectiveAmount() | number:'1.2-2' }}
         }
       </button>
     </div>

@@ -1,144 +1,272 @@
-<div class="space-y-4 sm:space-y-6 animate-fade-in relative">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6 mb-4 sm:mb-6">
-        <div class="flex flex-col gap-1.5">
-            <h1 class="text-2xl md:text-3xl font-black tracking-tighter text-text-primary uppercase italic">Departmental Oversight</h1>
-            <p class="text-sm font-medium text-text-secondary">Managing institutional blocks and faculty leadership</p>
-        </div>
-        <div class="flex items-center gap-4 w-full md:w-auto">
-            <div class="relative flex-1 md:w-64 group">
-                <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none text-text-muted group-focus-within:text-blue-400 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                </div>
-                <input type="text" placeholder="Search departments..." (input)="onSearch($event)" 
-                    class="w-full pl-11 pr-4 py-3 bg-bg-tertiary border border-border-secondary rounded-2xl text-sm font-bold text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all">
-            </div>
-            <button class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-text-primary text-xs font-black rounded-2xl shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2 active:scale-95 group" (click)="isAdding.set(true)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="group-hover:rotate-90 transition-transform"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
-                Establish Department
-            </button>
-        </div>
-    </div>
+<div class="space-y-6 sm:space-y-8 animate-fade-in pb-20 text-text-primary">
 
-    <!-- Stats Bar -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <div class="stats-card p-6 rounded-3xl flex flex-col gap-1 relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 blur-3xl rounded-full"></div>
-            <span class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Institutional Blocks</span>
-            <span class="text-xl md:text-2xl font-black text-text-primary">{{ stats().total }}</span>
-        </div>
-        <div class="stats-card p-6 rounded-3xl flex flex-col gap-1 relative overflow-hidden text-emerald-400">
-             <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 blur-3xl rounded-full"></div>
-            <span class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Leadership Active</span>
-            <span class="text-xl md:text-2xl font-black text-text-primary">{{ stats().withHead }}</span>
-        </div>
-        <div class="stats-card p-6 rounded-3xl flex flex-col gap-1 relative overflow-hidden text-amber-400">
-             <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 blur-3xl rounded-full"></div>
-            <span class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Pending Appointments</span>
-            <span class="text-xl md:text-2xl font-black text-text-primary">{{ stats().missingHead }}</span>
-        </div>
-    </div>
+    <!-- ===== HERO HEADER ===== -->
+    <div class="relative overflow-hidden bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-sm transition-all duration-300">
+        <!-- Ambient Glows -->
+        <div class="absolute -top-24 -right-24 w-80 h-80 bg-blue-500/10 dark:bg-blue-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-indigo-500/10 dark:bg-indigo-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
-    <!-- Departments Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        @for (dept of filteredDepartments(); track dept.id) {
-        <div class="dept-card glass-panel rounded-[32px] p-8 flex flex-col gap-8 group animate-list-entry">
-            
-            <div class="flex justify-between items-start">
-                <div class="flex flex-col gap-2">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-                        </div>
-                        <h3 class="text-xl font-black text-text-primary tracking-tight uppercase">{{ dept.name }}</h3>
-                    </div>
-                    <span class="text-[10px] font-bold text-text-muted uppercase tracking-widest bg-bg-tertiary px-2.5 py-1 rounded-lg w-fit">Ref: {{ dept.id.substring(0, 8) }}</span>
-                </div>
-                <button class="p-2.5 hover:bg-red-500/10 text-text-muted hover:text-red-400 rounded-xl transition-all opacity-0 group-hover:opacity-100" (click)="deleteDepartment(dept.id)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                </button>
-            </div>
-
-            <div class="flex flex-col gap-1.5 p-5 bg-bg-tertiary rounded-2xl border border-border-primary">
-                <span class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Department Head</span>
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-black text-text-primary uppercase">
-                        {{ (dept.head?.first_name?.[0] || 'U') }}
-                    </div>
-                    <span class="text-sm font-bold text-text-primary">
-                        {{ dept.head ? (dept.head.first_name + ' ' + dept.head.last_name) : 'Awaiting Assignment' }}
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="space-y-3 max-w-2xl">
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Institutional Architecture
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-bg-tertiary text-text-muted border border-border-secondary">
+                        <i class="fas fa-sitemap text-[11px]"></i>
+                        Faculty & Academic Blocks
                     </span>
                 </div>
+
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-text-primary">
+                    Departmental <span class="text-blue-600 dark:text-blue-400">Oversight</span>
+                </h1>
+                <p class="text-sm sm:text-base text-text-muted leading-relaxed">
+                    Establish structural academic blocks, assign leadership faculty heads, coordinate constituent curriculum streams, and oversee institutional governance.
+                </p>
             </div>
 
-            <div class="flex items-center justify-between mt-auto pt-6 border-t border-border-primary">
-                <div class="flex flex-col gap-0.5">
-                    <span class="text-[9px] font-black text-text-muted uppercase tracking-widest">Structural Links</span>
-                    <span class="text-xs font-bold text-blue-400">Constituent Classes</span>
-                </div>
-                <button class="px-5 py-2.5 bg-bg-tertiary hover:bg-bg-secondary text-text-secondary hover:text-text-primary text-[10px] font-black uppercase tracking-widest rounded-xl border border-border-primary transition-all" (click)="manageClasses(dept)">
-                    Oversight Link
+            <!-- Action CTA -->
+            <div class="flex items-center gap-3">
+                <button (click)="isAdding.set(true)" 
+                        class="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 transition-all duration-300 flex items-center gap-2.5 active:scale-95 group">
+                    <div class="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center group-hover:rotate-90 transition-transform">
+                        <i class="fas fa-plus text-xs"></i>
+                    </div>
+                    <span>Establish Department</span>
                 </button>
             </div>
         </div>
+    </div>
+
+    <!-- ===== METRIC STATS ROW ===== -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+        <!-- Metric 1 -->
+        <div class="bg-bg-secondary border border-border-primary p-6 rounded-2xl sm:rounded-3xl shadow-sm relative overflow-hidden group hover:border-blue-500/30 transition-all">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Institutional Blocks</span>
+                <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+            </div>
+            <p class="text-3xl sm:text-4xl font-black text-text-primary mt-3">{{ stats().total }}</p>
+            <p class="text-xs text-text-muted mt-1">Active academic faculties</p>
+        </div>
+
+        <!-- Metric 2 -->
+        <div class="bg-bg-secondary border border-border-primary p-6 rounded-2xl sm:rounded-3xl shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-all">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Leadership Active</span>
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+            </div>
+            <p class="text-3xl sm:text-4xl font-black text-emerald-600 dark:text-emerald-400 mt-3">{{ stats().withHead }}</p>
+            <p class="text-xs text-text-muted mt-1">Heads of department appointed</p>
+        </div>
+
+        <!-- Metric 3 -->
+        <div class="bg-bg-secondary border border-border-primary p-6 rounded-2xl sm:rounded-3xl shadow-sm relative overflow-hidden group hover:border-amber-500/30 transition-all">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Pending Appointments</span>
+                <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                    <i class="fas fa-user-clock"></i>
+                </div>
+            </div>
+            <p class="text-3xl sm:text-4xl font-black text-amber-600 dark:text-amber-400 mt-3">{{ stats().missingHead }}</p>
+            <p class="text-xs text-text-muted mt-1">Vacant faculty leadership</p>
+        </div>
+    </div>
+
+    <!-- ===== SEARCH & FILTER TOOLBAR ===== -->
+    <div class="bg-bg-secondary p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border-primary shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        
+        <div class="relative w-full sm:w-96 group">
+            <div class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-text-muted group-focus-within:text-blue-500 transition-colors">
+                <i class="fas fa-search text-xs"></i>
+            </div>
+            <input type="text" 
+                   placeholder="Search departments or faculty head..." 
+                   (input)="onSearch($event)" 
+                   class="w-full pl-10 pr-4 py-2.5 bg-bg-tertiary border border-border-secondary rounded-xl text-xs sm:text-sm font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 transition-all">
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <span class="text-xs text-text-muted font-medium">
+                Showing <strong class="text-text-primary">{{ filteredDepartments().length }}</strong> of {{ departments().length }} blocks
+            </span>
+        </div>
+
+    </div>
+
+    <!-- ===== DEPARTMENTS GRID ===== -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+        @for (dept of filteredDepartments(); track dept.id) {
+            <div class="bg-bg-secondary border border-border-primary hover:border-blue-500/40 rounded-2xl sm:rounded-3xl p-6 sm:p-7 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group animate-list-entry min-h-[280px]">
+                
+                <!-- Card Header -->
+                <div class="space-y-4">
+                    <div class="flex justify-between items-start gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
+                                <i class="fas fa-landmark text-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ dept.name }}</h3>
+                                <span class="text-[10px] font-mono font-bold text-text-muted uppercase tracking-wider bg-bg-tertiary px-2 py-0.5 rounded border border-border-secondary inline-block mt-0.5">
+                                    ID: {{ dept.id.substring(0, 8) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <button (click)="deleteDepartment(dept.id)" 
+                                title="Decommission Department"
+                                class="p-2 text-text-muted hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-colors">
+                            <i class="fas fa-trash-alt text-xs"></i>
+                        </button>
+                    </div>
+
+                    <!-- Department Head Card -->
+                    <div class="p-4 bg-bg-tertiary rounded-2xl border border-border-secondary space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">Faculty Leadership</span>
+                            @if (dept.head) {
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                    Active Head
+                                </span>
+                            } @else {
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                    Vacant
+                                </span>
+                            }
+                        </div>
+
+                        <div class="flex items-center gap-3 pt-1">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                                {{ (dept.head?.first_name?.[0] || 'U') }}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs sm:text-sm font-bold text-text-primary truncate">
+                                    {{ dept.head ? (dept.head.first_name + ' ' + dept.head.last_name) : 'Awaiting Assignment' }}
+                                </p>
+                                <p class="text-[11px] text-text-muted truncate">
+                                    {{ dept.head ? 'Head of Department' : 'No teacher assigned' }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Footer Links -->
+                <div class="flex items-center justify-between pt-5 mt-5 border-t border-border-primary">
+                    <div class="flex items-center gap-1.5 text-xs text-text-muted">
+                        <i class="fas fa-graduation-cap text-blue-500"></i>
+                        <span class="font-medium">Constituent Streams</span>
+                    </div>
+
+                    <button (click)="manageClasses(dept)" 
+                            class="px-4 py-2 bg-bg-tertiary hover:bg-blue-600 hover:text-white text-text-primary text-xs font-bold rounded-xl border border-border-secondary hover:border-blue-600 transition-all flex items-center gap-1.5 group/btn">
+                        <span>Oversight Hub</span>
+                        <i class="fas fa-arrow-right text-[10px] group-hover/btn:translate-x-0.5 transition-transform"></i>
+                    </button>
+                </div>
+
+            </div>
         } @empty {
-            <div class="col-span-full py-20 flex flex-col items-center gap-6">
-                <div class="w-24 h-24 rounded-full bg-bg-tertiary flex items-center justify-center border border-dashed border-border-secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-text-muted"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <!-- Empty State -->
+            <div class="col-span-full py-20 px-4 bg-bg-secondary border border-dashed border-border-secondary rounded-3xl text-center flex flex-col items-center">
+                <div class="w-20 h-20 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4 text-3xl">
+                    <i class="fas fa-sitemap"></i>
                 </div>
-                <div class="text-center">
-                    <h3 class="text-xl font-bold text-text-primary uppercase tracking-tighter">No Institutional Blocks</h3>
-                    <p class="text-text-muted text-sm mt-1">Establish the first structural department to begin organization.</p>
-                </div>
+                <h3 class="text-xl font-bold text-text-primary">No Institutional Blocks Found</h3>
+                <p class="text-sm text-text-muted max-w-md mt-1 mb-6 leading-relaxed">
+                    Establish your first structural department to organize curriculum, subject allocations, and faculty leadership.
+                </p>
+                <button (click)="isAdding.set(true)" 
+                        class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-600/20 transition-all flex items-center gap-2">
+                    <i class="fas fa-plus"></i>
+                    <span>Establish Department</span>
+                </button>
             </div>
         }
     </div>
 
-    <!-- Add Modal -->
+    <!-- ===== ADD MODAL ===== -->
     @if (isAdding()) {
-    <div class="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-fade-in">
-        <div class="absolute inset-0 bg-bg-primary" (click)="isAdding.set(false)"></div>
-        
-        <div class="bg-bg-secondary w-full max-w-lg rounded-[40px] border border-border-secondary p-10 shadow-3xl relative z-10 overflow-hidden">
-            <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[100px] rounded-full pointer-events-none"></div>
-            
-            <div class="flex flex-col gap-2 mb-10">
-                <h2 class="text-xl md:text-2xl font-black text-text-primary tracking-tighter uppercase italic">Establish Block</h2>
-                <p class="text-sm font-medium text-text-secondary">Official institutional department indexing</p>
-            </div>
-
-            <form (submit)="createDepartment($event)" class="flex flex-col gap-6">
-                <div class="flex flex-col gap-2">
-                    <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Block Title</label>
-                    <input type="text" name="name" required placeholder="e.g. Science & Mathematics"
-                        class="w-full bg-bg-tertiary border border-border-secondary rounded-2xl px-6 py-4 text-text-primary font-bold placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all">
+        <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in" (click)="isAdding.set(false)">
+            <div class="bg-bg-secondary w-full max-w-lg rounded-t-3xl sm:rounded-3xl border border-border-primary shadow-2xl overflow-hidden relative max-h-[92vh] sm:max-h-[85vh] flex flex-col animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
+                <!-- Mobile Bottomsheet Handle -->
+                <div class="pt-3 pb-1 sm:hidden">
+                    <div class="bottomsheet-handle"></div>
                 </div>
-
-                <div class="flex flex-col gap-2">
-                    <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Faculty Leadership</label>
-                    <div class="relative">
-                        <select name="head_id" class="w-full bg-bg-tertiary border border-border-secondary rounded-2xl px-6 py-4 text-text-primary font-bold appearance-none outline-none focus:ring-2 focus:ring-blue-500/50 transition-all cursor-pointer">
-                            <option [value]="null" class="bg-bg-secondary">Assign Head (Teacher)...</option>
-                            @for (t of teachers(); track t.id) {
-                            <option [value]="t.id" class="bg-bg-secondary">{{ t.first_name }} {{ t.last_name }}</option>
-                            }
-                        </select>
-                        <div class="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m6 9 6 6 6-6"/></svg>
+                
+                <!-- Modal Header -->
+                <div class="p-4 sm:p-6 border-b border-border-primary flex justify-between items-center bg-bg-tertiary">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base sm:text-lg font-bold text-text-primary">Establish Department Block</h2>
+                            <p class="text-xs text-text-muted mt-0.5">Define academic division & assign faculty head</p>
                         </div>
                     </div>
+                    <button (click)="isAdding.set(false)" class="p-2 text-text-muted hover:text-text-primary hover:bg-bg-primary rounded-xl transition-colors">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
                 </div>
 
-                <div class="flex gap-4 pt-4 mt-2">
-                    <button type="button" 
-                        class="flex-1 px-6 py-4 bg-bg-tertiary hover:bg-bg-secondary text-text-primary font-black text-[10px] uppercase tracking-widest rounded-2xl border border-border-primary transition-all" 
-                        (click)="isAdding.set(false)">Discard</button>
-                    <button type="submit" 
-                        class="flex-[2] px-6 py-4 bg-blue-600 hover:bg-blue-500 text-text-primary font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-500/20 transition-all active:scale-95">Establish Block</button>
-                </div>
-            </form>
+                <!-- Form -->
+                <form (submit)="createDepartment($event)" class="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto">
+                    <div>
+                        <label class="text-[11px] sm:text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5 block">
+                            Department / Block Title
+                        </label>
+                        <input type="text" 
+                               name="name" 
+                               required 
+                               placeholder="e.g. Science & Mathematics, Humanities"
+                               class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-3 text-xs sm:text-sm font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all">
+                    </div>
+
+                    <div>
+                        <label class="text-[11px] sm:text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5 block">
+                            Faculty Leadership (Head of Department)
+                        </label>
+                        <div class="relative">
+                            <select name="head_id" 
+                                    class="w-full bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-3 text-xs sm:text-sm font-medium text-text-primary appearance-none outline-none focus:ring-2 focus:ring-blue-500/40 transition-all cursor-pointer">
+                                <option [value]="null" class="bg-bg-secondary text-text-primary">Select Head Teacher (Optional)...</option>
+                                @for (t of teachers(); track t.id) {
+                                    <option [value]="t.id" class="bg-bg-secondary text-text-primary">{{ t.first_name }} {{ t.last_name }}</option>
+                                }
+                            </select>
+                            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-xs text-blue-700 dark:text-blue-300 flex items-start gap-2.5">
+                        <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                        <span>Once created, subjects, classes, and performance assessments can be mapped directly to this institutional block.</span>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-3 pt-4 border-t border-border-primary">
+                        <button type="button" 
+                                class="px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold text-text-muted hover:bg-bg-tertiary transition-colors" 
+                                (click)="isAdding.set(false)">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="px-5 sm:px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 transition-all active:scale-95 flex items-center gap-2">
+                            <i class="fas fa-check"></i>
+                            <span>Establish Block</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
     }
 </div>
-

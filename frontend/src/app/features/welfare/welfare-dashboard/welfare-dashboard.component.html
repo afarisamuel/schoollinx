@@ -178,49 +178,53 @@
 
 <!-- Add Behavior Modal -->
 @if (isAddingBehavior()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-bg-primary p-4">
-    <div class="bg-bg-tertiary border border-border-secondary rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in">
-      <div class="px-6 py-4 border-b border-border-primary flex justify-between items-center">
-        <h3 class="text-lg font-bold text-text-primary">Record Conduct Event</h3>
-        <button (click)="closeAddBehavior()" class="text-gray-400 hover:text-text-primary transition">
+  <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-fade-in" (click)="closeAddBehavior()">
+    <div class="bg-bg-tertiary border border-border-secondary rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-slide-up sm:animate-fade-in max-h-[90vh] sm:max-h-[85vh] flex flex-col" (click)="$event.stopPropagation()">
+      <!-- Mobile Handle -->
+      <div class="sm:hidden flex justify-center pt-3 pb-1">
+        <div class="bottomsheet-handle"></div>
+      </div>
+      <div class="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-border-primary flex justify-between items-center">
+        <h3 class="text-base sm:text-lg font-bold text-text-primary">Record Conduct Event</h3>
+        <button (click)="closeAddBehavior()" class="p-1 text-gray-400 hover:text-text-primary transition">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
       </div>
-      <div class="p-6">
+      <div class="p-5 sm:p-6 overflow-y-auto">
         <form (submit)="saveBehavior($event)" class="space-y-4">
           
           <div>
-            <label class="block text-sm font-medium text-gray-400 mb-1">Event Type</label>
+            <label class="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Event Type</label>
             <div class="flex gap-4">
               <label class="flex items-center gap-2 cursor-pointer">
                 <input type="radio" [(ngModel)]="behaviorForm().type" name="type" value="MERIT" class="text-emerald-500 focus:ring-emerald-500">
-                <span class="text-gray-200">Merit</span>
+                <span class="text-sm text-gray-200">Merit</span>
               </label>
               <label class="flex items-center gap-2 cursor-pointer">
                 <input type="radio" [(ngModel)]="behaviorForm().type" name="type" value="DEMERIT" class="text-red-500 focus:ring-red-500">
-                <span class="text-gray-200">Demerit</span>
+                <span class="text-sm text-gray-200">Demerit</span>
               </label>
             </div>
           </div>
           
           <div>
-            <label class="block text-sm font-medium text-gray-400 mb-1">Category</label>
-            <input type="text" [(ngModel)]="behaviorForm().category" name="category" required placeholder="e.g. Outstanding Work, Disruptive Behavior" class="w-full bg-bg-secondary border border-border-secondary rounded-lg py-2 px-3 text-text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
+            <label class="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Category</label>
+            <input type="text" [(ngModel)]="behaviorForm().category" name="category" required placeholder="e.g. Outstanding Work, Disruptive Behavior" class="w-full bg-bg-secondary border border-border-secondary rounded-lg py-2.5 px-3 text-sm text-text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
           </div>
           
           <div>
-            <label class="block text-sm font-medium text-gray-400 mb-1">Description</label>
-            <textarea [(ngModel)]="behaviorForm().description" name="description" required rows="3" class="w-full bg-bg-secondary border border-border-secondary rounded-lg py-2 px-3 text-text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"></textarea>
+            <label class="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Description</label>
+            <textarea [(ngModel)]="behaviorForm().description" name="description" required rows="3" class="w-full bg-bg-secondary border border-border-secondary rounded-lg py-2.5 px-3 text-sm text-text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"></textarea>
           </div>
           
           <div>
-            <label class="block text-sm font-medium text-gray-400 mb-1">Action Taken (Optional)</label>
-            <input type="text" [(ngModel)]="behaviorForm().action_taken" name="action_taken" class="w-full bg-bg-secondary border border-border-secondary rounded-lg py-2 px-3 text-text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
+            <label class="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Action Taken (Optional)</label>
+            <input type="text" [(ngModel)]="behaviorForm().action_taken" name="action_taken" class="w-full bg-bg-secondary border border-border-secondary rounded-lg py-2.5 px-3 text-sm text-text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
           </div>
 
-          <div class="flex justify-end gap-3 pt-4 mt-6 border-t border-border-primary">
-            <button type="button" (click)="closeAddBehavior()" class="px-4 py-2 bg-transparent text-gray-400 hover:text-text-primary rounded-lg transition duration-200">Cancel</button>
-            <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-text-primary rounded-lg shadow-lg shadow-emerald-500/20 font-semibold transition duration-200">Save Event</button>
+          <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 mt-6 border-t border-border-primary">
+            <button type="button" (click)="closeAddBehavior()" class="w-full sm:w-auto px-4 py-2.5 bg-transparent text-gray-400 hover:text-text-primary rounded-lg transition duration-200 text-sm">Cancel</button>
+            <button type="submit" class="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow-lg font-semibold transition duration-200 text-sm">Save Event</button>
           </div>
         </form>
       </div>

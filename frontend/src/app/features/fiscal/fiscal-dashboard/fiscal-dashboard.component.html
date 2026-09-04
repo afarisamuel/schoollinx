@@ -1,26 +1,31 @@
 <!-- ===== Payment Modal ===== -->
 @if (showPaymentModal()) {
-<div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in"
+<div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm animate-fade-in"
   (click)="closePaymentModal()">
-  <div class="relative w-full max-w-md bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl p-8"
+  <div class="relative w-full max-w-md bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-8 max-h-[92vh] sm:max-h-[85vh] overflow-y-auto animate-slide-up sm:animate-fade-in"
     (click)="$event.stopPropagation()">
+    <!-- Mobile Bottomsheet Handle -->
+    <div class="pt-1 pb-1 sm:hidden">
+      <div class="bottomsheet-handle"></div>
+    </div>
+
     <!-- Glow -->
     <div class="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] pointer-events-none"></div>
 
     <!-- Header -->
-    <div class="flex items-start justify-between mb-6 relative z-10">
+    <div class="flex items-start justify-between mb-5 sm:mb-6 relative z-10">
       <div>
         <div
-          class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 text-[10px] font-black uppercase tracking-widest mb-3">
+          class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 text-[10px] font-black uppercase tracking-widest mb-2 sm:mb-3">
           <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="3">
             <rect x="2" y="5" width="20" height="14" rx="2" />
-            <line x1="2" x2="22" y1="10" y2="10" />
+            <line x1="2" y1="10" x2="22" y2="10" />
           </svg>
           Secure Payment
         </div>
-        <h2 class="text-xl font-black text-text-primary">Pay Online</h2>
-        <p class="text-sm text-text-secondary mt-1">Initialize secure payment via Paystack.</p>
+        <h2 class="text-lg sm:text-xl font-black text-text-primary">Pay Online</h2>
+        <p class="text-xs sm:text-sm text-text-secondary mt-0.5 sm:mt-1">Initialize secure payment via Paystack.</p>
       </div>
       <button (click)="closePaymentModal()"
         class="p-2 rounded-xl bg-bg-tertiary hover:bg-border-primary text-text-muted hover:text-text-primary transition-all">
@@ -33,33 +38,33 @@
     </div>
 
     <!-- Invoice Details -->
-    <div class="bg-bg-tertiary rounded-2xl p-4 border border-border-primary mb-6 relative z-10">
+    <div class="bg-bg-tertiary rounded-2xl p-4 border border-border-primary mb-5 sm:mb-6 relative z-10">
       <div class="flex justify-between items-center mb-2">
-        <span class="text-xs text-text-muted font-bold uppercase tracking-widest">Fee Category</span>
-        <span class="text-sm font-black text-text-primary">{{ selectedRecordForPayment()?.category }}</span>
+        <span class="text-[10px] sm:text-xs text-text-muted font-bold uppercase tracking-widest">Fee Category</span>
+        <span class="text-xs sm:text-sm font-black text-text-primary">{{ selectedRecordForPayment()?.category }}</span>
       </div>
       <div class="flex justify-between items-center mb-2">
-        <span class="text-xs text-text-muted font-bold uppercase tracking-widest">Total Amount</span>
-        <span class="text-sm font-black text-text-primary">GH₵{{ selectedRecordForPayment()?.amount | number:'1.2-2'
+        <span class="text-[10px] sm:text-xs text-text-muted font-bold uppercase tracking-widest">Total Amount</span>
+        <span class="text-xs sm:text-sm font-black text-text-primary">GH₵{{ selectedRecordForPayment()?.amount | number:'1.2-2'
           }}</span>
       </div>
       <div class="flex justify-between items-center mb-2">
-        <span class="text-xs text-text-muted font-bold uppercase tracking-widest">Amount Paid</span>
-        <span class="text-sm font-black text-emerald-500">GH₵{{ selectedRecordForPayment()?.amount_paid || 0 |
+        <span class="text-[10px] sm:text-xs text-text-muted font-bold uppercase tracking-widest">Amount Paid</span>
+        <span class="text-xs sm:text-sm font-black text-emerald-500">GH₵{{ selectedRecordForPayment()?.amount_paid || 0 |
           number:'1.2-2' }}</span>
       </div>
       <div class="flex justify-between items-center pt-2 border-t border-border-primary">
-        <span class="text-xs text-rose-500 font-black uppercase tracking-widest">Balance Due</span>
-        <span class="text-lg font-black text-rose-500">GH₵{{ selectedRecordForPayment()?.balance_due ||
+        <span class="text-[10px] sm:text-xs text-rose-500 font-black uppercase tracking-widest">Balance Due</span>
+        <span class="text-base sm:text-lg font-black text-rose-500">GH₵{{ selectedRecordForPayment()?.balance_due ||
           (selectedRecordForPayment()!.amount - (selectedRecordForPayment()!.amount_paid || 0)) | number:'1.2-2'
           }}</span>
       </div>
     </div>
 
     <!-- Amount Input -->
-    <div class="mb-6 relative z-10">
+    <div class="mb-5 sm:mb-6 relative z-10">
       <label for="payment-amount"
-        class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Amount to Pay (GH₵)</label>
+        class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5 sm:mb-2">Amount to Pay (GH₵)</label>
       <div class="relative">
         <div class="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted font-black">
           ₵
@@ -67,23 +72,23 @@
         <input id="payment-amount" type="number" min="1"
           [max]="selectedRecordForPayment()?.balance_due || (selectedRecordForPayment()!.amount - (selectedRecordForPayment()!.amount_paid || 0))"
           [value]="paymentAmount()" (input)="paymentAmount.set($any($event.target).valueAsNumber)"
-          class="w-full bg-bg-tertiary border border-border-primary hover:border-border-secondary focus:border-blue-500 rounded-xl pl-11 pr-4 py-3.5 text-sm text-text-primary placeholder-text-muted outline-none transition-all font-mono" />
+          class="w-full bg-bg-tertiary border border-border-primary hover:border-border-secondary focus:border-blue-500 rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-text-primary placeholder-text-muted outline-none transition-all font-mono" />
       </div>
-      <p class="text-[11px] text-text-secondary mt-2">You can modify the amount for a partial payment.</p>
+      <p class="text-[11px] text-text-secondary mt-1.5">You can modify the amount for a partial payment.</p>
     </div>
 
     <!-- Actions -->
     <div class="flex items-center gap-3 relative z-10">
       <button (click)="closePaymentModal()"
-        class="flex-1 py-3 rounded-xl font-bold text-sm bg-bg-tertiary hover:bg-border-primary text-text-secondary transition-all border border-border-primary">
+        class="flex-1 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm bg-bg-tertiary hover:bg-border-primary text-text-secondary transition-all border border-border-primary">
         Cancel
       </button>
       <button (click)="confirmPayment()" [disabled]="isPaymentLoading()"
-        class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
+        class="flex-1 flex items-center justify-center gap-2 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
         @if (isPaymentLoading()) {
         <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
         } @else {
-        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2.5">
           <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
         </svg>
@@ -96,162 +101,108 @@
 }
 <!-- ===== / Payment Modal ===== -->
 
-<div class="py-2 animate-fade-in">
-  <!-- Header Area -->
-  <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-10 gap-6 md:gap-0 relative z-10">
-    <div class="header-content relative">
-      <div class="absolute -left-12 -top-12 w-32 h-32 bg-blue-500/20 rounded-full blur-[80px] animate-pulse"></div>
-      <div class="absolute -right-12 -bottom-12 w-32 h-32 bg-blue-500/20 rounded-full blur-[80px] animate-pulse"
-        style="animation-delay: 2s;"></div>
-      <h1
-        class="text-4xl md:text-5xl font-black tracking-tight text-blue-400 relative z-10 pb-1">
-        Financial Ledger
-      </h1>
-      <p class="text-sm font-medium text-text-secondary mt-2 relative z-10 flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse"></span>
-        Institutional financial audit and fee management
-      </p>
-    </div>
+<div class="space-y-6 sm:space-y-8 animate-fade-in pb-16 text-text-primary">
 
-    <!-- Action Toolbar -->
-    <div class="w-full md:w-auto relative z-10">
-      <div
-        class="flex flex-col xl:flex-row items-center gap-3 bg-bg-secondary/60 backdrop-blur-2xl p-2 rounded-3xl border border-border-primary/50 shadow-sm">
+  <!-- ===== HERO HEADER ===== -->
+  <div class="relative overflow-hidden bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-sm transition-all duration-300">
+    <!-- Ambient Glows -->
+    <div class="absolute -top-24 -right-24 w-80 h-80 bg-blue-500/10 dark:bg-blue-500/15 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-emerald-500/10 dark:bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
-        <!-- Navigation Links -->
-        <div
-          class="flex items-center gap-1.5 p-1 bg-bg-primary/50 rounded-2xl border border-border-primary/30 w-full xl:w-auto overflow-x-auto custom-scrollbar">
-          <a routerLink="/fiscal/fees"
-            class="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-text-secondary hover:bg-blue-500/10 hover:text-blue-400 transition-all duration-300">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2.5">
-              <path
-                d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-            Fees
+    <div class="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+      <div class="space-y-3 max-w-2xl">
+        <div class="flex flex-wrap items-center gap-2.5">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Institutional Audit
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-bg-tertiary text-text-muted border border-border-secondary">
+            <i class="fas fa-file-invoice-dollar text-[11px]"></i>
+            Ledger &amp; Fee Management
+          </span>
+        </div>
+
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-text-primary">
+          Financial <span class="text-blue-600 dark:text-blue-400">Ledger</span>
+        </h1>
+        <p class="text-sm sm:text-base text-text-muted leading-relaxed">
+          Comprehensive institutional financial auditing, real-time fee collection rosters, automated penalty workflows, and predictive cash flow telemetry.
+        </p>
+      </div>
+
+      <!-- Actions & Nav Toolbar -->
+      <div class="flex flex-col sm:flex-row flex-wrap items-center gap-3">
+        
+        <!-- Navigation Links Group -->
+        <div class="flex items-center gap-1 p-1 bg-bg-tertiary rounded-2xl border border-border-secondary overflow-x-auto scrollbar-none w-full sm:w-auto">
+          <a routerLink="/fiscal/fees" class="px-3.5 py-2 rounded-xl text-xs font-bold text-text-muted hover:text-text-primary hover:bg-bg-secondary transition-all whitespace-nowrap flex items-center gap-1.5">
+            <i class="fas fa-sliders-h text-xs text-blue-500"></i>
+            <span>Fees</span>
           </a>
-          <div class="w-px h-4 bg-border-primary/50 shrink-0"></div>
-          <a routerLink="/fiscal/billing"
-            class="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-text-secondary hover:bg-blue-500/10 hover:text-blue-400 transition-all duration-300">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2.5">
-              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-            </svg>
-            Billing
+          <a routerLink="/fiscal/billing" class="px-3.5 py-2 rounded-xl text-xs font-bold text-text-muted hover:text-text-primary hover:bg-bg-secondary transition-all whitespace-nowrap flex items-center gap-1.5">
+            <i class="fas fa-receipt text-xs text-indigo-500"></i>
+            <span>Billing</span>
           </a>
-          <div class="w-px h-4 bg-border-primary/50 shrink-0"></div>
-          <a routerLink="/fiscal/budget"
-            class="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-text-secondary hover:bg-emerald-500/10 hover:text-emerald-400 transition-all duration-300">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2.5">
-              <rect x="3" y="3" width="7" height="7" rx="1" />
-              <rect x="14" y="3" width="7" height="7" rx="1" />
-              <rect x="3" y="14" width="7" height="7" rx="1" />
-              <rect x="14" y="14" width="7" height="7" rx="1" />
-            </svg>
-            Budget
+          <a routerLink="/fiscal/budget" class="px-3.5 py-2 rounded-xl text-xs font-bold text-text-muted hover:text-text-primary hover:bg-bg-secondary transition-all whitespace-nowrap flex items-center gap-1.5">
+            <i class="fas fa-chart-pie text-xs text-emerald-500"></i>
+            <span>Budget</span>
           </a>
-          <div class="w-px h-4 bg-border-primary/50 shrink-0"></div>
-          <a routerLink="/fiscal/claims"
-            class="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-text-secondary hover:bg-amber-500/10 hover:text-amber-400 transition-all duration-300">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2.5">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="16" y1="13" x2="8" y2="13" />
-              <line x1="16" y1="17" x2="8" y2="17" />
-            </svg>
-            Claims
+          <a routerLink="/fiscal/claims" class="px-3.5 py-2 rounded-xl text-xs font-bold text-text-muted hover:text-text-primary hover:bg-bg-secondary transition-all whitespace-nowrap flex items-center gap-1.5">
+            <i class="fas fa-hand-holding-usd text-xs text-amber-500"></i>
+            <span>Claims</span>
           </a>
-          <div class="w-px h-4 bg-border-primary/50 shrink-0"></div>
-          <a routerLink="/fiscal/scholarships"
-            class="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-text-secondary hover:bg-amber-500/10 hover:text-amber-400 transition-all duration-300">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2.5">
-              <circle cx="12" cy="8" r="7" />
-              <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
-            </svg>
-            Scholarships
+          <a routerLink="/fiscal/scholarships" class="px-3.5 py-2 rounded-xl text-xs font-bold text-text-muted hover:text-text-primary hover:bg-bg-secondary transition-all whitespace-nowrap flex items-center gap-1.5">
+            <i class="fas fa-award text-xs text-purple-500"></i>
+            <span>Scholarships</span>
           </a>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="flex items-center gap-2 w-full xl:w-auto">
-          <!-- Bulk Print -->
-          <div class="flex items-center gap-1.5 bg-bg-primary/50 p-1 rounded-2xl border border-border-primary/30">
-            <select [(ngModel)]="selectedClassId"
-              class="bg-transparent text-text-secondary text-xs font-bold uppercase tracking-wider rounded-xl px-3 py-1.5 outline-none border-none w-28 focus:ring-0">
-              <option value="" class="bg-bg-primary">Class</option>
+        <!-- Utility Buttons -->
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+          <!-- Class Bulk Print -->
+          <div class="flex items-center gap-1 bg-bg-tertiary p-1 rounded-xl border border-border-secondary">
+            <select [(ngModel)]="selectedClassId" class="bg-transparent text-text-primary text-xs font-bold rounded-lg px-2.5 py-1.5 outline-none border-none w-28 cursor-pointer">
+              <option value="" class="bg-bg-secondary">All Classes</option>
               @for (c of availableClasses(); track c.id) {
-              <option [value]="c.id" class="bg-bg-primary">{{ c.name }}</option>
+                <option [value]="c.id" class="bg-bg-secondary">{{ c.name }}</option>
               }
             </select>
             <button (click)="printAllClassBills()" [disabled]="printingClassBills() || !selectedClassId()"
-              class="inline-flex items-center justify-center p-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-              title="Print Class Bills">
-              @if (printingClassBills()) {
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2.5" class="animate-spin">
-                <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24" />
-                <path d="M21 3v9h-9" />
-              </svg>
-              } @else {
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2.5">
-                <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                <rect x="6" y="14" width="12" height="8"></rect>
-              </svg>
-              }
+                    class="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-600 text-blue-600 hover:text-white disabled:opacity-40 transition-colors"
+                    title="Print Class Bills">
+              <i [ngClass]="printingClassBills() ? 'fas fa-spinner fa-spin' : 'fas fa-print'" class="text-xs"></i>
             </button>
           </div>
 
-          <button (click)="exportToCSV()"
-            class="p-2.5 rounded-2xl bg-bg-primary/50 border border-border-primary/30 text-text-secondary hover:text-emerald-400 hover:bg-emerald-500/10 transition-all"
-            title="Export to CSV">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2.5">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" x2="12" y1="15" y2="3" />
-            </svg>
+          <button (click)="exportToCSV()" class="p-2.5 rounded-xl bg-bg-tertiary hover:bg-bg-secondary text-text-muted hover:text-emerald-500 border border-border-secondary transition-colors" title="Export CSV">
+            <i class="fas fa-file-csv text-sm"></i>
           </button>
 
           <button (click)="applyLateFeesAction()" [disabled]="applyingLateFees()"
-            class="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-bold transition-all"
-            title="Apply 5% Late Penalties to Overdue Accounts">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span class="hidden sm:inline">{{ applyingLateFees() ? 'Applying…' : 'Late Fees' }}</span>
+                  class="px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-bold transition-all flex items-center gap-1.5"
+                  title="Apply 5% Late Penalties to Overdue Accounts">
+            <i class="fas fa-clock text-xs"></i>
+            <span>{{ applyingLateFees() ? 'Applying…' : 'Late Fees' }}</span>
           </button>
 
-          <button (click)="refreshOverdue()"
-            class="p-2.5 rounded-2xl bg-bg-primary/50 border border-border-primary/30 text-text-secondary hover:text-sky-400 hover:bg-sky-500/10 transition-all"
-            title="Sync Records">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2.5">
-              <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24" />
-              <path d="M21 3v9h-9" />
-            </svg>
+          <button (click)="refreshOverdue()" class="p-2.5 rounded-xl bg-bg-tertiary hover:bg-bg-secondary text-text-muted hover:text-blue-500 border border-border-secondary transition-colors" title="Sync Records">
+            <i class="fas fa-sync-alt text-xs"></i>
           </button>
 
           @if (defaultersCount() > 0) {
-          <button (click)="blastDefaultersSMS()" [disabled]="sendingDefaultersSMS()"
-            class="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-rose-500/20 hover:shadow-rose-500/30 transition-all border border-rose-500/30 disabled:opacity-50 disabled:cursor-not-allowed">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2.5" [class.animate-pulse]="sendingDefaultersSMS()">
-              <path
-                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-            </svg>
-            <span class="hidden sm:inline">{{ sendingDefaultersSMS() ? 'Sending…' : 'SMS Defaulters' }}</span>
-          </button>
+            <button (click)="blastDefaultersSMS()" [disabled]="sendingDefaultersSMS()"
+                    class="px-4 py-2 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs rounded-xl shadow-md shadow-rose-600/20 transition-all flex items-center gap-1.5 disabled:opacity-50">
+              <i class="fas fa-comment-dots text-xs" [class.animate-pulse]="sendingDefaultersSMS()"></i>
+              <span>{{ sendingDefaultersSMS() ? 'Sending…' : 'SMS Defaulters' }}</span>
+            </button>
           }
         </div>
+
       </div>
     </div>
   </div>
 
-  <div class="mt-10 space-y-6 relative z-10">
+  <div class="space-y-6 relative z-10">
     <!-- Dashboard Statistics Cards -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 

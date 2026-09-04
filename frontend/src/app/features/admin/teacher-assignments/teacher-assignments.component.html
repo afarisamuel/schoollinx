@@ -835,29 +835,34 @@
 <!-- QUICK ASSIGN MODAL                                                     -->
 <!-- ════════════════════════════════════════════════════════════════════════ -->
 @if (showAssignModal()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-        <div class="w-full max-w-lg bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-2xl space-y-5">
+    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in" (click)="closeAssignModal()">
+        <div class="w-full max-w-lg bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 sm:space-y-5 flex flex-col max-h-[92vh] sm:max-h-[85vh] animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
+            <!-- Mobile Handle -->
+            <div class="pt-1 pb-1 sm:hidden flex justify-center">
+                <div class="bottomsheet-handle"></div>
+            </div>
+
             <div class="flex items-center justify-between border-b border-border-primary pb-3">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-sm">
+                    <div class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-sm shrink-0">
                         <i class="fas fa-chalkboard-teacher"></i>
                     </div>
                     <div>
-                        <h3 class="text-base font-black text-text-primary">Allocate Teacher to Class & Subject</h3>
+                        <h3 class="text-sm sm:text-base font-black text-text-primary">Allocate Teacher</h3>
                         <p class="text-[10px] text-text-muted">Assign curriculum instructional responsibility</p>
                     </div>
                 </div>
-                <button (click)="closeAssignModal()" class="text-text-muted hover:text-text-primary cursor-pointer">
+                <button (click)="closeAssignModal()" class="text-text-muted hover:text-text-primary cursor-pointer p-1">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
-            <div class="space-y-4">
+            <div class="space-y-3.5 sm:space-y-4 overflow-y-auto flex-1">
                 <!-- Select Class -->
                 <div>
-                    <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-1.5">1. Target Classroom</label>
+                    <label class="text-[10px] sm:text-xs font-bold text-text-muted uppercase tracking-wider block mb-1 sm:mb-1.5">1. Target Classroom</label>
                     <select [ngModel]="modalClassId()" (ngModelChange)="modalClassId.set($event)"
-                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 py-2.5 text-xs text-text-primary font-bold focus:ring-2 focus:ring-blue-500/50 cursor-pointer">
+                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs text-text-primary font-bold focus:ring-2 focus:ring-blue-500/50 cursor-pointer">
                         <option value="">-- Choose Class --</option>
                         @for (cls of classes(); track cls.id) {
                             <option [value]="cls.id">{{ cls.name }}</option>
@@ -867,9 +872,9 @@
 
                 <!-- Select Subject -->
                 <div>
-                    <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-1.5">2. Curriculum Subject</label>
+                    <label class="text-[10px] sm:text-xs font-bold text-text-muted uppercase tracking-wider block mb-1 sm:mb-1.5">2. Curriculum Subject</label>
                     <select [ngModel]="modalSubjectId()" (ngModelChange)="modalSubjectId.set($event)"
-                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 py-2.5 text-xs text-text-primary font-bold focus:ring-2 focus:ring-blue-500/50 cursor-pointer">
+                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs text-text-primary font-bold focus:ring-2 focus:ring-blue-500/50 cursor-pointer">
                         <option value="">-- Choose Subject --</option>
                         @for (sub of subjects(); track sub.id) {
                             <option [value]="sub.id">{{ sub.name }} ({{ sub.code || 'Standard' }})</option>
@@ -879,9 +884,9 @@
 
                 <!-- Select Teacher -->
                 <div>
-                    <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-1.5">3. Assigned Educator</label>
+                    <label class="text-[10px] sm:text-xs font-bold text-text-muted uppercase tracking-wider block mb-1 sm:mb-1.5">3. Assigned Educator</label>
                     <select [ngModel]="modalTeacherId()" (ngModelChange)="modalTeacherId.set($event)"
-                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 py-2.5 text-xs text-text-primary font-bold focus:ring-2 focus:ring-blue-500/50 cursor-pointer">
+                            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs text-text-primary font-bold focus:ring-2 focus:ring-blue-500/50 cursor-pointer">
                         <option value="">-- Choose Teacher --</option>
                         @for (t of teachers(); track t.id) {
                             @let workload = getTeacherWorkload(t.id);
@@ -894,20 +899,20 @@
 
                 <!-- Academic Year -->
                 <div>
-                    <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-1.5">Academic Session</label>
+                    <label class="text-[10px] sm:text-xs font-bold text-text-muted uppercase tracking-wider block mb-1 sm:mb-1.5">Academic Session</label>
                     <input type="text" [value]="academicYear()" readonly
-                           class="w-full bg-bg-tertiary/60 border border-border-primary rounded-xl px-3.5 py-2.5 text-xs text-text-muted font-mono">
+                           class="w-full bg-bg-tertiary/60 border border-border-primary rounded-xl px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs text-text-muted font-mono">
                 </div>
             </div>
 
             <!-- Actions -->
-            <div class="flex gap-2.5 pt-2 border-t border-border-primary">
+            <div class="flex flex-col-reverse sm:flex-row gap-2 sm:gap-2.5 pt-2 border-t border-border-primary">
                 <button (click)="closeAssignModal()"
-                        class="flex-1 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-xs font-bold text-text-muted hover:text-text-primary transition-all cursor-pointer">
+                        class="w-full sm:flex-1 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-xs font-bold text-text-muted hover:text-text-primary transition-all cursor-pointer">
                     Cancel
                 </button>
                 <button (click)="submitModalAssign()" [disabled]="modalSaving()"
-                        class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-md shadow-blue-600/20">
+                        class="w-full sm:flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-md shadow-blue-600/20">
                     @if (modalSaving()) {
                         <i class="fas fa-spinner fa-spin text-xs"></i>
                         <span>Confirming...</span>

@@ -100,53 +100,58 @@
 
 <!-- Modal -->
 @if (showModal()) {
-    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-bg-secondary w-full max-w-lg rounded-3xl shadow-2xl border border-border-primary overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="p-6 border-b border-border-secondary flex justify-between items-center bg-bg-tertiary">
-                <h2 class="text-xl font-bold text-text-primary">Add Asset</h2>
-                <button (click)="showModal.set(false)" class="p-2 hover:bg-bg-primary rounded-xl transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in" (click)="showModal.set(false)">
+        <div class="bg-bg-secondary w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-border-primary overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[85vh] animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
+            <!-- Mobile Handle -->
+            <div class="pt-3 pb-1 sm:hidden flex justify-center">
+                <div class="bottomsheet-handle"></div>
+            </div>
+
+            <div class="p-4 sm:p-6 border-b border-border-secondary flex justify-between items-center bg-bg-tertiary">
+                <h2 class="text-base sm:text-xl font-bold text-text-primary">Add Asset</h2>
+                <button (click)="showModal.set(false)" class="p-2 hover:bg-bg-primary rounded-xl transition-colors text-text-muted hover:text-text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
             </div>
             
-            <div class="p-6 overflow-y-auto space-y-5 flex-1">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="col-span-2">
+            <div class="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-5 flex-1">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+                    <div class="sm:col-span-2">
                         <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Asset Name *</label>
-                        <input [(ngModel)]="formData.name" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm focus:ring-2 focus:ring-brand-primary/50 outline-none transition-all" placeholder="e.g. Dell XPS 15">
+                        <input [(ngModel)]="formData.name" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm focus:ring-2 focus:ring-brand-primary/50 outline-none transition-all" placeholder="e.g. Dell XPS 15">
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Tag (Optional)</label>
-                        <input [(ngModel)]="formData.asset_tag" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm" placeholder="e.g. AST-101">
+                        <input [(ngModel)]="formData.asset_tag" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm" placeholder="e.g. AST-101">
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Category *</label>
-                        <input [(ngModel)]="formData.category" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm" placeholder="IT, Furniture...">
+                        <input [(ngModel)]="formData.category" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm" placeholder="IT, Furniture...">
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Quantity</label>
-                        <input [(ngModel)]="formData.quantity" type="number" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm">
+                        <input [(ngModel)]="formData.quantity" type="number" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm">
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Value (Unit) *</label>
-                        <input [(ngModel)]="formData.unit_value" type="number" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm">
+                        <input [(ngModel)]="formData.unit_value" type="number" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm">
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Depreciation Rate (%)</label>
-                        <input [(ngModel)]="formData.depreciation_rate" type="number" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm">
+                        <input [(ngModel)]="formData.depreciation_rate" type="number" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm">
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Location</label>
-                        <input [(ngModel)]="formData.location" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm" placeholder="e.g. Lab A">
+                        <input [(ngModel)]="formData.location" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm" placeholder="e.g. Lab A">
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Reorder Threshold</label>
-                        <input [(ngModel)]="formData.reorder_threshold" type="number" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm" placeholder="Low stock limit">
+                        <input [(ngModel)]="formData.reorder_threshold" type="number" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm" placeholder="Low stock limit">
                     </div>
                 </div>
             </div>
 
-            <div class="p-6 border-t border-border-secondary bg-bg-tertiary flex justify-end gap-3">
-                <button (click)="showModal.set(false)" class="px-5 py-2.5 rounded-xl text-sm font-bold text-text-muted hover:bg-bg-secondary transition-colors">Cancel</button>
-                <button (click)="submit()" [disabled]="isSubmitting()" class="px-6 py-2.5 bg-brand-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 transition-all disabled:opacity-50">
+            <div class="p-4 sm:p-6 border-t border-border-secondary bg-bg-tertiary flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3">
+                <button (click)="showModal.set(false)" class="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-text-muted hover:bg-bg-secondary transition-colors">Cancel</button>
+                <button (click)="submit()" [disabled]="isSubmitting()" class="w-full sm:w-auto px-6 py-2.5 bg-brand-primary text-white rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 transition-all disabled:opacity-50 flex items-center justify-center">
                     {{ isSubmitting() ? 'Saving...' : 'Save Asset' }}
                 </button>
             </div>

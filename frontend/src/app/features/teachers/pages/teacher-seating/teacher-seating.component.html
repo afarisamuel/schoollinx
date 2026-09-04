@@ -143,8 +143,9 @@
 
   <!-- Conduct Modal -->
   @if (conductStudent()) {
-    <div class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <div class="bg-bg-secondary border border-border-primary rounded-3xl w-full max-w-lg shadow-2xl p-6 md:p-8 space-y-5">
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" (click)="conductStudent.set(null)">
+      <div class="bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl w-full max-w-lg shadow-2xl p-5 sm:p-8 space-y-4 sm:space-y-5 max-h-[92vh] sm:max-h-[85vh] overflow-y-auto animate-slide-up" (click)="$event.stopPropagation()">
+        <div class="bottomsheet-handle sm:hidden"></div>
         <div class="flex items-center justify-between">
           <h3 class="text-base font-black text-text-primary">Log Conduct Note</h3>
           <button (click)="conductStudent.set(null)" class="text-text-muted hover:text-text-primary cursor-pointer"><i class="fas fa-times"></i></button>
@@ -179,9 +180,9 @@
           </div>
         </div>
 
-        <div class="flex gap-3 pt-2">
-          <button (click)="conductStudent.set(null)" class="flex-1 py-2.5 rounded-xl border border-border-primary text-text-muted text-xs font-bold">Cancel</button>
-          <button (click)="submitConductIncident()" [disabled]="isReportingIncident()" class="flex-1 py-2.5 bg-amber-500 text-black rounded-xl text-xs font-black uppercase">Save Incident</button>
+        <div class="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+          <button (click)="conductStudent.set(null)" class="w-full sm:flex-1 py-2.5 rounded-xl border border-border-primary text-text-muted text-xs font-bold">Cancel</button>
+          <button (click)="submitConductIncident()" [disabled]="isReportingIncident()" class="w-full sm:flex-1 py-2.5 bg-amber-500 text-black rounded-xl text-xs font-black uppercase">Save Incident</button>
         </div>
       </div>
     </div>
@@ -189,8 +190,9 @@
 
   <!-- Sickbay Modal -->
   @if (sickbayStudent()) {
-    <div class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <div class="bg-bg-secondary border border-border-primary rounded-3xl w-full max-w-lg shadow-2xl p-6 md:p-8 space-y-5">
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" (click)="sickbayStudent.set(null)">
+      <div class="bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl w-full max-w-lg shadow-2xl p-5 sm:p-8 space-y-4 sm:space-y-5 max-h-[92vh] sm:max-h-[85vh] overflow-y-auto animate-slide-up" (click)="$event.stopPropagation()">
+        <div class="bottomsheet-handle sm:hidden"></div>
         <div class="flex items-center justify-between">
           <h3 class="text-base font-black text-text-primary">Disclose Sickbay Ticket</h3>
           <button (click)="sickbayStudent.set(null)" class="text-text-muted hover:text-text-primary cursor-pointer"><i class="fas fa-times"></i></button>
@@ -215,9 +217,9 @@
           </div>
         </div>
 
-        <div class="flex gap-3 pt-2">
-          <button (click)="sickbayStudent.set(null)" class="flex-1 py-2.5 rounded-xl border border-border-primary text-text-muted text-xs font-bold">Cancel</button>
-          <button (click)="submitSickbay()" [disabled]="isSendingSickbay()" class="flex-1 py-2.5 bg-rose-500 text-white rounded-xl text-xs font-black uppercase">Send to Nurse</button>
+        <div class="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+          <button (click)="sickbayStudent.set(null)" class="w-full sm:flex-1 py-2.5 rounded-xl border border-border-primary text-text-muted text-xs font-bold">Cancel</button>
+          <button (click)="submitSickbay()" [disabled]="isSendingSickbay()" class="w-full sm:flex-1 py-2.5 bg-rose-500 text-white rounded-xl text-xs font-black uppercase">Send to Nurse</button>
         </div>
       </div>
     </div>

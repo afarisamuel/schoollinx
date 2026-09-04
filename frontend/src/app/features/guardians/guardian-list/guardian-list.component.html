@@ -260,12 +260,16 @@
 
 <!-- ADD GUARDIAN MODAL -->
 @if (showAddModal()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-    <div class="bg-bg-secondary border border-border-primary rounded-3xl w-full max-w-2xl p-6 md:p-8 shadow-2xl animate-fade-in my-8 max-h-[90vh] overflow-y-auto custom-scrollbar">
+  <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-fade-in" (click)="closeAddModal()">
+    <div class="bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl w-full max-w-2xl p-5 sm:p-8 shadow-2xl animate-slide-up sm:animate-fade-in max-h-[92vh] sm:max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col" (click)="$event.stopPropagation()">
+        <!-- Mobile Handle -->
+        <div class="sm:hidden flex justify-center pb-2">
+          <div class="bottomsheet-handle"></div>
+        </div>
         
-        <div class="flex items-center justify-between pb-4 border-b border-border-primary mb-6">
+        <div class="flex items-center justify-between pb-3 sm:pb-4 border-b border-border-primary mb-5 sm:mb-6">
           <div>
-            <h2 class="text-xl font-black text-text-primary">Add New Guardian</h2>
+            <h2 class="text-lg sm:text-xl font-black text-text-primary">Add New Guardian</h2>
             <p class="text-xs text-text-muted mt-0.5">Creates a parent profile and provisions Parent Portal credentials automatically</p>
           </div>
           <button (click)="closeAddModal()" class="w-8 h-8 rounded-full bg-bg-tertiary text-text-muted hover:text-text-primary flex items-center justify-center transition-colors">
@@ -302,81 +306,68 @@
               <input type="tel" formControlName="phone_number" placeholder="e.g., 0244123456"
                      class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 transition-colors" />
               @if (guardianForm.get('phone_number')?.invalid && guardianForm.get('phone_number')?.touched) {
-                <span class="text-xs text-rose-400 mt-1 block">Phone number is required.</span>
+                <span class="text-xs text-rose-400 mt-1 block">Valid phone number is required.</span>
               }
             </div>
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Email Address</label>
               <input type="email" formControlName="email" placeholder="e.g., parent@example.com"
                      class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 transition-colors" />
-              <span class="text-[10px] text-text-muted mt-1 block">Login details and alerts will be emailed here.</span>
+              @if (guardianForm.get('email')?.invalid && guardianForm.get('email')?.touched) {
+                <span class="text-xs text-rose-400 mt-1 block">Enter a valid email.</span>
+              }
             </div>
           </div>
 
-          <!-- Relationship & Gender -->
+          <!-- Relationship & Alternate Phone -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Relationship to Student *</label>
-              <select formControlName="relationship"
-                      class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 transition-colors font-medium">
-                @for (r of relationships; track r) {
-                  <option [value]="r">{{ r }}</option>
-                }
+              <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Relationship to Student</label>
+              <select formControlName="relationship" class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500">
+                <option value="Father">Father</option>
+                <option value="Mother">Mother</option>
+                <option value="Guardian">Guardian</option>
+                <option value="Uncle">Uncle</option>
+                <option value="Aunt">Aunt</option>
+                <option value="Grandparent">Grandparent</option>
+                <option value="Other">Other</option>
               </select>
             </div>
+
             <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Gender</label>
-              <select formControlName="gender"
-                      class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 transition-colors font-medium">
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
+              <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Occupation</label>
+              <input type="text" formControlName="occupation" placeholder="e.g., Engineer"
+                     class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 transition-colors" />
             </div>
           </div>
 
-          <!-- Residential Address -->
+          <!-- Link Student By Enrollment Number -->
           <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Residential Address</label>
-            <input type="text" formControlName="address" placeholder="e.g., House 42, Ring Road Central, Accra"
-                   class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 transition-colors" />
-          </div>
-
-          <!-- Link Initial Ward / Student (Optional) -->
-          <div class="pt-2 border-t border-border-primary/50">
             <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">
-              Link First Student / Ward (Optional)
+              Link Student (Enrollment Number) - Optional
             </label>
-            @if (selectedInitialStudent()) {
-              <div class="flex items-center justify-between p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-                <div class="flex items-center gap-2.5">
-                  <i class="fas fa-user-graduate text-blue-400"></i>
-                  <span class="text-sm font-bold text-text-primary">
-                    {{ selectedInitialStudent()?.first_name }} {{ selectedInitialStudent()?.last_name }}
-                  </span>
-                  @if (selectedInitialStudent()?.enrollment_num) {
-                    <span class="text-xs text-text-muted">({{ selectedInitialStudent()?.enrollment_num }})</span>
-                  }
-                </div>
-                <button type="button" (click)="clearInitialStudent()" class="text-xs text-rose-400 hover:text-rose-300 font-bold">
-                  Remove
-                </button>
-              </div>
-            } @else {
-              <app-student-search-dropdown
-                placeholder="Search student by name or ID to link..."
-                (studentSelected)="onStudentSelected($event)"
-              ></app-student-search-dropdown>
-              <span class="text-[10px] text-text-muted mt-1 block">You can also link more students after creating the guardian.</span>
-            }
+            <input type="text" formControlName="student_enrollment_num" placeholder="e.g., STD-2024-001"
+                   class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 transition-colors" />
+            <p class="text-[11px] text-text-muted mt-1">If provided, the guardian will be automatically linked to this student.</p>
           </div>
 
-          <!-- Action Buttons -->
-          <div class="flex items-center justify-end gap-3 pt-4 border-t border-border-primary">
-            <button type="button" (click)="closeAddModal()" class="px-5 py-2.5 bg-bg-tertiary hover:bg-bg-tertiary/70 text-text-primary font-bold text-sm rounded-xl transition-colors">
+          <!-- Auto-provision Note -->
+          <div class="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-start gap-3">
+            <i class="fas fa-shield-alt text-blue-400 mt-0.5"></i>
+            <div>
+              <h4 class="text-xs font-bold text-blue-300">Automatic Portal Provisioning</h4>
+              <p class="text-[11px] text-text-muted mt-0.5">
+                A Parent Portal account will be created with their phone number or email. You will receive a temporary password immediately to share with the guardian.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-4 border-t border-border-primary">
+            <button type="button" (click)="closeAddModal()" class="w-full sm:w-auto px-5 py-2.5 bg-bg-tertiary hover:bg-bg-tertiary/70 text-text-primary font-bold text-xs rounded-xl">
               Cancel
             </button>
-            <button type="submit" [disabled]="isSubmitting()"
-                    class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2 transition-all disabled:opacity-50">
+            <button type="submit" [disabled]="guardianForm.invalid || isSubmitting()"
+                    class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 disabled:opacity-50">
               @if (isSubmitting()) {
                 <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                 <span>Provisioning Account...</span>
@@ -393,29 +384,33 @@
 
   <!-- NEW CREDENTIALS MODAL -->
   @if (newCredentials()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
-      <div class="bg-bg-secondary border border-emerald-500/30 rounded-3xl w-full max-w-md p-6 md:p-8 shadow-2xl text-center relative overflow-hidden animate-fade-in">
+    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md p-0 sm:p-4 animate-fade-in" (click)="closeCredentialsModal()">
+      <div class="bg-bg-secondary border border-emerald-500/30 rounded-t-3xl sm:rounded-3xl w-full max-w-md p-5 sm:p-8 shadow-2xl text-center relative overflow-hidden animate-slide-up sm:animate-fade-in max-h-[90vh] sm:max-h-[85vh] overflow-y-auto" (click)="$event.stopPropagation()">
+        <!-- Mobile Handle -->
+        <div class="sm:hidden flex justify-center pb-2">
+          <div class="bottomsheet-handle"></div>
+        </div>
         
-        <div class="w-16 h-16 bg-emerald-500/10 text-emerald-400 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-emerald-500/20 text-2xl">
+        <div class="w-14 h-14 sm:w-16 sm:h-16 bg-emerald-500/10 text-emerald-400 rounded-3xl flex items-center justify-center mx-auto mb-3 sm:mb-4 border border-emerald-500/20 text-xl sm:text-2xl">
           <i class="fas fa-check-circle"></i>
         </div>
 
-        <h2 class="text-xl font-black text-text-primary">Parent Portal Provisioned!</h2>
-        <p class="text-xs text-text-muted mt-1 mb-6">
+        <h2 class="text-lg sm:text-xl font-black text-text-primary">Parent Portal Provisioned!</h2>
+        <p class="text-xs text-text-muted mt-1 mb-5 sm:mb-6">
           Guardian account for <strong>{{ newCredentials()?.guardian?.first_name }} {{ newCredentials()?.guardian?.last_name }}</strong> is active.
         </p>
 
         <!-- Credentials Box -->
-        <div class="bg-bg-tertiary border border-border-primary rounded-2xl p-4 mb-6 text-left space-y-3 font-mono">
+        <div class="bg-bg-tertiary border border-border-primary rounded-2xl p-4 mb-5 sm:mb-6 text-left space-y-3 font-mono">
           <div>
             <span class="text-[10px] uppercase font-bold text-text-muted tracking-wider block font-sans">Login Username / Email</span>
-            <span class="text-sm font-bold text-text-primary select-all">{{ newCredentials()?.username }}</span>
+            <span class="text-xs sm:text-sm font-bold text-text-primary select-all break-all">{{ newCredentials()?.username }}</span>
           </div>
 
           @if (newCredentials()?.temp_password) {
             <div>
               <span class="text-[10px] uppercase font-bold text-text-muted tracking-wider block font-sans">Temporary Password</span>
-              <span class="text-sm font-black text-emerald-400 select-all bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+              <span class="text-xs sm:text-sm font-black text-emerald-400 select-all bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                 {{ newCredentials()?.temp_password }}
               </span>
             </div>
@@ -428,7 +423,7 @@
         </div>
 
         <div class="flex flex-col gap-2">
-          <button (click)="copyCredentials()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all">
+          <button (click)="copyCredentials()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all">
             <i class="fas" [class.fa-check]="copied()" [class.fa-copy]="!copied()"></i>
             <span>{{ copied() ? 'Credentials Copied to Clipboard!' : 'Copy Portal Credentials' }}</span>
           </button>
@@ -443,11 +438,15 @@
 
   <!-- BULK IMPORT MODAL -->
   @if (showImportModal()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div class="bg-bg-secondary border border-border-primary rounded-3xl w-full max-w-lg p-6 md:p-8 shadow-2xl animate-fade-in">
-        <div class="flex items-center justify-between pb-4 border-b border-border-primary mb-6">
+    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-fade-in" (click)="closeImportModal()">
+      <div class="bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl w-full max-w-lg p-5 sm:p-8 shadow-2xl animate-slide-up sm:animate-fade-in max-h-[90vh] sm:max-h-[85vh] overflow-y-auto" (click)="$event.stopPropagation()">
+        <!-- Mobile Handle -->
+        <div class="sm:hidden flex justify-center pb-2">
+          <div class="bottomsheet-handle"></div>
+        </div>
+        <div class="flex items-center justify-between pb-3 sm:pb-4 border-b border-border-primary mb-5 sm:mb-6">
           <div>
-            <h2 class="text-xl font-black text-text-primary">Bulk Import Guardians</h2>
+            <h2 class="text-lg sm:text-xl font-black text-text-primary">Bulk Import Guardians</h2>
             <p class="text-xs text-text-muted mt-0.5">Upload CSV file to import parents and link wards in bulk</p>
           </div>
           <button (click)="closeImportModal()" class="w-8 h-8 rounded-full bg-bg-tertiary text-text-muted hover:text-text-primary flex items-center justify-center transition-colors">
@@ -456,12 +455,12 @@
         </div>
 
         <div class="space-y-4 mb-6">
-          <div class="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center justify-between">
+          <div class="p-3.5 sm:p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h4 class="text-xs font-bold text-blue-300">Need the template format?</h4>
               <p class="text-[11px] text-text-muted">Includes columns: first_name, last_name, phone_number, email, relationship, student_enrollment_num</p>
             </div>
-            <button (click)="downloadTemplate()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5">
+            <button (click)="downloadTemplate()" class="w-full sm:w-auto px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shrink-0 flex items-center justify-center gap-1.5">
               <i class="fas fa-download"></i> Download CSV
             </button>
           </div>
@@ -474,18 +473,18 @@
 
           @if (selectedImportFile()) {
             <div class="p-3 bg-bg-tertiary rounded-xl border border-border-primary text-xs flex items-center justify-between">
-              <span class="font-bold text-text-primary">{{ selectedImportFile()!.name }}</span>
+              <span class="font-bold text-text-primary truncate max-w-[200px]">{{ selectedImportFile()!.name }}</span>
               <span class="text-text-muted font-mono">{{ (selectedImportFile()!.size / 1024) | number:'1.1-1' }} KB</span>
             </div>
           }
         </div>
 
-        <div class="flex items-center justify-end gap-3 pt-4 border-t border-border-primary">
-          <button (click)="closeImportModal()" class="px-5 py-2.5 bg-bg-tertiary hover:bg-bg-tertiary/70 text-text-primary font-bold text-xs rounded-xl">
+        <div class="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-4 border-t border-border-primary">
+          <button (click)="closeImportModal()" class="w-full sm:w-auto px-5 py-2.5 bg-bg-tertiary hover:bg-bg-tertiary/70 text-text-primary font-bold text-xs rounded-xl">
             Cancel
           </button>
           <button (click)="submitImport()" [disabled]="!selectedImportFile() || isImporting()"
-                  class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 flex items-center gap-2 disabled:opacity-50">
+                  class="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 disabled:opacity-50">
             @if (isImporting()) {
               <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
               <span>Importing Guardians...</span>
@@ -501,11 +500,15 @@
 
   <!-- ABSENCE REQUESTS REVIEW MODAL -->
   @if (showAbsenceModal()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div class="bg-bg-secondary border border-border-primary rounded-3xl w-full max-w-3xl p-6 md:p-8 shadow-2xl animate-fade-in my-8 max-h-[90vh] overflow-y-auto custom-scrollbar">
-        <div class="flex items-center justify-between pb-4 border-b border-border-primary mb-6">
+    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-fade-in" (click)="closeAbsenceModal()">
+      <div class="bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl w-full max-w-3xl p-5 sm:p-8 shadow-2xl animate-slide-up sm:animate-fade-in max-h-[92vh] sm:max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col" (click)="$event.stopPropagation()">
+        <!-- Mobile Handle -->
+        <div class="sm:hidden flex justify-center pb-2">
+          <div class="bottomsheet-handle"></div>
+        </div>
+        <div class="flex items-center justify-between pb-3 sm:pb-4 border-b border-border-primary mb-5 sm:mb-6">
           <div>
-            <h2 class="text-xl font-black text-text-primary">Parent Leave & Absence Requests</h2>
+            <h2 class="text-lg sm:text-xl font-black text-text-primary">Parent Leave & Absence Requests</h2>
             <p class="text-xs text-text-muted mt-0.5">Review and approve applications submitted by parents</p>
           </div>
           <button (click)="closeAbsenceModal()" class="w-8 h-8 rounded-full bg-bg-tertiary text-text-muted hover:text-text-primary flex items-center justify-center transition-colors">
@@ -521,7 +524,7 @@
         } @else {
           <div class="space-y-4">
             @for (req of allAbsenceRequests(); track req.id) {
-              <div class="p-5 bg-bg-tertiary border border-border-primary rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div class="p-4 sm:p-5 bg-bg-tertiary border border-border-primary rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div class="space-y-1">
                   <div class="flex items-center gap-2">
                     <h4 class="font-black text-text-primary text-sm">
@@ -548,11 +551,11 @@
                 </div>
 
                 @if (req.status === 'PENDING' && req.id) {
-                  <div class="flex items-center gap-2 shrink-0">
-                    <button (click)="reviewAbsence(req.id!, 'APPROVED')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1">
+                  <div class="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+                    <button (click)="reviewAbsence(req.id!, 'APPROVED')" class="flex-1 sm:flex-initial px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1">
                       <i class="fas fa-check"></i> Approve
                     </button>
-                    <button (click)="reviewAbsence(req.id!, 'REJECTED')" class="px-3 py-1.5 bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white rounded-xl text-xs font-bold flex items-center gap-1 transition-colors">
+                    <button (click)="reviewAbsence(req.id!, 'REJECTED')" class="flex-1 sm:flex-initial px-3 py-1.5 bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-colors">
                       <i class="fas fa-times"></i> Decline
                     </button>
                   </div>
@@ -567,8 +570,8 @@
           </div>
         }
 
-        <div class="flex justify-end pt-6 border-t border-border-primary mt-6">
-          <button (click)="closeAbsenceModal()" class="px-5 py-2.5 bg-bg-tertiary text-text-primary font-bold text-xs rounded-xl">
+        <div class="flex justify-end pt-5 sm:pt-6 border-t border-border-primary mt-6">
+          <button (click)="closeAbsenceModal()" class="w-full sm:w-auto px-5 py-2.5 bg-bg-tertiary text-text-primary font-bold text-xs rounded-xl">
             Close
           </button>
         </div>

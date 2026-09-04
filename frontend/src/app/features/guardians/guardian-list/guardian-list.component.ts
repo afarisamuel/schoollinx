@@ -5,12 +5,11 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angu
 import { GuardianService } from '../../../core/infrastructure/guardian/guardian.service';
 import { Guardian, Student, AbsenceRequest } from '../../../core/domain/student.model';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
-import { StudentSearchDropdownComponent } from '../../../shared/ui/student-search-dropdown/student-search-dropdown.component';
 
 @Component({
   selector: 'app-guardian-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, ReactiveFormsModule, StudentSearchDropdownComponent],
+  imports: [CommonModule, RouterLink, FormsModule, ReactiveFormsModule],
   templateUrl: './guardian-list.component.html'
 })
 export class GuardianListComponent implements OnInit {

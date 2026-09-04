@@ -477,3 +477,89 @@ select option {
 :root.light-mode .app-toast-msg {
   color: #334155 !important;
 }
+
+/* ==========================================================================
+   Universal Mobile Bottomsheet & Responsive Typography Design System
+   ========================================================================== */
+
+@keyframes slideUpBottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0.5;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slideUpBottom 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Grab handle for mobile bottom sheets */
+.bottomsheet-handle {
+  width: 40px;
+  height: 5px;
+  background-color: var(--border-secondary);
+  border-radius: 9999px;
+  margin: 0 auto 1rem auto;
+  display: block;
+}
+
+@media (min-width: 640px) {
+  .bottomsheet-handle {
+    display: none !important;
+  }
+}
+
+/* Mobile responsive typography and layout refinements */
+@media (max-width: 639px) {
+  /* Headings size reduction on small screens */
+  h1 {
+    font-size: 1.5rem !important;
+    line-height: 2rem !important;
+  }
+  h2 {
+    font-size: 1.25rem !important;
+    line-height: 1.75rem !important;
+  }
+  h3 {
+    font-size: 1.125rem !important;
+    line-height: 1.5rem !important;
+  }
+
+  /* Automatically anchor modal overlays to the bottom on mobile */
+  .fixed.inset-0.z-\[100\].flex,
+  .fixed.inset-0.z-50.flex,
+  .fixed.inset-0.flex {
+    align-items: flex-end !important;
+    padding: 0 !important;
+  }
+
+  /* Automatically style modal content cards as native bottomsheets */
+  .fixed.inset-0.z-\[100\].flex > div[class*="bg-bg-secondary"],
+  .fixed.inset-0.z-50.flex > div[class*="bg-bg-secondary"],
+  .fixed.inset-0.flex > div[class*="bg-bg-secondary"],
+  .modal-dialog-content {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-top-left-radius: 1.75rem !important;
+    border-top-right-radius: 1.75rem !important;
+    max-height: 92vh !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 1.25rem 1.25rem 2rem 1.25rem !important;
+    overflow-y: auto !important;
+    animation: slideUpBottom 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    box-shadow: 0 -10px 40px -10px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  /* Stat numbers slightly tightened for mobile screens */
+  .text-2xl.md\:text-3xl,
+  .text-3xl.md\:text-5xl,
+  .text-3xl.sm\:text-4xl {
+    font-size: 1.5rem !important;
+    line-height: 1.85rem !important;
+  }
+}
