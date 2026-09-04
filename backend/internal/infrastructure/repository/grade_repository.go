@@ -258,17 +258,64 @@ func (r *gradeRepository) GetHistory(ctx context.Context, gradeID uuid.UUID) ([]
 
 // --- Phase 18: Bulk CSV Import ---
 
-// BulkCreate inserts a batch of grades. Returns (imported count, error messages per row).
+// BulkCreate inserts or updates a batch of grades. Returns (imported count, error messages per row).
 func (r *gradeRepository) BulkCreate(ctx context.Context, grades []domain.Grade) (int, []string, error) {
 	var imported int
 	var failures []string
-	for i, g := range grades {
-		if err := r.db.WithContext(ctx).Create(&grades[i]).Error; err != nil {
-			failures = append(failures, fmt.Sprintf("row %d (student %v): %v", i+1, g.StudentID, err))
+
+	for i := range grades {
+		g := &grades[i]
+
+		// 1. If ID is provided, check if it exists and update
+		if g.ID != uuid.Nil {
+			var existing domain.Grade
+			if err := r.db.WithContext(ctx).Where("id = ?", g.ID).First(&existing).Error; err == nil {
+				existing.Score = g.Score
+				existing.MaxScore = g.MaxScore
+				existing.Remarks = g.Remarks
+				existing.Category = g.Category
+				existing.Subject = g.Subject
+				existing.Term = g.Term
+				existing.ClassID = g.ClassID
+				if err := r.db.WithContext(ctx).Save(&existing).Error; err != nil {
+					failures = append(failures, fmt.Sprintf("row %d (student %v): %v", i+1, g.StudentID, err))
+				} else {
+					imported++
+				}
+				continue
+			}
+		}
+
+		// 2. Try to find existing grade by composite key (student, class, subject, term, category)
+		var existing domain.Grade
+		err := r.db.WithContext(ctx).
+			Where("student_id = ? AND class_id = ? AND subject = ? AND term = ? AND category = ?",
+				g.StudentID, g.ClassID, g.Subject, g.Term, g.Category).
+			First(&existing).Error
+
+		if err == nil {
+			// Found existing entry: update score, remarks, etc.
+			existing.Score = g.Score
+			existing.MaxScore = g.MaxScore
+			existing.Remarks = g.Remarks
+			if err := r.db.WithContext(ctx).Save(&existing).Error; err != nil {
+				failures = append(failures, fmt.Sprintf("row %d (student %v): %v", i+1, g.StudentID, err))
+			} else {
+				imported++
+			}
 		} else {
-			imported++
+			// Not found: create new grade record
+			if g.ID == uuid.Nil {
+				g.ID = uuid.New()
+			}
+			if err := r.db.WithContext(ctx).Create(g).Error; err != nil {
+				failures = append(failures, fmt.Sprintf("row %d (student %v): %v", i+1, g.StudentID, err))
+			} else {
+				imported++
+			}
 		}
 	}
+
 	return imported, failures, nil
 }
 

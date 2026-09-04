@@ -1,67 +1,431 @@
-<div class="p-6 md:p-10 animate-fade-in">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
-        <div>
-            <h1 class="text-2xl md:text-3xl font-black tracking-tighter text-text-primary uppercase italic">Class Timetable</h1>
-            <p class="text-sm font-medium text-text-secondary mt-1">Weekly schedule & room allocations</p>
+<div class="space-y-4 sm:space-y-6 animate-fade-in text-text-primary select-none">
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 1. HERO & TOP ACTION BAR                                   -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="relative overflow-hidden bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm">
+        <!-- Ambient decorative glows -->
+        <div class="absolute -top-20 -right-20 w-64 h-64 bg-blue-500/10 rounded-full blur-[90px] pointer-events-none"></div>
+        <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-[90px] pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6">
+            <!-- Title & Subtitle -->
+            <div>
+                <div class="flex items-center gap-2 sm:gap-3 mb-2">
+                    <span class="px-2.5 sm:px-3 py-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 rounded-full text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                        Academic Scheduling
+                    </span>
+                    @if (selectedClass()) {
+                        <span class="px-2.5 py-0.5 bg-bg-tertiary border border-border-primary rounded-full text-[11px] font-bold text-text-secondary">
+                            {{ selectedClass()?.name }}
+                        </span>
+                    }
+                </div>
+                <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+                    Class Timetable &amp; Schedule
+                </h1>
+                <p class="text-xs sm:text-sm font-medium text-text-muted mt-1 max-w-xl">
+                    Master lecture intervals, classroom allocations, and faculty rosters.
+                </p>
+            </div>
+
+            <!-- Class Selector Dropdown & Primary Controls -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 shrink-0">
+                <!-- Class Selector -->
+                <div class="relative min-w-[220px] sm:min-w-[260px]">
+                    <select [ngModel]="selectedClassId()" (ngModelChange)="selectClass($event)"
+                        class="w-full appearance-none bg-bg-tertiary hover:bg-bg-primary/80 border border-border-primary hover:border-blue-500/50 rounded-xl sm:rounded-2xl px-4 py-2.5 sm:py-3 pl-10 sm:pl-11 text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all cursor-pointer shadow-xs">
+                        <option value="" disabled>Select Classroom...</option>
+                        @for (c of classes(); track c.id) {
+                            <option [value]="c.id">{{ c.name }}</option>
+                        }
+                    </select>
+                    <i class="fas fa-chalkboard-teacher absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 text-blue-500 text-xs sm:text-sm pointer-events-none"></i>
+                    <i class="fas fa-chevron-down absolute right-3.5 sm:right-4 top-1/2 -translate-y-1/2 text-text-muted text-xs pointer-events-none"></i>
+                </div>
+
+                <!-- Print Button (if class active) -->
+                @if (selectedClassId() && entries().length > 0) {
+                    <button (click)="printTimetable()" title="Print / Export Schedule"
+                        class="px-3.5 py-2.5 sm:py-3 bg-bg-tertiary hover:bg-bg-primary text-text-primary hover:text-blue-500 border border-border-primary hover:border-blue-500/40 rounded-xl sm:rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-95">
+                        <i class="fas fa-print"></i>
+                        <span class="hidden sm:inline">Print</span>
+                    </button>
+                }
+            </div>
         </div>
-        <select [(ngModel)]="selectedClassId" (change)="onClassChange()"
-            class="bg-bg-tertiary border border-border-secondary rounded-2xl px-5 py-3 text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-blue-500/50 transition-all cursor-pointer min-w-[220px]">
-            <option value="">Select a Class…</option>
-            @for (c of classes(); track c.id) {
-            <option [value]="c.id">{{ c.name }}</option>
-            }
-        </select>
+
+        <!-- Dynamic Stats Banner (shown when class selected) -->
+        @if (selectedClassId() && !isLoading()) {
+            <div class="mt-4 sm:mt-6 pt-4 border-t border-border-primary/80 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 relative z-10">
+                <div class="p-2.5 sm:p-3 bg-bg-tertiary/60 border border-border-primary/60 rounded-xl sm:rounded-2xl flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-xs shrink-0">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-[10px] font-bold text-text-muted uppercase tracking-wider truncate">Weekly Sessions</div>
+                        <div class="text-sm sm:text-base font-black text-text-primary">{{ timetableStats().totalSessions }} Periods</div>
+                    </div>
+                </div>
+
+                <div class="p-2.5 sm:p-3 bg-bg-tertiary/60 border border-border-primary/60 rounded-xl sm:rounded-2xl flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs shrink-0">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-[10px] font-bold text-text-muted uppercase tracking-wider truncate">Active Subjects</div>
+                        <div class="text-sm sm:text-base font-black text-text-primary">{{ timetableStats().distinctSubjects }} Disciplines</div>
+                    </div>
+                </div>
+
+                <div class="p-2.5 sm:p-3 bg-bg-tertiary/60 border border-border-primary/60 rounded-xl sm:rounded-2xl flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-xs shrink-0">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-[10px] font-bold text-text-muted uppercase tracking-wider truncate">Instructors</div>
+                        <div class="text-sm sm:text-base font-black text-text-primary">{{ timetableStats().distinctTeachers }} Teachers</div>
+                    </div>
+                </div>
+
+                <div class="p-2.5 sm:p-3 bg-bg-tertiary/60 border border-border-primary/60 rounded-xl sm:rounded-2xl flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-xs shrink-0">
+                        <i class="fas fa-door-open"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-[10px] font-bold text-text-muted uppercase tracking-wider truncate">Classroom</div>
+                        <div class="text-sm sm:text-base font-black text-text-primary truncate">{{ selectedClass()?.name || 'Assigned' }}</div>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 2. EMPTY STATE: QUICK CLASS SELECTOR TILES                 -->
+    <!-- ══════════════════════════════════════════════════════════ -->
     @if (!selectedClassId()) {
-    <div class="flex flex-col items-center justify-center py-32 gap-6">
-        <div class="w-24 h-24 rounded-full bg-bg-tertiary flex items-center justify-center border border-dashed border-border-secondary">
-            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-text-muted"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        </div>
-        <div class="text-center">
-            <h3 class="text-xl font-bold text-text-primary uppercase tracking-tighter">Select a Class</h3>
-            <p class="text-text-muted text-sm mt-1">Choose a class above to view its timetable.</p>
-        </div>
-    </div>
-    } @else if (isLoading()) {
-    <div class="flex items-center justify-center py-24 gap-3 text-text-muted">
-        <div class="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        <span class="text-sm font-bold">Loading schedule…</span>
-    </div>
-    } @else {
-    <!-- Grid -->
-    <div class="overflow-x-auto w-full">
-<table class="w-full border-collapse min-w-[900px]">
-            <thead>
-                <tr class="bg-bg-tertiary">
-                    <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-widest text-left w-24">Time</th>
-                    @for (day of days; track day) {
-                    <th class="px-5 py-4 text-[10px] font-black text-blue-400 uppercase tracking-widest text-left">{{ day }}</th>
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-6 sm:p-10 shadow-sm text-center">
+            <div class="max-w-md mx-auto space-y-3 mb-8">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-2xl sm:text-3xl mx-auto border border-blue-500/20 shadow-inner">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                    Select a Classroom
+                </h2>
+                <p class="text-xs sm:text-sm text-text-muted leading-relaxed">
+                    Choose any registered class from the roster below to view their interactive timetable, rooming, and weekly teacher allocations.
+                </p>
+            </div>
+
+            <!-- Quick Class Selection Cards Grid -->
+            @if (classes().length > 0) {
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 max-w-5xl mx-auto">
+                    @for (cls of classes(); track cls.id) {
+                        <button (click)="selectClass(cls.id)"
+                            class="group p-4 bg-bg-tertiary hover:bg-blue-600 border border-border-primary hover:border-blue-500 rounded-2xl text-left transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/20 hover:-translate-y-0.5 cursor-pointer flex flex-col justify-between gap-3">
+                            <div class="flex items-center justify-between">
+                                <div class="w-8 h-8 rounded-xl bg-blue-500/10 group-hover:bg-white/20 text-blue-500 group-hover:text-white flex items-center justify-center text-xs transition-colors font-black">
+                                    {{ cls.name.slice(0, 2).toUpperCase() }}
+                                </div>
+                                <i class="fas fa-arrow-right text-[10px] text-text-muted group-hover:text-white/80 group-hover:translate-x-1 transition-all"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-sm text-text-primary group-hover:text-white transition-colors truncate">
+                                    {{ cls.name }}
+                                </h3>
+                                <p class="text-[11px] text-text-muted group-hover:text-white/75 transition-colors font-medium mt-0.5">
+                                    {{ cls.scholastic_level?.name || 'Classroom' }}
+                                </p>
+                            </div>
+                        </button>
                     }
-                </tr>
-            </thead>
-            <tbody>
-                @for (slot of timeSlots; track slot) {
-                <tr class="border-t border-border-primary hover:bg-bg-tertiary transition-colors">
-                    <td class="px-5 py-4 align-top text-xs font-bold text-text-muted whitespace-nowrap">{{ slot }}</td>
-                    @for (day of [1,2,3,4,5]; track day) {
-                    <td class="px-3 py-3 align-top min-w-[150px]">
-                        @for (entry of getEntriesForDayAndTime(day - 1, slot); track entry.id) {
-                        <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl px-3 py-2 mb-1.5">
-                            <div class="text-xs font-black text-blue-300 truncate">{{ subjectMap()[entry.subject_id] || '–' }}</div>
-                            <div class="text-[10px] text-text-muted mt-0.5">{{ entry.start_time }}–{{ entry.end_time }}</div>
-                            @if (entry.room) {
-                            <div class="text-[9px] text-text-muted font-bold uppercase tracking-widest mt-0.5">Rm {{ entry.room }}</div>
-                            }
-                        </div>
-                        }
-                    </td>
-                    }
-                </tr>
+                </div>
+            } @else {
+                <div class="py-6 text-text-muted text-sm font-medium">
+                    No classrooms found in the registry.
+                </div>
+            }
+        </div>
+    }
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 3. LOADING OVERLAY                                         -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    @if (isLoading()) {
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-16 shadow-sm flex flex-col items-center justify-center gap-4 text-center">
+            <div class="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+            <div>
+                <p class="text-sm font-bold text-text-primary">Retrieving Academic Timetable...</p>
+                <p class="text-xs text-text-muted mt-0.5">Synchronizing periods, room allocations, and faculty rosters</p>
+            </div>
+        </div>
+    }
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 4. TIMETABLE CONTENT WHEN CLASS IS SELECTED               -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    @if (selectedClassId() && !isLoading()) {
+
+        <!-- ── Controls Bar: Day Tabs, View Switcher & Search Filter ── -->
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
+            
+            <!-- Day Selection Pills (Mon - Fri) -->
+            <div class="flex items-center gap-1 sm:gap-1.5 overflow-x-auto pb-1 md:pb-0 custom-scrollbar">
+                @for (d of days; track d.id) {
+                    <button (click)="selectedDay.set(d.id)"
+                        [class.bg-blue-600]="selectedDay() === d.id"
+                        [class.text-white]="selectedDay() === d.id"
+                        [class.shadow-md]="selectedDay() === d.id"
+                        [class.shadow-blue-500/25]="selectedDay() === d.id"
+                        [class.bg-bg-tertiary]="selectedDay() !== d.id"
+                        [class.text-text-muted]="selectedDay() !== d.id"
+                        [class.hover:text-text-primary]="selectedDay() !== d.id"
+                        class="px-3 sm:px-4 py-2 rounded-xl sm:rounded-2xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer active:scale-95 border border-transparent"
+                        [class.border-blue-500]="selectedDay() === d.id"
+                        [class.border-border-primary]="selectedDay() !== d.id">
+                        <span>{{ d.name }}</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded-full font-black"
+                            [class.bg-white/20]="selectedDay() === d.id"
+                            [class.text-white]="selectedDay() === d.id"
+                            [class.bg-bg-secondary]="selectedDay() !== d.id"
+                            [class.text-text-muted]="selectedDay() !== d.id">
+                            {{ entriesByDay()[d.id]?.length || 0 }}
+                        </span>
+                    </button>
                 }
-            </tbody>
-        </table>
-</div>
+            </div>
+
+            <!-- Right Controls: Search + View Switcher (Agenda vs Master Grid) -->
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                <!-- Search Filter Input -->
+                <div class="relative flex-1 sm:w-56">
+                    <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs pointer-events-none"></i>
+                    <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+                        placeholder="Filter subject, teacher, room..."
+                        class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3 py-2 pl-9 text-xs font-bold text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all">
+                    @if (searchQuery()) {
+                        <button (click)="searchQuery.set('')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary text-xs">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    }
+                </div>
+
+                <!-- View Switcher -->
+                <div class="flex items-center p-1 bg-bg-tertiary border border-border-primary rounded-xl shrink-0">
+                    <button (click)="viewMode.set('agenda')"
+                        [class.bg-blue-600]="viewMode() === 'agenda'"
+                        [class.text-white]="viewMode() === 'agenda'"
+                        [class.shadow-xs]="viewMode() === 'agenda'"
+                        [class.text-text-muted]="viewMode() !== 'agenda'"
+                        class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                        <i class="fas fa-list-ul"></i>
+                        <span class="hidden sm:inline">Day Agenda</span>
+                    </button>
+                    <button (click)="viewMode.set('grid')"
+                        [class.bg-blue-600]="viewMode() === 'grid'"
+                        [class.text-white]="viewMode() === 'grid'"
+                        [class.shadow-xs]="viewMode() === 'grid'"
+                        [class.text-text-muted]="viewMode() !== 'grid'"
+                        class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                        <i class="fas fa-table-cells"></i>
+                        <span class="hidden sm:inline">Weekly Grid</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- VIEW MODE 1: DAY AGENDA TIMELINE (MOBILE FIRST)        -->
+        <!-- ══════════════════════════════════════════════════════ -->
+        @if (viewMode() === 'agenda') {
+            <div class="space-y-3 sm:space-y-4">
+                <!-- Active Day Header -->
+                <div class="flex items-center justify-between px-1">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-lg sm:text-xl font-black text-text-primary">
+                            {{ days[selectedDay() - 1].name }}'s Schedule
+                        </h2>
+                        <span class="text-xs font-bold text-text-muted">
+                            &bull; {{ activeDayEntries().length }} {{ activeDayEntries().length === 1 ? 'Period' : 'Periods' }}
+                        </span>
+                    </div>
+
+                    <!-- Quick Day Switch Next/Prev -->
+                    <div class="flex items-center gap-1">
+                        <button (click)="selectedDay.set(selectedDay() > 1 ? selectedDay() - 1 : 5)"
+                            class="w-7 h-7 rounded-lg bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-muted hover:text-text-primary flex items-center justify-center text-xs transition-colors cursor-pointer">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button (click)="selectedDay.set(selectedDay() < 5 ? selectedDay() + 1 : 1)"
+                            class="w-7 h-7 rounded-lg bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-muted hover:text-text-primary flex items-center justify-center text-xs transition-colors cursor-pointer">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Period Cards List -->
+                @if (activeDayEntries().length > 0) {
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                        @for (entry of activeDayEntries(); track entry.id || $index; let i = $index) {
+                            @let subjectInfo = subjectMap()[entry.subject_id];
+                            @let teacherInfo = teacherMap()[entry.teacher_id];
+                            @let theme = getSubjectTheme(subjectInfo?.name);
+                            @let duration = calculateDuration(entry.start_time, entry.end_time);
+
+                            <div class="group relative overflow-hidden bg-bg-secondary border border-border-primary hover:border-blue-500/40 rounded-2xl sm:rounded-3xl p-4 sm:p-5 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/5 flex flex-col justify-between gap-4">
+                                <!-- Colored Accent Pill Strip on Left -->
+                                <div class="absolute top-0 left-0 bottom-0 w-1.5 bg-gradient-to-b {{ theme.gradient }}"></div>
+
+                                <!-- Card Header: Time Badge & Period Number -->
+                                <div class="flex items-center justify-between gap-3 pl-2">
+                                    <!-- Time Pill -->
+                                    <div class="flex items-center gap-2">
+                                        <div class="px-2.5 py-1 rounded-xl bg-bg-tertiary border border-border-primary flex items-center gap-1.5 text-xs font-mono font-black text-text-primary">
+                                            <i class="far fa-clock text-blue-500 text-[11px]"></i>
+                                            <span>{{ entry.start_time }} – {{ entry.end_time }}</span>
+                                        </div>
+                                        @if (duration) {
+                                            <span class="text-[10px] font-bold text-text-muted">{{ duration }}</span>
+                                        }
+                                    </div>
+
+                                    <!-- Period Counter Badge -->
+                                    <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-bg-tertiary border border-border-primary text-text-muted">
+                                        Period {{ i + 1 }}
+                                    </span>
+                                </div>
+
+                                <!-- Card Body: Subject Name, Icon & Code -->
+                                <div class="flex items-start gap-3.5 pl-2">
+                                    <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl {{ theme.bg }} {{ theme.text }} border {{ theme.border }} flex items-center justify-center text-lg sm:text-xl shrink-0 shadow-xs">
+                                        <i [class]="theme.icon"></i>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-2">
+                                            <h3 class="text-base sm:text-lg font-black text-text-primary truncate group-hover:text-blue-500 transition-colors">
+                                                {{ subjectInfo?.name || 'Academic Subject' }}
+                                            </h3>
+                                        </div>
+                                        <p class="text-xs font-mono font-bold text-text-muted uppercase tracking-wider mt-0.5">
+                                            Code: {{ subjectInfo?.code || 'N/A' }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Card Footer: Teacher Badge & Room Tag -->
+                                <div class="pt-3 border-t border-border-primary/60 flex flex-wrap items-center justify-between gap-2 pl-2 text-xs">
+                                    <!-- Instructor -->
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <div class="w-6 h-6 rounded-full bg-blue-500/20 text-blue-500 flex items-center justify-center text-[10px] font-black shrink-0">
+                                            {{ teacherInfo?.initials || 'FA' }}
+                                        </div>
+                                        <span class="font-bold text-text-secondary truncate">
+                                            {{ teacherInfo?.name || 'Faculty Assigned' }}
+                                        </span>
+                                    </div>
+
+                                    <!-- Room Allocation -->
+                                    <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-bg-tertiary border border-border-primary text-text-muted shrink-0">
+                                        <i class="fas fa-location-dot text-rose-400 text-[11px]"></i>
+                                        <span class="font-bold text-[11px] text-text-primary">
+                                            {{ entry.room ? 'Room ' + entry.room : 'Main Hall' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                } @else {
+                    <!-- Empty Day Notice -->
+                    <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-10 sm:p-14 text-center">
+                        <div class="w-14 h-14 rounded-2xl bg-bg-tertiary text-text-muted flex items-center justify-center text-2xl mx-auto mb-3">
+                            <i class="fas fa-mug-hot"></i>
+                        </div>
+                        <h3 class="text-base sm:text-lg font-bold text-text-primary">No Classes on {{ days[selectedDay() - 1].name }}</h3>
+                        <p class="text-xs sm:text-sm text-text-muted mt-1 max-w-sm mx-auto">
+                            There are no scheduled lectures or sessions recorded for this day.
+                        </p>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- VIEW MODE 2: WEEKLY MASTER GRID MATRIX (DESKTOP)       -->
+        <!-- ══════════════════════════════════════════════════════ -->
+        @if (viewMode() === 'grid') {
+            <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm">
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full border-collapse min-w-[860px]">
+                        <thead>
+                            <tr class="bg-bg-tertiary border-b border-border-primary">
+                                <th class="px-4 py-3.5 text-[11px] font-black text-text-muted uppercase tracking-widest text-left w-24">
+                                    <div class="flex items-center gap-1.5">
+                                        <i class="far fa-clock text-blue-500"></i>
+                                        <span>Time</span>
+                                    </div>
+                                </th>
+                                @for (day of days; track day.id) {
+                                    <th class="px-4 py-3.5 text-left">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-black text-text-primary uppercase tracking-wider">{{ day.name }}</span>
+                                            <span class="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20">
+                                                {{ entriesByDay()[day.id]?.length || 0 }}
+                                            </span>
+                                        </div>
+                                    </th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-primary">
+                            @for (slot of timeSlots; track slot) {
+                                <tr class="hover:bg-bg-tertiary/40 transition-colors">
+                                    <!-- Time Column -->
+                                    <td class="px-4 py-3 align-top whitespace-nowrap">
+                                        <span class="font-mono text-xs font-black text-text-muted">{{ slot }}</span>
+                                    </td>
+
+                                    <!-- 5 Days Columns -->
+                                    @for (day of days; track day.id) {
+                                        @let slotEntries = getEntriesForDayAndTime(day.id - 1, slot);
+
+                                        <td class="px-2.5 py-2.5 align-top min-w-[160px]">
+                                            @for (entry of slotEntries; track entry.id || $index) {
+                                                @let subjectInfo = subjectMap()[entry.subject_id];
+                                                @let teacherInfo = teacherMap()[entry.teacher_id];
+                                                @let theme = getSubjectTheme(subjectInfo?.name);
+
+                                                <div class="p-2.5 rounded-xl {{ theme.bg }} border {{ theme.border }} hover:shadow-md transition-all mb-1.5">
+                                                    <div class="flex items-center justify-between gap-1 mb-1">
+                                                        <span class="text-xs font-black {{ theme.text }} truncate">
+                                                            {{ subjectInfo?.name || 'Class' }}
+                                                        </span>
+                                                        @if (entry.room) {
+                                                            <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-bg-secondary text-text-muted">
+                                                                R:{{ entry.room }}
+                                                            </span>
+                                                        }
+                                                    </div>
+                                                    <div class="text-[10px] font-mono text-text-muted">
+                                                        {{ entry.start_time }} – {{ entry.end_time }}
+                                                    </div>
+                                                    @if (teacherInfo?.name) {
+                                                        <div class="text-[10px] font-medium text-text-secondary truncate mt-1">
+                                                            {{ teacherInfo?.name }}
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
     }
 </div>
