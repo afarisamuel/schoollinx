@@ -1,166 +1,819 @@
-<div class="relative min-h-screen">
-  <!-- Background -->
-  <div class="absolute inset-x-0 top-0 h-[500px] overflow-hidden pointer-events-none z-0">
-    <div class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-500/5 blur-[140px] rounded-full"></div>
-    <div class="absolute top-1/3 right-1/3 w-[350px] h-[350px] bg-blue-500/5 blur-[120px] rounded-full"></div>
+<div class="relative min-h-screen pb-16">
+  <!-- Atmospheric Glow Backdrop -->
+  <div class="absolute inset-x-0 top-0 h-[600px] overflow-hidden pointer-events-none z-0">
+    <div class="absolute -top-24 left-1/4 w-[600px] h-[600px] bg-blue-500/10 blur-[150px] rounded-full"></div>
+    <div class="absolute top-1/4 right-1/4 w-[450px] h-[450px] bg-indigo-500/10 blur-[130px] rounded-full"></div>
+    <div class="absolute top-10 right-10 w-[350px] h-[350px] bg-emerald-500/5 blur-[120px] rounded-full"></div>
   </div>
 
-  <div class="relative z-10 px-6 py-10 md:px-12 max-w-[1600px] mx-auto animate-fade-in">
+  <div class="relative z-10 px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1680px] mx-auto animate-fade-in space-y-8">
 
-    <!-- Page Header -->
-    <header class="mb-10">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
-        <div>
-          <div class="flex items-center gap-3 mb-3">
-            <span class="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-400/20 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">Academic Hierarchy</span>
+    <!-- 1. Hero Header -->
+    <header class="pt-6 sm:pt-8">
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+        <div class="space-y-2">
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 dark:bg-blue-400/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 rounded-full text-[11px] font-black uppercase tracking-[0.2em]">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+              Academic Hierarchy & Progression Ladder
+            </span>
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-bg-secondary border border-border-primary text-text-muted">
+              {{ levels().length }} Configured Tiers
+            </span>
           </div>
-          <h1 class="text-2xl md:text-4xl font-black text-text-primary tracking-tighter leading-none mb-2">
-            Scholastic <span class="text-blue-400">Levels</span>
+
+          <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-text-primary tracking-tight">
+            Scholastic <span class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">Levels</span> & Advancement Sequence
           </h1>
-          <p class="text-text-muted text-lg max-w-2xl font-medium">Define the grade-level hierarchy and progression sequence for the institution.</p>
+          <p class="text-text-muted text-sm sm:text-base max-w-3xl font-medium leading-relaxed">
+            Configure institutional grade sequence, grade progression pipelines, and class mapping hierarchies for student admissions and automated promotions.
+          </p>
         </div>
 
-        <!-- Stats + Action -->
-        <div class="flex items-center gap-4">
-          <div class="hidden lg:block bg-bg-tertiary border border-border-primary rounded-2xl p-5 text-center min-w-[120px]">
-            <p class="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] mb-1">Levels</p>
-            <p class="text-2xl font-black text-blue-400 font-mono tracking-tighter">{{ levels().length }}</p>
-          </div>
-          @if (!showForm()) {
-          <button class="group flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95" (click)="showForm.set(true)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Add Level
+        <!-- Primary Action Suite -->
+        <div class="flex items-center gap-3 flex-wrap w-full sm:w-auto">
+          <!-- Institutional Presets -->
+          <button 
+            (click)="showPresetsModal.set(true)"
+            class="px-4 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary hover:border-blue-500/30 text-text-primary text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-2 active:scale-95"
+            title="Load standard grade presets">
+            <svg class="text-indigo-500 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+              <path d="M6 6h10"/>
+              <path d="M6 10h10"/>
+            </svg>
+            <span>Hierarchy Presets</span>
+          </button>
+
+          <!-- Re-Index Ordinals -->
+          @if (levels().length > 1) {
+          <button 
+            (click)="reindexOrdinals()"
+            class="px-4 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary hover:border-blue-500/30 text-text-primary text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-2 active:scale-95"
+            title="Sequentially normalize level ordinals from 1 to N">
+            <svg class="text-blue-500 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m3 16 4 4 4-4"/>
+              <path d="M7 20V4"/>
+              <path d="m21 8-4-4-4 4"/>
+              <path d="M17 4v16"/>
+            </svg>
+            <span>Re-Index</span>
           </button>
           }
+
+          <!-- Add Level Button -->
+          <button 
+            (click)="openCreateModal()"
+            class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/25 transition-all flex items-center gap-2 active:scale-95">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            <span>Add Scholastic Level</span>
+          </button>
         </div>
       </div>
     </header>
 
-    <!-- Form Section -->
-    @if (showForm()) {
-    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-8 mb-8 animate-fade-in">
-      <div class="flex items-center gap-3 mb-6">
-        <div class="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
-          <svg class="text-blue-400" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    <!-- 2. Executive Telemetry Metrics (4 Cards) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+      <!-- KPI 1: Total Configured Levels -->
+      <div class="bg-bg-secondary border border-border-primary/80 rounded-2xl p-5 shadow-sm hover:border-blue-500/30 transition-all flex flex-col justify-between relative overflow-hidden group">
+        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-blue-500/5 group-hover:bg-blue-500/10 rounded-full blur-xl transition-all"></div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">Defined Levels</span>
+          <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+            </svg>
+          </div>
         </div>
-        <h2 class="text-sm font-black text-text-primary uppercase tracking-wider">{{ levelForm.value.id ? 'Modify Level' : 'Create New Level' }}</h2>
+        <div>
+          <div class="flex items-baseline gap-2">
+            <span class="text-3xl font-black text-text-primary tracking-tight font-mono">{{ levels().length }}</span>
+            <span class="text-xs font-semibold text-text-muted">Total Tiers</span>
+          </div>
+          <p class="text-xs text-text-muted mt-1 flex items-center gap-1.5 font-medium">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            Sequential Advancement Enabled
+          </p>
+        </div>
       </div>
 
-      <form [formGroup]="levelForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="flex flex-col gap-2">
-          <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.15em]">Level Name (e.g. Grade 1, Year 3)</label>
-          <input type="text" formControlName="name" placeholder="Full Designation" class="bg-bg-primary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+      <!-- KPI 2: Entry Gate Stage -->
+      <div class="bg-bg-secondary border border-border-primary/80 rounded-2xl p-5 shadow-sm hover:border-emerald-500/30 transition-all flex flex-col justify-between relative overflow-hidden group">
+        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/5 group-hover:bg-emerald-500/10 rounded-full blur-xl transition-all"></div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">Admissions Entry Gate</span>
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+              <polyline points="10 17 15 12 10 7"/>
+              <line x1="15" y1="12" x2="3" y2="12"/>
+            </svg>
+          </div>
         </div>
-
-        <div class="flex flex-col gap-2">
-          <label class="text-[10px] font-black text-text-muted uppercase tracking-[0.15em]">Sequence Ordinal (Lower = Earlier)</label>
-          <input type="number" formControlName="ordinal" min="1" max="20" class="bg-bg-primary border border-border-primary rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
-        </div>
-
-        <div class="md:col-span-2 flex justify-end gap-3 mt-2">
-          <button type="button" (click)="resetForm()" class="px-5 py-2.5 bg-bg-tertiary hover:bg-bg-primary border border-border-primary text-text-primary text-xs font-bold rounded-xl transition-all">Cancel</button>
-          <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2" [disabled]="levelForm.invalid || isSubmitting()">
-            @if (isSubmitting()) {
-            <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+        <div>
+          <div class="flex items-baseline gap-2">
+            <span class="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight truncate max-w-[200px]">
+              {{ entryLevel()?.name || 'None' }}
+            </span>
+            @if (entryLevel()) {
+            <span class="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">#{{ entryLevel()?.ordinal }}</span>
             }
-            {{ levelForm.value.id ? 'Save Changes' : 'Create Level' }}
+          </div>
+          <p class="text-xs text-text-muted mt-1 flex items-center gap-1.5 font-medium">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            First Intake Classification
+          </p>
+        </div>
+      </div>
+
+      <!-- KPI 3: Graduating Terminal Stage -->
+      <div class="bg-bg-secondary border border-border-primary/80 rounded-2xl p-5 shadow-sm hover:border-purple-500/30 transition-all flex flex-col justify-between relative overflow-hidden group">
+        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-purple-500/5 group-hover:bg-purple-500/10 rounded-full blur-xl transition-all"></div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">Final Graduating Tier</span>
+          <div class="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+              <path d="M4 22h16"/>
+              <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"/>
+              <path d="M18 14.66V17c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-2.34"/>
+              <path d="M12 2v8"/>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-baseline gap-2">
+            <span class="text-2xl font-black text-purple-600 dark:text-purple-400 tracking-tight truncate max-w-[200px]">
+              {{ finalLevel()?.name || 'None' }}
+            </span>
+            @if (finalLevel()) {
+            <span class="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-700 dark:text-purple-300">#{{ finalLevel()?.ordinal }}</span>
+            }
+          </div>
+          <p class="text-xs text-text-muted mt-1 flex items-center gap-1.5 font-medium">
+            <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+            Alumni & Graduation Exit Tier
+          </p>
+        </div>
+      </div>
+
+      <!-- KPI 4: Mapped Class Streams -->
+      <div class="bg-bg-secondary border border-border-primary/80 rounded-2xl p-5 shadow-sm hover:border-indigo-500/30 transition-all flex flex-col justify-between relative overflow-hidden group">
+        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/5 group-hover:bg-indigo-500/10 rounded-full blur-xl transition-all"></div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">Mapped Class Streams</span>
+          <div class="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-baseline gap-2">
+            <span class="text-3xl font-black text-text-primary tracking-tight font-mono">{{ totalLinkedClasses() }}</span>
+            <span class="text-xs font-semibold text-text-muted">of {{ classes().length }} Classes Mapped</span>
+          </div>
+          <p class="text-xs text-text-muted mt-1 flex items-center gap-1.5 font-medium">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+            Curriculum & Gradebooks Synced
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Interactive Progression Pathway Visualizer (When levels exist) -->
+    @if (!isLoading() && sortedLevels().length > 0) {
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-6 shadow-sm overflow-hidden relative">
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m18 8 4 4-4 4"/>
+              <path d="M2 12h20"/>
+            </svg>
+          </div>
+          <h3 class="text-xs font-black text-text-primary uppercase tracking-wider">Advancement Pipeline Flow</h3>
+        </div>
+        <span class="text-xs text-text-muted font-medium">Auto-advances students from Entry Gate to Graduating Tier</span>
+      </div>
+
+      <!-- Horizontal Flow Bar -->
+      <div class="overflow-x-auto pb-2 scrollbar-thin">
+        <div class="flex items-center gap-2 min-w-max py-2">
+          @for (lvl of sortedLevels(); track lvl.id; let i = $index; let isFirst = $first; let isLast = $last) {
+            <!-- Step Node -->
+            <div 
+              (click)="onEdit(lvl)"
+              class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl border transition-all cursor-pointer select-none group"
+              [ngClass]="isFirst ? 'bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20' : (isLast ? 'bg-purple-500/10 border-purple-500/30 hover:bg-purple-500/20' : 'bg-bg-tertiary border-border-primary hover:border-blue-500/40 hover:bg-bg-secondary')">
+              
+              <!-- Ordinal Circle -->
+              <div 
+                class="w-7 h-7 rounded-lg flex items-center justify-center font-mono font-black text-xs transition-transform group-hover:scale-110"
+                [ngClass]="isFirst ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/30' : (isLast ? 'bg-purple-600 text-white shadow-sm shadow-purple-500/30' : 'bg-blue-500/20 text-blue-600 dark:text-blue-400')">
+                {{ lvl.ordinal }}
+              </div>
+
+              <!-- Details -->
+              <div>
+                <p class="text-xs font-black text-text-primary group-hover:text-blue-500 transition-colors">{{ lvl.name }}</p>
+                <div class="flex items-center gap-1.5 mt-0.5">
+                  <span class="text-[10px] font-bold text-text-muted">
+                    {{ getClassesForLevel(lvl.id).length }} class(es)
+                  </span>
+                  <span class="w-1 h-1 rounded-full bg-border-primary"></span>
+                  <span class="text-[9px] font-black uppercase tracking-wider"
+                    [ngClass]="isFirst ? 'text-emerald-500' : (isLast ? 'text-purple-500' : 'text-slate-400')">
+                    {{ isFirst ? 'Entry' : (isLast ? 'Final' : 'Step ' + (i + 1)) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Arrow connector between nodes -->
+            @if (!isLast) {
+              <div class="flex items-center text-text-muted/40 px-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/>
+                  <path d="m12 5 7 7-7 7"/>
+                </svg>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- 4. Control Toolbar (Search, Filter Tabs, View Switcher) -->
+    <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 bg-bg-secondary p-4 rounded-2xl border border-border-primary shadow-sm">
+      <!-- Search -->
+      <div class="relative flex-1 max-w-md">
+        <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.3-4.3"/>
+        </svg>
+        <input 
+          type="text" 
+          [ngModel]="searchQuery()" 
+          (ngModelChange)="searchQuery.set($event)"
+          placeholder="Search scholastic level name or ordinal rank..." 
+          class="w-full pl-10 pr-4 py-2 bg-bg-primary border border-border-primary rounded-xl text-xs sm:text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all font-medium">
+      </div>
+
+      <!-- Filters & View Mode -->
+      <div class="flex items-center gap-3 flex-wrap justify-between md:justify-end">
+        <!-- Segmented Tier Filter -->
+        <div class="flex items-center bg-bg-primary p-1 rounded-xl border border-border-primary text-xs font-bold">
+          <button 
+            (click)="filterTier.set('all')"
+            [ngClass]="filterTier() === 'all' ? 'bg-bg-secondary text-text-primary shadow-sm border border-border-primary' : 'text-text-muted hover:text-text-primary'"
+            class="px-3 py-1.5 rounded-lg transition-all">
+            All Tiers ({{ sortedLevels().length }})
+          </button>
+          <button 
+            (click)="filterTier.set('entry')"
+            [ngClass]="filterTier() === 'entry' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-black shadow-sm' : 'text-text-muted hover:text-text-primary'"
+            class="px-3 py-1.5 rounded-lg transition-all">
+            Entry Gate
+          </button>
+          <button 
+            (click)="filterTier.set('intermediate')"
+            [ngClass]="filterTier() === 'intermediate' ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 font-black shadow-sm' : 'text-text-muted hover:text-text-primary'"
+            class="px-3 py-1.5 rounded-lg transition-all">
+            Intermediate
+          </button>
+          <button 
+            (click)="filterTier.set('final')"
+            [ngClass]="filterTier() === 'final' ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 font-black shadow-sm' : 'text-text-muted hover:text-text-primary'"
+            class="px-3 py-1.5 rounded-lg transition-all">
+            Graduating
           </button>
         </div>
-      </form>
-    </div>
-    }
 
-    <!-- Loading -->
-    @if (isLoading()) {
-    <div class="py-20 flex flex-col items-center justify-center gap-3">
-      <div class="w-10 h-10 border-2 border-slate-300 border-t-slate-500 rounded-full animate-spin"></div>
-      <p class="text-sm text-text-muted font-semibold">Loading levels...</p>
-    </div>
-    }
-
-    <!-- Levels Table -->
-    @if (!isLoading() && levels().length > 0) {
-    <div class="bg-bg-secondary border border-border-primary rounded-2xl overflow-hidden">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-border-primary">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
-            <svg class="text-blue-400" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </div>
-          <h3 class="text-sm font-black text-text-primary uppercase tracking-wider">Progression Hierarchy</h3>
+        <!-- View Mode Switcher -->
+        <div class="flex items-center bg-bg-primary p-1 rounded-xl border border-border-primary text-xs font-bold">
+          <button 
+            (click)="activeViewMode.set('matrix')"
+            [ngClass]="activeViewMode() === 'matrix' ? 'bg-bg-secondary text-blue-600 dark:text-blue-400 shadow-sm border border-border-primary' : 'text-text-muted hover:text-text-primary'"
+            class="p-1.5 rounded-lg transition-all" 
+            title="Data Matrix View">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="8" y1="6" x2="21" y2="6"/>
+              <line x1="8" y1="12" x2="21" y2="12"/>
+              <line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/>
+              <line x1="3" y1="12" x2="3.01" y2="12"/>
+              <line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+          </button>
+          <button 
+            (click)="activeViewMode.set('pipeline')"
+            [ngClass]="activeViewMode() === 'pipeline' ? 'bg-bg-secondary text-blue-600 dark:text-blue-400 shadow-sm border border-border-primary' : 'text-text-muted hover:text-text-primary'"
+            class="p-1.5 rounded-lg transition-all" 
+            title="Card Grid View">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="7" height="7" x="3" y="3" rx="1"/>
+              <rect width="7" height="7" x="14" y="3" rx="1"/>
+              <rect width="7" height="7" x="14" y="14" rx="1"/>
+              <rect width="7" height="7" x="3" y="14" rx="1"/>
+            </svg>
+          </button>
         </div>
-        <span class="text-xs font-bold text-text-muted">{{ levels().length }} levels defined</span>
       </div>
+    </div>
 
-      <div class="overflow-x-auto w-full">
-<table class="w-full text-left">
-        <thead>
-          <tr class="bg-bg-tertiary">
-            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] w-20">Ordinal</th>
-            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Level Name</th>
-            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] w-40">Tier</th>
-            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] w-32 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-border-primary">
-          @for (level of levels(); track level.id; let i = $index) {
-          <tr class="hover:bg-bg-tertiary/50 transition-colors group">
-            <td class="px-6 py-4">
-              <div class="w-10 h-10 rounded-xl bg-blue-500/15 border border-border-primary flex items-center justify-center text-sm font-black text-blue-400 font-mono">
-                {{ level.ordinal }}
-              </div>
-            </td>
-            <td class="px-6 py-4">
-              <span class="text-sm font-bold text-text-primary">{{ level.name }}</span>
-            </td>
-            <td class="px-6 py-4">
-              @if ($first) {
-              <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black rounded-lg uppercase tracking-wider">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Entry Point
-              </span>
-              } @else if ($last) {
-              <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black rounded-lg uppercase tracking-wider">
-                <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span> Final Level
-              </span>
-              } @else {
-              <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-bg-tertiary border border-border-primary text-text-muted text-[10px] font-black rounded-lg uppercase tracking-wider">
-                <span class="w-1.5 h-1.5 rounded-full bg-text-muted"></span> Intermediate
-              </span>
-              }
-            </td>
-            <td class="px-6 py-4 text-right">
-              <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button (click)="onEdit(level)" class="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-all" title="Edit">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                </button>
-                <button (click)="onDelete(level.id)" class="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all" title="Delete">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                </button>
-              </div>
-            </td>
-          </tr>
-          }
-        </tbody>
-      </table>
-</div>
+    <!-- 5. Loading State -->
+    @if (isLoading()) {
+    <div class="py-24 flex flex-col items-center justify-center gap-3">
+      <div class="w-10 h-10 border-3 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+      <p class="text-sm text-text-muted font-bold tracking-wide">Syncing scholastic levels & progression matrix...</p>
     </div>
     }
 
-    <!-- Empty State -->
+    <!-- 6. Main Content Views (When Data Exists) -->
+    @if (!isLoading() && filteredLevels().length > 0) {
+      
+      <!-- VIEW A: Executive Data Matrix (Table) -->
+      @if (activeViewMode() === 'matrix') {
+      <div class="bg-bg-secondary border border-border-primary rounded-2xl overflow-hidden shadow-sm">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-border-primary bg-bg-tertiary/40">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-xs font-black text-text-primary uppercase tracking-wider">Institutional Grade Hierarchy Matrix</h3>
+              <p class="text-[11px] text-text-muted font-medium">Rank-ordered progression sequence for student promotion & class mapping</p>
+            </div>
+          </div>
+          <span class="text-xs font-bold text-text-muted bg-bg-primary px-3 py-1 rounded-full border border-border-primary">
+            Showing {{ filteredLevels().length }} of {{ levels().length }} tiers
+          </span>
+        </div>
+
+        <div class="overflow-x-auto w-full">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-bg-tertiary/70 border-b border-border-primary">
+                <th class="px-6 py-3.5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] w-24">Sequence</th>
+                <th class="px-6 py-3.5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Scholastic Level Name</th>
+                <th class="px-6 py-3.5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] w-48">Tier Classification</th>
+                <th class="px-6 py-3.5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] w-64">Attached Class Streams</th>
+                <th class="px-6 py-3.5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] w-32 text-center">Re-Order</th>
+                <th class="px-6 py-3.5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] w-28 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-primary">
+              @for (level of filteredLevels(); track level.id; let idx = $index; let isFirst = $first; let isLast = $last) {
+              <tr class="hover:bg-bg-tertiary/60 transition-colors group">
+                <!-- Ordinal Sequence Badge -->
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-2">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-sm font-black text-blue-600 dark:text-blue-400 font-mono shadow-sm">
+                      {{ level.ordinal }}
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Level Name -->
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div>
+                      <span class="text-sm font-black text-text-primary tracking-tight group-hover:text-blue-500 transition-colors">
+                        {{ level.name }}
+                      </span>
+                      <p class="text-[11px] text-text-muted font-mono mt-0.5">ID: {{ level.id }}</p>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Tier Badge -->
+                <td class="px-6 py-4">
+                  @let tier = getTierStatus(level);
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 border rounded-lg text-[11px] font-black uppercase tracking-wider {{ tier.class }}">
+                    <span class="w-1.5 h-1.5 rounded-full {{ tier.dot }}"></span>
+                    {{ tier.label }}
+                  </span>
+                </td>
+
+                <!-- Attached Classes Preview -->
+                <td class="px-6 py-4">
+                  @let attached = getClassesForLevel(level.id);
+                  @if (attached.length > 0) {
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      @for (cls of attached.slice(0, 3); track cls.id) {
+                        <span class="px-2 py-0.5 rounded-md bg-bg-primary border border-border-primary text-text-primary text-[11px] font-bold">
+                          {{ cls.name }}
+                        </span>
+                      }
+                      @if (attached.length > 3) {
+                        <span class="px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-black">
+                          +{{ attached.length - 3 }} more
+                        </span>
+                      }
+                    </div>
+                  } @else {
+                    <span class="text-xs text-text-muted italic font-medium">No classes mapped</span>
+                  }
+                </td>
+
+                <!-- Re-Order Ordinal Up/Down -->
+                <td class="px-6 py-4 text-center">
+                  <div class="inline-flex items-center gap-1 bg-bg-primary border border-border-primary rounded-lg p-0.5">
+                    <button 
+                      (click)="moveOrdinal(level, 'up')" 
+                      [disabled]="idx === 0"
+                      class="p-1 rounded text-text-muted hover:text-text-primary hover:bg-bg-secondary disabled:opacity-20 disabled:hover:bg-transparent transition-all" 
+                      title="Move sequence up">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="18 15 12 9 6 15"/>
+                      </svg>
+                    </button>
+                    <button 
+                      (click)="moveOrdinal(level, 'down')" 
+                      [disabled]="idx === filteredLevels().length - 1"
+                      class="p-1 rounded text-text-muted hover:text-text-primary hover:bg-bg-secondary disabled:opacity-20 disabled:hover:bg-transparent transition-all" 
+                      title="Move sequence down">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+
+                <!-- Actions -->
+                <td class="px-6 py-4 text-right">
+                  <div class="flex items-center justify-end gap-1.5">
+                    <button 
+                      (click)="onEdit(level)" 
+                      class="p-2 rounded-xl bg-bg-primary hover:bg-blue-500/10 border border-border-primary hover:border-blue-500/30 text-text-muted hover:text-blue-500 transition-all" 
+                      title="Edit Level Details">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button 
+                      (click)="onDelete(level)" 
+                      class="p-2 rounded-xl bg-bg-primary hover:bg-red-500/10 border border-border-primary hover:border-red-500/30 text-text-muted hover:text-red-500 transition-all" 
+                      title="Delete Level">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+      }
+
+      <!-- VIEW B: Grid of Level Cards -->
+      @if (activeViewMode() === 'pipeline') {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        @for (level of filteredLevels(); track level.id; let idx = $index) {
+          @let tier = getTierStatus(level);
+          @let attached = getClassesForLevel(level.id);
+          
+          <div class="bg-bg-secondary border border-border-primary rounded-2xl p-6 shadow-sm hover:border-blue-500/40 transition-all flex flex-col justify-between group relative overflow-hidden">
+            <div class="flex items-start justify-between gap-4 mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center font-mono font-black text-base text-blue-600 dark:text-blue-400 shadow-inner">
+                  {{ level.ordinal }}
+                </div>
+                <div>
+                  <h4 class="text-base font-black text-text-primary tracking-tight group-hover:text-blue-500 transition-colors">{{ level.name }}</h4>
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 border rounded-md text-[10px] font-black uppercase tracking-wider mt-1 {{ tier.class }}">
+                    <span class="w-1.5 h-1.5 rounded-full {{ tier.dot }}"></span>
+                    {{ tier.label }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Quick Shift -->
+              <div class="flex flex-col gap-1">
+                <button 
+                  (click)="moveOrdinal(level, 'up')" 
+                  [disabled]="idx === 0"
+                  class="p-1 rounded bg-bg-primary hover:bg-bg-tertiary border border-border-primary text-text-muted hover:text-text-primary disabled:opacity-20 transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="18 15 12 9 6 15"/>
+                  </svg>
+                </button>
+                <button 
+                  (click)="moveOrdinal(level, 'down')" 
+                  [disabled]="idx === filteredLevels().length - 1"
+                  class="p-1 rounded bg-bg-primary hover:bg-bg-tertiary border border-border-primary text-text-muted hover:text-text-primary disabled:opacity-20 transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Attached Classes Stream -->
+            <div class="bg-bg-primary rounded-xl p-3 border border-border-primary/60 mb-5">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black text-text-muted uppercase tracking-wider">Class Streams ({{ attached.length }})</span>
+                <span class="text-[10px] font-bold text-text-muted">Rank #{{ level.ordinal }}</span>
+              </div>
+              <div class="flex items-center gap-1.5 flex-wrap min-h-[26px]">
+                @if (attached.length > 0) {
+                  @for (cls of attached; track cls.id) {
+                    <span class="px-2 py-0.5 rounded bg-bg-secondary border border-border-primary text-text-primary text-[11px] font-bold">
+                      {{ cls.name }}
+                    </span>
+                  }
+                } @else {
+                  <span class="text-[11px] text-text-muted italic">No active class streams linked</span>
+                }
+              </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="flex items-center justify-between pt-3 border-t border-border-primary">
+              <span class="text-[11px] font-mono text-text-muted truncate max-w-[120px]">ID: {{ level.id }}</span>
+              <div class="flex items-center gap-2">
+                <button 
+                  (click)="onEdit(level)"
+                  class="px-3 py-1.5 rounded-xl bg-bg-primary hover:bg-blue-500/10 border border-border-primary text-text-primary hover:text-blue-500 text-xs font-bold transition-all flex items-center gap-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                  <span>Edit</span>
+                </button>
+                <button 
+                  (click)="onDelete(level)"
+                  class="p-1.5 rounded-xl bg-bg-primary hover:bg-red-500/10 border border-border-primary text-text-muted hover:text-red-500 transition-all"
+                  title="Delete Level">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+      }
+    }
+
+    <!-- 7. Empty State -->
     @if (!isLoading() && levels().length === 0) {
-    <div class="bg-bg-secondary border-2 border-dashed border-border-primary rounded-2xl py-20 flex flex-col items-center justify-center gap-5">
-      <div class="w-16 h-16 bg-bg-tertiary rounded-2xl flex items-center justify-center border border-border-primary">
-        <svg class="text-text-muted opacity-40" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <div class="bg-bg-secondary border-2 border-dashed border-border-primary rounded-3xl p-12 text-center max-w-2xl mx-auto my-8">
+      <div class="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center border border-blue-500/20 text-blue-500 mx-auto mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+          <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+        </svg>
       </div>
-      <div class="text-center max-w-sm">
-        <p class="text-text-primary font-bold text-lg">No Levels Defined</p>
-        <p class="text-text-muted text-sm mt-1">Create scholastic levels to define the institutional hierarchy and enable student classification.</p>
+      <h3 class="text-xl font-black text-text-primary tracking-tight mb-2">No Scholastic Levels Defined</h3>
+      <p class="text-sm text-text-muted max-w-md mx-auto mb-6 leading-relaxed">
+        Establish the grade-level hierarchy for your institution to structure class admissions, curriculum tracks, and end-of-year automated promotions.
+      </p>
+
+      <div class="flex items-center justify-center gap-3 flex-wrap">
+        <button 
+          (click)="showPresetsModal.set(true)"
+          class="px-5 py-2.5 bg-bg-primary hover:bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-xl transition-all flex items-center gap-2">
+          <svg class="text-indigo-500" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+            <path d="M6 6h10"/>
+            <path d="M6 10h10"/>
+          </svg>
+          <span>Apply Standard Preset</span>
+        </button>
+
+        <button 
+          (click)="openCreateModal()"
+          class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/25 transition-all flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <span>Define First Level</span>
+        </button>
       </div>
-      <button (click)="showForm.set(true)" class="mt-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Create First Level
+    </div>
+    }
+
+    <!-- 8. Filter Empty Result -->
+    @if (!isLoading() && levels().length > 0 && filteredLevels().length === 0) {
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-10 text-center">
+      <p class="text-sm font-bold text-text-primary">No scholastic levels match your search or tier filter.</p>
+      <button 
+        (click)="searchQuery.set(''); filterTier.set('all')"
+        class="mt-3 text-xs font-bold text-blue-500 hover:underline">
+        Clear filters
       </button>
     </div>
     }
 
   </div>
+
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL: DEFINE / EDIT SCHOLASTIC LEVEL (FIXED-VIEWPORT CENTERED)   -->
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  @if (showForm()) {
+  <div class="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in">
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 max-w-lg w-full my-auto shadow-2xl relative">
+      
+      <!-- Close Button -->
+      <button 
+        (click)="closeModal()" 
+        class="absolute top-5 right-5 p-2 rounded-xl bg-bg-tertiary hover:bg-bg-primary text-text-muted hover:text-text-primary transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+      <!-- Modal Title -->
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-lg font-black text-text-primary tracking-tight">
+            {{ levelForm.value.id ? 'Modify Scholastic Level' : 'Define Scholastic Level' }}
+          </h2>
+          <p class="text-xs text-text-muted font-medium">Configure grade level designation and hierarchy sequence</p>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <form [formGroup]="levelForm" (ngSubmit)="onSubmit()" class="space-y-5">
+        <!-- Level Name -->
+        <div class="space-y-1.5">
+          <label class="text-[11px] font-black text-text-muted uppercase tracking-wider flex items-center justify-between">
+            <span>Level Designation / Title</span>
+            <span class="text-red-500">*</span>
+          </label>
+          <input 
+            type="text" 
+            formControlName="name" 
+            placeholder="e.g. Primary 1, Grade 10, JHS 3, Form 1" 
+            class="w-full px-4 py-3 bg-bg-primary border border-border-primary rounded-xl text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all font-semibold">
+          <p class="text-[11px] text-text-muted font-medium">This name appears on student profiles, report cards, and class selection menus.</p>
+        </div>
+
+        <!-- Sequence Ordinal -->
+        <div class="space-y-1.5">
+          <label class="text-[11px] font-black text-text-muted uppercase tracking-wider flex items-center justify-between">
+            <span>Advancement Ordinal Rank (1 to 50)</span>
+            <span class="text-red-500">*</span>
+          </label>
+          <input 
+            type="number" 
+            formControlName="ordinal" 
+            min="1" 
+            max="50" 
+            class="w-full px-4 py-3 bg-bg-primary border border-border-primary rounded-xl text-sm font-mono font-bold text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+          <p class="text-[11px] text-text-muted font-medium">Lower numbers represent earlier stages (e.g., 1 = Entry level, higher = advanced grade levels).</p>
+        </div>
+
+        <!-- Live Classification Info Box -->
+        <div class="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-4 flex items-start gap-3">
+          <div class="w-6 h-6 rounded-lg bg-blue-500/15 text-blue-500 flex items-center justify-center shrink-0 mt-0.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+          </div>
+          <div class="text-xs space-y-1">
+            <p class="font-bold text-text-primary">Promotion Sequence Notice</p>
+            <p class="text-text-muted leading-relaxed">
+              When annual student promotions run, students in ordinal <span class="font-mono font-bold text-blue-500">#{{ levelForm.value.ordinal }}</span> advance automatically to ordinal <span class="font-mono font-bold text-blue-500">#{{ (levelForm.value.ordinal || 0) + 1 }}</span>.
+            </p>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center justify-end gap-3 pt-3">
+          <button 
+            type="button" 
+            (click)="closeModal()" 
+            class="px-5 py-2.5 bg-bg-tertiary hover:bg-bg-primary border border-border-primary text-text-primary text-xs font-bold rounded-xl transition-all">
+            Cancel
+          </button>
+          
+          <button 
+            type="submit" 
+            [disabled]="levelForm.invalid || isSubmitting()" 
+            class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/25 transition-all flex items-center gap-2">
+            @if (isSubmitting()) {
+              <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            }
+            <span>{{ levelForm.value.id ? 'Update Level' : 'Create Level' }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  }
+
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL: HIERARCHY PRESETS CATALOGUE (FIXED-VIEWPORT CENTERED)       -->
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  @if (showPresetsModal()) {
+  <div class="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in">
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 max-w-2xl w-full my-auto shadow-2xl relative">
+      
+      <!-- Close Button -->
+      <button 
+        (click)="showPresetsModal.set(false)" 
+        class="absolute top-5 right-5 p-2 rounded-xl bg-bg-tertiary hover:bg-bg-primary text-text-muted hover:text-text-primary transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+      <!-- Modal Header -->
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+            <path d="M6 6h10"/>
+            <path d="M6 10h10"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-lg font-black text-text-primary tracking-tight">Institutional Hierarchy Presets</h2>
+          <p class="text-xs text-text-muted font-medium">Quickly scaffold standard scholastic levels based on established curricula</p>
+        </div>
+      </div>
+
+      <!-- Preset List -->
+      <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+        @for (preset of standardPresets; track preset.title) {
+          <div class="bg-bg-primary border border-border-primary rounded-2xl p-5 hover:border-blue-500/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="space-y-1.5 flex-1">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded text-[10px] font-black uppercase tracking-wider">
+                  {{ preset.category }}
+                </span>
+                <h4 class="text-sm font-black text-text-primary">{{ preset.title }}</h4>
+              </div>
+              <p class="text-xs text-text-muted font-medium">{{ preset.description }}</p>
+              
+              <!-- Sample Levels Chips -->
+              <div class="flex items-center gap-1.5 flex-wrap pt-1">
+                @for (l of preset.levels.slice(0, 5); track l.name) {
+                  <span class="px-2 py-0.5 rounded bg-bg-secondary border border-border-primary text-text-muted text-[10px] font-bold">
+                    {{ l.name }}
+                  </span>
+                }
+                @if (preset.levels.length > 5) {
+                  <span class="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-500 text-[10px] font-black">
+                    +{{ preset.levels.length - 5 }} more
+                  </span>
+                }
+              </div>
+            </div>
+
+            <button 
+              (click)="applyPreset(preset)"
+              class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0 active:scale-95">
+              <span>Apply ({{ preset.levels.length }} Tiers)</span>
+            </button>
+          </div>
+        }
+      </div>
+
+      <div class="flex justify-end pt-5 border-t border-border-primary mt-6">
+        <button 
+          (click)="showPresetsModal.set(false)"
+          class="px-5 py-2.5 bg-bg-tertiary hover:bg-bg-primary border border-border-primary text-text-primary text-xs font-bold rounded-xl transition-all">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+  }
 </div>

@@ -35,6 +35,11 @@ export class ClassManagementComponent implements OnInit {
   isEditMode = signal(false);
   submitting = signal(false);
   searchQuery = signal('');
+  
+  // Advanced Filter & View State
+  filterLevelId = signal<string>('all');
+  filterTutorStatus = signal<'all' | 'assigned' | 'unassigned'>('all');
+  viewMode = signal<'grid' | 'table'>('grid');
 
   // Grading Columns & Weights State (Admin Controlled)
   isGradingModalOpen = signal(false);
@@ -47,15 +52,6 @@ export class ClassManagementComponent implements OnInit {
 
   currentClass: Partial<Class> = { name: '', teacher_id: '', scholastic_level_id: '' };
 
-  filteredClasses = computed(() => {
-    const q = this.searchQuery().toLowerCase().trim();
-    if (!q) return this.classes();
-    return this.classes().filter(c =>
-      c.name.toLowerCase().includes(q) ||
-      this.getTeacherName(c.teacher_id).toLowerCase().includes(q)
-    );
-  });
-
   classesWithTeacher = computed(() =>
     this.classes().filter(c => c.teacher_id && c.teacher_id !== '').length
   );
@@ -63,6 +59,51 @@ export class ClassManagementComponent implements OnInit {
   classesWithoutTeacher = computed(() =>
     this.classes().filter(c => !c.teacher_id || c.teacher_id === '').length
   );
+
+  classesWithLevel = computed(() =>
+    this.classes().filter(c => c.scholastic_level_id && c.scholastic_level_id !== '').length
+  );
+
+  tutorCoveragePercent = computed(() => {
+    const total = this.classes().length;
+    if (total === 0) return 100;
+    return Math.round((this.classesWithTeacher() / total) * 100);
+  });
+
+  filteredClasses = computed(() => {
+    const q = this.searchQuery().toLowerCase().trim();
+    const levelId = this.filterLevelId();
+    const tutorStatus = this.filterTutorStatus();
+
+    return this.classes().filter(c => {
+      // 1. Level Filter
+      if (levelId !== 'all') {
+        if (c.scholastic_level_id !== levelId) return false;
+      }
+
+      // 2. Tutor Status Filter
+      if (tutorStatus === 'assigned' && (!c.teacher_id || c.teacher_id === '')) return false;
+      if (tutorStatus === 'unassigned' && (c.teacher_id && c.teacher_id !== '')) return false;
+
+      // 3. Search Query
+      if (!q) return true;
+      const nameMatch = c.name.toLowerCase().includes(q);
+      const teacherName = this.getTeacherName(c.teacher_id).toLowerCase();
+      const teacherMatch = teacherName.includes(q);
+      const levelName = (c.scholastic_level?.name || this.getLevelName(c.scholastic_level_id)).toLowerCase();
+      const levelMatch = levelName.includes(q);
+      const subjectMatch = (c.subjects || []).some(s => s.name.toLowerCase().includes(q) || s.code?.toLowerCase().includes(q));
+
+      return nameMatch || teacherMatch || levelMatch || subjectMatch;
+    });
+  });
+
+  getLevelName(id?: string): string {
+    if (!id) return 'No Level Set';
+    const lvl = this.levels().find(l => l.id === id);
+    return lvl ? lvl.name : 'No Level Set';
+  }
+
 
   ngOnInit() {
     this.loadData();
