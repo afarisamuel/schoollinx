@@ -12,16 +12,16 @@ import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 import { ScholasticLevelService } from '../../../core/infrastructure/scholastic-level/scholastic-level.service';
 import { ScholasticLevel } from '../../../core/domain/scholastic-level.model';
 import { PaginationState, defaultPaginationState } from '../../../core/domain/pagination.model';
-import { PageLoaderComponent } from '../../../shared/ui/page-loader/page-loader.component';
 
 @Component({
     selector: 'app-student-list',
     standalone: true,
-    imports: [RouterLink, CommonModule, FormsModule, DocumentRequestModalComponent, GraduationModalComponent, PageLoaderComponent],
+    imports: [RouterLink, CommonModule, FormsModule, DocumentRequestModalComponent, GraduationModalComponent],
     templateUrl: './student-list.component.html',
     styleUrl: './student-list.component.css'
 })
 export class StudentListComponent implements OnInit {
+
     private dialog = inject(DialogService);
     loading = signal<boolean>(true);
     students = signal<Student[]>([]);
