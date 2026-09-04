@@ -22,6 +22,9 @@ export class GuardianListComponent implements OnInit {
   searchQuery = signal<string>('');
   selectedRelationship = signal<string>('all');
 
+  viewMode = signal<'table' | 'grid'>('table');
+  selectedPortalStatus = signal<'all' | 'active' | 'pending'>('all');
+
   // Add Guardian Modal
   showAddModal = signal<boolean>(false);
   isSubmitting = signal<boolean>(false);
@@ -59,19 +62,29 @@ export class GuardianListComponent implements OnInit {
   // KPIs
   totalGuardians = computed(() => this.guardians().length);
   activePortals = computed(() => this.guardians().filter(g => !!g.user_id).length);
+  portalCoveragePct = computed(() => this.guardians().length ? Math.round((this.activePortals() / this.guardians().length) * 100) : 0);
   totalLinkedWards = computed(() => 
     this.guardians().reduce((acc, g) => acc + (g.students?.length || 0), 0)
   );
+  verifiedContactsCount = computed(() => this.guardians().filter(g => !!g.phone_number && !!g.email).length);
+  verifiedContactsPct = computed(() => this.guardians().length ? Math.round((this.verifiedContactsCount() / this.guardians().length) * 100) : 0);
 
   relationships = ['Parent', 'Father', 'Mother', 'Legal Guardian', 'Uncle', 'Aunt', 'Grandparent', 'Sponsor', 'Other'];
 
   filteredGuardians = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
     const rel = this.selectedRelationship();
+    const portalStatus = this.selectedPortalStatus();
     let list = this.guardians();
 
     if (rel !== 'all') {
       list = list.filter(g => g.relationship?.toLowerCase() === rel.toLowerCase());
+    }
+
+    if (portalStatus === 'active') {
+      list = list.filter(g => !!g.user_id);
+    } else if (portalStatus === 'pending') {
+      list = list.filter(g => !g.user_id);
     }
 
     if (query) {

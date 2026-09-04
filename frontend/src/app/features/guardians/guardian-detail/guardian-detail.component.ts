@@ -35,6 +35,17 @@ export class GuardianDetailComponent implements OnInit {
   showEditModal = signal<boolean>(false);
   isUpdating = signal<boolean>(false);
 
+  // Copy helper
+  copiedKey = signal<string | null>(null);
+
+  copyText(text: string, key: string) {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      this.copiedKey.set(key);
+      setTimeout(() => this.copiedKey.set(null), 2500);
+    });
+  }
+
   editForm = this.fb.group({
     first_name: ['', [Validators.required, Validators.minLength(2)]],
     last_name: ['', [Validators.required, Validators.minLength(2)]],

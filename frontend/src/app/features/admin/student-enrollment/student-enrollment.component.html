@@ -1,168 +1,445 @@
-<div class="relative min-h-screen">
-    <!-- Premium Background Effects -->
-    <div class="absolute inset-x-0 top-0 h-[800px] overflow-hidden pointer-events-none z-0">
-        <div class="absolute -top-[10%] left-[10%] w-[800px] h-[800px] bg-blue-500/10 blur-[140px] rounded-full"></div>
-        <div class="absolute top-[20%] right-[5%] w-[600px] h-[600px] bg-blue-500/10 blur-[120px] rounded-full"></div>
-        <div class="absolute inset-0 bg-bg-primary pointer-events-none"></div>
-    </div>
+<div class="relative min-h-screen pb-20">
+  <!-- Atmospheric Glow Backdrop -->
+  <div class="absolute inset-x-0 top-0 h-[600px] overflow-hidden pointer-events-none z-0">
+    <div class="absolute -top-24 left-1/4 w-[600px] h-[600px] bg-blue-500/10 blur-[150px] rounded-full"></div>
+    <div class="absolute top-1/4 right-1/4 w-[450px] h-[450px] bg-indigo-500/10 blur-[130px] rounded-full"></div>
+    <div class="absolute top-10 right-10 w-[350px] h-[350px] bg-emerald-500/5 blur-[120px] rounded-full"></div>
+  </div>
 
-    <div class="relative z-10 px-6 py-12 md:px-12 max-w-[1600px] mx-auto animate-fade-in">
-        <!-- Modern Elegant Header -->
-        <header class="mb-14">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-                <div>
-                    <div class="flex items-center gap-3 mb-4">
-                        <span class="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(37,99,235,0.2)]">Student Management</span>
-                    </div>
-                    <h1 class="text-3xl md:text-5xl font-black text-text-primary tracking-tight leading-tight mb-3">
-                        Student <span class="text-blue-400">Enrollment</span>
-                    </h1>
-                    <p class="text-text-secondary text-lg max-w-2xl font-medium">Efficiently manage and assign students to their respective classes in batches.</p>
-                </div>
-            </div>
-        </header>
+  <div class="relative z-10 px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1680px] mx-auto animate-fade-in space-y-8">
 
-        <div class="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-10 items-start">
-            <!-- Glassy Enrollment Control Panel -->
-            <aside class="sticky top-10 bg-bg-secondary/50 backdrop-blur-xl border border-border-primary/50 rounded-[32px] p-8 shadow-2xl flex flex-col gap-10 overflow-hidden group">
-                <div class="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
-                <div class="relative z-10">
-                    <h3 class="text-xs font-black uppercase tracking-[0.2em] text-text-secondary mb-6 flex items-center gap-2">
-                        <i class="fas fa-sliders-h text-blue-400"></i> Enrollment Settings
-                    </h3>
-                    
-                    <div class="space-y-4">
-                        <label class="text-sm font-bold text-text-primary">Assign to Class</label>
-                        <div class="relative group/select">
-                            <select [(ngModel)]="selectedClassId" (change)="loadEnrolledStudents()" 
-                                    class="w-full appearance-none bg-bg-tertiary border border-border-primary rounded-2xl px-6 py-4 text-sm font-bold text-text-primary outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 disabled:opacity-50 transition-all cursor-pointer shadow-inner">
-                                <option [value]="null" class="bg-bg-tertiary">Select a class...</option>
-                                @for (c of classes(); track c.id) {
-                                <option [value]="c.id" class="bg-bg-tertiary">{{ c.name }}</option>
-                                }
-                            </select>
-                            <div class="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted group-hover/select:text-blue-400 transition-colors">
-                                <i class="fas fa-chevron-down text-sm"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <!-- 1. Hero Header -->
+    <header class="pt-6 sm:pt-8">
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+        <div class="space-y-2">
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 dark:bg-blue-400/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 rounded-full text-[11px] font-black uppercase tracking-[0.2em]">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+              Class Placement & Batch Enrollment Studio
+            </span>
+            <nav class="text-xs text-text-muted font-semibold flex items-center gap-1.5">
+              <a routerLink="/students" class="hover:text-text-primary transition-colors">Registry</a>
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+              <span class="text-text-primary font-bold">Class Enrollment</span>
+            </nav>
+          </div>
 
-                <div class="border-t border-border-primary/50 pt-10 relative z-10">
-                    <div class="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-6 mb-8 relative overflow-hidden group/stats">
-                        <div class="absolute inset-0 bg-blue-500/5 mix-blend-overlay group-hover/stats:scale-150 transition-transform duration-700"></div>
-                        <div class="relative z-10 flex flex-col items-center gap-2">
-                            <span class="text-xs font-bold text-blue-400/80 uppercase tracking-widest">Students Selected</span>
-                            <div class="flex items-baseline gap-1">
-                                <span class="text-4xl md:text-5xl font-black text-white tracking-tighter">{{ selectedStudentIds.size }}</span>
-                                <span class="text-sm font-bold text-text-muted">students</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button class="w-full relative overflow-hidden px-8 py-5 bg-blue-600 hover:bg-blue-500 disabled:from-bg-tertiary disabled:to-bg-tertiary disabled:text-text-muted disabled:border disabled:border-border-primary text-white font-black rounded-2xl transition-all shadow-sm disabled:shadow-none active:scale-[0.98] flex items-center justify-center gap-3 group/btn" 
-                            [disabled]="selectedStudentIds.size === 0 || !selectedClassId"
-                            (click)="processEnrollment()">
-                        <span class="relative z-10 flex items-center gap-2">
-                            Enroll Students
-                            <i class="fas fa-arrow-right group-hover/btn:translate-x-1 transition-transform"></i>
-                        </span>
-                        <div class="absolute inset-0 bg-white/20 -translate-x-full group-hover/btn:animate-shimmer skew-x-12"></div>
-                    </button>
-                </div>
-            </aside>
-
-            <!-- Modern Students Roster -->
-            <div class="flex flex-col gap-6 w-full">
-                <!-- Search & Filters -->
-                <div class="flex flex-col md:flex-row justify-between items-center bg-bg-secondary/50 backdrop-blur-xl border border-border-primary/50 rounded-3xl p-5 gap-6 shadow-xl relative overflow-hidden">
-                    <div class="absolute left-0 top-0 w-1 h-full bg-blue-500"></div>
-                    <h3 class="text-xl font-black text-text-primary tracking-tight pl-2 flex items-center gap-3">
-                        Available Students
-                    </h3>
-                    <div class="relative w-full md:w-[400px] group/search">
-                        <input type="text" placeholder="Search students by name..." (input)="filterStudents($event)" 
-                               class="w-full pl-12 pr-6 py-4 bg-bg-tertiary/80 border border-border-primary rounded-2xl text-sm font-bold text-white placeholder:text-text-muted focus:border-blue-500 focus:bg-bg-secondary focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-inner">
-                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within/search:text-blue-400 transition-colors">
-                            <i class="fas fa-search text-lg"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Table Container -->
-                <div class="bg-bg-secondary/30 backdrop-blur-md border border-border-primary/50 rounded-[32px] overflow-hidden shadow-2xl min-h-[600px] flex flex-col relative">
-                    <div class="absolute inset-0 bg-blue-500/5 pointer-events-none"></div>
-                    <div class="overflow-x-auto w-full relative z-10 custom-scrollbar">
-                        <table class="w-full text-left border-separate border-spacing-0">
-                            <thead>
-                                <tr class="bg-bg-secondary/80 backdrop-blur-md">
-                                    <th class="px-8 py-5 w-16 text-center border-b border-border-primary/50">
-                                        <div class="flex items-center justify-center">
-                                            <input type="checkbox" (change)="toggleAll($event)" 
-                                                   class="custom-checkbox">
-                                        </div>
-                                    </th>
-                                    <th class="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider border-b border-border-primary/50">Student</th>
-                                    <th class="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider border-b border-border-primary/50">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-border-primary/30">
-                                @for (student of filteredStudents(); track student.id; let i = $index) {
-                                <tr class="group/row hover:bg-bg-tertiary/50 transition-colors cursor-pointer animate-slide-up" 
-                                    [style.animation-delay]="i * 40 + 'ms'"
-                                    [class.bg-blue-500/10]="selectedStudentIds.has(student.id!)"
-                                    (click)="toggleStudent(student.id!)">
-                                    <td class="px-8 py-4 text-center">
-                                        <div class="flex items-center justify-center">
-                                            <input type="checkbox" [checked]="selectedStudentIds.has(student.id!)"
-                                                (click)="$event.stopPropagation()"
-                                                (change)="toggleStudent(student.id!)"
-                                                class="custom-checkbox">
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-4">
-                                            <div class="w-10 h-10 rounded-full bg-blue-600 border border-border-primary shadow-inner flex items-center justify-center text-sm font-bold text-text-primary group-hover/row:border-blue-500/30 group-hover/row:text-blue-400 transition-all">
-                                                {{ student.first_name[0] }}{{ student.last_name[0] }}
-                                            </div>
-                                            <span class="text-sm font-bold text-text-primary group-hover/row:text-white transition-colors">
-                                                {{ student.first_name }} {{ student.last_name }}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        @if (student.class_id) {
-                                        <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-xs font-bold tracking-wide">
-                                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
-                                            Enrolled
-                                        </div>
-                                        } @else {
-                                        <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-bg-tertiary text-text-muted border border-border-primary rounded-full text-xs font-bold tracking-wide">
-                                            <span class="w-1.5 h-1.5 bg-text-muted rounded-full"></span>
-                                            Unassigned
-                                        </div>
-                                        }
-                                    </td>
-                                </tr>
-                                } @empty {
-                                    <tr>
-                                        <td colspan="3" class="px-6 py-32 text-center">
-                                            <div class="flex flex-col items-center justify-center gap-4">
-                                                <div class="w-16 h-16 rounded-2xl bg-bg-tertiary border border-border-primary flex items-center justify-center text-text-muted mb-2 shadow-inner">
-                                                    <i class="fas fa-users-slash text-2xl"></i>
-                                                </div>
-                                                <p class="text-lg font-bold text-text-primary">No Students Found</p>
-                                                <p class="text-sm text-text-muted">Adjust your search or add more students to the system.</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+          <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-text-primary tracking-tight">
+            Student <span class="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600 dark:from-blue-400 dark:via-indigo-400 dark:to-emerald-400 bg-clip-text text-transparent">Enrollment</span> & Stream Placements
+          </h1>
+          <p class="text-text-muted text-sm sm:text-base max-w-3xl font-medium leading-relaxed">
+            Batch assign students to academic divisions, manage stream re-allocations, and monitor classroom roster capacity in real-time.
+          </p>
         </div>
+
+        <!-- Header Actions -->
+        <div class="flex items-center gap-3 flex-wrap w-full sm:w-auto">
+          <a routerLink="/students" class="px-4 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary hover:border-blue-500/40 text-text-primary text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-2 active:scale-95">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-blue-500"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>Student Registry</span>
+          </a>
+          <a routerLink="/classes" class="px-4 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary hover:border-blue-500/40 text-text-primary text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-2 active:scale-95">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-indigo-500"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+            <span>Manage Classes</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- 2. Executive Telemetry Metrics (4 Cards) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+      <!-- KPI 1: Total Cohort -->
+      <div class="bg-bg-secondary border border-border-primary/80 rounded-2xl p-5 shadow-sm hover:border-blue-500/30 transition-all flex flex-col justify-between relative overflow-hidden group">
+        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-blue-500/5 group-hover:bg-blue-500/10 rounded-full blur-xl transition-all"></div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">Total Available Scholars</span>
+          <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-baseline gap-2">
+            <span class="text-3xl font-black text-text-primary tracking-tight font-mono">{{ students().length }}</span>
+            <span class="text-xs font-semibold text-text-muted">Total Scholars</span>
+          </div>
+          <p class="text-xs text-text-muted mt-1 flex items-center gap-1.5 font-medium">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+            Registry Population Loaded
+          </p>
+        </div>
+      </div>
+
+      <!-- KPI 2: Enrolled Placed -->
+      <div class="bg-bg-secondary border border-border-primary/80 rounded-2xl p-5 shadow-sm hover:border-emerald-500/30 transition-all flex flex-col justify-between relative overflow-hidden group">
+        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/5 group-hover:bg-emerald-500/10 rounded-full blur-xl transition-all"></div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">Placed In Class</span>
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-baseline gap-2">
+            <span class="text-3xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight font-mono">{{ enrolledCount() }}</span>
+            <span class="text-xs font-semibold text-text-muted">of {{ students().length }} Enrolled</span>
+          </div>
+          <p class="text-xs text-text-muted mt-1 flex items-center gap-1.5 font-medium">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            Assigned to Academic Divisions
+          </p>
+        </div>
+      </div>
+
+      <!-- KPI 3: Unassigned Alert -->
+      <div class="bg-bg-secondary border border-border-primary/80 rounded-2xl p-5 shadow-sm hover:border-amber-500/30 transition-all flex flex-col justify-between relative overflow-hidden group">
+        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-amber-500/5 group-hover:bg-amber-500/10 rounded-full blur-xl transition-all"></div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">Awaiting Placement</span>
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center"
+               [ngClass]="unassignedCount() > 0 ? 'bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400' : 'bg-bg-tertiary border border-border-primary text-text-muted'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-baseline gap-2">
+            <span class="text-3xl font-black tracking-tight font-mono"
+                  [ngClass]="unassignedCount() > 0 ? 'text-amber-500' : 'text-text-primary'">
+              {{ unassignedCount() }}
+            </span>
+            <span class="text-xs font-semibold text-text-muted">Unassigned Scholars</span>
+          </div>
+          <p class="text-xs text-text-muted mt-1 flex items-center gap-1.5 font-medium">
+            <span class="w-1.5 h-1.5 rounded-full" [ngClass]="unassignedCount() > 0 ? 'bg-amber-500' : 'bg-emerald-500'"></span>
+            {{ unassignedCount() > 0 ? 'Requires Class Allocation' : 'All Students Placed' }}
+          </p>
+        </div>
+      </div>
+
+      <!-- KPI 4: Target Class Capacity -->
+      <div class="bg-bg-secondary border border-border-primary/80 rounded-2xl p-5 shadow-sm hover:border-indigo-500/30 transition-all flex flex-col justify-between relative overflow-hidden group">
+        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/5 group-hover:bg-indigo-500/10 rounded-full blur-xl transition-all"></div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">Target Class Roster</span>
+          <div class="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-baseline gap-2">
+            @if (targetClass()) {
+              <span class="text-2xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight truncate max-w-[180px]">
+                {{ targetClass()!.name }}
+              </span>
+              <span class="text-xs font-mono font-bold text-text-muted">({{ studentsInTargetClassCount() }} enrolled)</span>
+            } @else {
+              <span class="text-xl font-bold text-text-muted">No Target Selected</span>
+            }
+          </div>
+          <p class="text-xs text-text-muted mt-1 flex items-center gap-1.5 font-medium">
+            <span class="w-1.5 h-1.5 rounded-full" [ngClass]="targetClass() ? 'bg-indigo-500' : 'bg-slate-400'"></span>
+            {{ targetClass() ? 'Ready For Batch Placement' : 'Choose class in control panel' }}
+          </p>
+        </div>
+      </div>
     </div>
+
+    <!-- 3. Workspace Layout: Control Panel (Left 380px) + Students Roster (Right) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- Left Column: Enrollment Control Panel (4 cols) -->
+      <aside class="lg:col-span-4 sticky top-6 space-y-6">
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-7 shadow-sm relative overflow-hidden space-y-6">
+          
+          <!-- Panel Header -->
+          <div class="flex items-center gap-3 pb-4 border-b border-border-primary">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/30 flex items-center justify-center text-blue-500 shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            </div>
+            <div>
+              <h3 class="text-base font-black text-text-primary tracking-tight">Batch Placement Settings</h3>
+              <p class="text-xs text-text-muted font-medium">Select destination class & execute assignment</p>
+            </div>
+          </div>
+
+          <!-- Destination Class Select -->
+          <div class="space-y-2">
+            <label class="text-[11px] font-black text-text-muted uppercase tracking-wider flex items-center justify-between">
+              <span>Destination Class</span>
+              <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <select 
+                [ngModel]="selectedClassId()" 
+                (ngModelChange)="selectedClassId.set($event)"
+                class="w-full px-4 py-3.5 bg-bg-primary border border-border-primary rounded-xl text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all appearance-none cursor-pointer">
+                <option [value]="null">— Select Destination Class —</option>
+                @for (c of classes(); track c.id) {
+                  <option [value]="c.id">{{ c.name }}</option>
+                }
+              </select>
+              <div class="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-text-muted">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selection Counter Box -->
+          <div class="bg-gradient-to-br from-blue-500/10 via-indigo-500/10 to-transparent border border-blue-500/20 rounded-2xl p-5 text-center relative overflow-hidden">
+            <span class="text-[10px] font-black uppercase tracking-widest text-blue-500 block mb-1">Scholars Selected</span>
+            <div class="flex items-baseline justify-center gap-1.5">
+              <span class="text-4xl sm:text-5xl font-black text-text-primary font-mono tracking-tight">{{ selectedStudentIds().size }}</span>
+              <span class="text-xs font-bold text-text-muted">students</span>
+            </div>
+
+            @if (selectedStudentIds().size > 0) {
+              <div class="mt-3 flex items-center justify-center gap-2">
+                <button 
+                  (click)="clearSelection()" 
+                  class="text-[11px] font-bold text-text-muted hover:text-red-500 transition-colors underline">
+                  Clear Selection
+                </button>
+              </div>
+            }
+          </div>
+
+          <!-- Selected Scholars Preview Chips -->
+          @if (selectedStudentsList().length > 0) {
+            <div class="space-y-2 pt-2 border-t border-border-primary/60">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">Selected Roster Preview</span>
+                <span class="text-[10px] font-bold text-blue-500">{{ selectedStudentsList().length }} items</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1">
+                @for (student of selectedStudentsList(); track student.id) {
+                  <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-bg-primary border border-border-primary text-[11px] font-bold text-text-primary">
+                    {{ student.first_name }} {{ student.last_name[0] }}.
+                    <button type="button" (click)="toggleStudent(student.id!)" class="text-text-muted hover:text-red-500 ml-0.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  </span>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Process Enrollment Button -->
+          <button 
+            (click)="processEnrollment()"
+            [disabled]="isSubmitting() || selectedStudentIds().size === 0 || !selectedClassId()"
+            class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:from-bg-tertiary disabled:to-bg-tertiary disabled:text-text-muted disabled:border disabled:border-border-primary text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2 disabled:shadow-none active:scale-95">
+            @if (isSubmitting()) {
+              <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              <span>Processing Enrollment...</span>
+            } @else {
+              <span>Enroll {{ selectedStudentIds().size }} Student(s)</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            }
+          </button>
+        </div>
+      </aside>
+
+      <!-- Right Column: Available Students Matrix (8 cols) -->
+      <div class="lg:col-span-8 space-y-5">
+        
+        <!-- Search & Filter Bar -->
+        <div class="bg-bg-secondary p-4 rounded-2xl border border-border-primary shadow-sm flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+          <!-- Search -->
+          <div class="relative flex-1">
+            <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.3-4.3"/>
+            </svg>
+            <input 
+              type="text" 
+              [ngModel]="searchQuery()" 
+              (ngModelChange)="searchQuery.set($event)"
+              placeholder="Search students by name or enrollment number..." 
+              class="w-full pl-10 pr-4 py-2 bg-bg-primary border border-border-primary rounded-xl text-xs sm:text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all font-medium">
+          </div>
+
+          <!-- Status Filter Tabs -->
+          <div class="flex items-center bg-bg-primary p-1 rounded-xl border border-border-primary text-xs font-bold overflow-x-auto max-w-full">
+            <button 
+              (click)="filterStatus.set('all')"
+              [ngClass]="filterStatus() === 'all' ? 'bg-bg-secondary text-text-primary shadow-sm border border-border-primary' : 'text-text-muted hover:text-text-primary'"
+              class="px-3 py-1.5 rounded-lg transition-all whitespace-nowrap">
+              All ({{ students().length }})
+            </button>
+            <button 
+              (click)="filterStatus.set('unassigned')"
+              [ngClass]="filterStatus() === 'unassigned' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 font-black shadow-sm' : 'text-text-muted hover:text-text-primary'"
+              class="px-3 py-1.5 rounded-lg transition-all whitespace-nowrap">
+              Unassigned ({{ unassignedCount() }})
+            </button>
+            <button 
+              (click)="filterStatus.set('enrolled')"
+              [ngClass]="filterStatus() === 'enrolled' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-black shadow-sm' : 'text-text-muted hover:text-text-primary'"
+              class="px-3 py-1.5 rounded-lg transition-all whitespace-nowrap">
+              Enrolled ({{ enrolledCount() }})
+            </button>
+          </div>
+        </div>
+
+        <!-- Select All Trigger -->
+        @if (filteredStudents().length > 0) {
+          <div class="flex items-center justify-between px-2">
+            <label class="flex items-center gap-3 cursor-pointer select-none group">
+              <div class="relative">
+                <input type="checkbox" [checked]="isAllFilteredSelected()" (change)="toggleAllFiltered()" class="sr-only peer">
+                <div class="w-5 h-5 rounded-lg border-2 border-border-primary bg-bg-secondary peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-all flex items-center justify-center shadow-sm">
+                  @if (isAllFilteredSelected()) {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><path d="M20 6L9 17l-5-5"/></svg>
+                  }
+                </div>
+              </div>
+              <span class="text-xs font-black text-text-muted group-hover:text-text-primary transition-colors uppercase tracking-wider">
+                Select all {{ filteredStudents().length }} displayed students
+              </span>
+            </label>
+
+            <span class="text-xs font-bold text-text-muted">
+              Showing {{ filteredStudents().length }} students
+            </span>
+          </div>
+        }
+
+        <!-- Loading State -->
+        @if (isLoading()) {
+          <div class="py-24 flex flex-col items-center justify-center gap-3 bg-bg-secondary border border-border-primary rounded-3xl">
+            <div class="w-10 h-10 border-3 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+            <p class="text-sm font-bold text-text-muted">Loading available student records...</p>
+          </div>
+        }
+
+        <!-- Empty Result State -->
+        @else if (filteredStudents().length === 0) {
+          <div class="bg-bg-secondary border border-border-primary rounded-2xl p-10 text-center">
+            <p class="text-sm font-bold text-text-primary">No students match your active search or placement filter.</p>
+            <button 
+              (click)="searchQuery.set(''); filterStatus.set('all')"
+              class="mt-3 text-xs font-bold text-blue-500 hover:underline">
+              Clear filters
+            </button>
+          </div>
+        }
+
+        <!-- Students Table -->
+        @else {
+          <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-sm">
+            <div class="overflow-x-auto w-full">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-bg-tertiary/70 border-b border-border-primary">
+                    <th class="px-5 py-3.5 w-12 text-center">
+                      <label class="cursor-pointer">
+                        <input type="checkbox" [checked]="isAllFilteredSelected()" (change)="toggleAllFiltered()" class="sr-only peer">
+                        <div class="w-4 h-4 rounded border-2 border-border-primary bg-bg-primary peer-checked:bg-blue-600 peer-checked:border-blue-600 flex items-center justify-center mx-auto transition-all">
+                          @if (isAllFilteredSelected()) {
+                            <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><path d="M20 6L9 17l-5-5"/></svg>
+                          }
+                        </div>
+                      </label>
+                    </th>
+                    <th class="px-6 py-3.5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Student Identity</th>
+                    <th class="px-6 py-3.5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Enrollment #</th>
+                    <th class="px-6 py-3.5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Current Class</th>
+                    <th class="px-6 py-3.5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Residence</th>
+                    <th class="px-6 py-3.5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-border-primary">
+                  @for (student of filteredStudents(); track student.id; let i = $index) {
+                    @let isSelected = selectedStudentIds().has(student.id!);
+
+                    <tr 
+                      (click)="toggleStudent(student.id!)"
+                      class="hover:bg-bg-tertiary/60 transition-colors cursor-pointer group"
+                      [ngClass]="isSelected ? 'bg-blue-500/5' : ''">
+                      
+                      <!-- Checkbox -->
+                      <td class="px-5 py-4 text-center" (click)="$event.stopPropagation()">
+                        <label class="cursor-pointer">
+                          <input type="checkbox" [checked]="isSelected" (change)="toggleStudent(student.id!)" class="sr-only peer">
+                          <div class="w-4 h-4 rounded border-2 border-border-primary bg-bg-primary peer-checked:bg-blue-600 peer-checked:border-blue-600 flex items-center justify-center mx-auto transition-all">
+                            @if (isSelected) {
+                              <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><path d="M20 6L9 17l-5-5"/></svg>
+                            }
+                          </div>
+                        </label>
+                      </td>
+
+                      <!-- Avatar + Name -->
+                      <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                          <div class="w-10 h-10 rounded-xl flex items-center justify-center font-mono text-xs font-black border shadow-sm shrink-0"
+                            [ngClass]="student.gender === 'female'
+                              ? 'bg-pink-500/15 border-pink-500/25 text-pink-600 dark:text-pink-400'
+                              : 'bg-blue-500/15 border-blue-500/25 text-blue-600 dark:text-blue-400'">
+                            {{ student.first_name[0] }}{{ student.last_name[0] }}
+                          </div>
+                          <div>
+                            <span class="text-sm font-black text-text-primary group-hover:text-blue-500 transition-colors uppercase">
+                              {{ student.first_name }} {{ student.other_name ? student.other_name + ' ' : '' }}{{ student.last_name }}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      <!-- Enrollment # -->
+                      <td class="px-6 py-4">
+                        <span class="text-xs font-mono font-bold text-text-muted">
+                          {{ student.enrollment_num || '—' }}
+                        </span>
+                      </td>
+
+                      <!-- Current Class -->
+                      <td class="px-6 py-4">
+                        @if (student.class?.name || student.class_name || student.class_id) {
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400">
+                            {{ student.class?.name || student.class_name || getClassName(student.class_id) }}
+                          </span>
+                        } @else {
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400">
+                            Unassigned
+                          </span>
+                        }
+                      </td>
+
+                      <!-- Residence -->
+                      <td class="px-6 py-4">
+                        @if (student.placed_residence_type) {
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-bg-primary border border-border-primary text-text-muted">
+                            {{ student.placed_residence_type }}
+                          </span>
+                        } @else {
+                          <span class="text-xs text-text-muted italic">—</span>
+                        }
+                      </td>
+
+                      <!-- Status Badge -->
+                      <td class="px-6 py-4 text-right">
+                        @if (student.class_id) {
+                          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Enrolled
+                          </span>
+                        } @else {
+                          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                            Needs Class
+                          </span>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+
+      </div>
+    </div>
+
+  </div>
 </div>

@@ -1,227 +1,402 @@
-<div class="animate-fade-in text-text-primary max-w-6xl mx-auto space-y-4 sm:space-y-6">
+<div class="animate-fade-in text-text-primary max-w-7xl mx-auto space-y-6 pb-12">
   
-  <!-- Back link & Top Actions -->
-  <div class="flex items-center justify-between mb-4 sm:mb-6">
-    <a routerLink="/guardians" class="inline-flex items-center gap-2 text-sm font-bold text-text-muted hover:text-blue-400 transition-colors">
-      <i class="fas fa-arrow-left"></i>
-      <span>Back to Guardian Directory</span>
-    </a>
+  <!-- Atmospheric Top Glow -->
+  <div class="relative">
+    <div class="absolute -top-6 left-1/4 w-96 h-28 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+    <div class="absolute -top-6 right-1/4 w-96 h-28 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
-    @if (guardian()) {
-      <div class="flex items-center gap-2">
-        <button (click)="openEditModal()" class="px-4 py-2 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary rounded-xl text-xs font-bold text-text-primary flex items-center gap-1.5 transition-colors">
-          <i class="fas fa-edit"></i> Edit Details
-        </button>
-        <button (click)="resetPassword()" class="px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors">
-          <i class="fas fa-key"></i> Reset Password
-        </button>
-        <button (click)="deleteGuardian()" class="px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors">
-          <i class="fas fa-trash-alt"></i> Delete
-        </button>
+    <!-- Top Navigation Bar & Action Cluster -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div>
+        <a 
+          routerLink="/guardians" 
+          class="inline-flex items-center gap-2 text-xs font-bold text-text-muted hover:text-blue-400 transition-colors group mb-1.5"
+        >
+          <i class="fas fa-arrow-left transition-transform group-hover:-translate-x-1"></i>
+          <span>Back to Guardian Directory</span>
+        </a>
+        <div class="flex items-center gap-3">
+          <span class="px-2.5 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-black uppercase tracking-wider rounded-md">
+            Guardian Profile & Wards
+          </span>
+          @if (guardian()) {
+            <span class="text-xs text-text-muted font-bold">
+              ID: <span class="font-mono text-text-primary">{{ guardian()!.id?.substring(0, 8) }}</span>
+            </span>
+          }
+        </div>
       </div>
-    }
+
+      @if (guardian()) {
+        <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-end">
+          <button 
+            (click)="openEditModal()" 
+            class="px-4 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer hover:border-blue-500/30 active:scale-95 shadow-sm"
+          >
+            <i class="fas fa-edit text-blue-400"></i>
+            <span>Edit Details</span>
+          </button>
+          
+          <button 
+            (click)="resetPassword()" 
+            class="px-4 py-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer active:scale-95 shadow-sm"
+          >
+            <i class="fas fa-key text-amber-400"></i>
+            <span>Reset Password</span>
+          </button>
+          
+          <button 
+            (click)="deleteGuardian()" 
+            class="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer active:scale-95 shadow-sm"
+          >
+            <i class="fas fa-trash-alt text-rose-400"></i>
+            <span>Delete</span>
+          </button>
+        </div>
+      }
+    </div>
   </div>
 
+  <!-- Loading State -->
   @if (isLoading()) {
-    <div class="flex flex-col items-center justify-center py-20 bg-bg-secondary border border-border-primary rounded-3xl">
-      <div class="w-12 h-12 border-4 border-slate-300 border-t-slate-500 rounded-full animate-spin mb-4"></div>
-      <p class="text-text-muted font-bold text-sm">Loading guardian profile and wards...</p>
+    <div class="flex flex-col items-center justify-center py-24 bg-bg-secondary border border-border-primary rounded-3xl text-center space-y-4 shadow-sm">
+      <div class="relative w-14 h-14">
+        <div class="w-14 h-14 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin"></div>
+        <i class="fas fa-user-shield absolute inset-0 flex items-center justify-center text-blue-400 text-lg"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-black text-text-primary">Loading Guardian Profile</h3>
+        <p class="text-xs text-text-muted mt-0.5">Fetching guardian credentials, family financial statement, and student ward linkages...</p>
+      </div>
     </div>
   } @else if (!guardian()) {
-    <div class="text-center py-20 bg-bg-secondary border border-border-primary rounded-3xl p-6">
-      <p class="text-text-muted">Guardian not found.</p>
-      <a routerLink="/guardians" class="mt-4 inline-block px-5 py-2 bg-blue-600 text-white font-bold rounded-xl text-sm">
-        Return to Directory
+    <div class="text-center py-20 bg-bg-secondary border border-border-primary rounded-3xl p-8 shadow-sm">
+      <div class="w-16 h-16 rounded-3xl bg-rose-500/10 text-rose-400 flex items-center justify-center text-2xl mx-auto mb-4">
+        <i class="fas fa-user-slash"></i>
+      </div>
+      <h3 class="text-lg font-black text-text-primary mb-1">Guardian Not Found</h3>
+      <p class="text-xs text-text-muted max-w-sm mx-auto mb-6">The guardian profile you are looking for does not exist or may have been deleted.</p>
+      <a routerLink="/guardians" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-blue-600/30 transition-all">
+        <i class="fas fa-arrow-left"></i>
+        <span>Return to Directory</span>
       </a>
     </div>
   } @else {
     
-    <!-- Profile Card & Portal Status Header -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Profile Card & Portal Status Header Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
-      <!-- Guardian Profile Information -->
-      <div class="lg:col-span-2 bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 shadow-sm">
-        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5 mb-6">
-          <div class="w-20 h-20 rounded-3xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-black text-2xl shadow-inner shrink-0">
+      <!-- 1. Guardian Core Profile Information (2 cols) -->
+      <div class="lg:col-span-2 bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden group">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-colors"></div>
+        
+        <!-- Identity Header -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5 mb-6 relative z-10">
+          <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-500/20 via-indigo-500/20 to-purple-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-black text-2xl shadow-inner shrink-0 group-hover:scale-105 transition-transform">
             {{ guardian()!.first_name.charAt(0) }}{{ guardian()!.last_name.charAt(0) }}
           </div>
           <div>
             <div class="flex items-center gap-3 flex-wrap">
-              <h1 class="text-2xl md:text-3xl font-black text-text-primary">
+              <h1 class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight">
                 {{ guardian()!.first_name }} {{ guardian()!.last_name }}
               </h1>
-              <span class="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-bold rounded-full">
-                {{ guardian()!.relationship || 'Parent' }}
+              
+              <!-- Relationship Badge -->
+              <span 
+                class="px-3 py-1 text-xs font-bold rounded-full border inline-flex items-center gap-1.5"
+                [ngClass]="{
+                  'bg-blue-500/10 text-blue-400 border-blue-500/20': guardian()!.relationship === 'Father' || guardian()!.relationship === 'Parent',
+                  'bg-purple-500/10 text-purple-400 border-purple-500/20': guardian()!.relationship === 'Mother',
+                  'bg-indigo-500/10 text-indigo-400 border-indigo-500/20': guardian()!.relationship === 'Legal Guardian' || guardian()!.relationship === 'Guardian',
+                  'bg-amber-500/10 text-amber-400 border-amber-500/20': guardian()!.relationship === 'Sponsor' || guardian()!.relationship === 'Uncle' || guardian()!.relationship === 'Aunt',
+                  'bg-bg-tertiary text-text-muted border-border-primary': !guardian()!.relationship || guardian()!.relationship === 'Other'
+                }"
+              >
+                <i class="fas fa-heart text-[10px] opacity-70"></i>
+                <span>{{ guardian()!.relationship || 'Parent' }}</span>
               </span>
+
+              @if (guardian()!.is_primary) {
+                <span class="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[11px] font-bold rounded-full flex items-center gap-1">
+                  <i class="fas fa-star text-[9px]"></i> Primary Contact
+                </span>
+              }
             </div>
-            <p class="text-xs text-text-muted mt-1">
-              Registered Guardian &bull; {{ guardian()!.students?.length || 0 }} Linked Ward(s)
+
+            <p class="text-xs text-text-muted mt-1.5 flex items-center gap-2">
+              <span>Registered Guardian</span>
+              <span>&bull;</span>
+              <span class="text-indigo-400 font-bold">{{ guardian()!.students?.length || 0 }} Linked Ward(s)</span>
             </p>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-border-primary/50 text-sm">
-          <div>
+        <!-- Contact & Meta Matrix -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-border-primary/50 text-sm relative z-10">
+          
+          <!-- Phone Number -->
+          <div class="p-3.5 bg-bg-tertiary/60 border border-border-primary/60 rounded-2xl">
             <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Phone Number</span>
-            <div class="flex items-center gap-2 mt-1">
-              <i class="fas fa-phone-alt text-xs text-blue-400"></i>
-              <a [href]="'tel:' + guardian()!.phone_number" class="text-text-primary font-bold hover:text-blue-400 transition-colors">
-                {{ guardian()!.phone_number }}
+            <div class="flex items-center justify-between mt-1">
+              <a [href]="'tel:' + guardian()!.phone_number" class="text-text-primary font-bold hover:text-blue-400 transition-colors flex items-center gap-2 text-sm">
+                <i class="fas fa-phone text-xs text-emerald-400"></i>
+                <span>{{ guardian()!.phone_number }}</span>
               </a>
-            </div>
-          </div>
-
-          <div>
-            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Email Address</span>
-            <div class="flex items-center gap-2 mt-1">
-              <i class="fas fa-envelope text-xs text-blue-400"></i>
-              @if (guardian()!.email) {
-                <a [href]="'mailto:' + guardian()!.email" class="text-text-primary font-medium hover:text-blue-400 transition-colors">
-                  {{ guardian()!.email }}
-                </a>
-              } @else {
-                <span class="text-text-muted italic">Not provided</span>
+              @if (guardian()!.phone_number) {
+                <button 
+                  (click)="copyText(guardian()!.phone_number, 'phone')" 
+                  class="p-1.5 text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+                  title="Copy Phone"
+                >
+                  <i class="fas" [class.fa-check]="copiedKey() === 'phone'" [class.fa-copy]="copiedKey() !== 'phone'" [class.text-emerald-400]="copiedKey() === 'phone'"></i>
+                </button>
               }
             </div>
           </div>
 
-          <div>
-            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Residential Address</span>
-            <p class="text-text-primary mt-1 font-medium">
-              {{ guardian()!.address || 'No residential address recorded' }}
-            </p>
-          </div>
-
-          <div>
-            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Gender</span>
-            <p class="text-text-primary mt-1 font-medium">
-              {{ guardian()!.gender || 'Unspecified' }}
-            </p>
-          </div>
-
-          <div>
-            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Security Pickup Pass</span>
-            <div class="flex items-center gap-2 mt-1">
-              <i class="fas fa-shield-alt text-xs text-blue-400"></i>
-              <span class="font-mono font-bold text-blue-400 text-blue-400/10 px-2 py-0.5 rounded text-xs">
-                {{ guardian()!.pickup_code || 'N/A' }}
-              </span>
-              @if (guardian()!.can_pickup) {
-                <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded">
-                  Authorized Pickup
+          <!-- Email Address -->
+          <div class="p-3.5 bg-bg-tertiary/60 border border-border-primary/60 rounded-2xl">
+            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Email Address</span>
+            <div class="flex items-center justify-between mt-1">
+              @if (guardian()!.email) {
+                <a [href]="'mailto:' + guardian()!.email" class="text-text-primary font-medium hover:text-blue-400 transition-colors flex items-center gap-2 text-sm truncate max-w-[200px]">
+                  <i class="fas fa-envelope text-xs text-blue-400"></i>
+                  <span class="truncate">{{ guardian()!.email }}</span>
+                </a>
+                <button 
+                  (click)="copyText(guardian()!.email!, 'email')" 
+                  class="p-1.5 text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+                  title="Copy Email"
+                >
+                  <i class="fas" [class.fa-check]="copiedKey() === 'email'" [class.fa-copy]="copiedKey() !== 'email'" [class.text-emerald-400]="copiedKey() === 'email'"></i>
+                </button>
+              } @else {
+                <span class="text-text-muted italic text-xs flex items-center gap-2">
+                  <i class="fas fa-envelope text-xs opacity-50"></i> Not provided
                 </span>
               }
             </div>
           </div>
+
+          <!-- Residential Address -->
+          <div class="p-3.5 bg-bg-tertiary/60 border border-border-primary/60 rounded-2xl">
+            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Residential Address</span>
+            <div class="flex items-center gap-2 mt-1 text-sm">
+              <i class="fas fa-location-dot text-xs text-rose-400 shrink-0"></i>
+              <p class="text-text-primary font-medium truncate">
+                {{ guardian()!.address || 'No residential address recorded' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Gender & Status -->
+          <div class="p-3.5 bg-bg-tertiary/60 border border-border-primary/60 rounded-2xl">
+            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Gender & Role</span>
+            <div class="flex items-center gap-2 mt-1 text-sm font-medium">
+              <i class="fas fa-user text-xs text-indigo-400"></i>
+              <span class="text-text-primary">{{ guardian()!.gender || 'Unspecified' }}</span>
+              <span class="text-text-muted text-xs">&bull;</span>
+              <span class="text-xs text-text-muted">{{ guardian()!.is_primary ? 'Primary Legal Contact' : 'Secondary Contact' }}</span>
+            </div>
+          </div>
+
+          <!-- Security Pickup Pass -->
+          <div class="sm:col-span-2 p-3.5 bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-transparent border border-blue-500/20 rounded-2xl flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">
+                <i class="fas fa-shield-halved"></i>
+              </div>
+              <div>
+                <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Security Pickup Pass</span>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <span class="font-mono font-black text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded text-xs border border-blue-500/20">
+                    {{ guardian()!.pickup_code || 'AUT-PASS-DEFAULT' }}
+                  </span>
+                  @if (guardian()!.can_pickup) {
+                    <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold rounded">
+                      <i class="fas fa-check-circle text-[9px]"></i> Authorized Campus Pickup
+                    </span>
+                  } @else {
+                    <span class="px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-bold rounded">
+                      Pickup Not Authorized
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            @if (guardian()!.pickup_code) {
+              <button 
+                (click)="copyText(guardian()!.pickup_code!, 'pass')" 
+                class="px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <i class="fas" [class.fa-check]="copiedKey() === 'pass'" [class.fa-copy]="copiedKey() !== 'pass'"></i>
+                <span>{{ copiedKey() === 'pass' ? 'Copied' : 'Copy Pass' }}</span>
+              </button>
+            }
+          </div>
+
         </div>
       </div>
 
-      <!-- Portal Status Card -->
-      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 shadow-sm flex flex-col justify-between">
+      <!-- 2. Portal Status & Access Card (1 col) -->
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col justify-between relative overflow-hidden group">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-colors"></div>
+        
         <div>
+          <!-- Portal Header Pill -->
           <div class="flex items-center justify-between mb-4">
             <span class="text-xs font-bold text-text-muted uppercase tracking-wider">Portal Access</span>
             @if (guardian()!.user_id) {
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-lg">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                Active Account
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-full shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Active Account</span>
               </span>
             } @else {
-              <span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold rounded-lg">
-                Pending Setup
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold rounded-full">
+                <i class="fas fa-clock text-[10px]"></i>
+                <span>Pending Setup</span>
               </span>
             }
           </div>
 
-          <h3 class="text-lg font-black text-text-primary mb-2">School Linx Parent Portal</h3>
-          <p class="text-xs text-text-muted leading-relaxed mb-4">
-            Parents can log in to view report cards, real-time attendance, daily bills, homework, and make fee payments for their linked wards.
+          <h3 class="text-lg font-black text-text-primary mb-2">SchoolLinx Parent Portal</h3>
+          <p class="text-xs text-text-muted leading-relaxed mb-5">
+            Parents can log in to view term report cards, live class attendance, fee statements, daily homework, and execute mobile money payments.
           </p>
 
-          <div class="p-3 bg-bg-tertiary rounded-2xl border border-border-primary/50 text-xs space-y-1.5 font-mono">
-            <div class="flex justify-between">
-              <span class="text-text-muted font-sans">Login ID:</span>
-              <span class="text-text-primary font-bold select-all">{{ guardian()!.email || guardian()!.phone_number }}</span>
+          <!-- Login Details Card -->
+          <div class="p-4 bg-bg-tertiary rounded-2xl border border-border-primary/60 space-y-2.5 font-mono text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-text-muted font-sans text-[11px] uppercase font-bold">Login ID</span>
+              <div class="flex items-center gap-2">
+                <span class="text-text-primary font-bold select-all truncate max-w-[180px]">{{ guardian()!.email || guardian()!.phone_number }}</span>
+                <button 
+                  (click)="copyText(guardian()!.email || guardian()!.phone_number, 'loginId')" 
+                  class="text-text-muted hover:text-text-primary p-0.5 cursor-pointer transition-colors"
+                  title="Copy Login ID"
+                >
+                  <i class="fas" [class.fa-check]="copiedKey() === 'loginId'" [class.fa-copy]="copiedKey() !== 'loginId'" [class.text-emerald-400]="copiedKey() === 'loginId'"></i>
+                </button>
+              </div>
             </div>
-            <div class="flex justify-between">
-              <span class="text-text-muted font-sans">Role:</span>
-              <span class="text-blue-400 font-bold">GUARDIAN</span>
+
+            <div class="flex items-center justify-between pt-2 border-t border-border-primary/40">
+              <span class="text-text-muted font-sans text-[11px] uppercase font-bold">Role</span>
+              <span class="text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 text-[10px]">
+                GUARDIAN
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-border-primary/40">
+              <span class="text-text-muted font-sans text-[11px] uppercase font-bold">Portal URL</span>
+              <span class="text-indigo-400 font-sans text-[11px]">/login</span>
             </div>
           </div>
         </div>
 
-        <div class="mt-6 pt-4 border-t border-border-primary/50">
-          <button (click)="resetPassword()" class="w-full py-2.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/20 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors">
-            <i class="fas fa-key"></i> Generate Temporary Password
+        <div class="mt-6 pt-5 border-t border-border-primary/50">
+          <button 
+            (click)="resetPassword()" 
+            class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-95 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer"
+          >
+            <i class="fas fa-key text-xs"></i>
+            <span>Generate Temporary Password</span>
           </button>
         </div>
       </div>
+
     </div>
 
-    <!-- ── FAMILY FINANCIAL LEDGER SECTION ─────────────────────────────────── -->
+    <!-- ── FAMILY FINANCIAL STATEMENT SECTION ───────────────────────────── -->
     @if (ledgerError()) {
-      <div class="flex items-start gap-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-2xl p-4 mb-6">
-        <svg class="w-5 h-5 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
+      <div class="flex items-start gap-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-2xl p-4 shadow-sm">
+        <i class="fas fa-exclamation-circle text-rose-400 text-lg mt-0.5"></i>
         <div>
-          <p class="text-sm font-semibold">Family Ledger Unavailable</p>
-          <p class="text-xs text-rose-400 mt-0.5">{{ ledgerError() }}</p>
+          <p class="text-sm font-bold">Family Ledger Unavailable</p>
+          <p class="text-xs text-rose-400/90 mt-0.5">{{ ledgerError() }}</p>
         </div>
       </div>
     }
+
     @if (familyLedger()) {
-      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 shadow-sm mb-8">
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 shadow-sm">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-border-primary mb-6 gap-4">
           <div>
-            <div class="flex items-center gap-3">
-              <h2 class="text-xl font-black text-text-primary">Family Financial Statement</h2>
+            <div class="flex items-center gap-3 flex-wrap">
+              <h2 class="text-xl font-black text-text-primary tracking-tight">Family Financial Statement</h2>
               @if (familyLedger()!.sibling_discount_pct) {
-                <span class="px-3 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-bold rounded-full">
-                  {{ familyLedger()!.sibling_discount_pct }}% Sibling Discount Active
+                <span class="px-3 py-1 bg-gradient-to-r from-blue-500/15 to-indigo-500/15 text-blue-400 border border-blue-500/30 text-xs font-bold rounded-full flex items-center gap-1.5">
+                  <i class="fas fa-tags text-[10px]"></i>
+                  <span>{{ familyLedger()!.sibling_discount_pct }}% Sibling Discount Active</span>
                 </span>
               }
             </div>
-            <p class="text-xs text-text-muted mt-1">Aggregated fee ledger across all wards associated with this family</p>
+            <p class="text-xs text-text-muted mt-1">
+              Aggregated fee ledger across all student wards associated with this guardian profile
+            </p>
           </div>
         </div>
 
+        <!-- 3 Financial Telemetry Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <div class="p-4 bg-bg-tertiary rounded-2xl border border-border-primary">
-            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Total Invoiced</span>
-            <div class="text-xl font-black text-text-primary mt-1">
+          
+          <!-- Total Invoiced -->
+          <div class="p-5 bg-bg-tertiary/70 rounded-2xl border border-border-primary/70 relative overflow-hidden">
+            <span class="text-[10px] font-black text-text-muted uppercase tracking-wider block">Total Invoiced</span>
+            <div class="text-2xl font-black text-text-primary mt-1.5 tracking-tight">
               GH₵ {{ familyLedger()!.total_family_billed | number:'1.2-2' }}
             </div>
+            <p class="text-[11px] text-text-muted mt-1">Aggregated family fees</p>
           </div>
-          <div class="p-4 bg-bg-tertiary rounded-2xl border border-border-primary">
-            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Total Paid</span>
-            <div class="text-xl font-black text-emerald-400 mt-1">
+
+          <!-- Total Paid -->
+          <div class="p-5 bg-bg-tertiary/70 rounded-2xl border border-border-primary/70 relative overflow-hidden">
+            <span class="text-[10px] font-black text-text-muted uppercase tracking-wider block">Total Paid</span>
+            <div class="text-2xl font-black text-emerald-400 mt-1.5 tracking-tight">
               GH₵ {{ familyLedger()!.total_family_paid | number:'1.2-2' }}
             </div>
+            <p class="text-[11px] text-emerald-400/80 mt-1">Cleared collections</p>
           </div>
-          <div class="p-4 bg-bg-tertiary rounded-2xl border border-border-primary">
-            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Family Balance Due</span>
-            <div class="text-xl font-black mt-1" [ngClass]="familyLedger()!.total_family_balance > 0 ? 'text-rose-400' : 'text-emerald-400'">
+
+          <!-- Family Balance Due -->
+          <div class="p-5 bg-bg-tertiary/70 rounded-2xl border border-border-primary/70 relative overflow-hidden">
+            <span class="text-[10px] font-black text-text-muted uppercase tracking-wider block">Family Balance Due</span>
+            <div 
+              class="text-2xl font-black mt-1.5 tracking-tight"
+              [ngClass]="familyLedger()!.total_family_balance > 0 ? 'text-rose-400' : 'text-emerald-400'"
+            >
               GH₵ {{ familyLedger()!.total_family_balance | number:'1.2-2' }}
             </div>
+            <p class="text-[11px] mt-1" [ngClass]="familyLedger()!.total_family_balance > 0 ? 'text-rose-400/80' : 'text-emerald-400/80'">
+              {{ familyLedger()!.total_family_balance > 0 ? 'Outstanding balance' : 'Account fully settled' }}
+            </p>
           </div>
+
         </div>
 
+        <!-- Per-Ward Financial Breakdown -->
         @if (familyLedger()!.wards.length > 0) {
-          <div class="space-y-2">
+          <div class="space-y-2.5">
             @for (w of familyLedger()!.wards; track w.student_id) {
-              <div class="p-3.5 bg-bg-tertiary rounded-xl border border-border-primary/50 flex items-center justify-between text-xs">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-6 h-6 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-black text-[10px]">
+              <div class="p-4 bg-bg-tertiary rounded-2xl border border-border-primary/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs hover:border-blue-500/30 transition-colors">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-black text-xs shrink-0">
                     {{ w.student_name[0] }}
                   </div>
-                  <span class="font-black text-text-primary">{{ w.student_name }}</span>
-                  <span class="text-text-muted">({{ w.class_name }})</span>
+                  <div>
+                    <span class="font-black text-text-primary text-sm">{{ w.student_name }}</span>
+                    <span class="text-text-muted ml-2 font-mono">({{ w.class_name }})</span>
+                  </div>
                 </div>
-                <div class="flex items-center gap-4">
-                  <span class="text-text-muted">Billed: GH₵ {{ w.total_billed | number:'1.2-2' }}</span>
-                  <span class="font-bold text-emerald-400">Paid: GH₵ {{ w.total_paid | number:'1.2-2' }}</span>
-                  <span class="font-black" [ngClass]="w.balance_due > 0 ? 'text-rose-400' : 'text-emerald-400'">
+
+                <div class="flex items-center gap-4 sm:gap-6 flex-wrap font-medium">
+                  <span class="text-text-muted">Billed: <strong class="text-text-primary">GH₵ {{ w.total_billed | number:'1.2-2' }}</strong></span>
+                  <span class="text-emerald-400">Paid: <strong class="text-emerald-400">GH₵ {{ w.total_paid | number:'1.2-2' }}</strong></span>
+                  <span 
+                    class="font-black px-2.5 py-1 rounded-lg border text-xs"
+                    [ngClass]="w.balance_due > 0 ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'"
+                  >
                     Due: GH₵ {{ w.balance_due | number:'1.2-2' }}
                   </span>
                 </div>
@@ -232,69 +407,85 @@
       </div>
     }
 
-    <!-- ── LINKED STUDENTS (WARDS) SECTION ─────────────────────────────────── -->
-    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 md:p-8 shadow-sm">
+    <!-- ── LINKED STUDENTS (WARDS) SECTION ───────────────────────────────── -->
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 shadow-sm">
       
       <!-- Section Header -->
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-border-primary mb-6 gap-4">
         <div>
           <div class="flex items-center gap-3">
-            <h2 class="text-xl font-black text-text-primary">Linked Students (Wards)</h2>
+            <h2 class="text-xl font-black text-text-primary tracking-tight">Linked Students (Wards)</h2>
             <span class="px-3 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-bold rounded-full">
               {{ guardian()!.students?.length || 0 }} Associated
             </span>
           </div>
           <p class="text-xs text-text-muted mt-1">
-            Students linked to this parent. This guardian can monitor all linked wards from their Parent Portal account.
+            Scholars linked to this guardian. The guardian can monitor academic records, grades, and attendance from their portal.
           </p>
         </div>
 
-        <button (click)="openLinkModal()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-600/20 flex items-center gap-2 transition-all cursor-pointer">
-          <i class="fas fa-plus"></i> Link Student to Guardian
+        <button 
+          (click)="openLinkModal()" 
+          class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-95 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2 transition-all cursor-pointer"
+        >
+          <i class="fas fa-plus text-xs"></i>
+          <span>Link Student to Guardian</span>
         </button>
       </div>
 
-      <!-- Students Grid / List -->
+      <!-- Students Grid / Empty State -->
       @if (!guardian()!.students || guardian()!.students!.length === 0) {
-        <div class="flex flex-col items-center justify-center py-16 text-center">
-          <div class="w-14 h-14 rounded-3xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl mb-3">
-            <i class="fas fa-user-graduate"></i>
+        <div class="flex flex-col items-center justify-center py-16 text-center border border-dashed border-border-primary rounded-2xl">
+          <div class="w-14 h-14 rounded-3xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center text-xl mb-3 shadow-inner">
+            <i class="fas fa-children"></i>
           </div>
           <h3 class="text-base font-black text-text-primary mb-1">No Students Linked Yet</h3>
           <p class="text-xs text-text-muted max-w-sm mb-5">
-            Link one or multiple students to this guardian so they can track their academic progress and attendance.
+            Link one or multiple students to this guardian so they can track academic progression and receive parent notifications.
           </p>
-          <button (click)="openLinkModal()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all">
-            <i class="fas fa-plus"></i> Link Student Now
+          <button 
+            (click)="openLinkModal()" 
+            class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all cursor-pointer"
+          >
+            <i class="fas fa-plus"></i>
+            <span>Link Student Now</span>
           </button>
         </div>
       } @else {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           @for (student of guardian()!.students; track student.id) {
-            <div class="bg-bg-tertiary border border-border-primary hover:border-blue-500/30 rounded-2xl p-5 transition-all flex flex-col justify-between group">
+            <div class="bg-bg-tertiary border border-border-primary hover:border-blue-500/30 rounded-2xl p-5 transition-all flex flex-col justify-between group shadow-sm">
               
               <div class="flex items-start gap-4">
                 <!-- Avatar -->
-                <div class="w-14 h-14 rounded-2xl overflow-hidden bg-bg-secondary border border-border-primary flex items-center justify-center text-text-muted shrink-0">
+                <div class="w-14 h-14 rounded-2xl overflow-hidden bg-bg-secondary border border-border-primary flex items-center justify-center text-text-muted shrink-0 shadow-sm">
                   @if (student.photo_url) {
                     <img [src]="student.photo_url" class="w-full h-full object-cover" [alt]="student.first_name">
                   } @else {
-                    <i class="fas fa-user-graduate text-xl text-blue-400"></i>
+                    <div class="w-full h-full bg-gradient-to-br from-blue-500/20 to-indigo-500/20 flex items-center justify-center text-blue-400 font-black text-base">
+                      {{ student.first_name[0] }}{{ student.last_name[0] }}
+                    </div>
                   }
                 </div>
 
                 <!-- Info -->
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center justify-between gap-2">
-                    <a [routerLink]="['/students/details', student.id]" class="font-black text-text-primary hover:text-blue-400 transition-colors text-base truncate">
-                      {{ student.first_name }} {{ student.last_name }}
+                    <a 
+                      [routerLink]="['/students/details', student.id]" 
+                      class="font-black text-text-primary hover:text-blue-400 transition-colors text-base truncate flex items-center gap-1.5"
+                    >
+                      <span>{{ student.first_name }} {{ student.last_name }}</span>
+                      <i class="fas fa-arrow-up-right-from-square text-[10px] text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
                     </a>
                     @if (student.status) {
-                      <span class="px-2 py-0.5 text-[9px] font-black uppercase rounded-md"
-                            [ngClass]="{
-                              'bg-emerald-500/10 text-emerald-400': student.status === 'ACTIVE',
-                              'bg-amber-500/10 text-amber-400': student.status !== 'ACTIVE'
-                            }">
+                      <span 
+                        class="px-2 py-0.5 text-[9px] font-black uppercase rounded-md border"
+                        [ngClass]="{
+                          'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': student.status === 'ACTIVE',
+                          'bg-amber-500/10 text-amber-400 border-amber-500/20': student.status !== 'ACTIVE'
+                        }"
+                      >
                         {{ student.status }}
                       </span>
                     }
@@ -302,13 +493,13 @@
 
                   <div class="mt-2 space-y-1 text-xs text-text-muted">
                     <div class="flex items-center gap-2">
-                      <span class="font-bold text-text-secondary">Class:</span>
-                      <span>{{ student.class?.name || 'Unassigned' }}</span>
+                      <span class="font-bold text-text-secondary">Class Stream:</span>
+                      <span class="text-text-primary font-medium">{{ student.class?.name || 'Unassigned' }}</span>
                     </div>
                     @if (student.enrollment_num) {
                       <div class="flex items-center gap-2">
                         <span class="font-bold text-text-secondary">Enrollment ID:</span>
-                        <span class="font-mono">{{ student.enrollment_num }}</span>
+                        <span class="font-mono text-blue-400 bg-blue-500/10 px-1.5 py-0.2 rounded">{{ student.enrollment_num }}</span>
                       </div>
                     }
                     @if (student.gender) {
@@ -323,13 +514,21 @@
 
               <!-- Student Card Actions -->
               <div class="mt-4 pt-3 border-t border-border-primary/50 flex items-center justify-between">
-                <a [routerLink]="['/students/details', student.id]" class="text-xs font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1.5 transition-colors">
-                  <i class="fas fa-external-link-alt text-[10px]"></i> View Student Profile
+                <a 
+                  [routerLink]="['/students/details', student.id]" 
+                  class="text-xs font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1.5 transition-colors"
+                >
+                  <i class="fas fa-external-link-alt text-[10px]"></i>
+                  <span>View Student Profile</span>
                 </a>
 
-                <button (click)="unlinkStudent(student)" class="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                        title="Unlink student from this guardian">
-                  <i class="fas fa-unlink text-[10px]"></i> Unlink Ward
+                <button 
+                  (click)="unlinkStudent(student)" 
+                  class="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer active:scale-95"
+                  title="Unlink student from this guardian"
+                >
+                  <i class="fas fa-unlink text-[10px]"></i>
+                  <span>Unlink Ward</span>
                 </button>
               </div>
 
@@ -341,179 +540,248 @@
 
   }
 
-  <!-- LINK STUDENT MODAL -->
-  @if (showLinkModal()) {
-    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4" (click)="closeLinkModal()">
-      <div class="bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl w-full max-w-lg p-5 sm:p-8 shadow-2xl max-h-[92vh] sm:max-h-[85vh] overflow-y-auto animate-slide-up" (click)="$event.stopPropagation()">
-        <div class="bottomsheet-handle sm:hidden"></div>
-        
-        <div class="flex items-center justify-between pb-4 border-b border-border-primary mb-6">
+</div>
+
+<!-- ========================================== -->
+<!-- LINK STUDENT MODAL (FIXED VIEWPORT)        -->
+<!-- ========================================== -->
+@if (showLinkModal()) {
+  <div 
+    class="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in" 
+    (click)="closeLinkModal()"
+  >
+    <div 
+      class="bg-bg-secondary border border-border-primary rounded-3xl w-full max-w-lg p-6 sm:p-8 shadow-2xl relative my-auto animate-scale-in" 
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-border-primary mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center text-base">
+            <i class="fas fa-link"></i>
+          </div>
           <div>
             <h2 class="text-xl font-black text-text-primary">Link Student to Guardian</h2>
             <p class="text-xs text-text-muted mt-0.5">Search for any student in the school to link as a ward</p>
           </div>
-          <button (click)="closeLinkModal()" class="w-8 h-8 rounded-full bg-bg-tertiary text-text-muted hover:text-text-primary flex items-center justify-center transition-colors">
-            <i class="fas fa-times"></i>
-          </button>
+        </div>
+        <button 
+          (click)="closeLinkModal()" 
+          class="w-8 h-8 rounded-full bg-bg-tertiary text-text-muted hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer"
+        >
+          <i class="fas fa-times text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Search Field -->
+      <div class="space-y-4 mb-6">
+        <div class="relative z-30">
+          <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">Search Student Roster</label>
+          <app-student-search-dropdown
+            placeholder="Type student name or ID..."
+            (studentSelected)="onStudentSelected($event)"
+          ></app-student-search-dropdown>
         </div>
 
-        <div class="space-y-4 mb-6">
-          <div class="relative z-30">
-            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">Search Student</label>
-            <app-student-search-dropdown
-              placeholder="Type student name or ID..."
-              (studentSelected)="onStudentSelected($event)"
-            ></app-student-search-dropdown>
-          </div>
-
-          @if (selectedStudentToLink()) {
-            <div class="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-black">
-                  {{ selectedStudentToLink()?.first_name?.charAt(0) }}
-                </div>
-                <div>
-                  <h4 class="text-sm font-black text-text-primary">
-                    {{ selectedStudentToLink()?.first_name }} {{ selectedStudentToLink()?.last_name }}
-                  </h4>
-                  <p class="text-xs text-text-muted">
-                    ID: {{ selectedStudentToLink()?.enrollment_num || 'N/A' }}
-                  </p>
-                </div>
+        @if (selectedStudentToLink()) {
+          <div class="p-4 bg-gradient-to-r from-blue-500/15 to-indigo-500/15 border border-blue-500/30 rounded-2xl flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/30 text-blue-300 flex items-center justify-center font-black">
+                {{ selectedStudentToLink()?.first_name?.charAt(0) }}
               </div>
-              <span class="px-2.5 py-1 bg-blue-500/20 text-blue-300 text-xs font-bold rounded-lg">
-                Selected
-              </span>
+              <div>
+                <h4 class="text-sm font-black text-text-primary">
+                  {{ selectedStudentToLink()?.first_name }} {{ selectedStudentToLink()?.last_name }}
+                </h4>
+                <p class="text-xs text-text-muted">
+                  Enrollment ID: <span class="font-mono text-blue-300">{{ selectedStudentToLink()?.enrollment_num || 'N/A' }}</span>
+                </p>
+              </div>
             </div>
+            <span class="px-2.5 py-1 bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-bold rounded-lg flex items-center gap-1">
+              <i class="fas fa-check text-[10px]"></i> Selected
+            </span>
+          </div>
+        }
+      </div>
+
+      <!-- Modal Actions -->
+      <div class="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-4 border-t border-border-primary">
+        <button 
+          type="button" 
+          (click)="closeLinkModal()" 
+          class="w-full sm:w-auto px-5 py-2.5 bg-bg-tertiary hover:bg-bg-tertiary/70 text-text-primary font-bold text-xs rounded-xl border border-border-primary transition-colors cursor-pointer"
+        >
+          Cancel
+        </button>
+        <button 
+          type="button" 
+          (click)="submitLinkStudent()" 
+          [disabled]="!selectedStudentToLink() || isLinking()"
+          class="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-95 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+        >
+          @if (isLinking()) {
+            <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            <span>Linking Ward...</span>
+          } @else {
+            <i class="fas fa-link text-xs"></i>
+            <span>Link Ward</span>
           }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- ========================================== -->
+<!-- EDIT GUARDIAN MODAL (FIXED VIEWPORT)       -->
+<!-- ========================================== -->
+@if (showEditModal()) {
+  <div 
+    class="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in" 
+    (click)="closeEditModal()"
+  >
+    <div 
+      class="bg-bg-secondary border border-border-primary rounded-3xl w-full max-w-xl p-6 sm:p-8 shadow-2xl relative my-auto animate-scale-in max-h-[92vh] flex flex-col" 
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-border-primary mb-6 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center text-base">
+            <i class="fas fa-user-pen"></i>
+          </div>
+          <div>
+            <h2 class="text-xl font-black text-text-primary">Edit Guardian Details</h2>
+            <p class="text-xs text-text-muted mt-0.5">Update contact, address, and relationship details</p>
+          </div>
+        </div>
+        <button 
+          (click)="closeEditModal()" 
+          class="w-8 h-8 rounded-full bg-bg-tertiary text-text-muted hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer"
+        >
+          <i class="fas fa-times text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Form Body -->
+      <form [formGroup]="editForm" (ngSubmit)="submitEditGuardian()" class="space-y-4 overflow-y-auto pr-1 flex-1">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">First Name *</label>
+            <input 
+              type="text" 
+              formControlName="first_name"
+              class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" 
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Last Name *</label>
+            <input 
+              type="text" 
+              formControlName="last_name"
+              class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" 
+            />
+          </div>
         </div>
 
-        <div class="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-4 border-t border-border-primary">
-          <button type="button" (click)="closeLinkModal()" class="w-full sm:w-auto px-5 py-2.5 bg-bg-tertiary hover:bg-bg-tertiary/70 text-text-primary font-bold text-sm rounded-xl transition-colors">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Phone Number *</label>
+            <input 
+              type="tel" 
+              formControlName="phone_number"
+              class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" 
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Email Address</label>
+            <input 
+              type="email" 
+              formControlName="email"
+              class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" 
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Relationship *</label>
+            <select 
+              formControlName="relationship"
+              class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 transition-colors font-medium"
+            >
+              @for (r of relationships; track r) {
+                <option [value]="r">{{ r }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Gender</label>
+            <select 
+              formControlName="gender"
+              class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 transition-colors font-medium"
+            >
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Residential Address</label>
+          <input 
+            type="text" 
+            formControlName="address"
+            placeholder="e.g., 14 Independence Ave, Accra"
+            class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" 
+          />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          <label class="flex items-center gap-3 p-3.5 bg-bg-tertiary rounded-2xl border border-border-primary/60 cursor-pointer hover:border-blue-500/30 transition-colors">
+            <input type="checkbox" formControlName="is_primary" class="w-4 h-4 rounded text-blue-600 bg-bg-secondary border-border-primary focus:ring-0" />
+            <div>
+              <span class="text-xs font-bold text-text-primary block">Primary Contact</span>
+              <span class="text-[10px] text-text-muted">Receives official billing & alerts</span>
+            </div>
+          </label>
+
+          <label class="flex items-center gap-3 p-3.5 bg-bg-tertiary rounded-2xl border border-border-primary/60 cursor-pointer hover:border-blue-500/30 transition-colors">
+            <input type="checkbox" formControlName="can_pickup" class="w-4 h-4 rounded text-blue-600 bg-bg-secondary border-border-primary focus:ring-0" />
+            <div>
+              <span class="text-xs font-bold text-text-primary block">Authorized Pickup</span>
+              <span class="text-[10px] text-text-muted">Permitted to collect wards at campus gate</span>
+            </div>
+          </label>
+        </div>
+
+        <div class="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-4 border-t border-border-primary shrink-0">
+          <button 
+            type="button" 
+            (click)="closeEditModal()" 
+            class="w-full sm:w-auto px-5 py-2.5 bg-bg-tertiary hover:bg-bg-tertiary/70 text-text-primary font-bold text-xs rounded-xl border border-border-primary transition-colors cursor-pointer"
+          >
             Cancel
           </button>
-          <button type="button" (click)="submitLinkStudent()" [disabled]="!selectedStudentToLink() || isLinking()"
-                  class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50">
-            @if (isLinking()) {
+          <button 
+            type="submit" 
+            [disabled]="isUpdating()"
+            class="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-95 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+          >
+            @if (isUpdating()) {
               <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              <span>Linking Student...</span>
+              <span>Saving Changes...</span>
             } @else {
-              <i class="fas fa-link"></i>
-              <span>Link Ward</span>
+              <i class="fas fa-save text-xs"></i>
+              <span>Save Changes</span>
             }
           </button>
         </div>
+      </form>
 
-      </div>
     </div>
-  }
-
-  <!-- EDIT GUARDIAN MODAL -->
-  @if (showEditModal()) {
-    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 overflow-y-auto" (click)="closeEditModal()">
-      <div class="bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl w-full max-w-xl p-5 sm:p-8 shadow-2xl max-h-[92vh] sm:max-h-[90vh] overflow-y-auto custom-scrollbar animate-slide-up" (click)="$event.stopPropagation()">
-        <div class="bottomsheet-handle sm:hidden"></div>
-        
-        <div class="flex items-center justify-between pb-4 border-b border-border-primary mb-6">
-          <div>
-            <h2 class="text-xl font-black text-text-primary">Edit Guardian Details</h2>
-            <p class="text-xs text-text-muted mt-0.5">Update contact and relationship details</p>
-          </div>
-          <button (click)="closeEditModal()" class="w-8 h-8 rounded-full bg-bg-tertiary text-text-muted hover:text-text-primary flex items-center justify-center transition-colors">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-
-        <form [formGroup]="editForm" (ngSubmit)="submitEditGuardian()" class="space-y-4">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">First Name *</label>
-              <input type="text" formControlName="first_name"
-                     class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 transition-colors" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Last Name *</label>
-              <input type="text" formControlName="last_name"
-                     class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 transition-colors" />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Phone Number *</label>
-              <input type="tel" formControlName="phone_number"
-                     class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 transition-colors" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Email Address</label>
-              <input type="email" formControlName="email"
-                     class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 transition-colors" />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Relationship *</label>
-              <select formControlName="relationship"
-                      class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 transition-colors font-medium">
-                @for (r of relationships; track r) {
-                  <option [value]="r">{{ r }}</option>
-                }
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Gender</label>
-              <select formControlName="gender"
-                      class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 transition-colors font-medium">
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Residential Address</label>
-            <input type="text" formControlName="address"
-                   class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 transition-colors" />
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            <label class="flex items-center gap-3 p-3 bg-bg-tertiary rounded-xl border border-border-primary/50 cursor-pointer">
-              <input type="checkbox" formControlName="is_primary" class="w-4 h-4 rounded text-blue-600 bg-bg-secondary border-border-primary focus:ring-0" />
-              <div>
-                <span class="text-xs font-bold text-text-primary block">Primary Contact</span>
-                <span class="text-[10px] text-text-muted">Receives billing & emergency notices</span>
-              </div>
-            </label>
-
-            <label class="flex items-center gap-3 p-3 bg-bg-tertiary rounded-xl border border-border-primary/50 cursor-pointer">
-              <input type="checkbox" formControlName="can_pickup" class="w-4 h-4 rounded text-blue-600 bg-bg-secondary border-border-primary focus:ring-0" />
-              <div>
-                <span class="text-xs font-bold text-text-primary block">Authorized Pickup</span>
-                <span class="text-[10px] text-text-muted">Allowed to collect wards at gate</span>
-              </div>
-            </label>
-          </div>
-
-          <div class="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-4 border-t border-border-primary">
-            <button type="button" (click)="closeEditModal()" class="w-full sm:w-auto px-5 py-2.5 bg-bg-tertiary hover:bg-bg-tertiary/70 text-text-primary font-bold text-sm rounded-xl transition-colors">
-              Cancel
-            </button>
-            <button type="submit" [disabled]="isUpdating()"
-                    class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50">
-              @if (isUpdating()) {
-                <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                <span>Saving Changes...</span>
-              } @else {
-                <i class="fas fa-save"></i>
-                <span>Save Changes</span>
-              }
-            </button>
-          </div>
-        </form>
-
-      </div>
-    </div>
-  }
-
-</div>
+  </div>
+}

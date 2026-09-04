@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CurriculumService, AcademicAssignment } from '../../../core/infrastructure/curriculum/curriculum.service';
@@ -33,7 +33,24 @@ export class AcademicAssignmentComponent implements OnInit {
 
     terms = signal<string[]>([]);
     selectedClassId: string | null = null;
-    academicYear = '2023/2024';
+    academicYear = '2026/2027';
+    searchAssignmentQuery = signal<string>('');
+    isSubmitting = signal<boolean>(false);
+    isLoadingAssignments = signal<boolean>(false);
+
+    selectedClass = computed(() => this.classes().find(c => c.id === this.selectedClassId) || null);
+
+    filteredAssignments = computed(() => {
+        const query = this.searchAssignmentQuery().toLowerCase().trim();
+        const list = this.assignments();
+        if (!query) return list;
+        return list.filter(a =>
+            a.subject?.name?.toLowerCase().includes(query) ||
+            a.subject?.code?.toLowerCase().includes(query) ||
+            a.teacher?.first_name?.toLowerCase().includes(query) ||
+            a.teacher?.last_name?.toLowerCase().includes(query)
+        );
+    });
 
     ngOnInit() {
         if (isPlatformBrowser(this.platformId)) {
@@ -48,6 +65,9 @@ export class AcademicAssignmentComponent implements OnInit {
         this.academicPeriodService.getActive().subscribe({
             next: (period) => {
                 if (period && period.id) {
+                    if (period.name) {
+                        this.academicYear = period.name;
+                    }
                     this.academicPeriodService.getTerms(period.id).subscribe(termsData => {
                         const sortedTerms = termsData.sort((a, b) => a.term_number - b.term_number);
                         this.terms.set(sortedTerms.map(t => t.name));
@@ -79,11 +99,23 @@ export class AcademicAssignmentComponent implements OnInit {
         });
     }
 
+    selectClass(classId: string) {
+        this.selectedClassId = classId;
+        this.loadAssignments();
+    }
+
     loadAssignments() {
         if (this.selectedClassId) {
-            this.curriculumService.getAssignmentsByClass(this.selectedClassId).subscribe(data => {
-                const filteredData = data.filter(assignment => assignment.class_id === this.selectedClassId);
-                this.assignments.set(filteredData);
+            this.isLoadingAssignments.set(true);
+            this.curriculumService.getAssignmentsByClass(this.selectedClassId).subscribe({
+                next: (data) => {
+                    const filteredData = (data || []).filter(assignment => assignment.class_id === this.selectedClassId);
+                    this.assignments.set(filteredData);
+                    this.isLoadingAssignments.set(false);
+                },
+                error: () => {
+                    this.isLoadingAssignments.set(false);
+                }
             });
             this.loadLocks(this.selectedClassId);
         } else {
@@ -93,8 +125,10 @@ export class AcademicAssignmentComponent implements OnInit {
     }
 
     loadLocks(classId: string) {
-        this.classService.getClassLocks(classId).subscribe(data => {
-            this.locks.set(data);
+        this.classService.getClassLocks(classId).subscribe({
+            next: (data) => {
+                this.locks.set(data || []);
+            }
         });
     }
 
@@ -106,8 +140,10 @@ export class AcademicAssignmentComponent implements OnInit {
             term: term,
             is_locked: currentLock ? !currentLock.is_locked : true
         };
-        this.classService.upsertClassLock(this.selectedClassId, newLock).subscribe(() => {
-            this.loadLocks(this.selectedClassId!);
+        this.classService.upsertClassLock(this.selectedClassId, newLock).subscribe({
+            next: () => {
+                this.loadLocks(this.selectedClassId!);
+            }
         });
     }
 
@@ -118,33 +154,84 @@ export class AcademicAssignmentComponent implements OnInit {
 
     createAssignment(event: any) {
         event.preventDefault();
-        if (!this.selectedClassId) return;
+        if (!this.selectedClassId) {
+            this.dialog.alert('Please select a target class first.', 'Class Required', 'warning');
+            return;
+        }
 
         const formData = new FormData(event.target);
+        const teacherId = formData.get('teacher_id') as string;
+        const subjectId = formData.get('subject_id') as string;
+
+        if (!teacherId || !subjectId) {
+            this.dialog.alert('Please select both a Teacher and a Subject.', 'Required Fields', 'warning');
+            return;
+        }
+
+        // Check if subject is already assigned in this class
+        const existing = this.assignments().find(a => a.subject_id === subjectId);
+        if (existing) {
+            this.dialog.confirm(
+                `This subject is already assigned to ${existing.teacher?.first_name} ${existing.teacher?.last_name}. Reassign to the newly selected instructor?`,
+                'Reassign Course',
+                'warning',
+                'Reassign'
+            ).subscribe((confirmed) => {
+                if (confirmed) {
+                    this.executeAssignment(teacherId, subjectId, event.target);
+                }
+            });
+            return;
+        }
+
+        this.executeAssignment(teacherId, subjectId, event.target);
+    }
+
+    private executeAssignment(teacherId: string, subjectId: string, formElement?: HTMLFormElement) {
+        this.isSubmitting.set(true);
         const assignment = {
-            teacher_id: formData.get('teacher_id') as string,
-            class_id: this.selectedClassId,
-            subject_id: formData.get('subject_id') as string,
+            teacher_id: teacherId,
+            class_id: this.selectedClassId!,
+            subject_id: subjectId,
             academic_year: this.academicYear
         };
 
-        this.curriculumService.assignTeacher(assignment).subscribe(() => {
-            this.loadAssignments();
+        this.curriculumService.assignTeacher(assignment).subscribe({
+            next: () => {
+                this.isSubmitting.set(false);
+                this.dialog.alert('Instructor has been assigned to this course successfully!', 'Assignment Created', 'success');
+                this.loadAssignments();
+            },
+            error: (err) => {
+                this.isSubmitting.set(false);
+                this.dialog.alert(err.error?.error || 'Failed to establish assignment.', 'Error', 'error');
+            }
         });
     }
 
     removeAssignment(id: string) {
-        this.dialog.confirm('Decommissioning this instructional assignment will remove the teacher from this subject/class pairing. Proceed?', 'Remove Assignment', 'warning', 'Remove').subscribe((confirmed: boolean) => {
+        this.dialog.confirm(
+            'Decommissioning this instructional assignment will remove the instructor from this subject/class pairing. Proceed?',
+            'Remove Assignment',
+            'warning',
+            'Remove'
+        ).subscribe((confirmed: boolean) => {
             if (confirmed) {
-                this.curriculumService.removeAssignment(id).subscribe(() => {
-                    this.loadAssignments();
+                this.curriculumService.removeAssignment(id).subscribe({
+                    next: () => {
+                        this.dialog.alert('Instructional assignment removed.', 'Removed', 'info');
+                        this.loadAssignments();
+                    },
+                    error: (err) => {
+                        this.dialog.alert(err.error?.error || 'Failed to remove assignment.', 'Error', 'error');
+                    }
                 });
             }
         });
     }
 
     formatTeacherSubjects(teacher: Teacher): string {
-        if (!teacher.subjects || teacher.subjects.length === 0) return 'No Specialization';
+        if (!teacher.subjects || teacher.subjects.length === 0) return 'General';
         return teacher.subjects.map(s => s.name).join(', ');
     }
 }
