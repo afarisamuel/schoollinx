@@ -20,18 +20,18 @@ class AppColors {
   static const Color purple = Color(0xFF8B5CF6);
   static const Color cyan = Color(0xFF06B6D4);
 
-  // Dark Theme Palette
-  static const Color darkBgPrimary = Color(0xFF0B0F19);
-  static const Color darkBgSecondary = Color(0xFF111827);
-  static const Color darkBgTertiary = Color(0xFF1F2937);
-  static const Color darkCardBg = Color(0xFF161F30);
-  static const Color darkBorder = Color(0xFF2E3A52);
-  static const Color darkBorderLight = Color(0xFF374151);
-  static const Color darkTextPrimary = Color(0xFFF9FAFB);
-  static const Color darkTextSecondary = Color(0xFF9CA3AF);
-  static const Color darkTextMuted = Color(0xFF6B7280);
+  // Dark Theme Palette (Mirrors Web Frontend :root dark)
+  static const Color darkBgPrimary = Color(0xFF0B1120);
+  static const Color darkBgSecondary = Color(0xFF0D1526);
+  static const Color darkBgTertiary = Color(0xFF111C32);
+  static const Color darkCardBg = Color(0xFF0D1526);
+  static const Color darkBorder = Color(0xFF1E293B);
+  static const Color darkBorderLight = Color(0xFF28354D);
+  static const Color darkTextPrimary = Color(0xFFF8FAFC);
+  static const Color darkTextSecondary = Color(0xFF94ADCA);
+  static const Color darkTextMuted = Color(0xFF64748B);
 
-  // Light Theme Palette
+  // Light Theme Palette (Mirrors Web Frontend :root.light-mode)
   static const Color lightBgPrimary = Color(0xFFF8FAFC);
   static const Color lightBgSecondary = Color(0xFFFFFFFF);
   static const Color lightBgTertiary = Color(0xFFF1F5F9);
@@ -39,6 +39,6 @@ class AppColors {
   static const Color lightBorder = Color(0xFFE2E8F0);
   static const Color lightBorderLight = Color(0xFFF1F5F9);
   static const Color lightTextPrimary = Color(0xFF0F172A);
-  static const Color lightTextSecondary = Color(0xFF475569);
-  static const Color lightTextMuted = Color(0xFF94A3B8);
+  static const Color lightTextSecondary = Color(0xFF334155);
+  static const Color lightTextMuted = Color(0xFF64748B);
 }

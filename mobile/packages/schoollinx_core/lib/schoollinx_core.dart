@@ -16,6 +16,7 @@ export 'features/common_widgets/sl_input.dart';
 export 'features/common_widgets/sl_badge.dart';
 export 'features/common_widgets/sl_avatar.dart';
 export 'features/common_widgets/sl_school_search_input.dart';
+export 'features/common_widgets/sl_app_drawer.dart';
 
 // Auth exports
 export 'features/auth/domain/entities/user_entity.dart';
@@ -100,3 +101,18 @@ export 'features/hr_portal/domain/entities/staff_leave_entity.dart';
 export 'features/hr_portal/domain/repositories/hr_portal_repository.dart';
 export 'features/hr_portal/domain/usecases/hr_portal_usecases.dart';
 export 'features/hr_portal/presentation/bloc/hr_portal_bloc.dart';
+
+// Intelligence exports
+export 'features/intelligence/domain/entities/institutional_kpi_entity.dart';
+export 'features/intelligence/domain/repositories/intelligence_repository.dart';
+export 'features/intelligence/domain/usecases/get_institutional_kpis_usecase.dart';
+export 'features/intelligence/presentation/bloc/intelligence_bloc.dart';
+
+// Shared Feature Modules
+export 'features/shared_modules/messaging_center_page.dart';
+export 'features/shared_modules/digital_library_page.dart';
+export 'features/shared_modules/cloud_resources_page.dart';
+export 'features/shared_modules/student_clubs_page.dart';
+export 'features/shared_modules/roles_permissions_page.dart';
+export 'features/shared_modules/system_audit_logs_page.dart';
+

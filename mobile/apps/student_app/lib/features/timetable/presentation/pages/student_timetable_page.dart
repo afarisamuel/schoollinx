@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/student_drawer.dart';
 
 class StudentTimetablePage extends StatelessWidget {
   const StudentTimetablePage({super.key});
@@ -31,6 +32,7 @@ class _StudentTimetableViewState extends State<_StudentTimetableView> {
     final currentDay = _days[_selectedDay];
 
     return Scaffold(
+      drawer: const StudentDrawer(currentRoute: '/timetable'),
       appBar: AppBar(
         title: const Text('My Class Schedule', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
         actions: [

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/teacher_drawer.dart';
 
 class TeacherLeavePage extends StatefulWidget {
   const TeacherLeavePage({super.key});
@@ -33,13 +34,13 @@ class _TeacherLeavePageState extends State<TeacherLeavePage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (bottomSheetCtx) {
         return StatefulBuilder(
           builder: (ctx, setModalState) {
+            final isDark = Theme.of(ctx).brightness == Brightness.dark;
             final days = _endDate.difference(_startDate).inDays + 1;
             return Padding(
               padding: EdgeInsets.only(
@@ -60,7 +61,6 @@ class _TeacherLeavePageState extends State<TeacherLeavePage> {
                         style: GoogleFonts.outfit(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0F172A),
                         ),
                       ),
                       IconButton(
@@ -71,29 +71,26 @@ class _TeacherLeavePageState extends State<TeacherLeavePage> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Leave Category',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF475569),
+                    'LEAVE TYPE',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
                     ),
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     initialValue: _selectedLeaveType,
                     decoration: InputDecoration(
-                      filled: true,
-                      fillColor: const Color(0xFFF8FAFC),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),
                     items: const [
                       DropdownMenuItem(value: 'ANNUAL', child: Text('Annual Leave')),
-                      DropdownMenuItem(value: 'SICK', child: Text('Medical / Sick Leave')),
-                      DropdownMenuItem(value: 'CASUAL', child: Text('Casual Leave')),
-                      DropdownMenuItem(value: 'BEREAVEMENT', child: Text('Bereavement Leave')),
+                      DropdownMenuItem(value: 'SICK', child: Text('Sick Leave')),
+                      DropdownMenuItem(value: 'MATERNITY', child: Text('Maternity / Paternity')),
+                      DropdownMenuItem(value: 'COMPASSIONATE', child: Text('Compassionate Leave')),
+                      DropdownMenuItem(value: 'STUDY', child: Text('Study & Examination')),
                     ],
                     onChanged: (val) {
                       if (val != null) {
@@ -102,87 +99,77 @@ class _TeacherLeavePageState extends State<TeacherLeavePage> {
                     },
                   ),
                   const SizedBox(height: 16),
+                  Text(
+                    'DURATION ($days DAYS)',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Start Date', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500)),
-                            const SizedBox(height: 4),
-                            OutlinedButton.icon(
-                              icon: const Icon(Icons.calendar_today, size: 16),
-                              label: Text(DateFormat('dd MMM yyyy').format(_startDate), style: const TextStyle(fontSize: 12)),
-                              onPressed: () async {
-                                final d = await showDatePicker(
-                                  context: ctx,
-                                  initialDate: _startDate,
-                                  firstDate: DateTime.now(),
-                                  lastDate: DateTime.now().add(const Duration(days: 365)),
-                                );
-                                if (d != null) {
-                                  setModalState(() {
-                                    _startDate = d;
-                                    if (_endDate.isBefore(_startDate)) {
-                                      _endDate = _startDate.add(const Duration(days: 1));
-                                    }
-                                  });
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          icon: const Icon(Icons.calendar_today, size: 16),
+                          label: Text(DateFormat('dd MMM yyyy').format(_startDate)),
+                          onPressed: () async {
+                            final picked = await showDatePicker(
+                              context: ctx,
+                              initialDate: _startDate,
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                            );
+                            if (picked != null) {
+                              setModalState(() {
+                                _startDate = picked;
+                                if (_endDate.isBefore(_startDate)) {
+                                  _endDate = _startDate.add(const Duration(days: 1));
                                 }
-                              },
-                            ),
-                          ],
+                              });
+                            }
+                          },
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        child: Icon(Icons.arrow_forward, size: 16),
+                      ),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('End Date', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500)),
-                            const SizedBox(height: 4),
-                            OutlinedButton.icon(
-                              icon: const Icon(Icons.calendar_today, size: 16),
-                              label: Text(DateFormat('dd MMM yyyy').format(_endDate), style: const TextStyle(fontSize: 12)),
-                              onPressed: () async {
-                                final d = await showDatePicker(
-                                  context: ctx,
-                                  initialDate: _endDate,
-                                  firstDate: _startDate,
-                                  lastDate: DateTime.now().add(const Duration(days: 365)),
-                                );
-                                if (d != null) {
-                                  setModalState(() => _endDate = d);
-                                }
-                              },
-                            ),
-                          ],
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          icon: const Icon(Icons.event, size: 16),
+                          label: Text(DateFormat('dd MMM yyyy').format(_endDate)),
+                          onPressed: () async {
+                            final picked = await showDatePicker(
+                              context: ctx,
+                              initialDate: _endDate,
+                              firstDate: _startDate,
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                            );
+                            if (picked != null) {
+                              setModalState(() => _endDate = picked);
+                            }
+                          },
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      'Total Requested Duration: ${days > 0 ? days : 1} working day(s)',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF1D4ED8),
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 16),
                   Text(
-                    'Reason / Justification',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF475569),
+                    'REASON / DETAILS',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -190,13 +177,8 @@ class _TeacherLeavePageState extends State<TeacherLeavePage> {
                     controller: _reasonController,
                     maxLines: 3,
                     decoration: InputDecoration(
-                      hintText: 'Provide brief notes for the Head of Department...',
-                      filled: true,
-                      fillColor: const Color(0xFFF8FAFC),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
+                      hintText: 'Provide handover details or reason for leave...',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -205,7 +187,7 @@ class _TeacherLeavePageState extends State<TeacherLeavePage> {
                     height: 50,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0F172A),
+                        backgroundColor: AppColors.primary,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                       onPressed: () {
@@ -242,18 +224,12 @@ class _TeacherLeavePageState extends State<TeacherLeavePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      drawer: const TeacherDrawer(currentRoute: '/leave'),
       appBar: AppBar(
-        title: Text(
-          'Staff Leave & Absences',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
+        title: const Text('Staff Leave & Absences', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: const Color(0xFF2563EB),
+        backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add, color: Colors.white),
         label: Text('Apply Leave', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Colors.white)),
         onPressed: _showApplyLeaveModal,

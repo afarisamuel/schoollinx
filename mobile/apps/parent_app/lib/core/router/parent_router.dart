@@ -1,12 +1,15 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../core/widgets/parent_drawer.dart';
 import '../../features/absence/presentation/pages/parent_absence_page.dart';
 import '../../features/academics/presentation/pages/parent_academics_page.dart';
+import '../../features/academics/presentation/pages/parent_badges_page.dart';
 import '../../features/auth/presentation/pages/parent_login_page.dart';
 import '../../features/auth/presentation/pages/parent_splash_page.dart';
 import '../../features/auth/presentation/pages/parent_tenant_select_page.dart';
 import '../../features/bus/presentation/pages/parent_bus_tracker_page.dart';
+import '../../features/bus/presentation/pages/parent_pickup_pass_page.dart';
 import '../../features/dashboard/presentation/pages/parent_dashboard_page.dart';
 import '../../features/fees/presentation/pages/parent_fees_page.dart';
 import '../../features/profile/presentation/pages/parent_profile_page.dart';
@@ -42,8 +45,16 @@ final parentRouter = GoRouter(
       builder: (context, state) => const ParentBusTrackerPage(),
     ),
     GoRoute(
+      path: '/pickup-pass',
+      builder: (context, state) => const ParentPickupPassPage(),
+    ),
+    GoRoute(
       path: '/academics',
       builder: (context, state) => const ParentAcademicsPage(),
+    ),
+    GoRoute(
+      path: '/badges',
+      builder: (context, state) => const ParentBadgesPage(),
     ),
     GoRoute(
       path: '/absence',
@@ -56,6 +67,13 @@ final parentRouter = GoRouter(
     GoRoute(
       path: '/pta',
       builder: (context, state) => const ParentPTAPage(),
+    ),
+    GoRoute(
+      path: '/messaging',
+      builder: (context, state) => const MessagingCenterPage(
+        appTitle: 'SchoolLinx Parent',
+        drawer: ParentDrawer(currentRoute: '/messaging'),
+      ),
     ),
     GoRoute(
       path: '/health-card',

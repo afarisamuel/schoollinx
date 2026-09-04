@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/student_drawer.dart';
 
 class StudentHomeworkPage extends StatelessWidget {
   const StudentHomeworkPage({super.key});
@@ -135,6 +136,7 @@ class _StudentHomeworkViewState extends State<_StudentHomeworkView> {
         final completed = homeworkList.where((h) => h.isSubmitted).toList();
 
         return Scaffold(
+          drawer: const StudentDrawer(currentRoute: '/homework'),
           appBar: AppBar(
             title: const Text('Homework & Tasks', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
             actions: [

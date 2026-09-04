@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/student_drawer.dart';
 
 class StudentLibraryPage extends StatelessWidget {
   const StudentLibraryPage({super.key});
@@ -53,6 +54,7 @@ class _StudentLibraryViewState extends State<_StudentLibraryView> {
       },
       builder: (context, state) {
         return Scaffold(
+          drawer: const StudentDrawer(currentRoute: '/library'),
           appBar: AppBar(
             title: const Text('Digital Library & Catalogue', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
             actions: [

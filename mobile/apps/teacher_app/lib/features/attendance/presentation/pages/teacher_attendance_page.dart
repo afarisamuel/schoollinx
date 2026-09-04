@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/teacher_drawer.dart';
 
 class TeacherAttendancePage extends StatelessWidget {
   const TeacherAttendancePage({super.key});
@@ -52,6 +53,7 @@ class _TeacherAttendanceViewState extends State<_TeacherAttendanceView> {
       },
       builder: (context, state) {
         return Scaffold(
+          drawer: const TeacherDrawer(currentRoute: '/attendance'),
           appBar: AppBar(
             title: const Text('Attendance Register', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
             actions: [

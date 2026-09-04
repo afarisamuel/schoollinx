@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/teacher_drawer.dart';
 
 class TeacherTimetablePage extends StatelessWidget {
   const TeacherTimetablePage({super.key});
@@ -39,6 +40,7 @@ class _TeacherTimetableViewState extends State<_TeacherTimetableView> {
         }
 
         return Scaffold(
+          drawer: const TeacherDrawer(currentRoute: '/timetable'),
           appBar: AppBar(
             title: const Text('Faculty Timetable', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
             actions: [

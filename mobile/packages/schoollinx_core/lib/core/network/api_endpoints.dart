@@ -2,7 +2,7 @@ class ApiEndpoints {
   ApiEndpoints._();
 
   // Change this to your backend host (e.g. 10.0.2.2 for Android emulator, localhost, or production URL)
-  static String defaultBaseUrl = 'http://api.schoollinx.com/api';
+  static String defaultBaseUrl = 'https://api.schoollinx.com/api';
 
   // Auth endpoints
   static const String login = '/auth/login';

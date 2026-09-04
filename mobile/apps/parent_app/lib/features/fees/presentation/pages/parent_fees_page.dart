@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/parent_drawer.dart';
 
 class ParentFeesPage extends StatelessWidget {
   const ParentFeesPage({super.key});
@@ -104,6 +105,7 @@ class _ParentFeesViewState extends State<_ParentFeesView> {
         final totalBalance = records.fold(0.0, (acc, r) => acc + r.balance);
 
         return Scaffold(
+          drawer: const ParentDrawer(currentRoute: '/fees'),
           appBar: AppBar(
             title: const Text('Fee Payments & Invoices', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
             actions: [

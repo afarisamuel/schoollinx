@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/student_drawer.dart';
 
 class StudentCBTPage extends StatelessWidget {
   const StudentCBTPage({super.key});
@@ -270,6 +271,7 @@ class _StudentCBTView extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      drawer: const StudentDrawer(currentRoute: '/cbt'),
       appBar: AppBar(
         title: const Text('CBT Exams & Quizzes', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
         actions: [

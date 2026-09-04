@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/parent_drawer.dart';
 
 class ParentWalletPage extends StatelessWidget {
   const ParentWalletPage({super.key});
@@ -204,6 +205,7 @@ class _ParentWalletViewState extends State<_ParentWalletView> {
               final children = guardianState is GuardianChildrenLoaded ? guardianState.children : <ChildEntity>[];
 
               return Scaffold(
+                drawer: const ParentDrawer(currentRoute: '/wallet'),
                 appBar: AppBar(
                   title: const Text('Pocket Money & Canteen Wallet', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
                   actions: [

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/admin_drawer.dart';
 
 class AdminClinicHostelPage extends StatefulWidget {
   const AdminClinicHostelPage({super.key});
@@ -30,22 +31,17 @@ class _AdminClinicHostelPageState extends State<AdminClinicHostelPage> with Sing
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      drawer: const AdminDrawer(currentRoute: '/clinic-hostel'),
       appBar: AppBar(
-        title: Text(
-          'Campus Clinic & Boarding',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
+        title: const Text('Campus Clinic & Boarding', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
         bottom: TabBar(
           controller: _tabController,
-          labelColor: const Color(0xFF2563EB),
-          unselectedLabelColor: const Color(0xFF64748B),
-          indicatorColor: const Color(0xFF2563EB),
-          labelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600),
+          labelColor: isDark ? Colors.white : AppColors.primary,
+          unselectedLabelColor: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+          indicatorColor: AppColors.primary,
           tabs: const [
             Tab(text: 'Clinic Triage & Sickbay'),
             Tab(text: 'Hostel Bed Occupancy'),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/admin_drawer.dart';
 
 class AdminDefaultersPage extends StatelessWidget {
   const AdminDefaultersPage({super.key});
@@ -130,6 +131,7 @@ class _AdminDefaultersView extends StatelessWidget {
         final totalArrears = state is DefaultersLoaded ? state.totalOutstanding : 0.0;
 
         return Scaffold(
+          drawer: const AdminDrawer(currentRoute: '/defaulters'),
           appBar: AppBar(
             title: const Text('Fee Defaulters & Arrears', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
             actions: [

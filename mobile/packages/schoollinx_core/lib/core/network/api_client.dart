@@ -16,6 +16,8 @@ class ApiClient {
             baseUrl: baseUrl ?? ApiEndpoints.defaultBaseUrl,
             connectTimeout: const Duration(seconds: 15),
             receiveTimeout: const Duration(seconds: 15),
+            followRedirects: true,
+            maxRedirects: 5,
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
@@ -52,15 +54,25 @@ class ApiClient {
       throw const NetworkException(message: 'Unable to connect to server. Check your internet connection.');
     }
 
-    if (response != null && response.data is Map<String, dynamic>) {
-      final data = response.data as Map<String, dynamic>;
-      final errorMessage = data['message']?.toString() ??
-          data['error']?.toString() ??
-          'An unexpected server error occurred ($statusCode)';
-      if (statusCode == 401) {
-        throw AuthException(message: errorMessage, statusCode: statusCode);
+    if (response != null) {
+      if (response.data is Map<String, dynamic>) {
+        final data = response.data as Map<String, dynamic>;
+        final errorMessage = data['message']?.toString() ??
+            data['error']?.toString() ??
+            'An unexpected server error occurred ($statusCode)';
+        if (statusCode == 401) {
+          throw AuthException(message: errorMessage, statusCode: statusCode);
+        }
+        throw ServerException(message: errorMessage, statusCode: statusCode);
+      } else if (response.data is String) {
+        final text = response.data.toString();
+        if (text.contains('<html') || text.contains('<head')) {
+          throw ServerException(
+            message: 'Server responded with status $statusCode ($statusCode)',
+            statusCode: statusCode,
+          );
+        }
       }
-      throw ServerException(message: errorMessage, statusCode: statusCode);
     }
 
     throw ServerException(

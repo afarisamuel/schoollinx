@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/teacher_drawer.dart';
 
 class TeacherDailyBillsPage extends StatelessWidget {
   const TeacherDailyBillsPage({super.key});
@@ -232,6 +233,7 @@ class _TeacherDailyBillsViewState extends State<_TeacherDailyBillsView> with Sin
         }
 
         return Scaffold(
+          drawer: const TeacherDrawer(currentRoute: '/daily-bills'),
           appBar: AppBar(
             title: const Text('Daily Bill Collections', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
             actions: [

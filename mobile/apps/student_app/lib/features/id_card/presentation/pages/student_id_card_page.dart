@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/student_drawer.dart';
 
 class StudentIdCardPage extends StatelessWidget {
   const StudentIdCardPage({super.key});
@@ -16,6 +17,7 @@ class StudentIdCardPage extends StatelessWidget {
         final tenant = state.tenant;
 
         return Scaffold(
+          drawer: const StudentDrawer(currentRoute: '/id-card'),
           appBar: AppBar(
             title: const Text('Digital Student ID', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
           ),

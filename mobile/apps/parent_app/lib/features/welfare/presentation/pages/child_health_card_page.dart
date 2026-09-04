@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/parent_drawer.dart';
 
 class ChildHealthCardPage extends StatefulWidget {
   final String studentId;
@@ -28,15 +29,9 @@ class _ChildHealthCardPageState extends State<ChildHealthCardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      drawer: const ParentDrawer(currentRoute: '/health-card'),
       appBar: AppBar(
-        title: Text(
-          'Health Card & Clinic',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
+        title: const Text('Health Card & Clinic', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),

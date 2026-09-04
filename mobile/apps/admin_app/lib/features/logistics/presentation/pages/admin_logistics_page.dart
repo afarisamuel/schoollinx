@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/admin_drawer.dart';
 
 class AdminLogisticsPage extends StatelessWidget {
   const AdminLogisticsPage({super.key});
@@ -82,6 +83,7 @@ class _AdminLogisticsView extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      drawer: const AdminDrawer(currentRoute: '/logistics'),
       appBar: AppBar(
         title: const Text('Fleet & Campus Logistics', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
         actions: [

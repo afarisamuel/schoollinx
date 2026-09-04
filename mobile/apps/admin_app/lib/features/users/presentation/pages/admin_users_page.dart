@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/admin_drawer.dart';
 
 class AdminUsersPage extends StatefulWidget {
   const AdminUsersPage({super.key});
@@ -76,6 +77,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      drawer: const AdminDrawer(currentRoute: '/users'),
       appBar: AppBar(
         title: const Text('Directory & Users', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
         actions: [

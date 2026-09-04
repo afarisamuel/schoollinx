@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/teacher_drawer.dart';
 
 class TeacherGradingPage extends StatelessWidget {
   const TeacherGradingPage({super.key});
@@ -190,6 +191,7 @@ class _TeacherGradingViewState extends State<_TeacherGradingView> {
       },
       builder: (context, state) {
         return Scaffold(
+          drawer: const TeacherDrawer(currentRoute: '/grading'),
           appBar: AppBar(
             title: const Text('Classroom Grading', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
           ),

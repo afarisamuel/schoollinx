@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/student_drawer.dart';
 
 class StudentPortfolioPage extends StatefulWidget {
   const StudentPortfolioPage({super.key});
@@ -28,22 +29,17 @@ class _StudentPortfolioPageState extends State<StudentPortfolioPage> with Single
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      drawer: const StudentDrawer(currentRoute: '/portfolio'),
       appBar: AppBar(
-        title: Text(
-          'Student Portfolio & Houses',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
+        title: const Text('Student Portfolio & Houses', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
         bottom: TabBar(
           controller: _tabController,
-          labelColor: const Color(0xFF2563EB),
-          unselectedLabelColor: const Color(0xFF64748B),
-          indicatorColor: const Color(0xFF2563EB),
-          labelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600),
+          labelColor: isDark ? Colors.white : AppColors.primary,
+          unselectedLabelColor: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+          indicatorColor: AppColors.primary,
           tabs: const [
             Tab(text: 'House Leaderboard'),
             Tab(text: 'My Badges & Awards'),

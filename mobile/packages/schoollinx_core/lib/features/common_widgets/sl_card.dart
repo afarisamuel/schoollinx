@@ -8,7 +8,7 @@ class SlCard extends StatelessWidget {
   final VoidCallback? onTap;
   final Color? backgroundColor;
   final Color? borderColor;
-  final double borderRadius;
+  final dynamic borderRadius;
   final bool hasGradient;
 
   const SlCard({
@@ -23,11 +23,19 @@ class SlCard extends StatelessWidget {
     this.hasGradient = false,
   });
 
+  BorderRadius _getBorderRadius() {
+    if (borderRadius is BorderRadius) return borderRadius as BorderRadius;
+    if (borderRadius is double) return BorderRadius.circular(borderRadius as double);
+    if (borderRadius is int) return BorderRadius.circular((borderRadius as int).toDouble());
+    return BorderRadius.circular(24.0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final defaultBg = isDark ? AppColors.darkCardBg : AppColors.lightCardBg;
     final defaultBorder = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final br = _getBorderRadius();
 
     Widget content = Container(
       margin: margin,
@@ -39,11 +47,11 @@ class SlCard extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: isDark
-                    ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                    ? [const Color(0xFF162238), const Color(0xFF0D1526)]
                     : [Colors.white, const Color(0xFFF8FAFC)],
               )
             : null,
-        borderRadius: BorderRadius.circular(borderRadius),
+        borderRadius: br,
         border: Border.all(
           color: borderColor ?? defaultBorder,
           width: 1.2,
@@ -64,7 +72,7 @@ class SlCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(borderRadius),
+          borderRadius: br,
           child: content,
         ),
       );

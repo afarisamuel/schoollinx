@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/student_drawer.dart';
 
 class StudentProfilePage extends StatelessWidget {
   const StudentProfilePage({super.key});
@@ -21,6 +22,7 @@ class StudentProfilePage extends StatelessWidget {
         final tenant = state.tenant;
 
         return Scaffold(
+          drawer: const StudentDrawer(currentRoute: '/profile'),
           appBar: AppBar(
             title: const Text('My Student Profile', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
           ),

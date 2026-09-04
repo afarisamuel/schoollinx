@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/parent_drawer.dart';
 
 class ParentAcademicsPage extends StatelessWidget {
   const ParentAcademicsPage({super.key});
@@ -23,6 +24,7 @@ class _ParentAcademicsView extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      drawer: const ParentDrawer(currentRoute: '/academics'),
       appBar: AppBar(
         title: const Text('Terminal Report Card', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
         actions: [

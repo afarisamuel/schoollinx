@@ -89,6 +89,13 @@ import '../../features/hr_portal/domain/repositories/hr_portal_repository.dart';
 import '../../features/hr_portal/domain/usecases/hr_portal_usecases.dart';
 import '../../features/hr_portal/presentation/bloc/hr_portal_bloc.dart';
 
+// Intelligence
+import '../../features/intelligence/data/datasources/intelligence_remote_datasource.dart';
+import '../../features/intelligence/data/repositories/intelligence_repository_impl.dart';
+import '../../features/intelligence/domain/repositories/intelligence_repository.dart';
+import '../../features/intelligence/domain/usecases/get_institutional_kpis_usecase.dart';
+import '../../features/intelligence/presentation/bloc/intelligence_bloc.dart';
+
 final sl = GetIt.instance;
 
 Future<void> initCoreDependencies({String? customBaseUrl}) async {
@@ -431,6 +438,20 @@ Future<void> initCoreDependencies({String? customBaseUrl}) async {
     ),
   );
 
+  // Intelligence
+  sl.registerLazySingleton<IntelligenceRemoteDataSource>(
+    () => IntelligenceRemoteDataSourceImpl(apiClient: sl()),
+  );
+  sl.registerLazySingleton<IntelligenceRepository>(
+    () => IntelligenceRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton<GetInstitutionalKpisUseCase>(
+    () => GetInstitutionalKpisUseCase(sl()),
+  );
+  sl.registerFactory<IntelligenceBloc>(
+    () => IntelligenceBloc(getInstitutionalKpisUseCase: sl()),
+  );
+
   sl.registerFactory<HrPortalBloc>(
     () => HrPortalBloc(
       getMyLeaveApplications: sl(),
@@ -439,3 +460,4 @@ Future<void> initCoreDependencies({String? customBaseUrl}) async {
     ),
   );
 }
+

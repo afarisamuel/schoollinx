@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/parent_drawer.dart';
 
 class ParentPTAPage extends StatelessWidget {
   const ParentPTAPage({super.key});
@@ -88,6 +89,7 @@ class _ParentPTAView extends StatelessWidget {
         final slots = state is PtaLoaded ? state.slots : <TeacherMeetingSlotEntity>[];
 
         return Scaffold(
+          drawer: const ParentDrawer(currentRoute: '/pta'),
           appBar: AppBar(
             title: const Text('Parent-Teacher Conference (PTA)', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
             actions: [

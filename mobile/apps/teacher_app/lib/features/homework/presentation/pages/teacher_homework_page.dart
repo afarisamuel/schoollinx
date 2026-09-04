@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/teacher_drawer.dart';
 
 class TeacherHomeworkPage extends StatelessWidget {
   const TeacherHomeworkPage({super.key});
@@ -360,6 +361,7 @@ class _TeacherHomeworkViewState extends State<_TeacherHomeworkView> {
         }
 
         return Scaffold(
+          drawer: const TeacherDrawer(currentRoute: '/homework'),
           appBar: AppBar(
             title: const Text('Homework & Assignments', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
             actions: [

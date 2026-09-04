@@ -17,35 +17,37 @@ class SlBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     Color bg;
     Color border;
     Color textColor;
 
     switch (variant) {
       case SlBadgeVariant.primary:
-        bg = AppColors.primary.withAlpha(25);
-        border = AppColors.primary.withAlpha(50);
-        textColor = AppColors.primaryLight;
+        bg = isDark ? AppColors.primary.withAlpha(50) : const Color(0xFFDBEAFE);
+        border = isDark ? AppColors.primary.withAlpha(90) : const Color(0xFF93C5FD);
+        textColor = isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8);
         break;
       case SlBadgeVariant.success:
-        bg = AppColors.emerald.withAlpha(25);
-        border = AppColors.emerald.withAlpha(50);
-        textColor = AppColors.emeraldLight;
+        bg = isDark ? AppColors.emerald.withAlpha(50) : const Color(0xFFD1FAE5);
+        border = isDark ? AppColors.emerald.withAlpha(90) : const Color(0xFF6EE7B7);
+        textColor = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF047857);
         break;
       case SlBadgeVariant.warning:
-        bg = AppColors.amber.withAlpha(25);
-        border = AppColors.amber.withAlpha(50);
-        textColor = AppColors.amber;
+        bg = isDark ? AppColors.amber.withAlpha(50) : const Color(0xFFFEF3C7);
+        border = isDark ? AppColors.amber.withAlpha(90) : const Color(0xFFFCD34D);
+        textColor = isDark ? const Color(0xFFFCD34D) : const Color(0xFFB45309);
         break;
       case SlBadgeVariant.danger:
-        bg = AppColors.rose.withAlpha(25);
-        border = AppColors.rose.withAlpha(50);
-        textColor = AppColors.roseLight;
+        bg = isDark ? AppColors.rose.withAlpha(50) : const Color(0xFFFFE4E6);
+        border = isDark ? AppColors.rose.withAlpha(90) : const Color(0xFFFDA4AF);
+        textColor = isDark ? const Color(0xFFFDA4AF) : const Color(0xFFBE123C);
         break;
       case SlBadgeVariant.neutral:
-        bg = Colors.white.withAlpha(15);
-        border = Colors.white.withAlpha(25);
-        textColor = Colors.white.withAlpha(180);
+        bg = isDark ? Colors.white.withAlpha(20) : const Color(0xFFF1F5F9);
+        border = isDark ? Colors.white.withAlpha(35) : const Color(0xFFCBD5E1);
+        textColor = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155);
         break;
     }
 

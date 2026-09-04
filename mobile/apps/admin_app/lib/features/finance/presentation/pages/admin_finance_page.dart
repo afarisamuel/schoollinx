@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/admin_drawer.dart';
 
 class AdminFinancePage extends StatelessWidget {
   const AdminFinancePage({super.key});
@@ -22,6 +23,7 @@ class _AdminFinanceView extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      drawer: const AdminDrawer(currentRoute: '/finance'),
       appBar: AppBar(
         title: const Text('Fiscal Intelligence', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
         actions: [

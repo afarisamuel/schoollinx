@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:schoollinx_core/schoollinx_core.dart';
+import '../../../../core/widgets/admin_drawer.dart';
 
 class AdminBroadcastPage extends StatelessWidget {
   const AdminBroadcastPage({super.key});
@@ -132,6 +133,7 @@ class _AdminBroadcastViewState extends State<_AdminBroadcastView> {
         final isLoading = state is CommunicationLoading;
 
         return Scaffold(
+          drawer: const AdminDrawer(currentRoute: '/broadcast'),
           appBar: AppBar(
             title: const Text('Instant Broadcast & Alerts', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
             actions: [
