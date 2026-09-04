@@ -26,6 +26,7 @@ import '../../features/auth/domain/usecases/get_current_user_usecase.dart';
 import '../../features/auth/domain/usecases/login_usecase.dart';
 import '../../features/auth/domain/usecases/logout_usecase.dart';
 import '../../features/auth/domain/usecases/resolve_tenant_usecase.dart';
+import '../../features/auth/domain/usecases/search_tenants_usecase.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 
 // Communication
@@ -213,6 +214,7 @@ Future<void> initCoreDependencies({String? customBaseUrl}) async {
   sl.registerLazySingleton<LogoutUseCase>(() => LogoutUseCase(sl()));
   sl.registerLazySingleton<GetCurrentUserUseCase>(() => GetCurrentUserUseCase(sl()));
   sl.registerLazySingleton<ResolveTenantUseCase>(() => ResolveTenantUseCase(sl()));
+  sl.registerLazySingleton<SearchTenantsUseCase>(() => SearchTenantsUseCase(sl()));
 
   // Use Cases - Academics
   sl.registerLazySingleton<GetClassesUseCase>(() => GetClassesUseCase(sl()));

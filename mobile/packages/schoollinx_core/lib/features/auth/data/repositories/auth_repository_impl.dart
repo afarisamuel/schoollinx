@@ -158,6 +158,19 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, List<TenantEntity>>> searchTenants(String query) async {
+    try {
+      final models = await remoteDataSource.searchPublicTenants(query);
+      final entities = models.map(_toTenantEntity).toList();
+      return Right(entities);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message));
+    } catch (e) {
+      return Left(ServerFailure(message: 'Failed to search institutions: $e'));
+    }
+  }
+
   UserEntity _toUserEntity(UserModel model) {
     return UserEntity(
       id: model.id,

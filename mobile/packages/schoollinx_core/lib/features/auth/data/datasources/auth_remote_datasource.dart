@@ -18,6 +18,8 @@ abstract class AuthRemoteDataSource {
   Future<TenantModel> resolveTenantByCode(String code);
 
   Future<TenantModel> resolveTenantByDomain(String domain);
+
+  Future<List<TenantModel>> searchPublicTenants(String query);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -33,25 +35,27 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final response = await apiClient.dio.post(
         ApiEndpoints.login,
-        data: {
-          'identifier': email,
-          'password': password,
-        },
+        data: {'identifier': email, 'password': password},
       );
 
       final data = response.data;
       if (data is Map<String, dynamic>) {
         final userData = data['user'] ?? data['data']?['user'] ?? data;
-        final token = data['token']?.toString() ?? data['access_token']?.toString() ?? '';
+        final token =
+            data['token']?.toString() ?? data['access_token']?.toString() ?? '';
         final refreshToken = data['refresh_token']?.toString();
 
         return (
-          user: UserModel.fromJson(userData is Map<String, dynamic> ? userData : {}),
+          user: UserModel.fromJson(
+            userData is Map<String, dynamic> ? userData : {},
+          ),
           accessToken: token,
           refreshToken: refreshToken,
         );
       }
-      throw const ServerException(message: 'Invalid response format from server');
+      throw const ServerException(
+        message: 'Invalid response format from server',
+      );
     } on DioException catch (e) {
       apiClient.handleDioError(e);
     }
@@ -73,7 +77,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final data = response.data;
       if (data is Map<String, dynamic>) {
         final userData = data['user'] ?? data['data'] ?? data;
-        return UserModel.fromJson(userData is Map<String, dynamic> ? userData : {});
+        return UserModel.fromJson(
+          userData is Map<String, dynamic> ? userData : {},
+        );
       }
       throw const ServerException(message: 'Invalid user response');
     } on DioException catch (e) {
@@ -116,7 +122,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
-        throw TenantNotFoundException(message: 'Institution not found for code "$code"');
+        throw TenantNotFoundException(
+          message: 'Institution not found for code "$code"',
+        );
       }
       apiClient.handleDioError(e);
     } catch (e) {
@@ -127,5 +135,48 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<TenantModel> resolveTenantByDomain(String domain) async {
     return resolveTenantByCode(domain);
+  }
+
+  @override
+  Future<List<TenantModel>> searchPublicTenants(String query) async {
+    final cleanQuery = query.trim();
+    try {
+      final response = await apiClient.dio.get(
+        '/public/tenants/search',
+        queryParameters: {'q': cleanQuery},
+      );
+
+      final data = response.data;
+      if (data is List) {
+        return data
+            .whereType<Map<String, dynamic>>()
+            .map(
+              (item) => TenantModel(
+                id:
+                    item['subdomain']?.toString() ??
+                    item['code']?.toString() ??
+                    '',
+                name: item['name']?.toString() ?? '',
+                code:
+                    (item['code']?.toString() ??
+                            item['subdomain']?.toString() ??
+                            '')
+                        .toUpperCase(),
+                domain:
+                    item['domain']?.toString() ??
+                    item['subdomain']?.toString() ??
+                    '',
+                logoUrl: item['logo_url']?.toString(),
+                status: 'active',
+              ),
+            )
+            .toList();
+      }
+      return [];
+    } on DioException catch (e) {
+      apiClient.handleDioError(e);
+    } catch (_) {
+      return [];
+    }
   }
 }

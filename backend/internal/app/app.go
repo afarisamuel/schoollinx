@@ -171,8 +171,8 @@ func (a *App) setupRoutes() {
 	// Public Routes
 	public := a.Router.Group("/api/public")
 	public.GET("/payments/verify/:reference", paymentHandler.VerifyPayment)
-	// 10 requests per hour per IP for onboarding
-	publicRateLimiter := middleware.NewIPRateLimiter(10, time.Hour)
+	// 300 requests per minute per IP for public endpoints like tenant search
+	publicRateLimiter := middleware.NewIPRateLimiter(300, time.Minute)
 	public.Use(publicRateLimiter.Middleware())
 	handler.NewPublicHandler(public, usecases.Tenant)
 

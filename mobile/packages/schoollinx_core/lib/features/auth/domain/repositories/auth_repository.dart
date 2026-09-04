@@ -23,4 +23,6 @@ abstract class AuthRepository {
   Future<Either<Failure, void>> selectTenant(TenantEntity tenant);
 
   Future<Either<Failure, void>> clearSelectedTenant();
+
+  Future<Either<Failure, List<TenantEntity>>> searchTenants(String query);
 }

@@ -12,6 +12,7 @@ class SlInput extends StatelessWidget {
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
   final void Function(String)? onSubmitted;
+  final FocusNode? focusNode;
   final bool autofocus;
   final bool enabled;
   final int? maxLines;
@@ -19,6 +20,7 @@ class SlInput extends StatelessWidget {
   const SlInput({
     super.key,
     this.controller,
+    this.focusNode,
     this.label,
     this.hintText,
     this.prefixIcon,
@@ -54,6 +56,7 @@ class SlInput extends StatelessWidget {
         ],
         TextFormField(
           controller: controller,
+          focusNode: focusNode,
           obscureText: obscureText,
           maxLines: maxLines,
           keyboardType: keyboardType,

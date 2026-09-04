@@ -102,13 +102,16 @@ class _StudentTenantSelectPageState extends State<StudentTenantSelectPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SlInput(
+                          SlSchoolSearchInput(
                             controller: _codeController,
-                            label: 'SCHOOL CODE',
-                            hintText: 'e.g. THINKCE',
-                            prefixIcon: const Icon(LucideIcons.school, size: 20, color: AppColors.primaryLight),
+                            label: 'SCHOOL CODE OR NAME',
+                            hintText: 'Type to search school (e.g. ThinkCE)',
+                            onSelected: (tenant) {
+                              final code = tenant.code?.isNotEmpty == true ? tenant.code! : tenant.id;
+                              context.read<AuthBloc>().add(ResolveTenantEvent(code: code));
+                            },
                             validator: (val) {
-                              if (val == null || val.trim().isEmpty) return 'Please enter your school code';
+                              if (val == null || val.trim().isEmpty) return 'Please enter or select your school';
                               return null;
                             },
                           ),

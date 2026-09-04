@@ -15,6 +15,7 @@ export 'features/common_widgets/sl_button.dart';
 export 'features/common_widgets/sl_input.dart';
 export 'features/common_widgets/sl_badge.dart';
 export 'features/common_widgets/sl_avatar.dart';
+export 'features/common_widgets/sl_school_search_input.dart';
 
 // Auth exports
 export 'features/auth/domain/entities/user_entity.dart';
@@ -24,6 +25,7 @@ export 'features/auth/domain/usecases/login_usecase.dart';
 export 'features/auth/domain/usecases/logout_usecase.dart';
 export 'features/auth/domain/usecases/get_current_user_usecase.dart';
 export 'features/auth/domain/usecases/resolve_tenant_usecase.dart';
+export 'features/auth/domain/usecases/search_tenants_usecase.dart';
 export 'features/auth/presentation/bloc/auth_bloc.dart';
 export 'features/auth/presentation/bloc/auth_event.dart';
 export 'features/auth/presentation/bloc/auth_state.dart';
