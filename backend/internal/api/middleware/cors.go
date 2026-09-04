@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/user/high-school-management/backend/internal/domain"
 	"gorm.io/gorm"
 )
 
@@ -33,21 +32,8 @@ func CORSMiddleware(db *gorm.DB) gin.HandlerFunc {
 			isAllowed = true
 		}
 
-		// Strictly verify .schoollinx.com subdomains against the database (Gap #11)
-		if !isAllowed && strings.HasSuffix(origin, ".schoollinx.com") && origin != "https://schoollinx.com" {
-			// Extract subdomain (e.g., https://tenant1.schoollinx.com -> tenant1)
-			parts := strings.Split(origin, "://")
-			if len(parts) == 2 {
-				host := parts[1]
-				subdomain := strings.TrimSuffix(host, ".schoollinx.com")
-
-				// Verify if subdomain exists and is active
-				var t domain.Tenant
-				if err := db.Where("subdomain = ? AND is_active = ?", subdomain, true).First(&t).Error; err == nil {
-					isAllowed = true
-				}
-			}
-		} else if !isAllowed && origin == "https://schoollinx.com" {
+		// Allow any .schoollinx.com origin (including multi-tenant subdomains like kwame.schoollinx.com)
+		if !isAllowed && (strings.HasSuffix(origin, ".schoollinx.com") || origin == "https://schoollinx.com" || origin == "http://schoollinx.com") {
 			isAllowed = true
 		}
 
@@ -57,12 +43,20 @@ func CORSMiddleware(db *gorm.DB) gin.HandlerFunc {
 			isAllowed = true
 		}
 
-		if isAllowed {
+		if isAllowed && origin != "" {
 			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+		} else if origin == "" {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		}
 
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, X-Tenant-Slug, X-App-ID, X-Tenant-Subdomain")
+
+		// Comprehensive allowed headers list including frontend custom control headers
+		allowedHeaders := "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, X-Tenant-Slug, X-App-ID, X-Tenant-Subdomain, X-Tenant-ID, X-Skip-Toast-Error, x-skip-toast-error, skip-toast, X-Impersonate-Tenant, X-Device-ID, X-App-Version, X-Client-Platform, Upgrade, Connection"
+		if reqHeaders := c.Request.Header.Get("Access-Control-Request-Headers"); reqHeaders != "" {
+			allowedHeaders = allowedHeaders + ", " + reqHeaders
+		}
+		c.Writer.Header().Set("Access-Control-Allow-Headers", allowedHeaders)
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")
 
 		// Security Headers (Gap #96)

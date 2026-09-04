@@ -39,10 +39,18 @@ function extractCleanErrorMessage(error: HttpErrorResponse): string {
 export const errorToastInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> => {
   const toastService = inject(ToastService);
 
-  return next(req).pipe(
+  // Check if request explicitly opts out of global error toasts
+  const skipToast = req.headers.has('x-skip-toast-error') || req.headers.has('skip-toast') || req.url.includes('/api/public/tenant-info');
+
+  // Strip internal control headers before sending over the wire so CORS preflight does not block them
+  const forwardReq = (req.headers.has('x-skip-toast-error') || req.headers.has('skip-toast'))
+    ? req.clone({ headers: req.headers.delete('x-skip-toast-error').delete('skip-toast') })
+    : req;
+
+  return next(forwardReq).pipe(
     catchError((error: HttpErrorResponse) => {
       // Allow requests to opt out of global error toasts via headers or public tenant queries
-      if (req.headers.has('x-skip-toast-error') || req.headers.has('skip-toast') || req.url.includes('/api/public/tenant-info')) {
+      if (skipToast) {
         return throwError(() => error);
       }
 
