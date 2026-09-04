@@ -35,6 +35,10 @@ export class ExtracurricularService {
         return this.http.get<Club[]>(`${this.apiUrl}/clubs`);
     }
 
+    createClub(club: Partial<Club>): Observable<Club> {
+        return this.http.post<Club>(`${this.apiUrl}/clubs`, club);
+    }
+
     getMyClubs(): Observable<Club[]> {
         return this.http.get<Club[]>(`${this.apiUrl}/my-clubs`);
     }

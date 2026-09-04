@@ -75,6 +75,7 @@ type ExtracurricularRepository interface {
 }
 
 type ExtracurricularUseCase interface {
+	CreateClub(ctx context.Context, club *Club) error
 	ListClubs(ctx context.Context) ([]Club, error)
 	GetStudentClubs(ctx context.Context, studentID uuid.UUID) ([]Club, error)
 	JoinClub(ctx context.Context, clubID, studentID uuid.UUID) error

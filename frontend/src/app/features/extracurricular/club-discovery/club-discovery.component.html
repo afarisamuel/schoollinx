@@ -1,340 +1,679 @@
-<div class="text-text-primary animate-fade-in">
+<div class="max-w-[1560px] mx-auto animate-fade-in pb-20 px-2 sm:px-4 space-y-6 relative">
+  
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- 0. AMBIENT BACKDROP LIGHTING                               -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="absolute -top-10 left-1/4 w-96 h-96 bg-blue-500/10 dark:bg-blue-600/15 rounded-full blur-3xl pointer-events-none -z-10"></div>
+  <div class="absolute top-60 right-10 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-600/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
-  <!-- ===== HERO ===== -->
-  <div class="relative overflow-hidden">
-    <!-- Mesh BG -->
-    <div class="absolute inset-0 pointer-events-none">
-      <div class="absolute top-0 left-1/4 w-[600px] h-[600px] bg-blue-600/15 blur-[120px] rounded-full"></div>
-      <div class="absolute -bottom-20 right-0 w-[500px] h-[500px] bg-blue-600/10 blur-[100px] rounded-full"></div>
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- 1. TOP HERO HEADER & CONTROLS                              -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2">
+    <div>
+      <div class="flex items-center gap-2 text-xs font-bold text-text-muted mb-1.5 flex-wrap">
+        <span class="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+          Extracurricular Hub
+        </span>
+        <span class="text-text-muted/40">/</span>
+        <span class="text-text-muted">Student Life</span>
+        <span class="text-text-muted/40">/</span>
+        <span class="text-text-primary font-black">Student Clubs & Orgs</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+        <span>Student Communities</span>
+      </h1>
+      <p class="text-xs sm:text-sm font-medium text-text-muted mt-1 max-w-3xl">
+        Beyond the classroom lies a world of opportunity. Join clubs, lead student societies, schedule workshops, and build lifelong bonds.
+      </p>
     </div>
 
-    <div class="max-w-7xl mx-auto px-2 sm:px-6 md:px-10 pt-4 sm:pt-8 pb-8 sm:pb-12 relative z-10">
-      <!-- Eyebrow -->
-      <div class="flex items-center gap-3 mb-6">
-        <div class="flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20">
-          <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
-          <span class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">Extracurricular</span>
-        </div>
-      </div>
+    <!-- Header Actions -->
+    <div class="flex items-center gap-2.5 shrink-0 flex-wrap">
+      <button (click)="openScheduleModal()"
+        class="px-4 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-xl transition-all flex items-center gap-2 shadow-xs cursor-pointer active:scale-95 hover:border-blue-500/40">
+        <i class="fas fa-calendar-plus text-xs text-blue-500"></i>
+        <span>Schedule Meetup</span>
+      </button>
 
-      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
-        <div class="max-w-2xl">
-          <h1 class="text-5xl md:text-6xl xl:text-7xl font-black tracking-tight leading-[1.05] mb-6">
-            <span class="text-blue-400">Student</span><br>
-            <span class="text-blue-400">Communities</span>
-          </h1>
-          <p class="text-lg text-text-muted leading-relaxed max-w-lg">
-            Beyond the classroom lies a world of opportunity. Join clubs, lead teams, and build memories that last a lifetime.
-          </p>
-        </div>
-
-        <!-- Leader CTA Card -->
-        <div class="flex-shrink-0 w-full lg:w-72 bg-blue-500/20 border border-blue-500/20 backdrop-blur-sm rounded-3xl p-6">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-amber-500/20">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>
-            </div>
-            <div>
-              <p class="font-black text-text-primary text-sm">Club Leader?</p>
-              <p class="text-[11px] text-text-muted font-medium">Manage your society</p>
-            </div>
-          </div>
-          <p class="text-sm text-text-muted mb-4 leading-relaxed">Schedule events, manage rosters, and broadcast announcements to your members.</p>
-          <button class="w-full py-3 bg-bg-primary text-text-primary rounded-xl text-xs font-black uppercase tracking-widest hover:bg-bg-primary/5 hover:scale-[1.02] transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.1)]">
-            Open Control Center
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Stats Row -->
-      <div class="flex flex-wrap items-center gap-6 mt-12 pt-10 border-t border-border-primary">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </div>
-          <div>
-            <p class="text-xl font-black text-text-primary">{{ clubs().length }}</p>
-            <p class="text-[11px] text-text-muted font-bold uppercase tracking-widest">Communities</p>
-          </div>
-        </div>
-        <div class="w-px h-10 bg-bg-primary/5"></div>
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          </div>
-          <div>
-            <p class="text-xl font-black text-text-primary">{{ joinedClubIds().size }}</p>
-            <p class="text-[11px] text-text-muted font-bold uppercase tracking-widest">Joined</p>
-          </div>
-        </div>
-        <div class="w-px h-10 bg-bg-primary/5"></div>
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          </div>
-          <div>
-            <p class="text-xl font-black text-text-primary">{{ events().length }}</p>
-            <p class="text-[11px] text-text-muted font-bold uppercase tracking-widest">Events</p>
-          </div>
-        </div>
-      </div>
+      <button (click)="openCreateModal()"
+        class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white border border-blue-500/30 text-xs font-black rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-blue-500/25 cursor-pointer active:scale-95">
+        <i class="fas fa-plus text-xs"></i>
+        <span>Create Community</span>
+      </button>
     </div>
   </div>
 
-  <!-- ===== MAIN CONTENT ===== -->
-  <div class="max-w-7xl mx-auto px-6 md:px-10 pb-16 grid grid-cols-1 lg:grid-cols-4 gap-8">
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- 2. KPI RIBBON & HIGHLIGHTS                                 -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
     
-    <!-- ===== CLUBS COLUMN ===== -->
-    <div class="lg:col-span-3 flex flex-col gap-6">
+    <!-- Metric 1: Total Communities -->
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between group hover:border-blue-500/40 transition-all">
+      <div>
+        <p class="text-[10px] font-black uppercase tracking-wider text-text-muted">Total Communities</p>
+        <h3 class="text-xl sm:text-2xl md:text-3xl font-black text-text-primary mt-1 tracking-tight font-mono">
+          {{ totalCommunitiesCount() }}
+        </h3>
+        <p class="text-[10px] text-text-muted font-bold mt-1">
+          Active societies & teams
+        </p>
+      </div>
+      <div class="w-11 h-11 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+        <i class="fas fa-people-group"></i>
+      </div>
+    </div>
 
-      <!-- Sticky Search & Filter Bar -->
-      <div class="sticky top-4 z-30 bg-bg-secondary/80 backdrop-blur-xl border border-border-primary rounded-2xl p-3 flex flex-col sm:flex-row items-center gap-3 shadow-lg shadow-black/20">
-        <!-- Search -->
-        <div class="relative w-full sm:w-auto flex-1">
-          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-text-muted">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          </div>
-          <input type="text" placeholder="Search communities..."
-                 [value]="searchTerm()"
-                 (input)="searchTerm.set($any($event.target).value)"
-                 class="w-full bg-bg-primary/5 border border-border-primary rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-text-primary focus:outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 placeholder-text-muted/50 transition-all">
-        </div>
+    <!-- Metric 2: My Memberships -->
+    <div class="bg-gradient-to-br from-emerald-500/10 via-bg-secondary to-bg-secondary border border-emerald-500/20 rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between group hover:border-emerald-500/40 transition-all">
+      <div>
+        <p class="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">My Memberships</p>
+        <h3 class="text-xl sm:text-2xl md:text-3xl font-black text-text-primary mt-1 tracking-tight font-mono">
+          {{ joinedCommunitiesCount() }}
+        </h3>
+        <p class="text-[10px] text-text-muted font-bold mt-1 flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active enrolled clubs
+        </p>
+      </div>
+      <div class="w-11 h-11 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+        <i class="fas fa-id-badge"></i>
+      </div>
+    </div>
 
-        <!-- Filter pills -->
-        <div class="flex gap-1.5 overflow-x-auto no-scrollbar">
-          <button (click)="activeCategory.set(null)"
-                  class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all"
-                  [class.bg-bg-primary]="!activeCategory()"
-                  [class.text-text-primary]="!activeCategory()"
-                  [class.bg-bg-primary/5]="!!activeCategory()"
-                  [class.text-text-muted]="!!activeCategory()"
-                  [class.hover:bg-bg-primary/5]="!!activeCategory()">All</button>
-          <button (click)="activeCategory.set('ACADEMIC')"
-                  class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-1.5"
-                  [class.bg-blue-500]="activeCategory() === 'ACADEMIC'"
-                  [class.text-text-primary]="activeCategory() === 'ACADEMIC'"
-                  [class.bg-bg-primary/5]="activeCategory() !== 'ACADEMIC'"
-                  [class.text-text-muted]="activeCategory() !== 'ACADEMIC'"
-                  [class.hover:bg-bg-primary/5]="activeCategory() !== 'ACADEMIC'">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
-            Academic
-          </button>
-          <button (click)="activeCategory.set('SPORTS')"
-                  class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-1.5"
-                  [class.bg-emerald-500]="activeCategory() === 'SPORTS'"
-                  [class.text-text-primary]="activeCategory() === 'SPORTS'"
-                  [class.bg-bg-primary/5]="activeCategory() !== 'SPORTS'"
-                  [class.text-text-muted]="activeCategory() !== 'SPORTS'"
-                  [class.hover:bg-bg-primary/5]="activeCategory() !== 'SPORTS'">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            Sports
-          </button>
-          <button (click)="activeCategory.set('ARTS')"
-                  class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-1.5"
-                  [class.bg-blue-500]="activeCategory() === 'ARTS'"
-                  [class.text-text-primary]="activeCategory() === 'ARTS'"
-                  [class.bg-bg-primary/5]="activeCategory() !== 'ARTS'"
-                  [class.text-text-muted]="activeCategory() !== 'ARTS'"
-                  [class.hover:bg-bg-primary/5]="activeCategory() !== 'ARTS'">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
-            Arts
-          </button>
-          <button (click)="activeCategory.set('SOCIAL')"
-                  class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-1.5"
-                  [class.bg-amber-500]="activeCategory() === 'SOCIAL'"
-                  [class.text-text-primary]="activeCategory() === 'SOCIAL'"
-                  [class.bg-bg-primary/5]="activeCategory() !== 'SOCIAL'"
-                  [class.text-text-muted]="activeCategory() !== 'SOCIAL'"
-                  [class.hover:bg-bg-primary/5]="activeCategory() !== 'SOCIAL'">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-            Social
-          </button>
-        </div>
+    <!-- Metric 3: Scheduled Events -->
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between group hover:border-purple-500/40 transition-all">
+      <div>
+        <p class="text-[10px] font-black uppercase tracking-wider text-text-muted">Scheduled Meets</p>
+        <h3 class="text-xl sm:text-2xl md:text-3xl font-black text-text-primary mt-1 tracking-tight font-mono">
+          {{ totalEventsCount() }}
+        </h3>
+        <p class="text-[10px] text-text-muted font-bold mt-1">
+          Workshops & fixtures
+        </p>
+      </div>
+      <div class="w-11 h-11 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+        <i class="fas fa-calendar-check"></i>
+      </div>
+    </div>
 
-        <div class="hidden sm:flex items-center gap-1.5 ml-auto pl-3 border-l border-border-primary pr-3">
-          <span class="text-2xl font-black text-text-primary">{{ filteredClubs().length }}</span>
-          <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">Found</span>
-        </div>
+    <!-- Metric 4: Faculty Advisors -->
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between group hover:border-amber-500/40 transition-all">
+      <div>
+        <p class="text-[10px] font-black uppercase tracking-wider text-text-muted">Faculty Leadership</p>
+        <h3 class="text-xl sm:text-2xl md:text-3xl font-black text-text-primary mt-1 tracking-tight font-mono">
+          {{ teachers().length }}
+        </h3>
+        <p class="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-1 flex items-center gap-1">
+          <i class="fas fa-chalkboard-user text-[9px]"></i> Assigned staff mentors
+        </p>
+      </div>
+      <div class="w-11 h-11 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+        <i class="fas fa-user-tie"></i>
+      </div>
+    </div>
 
-        <!-- Add Club Button -->
-        <button class="shrink-0 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-text-primary text-xs font-black uppercase tracking-wider rounded-xl shadow-lg shadow-blue-600/20 transition-all hover:scale-[1.02] ml-auto sm:ml-0">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Create
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- 3. SEARCH & FILTER HUB                                     -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="bg-bg-secondary border border-border-primary rounded-3xl p-4 sm:p-6 shadow-sm space-y-4 relative z-20">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      
+      <!-- Search Input -->
+      <div class="flex-1 relative">
+        <i class="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-sm pointer-events-none"></i>
+        <input type="text" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)"
+          placeholder="Search by community name, description, or focus category..."
+          class="w-full bg-bg-tertiary border border-border-primary hover:border-blue-500/40 focus:border-blue-500 rounded-2xl pl-11 pr-4 py-3 text-xs sm:text-sm font-medium text-text-primary placeholder-text-muted outline-none transition-all shadow-inner">
+        
+        @if (searchTerm()) {
+          <button (click)="searchTerm.set('')"
+            class="absolute right-3.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary flex items-center justify-center text-xs transition-colors cursor-pointer">
+            <i class="fas fa-times"></i>
+          </button>
+        }
+      </div>
+
+      <!-- Segmented View Mode Tabs: ALL vs MY CLUBS -->
+      <div class="flex items-center p-1 bg-bg-tertiary rounded-2xl border border-border-primary shrink-0">
+        <button (click)="activeViewTab.set('ALL')"
+          class="px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer"
+          [ngClass]="activeViewTab() === 'ALL' ? 'bg-bg-secondary text-text-primary shadow-xs' : 'text-text-muted hover:text-text-primary'">
+          All Communities
+        </button>
+        <button (click)="activeViewTab.set('MY_CLUBS')"
+          class="px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5"
+          [ngClass]="activeViewTab() === 'MY_CLUBS' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/25' : 'text-text-muted hover:text-text-primary'">
+          <i class="fas fa-circle-check text-xs"></i>
+          <span>My Enrolled ({{ joinedCommunitiesCount() }})</span>
         </button>
       </div>
 
-      <!-- Club Cards Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-        @for (club of filteredClubs(); track club.id; let i = $index) {
-          <div class="group relative bg-bg-secondary border border-border-primary hover:border-border-primary rounded-3xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/10 flex flex-col"
-               [style.animation-delay]="i * 50 + 'ms'">
+      <!-- Category Filter Pills -->
+      <div class="flex items-center gap-1.5 p-1 bg-bg-tertiary rounded-2xl border border-border-primary shrink-0 overflow-x-auto custom-scrollbar">
+        <button (click)="activeCategory.set(null)"
+          class="px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap"
+          [ngClass]="activeCategory() === null ? 'bg-bg-secondary text-text-primary shadow-xs' : 'text-text-muted hover:text-text-primary'">
+          All Categories
+        </button>
+        
+        <button (click)="activeCategory.set('ACADEMIC')"
+          class="px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+          [ngClass]="activeCategory() === 'ACADEMIC' ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30' : 'text-text-muted hover:text-blue-500'">
+          <i class="fas fa-graduation-cap text-xs"></i>
+          <span>Academic & STEM</span>
+        </button>
 
-            <!-- Category accent bar -->
-            <div class="h-1 w-full"
-                 [class.bg-blue-600]="true"
-                 [class.from-blue-500]="club.category === 'ACADEMIC'"
-                 [class.to-cyan-400]="club.category === 'ACADEMIC'"
-                 [class.from-emerald-500]="club.category === 'SPORTS'"
-                 [class.to-blue-400]="club.category === 'SPORTS'"
-                 [class.from-blue-500]="club.category === 'ARTS'"
-                 [class.to-blue-400]="club.category === 'ARTS'"
-                 [class.from-amber-500]="club.category !== 'ACADEMIC' && club.category !== 'SPORTS' && club.category !== 'ARTS'"
-                 [class.to-blue-400]="club.category !== 'ACADEMIC' && club.category !== 'SPORTS' && club.category !== 'ARTS'">
-            </div>
+        <button (click)="activeCategory.set('SPORTS')"
+          class="px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+          [ngClass]="activeCategory() === 'SPORTS' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' : 'text-text-muted hover:text-emerald-500'">
+          <i class="fas fa-futbol text-xs"></i>
+          <span>Sports</span>
+        </button>
 
-            <div class="p-6 flex flex-col flex-1">
-              <!-- Top Row -->
-              <div class="flex items-start justify-between mb-5">
-                <!-- SVG Avatar -->
-                <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg border"
-                     [class.bg-blue-500/10]="club.category === 'ACADEMIC'"
-                     [class.border-blue-500/20]="club.category === 'ACADEMIC'"
-                     [class.text-blue-400]="club.category === 'ACADEMIC'"
-                     [class.bg-emerald-500/10]="club.category === 'SPORTS'"
-                     [class.border-emerald-500/20]="club.category === 'SPORTS'"
-                     [class.text-emerald-400]="club.category === 'SPORTS'"
-                     [class.bg-blue-500/10]="club.category === 'ARTS'"
-                     [class.border-blue-500/20]="club.category === 'ARTS'"
-                     [class.text-blue-400]="club.category === 'ARTS'"
-                     [class.bg-amber-500/10]="club.category !== 'ACADEMIC' && club.category !== 'SPORTS' && club.category !== 'ARTS'"
-                     [class.border-amber-500/20]="club.category !== 'ACADEMIC' && club.category !== 'SPORTS' && club.category !== 'ARTS'"
-                     [class.text-amber-400]="club.category !== 'ACADEMIC' && club.category !== 'SPORTS' && club.category !== 'ARTS'">
-                  @switch (club.category) {
-                    @case ('ACADEMIC') {
-                      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
-                    }
-                    @case ('SPORTS') {
-                      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                    }
-                    @case ('ARTS') {
-                      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
-                    }
-                    @default {
-                      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-                    }
-                  }
-                </div>
+        <button (click)="activeCategory.set('ARTS')"
+          class="px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+          [ngClass]="activeCategory() === 'ARTS' ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30' : 'text-text-muted hover:text-purple-500'">
+          <i class="fas fa-palette text-xs"></i>
+          <span>Arts & Music</span>
+        </button>
 
-                <!-- Category & Member Badge -->
-                <div class="flex flex-col items-end gap-1.5">
-                  <span class="text-[9px] font-black uppercase tracking-[0.2em] px-2.5 py-1 rounded-lg"
-                        [class.bg-blue-500/10]="club.category === 'ACADEMIC'"
-                        [class.text-blue-400]="club.category === 'ACADEMIC'"
-                        [class.bg-emerald-500/10]="club.category === 'SPORTS'"
-                        [class.text-emerald-400]="club.category === 'SPORTS'"
-                        [class.bg-blue-500/10]="club.category === 'ARTS'"
-                        [class.text-blue-400]="club.category === 'ARTS'"
-                        [class.bg-amber-500/10]="club.category !== 'ACADEMIC' && club.category !== 'SPORTS' && club.category !== 'ARTS'"
-                        [class.text-amber-400]="club.category !== 'ACADEMIC' && club.category !== 'SPORTS' && club.category !== 'ARTS'">
-                    {{ club.category || 'Social' }}
-                  </span>
-                  @if (club.isJoined) {
-                    <span class="text-[9px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg uppercase tracking-wider flex items-center gap-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                      Member
-                    </span>
-                  }
-                </div>
-              </div>
-
-              <!-- Club Info -->
-              <div class="flex-1 mb-5">
-                <h3 class="text-lg font-black text-text-primary mb-2 group-hover:text-blue-300 transition-colors line-clamp-1">{{ club.name }}</h3>
-                <p class="text-sm text-text-muted leading-relaxed line-clamp-3">{{ club.description }}</p>
-              </div>
-
-              <!-- Divider -->
-              <div class="h-px bg-bg-primary/5 mb-5"></div>
-
-              <!-- Action Button -->
-              <button (click)="toggleJoin(club)"
-                      class="w-full py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
-                      [class.bg-bg-primary]="!club.isJoined"
-                      [class.text-text-primary]="!club.isJoined"
-                      [class.hover:bg-bg-primary/5]="!club.isJoined"
-                      [class.hover:scale-[1.02]]="!club.isJoined"
-                      [class.shadow-lg]="!club.isJoined"
-                      [class.bg-rose-500/10]="club.isJoined"
-                      [class.text-rose-400]="club.isJoined"
-                      [class.border]="club.isJoined"
-                      [class.border-rose-500/20]="club.isJoined"
-                      [class.hover:bg-rose-500/20]="club.isJoined">
-                @if (club.isJoined) {
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                  Leave Community
-                } @else {
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                  Join Community
-                }
-              </button>
-            </div>
-          </div>
-        } @empty {
-          <div class="col-span-full flex flex-col items-center justify-center p-20 text-center bg-bg-secondary/50 border border-border-primary rounded-3xl">
-            <div class="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            </div>
-            <h3 class="text-xl font-black text-text-primary mb-2">No Communities Found</h3>
-            <p class="text-text-muted text-sm max-w-xs">Try adjusting your filters or search term to discover other societies.</p>
-          </div>
-        }
+        <button (click)="activeCategory.set('SOCIAL')"
+          class="px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+          [ngClass]="activeCategory() === 'SOCIAL' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30' : 'text-text-muted hover:text-amber-500'">
+          <i class="fas fa-people-roof text-xs"></i>
+          <span>Social</span>
+        </button>
       </div>
+
     </div>
 
-    <!-- ===== SIDEBAR: EVENTS ===== -->
-    <div class="lg:col-span-1">
-      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 sticky top-24 overflow-hidden">
-        <!-- Glow -->
-        <div class="absolute top-0 right-0 w-40 h-40 bg-blue-500/10 blur-[60px] pointer-events-none"></div>
+    <!-- Active Filter Counter -->
+    <div class="flex items-center justify-between text-xs text-text-muted pt-2 border-t border-border-primary/60">
+      <div>
+        <span class="font-bold text-text-primary">Showing {{ filteredClubs().length }}</span>
+        <span>of {{ clubs().length }} registered student societies</span>
+      </div>
 
-        <div class="relative z-10">
-          <div class="flex items-center justify-between mb-6">
-            <h2 class="text-lg font-black text-text-primary">Upcoming Events</h2>
-            <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            </div>
-          </div>
+      @if (searchTerm() || activeCategory() !== null || activeViewTab() !== 'ALL') {
+        <button (click)="searchTerm.set(''); activeCategory.set(null); activeViewTab.set('ALL')"
+          class="text-blue-500 hover:text-blue-400 font-bold flex items-center gap-1 cursor-pointer">
+          <i class="fas fa-rotate-left text-[10px]"></i>
+          <span>Reset Filters</span>
+        </button>
+      }
+    </div>
+  </div>
 
-          <div class="flex flex-col gap-3">
-            @for (event of events(); track event.id) {
-              <div class="group flex gap-4 p-4 bg-bg-primary/5 border border-border-primary hover:border-blue-500/20 hover:bg-blue-500/5 rounded-2xl transition-all cursor-pointer">
-                <!-- Date Badge -->
-                <div class="flex flex-col items-center justify-center w-12 h-12 bg-bg-primary border border-border-primary group-hover:bg-blue-500 group-hover:border-blue-500 rounded-xl shrink-0 transition-all">
-                  <span class="text-lg font-black text-text-primary leading-none group-hover:text-text-primary">{{ event.start_time | date:'dd' }}</span>
-                  <span class="text-[9px] font-black uppercase text-text-muted group-hover:text-blue-200 tracking-wider">{{ event.start_time | date:'MMM' }}</span>
-                </div>
-                <!-- Event Info -->
-                <div class="flex flex-col justify-center min-w-0">
-                  <h4 class="text-sm font-black text-text-primary truncate mb-1 group-hover:text-blue-300 transition-colors">{{ event.title }}</h4>
-                  <div class="flex items-center gap-1.5 text-[11px] text-text-muted font-medium">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    {{ event.start_time | date:'shortTime' }}
-                  </div>
-                </div>
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- 4. MAIN GRID: CLUBS SHOWCASE & UPCOMING EVENTS             -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- ────────────────────────────────────────────────────────── -->
+    <!-- LEFT / CENTER: COMMUNITIES SHOWCASE CARDS (Col 8)          -->
+    <!-- ────────────────────────────────────────────────────────── -->
+    <div class="lg:col-span-8 space-y-6">
+      
+      @if (isLoading()) {
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          @for (i of [1,2,3,4]; track i) {
+            <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-xs animate-pulse space-y-4">
+              <div class="flex items-center justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-bg-tertiary"></div>
+                <div class="h-6 w-24 bg-bg-tertiary rounded-full"></div>
               </div>
-            } @empty {
-              <div class="text-center py-10 flex flex-col items-center gap-3">
-                <div class="w-12 h-12 rounded-2xl bg-bg-primary/10 flex items-center justify-center text-text-muted">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                </div>
-                <div>
-                  <p class="text-sm font-black text-text-primary mb-1">No Events Yet</p>
-                  <p class="text-xs text-text-muted">Nothing scheduled for now.</p>
-                </div>
-              </div>
-            }
-          </div>
-
-          @if (events().length > 0) {
-            <div class="mt-5 pt-5 border-t border-border-primary">
-              <button class="w-full py-2.5 text-xs font-black uppercase tracking-wider text-text-muted hover:text-text-primary bg-bg-primary/5 hover:bg-bg-primary/5 border border-border-primary rounded-xl transition-all">
-                View All Events
-              </button>
+              <div class="h-5 w-3/4 bg-bg-tertiary rounded-lg"></div>
+              <div class="h-12 w-full bg-bg-tertiary rounded-xl"></div>
+              <div class="h-10 w-full bg-bg-tertiary rounded-xl"></div>
             </div>
           }
         </div>
+      } @else if (filteredClubs().length === 0) {
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-12 text-center shadow-xs">
+          <div class="max-w-md mx-auto space-y-4">
+            <div class="w-16 h-16 rounded-3xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-2xl mx-auto border border-blue-500/20">
+              <i class="fas fa-compass"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-black text-text-primary">No Communities Found</h3>
+              <p class="text-xs text-text-muted mt-1 leading-relaxed">
+                No student societies match your current category selection or search query. Start by creating a new student club!
+              </p>
+            </div>
+            <button (click)="openCreateModal()"
+              class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black transition-all cursor-pointer shadow-md shadow-blue-500/25">
+              Establish First Community
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          @for (club of filteredClubs(); track club.id) {
+            <div class="bg-bg-secondary hover:bg-bg-secondary/90 border border-border-primary hover:border-blue-500/40 rounded-3xl p-6 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group relative overflow-hidden">
+              
+              <!-- Subtle Category Top Accent Line -->
+              <div class="absolute top-0 left-0 right-0 h-1.5"
+                   [ngClass]="club.category === 'ACADEMIC' ? 'bg-blue-500' : (club.category === 'SPORTS' ? 'bg-emerald-500' : (club.category === 'ARTS' ? 'bg-purple-500' : 'bg-amber-500'))"></div>
+
+              <div>
+                <!-- Top Badge & Category Icon -->
+                <div class="flex items-start justify-between gap-3 mb-4 pt-1">
+                  <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform"
+                       [ngClass]="getCategoryBadge(club.category).bg + ' ' + getCategoryBadge(club.category).text + ' border ' + getCategoryBadge(club.category).border">
+                    <i class="fas" [ngClass]="getCategoryBadge(club.category).icon"></i>
+                  </div>
+
+                  <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider"
+                          [ngClass]="getCategoryBadge(club.category).bg + ' ' + getCategoryBadge(club.category).text + ' border ' + getCategoryBadge(club.category).border">
+                      {{ getCategoryBadge(club.category).label }}
+                    </span>
+
+                    @if (club.isJoined) {
+                      <span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[9px] font-black uppercase flex items-center gap-1">
+                        <i class="fas fa-check text-[8px]"></i> Enrolled
+                      </span>
+                    }
+                  </div>
+                </div>
+
+                <!-- Club Title & Description -->
+                <h3 class="text-base sm:text-lg font-black text-text-primary group-hover:text-blue-500 transition-colors">
+                  {{ club.name }}
+                </h3>
+                <p class="text-xs text-text-muted mt-2 line-clamp-3 leading-relaxed">
+                  {{ club.description || 'Dedicated student community fostering excellence, extracurricular teamwork, and active peer engagement.' }}
+                </p>
+
+                <!-- Advisor & Schedule Badges -->
+                <div class="mt-4 pt-3 border-t border-border-primary/60 space-y-2">
+                  <div class="flex items-center gap-2 text-xs text-text-muted">
+                    <i class="fas fa-user-tie text-[10px] text-blue-500 shrink-0"></i>
+                    <span class="truncate">Advisor: <strong class="text-text-primary">{{ getTeacherName(club.teacher_id) }}</strong></span>
+                  </div>
+                  <div class="flex items-center gap-2 text-[11px] text-text-muted">
+                    <i class="fas fa-location-dot text-[10px] text-emerald-500 shrink-0"></i>
+                    <span class="truncate">Meets at Campus Facility</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Bar -->
+              <div class="mt-5 pt-4 border-t border-border-primary flex items-center justify-between gap-3">
+                <button (click)="openScheduleModal(club)"
+                  class="px-3 py-2 rounded-xl bg-bg-tertiary hover:bg-bg-primary text-text-muted hover:text-text-primary text-xs font-bold border border-border-primary transition-all cursor-pointer active:scale-95 flex items-center gap-1.5 shadow-xs">
+                  <i class="fas fa-calendar-plus text-xs"></i>
+                  <span>Meet</span>
+                </button>
+
+                <!-- Join / Leave Button -->
+                <button (click)="toggleJoin(club)"
+                  class="flex-1 py-2.5 px-4 rounded-xl text-xs font-black transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2 shadow-sm"
+                  [ngClass]="club.isJoined ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20' : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/25'">
+                  <i class="fas" [ngClass]="club.isJoined ? 'fa-user-minus' : 'fa-user-plus'"></i>
+                  <span>{{ club.isJoined ? 'Leave Community' : 'Join Community' }}</span>
+                </button>
+              </div>
+
+            </div>
+          }
+        </div>
+      }
+
+    </div>
+
+    <!-- ────────────────────────────────────────────────────────── -->
+    <!-- RIGHT SIDEBAR: LEADERSHIP HUB & UPCOMING EVENTS (Col 4)    -->
+    <!-- ────────────────────────────────────────────────────────── -->
+    <div class="lg:col-span-4 space-y-6">
+      
+      <!-- Leadership Hub Card -->
+      <div class="bg-gradient-to-br from-blue-600 via-indigo-700 to-blue-900 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden">
+        <div class="absolute -right-8 -top-8 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+        
+        <div class="relative z-10 space-y-4">
+          <div class="w-12 h-12 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-xl text-yellow-300 shadow-inner">
+            <i class="fas fa-crown"></i>
+          </div>
+
+          <div>
+            <span class="text-[10px] font-black uppercase tracking-widest text-blue-200">Society Leadership</span>
+            <h3 class="text-xl font-black text-white mt-1">Lead a Student Society</h3>
+            <p class="text-xs text-blue-100/80 mt-1 leading-relaxed">
+              Found a new student club, host club tournaments, recruit members, and schedule school-wide events.
+            </p>
+          </div>
+
+          <div class="pt-2 flex flex-col gap-2">
+            <button (click)="openCreateModal()"
+              class="w-full py-3 rounded-2xl bg-white hover:bg-blue-50 text-blue-900 font-black text-xs transition-all cursor-pointer shadow-md flex items-center justify-center gap-2 active:scale-95">
+              <i class="fas fa-plus-circle text-xs"></i>
+              <span>Launch New Community</span>
+            </button>
+            
+            <button (click)="openScheduleModal()"
+              class="w-full py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95">
+              <i class="fas fa-calendar-days text-xs"></i>
+              <span>Schedule Club Event</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming Events Timeline Card -->
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm space-y-5">
+        <div class="flex items-center justify-between pb-3 border-b border-border-primary">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-sm shadow-xs">
+              <i class="fas fa-calendar-star"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-black text-text-primary">Upcoming Meets & Events</h3>
+              <p class="text-[10px] text-text-muted">Campus extracurricular calendar</p>
+            </div>
+          </div>
+
+          <button (click)="openScheduleModal()" title="Schedule New Event"
+            class="w-8 h-8 rounded-xl bg-bg-tertiary hover:bg-blue-600 hover:text-white text-text-muted flex items-center justify-center text-xs transition-all cursor-pointer border border-border-primary">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+
+        <!-- Event List -->
+        <div class="space-y-3 max-h-[380px] overflow-y-auto pr-1 custom-scrollbar">
+          @if (events().length === 0) {
+            <div class="py-8 text-center">
+              <div class="w-12 h-12 rounded-2xl bg-bg-tertiary text-text-muted flex items-center justify-center text-lg mx-auto mb-2 border border-border-primary">
+                <i class="fas fa-calendar-xmark"></i>
+              </div>
+              <p class="text-xs font-black text-text-primary">No Scheduled Events</p>
+              <p class="text-[10px] text-text-muted mt-0.5">Click Schedule Meetup to publish the first society fixture.</p>
+            </div>
+          } @else {
+            @for (ev of events(); track ev.id || ev.start_time) {
+              <div class="p-3.5 rounded-2xl bg-bg-tertiary/60 hover:bg-bg-tertiary border border-border-primary/80 transition-all space-y-2 group">
+                <div class="flex items-start justify-between gap-2">
+                  <h4 class="text-xs font-black text-text-primary group-hover:text-blue-500 transition-colors">
+                    {{ ev.title }}
+                  </h4>
+                  <span class="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[9px] font-black uppercase font-mono shrink-0">
+                    {{ ev.start_time | date:'MMM d' }}
+                  </span>
+                </div>
+
+                @if (ev.description) {
+                  <p class="text-[11px] text-text-muted line-clamp-2 leading-relaxed">
+                    {{ ev.description }}
+                  </p>
+                }
+
+                <div class="flex items-center justify-between text-[10px] text-text-muted pt-1 border-t border-border-primary/40 font-bold">
+                  <span class="flex items-center gap-1">
+                    <i class="fas fa-clock text-blue-500"></i>
+                    <span>{{ ev.start_time | date:'shortTime' }}</span>
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <i class="fas fa-location-dot text-emerald-500"></i>
+                    <span class="truncate max-w-[120px]">{{ ev.location || 'Campus Facility' }}</span>
+                  </span>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- 5. CREATE COMMUNITY MODAL DIALOG                           -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  @if (isCreateModalOpen()) {
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in" (click)="closeCreateModal()">
+      <div class="bg-bg-secondary w-full max-w-xl rounded-3xl border border-border-primary shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-slide-up relative" (click)="$event.stopPropagation()">
+        
+        <!-- Modal Header -->
+        <div class="p-5 sm:p-6 border-b border-border-primary bg-bg-tertiary flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center text-sm shadow-xs shrink-0">
+              <i class="fas fa-people-group"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-black text-text-primary">Establish Student Community</h3>
+              <p class="text-xs text-text-muted mt-0.5">Define organization details and assign faculty supervisor</p>
+            </div>
+          </div>
+
+          <button (click)="closeCreateModal()"
+            class="w-8 h-8 rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary flex items-center justify-center text-xs transition-colors cursor-pointer border border-border-primary">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Modal Form Body -->
+        <div class="p-5 sm:p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+          
+          <!-- Club Name -->
+          <div>
+            <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">
+              Community / Club Name *
+            </label>
+            <input type="text" [(ngModel)]="newClub().name"
+              placeholder="e.g. Robotics & AI Club, Debate Society, Football Varsity"
+              class="w-full bg-bg-tertiary border border-border-primary hover:border-blue-500/40 focus:border-blue-500 rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold text-text-primary placeholder-text-muted outline-none transition-all">
+          </div>
+
+          <!-- Category Selection -->
+          <div>
+            <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">
+              Focus Domain / Category *
+            </label>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <button type="button" (click)="newClub().category = 'ACADEMIC'"
+                class="p-3 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5"
+                [ngClass]="newClub().category === 'ACADEMIC' ? 'bg-blue-500/15 border-blue-500 ring-2 ring-blue-500/20 text-blue-600 dark:text-blue-400 font-black shadow-xs' : 'bg-bg-tertiary text-text-muted hover:text-text-primary border-border-primary'">
+                <i class="fas fa-graduation-cap text-base"></i>
+                <span class="text-xs">Academic</span>
+              </button>
+
+              <button type="button" (click)="newClub().category = 'SPORTS'"
+                class="p-3 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5"
+                [ngClass]="newClub().category === 'SPORTS' ? 'bg-emerald-500/15 border-emerald-500 ring-2 ring-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-black shadow-xs' : 'bg-bg-tertiary text-text-muted hover:text-text-primary border-border-primary'">
+                <i class="fas fa-futbol text-base"></i>
+                <span class="text-xs">Sports</span>
+              </button>
+
+              <button type="button" (click)="newClub().category = 'ARTS'"
+                class="p-3 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5"
+                [ngClass]="newClub().category === 'ARTS' ? 'bg-purple-500/15 border-purple-500 ring-2 ring-purple-500/20 text-purple-600 dark:text-purple-400 font-black shadow-xs' : 'bg-bg-tertiary text-text-muted hover:text-text-primary border-border-primary'">
+                <i class="fas fa-palette text-base"></i>
+                <span class="text-xs">Arts</span>
+              </button>
+
+              <button type="button" (click)="newClub().category = 'SOCIAL'"
+                class="p-3 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5"
+                [ngClass]="newClub().category === 'SOCIAL' ? 'bg-amber-500/15 border-amber-500 ring-2 ring-amber-500/20 text-amber-600 dark:text-amber-400 font-black shadow-xs' : 'bg-bg-tertiary text-text-muted hover:text-text-primary border-border-primary'">
+                <i class="fas fa-people-roof text-base"></i>
+                <span class="text-xs">Social</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div>
+            <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">
+              Mission Statement & Description
+            </label>
+            <textarea [(ngModel)]="newClub().description" rows="3"
+              placeholder="Outline the club's primary objectives, upcoming projects, and eligibility requirements..."
+              class="w-full bg-bg-tertiary border border-border-primary hover:border-blue-500/40 focus:border-blue-500 rounded-2xl p-3.5 text-xs font-medium text-text-primary placeholder-text-muted outline-none transition-all"></textarea>
+          </div>
+
+          <!-- Faculty Advisor Selection -->
+          <div>
+            <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">
+              Assigned Faculty Mentor / Supervisor
+            </label>
+            <div class="relative">
+              <select [(ngModel)]="newClub().teacher_id"
+                class="w-full bg-bg-tertiary border border-border-primary hover:border-blue-500/40 focus:border-blue-500 rounded-2xl px-4 py-3 text-xs font-bold text-text-primary appearance-none outline-none cursor-pointer pr-10">
+                <option value="">Select Faculty Advisor...</option>
+                @for (t of teachers(); track t.id) {
+                  <option [value]="t.id">{{ t.first_name }} {{ t.last_name }} ({{ t.specialization || 'Faculty' }})</option>
+                }
+              </select>
+              <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs text-text-muted pointer-events-none"></i>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-4 sm:p-5 border-t border-border-primary bg-bg-tertiary flex items-center justify-end gap-3">
+          <button (click)="closeCreateModal()"
+            class="px-5 py-2.5 rounded-xl bg-bg-secondary hover:bg-bg-primary text-text-muted hover:text-text-primary text-xs font-bold border border-border-primary transition-all cursor-pointer">
+            Cancel
+          </button>
+
+          <button (click)="createClubSubmit()" [disabled]="isCreating() || !newClub().name.trim()"
+            class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-blue-500/25 cursor-pointer active:scale-95">
+            @if (isCreating()) {
+              <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              <span>Launching...</span>
+            } @else {
+              <i class="fas fa-rocket text-xs"></i>
+              <span>Establish Community</span>
+            }
+          </button>
+        </div>
+
       </div>
     </div>
-  </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- 6. SCHEDULE EVENT MODAL DIALOG                             -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  @if (isScheduleModalOpen()) {
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in" (click)="closeScheduleModal()">
+      <div class="bg-bg-secondary w-full max-w-xl rounded-3xl border border-border-primary shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-slide-up relative" (click)="$event.stopPropagation()">
+        
+        <!-- Modal Header -->
+        <div class="p-5 sm:p-6 border-b border-border-primary bg-bg-tertiary flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-500 flex items-center justify-center text-sm shadow-xs shrink-0">
+              <i class="fas fa-calendar-plus"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-black text-text-primary">Schedule Society Meetup</h3>
+              <p class="text-xs text-text-muted mt-0.5">Publish an official fixture, workshop, or meeting</p>
+            </div>
+          </div>
+
+          <button (click)="closeScheduleModal()"
+            class="w-8 h-8 rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary flex items-center justify-center text-xs transition-colors cursor-pointer border border-border-primary">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Form Body -->
+        <div class="p-5 sm:p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+          
+          <!-- Event Title -->
+          <div>
+            <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">
+              Event / Meetup Title *
+            </label>
+            <input type="text" [(ngModel)]="newEvent().title"
+              placeholder="e.g. Robotics Hackathon Prep, Inter-House Football Match"
+              class="w-full bg-bg-tertiary border border-border-primary hover:border-blue-500/40 focus:border-blue-500 rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold text-text-primary placeholder-text-muted outline-none transition-all">
+          </div>
+
+          <!-- Associated Club -->
+          <div>
+            <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">
+              Host Community / Society
+            </label>
+            <div class="relative">
+              <select [(ngModel)]="newEvent().club_id"
+                class="w-full bg-bg-tertiary border border-border-primary hover:border-blue-500/40 focus:border-blue-500 rounded-2xl px-4 py-3 text-xs font-bold text-text-primary appearance-none outline-none cursor-pointer pr-10">
+                <option value="">All-School Event / General</option>
+                @for (c of clubs(); track c.id) {
+                  <option [value]="c.id">{{ c.name }} ({{ c.category }})</option>
+                }
+              </select>
+              <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs text-text-muted pointer-events-none"></i>
+            </div>
+          </div>
+
+          <!-- Location -->
+          <div>
+            <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">
+              Meeting Location / Venue
+            </label>
+            <input type="text" [(ngModel)]="newEvent().location"
+              placeholder="e.g. Science Lab 2, Main Football Pitch, Auditorium"
+              class="w-full bg-bg-tertiary border border-border-primary hover:border-blue-500/40 focus:border-blue-500 rounded-2xl px-4 py-3 text-xs font-medium text-text-primary placeholder-text-muted outline-none transition-all">
+          </div>
+
+          <!-- Time Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">
+                Start Date & Time *
+              </label>
+              <input type="datetime-local" [(ngModel)]="newEvent().start_time"
+                class="w-full bg-bg-tertiary border border-border-primary hover:border-blue-500/40 focus:border-blue-500 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-text-primary outline-none transition-all">
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">
+                End Date & Time *
+              </label>
+              <input type="datetime-local" [(ngModel)]="newEvent().end_time"
+                class="w-full bg-bg-tertiary border border-border-primary hover:border-blue-500/40 focus:border-blue-500 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-text-primary outline-none transition-all">
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div>
+            <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">
+              Event Agenda / Description
+            </label>
+            <textarea [(ngModel)]="newEvent().description" rows="2.5"
+              placeholder="Provide briefing for attendees, required gear, or competition guidelines..."
+              class="w-full bg-bg-tertiary border border-border-primary hover:border-blue-500/40 focus:border-blue-500 rounded-2xl p-3.5 text-xs font-medium text-text-primary placeholder-text-muted outline-none transition-all"></textarea>
+          </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-4 sm:p-5 border-t border-border-primary bg-bg-tertiary flex items-center justify-end gap-3">
+          <button (click)="closeScheduleModal()"
+            class="px-5 py-2.5 rounded-xl bg-bg-secondary hover:bg-bg-primary text-text-muted hover:text-text-primary text-xs font-bold border border-border-primary transition-all cursor-pointer">
+            Cancel
+          </button>
+
+          <button (click)="scheduleEventSubmit()" [disabled]="isScheduling() || !newEvent().title.trim()"
+            class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-purple-500/25 cursor-pointer active:scale-95">
+            @if (isScheduling()) {
+              <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              <span>Publishing...</span>
+            } @else {
+              <i class="fas fa-check text-xs"></i>
+              <span>Publish Event</span>
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
 </div>

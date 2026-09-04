@@ -19,12 +19,36 @@ func NewExtracurricularHandler(r *gin.RouterGroup, uc domain.ExtracurricularUseC
 	g := r.Group("/extracurricular")
 	{
 		g.GET("/clubs", h.ListClubs)
+		g.POST("/clubs", h.CreateClub)
 		g.GET("/my-clubs", h.GetMyClubs)
 		g.POST("/clubs/:id/join", h.JoinClub)
 		g.POST("/clubs/:id/leave", h.LeaveClub)
 		g.GET("/events", h.ListEvents)
 		g.POST("/events", h.ScheduleEvent)
 	}
+}
+
+func (h *ExtracurricularHandler) CreateClub(c *gin.Context) {
+	var club domain.Club
+	if err := c.ShouldBindJSON(&club); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if club.Name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Club name is required"})
+		return
+	}
+
+	if club.Category == "" {
+		club.Category = domain.CategoryAcademic
+	}
+
+	if err := h.useCase.CreateClub(c.Request.Context(), &club); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, club)
 }
 
 func (h *ExtracurricularHandler) ListClubs(c *gin.Context) {

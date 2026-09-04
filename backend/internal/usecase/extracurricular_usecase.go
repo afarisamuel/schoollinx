@@ -21,6 +21,16 @@ func NewExtracurricularUseCase(repo domain.ExtracurricularRepository, timetableR
 	}
 }
 
+func (u *extracurricularUseCase) CreateClub(ctx context.Context, club *domain.Club) error {
+	if club.ID == uuid.Nil {
+		club.ID = uuid.New()
+	}
+	if club.CreatedAt.IsZero() {
+		club.CreatedAt = time.Now()
+	}
+	return u.repo.CreateClub(ctx, club)
+}
+
 func (u *extracurricularUseCase) ListClubs(ctx context.Context) ([]domain.Club, error) {
 	return u.repo.GetAllClubs(ctx)
 }
