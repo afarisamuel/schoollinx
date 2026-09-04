@@ -1,203 +1,445 @@
-<div class="max-w-[1400px] mx-auto space-y-4 sm:space-y-6 animate-fade-in">
+<div class="max-w-[1520px] mx-auto space-y-6 sm:space-y-8 animate-fade-in pb-16">
 
-  <!-- ── Header ───────────────────────────────────────── -->
-  <div class="flex flex-col md:flex-row items-start md:items-end justify-between mb-4 sm:mb-6 gap-4 relative">
-    <!-- Ambient glow -->
-    <div class="absolute -left-20 -top-10 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+  <!-- ── Ambient Background Glows ──────────────────────── -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+    <div class="absolute top-10 left-1/4 w-[600px] h-[600px] bg-blue-500/5 blur-[140px] rounded-full"></div>
+    <div class="absolute top-1/3 right-10 w-[500px] h-[500px] bg-indigo-500/5 blur-[140px] rounded-full"></div>
+  </div>
 
-    <div class="relative z-10">
-      <div class="flex items-center gap-3 mb-2">
-        <div class="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
-            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-          </svg>
-        </div>
-        <nav class="text-xs text-text-muted font-medium flex items-center gap-1.5">
-          <a routerLink="/fiscal" class="hover:text-text-primary transition-colors">Financial Ledger</a>
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
-          <span class="text-text-primary">Configure Fees</span>
+  <!-- ── 1. Page Header ─────────────────────────────────── -->
+  <header class="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6 pb-2 border-b border-border-primary/50">
+    <div>
+      <div class="flex items-center gap-2.5 mb-2.5 flex-wrap">
+        <nav class="flex items-center gap-2 text-xs font-bold text-text-muted">
+          <a routerLink="/fiscal" class="hover:text-blue-400 transition-colors flex items-center gap-1.5">
+            <i class="fas fa-wallet text-[11px]"></i>
+            <span>Financial Ledger</span>
+          </a>
+          <span class="text-text-muted/40">/</span>
+          <span class="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-black uppercase tracking-wider">
+            Fee Engine &amp; Policies
+          </span>
         </nav>
       </div>
-      <h1 class="text-3xl md:text-5xl font-black tracking-tighter text-text-primary">
-        Fee <span class="text-blue-400">Configuration</span>
-      </h1>
-      <p class="text-sm text-text-muted mt-2 font-medium">
-        Define and manage term fees for
-        <span class="font-bold text-text-primary px-2 py-0.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">
-          {{ activePeriod()?.name || '...' }}
-        </span>
+
+      <div class="flex items-baseline gap-3 flex-wrap">
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-text-primary">
+          Fee Structure &amp; Billing Policy
+        </h1>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-bg-secondary border border-border-primary shadow-xs">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-xs font-bold text-text-muted">Academic Term:</span>
+          <span class="text-xs font-black text-text-primary font-mono">
+            {{ activePeriod()?.name || 'Loading session...' }}
+          </span>
+        </div>
+      </div>
+      <p class="text-xs sm:text-sm font-medium text-text-secondary mt-1.5 max-w-3xl leading-relaxed">
+        Configure institutional fee heads, daily service levies, tuition installment milestone splits, and printed student bill templates.
       </p>
     </div>
 
-    <div class="flex items-center gap-3 relative z-10">
-      <a routerLink="/fiscal" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest border border-border-primary bg-bg-secondary/50 hover:bg-bg-tertiary text-text-secondary hover:text-text-primary transition-all">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
-        Back
+    <!-- Header Action Controls -->
+    <div class="flex flex-wrap items-center gap-3 shrink-0 w-full sm:w-auto">
+      <a routerLink="/fiscal"
+         class="px-4 py-2.5 rounded-xl text-xs font-bold border border-border-primary bg-bg-secondary hover:bg-bg-tertiary text-text-primary transition-all flex items-center gap-2 cursor-pointer shadow-xs active:scale-95">
+        <i class="fas fa-arrow-left text-[11px] text-text-muted"></i>
+        <span>Back</span>
       </a>
+
       <button
+        type="button"
         (click)="onGenerateDailyBills()"
         [disabled]="generatingDailyFees() || !activePeriod()"
-        class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-emerald-500/30 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 border border-white/10"
+        class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
       >
         @if (generatingDailyFees()) {
-          <span class="w-3.5 h-3.5 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
-          Generating...
+          <span class="w-3.5 h-3.5 rounded-full border-2 border-amber-400/40 border-t-amber-400 animate-spin"></span>
+          <span>Generating...</span>
         } @else {
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          Generate Daily Bills
+          <i class="fas fa-sun text-xs"></i>
+          <span>Generate Daily Bills</span>
         }
       </button>
+
       <button
+        type="button"
         (click)="onGenerate()"
         [disabled]="generatingFees() || !activePeriod() || feeStructures().length === 0"
-        class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/30 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 border border-white/10"
+        class="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl text-xs font-black bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
       >
         @if (generatingFees()) {
           <span class="w-3.5 h-3.5 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
-          Generating...
+          <span>Issuing Term Invoices...</span>
         } @else {
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
-          Generate Term Fees
+          <i class="fas fa-bolt text-xs"></i>
+          <span>Generate Term Fees</span>
         }
       </button>
     </div>
-  </div>
+  </header>
 
-  <!-- ── Category Quick-Pick Row ─────────────────────── -->
-  <div class="mb-8 relative z-10">
-    <p class="text-[10px] font-black uppercase tracking-widest text-text-muted mb-4">Quick-Select Category</p>
-    <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+  <!-- ── 2. KPI Summary Strip ───────────────────────────── -->
+  <section class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+    <!-- Total Term Fee Rate -->
+    <div class="p-4 sm:p-5 bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl flex flex-col justify-between shadow-xs relative overflow-hidden group hover:border-blue-500/30 transition-all">
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Term Fee Total</span>
+        <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs">
+          <i class="fas fa-graduation-cap"></i>
+        </div>
+      </div>
+      <div class="mt-3">
+        <p class="text-xl sm:text-2xl md:text-3xl font-black text-text-primary font-mono tracking-tight">
+          {{ totalTermFeesAmount() | currency:'GHS':'symbol':'1.2-2' }}
+        </p>
+        <p class="text-[11px] font-bold text-text-muted mt-1 flex items-center gap-1.5">
+          <span class="text-blue-400 font-black">{{ termFees().length }}</span> fee head{{ termFees().length === 1 ? '' : 's' }} active
+        </p>
+      </div>
+    </div>
+
+    <!-- Daily Fee Levy -->
+    <div class="p-4 sm:p-5 bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl flex flex-col justify-between shadow-xs relative overflow-hidden group hover:border-amber-500/30 transition-all">
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Daily Levies</span>
+        <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-xs">
+          <i class="fas fa-calendar-day"></i>
+        </div>
+      </div>
+      <div class="mt-3">
+        <p class="text-xl sm:text-2xl md:text-3xl font-black text-amber-400 font-mono tracking-tight">
+          {{ totalDailyFeesAmount() | currency:'GHS':'symbol':'1.2-2' }}
+        </p>
+        <p class="text-[11px] font-bold text-text-muted mt-1 flex items-center gap-1.5">
+          <span class="text-amber-400 font-black">{{ dailyFees().length }}</span> daily service head{{ dailyFees().length === 1 ? '' : 's' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Installment Split Policy -->
+    <div class="p-4 sm:p-5 bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl flex flex-col justify-between shadow-xs relative overflow-hidden group hover:border-emerald-500/30 transition-all">
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Milestone Policy</span>
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xs">
+          <i class="fas fa-layer-group"></i>
+        </div>
+      </div>
+      <div class="mt-3">
+        <p class="text-lg sm:text-xl font-black text-text-primary truncate">
+          {{ installmentPlan().is_enabled ? installmentPlan().schedule_text : 'Policy Disabled' }}
+        </p>
+        <p class="text-[11px] font-bold text-emerald-400 mt-1 flex items-center gap-1.5">
+          <i class="fas fa-check-circle text-[10px]"></i>
+          <span>{{ installmentPlan().milestones.length }} staged milestones</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Supplies & Books Total -->
+    <div class="p-4 sm:p-5 bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl flex flex-col justify-between shadow-xs relative overflow-hidden group hover:border-purple-500/30 transition-all">
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Table 2 Supplies</span>
+        <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xs">
+          <i class="fas fa-book-open"></i>
+        </div>
+      </div>
+      <div class="mt-3">
+        <p class="text-xl sm:text-2xl md:text-3xl font-black text-purple-400 font-mono tracking-tight">
+          {{ suppliesTotal() | currency:'GHS':'symbol':'1.2-2' }}
+        </p>
+        <p class="text-[11px] font-bold text-text-muted mt-1 flex items-center gap-1.5">
+          <span class="text-purple-400 font-black">{{ billConfig().required_items.length }}</span> items on pupil bill
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 3. Quick-Select Category Hub ───────────────────── -->
+  <section class="p-4 sm:p-5 bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl shadow-xs">
+    <div class="flex items-center justify-between mb-3.5">
+      <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Quick-Select Fee Category</span>
+      <span class="text-[11px] font-bold text-blue-400">Click to load category into entry form</span>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5 sm:gap-3">
       @for (cat of categoryMeta; track cat.key) {
         <button
+          type="button"
           (click)="selectCategory(cat.key)"
           [class.ring-2]="newFee.category === cat.key"
           [class.ring-blue-500]="newFee.category === cat.key"
           [class.bg-blue-500\/10]="newFee.category === cat.key"
-          class="flex flex-col items-center gap-2 p-3 rounded-2xl border border-border-primary/50 bg-bg-secondary/40 hover:bg-bg-tertiary hover:border-blue-500/30 transition-all duration-200 group"
+          [class.border-blue-500\/40]="newFee.category === cat.key"
+          class="flex items-center gap-3 p-3 rounded-2xl border border-border-primary bg-bg-tertiary/60 hover:bg-bg-tertiary transition-all duration-200 text-left group cursor-pointer"
         >
-          <div class="w-9 h-9 rounded-xl flex items-center justify-center" [style.background]="cat.bg" [style.color]="cat.color">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105"
+               [style.background]="cat.bg" [style.color]="cat.color">
             @switch (cat.key) {
               @case ('TUITION') {
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
-              }
-              @case ('FACILITY') {
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>
+                <i class="fas fa-graduation-cap text-base"></i>
               }
               @case ('CANTEEN') {
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
-              }
-              @case ('TRANSPORT') {
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.2 6 18.2 6H5.8C4.8 6 3.9 6.8 3.6 7.8L2.2 12.8c-.1.4-.2.8-.2 1.2 0 .4.1.8.2 1.2.3 1.1.8 2.8.8 2.8h3"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>
-              }
-              @case ('EXAMINATION') {
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-              }
-              @case ('UNIFORM') {
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
+                <i class="fas fa-utensils text-base"></i>
               }
               @case ('LAB') {
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><line x1="8.5" y1="2" x2="15.5" y2="2"/><line x1="7" y1="16" x2="17" y2="16"/></svg>
+                <i class="fas fa-flask text-base"></i>
+              }
+              @case ('LIBRARY_FINE') {
+                <i class="fas fa-book text-base"></i>
+              }
+              @case ('EXTRACURRICULAR') {
+                <i class="fas fa-basketball text-base"></i>
               }
               @default {
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><circle cx="7" cy="7" r="1.5"/></svg>
+                <i class="fas fa-tag text-base"></i>
               }
             }
           </div>
-          <span class="text-[9px] font-black uppercase tracking-widest text-text-muted group-hover:text-text-primary transition-colors text-center leading-tight">{{ cat.label }}</span>
+          <div class="min-w-0 flex-1">
+            <span class="block text-xs font-black text-text-primary truncate">{{ cat.label }}</span>
+            <span class="block text-[9px] font-bold text-text-muted uppercase tracking-wider">Fee Head</span>
+          </div>
         </button>
       }
     </div>
-  </div>
+  </section>
 
-  <!-- ── Two-Column Layout ──────────────────────────── -->
-  <div class="grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-8 relative z-10">
+  <!-- ── 4. Main Workspace Layout ───────────────────────── -->
+  <div class="grid grid-cols-1 xl:grid-cols-[1fr_430px] gap-6 lg:gap-8 items-start">
 
-    <!-- LEFT: Current Fee Structures Table -->
-    <div class="bg-bg-secondary/40 backdrop-blur-xl border border-border-primary/50 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+    <!-- LEFT COLUMN: Schedules, Tables & Policies -->
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl shadow-sm overflow-hidden flex flex-col">
 
-      <!-- Card Header & Tabs -->
-      <div class="flex flex-col border-b border-border-primary/50">
-        <div class="flex items-center justify-between px-6 py-5">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-            </div>
-            <h3 class="font-black text-text-primary text-base">Active Fee Schedule</h3>
-          </div>
-        </div>
-        
-        <div class="flex gap-4 px-6 pt-2">
-            <button 
-                (click)="activeTab.set('term')"
-                [class.text-blue-400]="activeTab() === 'term'"
-                [class.border-blue-500]="activeTab() === 'term'"
-                [class.border-transparent]="activeTab() !== 'term'"
-                class="px-4 py-3 text-sm font-bold tracking-wider uppercase border-b-2 text-text-muted hover:text-text-primary transition-colors">
-                Term Fees
-                <span class="ml-2 px-2 py-0.5 rounded-full bg-bg-tertiary border border-border-primary text-[9px]">{{ termFees().length }}</span>
-            </button>
-            <button 
-                (click)="activeTab.set('daily')"
-                [class.text-blue-400]="activeTab() === 'daily'"
-                [class.border-blue-500]="activeTab() === 'daily'"
-                [class.border-transparent]="activeTab() !== 'daily'"
-                class="px-4 py-3 text-sm font-bold tracking-wider uppercase border-b-2 text-text-muted hover:text-text-primary transition-colors">
-                Daily Fees
-                <span class="ml-2 px-2 py-0.5 rounded-full bg-bg-tertiary border border-border-primary text-[9px]">{{ dailyFees().length }}</span>
-            </button>
-            <button 
-                (click)="activeTab.set('installments')"
-                [class.text-blue-400]="activeTab() === 'installments'"
-                [class.border-blue-500]="activeTab() === 'installments'"
-                [class.border-transparent]="activeTab() !== 'installments'"
-                class="px-4 py-3 text-sm font-bold tracking-wider uppercase border-b-2 text-text-muted hover:text-text-primary transition-colors flex items-center gap-2">
-                Installment Milestones
-                <span class="ml-1 px-2 py-0.5 rounded-full bg-bg-tertiary border border-border-primary text-[9px] text-emerald-400 font-black">
-                    {{ installmentPlan().milestones.length }} Stages
-                </span>
-            </button>
-            <button 
-                (click)="activeTab.set('bill_template')"
-                [class.text-blue-400]="activeTab() === 'bill_template'"
-                [class.border-blue-500]="activeTab() === 'bill_template'"
-                [class.border-transparent]="activeTab() !== 'bill_template'"
-                class="px-4 py-3 text-sm font-bold tracking-wider uppercase border-b-2 text-text-muted hover:text-text-primary transition-colors flex items-center gap-2">
-                Bill & Supplies Template
-                <span class="ml-1 px-2 py-0.5 rounded-full bg-bg-tertiary border border-border-primary text-[9px] text-blue-400 font-black">
-                    Dual-Table
-                </span>
-            </button>
+      <!-- Navigation Tabs -->
+      <div class="p-2 sm:p-3 border-b border-border-primary bg-bg-tertiary/40">
+        <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar">
+          <!-- Term Fees Tab -->
+          <button
+            type="button"
+            (click)="activeTab.set('term')"
+            [class.bg-blue-600]="activeTab() === 'term'"
+            [class.text-white]="activeTab() === 'term'"
+            [class.shadow-xs]="activeTab() === 'term'"
+            [class.text-text-muted]="activeTab() !== 'term'"
+            [class.hover:text-text-primary]="activeTab() !== 'term'"
+            [class.hover:bg-bg-secondary]="activeTab() !== 'term'"
+            class="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0"
+          >
+            <i class="fas fa-graduation-cap text-xs"></i>
+            <span>Term Fees</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black"
+                  [ngClass]="activeTab() === 'term' ? 'bg-white/20 text-white' : 'bg-bg-secondary text-text-muted border border-border-primary'">
+              {{ termFees().length }}
+            </span>
+          </button>
+
+          <!-- Daily Fees Tab -->
+          <button
+            type="button"
+            (click)="activeTab.set('daily')"
+            [class.bg-blue-600]="activeTab() === 'daily'"
+            [class.text-white]="activeTab() === 'daily'"
+            [class.shadow-xs]="activeTab() === 'daily'"
+            [class.text-text-muted]="activeTab() !== 'daily'"
+            [class.hover:text-text-primary]="activeTab() !== 'daily'"
+            [class.hover:bg-bg-secondary]="activeTab() !== 'daily'"
+            class="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0"
+          >
+            <i class="fas fa-sun text-xs"></i>
+            <span>Daily Fees</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black"
+                  [ngClass]="activeTab() === 'daily' ? 'bg-white/20 text-white' : 'bg-bg-secondary text-text-muted border border-border-primary'">
+              {{ dailyFees().length }}
+            </span>
+          </button>
+
+          <!-- Installment Milestones Tab -->
+          <button
+            type="button"
+            (click)="activeTab.set('installments')"
+            [class.bg-blue-600]="activeTab() === 'installments'"
+            [class.text-white]="activeTab() === 'installments'"
+            [class.shadow-xs]="activeTab() === 'installments'"
+            [class.text-text-muted]="activeTab() !== 'installments'"
+            [class.hover:text-text-primary]="activeTab() !== 'installments'"
+            [class.hover:bg-bg-secondary]="activeTab() !== 'installments'"
+            class="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0"
+          >
+            <i class="fas fa-layer-group text-xs"></i>
+            <span>Installment Milestones</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black"
+                  [ngClass]="activeTab() === 'installments' ? 'bg-white/20 text-white' : 'bg-bg-secondary text-emerald-400 border border-emerald-500/30'">
+              {{ installmentPlan().milestones.length }} Stages
+            </span>
+          </button>
+
+          <!-- Bill & Supplies Template Tab -->
+          <button
+            type="button"
+            (click)="activeTab.set('bill_template')"
+            [class.bg-blue-600]="activeTab() === 'bill_template'"
+            [class.text-white]="activeTab() === 'bill_template'"
+            [class.shadow-xs]="activeTab() === 'bill_template'"
+            [class.text-text-muted]="activeTab() !== 'bill_template'"
+            [class.hover:text-text-primary]="activeTab() !== 'bill_template'"
+            [class.hover:bg-bg-secondary]="activeTab() !== 'bill_template'"
+            class="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0"
+          >
+            <i class="fas fa-file-invoice text-xs"></i>
+            <span>Bill &amp; Supplies Template</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black"
+                  [ngClass]="activeTab() === 'bill_template' ? 'bg-white/20 text-white' : 'bg-bg-secondary text-blue-400 border border-blue-500/30'">
+              Table 2
+            </span>
+          </button>
         </div>
       </div>
 
-      <!-- Table Body -->
+      <!-- Tab 1 & 2 Content: Fee Structures Table -->
+      @if (activeTab() === 'term' || activeTab() === 'daily') {
+        @if ((activeTab() === 'term' ? termFees() : dailyFees()).length === 0) {
+          <div class="flex flex-col items-center justify-center py-20 px-4 text-center">
+            <div class="w-16 h-16 rounded-3xl bg-bg-tertiary border border-border-primary flex items-center justify-center text-text-muted text-2xl mb-3">
+              <i class="fas fa-file-invoice-dollar opacity-40"></i>
+            </div>
+            <h3 class="text-base font-black text-text-primary mb-1">
+              No {{ activeTab() === 'term' ? 'Term Fee' : 'Daily Fee' }} Structures Defined
+            </h3>
+            <p class="text-xs text-text-muted max-w-sm">
+              Use the Add Fee Entry card on the right to define standard charges for this academic period.
+            </p>
+          </div>
+        } @else {
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-bg-tertiary/40 border-b border-border-primary">
+                  <th class="px-5 py-3.5 text-[10px] font-black text-text-muted uppercase tracking-widest">Category / Name</th>
+                  <th class="px-4 py-3.5 text-[10px] font-black text-text-muted uppercase tracking-widest">Eligibility</th>
+                  <th class="px-4 py-3.5 text-[10px] font-black text-text-muted uppercase tracking-widest">Frequency</th>
+                  <th class="px-5 py-3.5 text-[10px] font-black text-text-muted uppercase tracking-widest text-right">Amount (GHS)</th>
+                  <th class="px-4 py-3.5 text-[10px] font-black text-text-muted uppercase tracking-widest text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border-primary/50 text-xs">
+                @for (fee of (activeTab() === 'term' ? termFees() : dailyFees()); track fee.id) {
+                  <tr class="hover:bg-bg-tertiary/40 transition-colors group">
+                    <!-- Category Name -->
+                    <td class="px-5 py-4">
+                      <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-sm shrink-0">
+                          @switch (fee.category) {
+                            @case ('TUITION') { <i class="fas fa-graduation-cap"></i> }
+                            @case ('CANTEEN') { <i class="fas fa-utensils"></i> }
+                            @case ('LAB') { <i class="fas fa-flask"></i> }
+                            @case ('LIBRARY_FINE') { <i class="fas fa-book"></i> }
+                            @case ('EXTRACURRICULAR') { <i class="fas fa-basketball"></i> }
+                            @default { <i class="fas fa-tag"></i> }
+                          }
+                        </div>
+                        <div>
+                          <p class="font-black text-text-primary text-sm">{{ fee.category }}</p>
+                          <span class="text-[10px] text-text-muted font-bold block">
+                            {{ fee.is_term_fee ? 'Automatic Term Bill' : 'Optional Fee Head' }}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Eligibility / Classes -->
+                    <td class="px-4 py-4">
+                      <div [title]="getClassNamesDetailed(fee)">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border"
+                              [ngClass]="(fee.all_classes || !fee.class_ids || fee.class_ids.length === 0)
+                                ? 'bg-bg-tertiary text-text-muted border-border-primary'
+                                : 'bg-blue-500/10 text-blue-400 border-blue-500/20'">
+                          <i class="fas fa-users-rectangle text-[10px]"></i>
+                          <span>{{ getClassLabelForFee(fee) }}</span>
+                        </span>
+                      </div>
+                    </td>
+
+                    <!-- Billing Frequency -->
+                    <td class="px-4 py-4">
+                      <div class="flex items-center gap-1.5">
+                        <span class="px-2.5 py-1 rounded-lg bg-bg-tertiary border border-border-primary text-[10px] font-black uppercase tracking-wider text-text-secondary">
+                          {{ fee.frequency || 'TERMLY' }}
+                        </span>
+                        @if (fee.is_term_fee) {
+                          <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-bold">
+                            Included
+                          </span>
+                        }
+                      </div>
+                    </td>
+
+                    <!-- Amount -->
+                    <td class="px-5 py-4 text-right">
+                      <span class="text-base sm:text-lg font-black text-emerald-400 font-mono">
+                        {{ fee.amount | currency:'GHS':'symbol':'1.2-2' }}
+                      </span>
+                    </td>
+
+                    <!-- Delete Button -->
+                    <td class="px-4 py-4 text-right">
+                      <button
+                        (click)="onDeleteFee(fee)"
+                        class="p-2 rounded-xl text-text-muted hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all cursor-pointer"
+                        title="Remove Fee Structure"
+                      >
+                        <i class="fas fa-trash-alt text-xs"></i>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+              <!-- Total Footer -->
+              <tfoot>
+                <tr class="bg-bg-tertiary/60 border-t border-border-primary">
+                  <td colspan="3" class="px-5 py-4 text-xs font-black uppercase tracking-widest text-text-muted">
+                    Total {{ activeTab() === 'term' ? 'Term Rates' : 'Daily Levies' }}
+                  </td>
+                  <td class="px-5 py-4 text-right font-black text-xl text-text-primary font-mono">
+                    {{ (activeTab() === 'term' ? totalTermFeesAmount() : totalDailyFeesAmount()) | currency:'GHS':'symbol':'1.2-2' }}
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        }
+      }
+
+      <!-- Tab 3 Content: Installment Milestones Policy -->
       @if (activeTab() === 'installments') {
-        <!-- Installment Milestones Configuration Body -->
-        <div class="p-6 flex-1 flex flex-col gap-6">
-          
-          <!-- Presets Row -->
+        <div class="p-5 sm:p-7 space-y-6">
+          <!-- Presets -->
           <div>
-            <label class="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2.5">Schedule Presets</label>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Schedule Presets</span>
+              <span class="text-[11px] text-text-muted">Instant standard installment distribution</span>
+            </div>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <button type="button" (click)="applyInstallmentPreset('40-30-30')"
-                      class="p-2.5 rounded-xl border border-border-primary hover:border-blue-500/50 bg-bg-tertiary/60 hover:bg-bg-tertiary text-left transition-all group">
-                <span class="block text-xs font-black text-text-primary group-hover:text-blue-400">40 / 30 / 30</span>
-                <span class="text-[10px] text-text-muted">Standard 3-Tier</span>
+                      class="p-3 rounded-2xl border border-border-primary hover:border-blue-500 bg-bg-tertiary hover:bg-blue-500/10 text-left transition-all group cursor-pointer">
+                <span class="block text-sm font-black text-text-primary group-hover:text-blue-400 font-mono">40 / 30 / 30</span>
+                <span class="text-[10px] font-bold text-text-muted">Standard 3-Tier</span>
               </button>
               <button type="button" (click)="applyInstallmentPreset('50-50')"
-                      class="p-2.5 rounded-xl border border-border-primary hover:border-blue-500/50 bg-bg-tertiary/60 hover:bg-bg-tertiary text-left transition-all group">
-                <span class="block text-xs font-black text-text-primary group-hover:text-blue-400">50 / 50</span>
-                <span class="text-[10px] text-text-muted">Biannual Split</span>
+                      class="p-3 rounded-2xl border border-border-primary hover:border-blue-500 bg-bg-tertiary hover:bg-blue-500/10 text-left transition-all group cursor-pointer">
+                <span class="block text-sm font-black text-text-primary group-hover:text-blue-400 font-mono">50 / 50</span>
+                <span class="text-[10px] font-bold text-text-muted">Biannual Split</span>
               </button>
               <button type="button" (click)="applyInstallmentPreset('60-40')"
-                      class="p-2.5 rounded-xl border border-border-primary hover:border-blue-500/50 bg-bg-tertiary/60 hover:bg-bg-tertiary text-left transition-all group">
-                <span class="block text-xs font-black text-text-primary group-hover:text-blue-400">60 / 40</span>
-                <span class="text-[10px] text-text-muted">Enrollment & Finals</span>
+                      class="p-3 rounded-2xl border border-border-primary hover:border-blue-500 bg-bg-tertiary hover:bg-blue-500/10 text-left transition-all group cursor-pointer">
+                <span class="block text-sm font-black text-text-primary group-hover:text-blue-400 font-mono">60 / 40</span>
+                <span class="text-[10px] font-bold text-text-muted">Admission &amp; Finals</span>
               </button>
               <button type="button" (click)="applyInstallmentPreset('25-25-25-25')"
-                      class="p-2.5 rounded-xl border border-border-primary hover:border-blue-500/50 bg-bg-tertiary/60 hover:bg-bg-tertiary text-left transition-all group">
-                <span class="block text-xs font-black text-text-primary group-hover:text-blue-400">25 x 4</span>
-                <span class="text-[10px] text-text-muted">Quarterly Plan</span>
+                      class="p-3 rounded-2xl border border-border-primary hover:border-blue-500 bg-bg-tertiary hover:bg-blue-500/10 text-left transition-all group cursor-pointer">
+                <span class="block text-sm font-black text-text-primary group-hover:text-blue-400 font-mono">25 x 4</span>
+                <span class="text-[10px] font-bold text-text-muted">Quarterly 4-Stage</span>
               </button>
             </div>
           </div>
@@ -205,37 +447,37 @@
           <!-- Milestones List -->
           <div class="space-y-3">
             <div class="flex items-center justify-between">
-              <label class="text-[10px] font-black text-text-muted uppercase tracking-widest">Installment Stages</label>
+              <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Installment Stages</span>
               <button type="button" (click)="addMilestone()"
-                      class="px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 text-xs font-bold transition-all flex items-center gap-1.5">
+                      class="px-3 py-1.5 rounded-xl bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
                 <i class="fas fa-plus text-[10px]"></i>
-                <span>Add Stage</span>
+                <span>Add Milestone</span>
               </button>
             </div>
 
             <div class="space-y-2.5">
               @for (m of installmentPlan().milestones; track $index) {
-                <div class="p-4 bg-bg-tertiary/40 border border-border-primary/60 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                  <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center font-black text-xs shrink-0 border border-blue-500/20">
+                <div class="p-4 bg-bg-tertiary border border-border-primary rounded-2xl flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-black text-xs shrink-0 border border-blue-500/30">
                     {{ m.index }}
                   </div>
 
-                  <div class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2.5 w-full">
+                  <div class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
                     <div>
                       <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1">Stage Title</span>
                       <input type="text" [(ngModel)]="m.title" (ngModelChange)="updateScheduleText()"
-                             class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-bold focus:ring-2 focus:ring-blue-500/50">
+                             class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-bold focus:border-blue-500 outline-none">
                     </div>
                     <div>
-                      <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1">Trigger / Milestone</span>
+                      <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1">Trigger / Milestone Event</span>
                       <input type="text" [(ngModel)]="m.description"
-                             class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-medium focus:ring-2 focus:ring-blue-500/50">
+                             class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-medium focus:border-blue-500 outline-none">
                     </div>
                     <div>
                       <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1">Percentage (%)</span>
                       <div class="relative">
                         <input type="number" min="1" max="100" [(ngModel)]="m.percentage" (ngModelChange)="updateScheduleText()"
-                               class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-emerald-400 font-black focus:ring-2 focus:ring-blue-500/50">
+                               class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-emerald-400 font-black focus:border-blue-500 outline-none pr-7">
                         <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-text-muted">%</span>
                       </div>
                     </div>
@@ -243,7 +485,7 @@
 
                   @if (installmentPlan().milestones.length > 1) {
                     <button (click)="removeMilestone($index)"
-                            class="p-2 rounded-xl text-text-muted hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all shrink-0 cursor-pointer"
+                            class="p-2 rounded-xl text-text-muted hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
                             title="Remove Stage">
                       <i class="fas fa-trash-alt text-xs"></i>
                     </button>
@@ -254,103 +496,112 @@
           </div>
 
           <!-- Total Percentage Validation Bar -->
-          <div class="p-4 rounded-2xl border flex items-center justify-between mt-auto"
-               [ngClass]="installmentTotalPct() === 100 ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'">
-            <div class="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" [ngClass]="installmentTotalPct() === 100 ? 'text-emerald-400' : 'text-amber-400'">
-                @if (installmentTotalPct() === 100) {<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>} @else {<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>}
-              </svg>
+          <div class="p-4 rounded-2xl border flex items-center justify-between"
+               [ngClass]="installmentTotalPct() === 100 ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-rose-500/10 border-rose-500/30'">
+            <div class="flex items-center gap-3">
+              <i class="fas" [ngClass]="installmentTotalPct() === 100 ? 'fa-circle-check text-emerald-400 text-lg' : 'fa-triangle-exclamation text-rose-400 text-lg'"></i>
               <div>
-                <span class="text-xs font-black block" [class.text-emerald-400]="installmentTotalPct() === 100" [class.text-amber-400]="installmentTotalPct() !== 100">
-                  {{ installmentTotalPct() === 100 ? 'Schedule Balanced (100%)' : 'Imbalanced Percentages: ' + installmentTotalPct() + '%' }}
+                <span class="text-xs font-black block" [class.text-emerald-400]="installmentTotalPct() === 100" [class.text-rose-400]="installmentTotalPct() !== 100">
+                  {{ installmentTotalPct() === 100 ? 'Schedule Perfectly Balanced (100%)' : 'Percentage Imbalance: ' + installmentTotalPct() + '%' }}
                 </span>
-                <span class="text-[10px] text-text-muted font-medium">
-                  {{ installmentTotalPct() === 100 ? 'Ready to apply across all student tuition accounts.' : 'Total must equal exactly 100% before saving.' }}
+                <span class="text-[10px] text-text-muted">
+                  {{ installmentTotalPct() === 100 ? 'Deployable across all student accounts on Parent Portal.' : 'All installment milestones must total exactly 100% to save.' }}
                 </span>
               </div>
             </div>
-            <span class="text-lg font-black" [class.text-emerald-400]="installmentTotalPct() === 100" [class.text-amber-400]="installmentTotalPct() !== 100">
+            <span class="text-xl font-black font-mono" [class.text-emerald-400]="installmentTotalPct() === 100" [class.text-rose-400]="installmentTotalPct() !== 100">
               {{ installmentTotalPct() }}%
             </span>
           </div>
-
         </div>
-      } @else if (activeTab() === 'bill_template') {
-        <!-- Bill Template & Supplies Configuration Body -->
-        <div class="p-6 flex-1 flex flex-col gap-6">
-          
-          <!-- 1. Text Below Table (Custom Instructions & Policies) -->
-          <div class="bg-bg-tertiary/30 border border-border-primary/60 rounded-2xl p-5 flex flex-col gap-3">
+      }
+
+      <!-- Tab 4 Content: Bill & Supplies Template -->
+      @if (activeTab() === 'bill_template') {
+        <div class="p-5 sm:p-7 space-y-6">
+          <!-- Text Below Table (Custom Instructions) -->
+          <div class="bg-bg-tertiary border border-border-primary rounded-2xl p-5 space-y-3">
             <div class="flex items-center justify-between flex-wrap gap-2">
-              <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-lg bg-blue-500/15 text-blue-400 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                  <i class="fas fa-file-lines text-xs"></i>
                 </div>
                 <div>
-                  <h4 class="text-xs font-black text-text-primary uppercase tracking-wider">Custom Notice & Instructions (Text Below Table)</h4>
-                  <p class="text-[10px] text-text-muted">This text appears directly beneath the tables on printed student and class bills.</p>
+                  <h4 class="text-xs font-black text-text-primary uppercase tracking-wider">Custom Notice &amp; Instructions (Text Below Table)</h4>
+                  <p class="text-[10px] text-text-muted">Appears directly beneath billing schedules on printed student statements.</p>
                 </div>
               </div>
-              <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-widest">Admin Configurable</span>
+              <span class="text-[9px] font-black px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wider">
+                Official Bill Footer
+              </span>
             </div>
 
             <textarea
               [(ngModel)]="billConfig().footer_notes"
-              rows="5"
-              placeholder="e.g. Toiletries should be ready the first day your child reports... Payment should be made using your child USSD code... NO PHYSICAL PAYMENT TO SCHOOL STAFF."
-              class="w-full bg-bg-secondary border border-border-primary rounded-xl p-4 text-xs text-text-primary font-medium focus:ring-2 focus:ring-blue-500/50 leading-relaxed resize-y"
+              rows="4"
+              placeholder="e.g. Toiletries should be ready the first day your child reports... Payment should be made using your child USSD code... STRICTLY NO PHYSICAL CASH TO SCHOOL STAFF."
+              class="w-full bg-bg-secondary border border-border-primary rounded-xl p-3.5 text-xs text-text-primary font-medium focus:border-blue-500 outline-none leading-relaxed resize-y"
             ></textarea>
-            
-            <div class="flex flex-wrap gap-2 text-[10px]">
-              <span class="text-text-muted font-bold mr-1">Quick Policy Inserts:</span>
-              <button type="button" (click)="billConfig().footer_notes = billConfig().footer_notes + '\n• NO PHYSICAL CASH PAYMENT TO TEACHERS OR SCHOOL STAFF.'" class="px-2 py-1 rounded bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-secondary hover:text-text-primary transition-colors cursor-pointer">+ Strict Cash Policy</button>
-              <button type="button" (click)="billConfig().footer_notes = billConfig().footer_notes + '\n• Payment should be made using your child\'s student ID via official USSD mobile money or bank.'" class="px-2 py-1 rounded bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-secondary hover:text-text-primary transition-colors cursor-pointer">+ USSD & ID Policy</button>
-              <button type="button" (click)="billConfig().footer_notes = billConfig().footer_notes + '\n• Toiletries and course textbooks must be submitted on the first day of resumption.'" class="px-2 py-1 rounded bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-secondary hover:text-text-primary transition-colors cursor-pointer">+ Resumption Supplies Rule</button>
+
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              <span class="text-[10px] font-bold text-text-muted mr-1">Quick Policy Presets:</span>
+              <button type="button" (click)="billConfig().footer_notes = billConfig().footer_notes + '\n• STRICTLY NO PHYSICAL CASH PAYMENT TO TEACHERS OR SCHOOL STAFF.'"
+                      class="px-2.5 py-1 rounded-lg bg-bg-secondary hover:bg-bg-primary border border-border-primary text-text-muted hover:text-text-primary text-[10px] font-bold transition-all cursor-pointer">
+                + Strict Cash Policy
+              </button>
+              <button type="button" (click)="billConfig().footer_notes = billConfig().footer_notes + '\n• All fee payments must be made using your child\'s student ID via official school payment channels.'"
+                      class="px-2.5 py-1 rounded-lg bg-bg-secondary hover:bg-bg-primary border border-border-primary text-text-muted hover:text-text-primary text-[10px] font-bold transition-all cursor-pointer">
+                + Student ID / USSD Rule
+              </button>
+              <button type="button" (click)="billConfig().footer_notes = billConfig().footer_notes + '\n• Toiletries, stationery, and books must be presented on the first day of resumption.'"
+                      class="px-2.5 py-1 rounded-lg bg-bg-secondary hover:bg-bg-primary border border-border-primary text-text-muted hover:text-text-primary text-[10px] font-bold transition-all cursor-pointer">
+                + Resumption Supplies Rule
+              </button>
             </div>
           </div>
 
-          <!-- 2. Table 2: Required Books & Materials to be Bought / Brought -->
-          <div class="flex flex-col gap-3">
+          <!-- Table 2: Required Books & Materials -->
+          <div class="space-y-3">
             <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                  <i class="fas fa-book text-xs"></i>
                 </div>
                 <div>
-                  <h4 class="text-xs font-black text-text-primary uppercase tracking-wider">Table 2: Required Books, Stationery & Supplies</h4>
-                  <p class="text-[10px] text-text-muted">Items required to be bought or brought by parents/guardians upon resumption.</p>
+                  <h4 class="text-xs font-black text-text-primary uppercase tracking-wider">Table 2: Required Books, Stationery &amp; Supplies</h4>
+                  <p class="text-[10px] text-text-muted">Items required to be brought or purchased at school store.</p>
                 </div>
               </div>
               <div class="flex items-center gap-2">
                 @if (suppliesTotal() > 0) {
-                  <span class="text-[10px] font-black text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-lg border border-blue-500/20">
+                  <span class="text-[10px] font-black text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-lg border border-blue-500/20 font-mono">
                     Est. Total: {{ suppliesTotal() | currency:'GHS':'symbol':'1.2-2' }}
                   </span>
                 }
-                <span class="text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
+                <span class="text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
                   {{ billConfig().required_items.length }} Items
                 </span>
               </div>
             </div>
 
-            <!-- Existing Items Table -->
-            <div class="border border-border-primary/60 rounded-2xl overflow-hidden bg-bg-secondary/30">
+            <!-- Items Table -->
+            <div class="border border-border-primary rounded-2xl overflow-hidden bg-bg-secondary">
               <table class="w-full text-left text-xs">
                 <thead>
-                  <tr class="border-b border-border-primary/60 bg-bg-tertiary/40">
-                    <th class="px-4 py-2.5 text-[9px] font-black uppercase tracking-wider text-text-muted">Category</th>
-                    <th class="px-4 py-2.5 text-[9px] font-black uppercase tracking-wider text-text-muted">Description / Title</th>
-                    <th class="px-4 py-2.5 text-[9px] font-black uppercase tracking-wider text-text-muted">Qty</th>
-                    <th class="px-4 py-2.5 text-[9px] font-black uppercase tracking-wider text-text-muted text-right">Price (GH₵)</th>
-                    <th class="px-4 py-2.5 text-[9px] font-black uppercase tracking-wider text-text-muted">Notes / Store Remarks</th>
-                    <th class="px-3 py-2.5"></th>
+                  <tr class="border-b border-border-primary bg-bg-tertiary">
+                    <th class="px-4 py-3 text-[9px] font-black uppercase tracking-wider text-text-muted">Category</th>
+                    <th class="px-4 py-3 text-[9px] font-black uppercase tracking-wider text-text-muted">Description / Title</th>
+                    <th class="px-4 py-3 text-[9px] font-black uppercase tracking-wider text-text-muted">Qty</th>
+                    <th class="px-4 py-3 text-[9px] font-black uppercase tracking-wider text-text-muted text-right">Price (GH₵)</th>
+                    <th class="px-4 py-3 text-[9px] font-black uppercase tracking-wider text-text-muted">Remarks</th>
+                    <th class="px-3 py-3"></th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-border-primary/40">
+                <tbody class="divide-y divide-border-primary/50">
                   @for (item of billConfig().required_items; track $index) {
-                    <tr class="hover:bg-bg-tertiary/30 transition-colors group">
+                    <tr class="hover:bg-bg-tertiary/40 transition-colors group">
                       <td class="px-4 py-3">
-                        <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider"
+                        <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase"
                               [ngClass]="{
                                 'bg-blue-500/10 text-blue-400 border border-blue-500/20': ['BOOKS', 'STATIONERY', 'UNIFORM'].includes(item.category),
                                 'bg-amber-500/10 text-amber-400 border border-amber-500/20': item.category === 'TOILETRIES',
@@ -370,45 +621,28 @@
                       </td>
                       <td class="px-4 py-3 text-text-muted text-[11px]">{{ item.note || '-' }}</td>
                       <td class="px-3 py-3 text-right">
-                        <button (click)="removeSupplyItem($index)" class="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white transition-all cursor-pointer" title="Remove item">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        <button (click)="removeSupplyItem($index)" class="p-1.5 rounded-lg text-text-muted hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer" title="Remove item">
+                          <i class="fas fa-times"></i>
                         </button>
                       </td>
                     </tr>
                   }
                   @if (billConfig().required_items.length === 0) {
                     <tr>
-                      <td colspan="6" class="px-4 py-6 text-center text-text-muted text-xs">
-                        No required books or supplies configured. Add items below.
+                      <td colspan="6" class="px-4 py-8 text-center text-text-muted text-xs">
+                        No supplies or required books configured. Add items below.
                       </td>
                     </tr>
                   }
                 </tbody>
-                @if (suppliesTotal() > 0) {
-                  <tfoot>
-                    <tr class="border-t-2 border-border-primary/60 bg-bg-tertiary/40">
-                      <td colspan="3" class="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-text-muted text-right">
-                        Total Estimated Supplies & Books:
-                      </td>
-                      <td class="px-4 py-3 text-right">
-                        <span class="text-xs font-black text-emerald-400 font-mono">
-                          {{ suppliesTotal() | currency:'GHS':'symbol':'1.2-2' }}
-                        </span>
-                      </td>
-                      <td colspan="2" class="px-4 py-3 text-[10px] text-text-muted font-medium">
-                        Optional prices summed
-                      </td>
-                    </tr>
-                  </tfoot>
-                }
               </table>
             </div>
 
-            <!-- Add Item Row Form -->
-            <div class="p-4 bg-bg-tertiary/40 border border-border-primary/60 rounded-2xl flex flex-col sm:flex-row items-end gap-3">
-              <div class="w-full sm:w-28">
+            <!-- Add Supply Item Form -->
+            <div class="p-4 bg-bg-tertiary border border-border-primary rounded-2xl grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+              <div class="sm:col-span-2">
                 <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1">Category</span>
-                <select [(ngModel)]="newSupplyItem.category" class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-bold focus:ring-2 focus:ring-blue-500/50">
+                <select [(ngModel)]="newSupplyItem.category" class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-bold focus:border-blue-500 outline-none">
                   <option value="BOOKS">BOOKS</option>
                   <option value="STATIONERY">STATIONERY</option>
                   <option value="TOILETRIES">TOILETRIES</option>
@@ -417,489 +651,355 @@
                 </select>
               </div>
 
-              <div class="w-full sm:flex-1">
+              <div class="sm:col-span-4">
                 <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1">Description / Title *</span>
                 <input type="text" [(ngModel)]="newSupplyItem.description" placeholder="e.g. Core Mathematics Textbook SHS 1"
-                       class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-medium focus:ring-2 focus:ring-blue-500/50">
+                       class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-medium focus:border-blue-500 outline-none">
               </div>
 
-              <div class="w-full sm:w-24">
+              <div class="sm:col-span-2">
                 <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1">Quantity</span>
                 <input type="text" [(ngModel)]="newSupplyItem.quantity" placeholder="e.g. 1 copy"
-                       class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-mono focus:ring-2 focus:ring-blue-500/50">
+                       class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-mono focus:border-blue-500 outline-none">
               </div>
 
-              <div class="w-full sm:w-28">
+              <div class="sm:col-span-2">
                 <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1">Price (GH₵)</span>
                 <input type="number" step="0.01" min="0" [(ngModel)]="newSupplyItem.price" placeholder="Optional"
-                       class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-mono focus:ring-2 focus:ring-blue-500/50">
+                       class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-mono focus:border-blue-500 outline-none">
               </div>
 
-              <div class="w-full sm:w-36">
-                <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1">Remarks / Note</span>
-                <input type="text" [(ngModel)]="newSupplyItem.note" placeholder="e.g. At store"
-                       class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-medium focus:ring-2 focus:ring-blue-500/50">
+              <div class="sm:col-span-2">
+                <button type="button" (click)="addSupplyItem()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                  <i class="fas fa-plus text-[10px]"></i>
+                  <span>Add</span>
+                </button>
               </div>
-
-              <button type="button" (click)="addSupplyItem()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shrink-0 cursor-pointer shadow-md transition-all">
-                + Add Item
-              </button>
             </div>
           </div>
-        </div>
-      } @else if ((activeTab() === 'term' ? termFees() : dailyFees()).length === 0) {
-        <div class="flex-1 flex flex-col items-center justify-center py-20 px-6 text-center">
-          <div class="w-16 h-16 rounded-3xl bg-bg-tertiary border border-border-primary flex items-center justify-center mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-text-muted"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          </div>
-          <p class="font-black text-text-primary text-base mb-1">No {{ activeTab() === 'term' ? 'term' : 'daily' }} fees configured yet</p>
-          <p class="text-sm text-text-muted font-medium max-w-xs">Use the form to define fees. Once saved they'll appear here.</p>
-        </div>
-      } @else {
-        <div class="overflow-x-auto flex-1">
-          <table class="w-full">
-            <thead>
-              <tr class="border-b border-border-primary/50">
-                <th class="text-left px-6 py-3 text-[9px] font-black uppercase tracking-widest text-text-muted">Category</th>
-                <th class="text-left px-6 py-3 text-[9px] font-black uppercase tracking-widest text-text-muted">Frequency</th>
-                <th class="text-right px-6 py-3 text-[9px] font-black uppercase tracking-widest text-text-muted">Amount</th>
-                <th class="px-6 py-3"></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-border-primary/30">
-              @for (fee of (activeTab() === 'term' ? termFees() : dailyFees()); track fee.id) {
-                <tr class="group hover:bg-bg-tertiary/40 transition-colors duration-150">
-                  <td class="px-6 py-4">
-                    <div class="flex items-center gap-3">
-                      <div class="w-8 h-8 rounded-lg bg-bg-tertiary flex items-center justify-center text-text-primary">
-                        @switch (fee.category) {
-                          @case ('TUITION') {
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
-                          }
-                          @case ('CANTEEN') {
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
-                          }
-                          @case ('LAB') {
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v7.31L4.89 17.5A2 2 0 0 0 6.6 20.5h10.8a2 2 0 0 0 1.71-3L14 9.31V2"/></svg>
-                          }
-                          @case ('LIBRARY_FINE') {
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                          }
-                          @case ('EXTRACURRICULAR') {
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-                          }
-                          @default {
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                          }
-                        }
-                      </div>
-                      <div>
-                        <p class="text-sm font-black text-text-primary">{{ fee.category }}</p>
-                        <div class="flex items-center gap-1.5 mt-0.5" [title]="getClassNamesDetailed(fee)">
-                          <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold"
-                                [ngClass]="(fee.all_classes || !fee.class_ids || fee.class_ids.length === 0) ? 'bg-bg-tertiary text-text-muted border border-border-primary' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-                            {{ getClassLabelForFee(fee) }}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-bg-tertiary border border-border-primary text-[9px] font-black uppercase tracking-wider text-text-secondary mr-2">
-                      <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                      {{ fee.frequency || 'TERMLY' }}
-                    </span>
-                    @if (fee.is_term_fee) {
-                      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider text-emerald-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10-10"/></svg>
-                        Term Fee
-                      </span>
-                    } @else {
-                      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[9px] font-black uppercase tracking-wider text-amber-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                        Separate
-                      </span>
-                    }
-                  </td>
-                  <td class="px-6 py-4 text-right">
-                    <span class="text-xl font-black text-emerald-400">{{ fee.amount | currency:'GHS':'symbol':'1.2-2' }}</span>
-                  </td>
-                  <td class="px-4 py-4">
-                    <button (click)="onDeleteFee(fee)" class="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white flex items-center justify-center transition-all duration-150 border border-rose-500/20 hover:border-rose-500 cursor-pointer" title="Remove">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                    </button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-            <!-- Total Row -->
-            <tfoot>
-              <tr class="border-t-2 border-border-primary bg-bg-tertiary/30">
-                <td colspan="2" class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted">Total Configured Rates</td>
-                <td class="px-6 py-4 text-right">
-                  <span class="text-2xl font-black text-text-primary">
-                    {{ totalFees() | currency:'GHS':'symbol':'1.2-2' }}
-                  </span>
-                </td>
-                <td></td>
-              </tr>
-            </tfoot>
-          </table>
         </div>
       }
+
     </div>
 
-    <!-- RIGHT COLUMN -->
-    @if (activeTab() === 'installments') {
-      <!-- RIGHT: Installment Policy Controls & Live Parent Preview -->
-      <div class="bg-bg-secondary/40 backdrop-blur-xl border border-border-primary/50 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex flex-col gap-5 h-fit">
-        <div class="flex items-center gap-3 relative z-10 pb-4 border-b border-border-primary/50">
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          </div>
-          <div>
-            <h3 class="font-black text-text-primary text-sm">Policy Configuration</h3>
-            <p class="text-[10px] text-text-muted font-medium mt-0.5">Deployment controls & parent view</p>
-          </div>
-        </div>
+    <!-- RIGHT COLUMN: Add Fee Entry / Policy Actions -->
+    <div class="space-y-6">
 
-        <div class="space-y-4 relative z-10">
-          <!-- Policy Title -->
-          <div>
-            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Policy Title</label>
-            <input type="text" [(ngModel)]="installmentPlan().name"
-                   class="w-full bg-bg-tertiary/80 border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/50">
-          </div>
-
-          <!-- Schedule Display -->
-          <div>
-            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Schedule Label</label>
-            <input type="text" [(ngModel)]="installmentPlan().schedule_text"
-                   class="w-full bg-bg-tertiary/80 border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/50">
-          </div>
-
-          <!-- Active Toggle -->
-          <div class="flex items-center justify-between p-4 bg-bg-tertiary/50 border border-border-primary rounded-xl">
+      @if (activeTab() === 'installments') {
+        <!-- Right Panel for Installments: Policy Summary & Deploy -->
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-6 shadow-sm space-y-5">
+          <div class="flex items-center gap-3 pb-4 border-b border-border-primary">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-base">
+              <i class="fas fa-shield-halved"></i>
+            </div>
             <div>
-              <label class="block text-[11px] font-black text-text-primary uppercase tracking-widest mb-0.5">Enable Split-Tuition</label>
-              <p class="text-[9px] text-text-muted font-medium leading-tight">Allow guardians to pay fees in scheduled installment milestones.</p>
+              <h3 class="font-black text-text-primary text-base">Policy Deployment</h3>
+              <p class="text-[10px] text-text-muted font-bold uppercase tracking-wider">Parent Portal Enforcement</p>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" [(ngModel)]="installmentPlan().is_enabled" class="sr-only peer">
-              <div class="w-11 h-6 bg-bg-secondary peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-text-muted peer-checked:after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 border border-border-primary transition-all"></div>
-            </label>
           </div>
 
-          <!-- Live Parent Preview Card -->
-          <div class="p-4 rounded-2xl bg-bg-secondary border border-border-primary space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="text-[9px] font-black uppercase tracking-widest text-emerald-400">Parent Portal Live Preview</span>
-              <span class="text-[10px] font-bold text-text-muted font-mono">{{ installmentPlan().schedule_text }}</span>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Policy Title</label>
+              <input type="text" [(ngModel)]="installmentPlan().name"
+                     class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 text-text-primary text-xs font-bold focus:border-blue-500 outline-none">
             </div>
-            <p class="text-xs font-bold text-text-primary">Simulated Ward (Tuition: GH₵2,500.00)</p>
-            <div class="grid grid-cols-1 gap-2">
-              @for (m of installmentPlan().milestones; track m.index) {
-                <div class="p-2.5 bg-bg-tertiary rounded-xl border border-border-primary flex items-center justify-between">
-                  <div>
-                    <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block">{{ m.title }} ({{ m.percentage }}%)</span>
-                    <span class="text-xs font-black text-text-primary">GH₵{{ (2500 * (m.percentage / 100)).toFixed(2) }}</span>
+
+            <div>
+              <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Schedule Label</label>
+              <input type="text" [(ngModel)]="installmentPlan().schedule_text"
+                     class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 text-text-primary text-xs font-mono font-bold focus:border-blue-500 outline-none">
+            </div>
+
+            <div class="flex items-center justify-between p-4 bg-bg-tertiary border border-border-primary rounded-2xl">
+              <div>
+                <label class="block text-xs font-black text-text-primary mb-0.5">Enable Installment Splits</label>
+                <p class="text-[10px] text-text-muted">Allow parents to pay term bills in milestones.</p>
+              </div>
+              <input type="checkbox" [(ngModel)]="installmentPlan().is_enabled" class="w-4 h-4 rounded text-blue-600 bg-bg-secondary border-border-primary focus:ring-0">
+            </div>
+
+            <!-- Simulation Preview Card -->
+            <div class="p-4 rounded-2xl bg-bg-tertiary border border-border-primary space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-[9px] font-black uppercase tracking-widest text-emerald-400">Live Parent Simulation</span>
+                <span class="text-[10px] font-mono text-text-muted font-bold">Sample GH₵2,500</span>
+              </div>
+              <div class="space-y-1.5">
+                @for (m of installmentPlan().milestones; track m.index) {
+                  <div class="p-2 bg-bg-secondary rounded-xl border border-border-primary flex items-center justify-between text-xs">
+                    <span class="font-bold text-text-primary">{{ m.title }} ({{ m.percentage }}%)</span>
+                    <span class="font-black text-emerald-400 font-mono">GH₵{{ (2500 * (m.percentage / 100)).toFixed(2) }}</span>
                   </div>
-                  <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-bg-secondary border border-border-primary text-text-muted">{{ m.description }}</span>
-                </div>
-              }
-            </div>
-          </div>
-
-          <!-- Save Button -->
-          <button
-            (click)="saveInstallmentPlan()"
-            [disabled]="savingInstallments() || installmentTotalPct() !== 100"
-            class="relative z-10 w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-500/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-white/10 flex items-center justify-center gap-2 cursor-pointer"
-          >
-            @if (savingInstallments()) {
-              <span class="w-3.5 h-3.5 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
-              Saving Policy...
-            } @else {
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-              Deploy Milestone Policy
-            }
-          </button>
-        </div>
-      </div>
-    } @else if (activeTab() === 'bill_template') {
-      <!-- RIGHT: Bill Template Document Controls -->
-      <div class="bg-bg-secondary/40 backdrop-blur-xl border border-border-primary/50 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex flex-col gap-5 h-fit">
-        <div class="flex items-center gap-3 relative z-10 pb-4 border-b border-border-primary/50">
-          <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center border border-blue-500/20">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          </div>
-          <div>
-            <h3 class="font-black text-text-primary text-sm">Bill Document Settings</h3>
-            <p class="text-[10px] text-text-muted font-medium mt-0.5">Template title and display rules</p>
-          </div>
-        </div>
-
-        <div class="space-y-4 relative z-10">
-          <!-- Document Title -->
-          <div>
-            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Document Title Banner</label>
-            <input type="text" [(ngModel)]="billConfig().title"
-                   class="w-full bg-bg-tertiary/80 border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/50">
-          </div>
-
-          <!-- Supplies Table Title -->
-          <div>
-            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Table 2 Heading (Supplies & Books)</label>
-            <input type="text" [(ngModel)]="billConfig().supplies_title"
-                   class="w-full bg-bg-tertiary/80 border border-border-primary rounded-xl px-4 py-3 text-text-primary text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/50">
-          </div>
-
-          <!-- Show Supplies Table Toggle -->
-          <div class="flex items-center justify-between p-4 bg-bg-tertiary/50 border border-border-primary rounded-xl">
-            <div>
-              <label class="block text-[11px] font-black text-text-primary uppercase tracking-widest mb-0.5">Show Supplies Table</label>
-              <p class="text-[9px] text-text-muted font-medium leading-tight">Display Table 2 on all pupil bills.</p>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" [(ngModel)]="billConfig().show_supplies_table" class="sr-only peer">
-              <div class="w-11 h-6 bg-bg-secondary peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-            </label>
-          </div>
-
-          <!-- Save Button -->
-          <button
-            (click)="onSaveBillConfig()"
-            [disabled]="savingBillConfig()"
-            class="w-full py-3.5 px-6 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border border-white/10"
-          >
-            @if (savingBillConfig()) {
-              <span class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-              Saving Configuration...
-            } @else {
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-              Save Bill Template
-            }
-          </button>
-        </div>
-      </div>
-    } @else {
-      <!-- RIGHT: Add Fee Form -->
-      <div class="bg-bg-secondary/40 backdrop-blur-xl border border-border-primary/50 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex flex-col gap-5 h-fit">
-        <!-- Corner accent -->
-        <div class="absolute -top-20 -right-20 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] pointer-events-none"></div>
-        <div class="absolute -bottom-20 -left-20 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] pointer-events-none"></div>
-
-        <div class="flex items-center gap-3 relative z-10 pb-4 border-b border-border-primary/50">
-          <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center border border-blue-500/20">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-          </div>
-          <div>
-            <h3 class="font-black text-text-primary text-sm">Add Fee Entry</h3>
-            <p class="text-[10px] text-text-muted font-medium mt-0.5">Define a new charge for this term</p>
-          </div>
-        </div>
-
-      <div class="space-y-5 relative z-10">
-
-        <!-- Category -->
-        <div>
-          <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">
-            Category
-            <span class="ml-1 text-blue-400">*</span>
-          </label>
-          <div class="relative">
-            <select
-              [(ngModel)]="newFee.category"
-              class="w-full bg-bg-tertiary/80 border border-border-primary rounded-xl px-4 py-3 pr-10 text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all appearance-none"
-            >
-              @for (cat of availableCategories; track cat) {
-                <option class="bg-gray-900" [value]="cat">{{ cat }}</option>
-              }
-            </select>
-            <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-            </div>
-          </div>
-          @if ($any(newFee.category) === 'CUSTOM') {
-            <input
-              [(ngModel)]="customCategory"
-              type="text"
-              class="w-full bg-bg-tertiary/80 border border-blue-500/40 rounded-xl px-4 py-3 mt-2 text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-text-muted"
-              placeholder="e.g. PTA Dues, Excursion"
-            />
-          }
-        </div>
-
-        <!-- Applicable Classes Selection -->
-        <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest">
-              Applicable Classes
-            </label>
-            <div class="flex items-center gap-2">
-              <button 
-                type="button" 
-                (click)="selectAllClasses()" 
-                class="text-[9px] font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-wider cursor-pointer">
-                Select All
-              </button>
-              <span class="text-text-muted text-[9px]">&bull;</span>
-              <button 
-                type="button" 
-                (click)="clearClassSelection()" 
-                class="text-[9px] font-bold text-text-muted hover:text-text-primary transition-colors uppercase tracking-wider cursor-pointer">
-                All Classes
-              </button>
-            </div>
-          </div>
-
-          <!-- All Classes Toggle Option -->
-          <div class="flex items-center justify-between p-3 bg-bg-tertiary/60 border border-border-primary rounded-xl mb-2">
-            <div class="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-blue-400"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              <span class="text-xs font-bold text-text-primary">Apply to All Classes</span>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" [ngModel]="allClasses" (ngModelChange)="toggleAllClasses($event)" class="sr-only peer">
-              <div class="w-9 h-5 bg-bg-secondary peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-text-muted peer-checked:after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500 border border-border-primary transition-all"></div>
-            </label>
-          </div>
-
-          <!-- Class Multi-Select Grid (when not All Classes) -->
-          @if (!allClasses) {
-            <div class="p-3 bg-bg-tertiary/40 border border-border-primary rounded-xl max-h-48 overflow-y-auto space-y-1.5 custom-scrollbar">
-              <div class="grid grid-cols-2 gap-1.5">
-                @for (cls of classes(); track cls.id) {
-                  <button
-                    type="button"
-                    (click)="toggleClassSelection(cls.id)"
-                    [class.bg-blue-500]="isClassSelected(cls.id)"
-                    [class.text-white]="isClassSelected(cls.id)"
-                    [class.border-blue-500]="isClassSelected(cls.id)"
-                    [class.bg-bg-secondary]="!isClassSelected(cls.id)"
-                    [class.text-text-secondary]="!isClassSelected(cls.id)"
-                    [class.border-border-primary]="!isClassSelected(cls.id)"
-                    class="flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-all text-left truncate cursor-pointer hover:border-blue-500/50"
-                  >
-                    <span class="truncate">{{ cls.name }}</span>
-                    @if (isClassSelected(cls.id)) {
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 ml-1"><polyline points="20 6 9 17 4 12"/></svg>
-                    }
-                  </button>
                 }
               </div>
-              @if (classes().length === 0) {
-                <p class="text-xs text-text-muted text-center py-2">No classes found in this school</p>
-              }
             </div>
-            <p class="text-[10px] font-bold text-blue-400 mt-1">
-              {{ selectedClassIds.length }} class{{ selectedClassIds.length === 1 ? '' : 'es' }} selected
-            </p>
-          }
-        </div>
 
-        <!-- Amount -->
-        <div>
-          <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">
-            Amount (GH₵)
-            <span class="ml-1 text-blue-400">*</span>
-          </label>
-          <div class="relative">
-            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-black text-text-muted">₵</span>
-            <input
-              [(ngModel)]="newFee.amount"
-              type="number"
-              step="0.01"
-              min="0"
-              class="w-full bg-bg-tertiary/80 border border-border-primary rounded-xl pl-8 pr-4 py-3 text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-text-muted"
-              placeholder="0.00"
-            />
-          </div>
-        </div>
-
-        <!-- Frequency -->
-        <div>
-          <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Billing Frequency</label>
-          <div class="grid grid-cols-3 gap-2">
-            @for (freq of availableFrequencies; track freq) {
-              @if (freq !== 'CUSTOM') {
-                <button
-                  type="button"
-                  (click)="newFee.frequency = freq"
-                  [class.bg-blue-500]="newFee.frequency === freq"
-                  [class.border-blue-500]="newFee.frequency === freq"
-                  [class.text-white]="newFee.frequency === freq"
-                  [class.border-border-primary]="newFee.frequency !== freq"
-                  [class.bg-bg-tertiary\/80]="newFee.frequency !== freq"
-                  [class.text-text-secondary]="newFee.frequency !== freq"
-                  class="px-2 py-2 rounded-xl border text-[9px] font-black uppercase tracking-wider transition-all hover:border-blue-500/50 hover:text-blue-400"
-                >
-                  {{ freq }}
-                </button>
-              }
-            }
             <button
-              type="button"
-              (click)="newFee.frequency = 'CUSTOM'"
-              [class.bg-blue-500]="newFee.frequency === 'CUSTOM'"
-              [class.border-blue-500]="newFee.frequency === 'CUSTOM'"
-              [class.text-white]="newFee.frequency === 'CUSTOM'"
-              [class.border-border-primary]="newFee.frequency !== 'CUSTOM'"
-              [class.bg-bg-tertiary\/80]="newFee.frequency !== 'CUSTOM'"
-              [class.text-text-secondary]="newFee.frequency !== 'CUSTOM'"
-              class="col-span-1 px-2 py-2 rounded-xl border text-[9px] font-black uppercase tracking-wider transition-all hover:border-blue-500/50 hover:text-blue-400"
+              (click)="saveInstallmentPlan()"
+              [disabled]="savingInstallments() || installmentTotalPct() !== 100"
+              class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-500/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
             >
-              CUSTOM
+              @if (savingInstallments()) {
+                <span class="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
+                <span>Saving Policy...</span>
+              } @else {
+                <i class="fas fa-cloud-arrow-up text-xs"></i>
+                <span>Deploy Milestone Policy</span>
+              }
             </button>
           </div>
-          @if (newFee.frequency === 'CUSTOM') {
-            <input
-              [(ngModel)]="customFrequency"
-              type="text"
-              class="w-full bg-bg-tertiary/80 border border-blue-500/40 rounded-xl px-4 py-3 mt-2 text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-text-muted"
-              placeholder="e.g. PER SEMESTER, ANNUALLY"
-            />
-          }
         </div>
-
-        <!-- Term Fee Toggle -->
-        <div class="flex items-center justify-between p-4 bg-bg-tertiary/50 border border-border-primary rounded-xl">
-          <div>
-            <label class="block text-[11px] font-black text-text-primary uppercase tracking-widest mb-0.5">Include in Term Fees</label>
-            <p class="text-[9px] text-text-muted font-medium leading-tight">If enabled, this fee will be generated automatically when you click "Generate Term Fees". Disable for optional fees like Excursions.</p>
+      } @else if (activeTab() === 'bill_template') {
+        <!-- Right Panel for Bill Template: Document Controls & Save -->
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-6 shadow-sm space-y-5">
+          <div class="flex items-center gap-3 pb-4 border-b border-border-primary">
+            <div class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-base">
+              <i class="fas fa-file-invoice"></i>
+            </div>
+            <div>
+              <h3 class="font-black text-text-primary text-base">Bill Document Settings</h3>
+              <p class="text-[10px] text-text-muted font-bold uppercase tracking-wider">Print Template Configuration</p>
+            </div>
           </div>
-          <label class="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" [(ngModel)]="newFee.is_term_fee" class="sr-only peer">
-            <div class="w-11 h-6 bg-bg-secondary peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-text-muted peer-checked:after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 border border-border-primary transition-all"></div>
-          </label>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Document Title Banner</label>
+              <input type="text" [(ngModel)]="billConfig().title"
+                     class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 text-text-primary text-xs font-bold focus:border-blue-500 outline-none">
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Table 2 Heading (Supplies &amp; Books)</label>
+              <input type="text" [(ngModel)]="billConfig().supplies_title"
+                     class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 text-text-primary text-xs font-bold focus:border-blue-500 outline-none">
+            </div>
+
+            <div class="flex items-center justify-between p-4 bg-bg-tertiary border border-border-primary rounded-2xl">
+              <div>
+                <label class="block text-xs font-black text-text-primary mb-0.5">Show Supplies Table 2</label>
+                <p class="text-[10px] text-text-muted">Display required materials table on pupil bills.</p>
+              </div>
+              <input type="checkbox" [(ngModel)]="billConfig().show_supplies_table" class="w-4 h-4 rounded text-blue-600 bg-bg-secondary border-border-primary focus:ring-0">
+            </div>
+
+            <button
+              (click)="onSaveBillConfig()"
+              [disabled]="savingBillConfig()"
+              class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-500/25 transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+            >
+              @if (savingBillConfig()) {
+                <span class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                <span>Saving Configuration...</span>
+              } @else {
+                <i class="fas fa-save text-xs"></i>
+                <span>Save Bill Template</span>
+              }
+            </button>
+          </div>
         </div>
-      </div>
-
-      <!-- Preview -->
-      @if (newFee.amount && newFee.amount > 0) {
-        <div class="relative z-10 p-4 rounded-2xl bg-blue-500/5 border border-blue-500/20 flex items-center justify-between">
-          <div>
-            <p class="text-[9px] font-black uppercase tracking-widest text-blue-400 mb-1">Preview</p>
-            <p class="text-sm font-black text-text-primary">{{ $any(newFee.category) === 'CUSTOM' ? (customCategory || 'Custom') : newFee.category }}</p>
-            <p class="text-[10px] text-blue-400 font-bold mt-0.5">
-              {{ allClasses ? 'All Classes' : (selectedClassIds.length + ' Classes Selected') }} &bull; {{ newFee.frequency || 'TERMLY' }}
-            </p>
+      } @else {
+        <!-- Add Fee Entry Card -->
+        <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-6 shadow-sm space-y-5">
+          <div class="flex items-center gap-3 pb-4 border-b border-border-primary">
+            <div class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-base">
+              <i class="fas fa-plus"></i>
+            </div>
+            <div>
+              <h3 class="font-black text-text-primary text-base">Add Fee Entry</h3>
+              <p class="text-[10px] text-text-muted font-bold uppercase tracking-wider">Define a new charge for this term</p>
+            </div>
           </div>
-          <span class="text-2xl font-black text-blue-400">{{ newFee.amount | currency:'GHS':'symbol':'1.0-0' }}</span>
+
+          <div class="space-y-4">
+            <!-- Category -->
+            <div>
+              <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">
+                Category Head <span class="text-blue-400">*</span>
+              </label>
+              <div class="relative">
+                <select
+                  [(ngModel)]="newFee.category"
+                  class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 text-text-primary text-xs font-bold focus:border-blue-500 outline-none appearance-none cursor-pointer"
+                >
+                  @for (cat of availableCategories; track cat) {
+                    <option [value]="cat">{{ cat }}</option>
+                  }
+                </select>
+                <i class="fas fa-chevron-down text-text-muted text-[10px] absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+              </div>
+              @if ($any(newFee.category) === 'CUSTOM') {
+                <input
+                  [(ngModel)]="customCategory"
+                  type="text"
+                  class="w-full bg-bg-tertiary border border-blue-500/40 rounded-xl px-4 py-2.5 mt-2 text-text-primary text-xs font-bold focus:border-blue-500 outline-none placeholder:text-text-muted"
+                  placeholder="e.g. PTA Dues, Graduation Fee, Excursion"
+                />
+              }
+            </div>
+
+            <!-- Applicable Classes Selection -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest">
+                  Applicable Classes
+                </label>
+                <div class="flex items-center gap-2">
+                  <button type="button" (click)="selectAllClasses()" class="text-[10px] font-bold text-blue-400 hover:underline cursor-pointer">
+                    Select All
+                  </button>
+                  <span class="text-text-muted/40 text-xs">&bull;</span>
+                  <button type="button" (click)="clearClassSelection()" class="text-[10px] font-bold text-text-muted hover:text-text-primary cursor-pointer">
+                    All Classes
+                  </button>
+                </div>
+              </div>
+
+              <!-- All Classes Checkbox Switch -->
+              <div class="flex items-center justify-between p-3.5 bg-bg-tertiary border border-border-primary rounded-xl">
+                <div class="flex items-center gap-2.5">
+                  <i class="fas fa-school text-xs text-blue-400"></i>
+                  <span class="text-xs font-bold text-text-primary">Apply to All Classes</span>
+                </div>
+                <input type="checkbox" [ngModel]="allClasses" (ngModelChange)="toggleAllClasses($event)" class="w-4 h-4 rounded text-blue-600 bg-bg-secondary border-border-primary focus:ring-0 cursor-pointer">
+              </div>
+
+              <!-- Custom Class Multi-select Grid -->
+              @if (!allClasses) {
+                <div class="p-3 bg-bg-tertiary border border-border-primary rounded-xl max-h-44 overflow-y-auto space-y-1 custom-scrollbar">
+                  <div class="grid grid-cols-2 gap-1.5">
+                    @for (cls of classes(); track cls.id) {
+                      <button
+                        type="button"
+                        (click)="toggleClassSelection(cls.id)"
+                        [class.bg-blue-600]="isClassSelected(cls.id)"
+                        [class.text-white]="isClassSelected(cls.id)"
+                        [class.border-blue-500]="isClassSelected(cls.id)"
+                        [class.bg-bg-secondary]="!isClassSelected(cls.id)"
+                        [class.text-text-secondary]="!isClassSelected(cls.id)"
+                        [class.border-border-primary]="!isClassSelected(cls.id)"
+                        class="flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-all text-left truncate cursor-pointer hover:border-blue-500/40"
+                      >
+                        <span class="truncate">{{ cls.name }}</span>
+                        @if (isClassSelected(cls.id)) {
+                          <i class="fas fa-check text-[10px] ml-1 shrink-0"></i>
+                        }
+                      </button>
+                    }
+                  </div>
+                </div>
+                <p class="text-[10px] font-bold text-blue-400">
+                  {{ selectedClassIds.length }} class{{ selectedClassIds.length === 1 ? '' : 'es' }} selected
+                </p>
+              }
+            </div>
+
+            <!-- Amount -->
+            <div>
+              <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">
+                Amount (GH₵) <span class="text-blue-400">*</span>
+              </label>
+              <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-black text-text-muted font-mono">₵</span>
+                <input
+                  [(ngModel)]="newFee.amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  class="w-full bg-bg-tertiary border border-border-primary rounded-xl pl-8 pr-4 py-2.5 text-text-primary text-sm font-mono font-bold focus:border-blue-500 outline-none placeholder:text-text-muted"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+
+            <!-- Billing Frequency -->
+            <div>
+              <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Billing Frequency</label>
+              <div class="grid grid-cols-3 gap-1.5">
+                @for (freq of availableFrequencies; track freq) {
+                  @if (freq !== 'CUSTOM') {
+                    <button
+                      type="button"
+                      (click)="newFee.frequency = freq"
+                      [class.bg-blue-600]="newFee.frequency === freq"
+                      [class.text-white]="newFee.frequency === freq"
+                      [class.border-blue-500]="newFee.frequency === freq"
+                      [class.bg-bg-tertiary]="newFee.frequency !== freq"
+                      [class.text-text-muted]="newFee.frequency !== freq"
+                      [class.border-border-primary]="newFee.frequency !== freq"
+                      class="px-2 py-2 rounded-xl border text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer hover:border-blue-500/30"
+                    >
+                      {{ freq }}
+                    </button>
+                  }
+                }
+                <button
+                  type="button"
+                  (click)="newFee.frequency = 'CUSTOM'"
+                  [class.bg-blue-600]="newFee.frequency === 'CUSTOM'"
+                  [class.text-white]="newFee.frequency === 'CUSTOM'"
+                  [class.border-blue-500]="newFee.frequency === 'CUSTOM'"
+                  [class.bg-bg-tertiary]="newFee.frequency !== 'CUSTOM'"
+                  [class.text-text-muted]="newFee.frequency !== 'CUSTOM'"
+                  [class.border-border-primary]="newFee.frequency !== 'CUSTOM'"
+                  class="px-2 py-2 rounded-xl border text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer hover:border-blue-500/30"
+                >
+                  CUSTOM
+                </button>
+              </div>
+              @if (newFee.frequency === 'CUSTOM') {
+                <input
+                  [(ngModel)]="customFrequency"
+                  type="text"
+                  class="w-full bg-bg-tertiary border border-blue-500/40 rounded-xl px-4 py-2 mt-2 text-text-primary text-xs font-bold focus:border-blue-500 outline-none placeholder:text-text-muted"
+                  placeholder="e.g. PER SEMESTER, ANNUALLY"
+                />
+              }
+            </div>
+
+            <!-- Term Fee Toggle -->
+            <div class="flex items-center justify-between p-3.5 bg-bg-tertiary border border-border-primary rounded-xl">
+              <div>
+                <label class="block text-xs font-black text-text-primary mb-0.5">Include in Term Fees</label>
+                <p class="text-[10px] text-text-muted">Auto-issue with "Generate Term Fees" batch.</p>
+              </div>
+              <input type="checkbox" [(ngModel)]="newFee.is_term_fee" class="w-4 h-4 rounded text-blue-600 bg-bg-secondary border-border-primary focus:ring-0 cursor-pointer">
+            </div>
+
+            <!-- Preview Chip -->
+            @if (newFee.amount && newFee.amount > 0) {
+              <div class="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-between">
+                <div>
+                  <span class="text-[9px] font-black uppercase tracking-widest text-blue-400">Entry Preview</span>
+                  <p class="text-xs font-black text-text-primary">
+                    {{ $any(newFee.category) === 'CUSTOM' ? (customCategory || 'Custom') : newFee.category }}
+                  </p>
+                  <p class="text-[10px] text-text-muted font-bold">
+                    {{ allClasses ? 'All Classes' : (selectedClassIds.length + ' Classes') }} &bull; {{ newFee.frequency || 'TERMLY' }}
+                  </p>
+                </div>
+                <span class="text-xl font-black text-blue-400 font-mono">
+                  {{ newFee.amount | currency:'GHS':'symbol':'1.2-2' }}
+                </span>
+              </div>
+            }
+
+            <!-- Save Button -->
+            <button
+              (click)="onSave()"
+              [disabled]="!activePeriod() || !newFee.amount || newFee.amount <= 0 || (!allClasses && selectedClassIds.length === 0)"
+              class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-500/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 active:scale-95"
+            >
+              <i class="fas fa-plus-circle text-xs"></i>
+              <span>Save Fee Structure</span>
+            </button>
+          </div>
         </div>
       }
 
-      <!-- Save Button -->
-      <button
-        (click)="onSave()"
-        [disabled]="!activePeriod() || !newFee.amount || newFee.amount <= 0 || (!allClasses && selectedClassIds.length === 0)"
-        class="relative z-10 w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-500/25 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 border border-white/10 cursor-pointer"
-      >
-        Save Fee Structure
-      </button>
     </div>
-    }
 
   </div>
+
 </div>

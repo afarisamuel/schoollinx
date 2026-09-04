@@ -8,7 +8,11 @@ import { Student } from '../../../core/domain/student.model';
   selector: 'app-student-search-dropdown',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './student-search-dropdown.component.html'
+  templateUrl: './student-search-dropdown.component.html',
+  host: {
+    'class': 'block relative w-full',
+    '[class.z-[100]]': 'isOpen()'
+  }
 })
 export class StudentSearchDropdownComponent implements OnInit {
   private studentService = inject(StudentService);

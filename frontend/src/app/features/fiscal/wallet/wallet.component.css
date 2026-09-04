@@ -1,5 +1,7 @@
+/* Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -7,10 +9,52 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(71, 85, 105, 0.5); /* slate-600 with opacity */
-  border-radius: 10px;
+  background-color: rgba(148, 163, 184, 0.3);
+  border-radius: 9999px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(71, 85, 105, 0.8);
+  background-color: rgba(148, 163, 184, 0.6);
+}
+
+/* Card Hologram & Shimmer Animations */
+@keyframes holographic-shine {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.smart-card-shimmer {
+  background-size: 200% 200%;
+  animation: holographic-shine 8s ease infinite;
+}
+
+/* Print Stylesheet for POS Receipt */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #receipt-modal-container,
+  #receipt-modal-container * {
+    visibility: visible;
+  }
+  #receipt-modal-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
 }

@@ -1,4 +1,4 @@
-<div class="relative w-full">
+<div class="relative w-full" [class.z-[100]]="isOpen()">
   <!-- Input Field -->
   <div class="relative group">
     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -26,7 +26,7 @@
       <button 
         type="button"
         (click)="studentIdChange.emit(''); searchTerm.set(''); $event.stopPropagation()"
-        class="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-rose-500 transition-colors"
+        class="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-rose-500 transition-colors cursor-pointer"
         title="Clear Selection">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
@@ -35,13 +35,12 @@
 
   <!-- Dropdown Panel -->
   @if (isOpen()) {
-    <div class="absolute z-50 w-full mt-2 bg-bg-tertiary border border-border-primary rounded-xl shadow-2xl max-h-60 overflow-y-auto">
+    <div class="absolute z-[999] left-0 right-0 mt-2 bg-bg-secondary dark:bg-bg-tertiary border border-border-primary rounded-2xl shadow-2xl max-h-64 overflow-y-auto divide-y divide-border-primary/60 backdrop-blur-xl">
       @for (student of filteredStudents(); track student.id) {
         <div 
           (click)="selectStudent(student)" 
-          class="px-4 py-3 cursor-pointer transition-colors border-b border-border-primary last:border-0 hover:bg-blue-500/10 flex flex-col gap-1"
-          [class.bg-blue-500]="student.id === studentId"
-          [class.bg-opacity-10]="student.id === studentId"
+          class="px-4 py-3 cursor-pointer transition-colors hover:bg-blue-500/10 flex flex-col gap-1"
+          [class.bg-blue-500/15]="student.id === studentId"
         >
           <div class="flex justify-between items-center">
             <p class="text-sm font-bold text-text-primary">{{ student.first_name }} {{ student.last_name }}</p>
@@ -49,13 +48,13 @@
               <span class="text-[10px] font-black bg-bg-primary px-2 py-0.5 rounded border border-border-primary text-text-secondary">{{ student.enrollment_num }}</span>
             }
           </div>
-          <p class="text-[10px] text-text-muted uppercase tracking-widest font-mono">{{ student.id | slice:0:8 }}...</p>
+          <p class="text-[10px] text-text-muted uppercase tracking-widest font-mono">ID: #{{ (student.id || '') | slice:0:8 }}...</p>
         </div>
       }
       
       @if (filteredStudents().length === 0) {
         <div class="px-4 py-6 flex flex-col items-center justify-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-text-muted"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <span class="text-xs font-medium text-text-muted">No students found</span>
         </div>
       }

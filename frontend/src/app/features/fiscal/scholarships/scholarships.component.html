@@ -63,9 +63,9 @@
     </div>
 
     <!-- ═══════════════════════ STUDENT SEARCH ═══════════════════════ -->
-    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 mb-6 relative">
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 mb-6 relative z-30">
         <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-3">Search Student to Manage Aid</label>
-        <div class="relative">
+        <div class="relative z-40">
             <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none text-text-muted">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
@@ -82,11 +82,11 @@
             />
             <!-- Dropdown -->
             @if (showStudentDropdown() && studentSearchResults().length > 0) {
-                <div class="absolute top-full left-0 right-0 mt-2 bg-bg-secondary border border-border-primary rounded-2xl shadow-2xl overflow-hidden z-50">
+                <div class="absolute top-full left-0 right-0 mt-2 bg-bg-secondary border border-border-primary rounded-2xl shadow-2xl overflow-hidden z-[999]">
                     @for (student of studentSearchResults(); track student.id) {
                         <button
                             (click)="selectStudent(student)"
-                            class="w-full flex items-center gap-3 px-4 py-3 hover:bg-bg-tertiary transition-colors text-left">
+                            class="w-full flex items-center gap-3 px-4 py-3 hover:bg-bg-tertiary transition-colors text-left cursor-pointer">
                             <div class="w-9 h-9 rounded-xl bg-blue-500/20 flex items-center justify-center text-xs font-black text-blue-400 flex-shrink-0">
                                 {{ student.first_name[0] }}{{ student.last_name[0] }}
                             </div>

@@ -81,6 +81,8 @@ export class ConfigureFeesComponent implements OnInit {
 
   termFees = computed(() => this.feeStructures().filter(f => f.is_term_fee || f.frequency !== 'DAILY'));
   dailyFees = computed(() => this.feeStructures().filter(f => !f.is_term_fee || f.frequency === 'DAILY'));
+  totalTermFeesAmount = computed(() => this.termFees().reduce((sum, f) => sum + (f.amount ?? 0), 0));
+  totalDailyFeesAmount = computed(() => this.dailyFees().reduce((sum, f) => sum + (f.amount ?? 0), 0));
 
   availableCategories = ['TUITION', 'CANTEEN', 'LAB', 'LIBRARY_FINE', 'EXTRACURRICULAR', 'CUSTOM'];
   availableFrequencies = ['DAILY', 'WEEKLY', 'MONTHLY', 'TERMLY', 'ANNUALLY', 'CUSTOM'];
