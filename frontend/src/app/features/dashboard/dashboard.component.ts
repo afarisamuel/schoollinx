@@ -101,6 +101,7 @@ export class DashboardComponent implements OnInit {
 
   canCollectFees = signal<boolean>(false);
   teacherClassesCount = signal<number>(0);
+  quickActionCategory = signal<'ALL' | 'ADMISSIONS' | 'ACADEMICS' | 'FISCAL' | 'COMMUNICATIONS'>('ALL');
 
   // Feature 4: School-Wide Attendance Ring Metrics
   todayPresentCount = computed(() => Math.round(this.totalStudents() * 0.94));
@@ -405,6 +406,10 @@ export class DashboardComponent implements OnInit {
       },
       error: () => this.isLoading.set(false)
     });
+  }
+
+  refreshDashboard() {
+    this.loadRealDashboardData();
   }
 
   // Feature 1: Quick Roll-Call Drawer Actions

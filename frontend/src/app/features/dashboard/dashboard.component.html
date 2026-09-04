@@ -554,48 +554,62 @@
 <!-- ══════════════════════════════════════════════════════════════════ -->
 <!-- ADMINISTRATOR / EXECUTIVE ACADEMIC COMMAND CENTER                  -->
 <!-- ══════════════════════════════════════════════════════════════════ -->
-<div class="space-y-6 md:space-y-7 mx-auto font-sans animate-fade-in select-none">
+<div class="max-w-[1600px] mx-auto animate-fade-in pb-16 px-1 sm:px-3 space-y-6 sm:space-y-8 relative">
+
+  <!-- ── 0. AMBIENT BACKDROP LIGHTING ────────────────────────────── -->
+  <div class="absolute -top-10 left-1/4 w-96 h-96 bg-blue-500/10 dark:bg-blue-600/15 rounded-full blur-3xl pointer-events-none -z-10"></div>
+  <div class="absolute top-72 right-10 w-96 h-96 bg-indigo-500/10 dark:bg-purple-600/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
   <!-- ── 1. Page Header (School Command Center) ──────────────────── -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-1">
     <div>
-      <h1
-        class="text-3xl md:text-4xl font-black tracking-tight text-blue-600 dark:text-blue-400">
-        Academic Command Center
+      <div class="flex items-center gap-2 text-xs font-bold text-text-muted mb-1.5 flex-wrap">
+        <span class="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          {{ currentAcademicPeriod() }} &bull; {{ currentAcademicTerm() }}
+        </span>
+        <span class="text-text-muted/40">/</span>
+        <span class="text-text-muted">Institutional Governance</span>
+        <span class="text-text-muted/40">/</span>
+        <span class="text-text-primary font-black">Executive Command</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+        <span>Academic Command Center</span>
       </h1>
-      <p class="text-xs md:text-sm font-medium text-slate-600 dark:text-text-muted mt-1">
-        Live overview of institutional academics, attendance, faculty, and fiscal governance.
+      <p class="text-xs sm:text-sm font-medium text-text-muted mt-1 max-w-3xl">
+        Live overview of institutional academics, campus attendance, faculty allocation, and fiscal governance.
       </p>
     </div>
 
-    <div class="flex items-center gap-3 shrink-0 flex-wrap">
+    <!-- Executive Action Bar -->
+    <div class="flex items-center gap-2.5 shrink-0 flex-wrap">
+      <button (click)="refreshDashboard()" [disabled]="isLoading()"
+        class="px-3.5 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shadow-xs cursor-pointer active:scale-95 hover:border-blue-500/40">
+        <i class="fas fa-rotate text-xs text-blue-500" [class.animate-spin]="isLoading()"></i>
+        <span>Sync</span>
+      </button>
+
+      <button (click)="openRollCall('Form 1A')"
+        class="px-3.5 py-2.5 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+        <i class="fas fa-clipboard-check text-xs"></i>
+        <span>Quick Roll-Call</span>
+      </button>
+
       <button (click)="openBroadcastModal()"
-        class="px-3.5 py-2.5 rounded-2xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 text-xs font-bold shadow-2xs transition-all flex items-center gap-2 cursor-pointer active:scale-95">
-        <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none"
-          viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
-        </svg>
+        class="px-3.5 py-2.5 rounded-2xl bg-blue-500/10 hover:bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-xs font-bold shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+        <i class="fas fa-paper-plane text-xs"></i>
         <span>Broadcast SMS</span>
       </button>
 
       <button (click)="openExportDialog()"
-        class="px-3.5 py-2.5 rounded-2xl bg-white dark:bg-bg-secondary hover:bg-slate-50 dark:hover:bg-bg-tertiary text-slate-800 dark:text-text-primary border border-slate-300/80 dark:border-border-primary text-xs font-bold shadow-2xs transition-all flex items-center gap-2 cursor-pointer active:scale-95">
-        <svg class="w-4 h-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-          stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-        </svg>
+        class="px-3.5 py-2.5 rounded-2xl bg-bg-secondary hover:bg-bg-tertiary text-text-primary border border-border-primary text-xs font-bold shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+        <i class="fas fa-file-export text-xs text-text-muted"></i>
         <span>Export Data</span>
       </button>
 
       <a routerLink="/student-enrollment"
-        class="px-4.5 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 cursor-pointer">
-        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-          stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
-        </svg>
+        class="px-4.5 py-2.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black shadow-md shadow-blue-500/25 active:scale-95 transition-all flex items-center gap-2 cursor-pointer">
+        <i class="fas fa-user-plus text-xs"></i>
         <span>Admit Student</span>
       </a>
     </div>
@@ -605,385 +619,411 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
 
     <!-- Card 1: Total Fee Revenue -->
-    <div
-      class="p-5.5 rounded-2xl md:rounded-3xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+    <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-blue-500/40 hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden">
       <div class="flex items-center justify-between">
-        <div
-          class="w-10 h-10 rounded-xl bg-blue-100/80 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 flex items-center justify-center">
-          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6H2.25m0 0v10.5m0-10.5h1.5A.75.75 0 014.5 6v.75m0 0h14.25a.75.75 0 01.75.75v.75m-15.75 0v8.25m15.75-8.25v8.25m0 0a.75.75 0 01-.75.75H3.75" />
-          </svg>
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+          <i class="fas fa-vault"></i>
         </div>
-        <span
-          class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
-          +14.2% MTD
+        <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1 shadow-2xs">
+          <i class="fas fa-arrow-trend-up text-[9px]"></i>
+          <span>+14.2% MTD</span>
         </span>
       </div>
 
-      <div class="mt-4">
-        <p class="text-[11px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">FEE COLLECTIONS
-          REALIZED</p>
-        <p class="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mt-1 tracking-tight">
+      <div class="mt-4 space-y-1">
+        <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Fee Collections Realized</p>
+        <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight font-mono">
           GH₵{{ totalRevenue() | number:'1.2-2' }}
         </p>
-        <p class="text-xs font-medium text-slate-500 dark:text-text-muted mt-1">
-          Tuition & operational collections
-        </p>
+        <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+          <span>Tuition &amp; operational receipts</span>
+          <span class="font-bold text-emerald-600 dark:text-emerald-400">91.4% Target</span>
+        </div>
+      </div>
+
+      <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+        <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-1000" style="width: 91.4%"></div>
       </div>
     </div>
 
     <!-- Card 2: Student Enrollment -->
-    <div
-      class="p-5.5 rounded-2xl md:rounded-3xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+    <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-blue-500/40 hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden">
       <div class="flex items-center justify-between">
-        <div
-          class="w-10 h-10 rounded-xl bg-blue-100/80 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 flex items-center justify-center">
-          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
-          </svg>
+        <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+          <i class="fas fa-user-graduate"></i>
         </div>
-        <span
-          class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/60">
+        <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 shadow-2xs">
           Active Term
         </span>
       </div>
 
-      <div class="mt-4">
-        <p class="text-[11px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">TOTAL STUDENT
-          ENROLLMENT</p>
-        <p class="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mt-1 tracking-tight">
-          {{ totalStudents() }}
-        </p>
-        <p class="text-xs font-medium text-slate-500 dark:text-text-muted mt-1">
-          Enrolled across {{ classesList().length || 6 }} class streams
-        </p>
+      <div class="mt-4 space-y-1">
+        <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Total Student Enrollment</p>
+        <div class="flex items-baseline gap-2">
+          <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight font-mono">
+            {{ totalStudents() }}
+          </p>
+          <span class="text-xs font-bold text-text-muted">Scholars</span>
+        </div>
+        <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+          <span>{{ classesList().length || 6 }} Class streams</span>
+          <span class="font-bold text-blue-600 dark:text-blue-400">{{ (totalStudents() / (totalTeachers() || 1)) | number:'1.0-0' }}:1 Ratio</span>
+        </div>
+      </div>
+
+      <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+        <div class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full transition-all duration-1000" style="width: 84%"></div>
       </div>
     </div>
 
     <!-- Card 3: School-Wide Attendance Ring Widget -->
-    <div
-      class="p-5.5 rounded-2xl md:rounded-3xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+    <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-emerald-500/40 hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden">
       <div class="flex items-center justify-between">
-        <div
-          class="w-10 h-10 rounded-xl bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center">
-          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+          <i class="fas fa-clipboard-user"></i>
         </div>
-        <span
-          class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
-          Today's Presence
+        <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1 shadow-2xs">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Today's Presence</span>
         </span>
       </div>
 
       <div class="mt-3 flex items-center justify-between gap-3">
         <div>
-          <p class="text-[11px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">CAMPUS ATTENDANCE
-          </p>
-          <p class="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight">
+          <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Campus Attendance</p>
+          <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight mt-0.5 font-mono">
             {{ attendancePercentage() }}%
           </p>
-          <div class="flex items-center gap-2 mt-1 text-[11px] font-semibold text-slate-600 dark:text-text-muted">
-            <span class="text-emerald-700 dark:text-emerald-400 font-bold">{{ todayPresentCount() }} P</span>
-            <span>&bull;</span>
-            <span class="text-rose-600 dark:text-rose-400 font-bold">{{ todayAbsentCount() }} A</span>
-            <span>&bull;</span>
-            <span class="text-amber-700 dark:text-amber-400 font-bold">{{ todayTardyCount() }} T</span>
+          <div class="flex items-center gap-2 mt-1 text-[11px] font-bold">
+            <span class="text-emerald-600 dark:text-emerald-400 font-mono">{{ todayPresentCount() }} P</span>
+            <span class="text-text-muted/40">&bull;</span>
+            <span class="text-rose-600 dark:text-rose-400 font-mono">{{ todayAbsentCount() }} A</span>
+            <span class="text-text-muted/40">&bull;</span>
+            <span class="text-amber-600 dark:text-amber-400 font-mono">{{ todayTardyCount() }} T</span>
           </div>
         </div>
 
         <!-- Circular SVG Ring Gauge -->
-        <div class="relative w-18 h-18 shrink-0 flex items-center justify-center">
+        <div class="relative w-16 h-16 shrink-0 flex items-center justify-center">
           <svg class="w-full h-full -rotate-90" viewBox="0 0 96 96">
-            <circle cx="48" cy="48" [attr.r]="ringRadius" stroke="#E2E8F0" class="dark:stroke-slate-800"
+            <circle cx="48" cy="48" [attr.r]="ringRadius" stroke="currentColor" class="text-border-primary"
               stroke-width="9" fill="transparent" />
             <circle cx="48" cy="48" [attr.r]="ringRadius" class="text-emerald-500 transition-all duration-1000 ease-out"
               stroke-width="9" stroke-linecap="round" stroke="currentColor" fill="transparent"
               [attr.stroke-dasharray]="ringCircumference" [attr.stroke-dashoffset]="ringDashOffset()" />
           </svg>
-          <span class="absolute text-xs font-black text-slate-900 dark:text-white">
+          <span class="absolute text-xs font-black text-text-primary font-mono">
             {{ attendancePercentage() }}%
           </span>
         </div>
       </div>
+
+      <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+        <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-1000" [style.width.%]="attendancePercentage()"></div>
+      </div>
     </div>
 
     <!-- Card 4: Retention Risks -->
-    <div
-      class="p-5.5 rounded-2xl md:rounded-3xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+    <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-rose-500/40 hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden">
       <div class="flex items-center justify-between">
-        <div
-          class="w-10 h-10 rounded-xl bg-red-100/80 dark:bg-red-950/60 text-red-700 dark:text-red-400 flex items-center justify-center">
-          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-          </svg>
+        <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+          <i class="fas fa-shield-cat"></i>
         </div>
-        <span
-          class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800/60">
-          Attention
+        <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1 shadow-2xs">
+          <i class="fas fa-triangle-exclamation text-[9px] animate-pulse"></i>
+          <span>Attention Needed</span>
         </span>
       </div>
 
-      <div class="mt-4">
-        <p class="text-[11px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">RETENTION & AT-RISK
-        </p>
-        <p class="text-3xl md:text-4xl font-black text-rose-600 dark:text-rose-400 mt-1 tracking-tight">
-          {{ retentionRisks().length || 6 }}
-        </p>
-        <p class="text-xs font-medium text-slate-500 dark:text-text-muted mt-1">
-          Chronic absence or academic decline
-        </p>
+      <div class="mt-4 space-y-1">
+        <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Retention &amp; At-Risk</p>
+        <div class="flex items-baseline gap-2">
+          <p class="text-2xl sm:text-3xl font-black text-rose-600 dark:text-rose-400 tracking-tight font-mono">
+            {{ retentionRisks().length || 6 }}
+          </p>
+          <span class="text-xs font-bold text-text-muted">Pupils</span>
+        </div>
+        <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+          <span>Chronic absence / decline</span>
+          <a routerLink="/retention-risk" class="font-bold text-rose-500 hover:text-rose-400 transition-colors flex items-center gap-1">
+            <span>Matrix</span>
+            <i class="fas fa-arrow-right text-[9px]"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+        <div class="bg-gradient-to-r from-rose-500 to-amber-500 h-full rounded-full transition-all duration-1000" style="width: 45%"></div>
       </div>
     </div>
 
   </div>
 
-  <!-- ── 3. Quick Actions Row (Authentic School Operations) ─────── -->
-  <div>
-    <h2 class="text-sm md:text-base font-black text-slate-900 dark:text-white mb-3">
-      Quick Actions
-    </h2>
+  <!-- ── 3. Quick Actions Command Deck (Filtered Operation Cards) ──── -->
+  <div class="space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h2 class="text-base sm:text-lg font-black text-text-primary tracking-tight flex items-center gap-2.5">
+          <i class="fas fa-bolt text-blue-500 text-sm"></i>
+          <span>Quick Operational Actions</span>
+        </h2>
+        <p class="text-xs text-text-muted mt-0.5">High-frequency academic and institutional management workflows</p>
+      </div>
 
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+      <!-- Action Category Filter Pills -->
+      <div class="flex items-center gap-1 bg-bg-secondary p-1 rounded-2xl border border-border-primary shadow-xs flex-wrap">
+        <button (click)="quickActionCategory.set('ALL')"
+          class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          [ngClass]="quickActionCategory() === 'ALL' ? 'bg-blue-600 text-white shadow-xs' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'">
+          All Modules
+        </button>
+        <button (click)="quickActionCategory.set('ADMISSIONS')"
+          class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          [ngClass]="quickActionCategory() === 'ADMISSIONS' ? 'bg-blue-600 text-white shadow-xs' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'">
+          Admissions
+        </button>
+        <button (click)="quickActionCategory.set('ACADEMICS')"
+          class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          [ngClass]="quickActionCategory() === 'ACADEMICS' ? 'bg-blue-600 text-white shadow-xs' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'">
+          Academics
+        </button>
+        <button (click)="quickActionCategory.set('FISCAL')"
+          class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          [ngClass]="quickActionCategory() === 'FISCAL' ? 'bg-blue-600 text-white shadow-xs' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'">
+          Fiscal &amp; POS
+        </button>
+        <button (click)="quickActionCategory.set('COMMUNICATIONS')"
+          class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          [ngClass]="quickActionCategory() === 'COMMUNICATIONS' ? 'bg-blue-600 text-white shadow-xs' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'">
+          Communications
+        </button>
+      </div>
+    </div>
 
-      <!-- Action 1: Admit Student -->
-      <a routerLink="/student-enrollment"
-        class="p-4.5 rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary hover:border-blue-400 dark:hover:border-blue-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
-        <div
-          class="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-lg shadow-sm shadow-blue-600/30 group-hover:scale-105 transition-transform">
-          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
-          </svg>
-        </div>
-        <span
-          class="text-xs font-bold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Admit
-          Student</span>
-      </a>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
 
-      <!-- Action 2: Classes & Streams -->
-      <a routerLink="/classes"
-        class="p-4.5 rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary hover:border-blue-400 dark:hover:border-blue-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
-        <div
-          class="w-11 h-11 rounded-2xl bg-sky-500 text-white flex items-center justify-center text-lg shadow-sm shadow-sky-500/30 group-hover:scale-105 transition-transform">
-          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
-          </svg>
-        </div>
-        <span
-          class="text-xs font-bold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Classes
-          & Streams</span>
-      </a>
+      <!-- Action 1: Admit Student (Admissions) -->
+      @if (quickActionCategory() === 'ALL' || quickActionCategory() === 'ADMISSIONS') {
+        <a routerLink="/student-enrollment"
+          class="p-4.5 rounded-3xl bg-bg-secondary border border-border-primary hover:border-blue-500/50 flex flex-col items-center justify-center text-center gap-3 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group shadow-xs">
+          <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all">
+            <i class="fas fa-user-plus"></i>
+          </div>
+          <div>
+            <span class="text-xs font-black text-text-primary group-hover:text-blue-500 transition-colors block">Admit Student</span>
+            <span class="text-[10px] text-text-muted mt-0.5 block">Enroll scholars</span>
+          </div>
+        </a>
+      }
 
-      <!-- Action 3: SMS Parent Dispatcher -->
-      <button (click)="openBroadcastModal()"
-        class="p-4.5 rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary hover:border-blue-400 dark:hover:border-blue-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
-        <div
-          class="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-lg shadow-sm shadow-blue-600/30 group-hover:scale-105 transition-transform">
-          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
-          </svg>
-        </div>
-        <span
-          class="text-xs font-bold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">SMS
-          Broadcast</span>
-      </button>
+      <!-- Action 2: Classes & Streams (Academics) -->
+      @if (quickActionCategory() === 'ALL' || quickActionCategory() === 'ACADEMICS') {
+        <a routerLink="/classes"
+          class="p-4.5 rounded-3xl bg-bg-secondary border border-border-primary hover:border-sky-500/50 flex flex-col items-center justify-center text-center gap-3 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group shadow-xs">
+          <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 group-hover:bg-sky-600 group-hover:text-white transition-all">
+            <i class="fas fa-chalkboard-user"></i>
+          </div>
+          <div>
+            <span class="text-xs font-black text-text-primary group-hover:text-sky-500 transition-colors block">Classes &amp; Streams</span>
+            <span class="text-[10px] text-text-muted mt-0.5 block">Cohorts &amp; rooms</span>
+          </div>
+        </a>
+      }
 
-      <!-- Action 4: Fee Collection -->
-      <a routerLink="/fiscal"
-        class="p-4.5 rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary hover:border-blue-400 dark:hover:border-blue-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
-        <div
-          class="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-lg shadow-sm shadow-amber-500/30 group-hover:scale-105 transition-transform">
-          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <span
-          class="text-xs font-bold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Fee
-          Collection</span>
-      </a>
+      <!-- Action 3: SMS Dispatcher (Communications) -->
+      @if (quickActionCategory() === 'ALL' || quickActionCategory() === 'COMMUNICATIONS') {
+        <button (click)="openBroadcastModal()"
+          class="p-4.5 rounded-3xl bg-bg-secondary border border-border-primary hover:border-indigo-500/50 flex flex-col items-center justify-center text-center gap-3 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group shadow-xs">
+          <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+            <i class="fas fa-paper-plane"></i>
+          </div>
+          <div>
+            <span class="text-xs font-black text-text-primary group-hover:text-indigo-500 transition-colors block">SMS Broadcast</span>
+            <span class="text-[10px] text-text-muted mt-0.5 block">Parent alerts</span>
+          </div>
+        </button>
+      }
 
-      <!-- Action 5: Classroom Grading -->
-      <a routerLink="/teachers/grading"
-        class="p-4.5 rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary hover:border-blue-400 dark:hover:border-blue-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
-        <div
-          class="w-11 h-11 rounded-2xl bg-rose-500 text-white flex items-center justify-center text-lg shadow-sm shadow-rose-500/30 group-hover:scale-105 transition-transform">
-          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-          </svg>
-        </div>
-        <span
-          class="text-xs font-bold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Classroom
-          Grading</span>
-      </a>
+      <!-- Action 4: Fee Collection (Fiscal) -->
+      @if (quickActionCategory() === 'ALL' || quickActionCategory() === 'FISCAL') {
+        <a routerLink="/fiscal"
+          class="p-4.5 rounded-3xl bg-bg-secondary border border-border-primary hover:border-amber-500/50 flex flex-col items-center justify-center text-center gap-3 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group shadow-xs">
+          <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white transition-all">
+            <i class="fas fa-receipt"></i>
+          </div>
+          <div>
+            <span class="text-xs font-black text-text-primary group-hover:text-amber-500 transition-colors block">Fee Collection</span>
+            <span class="text-[10px] text-text-muted mt-0.5 block">Tuition &amp; billing</span>
+          </div>
+        </a>
+      }
 
-      <!-- Action 6: Teachers & Staff Allocation -->
-      <a routerLink="/teachers/assignments"
-        class="p-4.5 rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary hover:border-blue-400 dark:hover:border-blue-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
-        <div
-          class="w-11 h-11 rounded-2xl bg-cyan-600 text-white flex items-center justify-center text-lg shadow-sm shadow-cyan-600/30 group-hover:scale-105 transition-transform">
-          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-          </svg>
-        </div>
-        <span
-          class="text-xs font-bold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Teacher
-          Assignments</span>
-      </a>
+      <!-- Action 5: Classroom Grading (Academics) -->
+      @if (quickActionCategory() === 'ALL' || quickActionCategory() === 'ACADEMICS') {
+        <a routerLink="/teachers/grading"
+          class="p-4.5 rounded-3xl bg-bg-secondary border border-border-primary hover:border-rose-500/50 flex flex-col items-center justify-center text-center gap-3 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group shadow-xs">
+          <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 group-hover:bg-rose-600 group-hover:text-white transition-all">
+            <i class="fas fa-pen-to-square"></i>
+          </div>
+          <div>
+            <span class="text-xs font-black text-text-primary group-hover:text-rose-500 transition-colors block">Classroom Grading</span>
+            <span class="text-[10px] text-text-muted mt-0.5 block">Marks &amp; assessments</span>
+          </div>
+        </a>
+      }
 
-      <!-- Action 7: Student Directory -->
-      <a routerLink="/students"
-        class="p-4.5 rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary hover:border-blue-400 dark:hover:border-blue-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
-        <div
-          class="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-lg shadow-sm shadow-emerald-600/30 group-hover:scale-105 transition-transform">
-          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-          </svg>
-        </div>
-        <span
-          class="text-xs font-bold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Student
-          Roster</span>
-      </a>
+      <!-- Action 6: Teacher Assignments (Academics) -->
+      @if (quickActionCategory() === 'ALL' || quickActionCategory() === 'ACADEMICS') {
+        <a routerLink="/teachers/assignments"
+          class="p-4.5 rounded-3xl bg-bg-secondary border border-border-primary hover:border-cyan-500/50 flex flex-col items-center justify-center text-center gap-3 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group shadow-xs">
+          <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 group-hover:bg-cyan-600 group-hover:text-white transition-all">
+            <i class="fas fa-users-gear"></i>
+          </div>
+          <div>
+            <span class="text-xs font-black text-text-primary group-hover:text-cyan-500 transition-colors block">Faculty Allocation</span>
+            <span class="text-[10px] text-text-muted mt-0.5 block">Staff &amp; subjects</span>
+          </div>
+        </a>
+      }
 
-      <!-- Action 8: Academic Calendar & Terms -->
-      <a routerLink="/academic-periods"
-        class="p-4.5 rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary hover:border-blue-400 dark:hover:border-blue-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
-        <div
-          class="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-lg shadow-sm shadow-blue-600/30 group-hover:scale-105 transition-transform">
-          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-          </svg>
-        </div>
-        <span
-          class="text-xs font-bold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Academic
-          Calendar</span>
-      </a>
+      <!-- Action 7: Student Directory (Admissions) -->
+      @if (quickActionCategory() === 'ALL' || quickActionCategory() === 'ADMISSIONS') {
+        <a routerLink="/students"
+          class="p-4.5 rounded-3xl bg-bg-secondary border border-border-primary hover:border-emerald-500/50 flex flex-col items-center justify-center text-center gap-3 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group shadow-xs">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+            <i class="fas fa-address-book"></i>
+          </div>
+          <div>
+            <span class="text-xs font-black text-text-primary group-hover:text-emerald-500 transition-colors block">Student Roster</span>
+            <span class="text-[10px] text-text-muted mt-0.5 block">Scholar records</span>
+          </div>
+        </a>
+      }
 
-      <!-- Action 9: Terminal Report Cards -->
-      <a routerLink="/academic/reports"
-        class="p-4.5 rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary hover:border-blue-400 dark:hover:border-blue-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
-        <div
-          class="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-lg shadow-sm shadow-blue-600/30 group-hover:scale-105 transition-transform">
-          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-          </svg>
-        </div>
-        <span
-          class="text-xs font-bold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Report
-          Cards</span>
-      </a>
+      <!-- Action 8: Academic Calendar (Academics) -->
+      @if (quickActionCategory() === 'ALL' || quickActionCategory() === 'ACADEMICS') {
+        <a routerLink="/academic-periods"
+          class="p-4.5 rounded-3xl bg-bg-secondary border border-border-primary hover:border-violet-500/50 flex flex-col items-center justify-center text-center gap-3 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group shadow-xs">
+          <div class="w-12 h-12 rounded-2xl bg-violet-500/10 border border-violet-500/20 text-violet-600 dark:text-violet-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 group-hover:bg-violet-600 group-hover:text-white transition-all">
+            <i class="fas fa-calendar-days"></i>
+          </div>
+          <div>
+            <span class="text-xs font-black text-text-primary group-hover:text-violet-500 transition-colors block">Academic Calendar</span>
+            <span class="text-[10px] text-text-muted mt-0.5 block">Terms &amp; session</span>
+          </div>
+        </a>
+      }
 
-      <!-- Action 10: Master Timetable -->
-      <a routerLink="/timetable"
-        class="p-4.5 rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary hover:border-blue-400 dark:hover:border-blue-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
-        <div
-          class="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-lg shadow-sm shadow-blue-600/30 group-hover:scale-105 transition-transform">
-          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <span
-          class="text-xs font-bold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Master
-          Timetable</span>
-      </a>
+      <!-- Action 9: Terminal Report Cards (Academics) -->
+      @if (quickActionCategory() === 'ALL' || quickActionCategory() === 'ACADEMICS') {
+        <a routerLink="/academic/reports"
+          class="p-4.5 rounded-3xl bg-bg-secondary border border-border-primary hover:border-fuchsia-500/50 flex flex-col items-center justify-center text-center gap-3 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group shadow-xs">
+          <div class="w-12 h-12 rounded-2xl bg-fuchsia-500/10 border border-fuchsia-500/20 text-fuchsia-600 dark:text-fuchsia-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 group-hover:bg-fuchsia-600 group-hover:text-white transition-all">
+            <i class="fas fa-file-invoice"></i>
+          </div>
+          <div>
+            <span class="text-xs font-black text-text-primary group-hover:text-fuchsia-500 transition-colors block">Report Cards</span>
+            <span class="text-[10px] text-text-muted mt-0.5 block">Terminal transcripts</span>
+          </div>
+        </a>
+      }
 
-      <!-- Action 11: Billing & Subscriptions -->
-      <a routerLink="/fiscal/subscription-billing"
-        class="p-4.5 rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary hover:border-blue-400 dark:hover:border-blue-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
-        <div
-          class="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-lg shadow-sm shadow-blue-600/30 group-hover:scale-105 transition-transform">
-          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-          </svg>
-        </div>
-        <span
-          class="text-xs font-bold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Subscription
-          &amp; SMS</span>
-      </a>
+      <!-- Action 10: Master Timetable (Academics) -->
+      @if (quickActionCategory() === 'ALL' || quickActionCategory() === 'ACADEMICS') {
+        <a routerLink="/timetable"
+          class="p-4.5 rounded-3xl bg-bg-secondary border border-border-primary hover:border-blue-500/50 flex flex-col items-center justify-center text-center gap-3 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group shadow-xs">
+          <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div>
+            <span class="text-xs font-black text-text-primary group-hover:text-blue-500 transition-colors block">Master Timetable</span>
+            <span class="text-[10px] text-text-muted mt-0.5 block">Schedule matrix</span>
+          </div>
+        </a>
+      }
 
-      <!-- Action 12: Guardians & Parents -->
-      <a routerLink="/guardians"
-        class="p-4.5 rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary hover:border-blue-400 dark:hover:border-blue-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
-        <div
-          class="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-lg shadow-sm shadow-blue-600/30 group-hover:scale-105 transition-transform">
-          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-          </svg>
-        </div>
-        <span
-          class="text-xs font-bold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Guardians
-          &amp; Parents</span>
-      </a>
+      <!-- Action 11: Digital Wallet & POS (Fiscal) -->
+      @if (quickActionCategory() === 'ALL' || quickActionCategory() === 'FISCAL') {
+        <a routerLink="/fiscal/wallet"
+          class="p-4.5 rounded-3xl bg-bg-secondary border border-border-primary hover:border-teal-500/50 flex flex-col items-center justify-center text-center gap-3 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group shadow-xs">
+          <div class="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 group-hover:bg-teal-600 group-hover:text-white transition-all">
+            <i class="fas fa-wallet"></i>
+          </div>
+          <div>
+            <span class="text-xs font-black text-text-primary group-hover:text-teal-500 transition-colors block">Digital Wallet &amp; POS</span>
+            <span class="text-[10px] text-text-muted mt-0.5 block">Smartcards &amp; terminal</span>
+          </div>
+        </a>
+      }
+
+      <!-- Action 12: Guardians & Parents (Admissions) -->
+      @if (quickActionCategory() === 'ALL' || quickActionCategory() === 'ADMISSIONS') {
+        <a routerLink="/guardians"
+          class="p-4.5 rounded-3xl bg-bg-secondary border border-border-primary hover:border-purple-500/50 flex flex-col items-center justify-center text-center gap-3 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group shadow-xs">
+          <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white transition-all">
+            <i class="fas fa-people-roof"></i>
+          </div>
+          <div>
+            <span class="text-xs font-black text-text-primary group-hover:text-purple-500 transition-colors block">Guardians &amp; Parents</span>
+            <span class="text-[10px] text-text-muted mt-0.5 block">Family contacts</span>
+          </div>
+        </a>
+      }
 
     </div>
   </div>
 
   <!-- ── 4. AI Insight Gradient Alert Banner (Academic Intelligence) ─ -->
-  <div
-    class="rounded-2xl md:rounded-3xl p-5 md:p-6 bg-blue-600 from-[#D946EF] via-[#EC4899] to-[#F97316] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg shadow-blue-500/15 relative overflow-hidden">
-    <div class="flex items-center gap-4 min-w-0">
-      <div
-        class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
-        <svg class="w-5 h-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-          stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-        </svg>
+  <div class="rounded-3xl p-5 sm:p-6 bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl shadow-blue-500/15 relative overflow-hidden border border-white/10">
+    <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
+
+    <div class="flex items-center gap-4 min-w-0 relative z-10">
+      <div class="w-12 h-12 rounded-2xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner text-xl text-amber-300">
+        <i class="fas fa-wand-magic-sparkles"></i>
       </div>
       <div class="min-w-0">
-        <p class="text-[10px] font-black uppercase tracking-widest text-white/90">
-          SCHOOLLINX AI INSIGHT &bull; ACADEMIC INTELLIGENCE
-        </p>
-        <p class="text-xs md:text-sm font-bold text-white mt-0.5 leading-snug">
-          Attendance drop & retention risk detected across {{ retentionRisks().length || 6 }} students this term. Use
-          SMS Dispatcher to alert parents immediately.
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="px-2 py-0.5 rounded-full bg-white/20 text-[9px] font-black uppercase tracking-widest text-white border border-white/30">
+            SchoolLinx AI Copilot
+          </span>
+          <span class="text-white/80 text-xs font-medium">Academic Intelligence Engine</span>
+        </div>
+        <p class="text-xs sm:text-sm font-bold text-white mt-1 leading-snug">
+          Attendance drop &amp; retention risk flagged across {{ retentionRisks().length || 6 }} students this term. Use SMS Dispatcher to trigger immediate parental intervention.
         </p>
       </div>
     </div>
 
-    <div class="flex items-center gap-2 shrink-0">
+    <div class="flex items-center gap-2.5 shrink-0 relative z-10">
       <button (click)="openBroadcastModal()"
-        class="px-4 py-2 rounded-xl bg-white text-blue-600 text-xs font-bold transition-all hover:bg-slate-100 cursor-pointer shadow-sm">
-        Send SMS Alert
+        class="px-4 py-2.5 rounded-2xl bg-white hover:bg-blue-50 text-blue-900 font-black text-xs transition-all cursor-pointer shadow-md flex items-center gap-1.5 active:scale-95">
+        <i class="fas fa-paper-plane text-xs"></i>
+        <span>Send SMS Alert</span>
       </button>
       <a routerLink="/retention-risk"
-        class="px-4.5 py-2 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs font-bold shrink-0 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs">
-        <span>Matrix &rarr;</span>
+        class="px-4 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md text-white font-bold text-xs shrink-0 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+        <span>Retention Matrix</span>
+        <i class="fas fa-arrow-right text-[10px]"></i>
       </a>
     </div>
   </div>
 
   <!-- ── 5. Bottom 2-Column Section (Academic Performance + Recent Fee Payments) ── -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
 
     <!-- Left Column (8 cols): Academic Performance & Grade Distribution -->
-    <div
-      class="lg:col-span-8 p-6 md:p-7 rounded-2xl md:rounded-3xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary shadow-xs flex flex-col justify-between">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div class="lg:col-span-8 p-6 sm:p-7 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs flex flex-col justify-between space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 class="text-base md:text-lg font-black text-slate-900 dark:text-white tracking-tight">
-            Academic Performance & Grade Distribution
-          </h2>
-          <p class="text-xs font-medium text-slate-500 dark:text-text-muted mt-0.5">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs">
+              <i class="fas fa-chart-simple"></i>
+            </div>
+            <h2 class="text-base sm:text-lg font-black text-text-primary tracking-tight">
+              Academic Performance &amp; Grade Distribution
+            </h2>
+          </div>
+          <p class="text-xs font-medium text-text-muted mt-1">
             Evaluation breakdown across all cohorts for {{ selectedTerm() }}
           </p>
         </div>
@@ -991,129 +1031,130 @@
         <!-- Interactive Term Switching Pill Dropdown -->
         <div class="relative">
           <button (click)="toggleTermDropdown()"
-            class="px-3.5 py-1.5 rounded-xl bg-slate-50 dark:bg-bg-tertiary border border-slate-300/80 dark:border-border-primary text-xs font-bold text-slate-800 dark:text-text-primary flex items-center gap-2 cursor-pointer shadow-2xs hover:bg-slate-100 dark:hover:bg-bg-tertiary/80 transition-all">
+            class="px-4 py-2 rounded-2xl bg-bg-tertiary border border-border-primary text-xs font-bold text-text-primary flex items-center gap-2 cursor-pointer shadow-xs hover:border-blue-500/40 transition-all">
+            <i class="fas fa-calendar-check text-blue-500 text-xs"></i>
             <span>{{ selectedTerm() }}</span>
-            <svg class="w-3.5 h-3.5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-            </svg>
+            <i class="fas fa-chevron-down text-[10px] text-text-muted transition-transform" [class.rotate-180]="isTermDropdownOpen()"></i>
           </button>
 
           @if (isTermDropdownOpen()) {
-          <div
-            class="absolute right-0 top-10 w-36 bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary rounded-2xl shadow-xl p-1.5 z-40 animate-scale-up">
-            @for (term of ['Term 1', 'Term 2', 'Term 3', 'Annual']; track term) {
-            <button (click)="selectTerm(term)"
-              class="w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center justify-between"
-              [ngClass]="{
-                      'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400': selectedTerm() === term,
-                      'text-slate-700 dark:text-text-secondary hover:bg-slate-50 dark:hover:bg-bg-tertiary': selectedTerm() !== term
-                    }">
-              <span>{{ term }}</span>
-              @if (selectedTerm() === term) {
-              <svg class="w-3 h-3 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none"
-                viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-              </svg>
+            <div class="absolute right-0 top-11 w-40 bg-bg-secondary border border-border-primary rounded-2xl shadow-xl p-1.5 z-40 animate-fade-in">
+              @for (term of ['Term 1', 'Term 2', 'Term 3', 'Annual']; track term) {
+                <button (click)="selectTerm(term)"
+                  class="w-full text-left px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center justify-between"
+                  [ngClass]="selectedTerm() === term ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 font-black' : 'text-text-secondary hover:bg-bg-tertiary'">
+                  <span>{{ term }}</span>
+                  @if (selectedTerm() === term) {
+                    <i class="fas fa-check text-[10px] text-blue-500"></i>
+                  }
+                </button>
               }
-            </button>
-            }
-          </div>
+            </div>
           }
         </div>
       </div>
 
       <!-- Real Grade Distribution Bar Chart -->
-      <div class="my-auto py-4">
-        <div
-          class="h-56 flex items-end justify-between gap-4 px-2 pt-6 border-b border-slate-200 dark:border-border-primary/60">
+      <div class="py-2">
+        <div class="h-56 flex items-end justify-between gap-3 sm:gap-4 px-2 pt-6 border-b border-border-primary">
           @for (item of realGradeData(); track item.label) {
-          <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end group cursor-pointer">
-            <span
-              class="text-[10px] font-black text-blue-700 dark:text-blue-400 opacity-90 group-hover:opacity-100 transition-opacity">
-              {{ item.count }} ({{ item.pct }}%)
-            </span>
-            <div class="w-full max-w-[56px] rounded-t-xl transition-all duration-500 relative overflow-hidden"
-              [style.height.%]="item.pct + 20" [style.backgroundColor]="item.color">
-              <div class="absolute inset-x-0 bottom-0 h-2 bg-black/10"></div>
+            <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end group cursor-pointer">
+              <span class="text-[10px] font-black font-mono text-text-muted group-hover:text-blue-500 transition-colors">
+                {{ item.count }} ({{ item.pct }}%)
+              </span>
+              <div class="w-full max-w-[56px] rounded-t-2xl transition-all duration-500 relative overflow-hidden group-hover:scale-105"
+                [style.height.%]="item.pct + 18" [style.backgroundColor]="item.color">
+                <div class="absolute inset-x-0 bottom-0 h-2 bg-black/15"></div>
+              </div>
+              <span class="text-xs font-black text-text-primary mt-2">
+                Grade {{ item.label }}
+              </span>
             </div>
-            <span class="text-xs font-black text-slate-800 dark:text-text-primary mt-2">
-              Grade {{ item.label }}
-            </span>
-          </div>
+          } @empty {
+            <div class="w-full flex flex-col items-center justify-center py-12 text-center text-text-muted">
+              <i class="fas fa-chart-bar text-2xl opacity-40 mb-2"></i>
+              <p class="text-xs font-bold">No evaluation marks recorded yet for {{ selectedTerm() }}</p>
+            </div>
           }
         </div>
       </div>
 
-      <div
-        class="pt-4 border-t border-slate-100 dark:border-border-primary/60 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-slate-600 dark:text-text-muted">
-        <span>Total: {{ totalGradedAssessments() | number }} evaluations recorded</span>
-        <span class="font-bold text-emerald-700 dark:text-emerald-400">Institutional GPA Index: {{ averageGpa() |
-          number:'1.1-1' }}%</span>
+      <div class="pt-4 border-t border-border-primary flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-text-muted">
+        <span class="flex items-center gap-1.5">
+          <i class="fas fa-database text-blue-500 text-[10px]"></i>
+          <span>Total: {{ totalGradedAssessments() | number }} evaluations recorded</span>
+        </span>
+        <span class="font-bold text-emerald-600 dark:text-emerald-400 font-mono bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+          Institutional GPA: {{ averageGpa() | number:'1.1-1' }}%
+        </span>
       </div>
     </div>
 
     <!-- Right Column (4 cols): Recent Fee Payments Feed -->
-    <div
-      class="lg:col-span-4 p-6 md:p-7 rounded-2xl md:rounded-3xl bg-white dark:bg-bg-secondary border border-slate-200/90 dark:border-border-primary shadow-xs flex flex-col justify-between">
-      <div class="flex items-center justify-between mb-5">
-        <div>
-          <h2 class="text-base md:text-lg font-black text-slate-900 dark:text-white tracking-tight">
-            Recent Fee Payments
-          </h2>
-          <p class="text-xs text-slate-500 dark:text-text-muted">Click student to inspect pupil card</p>
+    <div class="lg:col-span-4 p-6 sm:p-7 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs flex flex-col justify-between space-y-5">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs">
+            <i class="fas fa-receipt"></i>
+          </div>
+          <div>
+            <h2 class="text-base sm:text-lg font-black text-text-primary tracking-tight">
+              Recent Fee Ledger
+            </h2>
+            <p class="text-[10px] text-text-muted">Click pupil to inspect ledger</p>
+          </div>
         </div>
+
         <a routerLink="/fiscal"
-          class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
-          Ledger &rarr;
+          class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer flex items-center gap-1">
+          <span>Full Ledger</span>
+          <i class="fas fa-arrow-right text-[10px]"></i>
         </a>
       </div>
 
       <!-- Recent Payments List -->
-      <div class="space-y-4 my-auto divide-y divide-slate-100 dark:divide-border-primary/40">
+      <div class="space-y-2.5 my-auto">
         @for (payment of recentPayments(); track payment.id) {
-        <div (click)="openStudentInspection(payment)"
-          class="pt-3 first:pt-0 flex items-center justify-between gap-3 p-2 -mx-2 rounded-2xl hover:bg-slate-50 dark:hover:bg-bg-tertiary/60 transition-all cursor-pointer group">
-          <div class="flex items-center gap-3 min-w-0">
-            <div
-              class="w-10 h-10 rounded-2xl bg-blue-100/80 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 font-black text-xs flex items-center justify-center shrink-0 border border-blue-200/80 dark:border-blue-800/40 group-hover:scale-105 transition-transform">
-              {{ payment.initials }}
-            </div>
-            <div class="min-w-0">
-              <div class="flex items-center gap-1.5">
-                <p
-                  class="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-blue-600 transition-colors">
-                  {{ payment.name }}
-                </p>
-                <svg class="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                  xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                  stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                </svg>
+          <div (click)="openStudentInspection(payment)"
+            class="p-3 rounded-2xl bg-bg-tertiary/60 hover:bg-bg-tertiary border border-border-primary/80 transition-all cursor-pointer group flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 font-black text-xs flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                {{ payment.initials }}
               </div>
-              <p class="text-[10px] font-medium text-slate-500 dark:text-text-muted truncate mt-0.5">
-                {{ payment.category }} &bull; {{ payment.invoiceNo }}
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <p class="text-xs font-black text-text-primary truncate group-hover:text-blue-500 transition-colors">
+                    {{ payment.name }}
+                  </p>
+                  <i class="fas fa-arrow-up-right-from-square text-[9px] text-text-muted opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                </div>
+                <p class="text-[10px] font-medium text-text-muted truncate mt-0.5 font-mono">
+                  {{ payment.category }} &bull; {{ payment.invoiceNo }}
+                </p>
+              </div>
+            </div>
+
+            <div class="text-right shrink-0">
+              <p class="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono">
+                +GH₵{{ payment.amount | number:'1.2-2' }}
+              </p>
+              <p class="text-[10px] font-medium text-text-muted mt-0.5">
+                {{ payment.time }}
               </p>
             </div>
           </div>
-
-          <div class="text-right shrink-0">
-            <p class="text-xs font-black text-emerald-700 dark:text-emerald-400">
-              +GH₵{{ payment.amount | number:'1.2-2' }}
-            </p>
-            <p class="text-[10px] font-medium text-slate-500 dark:text-text-muted mt-0.5">
-              {{ payment.time }}
-            </p>
+        } @empty {
+          <div class="py-8 text-center text-text-muted">
+            <i class="fas fa-receipt text-2xl opacity-40 mb-2"></i>
+            <p class="text-xs font-bold">No recent fee deposits recorded</p>
           </div>
-        </div>
         }
       </div>
 
-      <div
-        class="mt-4 pt-4 border-t border-slate-100 dark:border-border-primary/60 flex items-center justify-between text-xs">
-        <span class="text-slate-500">4 recent deposits</span>
+      <div class="pt-4 border-t border-border-primary flex items-center justify-between text-xs text-text-muted">
+        <span>{{ recentPayments().length }} recent receipts</span>
         <a routerLink="/fiscal" class="font-bold text-blue-600 dark:text-blue-400 hover:underline">
-          Full Ledger &rarr;
+          View All Transactions &rarr;
         </a>
       </div>
     </div>

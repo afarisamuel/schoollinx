@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { AcademicPeriodService } from '../../../core/infrastructure/academic-period/academic-period.service';
@@ -22,6 +22,8 @@ export class AcademicPeriodManagementComponent implements OnInit {
   isLoading = signal<boolean>(false);
   isSubmitting = signal<boolean>(false);
   showForm = signal<boolean>(false);
+  searchQuery = signal<string>('');
+  filterStatus = signal<'ALL' | 'ACTIVE' | 'ARCHIVED'>('ALL');
 
   periodForm = this.fb.group({
     id: [''],
@@ -40,6 +42,59 @@ export class AcademicPeriodManagementComponent implements OnInit {
     start_date: ['', Validators.required],
     end_date: ['', Validators.required]
   });
+
+  // Computed Telemetry
+  activePeriod = computed(() => this.periods().find(p => p.is_active) || null);
+  
+  activeTerm = computed(() => {
+    const ap = this.activePeriod();
+    if (!ap || !ap.terms) return null;
+    return ap.terms.find(t => t.term_number === ap.current_term) || null;
+  });
+
+  totalTermsCount = computed(() => {
+    return this.periods().reduce((acc, p) => acc + (p.terms?.length || 0), 0);
+  });
+
+  filteredPeriods = computed(() => {
+    const q = this.searchQuery().toLowerCase().trim();
+    const status = this.filterStatus();
+    return this.periods().filter(p => {
+      const matchesSearch = !q || p.name.toLowerCase().includes(q) || p.term_type.toLowerCase().includes(q);
+      const matchesStatus = status === 'ALL' || (status === 'ACTIVE' && p.is_active) || (status === 'ARCHIVED' && !p.is_active);
+      return matchesSearch && matchesStatus;
+    });
+  });
+
+  openCreatePeriodModal() {
+    this.periodForm.reset({ term_type: 'Semester', term_count: 2 });
+    this.showForm.set(true);
+  }
+
+  closeFormModal() {
+    this.periodForm.reset({ term_type: 'Semester', term_count: 2 });
+    this.showForm.set(false);
+  }
+
+  daysRemainingInTerm(term: AcademicTerm | null | undefined): number | null {
+    if (!term || !term.end_date) return null;
+    const now = new Date().getTime();
+    const end = new Date(term.end_date).getTime();
+    const diffDays = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+    return diffDays;
+  }
+
+  getTermProgress(term: AcademicTerm | null | undefined): number {
+    if (!term || !term.start_date || !term.end_date) return 0;
+    const start = new Date(term.start_date).getTime();
+    const end = new Date(term.end_date).getTime();
+    const now = new Date().getTime();
+    if (now <= start) return 0;
+    if (now >= end) return 100;
+    const total = end - start;
+    const elapsed = now - start;
+    return Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
+  }
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
