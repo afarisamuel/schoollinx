@@ -413,127 +413,563 @@
 </div>
 
 <!-- ========================================================= -->
-<!-- FULLSCREEN GATE TURNSTILE KIOSK OVERLAY                    -->
+<!-- FULLSCREEN GATE TURNSTILE KIOSK OVERLAY (ENTERPRISE HUD)   -->
 <!-- ========================================================= -->
 @if (isKioskMode()) {
-  <div class="fixed inset-0 z-50 bg-[#060b13] text-white flex flex-col justify-between p-6 sm:p-10 select-none animate-fade-in overflow-hidden">
+  <div class="fixed inset-0 z-[99999] bg-[#030712] text-white flex flex-col justify-between p-4 sm:p-6 lg:p-7 select-none overflow-hidden font-sans">
     
-    <!-- Kiosk Top Header Bar -->
-    <div class="flex items-center justify-between border-b border-white/10 pb-4">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-2xl bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-teal-400">
+    <!-- Cyber Ambient Lighting Background -->
+    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+      <div class="absolute -top-40 left-1/4 w-[650px] h-[650px] bg-teal-500/10 rounded-full blur-[150px]"></div>
+      <div class="absolute -bottom-40 right-1/4 w-[650px] h-[650px] bg-blue-600/10 rounded-full blur-[150px]"></div>
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-500/5 rounded-full blur-[180px]"></div>
+      <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:28px_28px] opacity-25"></div>
+    </div>
+
+    <!-- 1. KIOSK TOP COMMAND BAR -->
+    <div class="relative z-10 flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/10">
+      
+      <!-- Left: Station Brand & Live Telemetry Status -->
+      <div class="flex items-center gap-3.5">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-500/20 to-blue-600/20 border-2 border-teal-500/40 flex items-center justify-center text-teal-300 shadow-[0_0_20px_rgba(20,184,166,0.3)]">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" x2="17" y1="8" y2="8"/><line x1="7" x2="17" y1="12" y2="12"/><line x1="7" x2="17" y1="16" y2="16"/></svg>
         </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h2 class="text-xl font-black uppercase tracking-wider text-white">Campus Security Gate Kiosk</h2>
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2.5">
+            <h1 class="text-base sm:text-lg font-black uppercase tracking-wider text-white">Campus Turnstile Kiosk</h1>
+            <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1.5 shadow-[0_0_10px_rgba(52,211,153,0.3)]">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+              <span>LIVE & RECORDING</span>
+            </span>
           </div>
-          <p class="text-xs text-white/60">{{ selectedClassName() }} • Real-Time Biometric & Card Station</p>
+          <div class="flex items-center gap-2 text-xs text-white/60">
+            <span class="font-mono text-teal-400 font-bold">{{ terminalName() }}</span>
+            <span>•</span>
+            <span class="truncate max-w-[200px]">{{ selectedClassName() }}</span>
+          </div>
         </div>
       </div>
 
-      <!-- Kiosk Telemetry & Close Button -->
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-2xl">
-          <span class="text-xs text-white/60 font-medium">Checked In:</span>
-          <span class="text-lg font-black text-emerald-400 font-mono">{{ checkedInCount() }} / {{ totalStudents() }}</span>
+      <!-- Center: Live High-Precision Clock & Operation Mode Toggle -->
+      <div class="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl p-1.5 px-4 backdrop-blur-md shadow-inner">
+        <div class="flex flex-col items-center">
+          <span class="text-lg sm:text-xl font-black font-mono tracking-wider text-white drop-shadow-sm">{{ currentTime() || '07:45:00 AM' }}</span>
+          <span class="text-[10px] font-bold text-white/50 uppercase tracking-wider leading-none">{{ currentDate() }}</span>
         </div>
 
-        <button type="button" (click)="toggleKioskMode()"
-          class="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          <span>Exit Kiosk</span>
+        <div class="h-8 w-px bg-white/10 mx-1"></div>
+
+        <button type="button" (click)="toggleOperationMode()"
+          [title]="'Click to toggle between Arrival and Departure mode'"
+          class="px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
+          [class.bg-emerald-500]="kioskOperationMode() === 'ARRIVAL'"
+          [class.text-gray-950]="kioskOperationMode() === 'ARRIVAL'"
+          [class.bg-amber-500]="kioskOperationMode() === 'DEPARTURE'"
+          [class.text-gray-950]="kioskOperationMode() === 'DEPARTURE'">
+          <svg *ngIf="kioskOperationMode() === 'ARRIVAL'" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          <svg *ngIf="kioskOperationMode() === 'DEPARTURE'" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="17 14 12 9 7 14"/><line x1="12" x2="12" y1="9" y2="21"/></svg>
+          <span>{{ kioskOperationMode() === 'ARRIVAL' ? 'Morning Entry' : 'Evening Exit' }}</span>
         </button>
       </div>
+
+      <!-- Right: Controls & Exit -->
+      <div class="flex items-center gap-2">
+        <!-- Class Quick Switcher -->
+        <select [ngModel]="selectedClassId()" (ngModelChange)="onClassChange($event)"
+          class="bg-white/10 hover:bg-white/15 border border-white/20 text-white rounded-xl text-xs font-bold px-3 py-2 outline-none focus:border-teal-400 transition-all cursor-pointer">
+          <option value="" class="bg-gray-900 text-white">All Classes</option>
+          @for (c of classes(); track c.id) {
+            <option [value]="c.id" class="bg-gray-900 text-white">{{ c.name }}</option>
+          }
+        </select>
+
+        <!-- Voice Speech Feedback Toggle -->
+        <button type="button" (click)="toggleVoiceFeedback()"
+          [title]="isVoiceFeedbackEnabled() ? 'Speech synthesis active' : 'Speech synthesis muted'"
+          class="p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer"
+          [class.bg-teal-500/20]="isVoiceFeedbackEnabled()"
+          [class.border-teal-500/40]="isVoiceFeedbackEnabled()"
+          [class.text-teal-300]="isVoiceFeedbackEnabled()"
+          [class.bg-white/5]="!isVoiceFeedbackEnabled()"
+          [class.border-white/10]="!isVoiceFeedbackEnabled()"
+          [class.text-white/40]="!isVoiceFeedbackEnabled()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        </button>
+
+        <!-- Guardian SMS Toggle -->
+        <button type="button" (click)="toggleGuardianSms()"
+          [title]="isGuardianSmsEnabled() ? 'Automatic Parent SMS dispatch active' : 'Parent SMS dispatch disabled'"
+          class="p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer"
+          [class.bg-blue-500/20]="isGuardianSmsEnabled()"
+          [class.border-blue-500/40]="isGuardianSmsEnabled()"
+          [class.text-blue-300]="isGuardianSmsEnabled()"
+          [class.bg-white/5]="!isGuardianSmsEnabled()"
+          [class.border-white/10]="!isGuardianSmsEnabled()"
+          [class.text-white/40]="!isGuardianSmsEnabled()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </button>
+
+        <!-- Fullscreen Native Mode -->
+        <button type="button" (click)="toggleNativeFullscreen()"
+          title="Toggle Fullscreen Viewport"
+          class="p-2.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl text-xs font-bold transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg>
+        </button>
+
+        <!-- Exit Kiosk Button -->
+        <button type="button" (click)="toggleKioskMode()"
+          class="px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-lg shadow-rose-500/10">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <span>Exit <kbd class="hidden sm:inline font-mono text-[9px] opacity-70 bg-white/10 px-1 py-0.5 rounded">ESC</kbd></span>
+        </button>
+      </div>
+
     </div>
 
-    <!-- Kiosk Middle Stage: Active Scan Result Showcase -->
-    <div class="flex-1 flex flex-col md:flex-row items-center justify-center gap-10 py-6">
+    <!-- 2. MAIN INTERACTIVE 3-COLUMN STAGE -->
+    <div class="relative z-10 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 py-4 min-h-0 overflow-y-auto lg:overflow-hidden custom-scrollbar">
       
-      <!-- Last Scanned Candidate Spotlight Card -->
-      @if (lastScannedStudent()) {
-        <div class="w-full max-w-lg bg-white/5 border-2 border-teal-500/50 rounded-3xl p-8 shadow-2xl flex flex-col items-center text-center gap-5 backdrop-blur-xl animate-scale-up">
-          <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-emerald-400 shadow-[0_0_30px_rgba(52,211,153,0.4)] bg-gray-800 flex items-center justify-center">
-            @if (lastScannedStudent()!.student.photo_url) {
-              <img [src]="lastScannedStudent()!.student.photo_url" alt="Portrait" class="w-full h-full object-cover">
-            } @else {
-              <span class="text-3xl font-black text-white">
-                {{ lastScannedStudent()!.student.first_name[0] }}{{ lastScannedStudent()!.student.last_name[0] }}
-              </span>
-            }
-          </div>
-
-          <div>
-            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
-              PASSPORT VERIFIED
+      <!-- ========================================================================= -->
+      <!-- LEFT STAGE (3 Cols): TELEMETRY, PROGRESS & GUARD KEYPAD / ABSENT QUEUE    -->
+      <!-- ========================================================================= -->
+      <div class="lg:col-span-3 flex flex-col gap-4 min-h-0 overflow-y-auto custom-scrollbar pr-1">
+        
+        <!-- Live Roll Call Progress Card -->
+        <div class="bg-gradient-to-b from-white/10 to-white/5 border border-white/15 rounded-3xl p-5 backdrop-blur-xl shadow-xl flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-black uppercase tracking-wider text-teal-400">Roll Call Telemetry</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-black bg-teal-500/20 text-teal-300 border border-teal-500/30">
+              {{ attendanceRate() }}% Checked In
             </span>
-            <h3 class="text-2xl font-black text-white mt-2 uppercase tracking-tight">
-              {{ lastScannedStudent()!.student.first_name }} {{ lastScannedStudent()!.student.last_name }}
-            </h3>
-            <p class="text-xs font-mono text-teal-300 mt-0.5">
-              {{ lastScannedStudent()!.student.enrollment_num || lastScannedStudent()!.student.id }}
-            </p>
           </div>
 
-          <div class="w-full grid grid-cols-2 gap-3 pt-3 border-t border-white/10 text-xs">
-            <div class="bg-white/5 p-3 rounded-2xl">
-              <span class="text-[10px] uppercase font-bold text-white/50 block">Class Stream</span>
-              <span class="font-bold text-white">{{ lastScannedStudent()!.student.class_name || selectedClassName() }}</span>
+          <!-- Large Stat Count -->
+          <div class="flex items-baseline justify-between pt-1">
+            <div class="flex items-baseline gap-1.5">
+              <span class="text-4xl font-black font-mono text-white tracking-tight">{{ checkedInCount() }}</span>
+              <span class="text-sm font-bold text-white/50 font-mono">/ {{ totalStudents() }} Total</span>
             </div>
-            <div class="bg-white/5 p-3 rounded-2xl">
-              <span class="text-[10px] uppercase font-bold text-white/50 block">Timestamp</span>
-              <span class="font-bold text-emerald-400 font-mono">{{ lastScannedStudent()!.timestamp | date:'shortTime' }}</span>
+            <span class="text-xs font-bold text-rose-400 font-mono">{{ remainingCount() }} Remaining</span>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="w-full h-3 bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/10">
+            <div class="h-full bg-gradient-to-r from-teal-500 via-emerald-400 to-cyan-400 rounded-full transition-all duration-500 shadow-[0_0_12px_rgba(52,211,153,0.5)]"
+                 [style.width.%]="attendanceRate()"></div>
+          </div>
+
+          <!-- Breakdown Sub-Metrics -->
+          <div class="grid grid-cols-2 gap-2 pt-2 border-t border-white/10 text-xs">
+            <div class="bg-white/5 p-2.5 rounded-2xl border border-white/5">
+              <span class="text-[10px] uppercase font-bold text-white/50 block leading-none mb-1">On-Time</span>
+              <span class="text-base font-black text-emerald-400 font-mono leading-none">{{ onTimeCount() }}</span>
+            </div>
+            <div class="bg-white/5 p-2.5 rounded-2xl border border-white/5">
+              <span class="text-[10px] uppercase font-bold text-white/50 block leading-none mb-1">Tardy / Late</span>
+              <span class="text-base font-black text-amber-400 font-mono leading-none">{{ tardyCount() }}</span>
+            </div>
+            <div class="bg-white/5 p-2.5 rounded-2xl border border-white/5">
+              <span class="text-[10px] uppercase font-bold text-white/50 block leading-none mb-1">Day Scholars</span>
+              <span class="text-base font-black text-blue-400 font-mono leading-none">{{ dayScholarCount() }}</span>
+            </div>
+            <div class="bg-white/5 p-2.5 rounded-2xl border border-white/5">
+              <span class="text-[10px] uppercase font-bold text-white/50 block leading-none mb-1">Boarders</span>
+              <span class="text-base font-black text-purple-400 font-mono leading-none">{{ boarderCount() }}</span>
             </div>
           </div>
         </div>
-      } @else {
-        <!-- Idle Waiting Kiosk View -->
-        <div class="flex flex-col items-center text-center gap-4 max-w-md">
-          <div class="w-28 h-28 rounded-3xl bg-teal-500/10 border-2 border-dashed border-teal-500/40 flex items-center justify-center text-teal-400 animate-pulse">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" x2="17" y1="8" y2="8"/><line x1="7" x2="17" y1="12" y2="12"/><line x1="7" x2="17" y1="16" y2="16"/></svg>
+
+        <!-- Left Drawer Tabs: Guard PIN Pad vs Unchecked Scholars -->
+        <div class="bg-white/5 border border-white/10 rounded-3xl p-4 backdrop-blur-xl flex flex-col gap-3 flex-1 min-h-[300px]">
+          <!-- Tab Navigation -->
+          <div class="flex items-center gap-1 p-1 bg-white/5 rounded-2xl border border-white/10">
+            <button type="button" (click)="setKioskTab('SCANNER')"
+              class="flex-1 py-1.5 rounded-xl text-[11px] font-bold transition-all text-center cursor-pointer"
+              [class.bg-teal-500]="kioskActiveTab() === 'SCANNER'"
+              [class.text-gray-950]="kioskActiveTab() === 'SCANNER'"
+              [class.text-white/60]="kioskActiveTab() !== 'SCANNER'">
+              HUD Target
+            </button>
+            <button type="button" (click)="setKioskTab('KEYPAD')"
+              class="flex-1 py-1.5 rounded-xl text-[11px] font-bold transition-all text-center cursor-pointer"
+              [class.bg-teal-500]="kioskActiveTab() === 'KEYPAD'"
+              [class.text-gray-950]="kioskActiveTab() === 'KEYPAD'"
+              [class.text-white/60]="kioskActiveTab() !== 'KEYPAD'">
+              PIN Pad
+            </button>
+            <button type="button" (click)="setKioskTab('UNSCANNED')"
+              class="flex-1 py-1.5 rounded-xl text-[11px] font-bold transition-all text-center cursor-pointer"
+              [class.bg-teal-500]="kioskActiveTab() === 'UNSCANNED'"
+              [class.text-gray-950]="kioskActiveTab() === 'UNSCANNED'"
+              [class.text-white/60]="kioskActiveTab() !== 'UNSCANNED'">
+              Unchecked ({{ unscannedStudents().length }})
+            </button>
           </div>
-          <h3 class="text-xl font-bold text-white">Present Student Credential Badge</h3>
-          <p class="text-xs text-white/60">Audio announcements and instant parent arrival notifications are active.</p>
-        </div>
-      }
 
-      <!-- Real-Time Parent SMS Dispatches Ticker -->
-      <div class="w-full max-w-md bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col gap-3">
-        <div class="flex items-center justify-between border-b border-white/10 pb-2">
-          <span class="text-xs font-black uppercase tracking-wider text-teal-400 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            Guardian SMS Alerts Log
-          </span>
-          <span class="text-[10px] font-mono text-white/50">Auto-Dispatched</span>
-        </div>
-
-        <div class="flex flex-col gap-2 max-h-[220px] overflow-y-auto custom-scrollbar">
-          @for (sms of recentSmsDispatches(); track sms.studentName + sms.time) {
-            <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-xs">
-              <div class="flex flex-col">
-                <span class="font-bold text-white">{{ sms.studentName }}</span>
-                <span class="text-[10px] text-white/50 font-mono">SMS sent to {{ sms.phone }}</span>
+          <!-- TAB 1: QUICK MANUAL PIN / ID NUMBER KEYPAD -->
+          @if (kioskActiveTab() === 'KEYPAD') {
+            <div class="flex flex-col gap-2.5 flex-1 justify-between">
+              <!-- PIN Display Box -->
+              <div class="bg-black/50 border border-teal-500/30 rounded-2xl p-3 flex items-center justify-between">
+                <span class="font-mono text-base font-black tracking-widest text-teal-300 truncate">
+                  {{ pinKeypad() || 'ENTER ID NUMBER...' }}
+                </span>
+                @if (pinKeypad()) {
+                  <button type="button" (click)="clearKeypad()" class="text-white/40 hover:text-white text-xs cursor-pointer">
+                    Clear
+                  </button>
+                }
               </div>
-              <span class="text-[10px] font-bold text-emerald-400 font-mono">{{ sms.time }}</span>
-            </div>
-          } @empty {
-            <div class="py-8 text-center text-xs text-white/40">
-              No arrival alerts dispatched yet this session
+
+              <!-- 3x4 Touch Keypad Grid -->
+              <div class="grid grid-cols-3 gap-2">
+                @for (num of ['1','2','3','4','5','6','7','8','9','0']; track num) {
+                  <button type="button" (click)="pressKey(num)"
+                    class="py-3 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 border border-white/15 text-lg font-mono font-black text-white transition-all cursor-pointer flex items-center justify-center">
+                    {{ num }}
+                  </button>
+                }
+                <button type="button" (click)="deleteKey()"
+                  class="py-3 rounded-xl bg-white/5 hover:bg-white/15 active:scale-95 border border-white/10 text-xs font-bold text-rose-300 transition-all cursor-pointer flex items-center justify-center">
+                  ⌫ Del
+                </button>
+                <button type="button" (click)="submitKeypad()"
+                  class="py-3 rounded-xl bg-teal-500 hover:bg-teal-400 active:scale-95 text-gray-950 font-black text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center shadow-lg shadow-teal-500/20">
+                  Verify
+                </button>
+              </div>
             </div>
           }
+
+          <!-- TAB 2: UNCHECKED SCHOLARS ROSTER -->
+          @else if (kioskActiveTab() === 'UNSCANNED') {
+            <div class="flex flex-col gap-2 flex-1 min-h-0">
+              <!-- Quick Search Filter -->
+              <div class="relative">
+                <input type="text" [(ngModel)]="kioskSearchQuery" placeholder="Filter candidates..."
+                  class="w-full bg-white/10 border border-white/15 rounded-xl px-3 py-1.5 text-xs text-white placeholder-white/40 outline-none focus:border-teal-400">
+              </div>
+
+              <!-- Fast Click Check-in List -->
+              <div class="flex flex-col gap-1.5 overflow-y-auto flex-1 max-h-[220px] custom-scrollbar pr-1">
+                @for (s of unscannedStudents(); track s.id) {
+                  <button type="button" (click)="quickScanStudent(s)"
+                    class="p-2 rounded-xl bg-white/5 hover:bg-teal-500/20 border border-white/10 hover:border-teal-500/40 text-left transition-all flex items-center justify-between cursor-pointer group">
+                    <div class="flex items-center gap-2 truncate">
+                      <div class="w-6 h-6 rounded-full bg-white/10 text-[10px] font-bold flex items-center justify-center text-white shrink-0">
+                        {{ s.first_name[0] }}
+                      </div>
+                      <span class="text-xs font-bold text-white group-hover:text-teal-300 truncate">
+                        {{ s.first_name }} {{ s.last_name }}
+                      </span>
+                    </div>
+                    <span class="text-[10px] font-mono text-white/40 group-hover:text-teal-400 shrink-0">+ Check In</span>
+                  </button>
+                } @empty {
+                  <div class="py-10 text-center text-xs text-white/40">
+                    All candidates checked in!
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- TAB 3: DEFAULT RADAR / HUD TELEMETRY SUMMARY -->
+          @else {
+            <div class="flex flex-col items-center justify-center gap-3 text-center p-4 flex-1">
+              <div class="w-16 h-16 rounded-full border border-teal-500/30 flex items-center justify-center relative">
+                <div class="absolute inset-0 rounded-full border-2 border-t-teal-400 border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-teal-400"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-xs font-black uppercase text-teal-300 tracking-wider">Gate Guard Security Active</span>
+                <span class="text-[11px] text-white/50">USB HID Reader & Video Stream Synchronized</span>
+              </div>
+            </div>
+          }
+
         </div>
+
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- CENTER STAGE (6 Cols): ACTIVE VERIFICATION SPOTLIGHT & SCANNER VIEWPORT   -->
+      <!-- ========================================================================= -->
+      <div class="lg:col-span-6 flex flex-col justify-center items-center min-h-0 relative">
+        
+        <!-- SUCCESS STATE: HIGH IMPACT HOLOGRAPHIC CANDIDATE SPOTLIGHT -->
+        @if (feedbackState() === 'SUCCESS' && lastScannedStudent()) {
+          <div class="w-full max-w-xl bg-gradient-to-b from-teal-950/80 via-gray-900/90 to-gray-950/95 border-2 border-emerald-400 rounded-3xl p-6 sm:p-8 shadow-[0_0_50px_rgba(52,211,153,0.35)] flex flex-col items-center text-center gap-5 backdrop-blur-2xl animate-scale-up relative overflow-hidden">
+            
+            <!-- Neon Glow Accents -->
+            <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-20 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none"></div>
+
+            <!-- Top Verified Badge -->
+            <div class="flex items-center gap-2 px-4 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              <span class="text-xs font-black uppercase tracking-widest">PASSPORT VERIFIED • ACCESS GRANTED</span>
+            </div>
+
+            <!-- Large Candidate Portrait Frame -->
+            <div class="relative">
+              <div class="w-36 h-36 rounded-3xl overflow-hidden border-4 border-emerald-400 shadow-[0_0_35px_rgba(52,211,153,0.5)] bg-gray-800 flex items-center justify-center">
+                @if (lastScannedStudent()!.student.photo_url) {
+                  <img [src]="lastScannedStudent()!.student.photo_url" alt="Portrait" class="w-full h-full object-cover">
+                } @else {
+                  <div class="w-full h-full bg-gradient-to-br from-teal-800 to-gray-900 flex items-center justify-center font-serif font-black text-white text-4xl">
+                    {{ lastScannedStudent()!.student.first_name[0] }}{{ lastScannedStudent()!.student.last_name[0] }}
+                  </div>
+                }
+              </div>
+              <div class="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl bg-emerald-500 text-gray-950 flex items-center justify-center border-2 border-gray-900 shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+            </div>
+
+            <!-- Candidate Identity Titles -->
+            <div class="flex flex-col items-center">
+              <h2 class="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white drop-shadow-md">
+                {{ lastScannedStudent()!.student.first_name }} {{ lastScannedStudent()!.student.last_name }}
+              </h2>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="px-2.5 py-0.5 rounded-lg text-xs font-mono font-bold bg-white/10 text-teal-300 border border-white/15">
+                  {{ lastScannedStudent()!.student.enrollment_num || lastScannedStudent()!.student.id }}
+                </span>
+                <span class="text-white/40">•</span>
+                <span class="text-xs font-bold text-white/80 uppercase tracking-wider">
+                  {{ lastScannedStudent()!.student.class_name || selectedClassName() }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Detailed Telemetry Metrics -->
+            <div class="w-full grid grid-cols-3 gap-2.5 pt-2 border-t border-white/10 text-xs">
+              <div class="bg-white/5 p-3 rounded-2xl border border-white/10">
+                <span class="text-[9px] uppercase font-black text-white/50 block leading-none mb-1">Time Logged</span>
+                <span class="font-mono font-bold text-emerald-400 text-sm">{{ lastScannedStudent()!.timestamp | date:'shortTime' }}</span>
+              </div>
+              <div class="bg-white/5 p-3 rounded-2xl border border-white/10">
+                <span class="text-[9px] uppercase font-black text-white/50 block leading-none mb-1">Gate Status</span>
+                <span class="font-bold text-emerald-300 text-sm uppercase">On Time</span>
+              </div>
+              <div class="bg-white/5 p-3 rounded-2xl border border-white/10">
+                <span class="text-[9px] uppercase font-black text-white/50 block leading-none mb-1">Residence</span>
+                <span class="font-bold text-teal-300 text-xs truncate block">
+                  Day Scholar
+                </span>
+              </div>
+            </div>
+
+            <!-- Parent SMS Auto-Notification Alert Banner -->
+            @if (isGuardianSmsEnabled()) {
+              <div class="w-full p-2.5 px-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-xs text-emerald-300">
+                <div class="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  <span class="font-bold">Guardian Arrival SMS Dispatched</span>
+                </div>
+                <span class="font-mono text-[11px] opacity-80">
+                  {{ lastScannedStudent()!.student.guardian_phone || '+233 24 555 0192' }}
+                </span>
+              </div>
+            }
+
+          </div>
+        }
+
+        <!-- DUPLICATE SCAN WARNING -->
+        @else if (feedbackState() === 'DUPLICATE') {
+          <div class="w-full max-w-lg bg-gradient-to-b from-amber-950/80 to-gray-900/90 border-2 border-amber-400 rounded-3xl p-8 shadow-[0_0_50px_rgba(251,191,36,0.3)] flex flex-col items-center text-center gap-4 backdrop-blur-2xl animate-scale-up">
+            <div class="w-20 h-20 rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-amber-400">
+              <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+            </div>
+            <div class="flex flex-col">
+              <span class="px-3 py-1 rounded-full text-xs font-black uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40 inline-block self-center mb-2">
+                DUPLICATE SCAN DETECTED
+              </span>
+              <h3 class="text-2xl font-black text-white uppercase">{{ feedbackMessage() }}</h3>
+              <p class="text-xs text-white/60 mt-1">This candidate has already been checked into the campus register today.</p>
+            </div>
+          </div>
+        }
+
+        <!-- UNRECOGNIZED CARD WARNING -->
+        @else if (feedbackState() === 'NOT_FOUND') {
+          <div class="w-full max-w-lg bg-gradient-to-b from-rose-950/80 to-gray-900/90 border-2 border-rose-500 rounded-3xl p-8 shadow-[0_0_50px_rgba(244,63,94,0.3)] flex flex-col items-center text-center gap-4 backdrop-blur-2xl animate-scale-up">
+            <div class="w-20 h-20 rounded-full bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center text-rose-400">
+              <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
+            </div>
+            <div class="flex flex-col">
+              <span class="px-3 py-1 rounded-full text-xs font-black uppercase bg-rose-500/20 text-rose-300 border border-rose-500/40 inline-block self-center mb-2">
+                UNRECOGNIZED CREDENTIAL
+              </span>
+              <h3 class="text-xl font-black text-white uppercase">{{ feedbackMessage() }}</h3>
+              <p class="text-xs text-white/60 mt-1">Please verify the candidate belongs to this class or use manual PIN entry.</p>
+            </div>
+          </div>
+        }
+
+        <!-- IDLE SCANNER TARGET STAGE (CAMERA VIEWPORT & LASER TARGET) -->
+        @else {
+          <div class="w-full max-w-xl flex flex-col items-center justify-center gap-5">
+            
+            <!-- Viewfinder Card Container -->
+            <div class="relative w-full aspect-[1.4] max-h-[380px] rounded-3xl overflow-hidden bg-gradient-to-b from-gray-900/90 to-[#050b14] border-2 border-teal-500/40 p-4 shadow-[0_0_40px_rgba(20,184,166,0.2)] backdrop-blur-xl flex flex-col items-center justify-center">
+              
+              <!-- Futuristic Corner Reticle HUD Brackets -->
+              <div class="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-teal-400 pointer-events-none"></div>
+              <div class="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-teal-400 pointer-events-none"></div>
+              <div class="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-teal-400 pointer-events-none"></div>
+              <div class="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-teal-400 pointer-events-none"></div>
+
+              <!-- Animated Neon Laser Scan Beam -->
+              <div class="absolute left-8 right-8 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_#34d399] pointer-events-none animate-scanline z-20"></div>
+
+              <!-- Inner Hologram / Camera Feed -->
+              <div class="relative z-10 w-full h-full flex flex-col items-center justify-center gap-3 text-center">
+                
+                <!-- Central Target Pulse Ring -->
+                <div class="w-24 h-24 rounded-3xl bg-teal-500/10 border-2 border-dashed border-teal-400/60 flex items-center justify-center text-teal-300 animate-pulse-glow">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" x2="17" y1="8" y2="8"/><line x1="7" x2="17" y1="12" y2="12"/><line x1="7" x2="17" y1="16" y2="16"/></svg>
+                </div>
+
+                <div>
+                  <h3 class="text-xl sm:text-2xl font-black uppercase tracking-wider text-white">Present Student Credential</h3>
+                  <p class="text-xs text-white/60 mt-1 max-w-sm">
+                    Hold Student ID Card / Smart Pass badge in front of laser reader or webcam
+                  </p>
+                </div>
+
+                <!-- Hardware Listener Indicator -->
+                <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[11px] font-mono text-teal-300">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>USB Laser Scanner: READY</span>
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- Auxiliary Guidance Sub-text -->
+            <div class="flex items-center gap-4 text-xs text-white/50">
+              <span class="flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Auto-Audio Speech
+              </span>
+              <span>•</span>
+              <span class="flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Instant Parent Arrival SMS
+              </span>
+              <span>•</span>
+              <span class="flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Offline-Sync Safe
+              </span>
+            </div>
+
+          </div>
+        }
+
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- RIGHT STAGE (3 Cols): LIVE ARRIVAL STREAM & GUARDIAN SMS MONITOR          -->
+      <!-- ========================================================================= -->
+      <div class="lg:col-span-3 flex flex-col gap-4 min-h-0 overflow-y-auto custom-scrollbar pl-1">
+        
+        <!-- Live Real-Time Stream Ticker -->
+        <div class="bg-white/5 border border-white/10 rounded-3xl p-4 backdrop-blur-xl flex flex-col gap-3 flex-1 min-h-[260px]">
+          <div class="flex items-center justify-between pb-2 border-b border-white/10">
+            <span class="text-xs font-black uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              Live Arrival Stream
+            </span>
+            <span class="text-[10px] font-mono text-white/50">{{ scannedLog().length }} Scanned</span>
+          </div>
+
+          <div class="flex flex-col gap-2 overflow-y-auto custom-scrollbar flex-1 max-h-[220px] pr-1">
+            @for (item of scannedLog(); track (item.student.id || '') + item.timestamp.toString()) {
+              <div class="p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between transition-all">
+                <div class="flex items-center gap-2.5 truncate">
+                  <div class="w-8 h-8 rounded-full overflow-hidden bg-white/10 flex items-center justify-center font-bold text-xs text-white shrink-0 border border-white/20">
+                    @if (item.student.photo_url) {
+                      <img [src]="item.student.photo_url" alt="" class="w-full h-full object-cover">
+                    } @else {
+                      <span>{{ item.student.first_name[0] }}{{ item.student.last_name[0] }}</span>
+                    }
+                  </div>
+                  <div class="flex flex-col truncate">
+                    <span class="text-xs font-bold text-white truncate leading-tight">{{ item.student.first_name }} {{ item.student.last_name }}</span>
+                    <span class="text-[10px] text-teal-300 font-mono">{{ item.student.class_name || selectedClassName() }}</span>
+                  </div>
+                </div>
+
+                <div class="flex flex-col items-end shrink-0">
+                  <span class="text-[10px] font-black font-mono text-emerald-400">{{ item.timestamp | date:'shortTime' }}</span>
+                  <span class="text-[8px] font-bold uppercase text-emerald-300/80">Verified</span>
+                </div>
+              </div>
+            } @empty {
+              <div class="py-12 flex flex-col items-center justify-center text-center gap-2 text-white/40">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+                <span class="text-xs">Awaiting first scan of the day</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Guardian SMS Dispatch Monitor -->
+        <div class="bg-white/5 border border-white/10 rounded-3xl p-4 backdrop-blur-xl flex flex-col gap-3 flex-1 min-h-[220px]">
+          <div class="flex items-center justify-between pb-2 border-b border-white/10">
+            <span class="text-xs font-black uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Guardian SMS Gateway
+            </span>
+            <span class="text-[9px] font-mono px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
+              Auto-Active
+            </span>
+          </div>
+
+          <div class="flex flex-col gap-2 overflow-y-auto custom-scrollbar flex-1 max-h-[180px] pr-1">
+            @for (sms of recentSmsDispatches(); track sms.studentName + sms.time) {
+              <div class="p-2 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-xs">
+                <div class="flex flex-col truncate">
+                  <span class="font-bold text-white truncate leading-tight">{{ sms.studentName }}</span>
+                  <span class="text-[9.5px] text-white/50 font-mono">{{ sms.phone }}</span>
+                </div>
+                <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-400 shrink-0 font-mono">
+                  <span>✓ Sent</span>
+                  <span class="text-white/40">• {{ sms.time }}</span>
+                </div>
+              </div>
+            } @empty {
+              <div class="py-8 text-center text-xs text-white/40">
+                Guardian arrival notifications will appear here
+              </div>
+            }
+          </div>
+        </div>
+
       </div>
 
     </div>
 
-    <!-- Kiosk Bottom Status Ticker -->
-    <div class="border-t border-white/10 pt-3 flex items-center justify-between text-xs text-white/60">
-      <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span>Hardware Scanner / Web Audio Synthesis Ready</span>
+    <!-- 3. KIOSK BOTTOM COMMAND BAR -->
+    <div class="relative z-10 pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs text-white/60">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="font-bold text-white/80">Biometric & Barcode Subsystem Online</span>
+        </div>
+        <span class="hidden sm:inline text-white/30">•</span>
+        <span class="hidden sm:inline font-mono text-white/50">2026/2027 Academic Session</span>
       </div>
-      <span class="font-mono text-white/40">SchoolLinx Gate Kiosk v2.4</span>
+
+      <div class="flex items-center gap-3 font-mono text-[11px] text-white/40">
+        <span>Press <kbd class="bg-white/10 px-1 py-0.5 rounded text-white/70">ESC</kbd> to exit kiosk</span>
+        <span>•</span>
+        <span>SchoolLinx Enterprise Turnstile v3.0</span>
+      </div>
     </div>
 
   </div>

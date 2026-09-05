@@ -65,6 +65,17 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
   isVoiceFeedbackEnabled = signal<boolean>(true);
   isGuardianSmsEnabled = signal<boolean>(true);
   recentSmsDispatches = signal<{ studentName: string; time: string; phone: string }[]>([]);
+  kioskOperationMode = signal<'ARRIVAL' | 'DEPARTURE'>('ARRIVAL');
+  kioskActiveTab = signal<'SCANNER' | 'KEYPAD' | 'UNSCANNED'>('SCANNER');
+  pinKeypad = signal<string>('');
+  kioskSearchQuery = signal<string>('');
+  isNativeFullscreen = signal<boolean>(false);
+  terminalName = signal<string>('GATE-NORTH-01');
+
+  // Live Digital Clock
+  currentTime = signal<string>('');
+  currentDate = signal<string>('');
+  private clockTimer: any = null;
 
   // Scanned items stream
   scannedLog = signal<ScannedAttendanceItem[]>([]);
@@ -75,9 +86,55 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
   toggleKioskMode() {
     const next = !this.isKioskMode();
     this.isKioskMode.set(next);
-    if (next && !this.isCameraActive()) {
-      this.startCamera();
+    if (next) {
+      if (!this.isCameraActive()) {
+        this.startCamera();
+      }
     }
+  }
+
+  toggleNativeFullscreen() {
+    if (typeof document === 'undefined') return;
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => {
+        this.isNativeFullscreen.set(true);
+      }).catch(() => {});
+    } else {
+      document.exitFullscreen().then(() => {
+        this.isNativeFullscreen.set(false);
+      }).catch(() => {});
+    }
+  }
+
+  toggleOperationMode() {
+    const next = this.kioskOperationMode() === 'ARRIVAL' ? 'DEPARTURE' : 'ARRIVAL';
+    this.kioskOperationMode.set(next);
+    this.speakAnnouncement(next === 'ARRIVAL' ? 'Switched to Morning Arrival Mode' : 'Switched to Afternoon Departure Mode');
+  }
+
+  setKioskTab(tab: 'SCANNER' | 'KEYPAD' | 'UNSCANNED') {
+    this.kioskActiveTab.set(tab);
+  }
+
+  pressKey(digit: string) {
+    if (this.pinKeypad().length < 16) {
+      this.pinKeypad.update(v => v + digit);
+    }
+  }
+
+  deleteKey() {
+    this.pinKeypad.update(v => v.slice(0, -1));
+  }
+
+  clearKeypad() {
+    this.pinKeypad.set('');
+  }
+
+  submitKeypad() {
+    const pin = this.pinKeypad().trim();
+    if (!pin) return;
+    this.processScannedCode(pin);
+    this.pinKeypad.set('');
   }
 
   toggleVoiceFeedback() {
@@ -104,7 +161,7 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
   // Selected Class details
   selectedClassName = computed(() => {
     const cls = this.classes().find(c => c.id === this.selectedClassId());
-    return cls ? cls.name : 'All Enrolled Classes';
+    return cls ? cls.name : 'All Cohorts & Classes';
   });
 
   // KPI calculations
@@ -117,14 +174,38 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
     return Math.round((this.checkedInCount() / total) * 100);
   });
 
+  onTimeCount = computed(() => {
+    return this.scannedLog().filter(item => item.status === 'Present').length;
+  });
+
+  tardyCount = computed(() => {
+    return this.scannedLog().filter(item => item.status === 'Tardy').length;
+  });
+
+  dayScholarCount = computed(() => {
+    return this.scannedLog().filter(item => (item.student as any).placed_residence_type !== 'Boarding').length;
+  });
+
+  boarderCount = computed(() => {
+    return this.scannedLog().filter(item => (item.student as any).placed_residence_type === 'Boarding').length;
+  });
+
   // Remaining absent students list
   unscannedStudents = computed(() => {
     const scannedIds = new Set(this.scannedLog().map(item => item.student.id));
-    return this.students().filter(s => !scannedIds.has(s.id));
+    const query = this.kioskSearchQuery().toLowerCase().trim();
+    return this.students().filter(s => {
+      if (scannedIds.has(s.id)) return false;
+      if (!query) return true;
+      const fullName = `${s.first_name} ${s.last_name}`.toLowerCase();
+      const idCode = (s.enrollment_num || s.id || '').toLowerCase();
+      return fullName.includes(query) || idCode.includes(query);
+    });
   });
 
   ngOnInit(): void {
     this.initAudio();
+    this.startClock();
     this.loadClasses();
     this.setupHardwareScannerListener();
     this.discoverCameras();
@@ -132,7 +213,25 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopCamera();
+    this.stopClock();
     this.removeHardwareScannerListener();
+  }
+
+  private startClock() {
+    const update = () => {
+      const now = new Date();
+      this.currentTime.set(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      this.currentDate.set(now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }));
+    };
+    update();
+    this.clockTimer = setInterval(update, 1000);
+  }
+
+  private stopClock() {
+    if (this.clockTimer) {
+      clearInterval(this.clockTimer);
+      this.clockTimer = null;
+    }
   }
 
   private initAudio() {
@@ -309,6 +408,12 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
   private handleKeyDown = (event: KeyboardEvent) => {
     const activeEl = document.activeElement;
     if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA') && activeEl !== this.barcodeInput?.nativeElement) {
+      return;
+    }
+
+    if (event.key === 'Escape' && this.isKioskMode()) {
+      event.preventDefault();
+      this.toggleKioskMode();
       return;
     }
 

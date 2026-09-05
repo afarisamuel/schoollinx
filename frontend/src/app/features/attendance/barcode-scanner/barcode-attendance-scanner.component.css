@@ -4,7 +4,7 @@
     opacity: 0.8;
   }
   50% {
-    top: 98%;
+    top: 96%;
     opacity: 1;
   }
   100% {
@@ -14,7 +14,33 @@
 }
 
 .animate-scanline {
-  animation: scanlineMove 2s ease-in-out infinite;
+  animation: scanlineMove 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 25px rgba(20, 184, 166, 0.25), inset 0 0 15px rgba(20, 184, 166, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 45px rgba(20, 184, 166, 0.5), inset 0 0 25px rgba(20, 184, 166, 0.3);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes radarSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-radar {
+  animation: radarSpin 8s linear infinite;
 }
 
 @keyframes fadeIn {
@@ -32,8 +58,24 @@
   animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+@keyframes scaleUp {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-up {
+  animation: scaleUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* Ensure html5-qrcode video is fully visible, high contrast, and not obscured */
-:host ::ng-deep #qr-reader-container {
+:host ::ng-deep #qr-reader-container,
+:host ::ng-deep #kiosk-qr-reader-container {
   width: 100% !important;
   min-height: 280px !important;
   border: none !important;
@@ -44,26 +86,30 @@
   justify-content: center !important;
 }
 
-:host ::ng-deep #qr-reader-container video {
+:host ::ng-deep #qr-reader-container video,
+:host ::ng-deep #kiosk-qr-reader-container video {
   width: 100% !important;
   height: 100% !important;
   min-height: 280px !important;
-  max-height: 380px !important;
+  max-height: 420px !important;
   object-fit: cover !important;
-  border-radius: 1rem !important;
+  border-radius: 1.5rem !important;
   display: block !important;
-  background: #000 !important;
+  background: #030712 !important;
 }
 
-:host ::ng-deep #qr-reader-container canvas {
+:host ::ng-deep #qr-reader-container canvas,
+:host ::ng-deep #kiosk-qr-reader-container canvas {
   display: none !important;
 }
 
-:host ::ng-deep #qr-reader-container img {
+:host ::ng-deep #qr-reader-container img,
+:host ::ng-deep #kiosk-qr-reader-container img {
   display: none !important;
 }
 
-:host ::ng-deep #qr-reader-container__scan_region {
+:host ::ng-deep #qr-reader-container__scan_region,
+:host ::ng-deep #kiosk-qr-reader-container__scan_region {
   min-height: 260px !important;
 }
 
