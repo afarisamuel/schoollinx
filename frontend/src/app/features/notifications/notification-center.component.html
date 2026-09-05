@@ -1,289 +1,384 @@
-<div class="max-w-[1400px] mx-auto space-y-4 sm:space-y-6 animate-fade-in">
-
-  <!-- ── Ambient Glow ──────────────────────────────────────── -->
-  <div class="absolute -left-20 -top-10 w-72 h-72 bg-blue-500/10 rounded-full blur-[120px] pointer-events-none"></div>
-
-  <!-- ── Top Header ───────────────────────────────────────── -->
-  <div class="flex flex-col md:flex-row items-start md:items-end justify-between mb-4 sm:mb-6 gap-4 relative z-10">
-    <div>
-      <div class="flex items-center gap-3 mb-2">
-        <div class="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
-            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-          </svg>
+<div class="space-y-6 sm:space-y-8 animate-fade-in pb-16">
+    <!-- Executive Subdomain Ribbon -->
+    <div class="flex items-center justify-between gap-4 bg-bg-secondary/80 backdrop-blur-md border border-border-primary rounded-2xl p-2.5 px-4 shadow-sm overflow-x-auto custom-scrollbar">
+        <div class="flex items-center gap-2 shrink-0">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
+            <span class="text-xs font-black uppercase tracking-wider text-text-muted">Command & Dispatch</span>
         </div>
-        <nav class="text-xs text-text-muted font-medium flex items-center gap-1.5">
-          <a routerLink="/dashboard" class="hover:text-text-primary transition-colors">Dashboard</a>
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
-          <span class="text-text-primary">Notifications</span>
-        </nav>
-      </div>
-
-      <div class="flex items-center gap-3">
-        <h1 class="text-3xl md:text-5xl font-black tracking-tighter text-text-primary">
-          Notification <span class="text-blue-400">Center</span>
-        </h1>
-        @if (unreadCount() > 0) {
-          <span class="px-3 py-1 rounded-full bg-blue-500 text-white font-black text-xs shadow-md shadow-blue-500/30 animate-pulse">
-            {{ unreadCount() }} Unread
-          </span>
-        }
-      </div>
-      <p class="text-sm text-text-muted mt-2 font-medium">
-        Institutional alerts, student payment records, grade updates, and campus operations.
-      </p>
+        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <a routerLink="/notifications" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm transition-all flex items-center gap-1.5">
+                <i class="fas fa-bell text-[11px]"></i> Notification Hub
+            </a>
+            <a routerLink="/dashboard" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all flex items-center gap-1.5">
+                <i class="fas fa-chart-line text-[11px]"></i> Institutional Dashboard
+            </a>
+            <a routerLink="/communications/messages" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all flex items-center gap-1.5">
+                <i class="fas fa-comments text-[11px]"></i> Messaging Center
+            </a>
+            <a routerLink="/fiscal" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all flex items-center gap-1.5">
+                <i class="fas fa-receipt text-[11px]"></i> Financial Ledger
+            </a>
+            <a routerLink="/biometrics" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all flex items-center gap-1.5">
+                <i class="fas fa-fingerprint text-[11px]"></i> Biometrics Hub
+            </a>
+        </div>
     </div>
 
-    <!-- Live Connection Status & Global Actions -->
-    <div class="flex items-center flex-wrap gap-3">
-      <div class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-border-primary bg-bg-secondary/60 text-xs font-bold">
-        <span class="w-2 h-2 rounded-full"
-              [class.bg-emerald-400]="isConnected()"
-              [class.animate-ping]="isConnected()"
-              [class.bg-amber-400]="!isConnected()"></span>
-        <span [class.text-emerald-400]="isConnected()" [class.text-amber-400]="!isConnected()">
-          {{ isConnected() ? 'WebSocket Live' : 'Reconnecting...' }}
-        </span>
-      </div>
+    <!-- Command Hero Header -->
+    <div class="relative bg-gradient-to-br from-bg-secondary via-bg-secondary/90 to-bg-tertiary/40 border border-border-primary rounded-3xl p-6 sm:p-8 shadow-xl overflow-hidden">
+        <!-- Ambient Glow Orbs -->
+        <div class="absolute -top-16 -right-16 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-16 -left-16 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      @if (unreadCount() > 0) {
-        <button
-          (click)="markAllAsRead()"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 transition-all cursor-pointer"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          Mark all as read
-        </button>
-      }
+        <div class="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div class="space-y-2">
+                <div class="flex items-center gap-2.5 flex-wrap">
+                    <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 flex items-center gap-1.5">
+                        <i class="fas fa-tower-broadcast text-[9px]"></i> Real-Time Signal Dispatcher
+                    </span>
+                    
+                    <!-- WebSocket Live Connection Badge -->
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-wider"
+                         [ngClass]="isConnected() ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'">
+                        <span class="w-1.5 h-1.5 rounded-full"
+                              [class.bg-emerald-500]="isConnected()"
+                              [class.animate-pulse]="isConnected()"
+                              [class.bg-amber-500]="!isConnected()"></span>
+                        <span>{{ isConnected() ? 'WebSocket Connected' : 'Reconnecting Feed...' }}</span>
+                    </div>
+                </div>
 
-      @if (notifications().length > 0) {
-        <button
-          (click)="clearAll()"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-all cursor-pointer"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-          Clear feed
-        </button>
-      }
-    </div>
-  </div>
-
-  <!-- ── Metrics Bar ──────────────────────────────────────── -->
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8 relative z-10">
-    <div (click)="activeFilter.set('ALL')"
-         class="p-4 rounded-2xl border transition-all cursor-pointer group"
-         [ngClass]="activeFilter() === 'ALL' ? 'bg-blue-500/10 border-blue-500/40' : 'bg-bg-secondary/40 border-border-primary/60 hover:bg-bg-tertiary/40'">
-      <span class="text-[10px] font-black uppercase tracking-widest text-text-muted block mb-1">Total Received</span>
-      <div class="flex items-baseline justify-between">
-        <span class="text-2xl font-black text-text-primary">{{ notifications().length }}</span>
-        <span class="text-xs text-text-muted font-bold">All</span>
-      </div>
-    </div>
-
-    <div (click)="activeFilter.set('UNREAD')"
-         class="p-4 rounded-2xl border transition-all cursor-pointer group"
-         [ngClass]="activeFilter() === 'UNREAD' ? 'bg-blue-500/15 border-blue-500/40' : 'bg-bg-secondary/40 border-border-primary/60 hover:bg-bg-tertiary/40'">
-      <span class="text-[10px] font-black uppercase tracking-widest text-blue-400 block mb-1">Unread Alerts</span>
-      <div class="flex items-baseline justify-between">
-        <span class="text-2xl font-black text-blue-400">{{ unreadCount() }}</span>
-        <span class="text-xs text-blue-400 font-bold">Pending</span>
-      </div>
-    </div>
-
-    <div (click)="activeFilter.set('PAYMENT')"
-         class="p-4 rounded-2xl border transition-all cursor-pointer group"
-         [ngClass]="activeFilter() === 'PAYMENT' ? 'bg-emerald-500/10 border-emerald-500/40' : 'bg-bg-secondary/40 border-border-primary/60 hover:bg-bg-tertiary/40'">
-      <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400 block mb-1">Fee Payments</span>
-      <div class="flex items-baseline justify-between">
-        <span class="text-2xl font-black text-emerald-400">{{ paymentCount() }}</span>
-        <span class="text-xs text-emerald-400 font-bold">Billing</span>
-      </div>
-    </div>
-
-    <div (click)="activeFilter.set('GRADE')"
-         class="p-4 rounded-2xl border transition-all cursor-pointer group"
-         [ngClass]="activeFilter() === 'GRADE' ? 'bg-blue-500/10 border-blue-500/40' : 'bg-bg-secondary/40 border-border-primary/60 hover:bg-bg-tertiary/40'">
-      <span class="text-[10px] font-black uppercase tracking-widest text-blue-400 block mb-1">Academic & Grades</span>
-      <div class="flex items-baseline justify-between">
-        <span class="text-2xl font-black text-blue-400">{{ gradeCount() }}</span>
-        <span class="text-xs text-blue-400 font-bold">Assessments</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Controls Bar: Filter Pills & Search ────────────────── -->
-  <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 relative z-10">
-    <!-- Filter Pills -->
-    <div class="flex items-center flex-wrap gap-2 w-full sm:w-auto">
-      <button
-        (click)="activeFilter.set('ALL')"
-        class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-        [ngClass]="activeFilter() === 'ALL' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30' : 'bg-bg-secondary/60 text-text-secondary hover:text-text-primary border border-border-primary'">
-        All ({{ notifications().length }})
-      </button>
-
-      <button
-        (click)="activeFilter.set('UNREAD')"
-        class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-        [ngClass]="activeFilter() === 'UNREAD' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30' : 'bg-bg-secondary/60 text-text-secondary hover:text-text-primary border border-border-primary'">
-        Unread ({{ unreadCount() }})
-      </button>
-
-      <button
-        (click)="activeFilter.set('PAYMENT')"
-        class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
-        [ngClass]="activeFilter() === 'PAYMENT' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/30' : 'bg-bg-secondary/60 text-text-secondary hover:text-text-primary border border-border-primary'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
-        Payments ({{ paymentCount() }})
-      </button>
-
-      <button
-        (click)="activeFilter.set('GRADE')"
-        class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
-        [ngClass]="activeFilter() === 'GRADE' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30' : 'bg-bg-secondary/60 text-text-secondary hover:text-text-primary border border-border-primary'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
-        Academic ({{ gradeCount() }})
-      </button>
-
-      <button
-        (click)="activeFilter.set('ATTENDANCE')"
-        class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
-        [ngClass]="activeFilter() === 'ATTENDANCE' ? 'bg-amber-600 text-white shadow-md shadow-amber-500/30' : 'bg-bg-secondary/60 text-text-secondary hover:text-text-primary border border-border-primary'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1"/><path d="m9 14 2 2 4-4"/></svg>
-        Attendance ({{ attendanceCount() }})
-      </button>
-
-      <button
-        (click)="activeFilter.set('SYSTEM')"
-        class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
-        [ngClass]="activeFilter() === 'SYSTEM' ? 'bg-slate-700 text-white shadow-md' : 'bg-bg-secondary/60 text-text-secondary hover:text-text-primary border border-border-primary'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-        System ({{ systemCount() }})
-      </button>
-    </div>
-
-    <!-- Search Input -->
-    <div class="relative w-full sm:w-72">
-      <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-      <input
-        type="text"
-        [ngModel]="searchQuery()"
-        (ngModelChange)="searchQuery.set($event)"
-        placeholder="Filter by keyword..."
-        class="w-full bg-bg-secondary/80 border border-border-primary rounded-xl pl-9 pr-4 py-2 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-      />
-    </div>
-  </div>
-
-  <!-- ── Notification Feed List ───────────────────────────── -->
-  <div class="space-y-3 relative z-10">
-    @for (n of filteredNotifications(); track n.id) {
-      <div
-        (click)="markAsRead(n.id)"
-        class="p-5 rounded-2xl border transition-all duration-200 cursor-pointer relative overflow-hidden group flex flex-col md:flex-row md:items-center justify-between gap-4"
-        [ngClass]="!n.read ? 'bg-bg-secondary/90 border-blue-500/40 shadow-lg shadow-blue-500/5' : 'bg-bg-secondary/40 border-border-primary/50 hover:bg-bg-tertiary/40'"
-      >
-        <!-- Left color indicator -->
-        <div class="absolute left-0 top-0 bottom-0 w-1.5"
-             [style.background-color]="getColor(n.type)"></div>
-
-        <div class="flex items-start gap-4 flex-1 pl-2">
-          <!-- Icon avatar -->
-          <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-inner"
-               [style.background-color]="getColor(n.type) + '20'"
-               [style.border]="'1px solid ' + getColor(n.type) + '40'"
-               [style.color]="getColor(n.type)">
-            @switch (n.type) {
-              @case ('PAYMENT') {
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
-              }
-              @case ('GRADE') {
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
-              }
-              @case ('ATTENDANCE') {
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1"/><path d="m9 14 2 2 4-4"/></svg>
-              }
-              @case ('HOMEWORK') {
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-              }
-              @case ('MESSAGE') {
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
-              }
-              @default {
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-              }
-            }
-          </div>
-
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 flex-wrap mb-1">
-              <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md"
-                    [style.color]="getColor(n.type)"
-                    [style.background-color]="getColor(n.type) + '15'">
-                {{ getTypeLabel(n.type) }}
-              </span>
-
-              @if (!n.read) {
-                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                <span class="text-[10px] font-black text-blue-400">NEW</span>
-              }
-
-              <span class="text-[11px] text-text-muted font-medium ml-auto">
-                {{ n.created_at | date:'medium' }}
-              </span>
+                <div class="flex items-center gap-3">
+                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-text-primary tracking-tight">
+                        Notification <span class="bg-gradient-to-r from-blue-600 via-indigo-500 to-emerald-500 dark:from-blue-400 dark:via-indigo-300 dark:to-emerald-400 bg-clip-text text-transparent">Center</span>
+                    </h1>
+                    @if (unreadCount() > 0) {
+                        <span class="px-3 py-0.5 rounded-full bg-blue-600 text-white font-black text-xs shadow-md shadow-blue-500/30 animate-pulse">
+                            {{ unreadCount() }} Unread
+                        </span>
+                    }
+                </div>
+                <p class="text-xs sm:text-sm text-text-muted max-w-2xl leading-relaxed">
+                    Stream real-time institutional alerts, fee settlement logs, grade submissions, biometric attendance dispatches, and emergency system advisories.
+                </p>
             </div>
 
-            <h3 class="text-sm font-black text-text-primary tracking-tight group-hover:text-blue-400 transition-colors">
-              {{ n.title }}
-            </h3>
+            <!-- Action Controls Cluster -->
+            <div class="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
+                <button (click)="refreshFeed()" class="px-4 py-2.5 rounded-2xl bg-bg-tertiary hover:bg-bg-tertiary/80 text-text-primary border border-border-primary text-xs font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer shadow-sm">
+                    <i class="fas fa-rotate text-blue-500"></i>
+                    <span>Refresh</span>
+                </button>
 
-            <p class="text-xs text-text-secondary mt-1 leading-relaxed">
-              {{ n.message }}
-            </p>
-          </div>
+                @if (unreadCount() > 0) {
+                    <button (click)="markAllAsRead()" class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black shadow-lg shadow-blue-500/25 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer">
+                        <i class="fas fa-check-double"></i>
+                        <span>Mark All Read</span>
+                    </button>
+                }
+
+                @if (notifications().length > 0) {
+                    <button (click)="clearAll()" class="px-4 py-2.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-xs font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer">
+                        <i class="fas fa-trash-can"></i>
+                        <span>Clear Feed</span>
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 Real-Time Telemetry KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        <!-- KPI 1: Total Received -->
+        <div (click)="activeFilter.set('ALL')" class="relative bg-bg-secondary border border-border-primary hover:border-blue-500/30 rounded-3xl p-5 sm:p-6 transition-all shadow-md group cursor-pointer overflow-hidden" [class.ring-2]="activeFilter() === 'ALL'" [class.ring-blue-500]="activeFilter() === 'ALL'">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">Total Dispatches</span>
+                <div class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                    <i class="fas fa-inbox"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <h3 class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight">
+                    {{ notifications().length }}
+                </h3>
+                <p class="text-xs text-text-muted mt-1">Across all communication channels</p>
+            </div>
         </div>
 
-        <!-- Right Action Controls -->
-        <div class="flex items-center gap-2 shrink-0 md:pl-4 self-end md:self-center">
-          @if (getNotificationActionRoute(n); as route) {
-            <a
-              [routerLink]="route"
-              (click)="$event.stopPropagation()"
-              class="px-3.5 py-1.5 rounded-xl bg-bg-tertiary hover:bg-blue-600 text-text-secondary hover:text-white text-xs font-bold border border-border-primary hover:border-transparent transition-all cursor-pointer"
-            >
-              {{ getNotificationActionLabel(n) }}
-            </a>
-          }
+        <!-- KPI 2: Unread Alerts -->
+        <div (click)="activeFilter.set('UNREAD')" class="relative bg-bg-secondary border border-border-primary hover:border-blue-500/30 rounded-3xl p-5 sm:p-6 transition-all shadow-md group cursor-pointer overflow-hidden" [class.ring-2]="activeFilter() === 'UNREAD'" [class.ring-blue-500]="activeFilter() === 'UNREAD'">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-wider text-blue-500">Unread Alerts</span>
+                <div class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                    <i class="fas fa-bell"></i>
+                </div>
+            </div>
+            <div class="mt-3 flex items-baseline justify-between">
+                <div>
+                    <h3 class="text-2xl sm:text-3xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
+                        {{ unreadCount() }}
+                    </h3>
+                    <p class="text-xs text-text-muted mt-1">Pending user review</p>
+                </div>
+                @if (unreadCount() > 0) {
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-blue-500 text-white animate-pulse">
+                        Action Required
+                    </span>
+                }
+            </div>
+        </div>
 
-          @if (!n.read) {
-            <button
-              (click)="markAsRead(n.id, $event)"
-              class="p-2 rounded-xl text-text-muted hover:text-blue-400 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/20 transition-all cursor-pointer"
-              title="Mark as read"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        <!-- KPI 3: Fee Payments -->
+        <div (click)="activeFilter.set('PAYMENT')" class="relative bg-bg-secondary border border-border-primary hover:border-emerald-500/30 rounded-3xl p-5 sm:p-6 transition-all shadow-md group cursor-pointer overflow-hidden" [class.ring-2]="activeFilter() === 'PAYMENT'" [class.ring-emerald-500]="activeFilter() === 'PAYMENT'">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-500">Fee Payments</span>
+                <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                    <i class="fas fa-receipt"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <h3 class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
+                    {{ paymentCount() }}
+                </h3>
+                <p class="text-xs text-text-muted mt-1">Tuition & billing transactions</p>
+            </div>
+        </div>
+
+        <!-- KPI 4: Academic & Attendance -->
+        <div (click)="activeFilter.set('GRADE')" class="relative bg-bg-secondary border border-border-primary hover:border-indigo-500/30 rounded-3xl p-5 sm:p-6 transition-all shadow-md group cursor-pointer overflow-hidden" [class.ring-2]="activeFilter() === 'GRADE'" [class.ring-indigo-500]="activeFilter() === 'GRADE'">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-wider text-indigo-500">Academic & Attendance</span>
+                <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <h3 class="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight">
+                    {{ gradeCount() + attendanceCount() + homeworkCount() }}
+                </h3>
+                <p class="text-xs text-text-muted mt-1">Grades, homework & biometric logs</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Pills & Search Input Bar -->
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-4 sm:p-5 shadow-lg flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        <!-- Filter Chips -->
+        <div class="flex items-center flex-wrap gap-2">
+            <button (click)="activeFilter.set('ALL')" 
+                    [class.bg-blue-600]="activeFilter() === 'ALL'" 
+                    [class.text-white]="activeFilter() === 'ALL'" 
+                    [class.shadow-md]="activeFilter() === 'ALL'"
+                    [class.bg-bg-tertiary]="activeFilter() !== 'ALL'" 
+                    [class.text-text-muted]="activeFilter() !== 'ALL'" 
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                <i class="fas fa-layer-group text-[10px]"></i>
+                <span>All</span>
+                <span class="px-1.5 py-0.5 rounded-md text-[10px]" [ngClass]="activeFilter() === 'ALL' ? 'bg-white/20 text-white' : 'bg-bg-secondary text-text-muted'">
+                    {{ notifications().length }}
+                </span>
             </button>
-          }
+
+            <button (click)="activeFilter.set('UNREAD')" 
+                    [class.bg-blue-600]="activeFilter() === 'UNREAD'" 
+                    [class.text-white]="activeFilter() === 'UNREAD'" 
+                    [class.shadow-md]="activeFilter() === 'UNREAD'"
+                    [class.bg-bg-tertiary]="activeFilter() !== 'UNREAD'" 
+                    [class.text-text-muted]="activeFilter() !== 'UNREAD'" 
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                <i class="fas fa-envelope text-[10px]"></i>
+                <span>Unread</span>
+                <span class="px-1.5 py-0.5 rounded-md text-[10px]" [ngClass]="activeFilter() === 'UNREAD' ? 'bg-white/20 text-white' : 'bg-bg-secondary text-text-muted'">
+                    {{ unreadCount() }}
+                </span>
+            </button>
+
+            <button (click)="activeFilter.set('PAYMENT')" 
+                    [class.bg-emerald-600]="activeFilter() === 'PAYMENT'" 
+                    [class.text-white]="activeFilter() === 'PAYMENT'" 
+                    [class.shadow-md]="activeFilter() === 'PAYMENT'"
+                    [class.bg-bg-tertiary]="activeFilter() !== 'PAYMENT'" 
+                    [class.text-text-muted]="activeFilter() !== 'PAYMENT'" 
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                <i class="fas fa-receipt text-[10px]"></i>
+                <span>Payments</span>
+                <span class="px-1.5 py-0.5 rounded-md text-[10px]" [ngClass]="activeFilter() === 'PAYMENT' ? 'bg-white/20 text-white' : 'bg-bg-secondary text-text-muted'">
+                    {{ paymentCount() }}
+                </span>
+            </button>
+
+            <button (click)="activeFilter.set('GRADE')" 
+                    [class.bg-indigo-600]="activeFilter() === 'GRADE'" 
+                    [class.text-white]="activeFilter() === 'GRADE'" 
+                    [class.shadow-md]="activeFilter() === 'GRADE'"
+                    [class.bg-bg-tertiary]="activeFilter() !== 'GRADE'" 
+                    [class.text-text-muted]="activeFilter() !== 'GRADE'" 
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                <i class="fas fa-graduation-cap text-[10px]"></i>
+                <span>Academics</span>
+                <span class="px-1.5 py-0.5 rounded-md text-[10px]" [ngClass]="activeFilter() === 'GRADE' ? 'bg-white/20 text-white' : 'bg-bg-secondary text-text-muted'">
+                    {{ gradeCount() }}
+                </span>
+            </button>
+
+            <button (click)="activeFilter.set('ATTENDANCE')" 
+                    [class.bg-amber-600]="activeFilter() === 'ATTENDANCE'" 
+                    [class.text-white]="activeFilter() === 'ATTENDANCE'" 
+                    [class.shadow-md]="activeFilter() === 'ATTENDANCE'"
+                    [class.bg-bg-tertiary]="activeFilter() !== 'ATTENDANCE'" 
+                    [class.text-text-muted]="activeFilter() !== 'ATTENDANCE'" 
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                <i class="fas fa-fingerprint text-[10px]"></i>
+                <span>Attendance</span>
+                <span class="px-1.5 py-0.5 rounded-md text-[10px]" [ngClass]="activeFilter() === 'ATTENDANCE' ? 'bg-white/20 text-white' : 'bg-bg-secondary text-text-muted'">
+                    {{ attendanceCount() }}
+                </span>
+            </button>
+
+            <button (click)="activeFilter.set('HOMEWORK')" 
+                    [class.bg-purple-600]="activeFilter() === 'HOMEWORK'" 
+                    [class.text-white]="activeFilter() === 'HOMEWORK'" 
+                    [class.shadow-md]="activeFilter() === 'HOMEWORK'"
+                    [class.bg-bg-tertiary]="activeFilter() !== 'HOMEWORK'" 
+                    [class.text-text-muted]="activeFilter() !== 'HOMEWORK'" 
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                <i class="fas fa-book-open text-[10px]"></i>
+                <span>Homework</span>
+                <span class="px-1.5 py-0.5 rounded-md text-[10px]" [ngClass]="activeFilter() === 'HOMEWORK' ? 'bg-white/20 text-white' : 'bg-bg-secondary text-text-muted'">
+                    {{ homeworkCount() }}
+                </span>
+            </button>
+
+            <button (click)="activeFilter.set('MESSAGE')" 
+                    [class.bg-blue-600]="activeFilter() === 'MESSAGE'" 
+                    [class.text-white]="activeFilter() === 'MESSAGE'" 
+                    [class.shadow-md]="activeFilter() === 'MESSAGE'"
+                    [class.bg-bg-tertiary]="activeFilter() !== 'MESSAGE'" 
+                    [class.text-text-muted]="activeFilter() !== 'MESSAGE'" 
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                <i class="fas fa-comments text-[10px]"></i>
+                <span>Messages</span>
+                <span class="px-1.5 py-0.5 rounded-md text-[10px]" [ngClass]="activeFilter() === 'MESSAGE' ? 'bg-white/20 text-white' : 'bg-bg-secondary text-text-muted'">
+                    {{ messageCount() }}
+                </span>
+            </button>
+
+            <button (click)="activeFilter.set('SYSTEM')" 
+                    [class.bg-cyan-600]="activeFilter() === 'SYSTEM'" 
+                    [class.text-white]="activeFilter() === 'SYSTEM'" 
+                    [class.shadow-md]="activeFilter() === 'SYSTEM'"
+                    [class.bg-bg-tertiary]="activeFilter() !== 'SYSTEM'" 
+                    [class.text-text-muted]="activeFilter() !== 'SYSTEM'" 
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                <i class="fas fa-bell text-[10px]"></i>
+                <span>System</span>
+                <span class="px-1.5 py-0.5 rounded-md text-[10px]" [ngClass]="activeFilter() === 'SYSTEM' ? 'bg-white/20 text-white' : 'bg-bg-secondary text-text-muted'">
+                    {{ systemCount() }}
+                </span>
+            </button>
         </div>
-      </div>
-    } @empty {
-      <!-- ── Empty State ───────────────────────────────────── -->
-      <div class="flex flex-col items-center justify-center py-24 px-6 text-center bg-bg-secondary/30 border border-border-primary/50 rounded-3xl backdrop-blur-xl">
-        <div class="w-20 h-20 rounded-3xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4 shadow-xl shadow-blue-500/10">
-          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+
+        <!-- Search Input -->
+        <div class="relative min-w-[220px]">
+            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
+            <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" placeholder="Filter by keyword..." class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner">
+            @if (searchQuery()) {
+                <button (click)="searchQuery.set('')" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary text-xs">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+            }
         </div>
-        <h3 class="text-lg font-black text-text-primary">All Caught Up!</h3>
-        <p class="text-xs text-text-muted font-medium max-w-sm mt-1 mb-6 leading-relaxed">
-          No notifications match your current filter criteria. Real-time updates will automatically appear here as student activities occur.
-        </p>
-        <button
-          (click)="activeFilter.set('ALL'); searchQuery.set('')"
-          class="px-5 py-2.5 rounded-xl bg-bg-tertiary hover:bg-bg-secondary text-text-secondary hover:text-text-primary text-xs font-bold border border-border-primary transition-all cursor-pointer"
-        >
-          Reset Filters
-        </button>
-      </div>
-    }
-  </div>
+    </div>
+
+    <!-- Notification Feed Stream -->
+    <div class="space-y-3.5">
+        @for (n of filteredNotifications(); track n.id) {
+            <div (click)="markAsRead(n.id)" 
+                 class="group relative bg-bg-secondary hover:bg-bg-tertiary/60 border rounded-3xl p-5 sm:p-6 transition-all duration-200 cursor-pointer shadow-md overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-5"
+                 [ngClass]="!n.read ? 'border-blue-500/40 bg-gradient-to-r from-blue-500/5 via-bg-secondary to-bg-secondary shadow-blue-500/5' : 'border-border-primary hover:border-blue-500/20'">
+                
+                <!-- Left Neon Accent Strip for Unread -->
+                @if (!n.read) {
+                    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-blue-500 to-indigo-500"></div>
+                }
+
+                <div class="flex items-start gap-4 flex-1 min-w-0">
+                    <!-- Icon Avatar Box -->
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-lg shrink-0 shadow-inner group-hover:scale-105 transition-transform"
+                         [ngClass]="[getColorClass(n.type).bg, getColorClass(n.type).text, getColorClass(n.type).border, 'border']">
+                        <i [class]="getIconClass(n.type)"></i>
+                    </div>
+
+                    <div class="space-y-1.5 flex-1 min-w-0">
+                        <div class="flex items-center gap-2.5 flex-wrap">
+                            <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border"
+                                  [ngClass]="[getColorClass(n.type).bg, getColorClass(n.type).text, getColorClass(n.type).border]">
+                                {{ getTypeLabel(n.type) }}
+                            </span>
+
+                            @if (!n.read) {
+                                <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-blue-500 text-white flex items-center gap-1 shadow-sm">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> NEW
+                                </span>
+                            }
+
+                            <span class="text-xs text-text-muted font-mono flex items-center gap-1 ml-auto">
+                                <i class="far fa-clock text-[10px]"></i>
+                                {{ n.created_at | date:'MMM d, y, h:mm a' }}
+                            </span>
+                        </div>
+
+                        <h3 class="text-sm sm:text-base font-black text-text-primary tracking-tight group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-colors">
+                            {{ n.title }}
+                        </h3>
+
+                        <p class="text-xs sm:text-sm text-text-secondary leading-relaxed">
+                            {{ n.message }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Right Action Cluster -->
+                <div class="flex items-center gap-2.5 shrink-0 self-end md:self-center">
+                    @if (getNotificationActionRoute(n); as route) {
+                        <a [routerLink]="route" (click)="$event.stopPropagation()" class="px-4 py-2 rounded-xl bg-bg-tertiary hover:bg-blue-600 text-text-secondary hover:text-white text-xs font-bold border border-border-primary hover:border-transparent transition-all shadow-sm flex items-center gap-1.5 cursor-pointer">
+                            <span>{{ getNotificationActionLabel(n) }}</span>
+                            <i class="fas fa-arrow-right text-[10px]"></i>
+                        </a>
+                    }
+
+                    @if (!n.read) {
+                        <button (click)="markAsRead(n.id, $event)" class="w-9 h-9 rounded-xl bg-bg-tertiary hover:bg-blue-500/20 text-text-muted hover:text-blue-500 border border-border-primary flex items-center justify-center text-xs transition-colors cursor-pointer" title="Mark as Read">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    }
+                </div>
+            </div>
+        } @empty {
+            <!-- Empty State -->
+            <div class="bg-bg-secondary border border-border-primary rounded-3xl p-16 text-center space-y-4 shadow-xl flex flex-col items-center justify-center">
+                <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 dark:text-blue-400 text-3xl shadow-inner animate-pulse">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="space-y-1 max-w-md">
+                    <h3 class="text-lg font-bold text-text-primary">All Caught Up!</h3>
+                    <p class="text-xs text-text-muted leading-relaxed">
+                        @if (searchQuery() || activeFilter() !== 'ALL') {
+                            No notifications match your current filter parameters. Reset your filters to view all dispatches.
+                        } @else {
+                            No new notifications or events pending. Real-time dispatches will stream here as student activities and system events occur.
+                        }
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 pt-2">
+                    <button (click)="activeFilter.set('ALL'); searchQuery.set('')" class="px-5 py-2.5 rounded-2xl bg-bg-tertiary hover:bg-bg-secondary text-text-primary text-xs font-bold border border-border-primary transition-all cursor-pointer">
+                        <i class="fas fa-filter-circle-xmark mr-1.5 text-blue-500"></i> Reset Filters
+                    </button>
+                    <a routerLink="/dashboard" class="px-5 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black shadow-md shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-1.5">
+                        <i class="fas fa-chart-line"></i> Go to Dashboard
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
 </div>

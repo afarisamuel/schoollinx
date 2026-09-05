@@ -1,242 +1,745 @@
-<div class="space-y-6">
-  <!-- Header -->
-  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-    <div>
-      <h2 class="text-2xl font-black text-text-primary tracking-tight">Facility Management</h2>
-      <p class="text-sm text-text-muted mt-1">Track school assets and manage visitor access</p>
-    </div>
-    <div class="flex gap-3 flex-wrap">
-      <a routerLink="/facility/assets" class="px-5 py-2.5 bg-bg-secondary border border-border-primary text-text-primary rounded-xl font-bold text-sm hover:bg-bg-tertiary transition-colors flex items-center gap-2">
-        Asset Register
-      </a>
-      <a routerLink="/facility/rooms" class="px-5 py-2.5 bg-bg-secondary border border-border-primary text-text-primary rounded-xl font-bold text-sm hover:bg-bg-tertiary transition-colors flex items-center gap-2">
-        Room Booking
-      </a>
-      @if (activeTab() === 'inventory') {
-        <button (click)="showAddInventory.set(true)" class="px-5 py-2.5 bg-blue-500 text-white rounded-xl font-bold text-sm hover:bg-blue-600 transition-colors flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
-          Add Item
-        </button>
-      }
-      @if (activeTab() === 'visitors') {
-        <button (click)="showCheckIn.set(true)" class="px-5 py-2.5 bg-emerald-500 text-white rounded-xl font-bold text-sm hover:bg-emerald-600 transition-colors flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
-          Check In Visitor
-        </button>
-      }
-    </div>
-  </div>
-
-  <!-- Stats Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5">
-      <p class="text-[10px] font-black text-text-muted uppercase tracking-widest">Total Items</p>
-      <p class="text-xl md:text-2xl font-black text-text-primary mt-1">{{ inventory().length }}</p>
-    </div>
-    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5">
-      <p class="text-[10px] font-black text-text-muted uppercase tracking-widest">Total Asset Value</p>
-      <p class="text-xl md:text-2xl font-black text-emerald-400 mt-1">GH₵ {{ totalAssetValue | number:'1.2-2' }}</p>
-    </div>
-    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5">
-      <p class="text-[10px] font-black text-text-muted uppercase tracking-widest">Active Visitors</p>
-      <p class="text-xl md:text-2xl font-black text-blue-400 mt-1">{{ activeVisitorCount }}</p>
-    </div>
-  </div>
-
-  <!-- Tab Switcher -->
-  <div class="flex gap-1 bg-bg-secondary border border-border-primary rounded-2xl p-1.5 w-fit">
-    <button (click)="switchTab('inventory')" [class]="activeTab() === 'inventory' ? 'bg-blue-500 text-white shadow-lg' : 'text-text-muted hover:text-white'" class="px-5 py-2 rounded-xl font-bold text-sm transition-all">
-      Inventory
-    </button>
-    <button (click)="switchTab('visitors')" [class]="activeTab() === 'visitors' ? 'bg-blue-500 text-white shadow-lg' : 'text-text-muted hover:text-white'" class="px-5 py-2 rounded-xl font-bold text-sm transition-all">
-      Visitor Log
-    </button>
-  </div>
-
-  <!-- Inventory Tab -->
-  @if (activeTab() === 'inventory') {
-    @if (isLoading()) {
-      <div class="bg-bg-secondary border border-border-primary rounded-2xl p-12 text-center">
-        <p class="text-text-muted animate-pulse">Loading inventory...</p>
-      </div>
-    } @else if (inventory().length === 0) {
-      <div class="bg-bg-secondary border border-border-primary rounded-2xl p-12 text-center">
-        <div class="w-16 h-16 bg-bg-tertiary rounded-2xl flex items-center justify-center mx-auto mb-4 text-blue-400">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 22V12h6v10"/><path d="M3 9h18"/></svg>
+<div class="space-y-6 sm:space-y-8 animate-fade-in pb-16">
+    <!-- Executive Subdomain Ribbon -->
+    <div class="flex items-center justify-between gap-4 bg-bg-secondary/80 backdrop-blur-md border border-border-primary rounded-2xl p-2.5 px-4 shadow-sm overflow-x-auto custom-scrollbar">
+        <div class="flex items-center gap-2 shrink-0">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
+            <span class="text-xs font-black uppercase tracking-wider text-text-muted">Campus Operations</span>
         </div>
-        <h3 class="text-lg font-bold text-text-primary">No Inventory Items</h3>
-        <p class="text-text-muted mt-2 text-sm">Add your first item to start tracking school assets.</p>
-      </div>
-    } @else {
-      <div class="bg-bg-secondary border border-border-primary rounded-2xl overflow-hidden">
-        <div class="overflow-x-auto w-full">
-<table class="w-full text-sm">
-          <thead>
-            <tr class="border-b border-border-primary text-text-muted">
-              <th class="text-left px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Item</th>
-              <th class="text-left px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Category</th>
-              <th class="text-left px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Location</th>
-              <th class="text-right px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Qty</th>
-              <th class="text-right px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Unit Value</th>
-              <th class="text-right px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (item of inventory(); track item.id) {
-              <tr class="border-b border-border-primary hover:bg-bg-tertiary transition-colors">
-                <td class="px-5 py-3 font-bold text-text-primary">{{ item.name }}</td>
-                <td class="px-5 py-3">
-                  <span class="px-2.5 py-1 bg-blue-500/10 text-blue-400 text-xs font-bold rounded-lg">{{ item.category }}</span>
-                </td>
-                <td class="px-5 py-3 text-text-muted">{{ item.location }}</td>
-                <td class="px-5 py-3 text-right font-bold text-text-primary">{{ item.quantity }}</td>
-                <td class="px-5 py-3 text-right text-emerald-400 font-bold">GH₵ {{ item.unit_value | number:'1.2-2' }}</td>
-                <td class="px-5 py-3 text-right">
-                  <button (click)="deleteItem(item.id!)" class="p-1.5 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                  </button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-</div>
-      </div>
-    }
-  }
-
-  <!-- Visitors Tab -->
-  @if (activeTab() === 'visitors') {
-    @if (visitors().length === 0) {
-      <div class="bg-bg-secondary border border-border-primary rounded-2xl p-12 text-center">
-        <div class="w-16 h-16 bg-bg-tertiary rounded-2xl flex items-center justify-center mx-auto mb-4 text-emerald-400">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 22V12h6v10"/><path d="M3 9h18"/></svg>
+        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <a routerLink="/facility" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm transition-all flex items-center gap-1.5">
+                <i class="fas fa-building text-[11px]"></i> Facilities Hub
+            </a>
+            <a routerLink="/facility/assets" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all flex items-center gap-1.5">
+                <i class="fas fa-boxes-stacked text-[11px]"></i> Asset Register
+            </a>
+            <a routerLink="/facility/rooms" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all flex items-center gap-1.5">
+                <i class="fas fa-door-open text-[11px]"></i> Room Booking
+            </a>
+            <a routerLink="/transport" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all flex items-center gap-1.5">
+                <i class="fas fa-bus text-[11px]"></i> Fleet & Transit
+            </a>
+            <a routerLink="/logistics/meals" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all flex items-center gap-1.5">
+                <i class="fas fa-utensils text-[11px]"></i> Meals & Dining
+            </a>
         </div>
-        <h3 class="text-lg font-bold text-text-primary">No Visitors Today</h3>
-        <p class="text-text-muted mt-2 text-sm">The visitor log is empty for today.</p>
-      </div>
-    } @else {
-      <div class="bg-bg-secondary border border-border-primary rounded-2xl overflow-hidden">
-        <div class="overflow-x-auto w-full">
-<table class="w-full text-sm">
-          <thead>
-            <tr class="border-b border-border-primary text-text-muted">
-              <th class="text-left px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Visitor</th>
-              <th class="text-left px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Phone</th>
-              <th class="text-left px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Purpose</th>
-              <th class="text-left px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Check In</th>
-              <th class="text-left px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Status</th>
-              <th class="text-right px-5 py-3 font-bold text-[10px] uppercase tracking-widest">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (visitor of visitors(); track visitor.id) {
-              <tr class="border-b border-border-primary hover:bg-bg-tertiary transition-colors">
-                <td class="px-5 py-3 font-bold text-text-primary">{{ visitor.name }}</td>
-                <td class="px-5 py-3 text-text-muted">{{ visitor.phone }}</td>
-                <td class="px-5 py-3 text-text-muted">{{ visitor.purpose }}</td>
-                <td class="px-5 py-3 text-text-muted">{{ visitor.check_in | date:'shortTime' }}</td>
-                <td class="px-5 py-3">
-                  @if (visitor.check_out) {
-                    <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded-lg">Checked Out</span>
-                  } @else {
-                    <span class="px-2.5 py-1 bg-blue-500/10 text-blue-400 text-xs font-bold rounded-lg flex items-center gap-1.5 w-fit">
-                      <span class="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></span>
-                      On Premises
+    </div>
+
+    <!-- Command Hero Header -->
+    <div class="relative bg-gradient-to-br from-bg-secondary via-bg-secondary/90 to-bg-tertiary/40 border border-border-primary rounded-3xl p-6 sm:p-8 shadow-xl overflow-hidden">
+        <!-- Ambient Glow Orbs -->
+        <div class="absolute -top-16 -right-16 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-16 -left-16 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div class="space-y-2">
+                <div class="flex items-center gap-2.5">
+                    <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 flex items-center gap-1.5">
+                        <i class="fas fa-microchip text-[9px]"></i> Campus Logistics & Property Registry
                     </span>
-                  }
-                </td>
-                <td class="px-5 py-3 text-right">
-                  @if (!visitor.check_out) {
-                    <button (click)="checkOutVisitor(visitor.id!)" class="px-3 py-1.5 bg-bg-tertiary text-text-muted hover:text-text-primary hover:bg-bg-tertiary rounded-lg text-xs font-bold transition-colors">
-                      Check Out
+                    <span class="text-xs text-text-muted font-mono hidden sm:inline-block">• Live Operational Mode</span>
+                </div>
+                <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-text-primary tracking-tight">
+                    Campus Facility <span class="bg-gradient-to-r from-blue-600 via-indigo-500 to-emerald-500 dark:from-blue-400 dark:via-indigo-300 dark:to-emerald-400 bg-clip-text text-transparent">Management</span>
+                </h1>
+                <p class="text-xs sm:text-sm text-text-muted max-w-2xl leading-relaxed">
+                    Centrally oversee school physical assets, consumable inventories, premises security visitor logs, and classroom facility allocations.
+                </p>
+            </div>
+
+            <!-- Action Controls Cluster -->
+            <div class="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
+                <button (click)="exportCSV()" class="px-4 py-2.5 rounded-2xl bg-bg-tertiary hover:bg-bg-tertiary/80 text-text-primary border border-border-primary text-xs font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer shadow-sm">
+                    <i class="fas fa-file-csv text-emerald-500"></i>
+                    <span>Export CSV</span>
+                </button>
+
+                <button (click)="printReport()" class="px-4 py-2.5 rounded-2xl bg-bg-tertiary hover:bg-bg-tertiary/80 text-text-primary border border-border-primary text-xs font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer shadow-sm">
+                    <i class="fas fa-print text-blue-500"></i>
+                    <span>Print</span>
+                </button>
+
+                @if (activeTab() === 'inventory') {
+                    <button (click)="openAddInventory()" class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black shadow-lg shadow-blue-500/25 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Inventory Item</span>
                     </button>
-                  }
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-</div>
-      </div>
-    }
-  }
-
-  <!-- Add Inventory Modal -->
-  @if (showAddInventory()) {
-    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in" (click)="showAddInventory.set(false)">
-      <div class="bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl p-5 sm:p-8 w-full max-w-lg shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[85vh] animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
-        <!-- Mobile Handle -->
-        <div class="pt-1 pb-3 sm:hidden flex justify-center">
-            <div class="bottomsheet-handle"></div>
-        </div>
-        <h3 class="text-lg sm:text-xl font-black text-text-primary mb-4 sm:mb-6">Add Inventory Item</h3>
-        <div class="space-y-3.5 sm:space-y-4 overflow-y-auto">
-          <div>
-            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1 sm:mb-1.5">Item Name</label>
-            <input [(ngModel)]="newItem.name" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 sm:px-4 py-2.5 sm:py-3 text-text-primary text-xs sm:text-sm focus:outline-none focus:border-blue-500 transition-colors" placeholder="e.g. Desk Chair">
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1 sm:mb-1.5">Category</label>
-              <select [(ngModel)]="newItem.category" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 sm:px-4 py-2.5 sm:py-3 text-text-primary text-xs sm:text-sm focus:outline-none focus:border-blue-500 transition-colors">
-                @for (cat of categories; track cat) {
-                  <option [value]="cat">{{ cat }}</option>
+                } @else if (activeTab() === 'visitors') {
+                    <button (click)="openCheckIn()" class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black shadow-lg shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer">
+                        <i class="fas fa-user-check"></i>
+                        <span>Check In Visitor</span>
+                    </button>
+                } @else {
+                    <a routerLink="/facility/rooms" class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-500 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-black shadow-lg shadow-purple-500/25 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer">
+                        <i class="fas fa-calendar-plus"></i>
+                        <span>Manage Spaces</span>
+                    </a>
                 }
-              </select>
             </div>
-            <div>
-              <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1 sm:mb-1.5">Location</label>
-              <input [(ngModel)]="newItem.location" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 sm:px-4 py-2.5 sm:py-3 text-text-primary text-xs sm:text-sm focus:outline-none focus:border-blue-500 transition-colors" placeholder="e.g. Room 204">
-            </div>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1 sm:mb-1.5">Quantity</label>
-              <input [(ngModel)]="newItem.quantity" type="number" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 sm:px-4 py-2.5 sm:py-3 text-text-primary text-xs sm:text-sm focus:outline-none focus:border-blue-500 transition-colors" placeholder="0">
-            </div>
-            <div>
-              <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1 sm:mb-1.5">Unit Value (GH₵)</label>
-              <input [(ngModel)]="newItem.unit_value" type="number" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 sm:px-4 py-2.5 sm:py-3 text-text-primary text-xs sm:text-sm focus:outline-none focus:border-blue-500 transition-colors" placeholder="0.00">
-            </div>
-          </div>
         </div>
-        <div class="flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-3 mt-6 sm:mt-8 justify-end">
-          <button (click)="showAddInventory.set(false)" class="w-full sm:w-auto px-5 py-2.5 bg-bg-tertiary text-text-muted rounded-xl font-bold text-xs sm:text-sm hover:text-text-primary hover:bg-bg-tertiary transition-colors">Cancel</button>
-          <button (click)="addInventoryItem()" class="w-full sm:w-auto px-5 py-2.5 bg-blue-500 text-white rounded-xl font-bold text-xs sm:text-sm hover:bg-blue-600 transition-colors flex items-center justify-center">Add Item</button>
-        </div>
-      </div>
     </div>
-  }
 
-  <!-- Check In Visitor Modal -->
-  @if (showCheckIn()) {
-    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in" (click)="showCheckIn.set(false)">
-      <div class="bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl p-5 sm:p-8 w-full max-w-lg shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[85vh] animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
-        <!-- Mobile Handle -->
-        <div class="pt-1 pb-3 sm:hidden flex justify-center">
-            <div class="bottomsheet-handle"></div>
+    <!-- 4 Real-Time Telemetry KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        <!-- KPI 1: Total Inventory Items -->
+        <div class="relative bg-bg-secondary border border-border-primary hover:border-blue-500/30 rounded-3xl p-5 sm:p-6 transition-all shadow-md group overflow-hidden">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">Total Stock Units</span>
+                <div class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                    <i class="fas fa-boxes-stacked"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <h3 class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight">
+                    {{ totalInventoryUnits() }}
+                </h3>
+                <p class="text-xs text-text-muted mt-1">Across <strong class="text-text-primary">{{ inventory().length }}</strong> unique catalog items</p>
+            </div>
         </div>
-        <h3 class="text-lg sm:text-xl font-black text-text-primary mb-4 sm:mb-6">Register Visitor</h3>
-        <div class="space-y-3.5 sm:space-y-4 overflow-y-auto">
-          <div>
-            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1 sm:mb-1.5">Full Name</label>
-            <input [(ngModel)]="newVisitor.name" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 sm:px-4 py-2.5 sm:py-3 text-text-primary text-xs sm:text-sm focus:outline-none focus:border-blue-500 transition-colors" placeholder="e.g. Kwame Mensah">
-          </div>
-          <div>
-            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1 sm:mb-1.5">Phone Number</label>
-            <input [(ngModel)]="newVisitor.phone" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 sm:px-4 py-2.5 sm:py-3 text-text-primary text-xs sm:text-sm focus:outline-none focus:border-blue-500 transition-colors" placeholder="e.g. 024 XXX XXXX">
-          </div>
-          <div>
-            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1 sm:mb-1.5">Purpose of Visit</label>
-            <input [(ngModel)]="newVisitor.purpose" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 sm:px-4 py-2.5 sm:py-3 text-text-primary text-xs sm:text-sm focus:outline-none focus:border-blue-500 transition-colors" placeholder="e.g. Parent-Teacher meeting">
-          </div>
+
+        <!-- KPI 2: Total Asset Valuation -->
+        <div class="relative bg-bg-secondary border border-border-primary hover:border-emerald-500/30 rounded-3xl p-5 sm:p-6 transition-all shadow-md group overflow-hidden">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">Capitalized Asset Value</span>
+                <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                    <i class="fas fa-coins"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <h3 class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono tracking-tight">
+                    GH₵ {{ totalAssetValue() | number:'1.2-2' }}
+                </h3>
+                <p class="text-xs text-text-muted mt-1">Live physical valuation in Ghana Cedis</p>
+            </div>
         </div>
-        <div class="flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-3 mt-6 sm:mt-8 justify-end">
-          <button (click)="showCheckIn.set(false)" class="w-full sm:w-auto px-5 py-2.5 bg-bg-tertiary text-text-muted rounded-xl font-bold text-xs sm:text-sm hover:text-text-primary hover:bg-bg-tertiary transition-colors">Cancel</button>
-          <button (click)="checkInVisitor()" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-500 text-white rounded-xl font-bold text-xs sm:text-sm hover:bg-emerald-600 transition-colors flex items-center justify-center">Check In</button>
+
+        <!-- KPI 3: Active Visitors On Premises -->
+        <div class="relative bg-bg-secondary border border-border-primary hover:border-blue-500/30 rounded-3xl p-5 sm:p-6 transition-all shadow-md group overflow-hidden">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">Active Visitors On Site</span>
+                <div class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                    <i class="fas fa-id-badge"></i>
+                </div>
+            </div>
+            <div class="mt-3 flex items-baseline justify-between">
+                <div>
+                    <h3 class="text-2xl sm:text-3xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
+                        {{ activeVisitorCount() }}
+                    </h3>
+                    <p class="text-xs text-text-muted mt-1">{{ checkedOutVisitorCount() }} departed today</p>
+                </div>
+                @if (activeVisitorCount() > 0) {
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> On Campus
+                    </span>
+                }
+            </div>
         </div>
-      </div>
+
+        <!-- KPI 4: Operations Attention & Low Stock -->
+        <div class="relative bg-bg-secondary border border-border-primary hover:border-amber-500/30 rounded-3xl p-5 sm:p-6 transition-all shadow-md group overflow-hidden">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">Operational Attention</span>
+                <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                    <i class="fas fa-triangle-exclamation"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <h3 class="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400 tracking-tight">
+                    {{ lowStockCount() + maintenanceCount() }}
+                </h3>
+                <p class="text-xs text-text-muted mt-1">
+                    <strong class="text-rose-500">{{ lowStockCount() }}</strong> low stock • <strong class="text-amber-500">{{ maintenanceCount() }}</strong> maintenance
+                </p>
+            </div>
+        </div>
     </div>
-  }
+
+    <!-- Navigation Tab Switcher -->
+    <div class="flex items-center justify-between flex-wrap gap-4 border-b border-border-primary pb-3">
+        <div class="flex items-center bg-bg-secondary p-1.5 rounded-2xl border border-border-primary shadow-sm">
+            <button (click)="switchTab('inventory')" 
+                    [class.bg-blue-600]="activeTab() === 'inventory'" 
+                    [class.text-white]="activeTab() === 'inventory'" 
+                    [class.shadow-md]="activeTab() === 'inventory'"
+                    [class.text-text-muted]="activeTab() !== 'inventory'" 
+                    class="px-4 sm:px-6 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer">
+                <i class="fas fa-boxes-stacked text-xs"></i>
+                <span>Inventory & Supplies</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold" [ngClass]="activeTab() === 'inventory' ? 'bg-white/20 text-white' : 'bg-bg-tertiary text-text-muted'">
+                    {{ inventory().length }}
+                </span>
+            </button>
+
+            <button (click)="switchTab('visitors')" 
+                    [class.bg-blue-600]="activeTab() === 'visitors'" 
+                    [class.text-white]="activeTab() === 'visitors'" 
+                    [class.shadow-md]="activeTab() === 'visitors'"
+                    [class.text-text-muted]="activeTab() !== 'visitors'" 
+                    class="px-4 sm:px-6 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer">
+                <i class="fas fa-id-badge text-xs"></i>
+                <span>Visitor Access Log</span>
+                @if (activeVisitorCount() > 0) {
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500 text-white animate-pulse">
+                        {{ activeVisitorCount() }}
+                    </span>
+                }
+            </button>
+
+            <button (click)="switchTab('spaces')" 
+                    [class.bg-blue-600]="activeTab() === 'spaces'" 
+                    [class.text-white]="activeTab() === 'spaces'" 
+                    [class.shadow-md]="activeTab() === 'spaces'"
+                    [class.text-text-muted]="activeTab() !== 'spaces'" 
+                    class="px-4 sm:px-6 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer">
+                <i class="fas fa-door-open text-xs"></i>
+                <span>Spaces & Rooms</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- TAB 1: INVENTORY & SUPPLIES -->
+    @if (activeTab() === 'inventory') {
+        <div class="space-y-5">
+            <!-- Filter & Search Bar -->
+            <div class="bg-bg-secondary border border-border-primary rounded-3xl p-4 sm:p-5 shadow-lg flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+                <!-- Search Input -->
+                <div class="relative flex-1">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
+                    <input type="text" [ngModel]="inventorySearch()" (ngModelChange)="inventorySearch.set($event)" placeholder="Search items by name, tag, category, or location..." class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner">
+                    @if (inventorySearch()) {
+                        <button (click)="inventorySearch.set('')" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary text-xs">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    }
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                    <!-- Category Select -->
+                    <div class="relative min-w-[160px]">
+                        <select [ngModel]="selectedCategory()" (ngModelChange)="selectedCategory.set($event)" class="w-full appearance-none bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-2.5 pl-9 pr-8 text-xs font-bold text-text-primary focus:outline-none transition-all cursor-pointer shadow-inner">
+                            <option value="ALL">All Categories</option>
+                            @for (cat of availableCategories(); track cat) {
+                                <option [value]="cat">{{ cat }}</option>
+                            }
+                        </select>
+                        <i class="fas fa-filter absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-500 text-xs pointer-events-none"></i>
+                        <i class="fas fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted text-[10px] pointer-events-none"></i>
+                    </div>
+
+                    <!-- Status Filter Segment -->
+                    <div class="flex items-center bg-bg-tertiary p-1 rounded-2xl border border-border-primary text-xs font-bold">
+                        <button (click)="inventoryStatusFilter.set('ALL')" [class.bg-blue-600]="inventoryStatusFilter() === 'ALL'" [class.text-white]="inventoryStatusFilter() === 'ALL'" [class.text-text-muted]="inventoryStatusFilter() !== 'ALL'" class="px-3 py-1.5 rounded-xl transition-all cursor-pointer">All</button>
+                        <button (click)="inventoryStatusFilter.set('ACTIVE')" [class.bg-emerald-600]="inventoryStatusFilter() === 'ACTIVE'" [class.text-white]="inventoryStatusFilter() === 'ACTIVE'" [class.text-text-muted]="inventoryStatusFilter() !== 'ACTIVE'" class="px-3 py-1.5 rounded-xl transition-all cursor-pointer">Active</button>
+                        <button (click)="inventoryStatusFilter.set('LOW_STOCK')" [class.bg-rose-600]="inventoryStatusFilter() === 'LOW_STOCK'" [class.text-white]="inventoryStatusFilter() === 'LOW_STOCK'" [class.text-text-muted]="inventoryStatusFilter() !== 'LOW_STOCK'" class="px-3 py-1.5 rounded-xl transition-all cursor-pointer">Low Stock</button>
+                        <button (click)="inventoryStatusFilter.set('MAINTENANCE')" [class.bg-amber-600]="inventoryStatusFilter() === 'MAINTENANCE'" [class.text-white]="inventoryStatusFilter() === 'MAINTENANCE'" [class.text-text-muted]="inventoryStatusFilter() !== 'MAINTENANCE'" class="px-3 py-1.5 rounded-xl transition-all cursor-pointer">Maintenance</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory Table -->
+            @if (isLoadingInventory()) {
+                <div class="bg-bg-secondary border border-border-primary rounded-3xl p-16 text-center shadow-lg">
+                    <div class="w-12 h-12 border-3 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+                    <p class="text-xs font-bold text-text-muted">Loading inventory registry...</p>
+                </div>
+            } @else if (filteredInventory().length === 0) {
+                <div class="bg-bg-secondary border border-border-primary rounded-3xl p-16 text-center space-y-4 shadow-lg flex flex-col items-center justify-center">
+                    <div class="w-16 h-16 rounded-3xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 text-2xl shadow-inner">
+                        <i class="fas fa-boxes-stacked"></i>
+                    </div>
+                    <div class="space-y-1 max-w-md">
+                        <h3 class="text-lg font-bold text-text-primary">No Inventory Items Found</h3>
+                        <p class="text-xs text-text-muted">
+                            @if (inventorySearch() || selectedCategory() !== 'ALL' || inventoryStatusFilter() !== 'ALL') {
+                                No assets matched your current search and filter parameters.
+                            } @else {
+                                Your physical assets and supplies inventory is currently empty.
+                            }
+                        </p>
+                    </div>
+                    <button (click)="openAddInventory()" class="px-5 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black shadow-md shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2 cursor-pointer">
+                        <i class="fas fa-plus"></i> Add First Item
+                    </button>
+                </div>
+            } @else {
+                <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-xl">
+                    <div class="overflow-x-auto w-full">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-border-primary bg-bg-tertiary/50 text-[10px] font-black uppercase tracking-wider text-text-muted">
+                                    <th class="py-4 px-6">Item & Asset Tag</th>
+                                    <th class="py-4 px-6">Category</th>
+                                    <th class="py-4 px-6">Campus Location</th>
+                                    <th class="py-4 px-6 text-center">In Stock Qty</th>
+                                    <th class="py-4 px-6 text-right">Unit Value</th>
+                                    <th class="py-4 px-6 text-right">Total Value</th>
+                                    <th class="py-4 px-6 text-center">Status</th>
+                                    <th class="py-4 px-6 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border-primary text-xs">
+                                @for (item of filteredInventory(); track item.id) {
+                                    <tr class="hover:bg-bg-tertiary/40 transition-colors group">
+                                        <!-- Item & Tag -->
+                                        <td class="py-4 px-6">
+                                            <div class="space-y-1">
+                                                <p class="font-bold text-text-primary text-sm group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-colors">
+                                                    {{ item.name }}
+                                                </p>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-bg-tertiary text-text-muted border border-border-primary">
+                                                        {{ item.asset_tag || ('AST-' + (item.id | slice:0:6)) }}
+                                                    </span>
+                                                    @if (item.reorder_threshold && (item.quantity <= item.reorder_threshold)) {
+                                                        <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1">
+                                                            <i class="fas fa-triangle-exclamation text-[8px]"></i> Low Stock
+                                                        </span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <!-- Category -->
+                                        <td class="py-4 px-6">
+                                            <span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                                {{ item.category || 'General' }}
+                                            </span>
+                                        </td>
+
+                                        <!-- Location -->
+                                        <td class="py-4 px-6">
+                                            <div class="flex items-center gap-1.5 text-text-secondary">
+                                                <i class="fas fa-location-dot text-rose-500 text-xs"></i>
+                                                <span class="font-medium">{{ item.location || 'Unassigned Area' }}</span>
+                                            </div>
+                                        </td>
+
+                                        <!-- Quantity with quick +/- -->
+                                        <td class="py-4 px-6 text-center">
+                                            <div class="inline-flex items-center gap-2 bg-bg-tertiary px-2 py-1 rounded-xl border border-border-primary shadow-inner">
+                                                <button (click)="quickAdjustQty(item, -1)" class="w-6 h-6 rounded-lg bg-bg-secondary hover:bg-rose-500/20 text-text-muted hover:text-rose-500 flex items-center justify-center transition-colors font-bold cursor-pointer text-xs" title="Decrease Stock">
+                                                    -
+                                                </button>
+                                                <span class="font-black text-text-primary text-sm min-w-[28px] text-center">
+                                                    {{ item.quantity }}
+                                                </span>
+                                                <button (click)="quickAdjustQty(item, 1)" class="w-6 h-6 rounded-lg bg-bg-secondary hover:bg-emerald-500/20 text-text-muted hover:text-emerald-500 flex items-center justify-center transition-colors font-bold cursor-pointer text-xs" title="Increase Stock">
+                                                    +
+                                                </button>
+                                            </div>
+                                        </td>
+
+                                        <!-- Unit Value -->
+                                        <td class="py-4 px-6 text-right font-mono font-bold text-text-primary">
+                                            GH₵ {{ item.unit_value | number:'1.2-2' }}
+                                        </td>
+
+                                        <!-- Total Value -->
+                                        <td class="py-4 px-6 text-right font-mono font-black text-emerald-600 dark:text-emerald-400">
+                                            GH₵ {{ ((item.unit_value || 0) * (item.quantity || 1)) | number:'1.2-2' }}
+                                        </td>
+
+                                        <!-- Status -->
+                                        <td class="py-4 px-6 text-center">
+                                            @if (item.status === 'MAINTENANCE') {
+                                                <span class="px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                                                    Maintenance
+                                                </span>
+                                            } @else if (item.status === 'DISPOSED') {
+                                                <span class="px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-gray-500/15 text-gray-400 border border-gray-500/30">
+                                                    Disposed
+                                                </span>
+                                            } @else {
+                                                <span class="px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                                                    Active
+                                                </span>
+                                            }
+                                        </td>
+
+                                        <!-- Actions -->
+                                        <td class="py-4 px-6 text-right">
+                                            <div class="flex items-center justify-end gap-1.5">
+                                                <button (click)="openEditInventory(item)" class="w-8 h-8 rounded-xl bg-bg-tertiary hover:bg-blue-500/20 text-text-muted hover:text-blue-500 border border-border-primary flex items-center justify-center text-xs transition-colors cursor-pointer" title="Edit Item">
+                                                    <i class="fas fa-pen"></i>
+                                                </button>
+                                                <button (click)="deleteItem(item.id!, item.name)" class="w-8 h-8 rounded-xl bg-bg-tertiary hover:bg-rose-500/20 text-text-muted hover:text-rose-500 border border-border-primary flex items-center justify-center text-xs transition-colors cursor-pointer" title="Delete Item">
+                                                    <i class="fas fa-trash-can"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- TAB 2: VISITOR ACCESS LOGS -->
+    @if (activeTab() === 'visitors') {
+        <div class="space-y-5">
+            <!-- Filter & Date Selection Bar -->
+            <div class="bg-bg-secondary border border-border-primary rounded-3xl p-4 sm:p-5 shadow-lg flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+                <!-- Search Input -->
+                <div class="relative flex-1">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
+                    <input type="text" [ngModel]="visitorSearch()" (ngModelChange)="visitorSearch.set($event)" placeholder="Search visitors by name, phone, purpose, or host..." class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner">
+                    @if (visitorSearch()) {
+                        <button (click)="visitorSearch.set('')" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary text-xs">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    }
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                    <!-- Date Picker -->
+                    <div class="relative">
+                        <input type="date" [ngModel]="selectedVisitorDate()" (ngModelChange)="onVisitorDateChange($event)" class="bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-2.5 pl-9 text-xs font-bold text-text-primary focus:outline-none transition-all cursor-pointer shadow-inner">
+                        <i class="far fa-calendar absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-500 text-xs pointer-events-none"></i>
+                    </div>
+
+                    <!-- Status Filter Segment -->
+                    <div class="flex items-center bg-bg-tertiary p-1 rounded-2xl border border-border-primary text-xs font-bold">
+                        <button (click)="visitorStatusFilter.set('ALL')" [class.bg-blue-600]="visitorStatusFilter() === 'ALL'" [class.text-white]="visitorStatusFilter() === 'ALL'" [class.text-text-muted]="visitorStatusFilter() !== 'ALL'" class="px-3 py-1.5 rounded-xl transition-all cursor-pointer">All</button>
+                        <button (click)="visitorStatusFilter.set('ON_PREMISES')" [class.bg-emerald-600]="visitorStatusFilter() === 'ON_PREMISES'" [class.text-white]="visitorStatusFilter() === 'ON_PREMISES'" [class.text-text-muted]="visitorStatusFilter() !== 'ON_PREMISES'" class="px-3 py-1.5 rounded-xl transition-all cursor-pointer">On Site</button>
+                        <button (click)="visitorStatusFilter.set('CHECKED_OUT')" [class.bg-gray-600]="visitorStatusFilter() === 'CHECKED_OUT'" [class.text-white]="visitorStatusFilter() === 'CHECKED_OUT'" [class.text-text-muted]="visitorStatusFilter() !== 'CHECKED_OUT'" class="px-3 py-1.5 rounded-xl transition-all cursor-pointer">Departed</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visitor Table -->
+            @if (isLoadingVisitors()) {
+                <div class="bg-bg-secondary border border-border-primary rounded-3xl p-16 text-center shadow-lg">
+                    <div class="w-12 h-12 border-3 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4"></div>
+                    <p class="text-xs font-bold text-text-muted">Loading visitor registry...</p>
+                </div>
+            } @else if (filteredVisitors().length === 0) {
+                <div class="bg-bg-secondary border border-border-primary rounded-3xl p-16 text-center space-y-4 shadow-lg flex flex-col items-center justify-center">
+                    <div class="w-16 h-16 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 text-2xl shadow-inner">
+                        <i class="fas fa-id-badge"></i>
+                    </div>
+                    <div class="space-y-1 max-w-md">
+                        <h3 class="text-lg font-bold text-text-primary">No Visitor Logs For This Date</h3>
+                        <p class="text-xs text-text-muted">
+                            No visitor sign-ins or security records found for {{ selectedVisitorDate() | date:'mediumDate' }}.
+                        </p>
+                    </div>
+                    <button (click)="openCheckIn()" class="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-md shadow-emerald-500/20 transition-all active:scale-95 flex items-center gap-2 cursor-pointer">
+                        <i class="fas fa-user-check"></i> Register Visitor
+                    </button>
+                </div>
+            } @else {
+                <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-xl">
+                    <div class="overflow-x-auto w-full">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-border-primary bg-bg-tertiary/50 text-[10px] font-black uppercase tracking-wider text-text-muted">
+                                    <th class="py-4 px-6">Visitor & Identity</th>
+                                    <th class="py-4 px-6">Phone Number</th>
+                                    <th class="py-4 px-6">Purpose of Visit</th>
+                                    <th class="py-4 px-6">Host / Department</th>
+                                    <th class="py-4 px-6">Check-In Time</th>
+                                    <th class="py-4 px-6 text-center">Status</th>
+                                    <th class="py-4 px-6 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border-primary text-xs">
+                                @for (visitor of filteredVisitors(); track visitor.id) {
+                                    <tr class="hover:bg-bg-tertiary/40 transition-colors group">
+                                        <!-- Visitor Identity -->
+                                        <td class="py-4 px-6">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-black text-xs shrink-0">
+                                                    {{ visitor.name ? visitor.name[0] : 'V' }}
+                                                </div>
+                                                <div>
+                                                    <p class="font-bold text-text-primary text-sm group-hover:text-emerald-500 dark:group-hover:text-emerald-300 transition-colors">
+                                                        {{ visitor.name }}
+                                                    </p>
+                                                    <span class="text-[10px] font-mono text-text-muted">ID: {{ visitor.id | slice:0:8 }}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <!-- Phone -->
+                                        <td class="py-4 px-6 font-mono font-medium text-text-secondary">
+                                            <i class="fas fa-phone text-blue-500 mr-1.5 text-[10px]"></i>
+                                            {{ visitor.phone || 'N/A' }}
+                                        </td>
+
+                                        <!-- Purpose -->
+                                        <td class="py-4 px-6 font-medium text-text-primary max-w-xs truncate">
+                                            {{ visitor.purpose }}
+                                        </td>
+
+                                        <!-- Host / Dept -->
+                                        <td class="py-4 px-6 text-text-muted font-medium">
+                                            <span class="px-2.5 py-1 rounded-xl bg-bg-tertiary border border-border-primary text-xs">
+                                                <i class="fas fa-user-tie mr-1 text-indigo-500 text-[10px]"></i>
+                                                {{ visitor.host_id || 'Administration Office' }}
+                                            </span>
+                                        </td>
+
+                                        <!-- Check-In Time -->
+                                        <td class="py-4 px-6 font-mono text-text-secondary">
+                                            <i class="far fa-clock mr-1 text-text-muted"></i>
+                                            {{ visitor.check_in | date:'shortTime' }}
+                                        </td>
+
+                                        <!-- Status -->
+                                        <td class="py-4 px-6 text-center">
+                                            @if (visitor.check_out) {
+                                                <span class="px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-gray-500/15 text-gray-400 border border-gray-500/30">
+                                                    Checked Out ({{ visitor.check_out | date:'shortTime' }})
+                                                </span>
+                                            } @else {
+                                                <span class="px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 inline-flex items-center gap-1.5">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                    On Premises
+                                                </span>
+                                            }
+                                        </td>
+
+                                        <!-- Actions -->
+                                        <td class="py-4 px-6 text-right">
+                                            @if (!visitor.check_out) {
+                                                <button (click)="checkOutVisitor(visitor.id!, visitor.name)" class="px-3.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-xs font-bold transition-all active:scale-95 cursor-pointer">
+                                                    <i class="fas fa-arrow-right-from-bracket mr-1"></i> Check Out
+                                                </button>
+                                            } @else {
+                                                <span class="text-text-muted text-xs italic">Departed</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- TAB 3: SPACES & ROOMS OVERVIEW -->
+    @if (activeTab() === 'spaces') {
+        <div class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <!-- Card 1: Academic Classrooms -->
+                <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-xl space-y-4 relative overflow-hidden group hover:border-blue-500/30 transition-all">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-xl shadow-inner group-hover:scale-110 transition-transform">
+                        <i class="fas fa-chalkboard-user"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="text-lg font-black text-text-primary">Academic Classrooms</h3>
+                        <p class="text-xs text-text-muted">General instructional rooms, lecture theatres, and smart classrooms.</p>
+                    </div>
+                    <a routerLink="/facility/rooms" class="inline-flex items-center gap-1.5 text-xs font-black text-blue-500 hover:text-blue-400 transition-colors">
+                        View Classroom Allocations <i class="fas fa-arrow-right text-[10px]"></i>
+                    </a>
+                </div>
+
+                <!-- Card 2: Specialized Laboratories -->
+                <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-xl space-y-4 relative overflow-hidden group hover:border-purple-500/30 transition-all">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-xl shadow-inner group-hover:scale-110 transition-transform">
+                        <i class="fas fa-flask-vial"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="text-lg font-black text-text-primary">Science & Computer Labs</h3>
+                        <p class="text-xs text-text-muted">Physics, Chemistry, Biology, and ICT computer labs with specialized equipment.</p>
+                    </div>
+                    <a routerLink="/facility/rooms" class="inline-flex items-center gap-1.5 text-xs font-black text-purple-500 hover:text-purple-400 transition-colors">
+                        Inspect Lab Schedules <i class="fas fa-arrow-right text-[10px]"></i>
+                    </a>
+                </div>
+
+                <!-- Card 3: Auditoriums & Sports Fields -->
+                <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-xl space-y-4 relative overflow-hidden group hover:border-emerald-500/30 transition-all">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xl shadow-inner group-hover:scale-110 transition-transform">
+                        <i class="fas fa-futbol"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="text-lg font-black text-text-primary">Auditoriums & Grounds</h3>
+                        <p class="text-xs text-text-muted">Assembly halls, athletic fields, multipurpose pavilions, and dining facilities.</p>
+                    </div>
+                    <a routerLink="/facility/rooms" class="inline-flex items-center gap-1.5 text-xs font-black text-emerald-500 hover:text-emerald-400 transition-colors">
+                        Book Event Spaces <i class="fas fa-arrow-right text-[10px]"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Deep Link Banner -->
+            <div class="bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-purple-600/10 border border-blue-500/30 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="space-y-1 text-center sm:text-left">
+                    <h4 class="text-base font-black text-text-primary">Need Advanced Room & Space Reservations?</h4>
+                    <p class="text-xs text-text-muted">Access our dedicated interactive room schedule matrix with conflict detection and booker verification.</p>
+                </div>
+                <a routerLink="/facility/rooms" class="px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black shadow-lg shadow-blue-500/25 transition-all active:scale-95 shrink-0 flex items-center gap-2">
+                    <i class="fas fa-calendar-check"></i> Open Room Booking Center
+                </a>
+            </div>
+        </div>
+    }
 </div>
+
+<!-- Modal 1: Add / Edit Inventory Item -->
+@if (showAddInventory()) {
+    <div class="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in" (click)="showAddInventory.set(false)">
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative my-auto overflow-hidden animate-scale-up space-y-5" (click)="$event.stopPropagation()">
+            <!-- Ambient Glow -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-3xl rounded-full pointer-events-none"></div>
+
+            <div class="flex items-center justify-between pb-4 border-b border-border-primary">
+                <div>
+                    <h2 class="text-xl font-black text-text-primary flex items-center gap-2.5">
+                        <i class="fas fa-boxes-stacked text-blue-500 dark:text-blue-400"></i>
+                        {{ editingItem() ? 'Modify Inventory Item' : 'Add Inventory Item' }}
+                    </h2>
+                    <p class="text-xs text-text-muted mt-1">Record physical campus property, stationery, and supplies.</p>
+                </div>
+                <button (click)="showAddInventory.set(false)" class="w-8 h-8 rounded-full bg-bg-tertiary hover:bg-bg-secondary border border-border-primary text-text-muted hover:text-text-primary flex items-center justify-center transition-all cursor-pointer">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Item Name -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Item Name <span class="text-rose-500">*</span></label>
+                    <input type="text" [(ngModel)]="itemForm.name" placeholder="e.g. Ergonomic Teacher Desk, Dell 24-inch Monitor..." class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner">
+                </div>
+
+                <!-- Asset Tag & Category -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Asset Tag</label>
+                            <button type="button" (click)="generateTag()" class="text-[10px] text-blue-500 font-bold hover:underline cursor-pointer">Generate</button>
+                        </div>
+                        <input type="text" [(ngModel)]="itemForm.asset_tag" placeholder="FAC-4821" class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-3 text-xs font-mono font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Category</label>
+                        <select [(ngModel)]="itemForm.category" class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-3 text-xs font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer shadow-inner">
+                            @for (cat of categories; track cat) {
+                                <option [value]="cat">{{ cat }}</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Location & Status -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Campus Location</label>
+                        <input type="text" [(ngModel)]="itemForm.location" placeholder="e.g. Main Staff Room, Lab 2..." class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-3 text-xs font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Operational Status</label>
+                        <select [(ngModel)]="itemForm.status" class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-3 text-xs font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer shadow-inner">
+                            <option value="ACTIVE">ACTIVE (In Service)</option>
+                            <option value="MAINTENANCE">MAINTENANCE (Repair)</option>
+                            <option value="DISPOSED">DISPOSED (Decommissioned)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Quantity, Unit Value, Threshold -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Quantity</label>
+                        <input type="number" min="0" [(ngModel)]="itemForm.quantity" class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-3 text-xs sm:text-sm font-black text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Unit Value (GH₵)</label>
+                        <input type="number" min="0" step="0.01" [(ngModel)]="itemForm.unit_value" class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-3 text-xs sm:text-sm font-black text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Low Stock Alert</label>
+                        <input type="number" min="0" [(ngModel)]="itemForm.reorder_threshold" class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-3 text-xs sm:text-sm font-black text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-border-primary">
+                <button (click)="showAddInventory.set(false)" class="px-5 py-2.5 text-xs font-bold text-text-muted hover:text-text-primary transition-all cursor-pointer">
+                    Cancel
+                </button>
+                <button (click)="saveInventoryItem()" [disabled]="isSubmitting() || !itemForm.name" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black shadow-lg shadow-blue-500/25 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 cursor-pointer">
+                    @if (isSubmitting()) {
+                        <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <span>Saving...</span>
+                    } @else {
+                        <i class="fas fa-check-circle"></i>
+                        <span>{{ editingItem() ? 'Update Item' : 'Save Item' }}</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Modal 2: Check In Visitor -->
+@if (showCheckIn()) {
+    <div class="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in" (click)="showCheckIn.set(false)">
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative my-auto overflow-hidden animate-scale-up space-y-5" (click)="$event.stopPropagation()">
+            <!-- Ambient Glow -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 blur-3xl rounded-full pointer-events-none"></div>
+
+            <div class="flex items-center justify-between pb-4 border-b border-border-primary">
+                <div>
+                    <h2 class="text-xl font-black text-text-primary flex items-center gap-2.5">
+                        <i class="fas fa-user-check text-emerald-500 dark:text-emerald-400"></i>
+                        Register Campus Visitor
+                    </h2>
+                    <p class="text-xs text-text-muted mt-1">Issue visitor sign-in badge and log campus access protocol.</p>
+                </div>
+                <button (click)="showCheckIn.set(false)" class="w-8 h-8 rounded-full bg-bg-tertiary hover:bg-bg-secondary border border-border-primary text-text-muted hover:text-text-primary flex items-center justify-center transition-all cursor-pointer">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Visitor Full Name -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Visitor Full Name <span class="text-rose-500">*</span></label>
+                    <input type="text" [(ngModel)]="visitorForm.name" placeholder="e.g. Kwame Mensah, Dr. Abena Osei..." class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-inner">
+                </div>
+
+                <!-- Phone Number & Host/Department -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Contact Phone</label>
+                        <input type="text" [(ngModel)]="visitorForm.phone" placeholder="e.g. +233 24 000 0000" class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-3 text-xs font-mono font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-inner">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Host / Department</label>
+                        <input type="text" [(ngModel)]="visitorForm.host_id" placeholder="e.g. Principal's Office, Accounts..." class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-3 text-xs font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-inner">
+                    </div>
+                </div>
+
+                <!-- Purpose of Visit -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Purpose of Campus Visit <span class="text-rose-500">*</span></label>
+                    <textarea [(ngModel)]="visitorForm.purpose" rows="3" placeholder="e.g. Admission inquiry for Grade 7, Parent-Teacher conference with Mr. Kwesi..." class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl p-4 text-xs sm:text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all resize-none shadow-inner"></textarea>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-border-primary">
+                <button (click)="showCheckIn.set(false)" class="px-5 py-2.5 text-xs font-bold text-text-muted hover:text-text-primary transition-all cursor-pointer">
+                    Cancel
+                </button>
+                <button (click)="saveVisitorCheckIn()" [disabled]="isSubmitting() || !visitorForm.name || !visitorForm.purpose" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black shadow-lg shadow-emerald-500/25 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 cursor-pointer">
+                    @if (isSubmitting()) {
+                        <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <span>Processing Sign-In...</span>
+                    } @else {
+                        <i class="fas fa-check-circle"></i>
+                        <span>Complete Sign-In</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}

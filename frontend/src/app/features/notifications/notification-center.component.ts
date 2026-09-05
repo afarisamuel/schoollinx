@@ -19,14 +19,15 @@ export class NotificationCenterComponent {
   notifications = toSignal(this.notificationService.notifications$, { initialValue: [] as Notification[] });
   isConnected = toSignal(this.notificationService.connected$, { initialValue: false });
 
-  activeFilter = signal<'ALL' | 'UNREAD' | 'PAYMENT' | 'GRADE' | 'ATTENDANCE' | 'SYSTEM'>('ALL');
+  activeFilter = signal<'ALL' | 'UNREAD' | 'PAYMENT' | 'GRADE' | 'ATTENDANCE' | 'HOMEWORK' | 'MESSAGE' | 'SYSTEM'>('ALL');
   searchQuery = signal('');
 
   unreadCount = computed(() => this.notifications().filter(n => !n.read).length);
-
   paymentCount = computed(() => this.notifications().filter(n => n.type === 'PAYMENT').length);
   gradeCount = computed(() => this.notifications().filter(n => n.type === 'GRADE').length);
   attendanceCount = computed(() => this.notifications().filter(n => n.type === 'ATTENDANCE').length);
+  homeworkCount = computed(() => this.notifications().filter(n => n.type === 'HOMEWORK').length);
+  messageCount = computed(() => this.notifications().filter(n => n.type === 'MESSAGE').length);
   systemCount = computed(() => this.notifications().filter(n => n.type === 'SYSTEM').length);
 
   filteredNotifications = computed(() => {
@@ -40,6 +41,8 @@ export class NotificationCenterComponent {
       if (filter === 'PAYMENT' && item.type !== 'PAYMENT') return false;
       if (filter === 'GRADE' && item.type !== 'GRADE') return false;
       if (filter === 'ATTENDANCE' && item.type !== 'ATTENDANCE') return false;
+      if (filter === 'HOMEWORK' && item.type !== 'HOMEWORK') return false;
+      if (filter === 'MESSAGE' && item.type !== 'MESSAGE') return false;
       if (filter === 'SYSTEM' && item.type !== 'SYSTEM') return false;
 
       // Filter by search query
@@ -52,6 +55,11 @@ export class NotificationCenterComponent {
     });
   });
 
+  refreshFeed() {
+    this.notificationService.loadInitialNotifications();
+    this.toast.success('Notification feed refreshed.');
+  }
+
   markAsRead(id: string, event?: Event) {
     if (event) event.stopPropagation();
     this.notificationService.markAsRead(id);
@@ -59,30 +67,81 @@ export class NotificationCenterComponent {
 
   markAllAsRead() {
     this.notificationService.markAllAsRead();
-    this.toast.success('All notifications marked as read');
+    this.toast.success('All notifications marked as read.');
   }
 
   clearAll() {
     this.notificationService.clearAll();
-    this.toast.info('Notification feed cleared');
+    this.toast.info('Notification feed cleared.');
   }
 
-  getIcon(type: Notification['type']): string {
-    return this.notificationService.getTypeIcon(type);
+  getIconClass(type: Notification['type']): string {
+    const icons: Record<string, string> = {
+      PAYMENT: 'fas fa-receipt',
+      GRADE: 'fas fa-graduation-cap',
+      ATTENDANCE: 'fas fa-fingerprint',
+      HOMEWORK: 'fas fa-book-open',
+      MESSAGE: 'fas fa-comments',
+      SYSTEM: 'fas fa-bell'
+    };
+    return icons[type] || 'fas fa-bell';
   }
 
-  getColor(type: Notification['type']): string {
-    return this.notificationService.getTypeColor(type);
+  getColorClass(type: Notification['type']): { bg: string; text: string; border: string; glow: string } {
+    switch (type) {
+      case 'PAYMENT':
+        return {
+          bg: 'bg-emerald-500/15',
+          text: 'text-emerald-600 dark:text-emerald-400',
+          border: 'border-emerald-500/30',
+          glow: 'from-emerald-500/10'
+        };
+      case 'GRADE':
+        return {
+          bg: 'bg-indigo-500/15',
+          text: 'text-indigo-600 dark:text-indigo-400',
+          border: 'border-indigo-500/30',
+          glow: 'from-indigo-500/10'
+        };
+      case 'ATTENDANCE':
+        return {
+          bg: 'bg-amber-500/15',
+          text: 'text-amber-600 dark:text-amber-400',
+          border: 'border-amber-500/30',
+          glow: 'from-amber-500/10'
+        };
+      case 'HOMEWORK':
+        return {
+          bg: 'bg-purple-500/15',
+          text: 'text-purple-600 dark:text-purple-400',
+          border: 'border-purple-500/30',
+          glow: 'from-purple-500/10'
+        };
+      case 'MESSAGE':
+        return {
+          bg: 'bg-blue-500/15',
+          text: 'text-blue-600 dark:text-blue-400',
+          border: 'border-blue-500/30',
+          glow: 'from-blue-500/10'
+        };
+      default:
+        return {
+          bg: 'bg-cyan-500/15',
+          text: 'text-cyan-600 dark:text-cyan-400',
+          border: 'border-cyan-500/30',
+          glow: 'from-cyan-500/10'
+        };
+    }
   }
 
   getTypeLabel(type: Notification['type']): string {
     const labels: Record<string, string> = {
       PAYMENT: 'Payment & Billing',
-      GRADE: 'Academic Grade',
-      ATTENDANCE: 'Attendance Record',
-      SYSTEM: 'System Notice',
-      HOMEWORK: 'Homework',
-      MESSAGE: 'Communication'
+      GRADE: 'Academic Assessment',
+      ATTENDANCE: 'Attendance Dispatch',
+      HOMEWORK: 'Assignment & Tasks',
+      MESSAGE: 'Direct Message',
+      SYSTEM: 'System Advisory'
     };
     return labels[type] || type;
   }
@@ -91,13 +150,17 @@ export class NotificationCenterComponent {
     if (n.type === 'PAYMENT') return '/fiscal';
     if (n.type === 'GRADE') return '/academic';
     if (n.type === 'ATTENDANCE') return '/biometrics';
+    if (n.type === 'HOMEWORK') return '/teachers/homework';
+    if (n.type === 'MESSAGE') return '/communications/messages';
     return null;
   }
 
   getNotificationActionLabel(n: Notification): string | null {
-    if (n.type === 'PAYMENT') return 'View Financial Ledger →';
-    if (n.type === 'GRADE') return 'View Academic Record →';
-    if (n.type === 'ATTENDANCE') return 'View Attendance Hub →';
+    if (n.type === 'PAYMENT') return 'View Financial Ledger';
+    if (n.type === 'GRADE') return 'View Academic Record';
+    if (n.type === 'ATTENDANCE') return 'View Attendance Hub';
+    if (n.type === 'HOMEWORK') return 'View Homework Portal';
+    if (n.type === 'MESSAGE') return 'Open Messaging';
     return null;
   }
 }
