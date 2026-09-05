@@ -83,14 +83,43 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
   feedbackState = signal<'IDLE' | 'SUCCESS' | 'DUPLICATE' | 'NOT_FOUND'>('IDLE');
   feedbackMessage = signal<string>('');
 
-  toggleKioskMode() {
+  async toggleKioskMode() {
     const next = !this.isKioskMode();
+    const wasCameraActive = this.isCameraActive();
+
+    if (wasCameraActive) {
+      await this.stopCamera();
+    }
+
     this.isKioskMode.set(next);
-    if (next) {
-      if (!this.isCameraActive()) {
-        this.startCamera();
+
+    if (typeof document !== 'undefined') {
+      if (next) {
+        document.body.classList.add('kiosk-mode-active');
+      } else {
+        document.body.classList.remove('kiosk-mode-active');
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+          this.isNativeFullscreen.set(false);
+        }
       }
     }
+
+    // Give Angular change detection a frame to render the active container
+    await new Promise(r => setTimeout(r, 120));
+
+    // Automatically start or restore camera in the active mode
+    if (next || wasCameraActive) {
+      await this.startCamera();
+    }
+  }
+
+  async flipCamera() {
+    const cams = this.availableCameras();
+    if (cams.length <= 1) return;
+    const currentIndex = cams.findIndex(c => c.id === this.selectedCameraId());
+    const nextIndex = (currentIndex + 1) % cams.length;
+    await this.switchCamera(cams[nextIndex].id);
   }
 
   toggleNativeFullscreen() {
@@ -215,6 +244,12 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
     this.stopCamera();
     this.stopClock();
     this.removeHardwareScannerListener();
+    if (typeof document !== 'undefined') {
+      document.body.classList.remove('kiosk-mode-active');
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
   }
 
   private startClock() {
@@ -311,9 +346,17 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
       }
 
       // Small tick to ensure Angular renders the container before Html5Qrcode initialization
-      await new Promise(r => setTimeout(r, 60));
+      await new Promise(r => setTimeout(r, 100));
 
-      this.html5QrCode = new Html5Qrcode('qr-reader-container', {
+      const containerId = this.isKioskMode() ? 'kiosk-qr-reader-container' : 'qr-reader-container';
+      const containerEl = document.getElementById(containerId);
+      if (!containerEl) {
+        console.warn(`Target scanner container #${containerId} not found in DOM.`);
+        this.isCameraInitializing.set(false);
+        return;
+      }
+
+      this.html5QrCode = new Html5Qrcode(containerId, {
         formatsToSupport: [
           Html5QrcodeSupportedFormats.CODE_128,
           Html5QrcodeSupportedFormats.CODE_39,
@@ -332,15 +375,15 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
       const cameraConfig = cameraId ? { deviceId: { exact: cameraId } } : { facingMode: 'environment' };
 
       const config = {
-        fps: 20,
+        fps: 24,
         qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
           const minDim = Math.min(viewfinderWidth, viewfinderHeight);
           return {
-            width: Math.floor(minDim * 0.85),
-            height: Math.floor(minDim * 0.55)
+            width: Math.floor(minDim * 0.88),
+            height: Math.floor(minDim * 0.6)
           };
         },
-        aspectRatio: 1.777778
+        aspectRatio: 1.6
       };
 
       try {

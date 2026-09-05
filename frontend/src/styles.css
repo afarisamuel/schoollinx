@@ -57,8 +57,6 @@
   --radius-sm: 0.75rem;
   --radius-md: 1rem;
   --radius-lg: 1.5rem;
-  --radius-full: 9999px;
-  
   --border-focus: rgba(37, 99, 235, 0.5);
   
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -66,6 +64,40 @@
   --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 
   color-scheme: dark;
+}
+
+/* ========================================================= */
+/* KIOSK MODE FULL-TAKEOVER ISOLATION                        */
+/* ========================================================= */
+body.kiosk-mode-active {
+  overflow: hidden !important;
+  background-color: #030712 !important;
+}
+
+body.kiosk-mode-active app-sidebar,
+body.kiosk-mode-active app-navbar,
+body.kiosk-mode-active app-ai-chatbot,
+body.kiosk-mode-active .fixed.bottom-6.right-6 {
+  display: none !important;
+}
+
+body.kiosk-mode-active main {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: #030712 !important;
+  overflow: hidden !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+}
+
+body.kiosk-mode-active .flex.h-screen {
+  padding: 0 !important;
+  gap: 0 !important;
+  background: #030712 !important;
 }
 
 :root.light-mode {

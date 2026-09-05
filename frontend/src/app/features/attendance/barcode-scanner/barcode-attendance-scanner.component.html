@@ -808,49 +808,85 @@
           </div>
         }
 
-        <!-- IDLE SCANNER TARGET STAGE (CAMERA VIEWPORT & LASER TARGET) -->
+        <!-- IDLE SCANNER TARGET STAGE (LIVE CAMERA VIEWPORT & LASER TARGET) -->
         @else {
-          <div class="w-full max-w-xl flex flex-col items-center justify-center gap-5">
+          <div class="w-full max-w-xl flex flex-col items-center justify-center gap-4">
             
             <!-- Viewfinder Card Container -->
-            <div class="relative w-full aspect-[1.4] max-h-[380px] rounded-3xl overflow-hidden bg-gradient-to-b from-gray-900/90 to-[#050b14] border-2 border-teal-500/40 p-4 shadow-[0_0_40px_rgba(20,184,166,0.2)] backdrop-blur-xl flex flex-col items-center justify-center">
+            <div class="relative w-full aspect-[16/10] max-h-[380px] rounded-3xl overflow-hidden bg-gradient-to-b from-gray-900/90 to-[#050b14] border-2 border-teal-500/50 p-2 shadow-[0_0_50px_rgba(20,184,166,0.3)] backdrop-blur-2xl flex items-center justify-center">
               
+              <!-- Live Camera Feed Mount Point -->
+              <div id="kiosk-qr-reader-container" class="w-full h-full min-h-[280px] flex items-center justify-center relative z-10" [class.hidden]="!isCameraActive()"></div>
+
               <!-- Futuristic Corner Reticle HUD Brackets -->
-              <div class="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-teal-400 pointer-events-none"></div>
-              <div class="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-teal-400 pointer-events-none"></div>
-              <div class="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-teal-400 pointer-events-none"></div>
-              <div class="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-teal-400 pointer-events-none"></div>
+              <div class="absolute top-4 left-4 w-7 h-7 border-t-2 border-l-2 border-teal-400 pointer-events-none z-20"></div>
+              <div class="absolute top-4 right-4 w-7 h-7 border-t-2 border-r-2 border-teal-400 pointer-events-none z-20"></div>
+              <div class="absolute bottom-4 left-4 w-7 h-7 border-b-2 border-l-2 border-teal-400 pointer-events-none z-20"></div>
+              <div class="absolute bottom-4 right-4 w-7 h-7 border-b-2 border-r-2 border-teal-400 pointer-events-none z-20"></div>
 
-              <!-- Animated Neon Laser Scan Beam -->
-              <div class="absolute left-8 right-8 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_#34d399] pointer-events-none animate-scanline z-20"></div>
-
-              <!-- Inner Hologram / Camera Feed -->
-              <div class="relative z-10 w-full h-full flex flex-col items-center justify-center gap-3 text-center">
+              <!-- Animated Neon Laser Scan Beam (Active during camera scanning) -->
+              @if (isCameraActive()) {
+                <div class="absolute left-6 right-6 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_20px_#34d399] pointer-events-none animate-scanline z-20"></div>
                 
-                <!-- Central Target Pulse Ring -->
-                <div class="w-24 h-24 rounded-3xl bg-teal-500/10 border-2 border-dashed border-teal-400/60 flex items-center justify-center text-teal-300 animate-pulse-glow">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" x2="17" y1="8" y2="8"/><line x1="7" x2="17" y1="12" y2="12"/><line x1="7" x2="17" y1="16" y2="16"/></svg>
+                <!-- Live Telemetry Status Pill -->
+                <div class="absolute top-4 inset-x-0 flex justify-center pointer-events-none z-30">
+                  <div class="px-3.5 py-1 bg-black/70 backdrop-blur-md rounded-full border border-teal-400/40 text-[10px] font-mono font-bold text-emerald-400 flex items-center gap-2 shadow-lg">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>OPTICAL SENSOR ACTIVE</span>
+                    @if (availableCameras().length > 1) {
+                      <button type="button" (click)="flipCamera()" class="pointer-events-auto ml-1 text-white/70 hover:text-white underline text-[9px] cursor-pointer">
+                        Flip Cam
+                      </button>
+                    }
+                  </div>
                 </div>
+              }
 
-                <div>
-                  <h3 class="text-xl sm:text-2xl font-black uppercase tracking-wider text-white">Present Student Credential</h3>
-                  <p class="text-xs text-white/60 mt-1 max-w-sm">
-                    Hold Student ID Card / Smart Pass badge in front of laser reader or webcam
-                  </p>
+              <!-- Camera Standby / Prompt State (when camera is OFF) -->
+              @if (!isCameraActive()) {
+                <div class="relative z-10 w-full h-full flex flex-col items-center justify-center gap-3 p-4 text-center">
+                  
+                  <!-- Central Target Pulse Ring -->
+                  <div class="w-20 h-20 rounded-3xl bg-teal-500/10 border-2 border-dashed border-teal-400/60 flex items-center justify-center text-teal-300 animate-pulse-glow">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" x2="17" y1="8" y2="8"/><line x1="7" x2="17" y1="12" y2="12"/><line x1="7" x2="17" y1="16" y2="16"/></svg>
+                  </div>
+
+                  <div>
+                    <h3 class="text-lg sm:text-xl font-black uppercase tracking-wider text-white">Present Student Credential</h3>
+                    <p class="text-xs text-white/60 mt-1 max-w-sm">
+                      Hold Student ID Card / Smart Pass badge in front of laser reader or activate device webcam
+                    </p>
+                  </div>
+
+                  <!-- Activate Camera Button & Hardware Scanner Ready -->
+                  <div class="flex items-center gap-2.5 mt-1">
+                    <button type="button" (click)="startCamera()" [disabled]="isCameraInitializing()"
+                      class="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-gray-950 font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-teal-500/30 flex items-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50">
+                      @if (isCameraInitializing()) {
+                        <div class="w-3.5 h-3.5 border-2 border-gray-950 border-t-transparent rounded-full animate-spin"></div>
+                        <span>Initializing...</span>
+                      } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        <span>Activate Webcam</span>
+                      }
+                    </button>
+                    <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 border border-white/15 text-[11px] font-mono text-teal-300">
+                      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                      <span>USB Gun: READY</span>
+                    </div>
+                  </div>
+
+                  @if (cameraError()) {
+                    <span class="text-[11px] text-rose-400 mt-1 font-semibold max-w-xs">{{ cameraError() }}</span>
+                  }
+
                 </div>
-
-                <!-- Hardware Listener Indicator -->
-                <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[11px] font-mono text-teal-300">
-                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <span>USB Laser Scanner: READY</span>
-                </div>
-
-              </div>
+              }
 
             </div>
 
             <!-- Auxiliary Guidance Sub-text -->
-            <div class="flex items-center gap-4 text-xs text-white/50">
+            <div class="flex flex-wrap items-center justify-center gap-4 text-xs text-white/50">
               <span class="flex items-center gap-1.5">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 Auto-Audio Speech
@@ -863,7 +899,7 @@
               <span>•</span>
               <span class="flex items-center gap-1.5">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                Offline-Sync Safe
+                Offline Sync Safe
               </span>
             </div>
 
