@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ResourceService, Resource, Booking, ResourceType } from '../../../core/infrastructure/resource/resource.service';
 import { BookingModalComponent } from '../../../shared/components/booking-modal/booking-modal.component';
+import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 import { QRCodeComponent } from 'angularx-qrcode';
 
 @Component({
@@ -14,6 +15,7 @@ import { QRCodeComponent } from 'angularx-qrcode';
 })
 export class ResourceListComponent implements OnInit {
     private resourceService = inject(ResourceService);
+    private dialogService = inject(DialogService);
 
     // Core Data Signals
     resources = signal<Resource[]>([]);
@@ -211,14 +213,23 @@ export class ResourceListComponent implements OnInit {
 
     deleteAsset(res: Resource, event: Event) {
         event.stopPropagation();
-        if (!confirm(`Are you sure you want to decommission "${res.name}"?`)) return;
+        this.dialogService.confirm(
+            `Are you sure you want to decommission and remove <strong>"${res.name}"</strong> from the physical resource ledger? This action cannot be undone.`,
+            'Decommission Asset',
+            'danger',
+            'Decommission'
+        ).subscribe((confirmed: boolean) => {
+            if (!confirmed) return;
 
-        this.resourceService.deleteResource(res.id).subscribe({
-            next: () => {
-                this.showToast('Resource deleted.');
-                this.loadData();
-            },
-            error: () => this.showToast('Failed to delete resource.')
+            this.resourceService.deleteResource(res.id).subscribe({
+                next: () => {
+                    this.showToast(`Asset "${res.name}" decommissioned successfully.`);
+                    this.loadData();
+                },
+                error: () => {
+                    this.dialogService.alert('Failed to decommission resource asset. Please try again.', 'Error', 'error');
+                }
+            });
         });
     }
 
@@ -236,13 +247,23 @@ export class ResourceListComponent implements OnInit {
     }
 
     cancelBooking(bookingId: string) {
-        if (!confirm('Are you sure you want to cancel this booking?')) return;
-        this.resourceService.cancelBooking(bookingId).subscribe({
-            next: () => {
-                this.showToast('Booking cancelled.');
-                this.loadBookings();
-            },
-            error: () => this.showToast('Failed to cancel booking.')
+        this.dialogService.confirm(
+            'Are you sure you want to cancel this reservation? The slot will immediately be made available for other faculty and staff.',
+            'Cancel Reservation',
+            'warning',
+            'Cancel Booking'
+        ).subscribe((confirmed: boolean) => {
+            if (!confirmed) return;
+
+            this.resourceService.cancelBooking(bookingId).subscribe({
+                next: () => {
+                    this.showToast('Reservation cancelled successfully.');
+                    this.loadBookings();
+                },
+                error: () => {
+                    this.dialogService.alert('Failed to cancel reservation.', 'Error', 'error');
+                }
+            });
         });
     }
 
