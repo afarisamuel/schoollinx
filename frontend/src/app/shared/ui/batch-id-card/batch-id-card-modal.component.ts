@@ -80,6 +80,22 @@ export class BatchIdCardModalComponent {
     return isNaN(d.getTime()) ? s.dob : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
+  // Track failed student image IDs
+  failedImageIds = signal<Set<string>>(new Set());
+
+  onStudentImageError(studentId?: string) {
+    if (!studentId) return;
+    this.failedImageIds.update(set => {
+      const next = new Set(set);
+      next.add(studentId);
+      return next;
+    });
+  }
+
+  hasPhoto(s: Student): boolean {
+    return !!s.photo_url && !this.failedImageIds().has(s.id || '');
+  }
+
   getInitials(s: Student): string {
     const fn = s.first_name?.[0] || 'S';
     const ln = s.last_name?.[0] || 'T';

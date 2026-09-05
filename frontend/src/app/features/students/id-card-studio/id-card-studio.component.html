@@ -127,10 +127,11 @@
               [class.text-text-secondary]="selectedStudentId() !== s.id"
               [class.border-border-secondary]="selectedStudentId() !== s.id">
               <div class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-[10px] overflow-hidden">
-                @if (s.photo_url) {
-                  <img [src]="s.photo_url" (error)="$any($event.target).style.display='none'; $any($event.target).nextElementSibling?.classList.remove('hidden')" class="w-full h-full object-cover">
+                @if (hasPhoto(s)) {
+                  <img [src]="s.photo_url" (error)="onStudentImageError(s.id)" class="w-full h-full object-cover" alt="">
+                } @else {
+                  <span>{{ (s.first_name ? s.first_name[0] : 'S') }}</span>
                 }
-                <span [class.hidden]="s.photo_url">{{ (s.first_name ? s.first_name[0] : 'S') }}</span>
               </div>
               <div class="flex flex-col text-left">
                 <span class="leading-none text-[11px] truncate max-w-[100px]">{{ s.first_name }} {{ s.last_name }}</span>

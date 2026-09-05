@@ -42,6 +42,22 @@ export class IdCardStudioComponent implements OnInit {
   mobileTab = signal<'controls' | 'preview'>('controls');
   isFullscreenPreviewOpen = signal<boolean>(false);
 
+  // Track failed student image IDs
+  failedImageIds = signal<Set<string>>(new Set());
+
+  onStudentImageError(studentId?: string) {
+    if (!studentId) return;
+    this.failedImageIds.update(set => {
+      const next = new Set(set);
+      next.add(studentId);
+      return next;
+    });
+  }
+
+  hasPhoto(student: Student): boolean {
+    return !!student.photo_url && !this.failedImageIds().has(student.id || '');
+  }
+
   // Batch Printing Modal
   isBatchModalOpen = signal<boolean>(false);
   isLoading = signal<boolean>(false);

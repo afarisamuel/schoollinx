@@ -106,10 +106,11 @@
           @for (st of targetStudents().slice(0, 6); track st.id) {
             <div class="p-2.5 rounded-xl bg-bg-tertiary border border-border-primary/60 flex flex-col items-center text-center gap-1.5">
               <div class="w-10 h-10 rounded-full bg-bg-secondary border border-border-secondary overflow-hidden flex items-center justify-center font-bold text-xs text-text-primary">
-                @if (st.photo_url) {
-                  <img [src]="st.photo_url" alt="Photo" (error)="$any($event.target).style.display='none'; $any($event.target).nextElementSibling?.classList.remove('hidden')" class="w-full h-full object-cover">
+                @if (hasPhoto(st)) {
+                  <img [src]="st.photo_url" alt="" (error)="onStudentImageError(st.id)" class="w-full h-full object-cover">
+                } @else {
+                  <span>{{ getInitials(st) }}</span>
                 }
-                <span [class.hidden]="st.photo_url">{{ getInitials(st) }}</span>
               </div>
               <div class="w-full">
                 <p class="text-[10px] font-bold text-text-primary truncate">{{ getStudentFullName(st) }}</p>

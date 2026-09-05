@@ -34,6 +34,22 @@ export class StudentListComponent implements OnInit {
     importResult = signal<{ imported: number; failed: number; errors: string[] } | null>(null);
     exportMenuOpen = signal(false);
 
+    // Track failed student image IDs
+    failedImageIds = signal<Set<string>>(new Set());
+
+    onStudentImageError(studentId?: string) {
+        if (!studentId) return;
+        this.failedImageIds.update(set => {
+            const next = new Set(set);
+            next.add(studentId);
+            return next;
+        });
+    }
+
+    hasPhoto(student: Student): boolean {
+        return !!student.photo_url && !this.failedImageIds().has(student.id || '');
+    }
+
     selectedStudentsList = computed(() => {
         const ids = this.selectedIds();
         if (ids.size === 0) return [];
