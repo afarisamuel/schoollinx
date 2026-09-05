@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Student } from '../../../core/domain/student.model';
@@ -6,7 +6,15 @@ import { BarcodeGenerator, BarcodeBar } from '../../../core/utils/barcode.util';
 import { QRCodeComponent } from 'angularx-qrcode';
 import { TenantProfileService, TenantProfile } from '../../../core/infrastructure/tenant-profile.service';
 
-export type IdCardTheme = 'teal' | 'blue' | 'purple' | 'ruby' | 'amber' | 'dark' | 'custom';
+export type IdCardTheme = 'teal' | 'blue' | 'purple' | 'ruby' | 'amber' | 'cyan' | 'rose' | 'forest' | 'dark' | 'onyx' | 'custom';
+export type IdCardTemplate = 'wave' | 'academic' | 'corporate' | 'cyber' | 'vertical';
+
+export interface TemplateOption {
+  id: IdCardTemplate;
+  name: string;
+  icon: string;
+  desc: string;
+}
 
 export interface ThemeConfig {
   id: IdCardTheme;
@@ -65,6 +73,33 @@ export const ID_CARD_THEMES: ThemeConfig[] = [
     waveColor: '#78350f'
   },
   {
+    id: 'cyan',
+    name: 'Cyber Cyan',
+    primary: '#0e7490',
+    secondary: '#0891b2',
+    accent: '#22d3ee',
+    gradient: 'from-[#083344] via-[#0e7490] to-[#06b6d4]',
+    waveColor: '#0e7490'
+  },
+  {
+    id: 'rose',
+    name: 'Rose Gold',
+    primary: '#9f1239',
+    secondary: '#e11d48',
+    accent: '#fda4af',
+    gradient: 'from-[#4c0519] via-[#9f1239] to-[#fb7185]',
+    waveColor: '#9f1239'
+  },
+  {
+    id: 'forest',
+    name: 'Forest Pine',
+    primary: '#14532d',
+    secondary: '#15803d',
+    accent: '#4ade80',
+    gradient: 'from-[#052e16] via-[#14532d] to-[#16a34a]',
+    waveColor: '#14532d'
+  },
+  {
     id: 'dark',
     name: 'Obsidian Slate',
     primary: '#0f172a',
@@ -72,7 +107,24 @@ export const ID_CARD_THEMES: ThemeConfig[] = [
     accent: '#94a3b8',
     gradient: 'from-[#020617] via-[#0f172a] to-[#334155]',
     waveColor: '#0f172a'
+  },
+  {
+    id: 'onyx',
+    name: 'Midnight Onyx',
+    primary: '#18181b',
+    secondary: '#27272a',
+    accent: '#e4e4e7',
+    gradient: 'from-[#09090b] via-[#18181b] to-[#3f3f46]',
+    waveColor: '#18181b'
   }
+];
+
+export const ID_CARD_TEMPLATES: TemplateOption[] = [
+  { id: 'wave', name: 'Fluid Wave', icon: 'fas fa-water', desc: 'Modern wave with circular portrait' },
+  { id: 'academic', name: 'Academic Shield', icon: 'fas fa-graduation-cap', desc: 'Formal crest bar with gold accents' },
+  { id: 'corporate', name: 'Corporate Clean', icon: 'fas fa-id-badge', desc: 'Minimalist dual-tone side accent' },
+  { id: 'cyber', name: 'Tech Grid', icon: 'fas fa-microchip', desc: 'Futuristic geometric neon layout' },
+  { id: 'vertical', name: 'Lanyard Vertical', icon: 'fas fa-arrows-up-down', desc: 'Portrait badge with top punch slot' }
 ];
 
 @Component({
@@ -85,51 +137,60 @@ export const ID_CARD_THEMES: ThemeConfig[] = [
 export class StudentIdCardComponent implements OnInit {
   private tenantService = inject(TenantProfileService);
 
-  @Input() student: Student | null = null;
-  @Input() studentName: string = '';
-  @Input() studentIdCode: string = '';
-  @Input() studentDob: string = '';
-  @Input() studentAddress: string = '';
-  @Input() studentPhotoUrl: string | null = null;
-  @Input() studentGender: string = '';
-  @Input() studentClass: string = '';
-  @Input() studentLevel: string = '';
-  @Input() studentBloodGroup: string = '';
+  // Signal Inputs (Fully Reactive to Parent Form Changes)
+  student = input<Student | null>(null);
+  studentName = input<string>('');
+  studentIdCode = input<string>('');
+  studentDob = input<string>('');
+  studentAddress = input<string>('');
+  studentPhotoUrl = input<string | null>(null);
+  studentGender = input<string>('');
+  studentClass = input<string>('');
+  studentLevel = input<string>('');
+  studentBloodGroup = input<string>('');
 
-  @Input() schoolName: string = '';
-  @Input() schoolLogo: string = '';
+  schoolName = input<string>('');
+  schoolLogo = input<string>('');
   
-  @Input() allowColorCustomization: boolean = true;
-  @Input() showQrCode: boolean = true;
-  @Input() showBarcode: boolean = true;
-  @Input() showControls: boolean = true;
+  allowColorCustomization = input<boolean>(true);
+  showQrCode = input<boolean>(true);
+  showBarcode = input<boolean>(true);
+  showControls = input<boolean>(true);
 
-  // Selected Card Theme
+  // Interactive Configuration Signals
   selectedTheme = signal<IdCardTheme>('teal');
+  selectedTemplate = signal<IdCardTemplate>('wave');
   customPrimaryColor = signal<string>('#0d695b');
   customSecondaryColor = signal<string>('#138b75');
   isBackSide = signal<boolean>(false);
 
   themes = ID_CARD_THEMES;
+  templates = ID_CARD_TEMPLATES;
   tenantProfile = signal<TenantProfile | null>(null);
 
-  // Resolved Display Values
+  // Fully Reactive Computed Properties
   resolvedName = computed(() => {
-    if (this.studentName) return this.studentName;
-    if (!this.student) return 'ALFREDO TORRES';
-    const parts = [this.student.first_name, this.student.other_name, this.student.last_name].filter(Boolean);
-    return parts.length > 0 ? parts.join(' ').toUpperCase() : 'ALFREDO TORRES';
+    const directName = this.studentName()?.trim();
+    if (directName) return directName.toUpperCase();
+    const st = this.student();
+    if (st) {
+      const parts = [st.first_name, st.other_name, st.last_name].filter(Boolean);
+      if (parts.length > 0) return parts.join(' ').toUpperCase();
+    }
+    return 'CANDIDATE NAME';
   });
 
   resolvedId = computed(() => {
-    if (this.studentIdCode) return this.studentIdCode;
-    if (this.student?.enrollment_num) return this.student.enrollment_num;
-    if (this.student?.id) return `STU-${this.student.id.substring(0, 8).toUpperCase()}`;
+    const directId = this.studentIdCode()?.trim();
+    if (directId) return directId;
+    const st = this.student();
+    if (st?.enrollment_num) return st.enrollment_num;
+    if (st?.id) return `STU-${st.id.substring(0, 8).toUpperCase()}`;
     return 'STU-2026-0042';
   });
 
   resolvedDob = computed(() => {
-    const raw = this.studentDob || this.student?.dob;
+    const raw = this.studentDob() || this.student()?.dob;
     if (!raw) return '05 March 2013';
     const d = new Date(raw);
     if (isNaN(d.getTime())) return raw;
@@ -137,19 +198,31 @@ export class StudentIdCardComponent implements OnInit {
   });
 
   resolvedAddress = computed(() => {
-    return this.studentAddress || this.student?.address || '123 Campus Avenue, Accra';
+    return this.studentAddress() || this.student()?.address || '123 Campus Avenue, Accra';
   });
 
   resolvedPhoto = computed(() => {
-    return this.studentPhotoUrl || this.student?.photo_url || null;
+    return this.studentPhotoUrl() || this.student()?.photo_url || null;
   });
 
   resolvedSchoolName = computed(() => {
-    return this.schoolName || this.tenantProfile()?.name || 'Hanover and Tyke Elementary School';
+    return this.schoolName() || this.tenantProfile()?.name || 'SchoolLinx International Academy';
   });
 
   resolvedSchoolLogo = computed(() => {
-    return this.schoolLogo || this.tenantProfile()?.logo_url || null;
+    return this.schoolLogo() || this.tenantProfile()?.logo_url || null;
+  });
+
+  resolvedClass = computed(() => {
+    return this.studentClass() || this.student()?.class_name || 'Primary 5-A';
+  });
+
+  resolvedLevel = computed(() => {
+    return this.studentLevel() || (this.student()?.level ? `Level ${this.student()?.level}` : 'Basic Level');
+  });
+
+  resolvedBloodGroup = computed(() => {
+    return this.studentBloodGroup() || this.student()?.blood_group || 'O+';
   });
 
   resolvedInitials = computed(() => {
@@ -178,7 +251,7 @@ export class StudentIdCardComponent implements OnInit {
     return found || ID_CARD_THEMES[0];
   });
 
-  // Barcode data
+  // Barcode data (Code 128)
   barcodeData = computed(() => {
     const text = this.resolvedId();
     return BarcodeGenerator.generateCode128(text, 1.8);
@@ -187,7 +260,7 @@ export class StudentIdCardComponent implements OnInit {
   // QR Code Payload (Encodes attendance verification payload)
   qrPayload = computed(() => {
     return JSON.stringify({
-      id: this.student?.id || this.resolvedId(),
+      id: this.student()?.id || this.resolvedId(),
       code: this.resolvedId(),
       name: this.resolvedName(),
       type: 'STUDENT_ATTENDANCE'
@@ -195,10 +268,15 @@ export class StudentIdCardComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    // Check saved theme in localStorage if available
-    const saved = localStorage.getItem('schoollinx_id_card_theme');
-    if (saved && (ID_CARD_THEMES.some(t => t.id === saved) || saved === 'custom')) {
-      this.selectedTheme.set(saved as IdCardTheme);
+    // Check saved theme and template in localStorage
+    const savedTheme = localStorage.getItem('schoollinx_id_card_theme');
+    if (savedTheme && (ID_CARD_THEMES.some(t => t.id === savedTheme) || savedTheme === 'custom')) {
+      this.selectedTheme.set(savedTheme as IdCardTheme);
+    }
+
+    const savedTpl = localStorage.getItem('schoollinx_id_card_template');
+    if (savedTpl && ID_CARD_TEMPLATES.some(t => t.id === savedTpl)) {
+      this.selectedTemplate.set(savedTpl as IdCardTemplate);
     }
 
     this.tenantService.getProfile().subscribe({
@@ -210,6 +288,11 @@ export class StudentIdCardComponent implements OnInit {
   setTheme(themeId: IdCardTheme) {
     this.selectedTheme.set(themeId);
     localStorage.setItem('schoollinx_id_card_theme', themeId);
+  }
+
+  setTemplate(tplId: IdCardTemplate) {
+    this.selectedTemplate.set(tplId);
+    localStorage.setItem('schoollinx_id_card_template', tplId);
   }
 
   setCustomColor(primary: string, secondary: string) {
