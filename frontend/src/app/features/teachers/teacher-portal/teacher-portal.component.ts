@@ -354,15 +354,36 @@ export class TeacherPortalComponent implements OnInit {
     onSubjectChange(subjectId: string) {
         this.selectedSubjectId.set(subjectId);
         this.populateGridWithExistingGrades();
+        const classId = this.selectedAssignment()?.class_id;
+        if (classId) {
+            this.portalService.getClassGrades(classId).subscribe({
+                next: (grades) => {
+                    this.existingGrades.set(grades || []);
+                    this.populateGridWithExistingGrades();
+                },
+                error: () => {
+                    this.populateGridWithExistingGrades();
+                }
+            });
+        }
     }
 
     setTerm(t: string) {
         this.term.set(t);
+        this.populateGridWithExistingGrades();
         const classId = this.selectedAssignment()?.class_id;
         if (classId) {
             this.checkTermLock(classId, t);
+            this.portalService.getClassGrades(classId).subscribe({
+                next: (grades) => {
+                    this.existingGrades.set(grades || []);
+                    this.populateGridWithExistingGrades();
+                },
+                error: () => {
+                    this.populateGridWithExistingGrades();
+                }
+            });
         }
-        this.populateGridWithExistingGrades();
     }
 
     checkTermLock(classId: string, term: string) {
@@ -446,8 +467,12 @@ export class TeacherPortalComponent implements OnInit {
 
         if (!students || students.length === 0 || !cols || cols.length === 0) return;
 
-        // Resolve selected subject details
-        const selectedSub = this.classSubjects().find(s => s.id === currentSubjectId || s.name === currentSubjectId);
+        // Resolve selected subject details with case-insensitive matching
+        const selectedSub = this.classSubjects().find(s => 
+            s.id.toLowerCase() === currentSubjectId.toLowerCase() || 
+            s.name.trim().toLowerCase() === currentSubjectId.trim().toLowerCase() ||
+            (s.code && s.code.trim().toLowerCase() === currentSubjectId.trim().toLowerCase())
+        );
         const subId = selectedSub?.id || currentSubjectId;
         const subName = selectedSub?.name || currentSubjectId;
         const subCode = selectedSub?.code || '';
@@ -457,8 +482,8 @@ export class TeacherPortalComponent implements OnInit {
             if (!gSub) return false;
             const norm = gSub.trim().toLowerCase();
             return norm === subId.toLowerCase() ||
-                   norm === subName.toLowerCase() ||
-                   (subCode !== '' && norm === subCode.toLowerCase());
+                   norm === subName.trim().toLowerCase() ||
+                   (subCode !== '' && norm === subCode.trim().toLowerCase());
         };
 
         const matchTerm = (gTerm: string) => {

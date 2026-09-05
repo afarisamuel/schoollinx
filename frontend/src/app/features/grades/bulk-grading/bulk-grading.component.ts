@@ -562,7 +562,7 @@ export class BulkGradingComponent implements OnInit {
   }
 
   loadExistingGrades() {
-    this.initDraftGrades(false);
+    this.initDraftGrades(true);
     this.hasUnsavedChanges.set(false);
     if (!this.selectedClassId() || !this.selectedSubjectId()) {
       this.isLoading.set(false);
@@ -574,18 +574,23 @@ export class BulkGradingComponent implements OnInit {
     // Fetch all grades for this class to prepopulate
     this.gradeService.getGradesForClass(this.selectedClassId()).subscribe({
       next: (grades) => {
-        const selectedSub = this.subjects().find(s => s.id === this.selectedSubjectId() || s.name === this.selectedSubjectId());
-        const subName = selectedSub?.name || this.selectedSubjectId();
-        const subId = selectedSub?.id || this.selectedSubjectId();
+        const currentSubId = this.selectedSubjectId();
+        const selectedSub = this.subjects().find(s => 
+          s.id.toLowerCase() === currentSubId.toLowerCase() || 
+          s.name.trim().toLowerCase() === currentSubId.trim().toLowerCase() ||
+          (s.code && s.code.trim().toLowerCase() === currentSubId.trim().toLowerCase())
+        );
+        const subName = selectedSub?.name || currentSubId;
+        const subId = selectedSub?.id || currentSubId;
         const subCode = selectedSub?.code || '';
 
         const matchSubject = (gSub: string) => {
-          if (!this.selectedSubjectId()) return false;
+          if (!currentSubId) return false;
           if (!gSub) return false;
           const sNorm = gSub.trim().toLowerCase();
           return sNorm === subId.toLowerCase() ||
-                 sNorm === subName.toLowerCase() ||
-                 (subCode !== '' && sNorm === subCode.toLowerCase());
+                 sNorm === subName.trim().toLowerCase() ||
+                 (subCode !== '' && sNorm === subCode.trim().toLowerCase());
         };
 
         const matchTerm = (gTerm: string) => {
@@ -624,13 +629,24 @@ export class BulkGradingComponent implements OnInit {
           this.configuredColumns.set(currentCols);
         }
 
-        const map = this.draftGrades();
+        // Build fresh map of student grades for this subject and term
+        const newMap = new Map<string, { [category: string]: { score: number | null, flag?: string, id?: string } }>();
+        this.students().forEach(student => {
+          if (student.id) {
+            const studentDraft: { [category: string]: { score: number | null, flag?: string, id?: string } } = {};
+            this.configuredColumns().forEach(col => {
+              const catKey = col.category.trim().toUpperCase();
+              studentDraft[catKey] = { score: null };
+            });
+            newMap.set(student.id, studentDraft);
+          }
+        });
 
         filtered.forEach(g => {
-          let studentDraft = map.get(g.student_id);
+          let studentDraft = newMap.get(g.student_id);
           if (!studentDraft) {
             studentDraft = {};
-            map.set(g.student_id, studentDraft);
+            newMap.set(g.student_id, studentDraft);
           }
 
           const catKey = (g.category || '').trim().toUpperCase();
@@ -644,7 +660,7 @@ export class BulkGradingComponent implements OnInit {
           studentDraft[catKey] = { score: g.score, flag, id: g.id };
         });
 
-        this.draftGrades.set(new Map(map));
+        this.draftGrades.set(newMap);
         this.isLoading.set(false);
         this.checkLocalStorageDraft();
       },
