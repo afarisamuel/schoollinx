@@ -276,18 +276,35 @@ export class BulkGradingComponent implements OnInit {
   isSaving = signal(false);
 
   ngOnInit() {
+    // 1. Initial query parameter capture
+    const initialParams = this.route.snapshot.queryParams;
+    if (initialParams['class_id']) this.selectedClassId.set(initialParams['class_id']);
+    if (initialParams['subject']) this.selectedSubjectId.set(initialParams['subject']);
+    if (initialParams['term']) this.selectedTerm.set(initialParams['term']);
+    if (initialParams['scale'] && (initialParams['scale'] === 'STANDARD' || initialParams['scale'] === 'WAEC' || initialParams['scale'] === 'CAMBRIDGE' || initialParams['scale'] === 'GPA')) {
+      this.selectedScale.set(initialParams['scale']);
+    }
+
+    // 2. Fetch metadata
     this.loadTerms();
     this.loadTeacherAssignments();
     this.loadSubjects();
     this.loadClasses();
 
-    // Listen to query parameters reactively so changes in URL automatically refresh grading view
+    // 3. Reactively handle URL query parameter updates (e.g. browser navigation, deep linking)
     this.route.queryParams.subscribe(params => {
       const qClass = params['class_id'];
       const qSub = params['subject'];
       const qTerm = params['term'];
+      const qScale = params['scale'];
 
       let stateChanged = false;
+
+      if (qScale && (qScale === 'STANDARD' || qScale === 'WAEC' || qScale === 'CAMBRIDGE' || qScale === 'GPA')) {
+        if (qScale !== this.selectedScale()) {
+          this.selectedScale.set(qScale);
+        }
+      }
 
       if (qClass && qClass !== this.selectedClassId()) {
         this.selectedClassId.set(qClass);
@@ -354,13 +371,22 @@ export class BulkGradingComponent implements OnInit {
 
   validateSubjectForCurrentClass() {
     const available = this.availableSubjects();
-    if (available.length === 0) return;
+    if (available.length === 0 || this.subjects().length === 0) return;
 
     const currentSub = this.selectedSubjectId();
+    if (!currentSub) {
+      this.selectedSubjectId.set(available[0].name || available[0].id);
+      this.syncUrlAndSession();
+      if (this.selectedClassId()) {
+        this.loadExistingGrades();
+      }
+      return;
+    }
+
     const isCurrentValid = available.some(s => 
-      s.id === currentSub || 
-      s.name.toLowerCase() === currentSub.toLowerCase() || 
-      (s.code && s.code.toLowerCase() === currentSub.toLowerCase())
+      s.id.toLowerCase() === currentSub.toLowerCase() || 
+      s.name.trim().toLowerCase() === currentSub.trim().toLowerCase() || 
+      (s.code && s.code.trim().toLowerCase() === currentSub.trim().toLowerCase())
     );
 
     if (!isCurrentValid && available.length > 0) {
@@ -386,7 +412,7 @@ export class BulkGradingComponent implements OnInit {
   }
 
   loadTerms() {
-    const savedTerm = this.route.snapshot.queryParams['term'] || sessionStorage.getItem('schoollinx_bulk_grade_term') || '';
+    const savedTerm = this.route.snapshot.queryParams['term'] || this.selectedTerm() || sessionStorage.getItem('schoollinx_bulk_grade_term') || '';
     this.academicPeriodService.getActive().subscribe({
       next: (period) => {
         if (period && period.terms) {
@@ -397,7 +423,7 @@ export class BulkGradingComponent implements OnInit {
             this.selectedTerm.set(savedTerm);
             const foundTerm = period.terms.find(t => t.name === savedTerm || t.id === savedTerm);
             if (foundTerm?.id) this.activeTermId.set(foundTerm.id);
-          } else {
+          } else if (!this.selectedTerm()) {
             const currentTerm = period.terms.find(t => t.term_number === period.current_term);
             if (currentTerm) {
               this.selectedTerm.set(currentTerm.name);
@@ -406,6 +432,10 @@ export class BulkGradingComponent implements OnInit {
               this.selectedTerm.set(period.terms[0].name);
               this.activeTermId.set(period.terms[0].id || '');
             }
+          }
+          this.syncUrlAndSession();
+          if (this.selectedClassId() && this.selectedSubjectId()) {
+            this.loadExistingGrades();
           }
         }
       },
@@ -416,7 +446,7 @@ export class BulkGradingComponent implements OnInit {
   }
 
   loadClasses() {
-    const savedClass = this.route.snapshot.queryParams['class_id'] || sessionStorage.getItem('schoollinx_bulk_grade_class') || '';
+    const savedClass = this.route.snapshot.queryParams['class_id'] || this.selectedClassId() || sessionStorage.getItem('schoollinx_bulk_grade_class') || '';
     this.classService.getClasses().subscribe((classes) => {
       this.classes.set(classes || []);
       if (classes && classes.length > 0) {
@@ -425,13 +455,19 @@ export class BulkGradingComponent implements OnInit {
         } else if (!this.selectedClassId()) {
           this.selectedClassId.set(classes[0].id);
         }
-        this.onClassChange();
+        const cId = this.selectedClassId();
+        if (cId) {
+          this.loadClassSpecificSubjects(cId);
+          this.loadWeights();
+          this.loadStudents();
+        }
+        this.syncUrlAndSession();
       }
     });
   }
 
   loadSubjects() {
-    const savedSubject = this.route.snapshot.queryParams['subject'] || sessionStorage.getItem('schoollinx_bulk_grade_subject') || '';
+    const savedSubject = this.route.snapshot.queryParams['subject'] || this.selectedSubjectId() || sessionStorage.getItem('schoollinx_bulk_grade_subject') || '';
     this.subjectService.getSubjects().subscribe((subjects) => {
       this.subjects.set(subjects || []);
       if (subjects && subjects.length > 0) {
@@ -441,7 +477,8 @@ export class BulkGradingComponent implements OnInit {
           this.selectedSubjectId.set(subjects[0].name);
         }
         this.validateSubjectForCurrentClass();
-        if (this.selectedClassId()) {
+        this.syncUrlAndSession();
+        if (this.selectedClassId() && this.selectedSubjectId()) {
           this.loadExistingGrades();
         }
       }
@@ -452,13 +489,20 @@ export class BulkGradingComponent implements OnInit {
     const cId = this.selectedClassId();
     const sId = this.selectedSubjectId();
     const term = this.selectedTerm();
+    const scale = this.selectedScale();
 
     if (cId) sessionStorage.setItem('schoollinx_bulk_grade_class', cId);
     if (sId) sessionStorage.setItem('schoollinx_bulk_grade_subject', sId);
     if (term) sessionStorage.setItem('schoollinx_bulk_grade_term', term);
 
+    const queryParams: Record<string, string | null> = {};
+    if (cId) queryParams['class_id'] = cId;
+    if (sId) queryParams['subject'] = sId;
+    if (term) queryParams['term'] = term;
+    if (scale && scale !== 'STANDARD') queryParams['scale'] = scale;
+
     this.router.navigate([], {
-      queryParams: { class_id: cId || null, subject: sId || null, term: term || null },
+      queryParams,
       queryParamsHandling: 'merge',
       replaceUrl: true
     });
@@ -472,6 +516,14 @@ export class BulkGradingComponent implements OnInit {
       this.loadStudents();
       this.validateSubjectForCurrentClass();
     }
+    this.syncUrlAndSession();
+    if (this.selectedClassId() && this.selectedSubjectId()) {
+      this.loadExistingGrades();
+    }
+  }
+
+  onScaleChange(scale: GradingScaleType) {
+    this.selectedScale.set(scale);
     this.syncUrlAndSession();
   }
 
