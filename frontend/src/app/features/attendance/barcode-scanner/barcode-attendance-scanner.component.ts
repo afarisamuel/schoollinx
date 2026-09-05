@@ -203,11 +203,16 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
   async startCamera() {
     this.cameraError.set('');
     this.isCameraInitializing.set(true);
+    this.isCameraActive.set(true);
 
     try {
       if (this.html5QrCode) {
         await this.stopCamera();
+        this.isCameraActive.set(true);
       }
+
+      // Small tick to ensure Angular renders the container before Html5Qrcode initialization
+      await new Promise(r => setTimeout(r, 60));
 
       this.html5QrCode = new Html5Qrcode('qr-reader-container', {
         formatsToSupport: [
@@ -218,33 +223,49 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
           Html5QrcodeSupportedFormats.UPC_A,
           Html5QrcodeSupportedFormats.DATA_MATRIX
         ],
-        verbose: false
+        verbose: false,
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true
+        }
       });
 
       const cameraId = this.selectedCameraId();
       const cameraConfig = cameraId ? { deviceId: { exact: cameraId } } : { facingMode: 'environment' };
 
-      await this.html5QrCode.start(
-        cameraConfig,
-        {
-          fps: 15,
-          qrbox: { width: 280, height: 180 },
-          aspectRatio: 1.777778
+      const config = {
+        fps: 20,
+        qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+          const minDim = Math.min(viewfinderWidth, viewfinderHeight);
+          return {
+            width: Math.floor(minDim * 0.85),
+            height: Math.floor(minDim * 0.55)
+          };
         },
-        (decodedText) => {
-          this.handleCameraDecodedText(decodedText);
-        },
-        () => {
-          // Frame error pass
-        }
-      );
+        aspectRatio: 1.777778
+      };
 
-      this.isCameraActive.set(true);
+      try {
+        await this.html5QrCode.start(
+          cameraConfig,
+          config,
+          (decodedText) => this.handleCameraDecodedText(decodedText),
+          () => {}
+        );
+      } catch (firstErr) {
+        console.warn('Exact device start failed, trying facingMode fallback...', firstErr);
+        await this.html5QrCode.start(
+          { facingMode: 'environment' },
+          config,
+          (decodedText) => this.handleCameraDecodedText(decodedText),
+          () => {}
+        );
+      }
+
       this.isCameraInitializing.set(false);
     } catch (err: any) {
       this.isCameraActive.set(false);
       this.isCameraInitializing.set(false);
-      this.cameraError.set(err?.message || 'Unable to access device camera. Please check camera permissions in your browser.');
+      this.cameraError.set(err?.message || 'Unable to access device camera. Please allow camera permissions in your browser.');
     }
   }
 

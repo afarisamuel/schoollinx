@@ -19,6 +19,12 @@ export const studentRoutes: Routes = [
         loadComponent: () => import('./student-detail/student-detail.component').then(c => c.StudentDetailComponent)
     },
     {
+        path: 'id-cards',
+        loadComponent: () => import('./id-card-studio/id-card-studio.component').then(c => c.IdCardStudioComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'TEACHER'] }
+    },
+    {
         path: 'class-assignment',
         loadComponent: () => import('./class-assignment/class-assignment.component').then(c => c.ClassAssignmentComponent),
         canActivate: [roleGuard],

@@ -1,0 +1,325 @@
+<div class="max-w-[1440px] mx-auto space-y-6 animate-fade-in pb-16">
+
+  <!-- ========================================== -->
+  <!-- TOP STUDIO HEADER                          -->
+  <!-- ========================================== -->
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-xl relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-80 h-80 bg-blue-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+
+    <div class="flex items-center gap-4">
+      <div class="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 flex-shrink-0 shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping"></span>
+            Badging & Identity Engine
+          </span>
+          <span class="text-xs text-text-muted">• CR80 PVC Standard</span>
+        </div>
+        <h1 class="text-xl lg:text-2xl font-black tracking-tight text-text-primary mt-1">
+          Student ID Card Studio & Customizer
+        </h1>
+        <p class="text-xs text-text-secondary">
+          Design, customize, preview in 3D, and generate high-density printable student identity badges
+        </p>
+      </div>
+    </div>
+
+    <!-- Quick Action Launchers -->
+    <div class="flex flex-wrap items-center gap-3 z-10">
+      <a routerLink="/students"
+        class="px-3.5 py-2.5 rounded-xl bg-bg-tertiary hover:bg-bg-primary border border-border-secondary text-text-secondary hover:text-text-primary text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+        <span>Students Directory</span>
+      </a>
+
+      <button type="button" (click)="openBatchModal()"
+        class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-blue-600/25 flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+        <span>Batch Print Badges</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MAIN 2-COLUMN WORKSPACE: CONTROLS (LEFT) & PREVIEW (RIGHT)-->
+  <!-- ========================================================= -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+    <!-- LEFT COLUMN: CUSTOMIZATION CONTROLS (7 Cols) -->
+    <div class="lg:col-span-7 flex flex-col gap-6">
+
+      <!-- SECTION 1: CANDIDATE SELECTION -->
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-xl flex flex-col gap-4">
+        <div class="flex items-center justify-between border-b border-border-primary pb-3">
+          <div class="flex items-center gap-2.5">
+            <span class="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-black">1</span>
+            <h2 class="text-sm font-black text-text-primary uppercase tracking-wider">Select Student Candidate</h2>
+          </div>
+          <span class="text-xs text-text-muted font-bold">{{ filteredStudents().length }} Students Available</span>
+        </div>
+
+        <!-- Class Filter & Search Filter -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase tracking-wider text-text-muted">Class Cohort</label>
+            <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event)"
+              class="bg-bg-tertiary border border-border-secondary focus:border-blue-500 text-text-primary text-xs font-bold rounded-xl px-3 py-2 outline-none cursor-pointer">
+              <option value="all">All Classes & Roster</option>
+              @for (c of classes(); track c.id) {
+                <option [value]="c.id">{{ c.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase tracking-wider text-text-muted">Search by Name / ID</label>
+            <div class="relative">
+              <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+                placeholder="Type student name or ID..."
+                class="w-full bg-bg-tertiary border border-border-secondary focus:border-blue-500 text-text-primary text-xs rounded-xl pl-8 pr-3 py-2 outline-none font-medium">
+              <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 pt-1">
+          @for (s of filteredStudents().slice(0, 15); track s.id) {
+            <button type="button" (click)="selectStudent(s)"
+              class="flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shrink-0 cursor-pointer"
+              [class.bg-blue-600]="selectedStudentId() === s.id"
+              [class.text-white]="selectedStudentId() === s.id"
+              [class.border-blue-500]="selectedStudentId() === s.id"
+              [class.shadow-md]="selectedStudentId() === s.id"
+              [class.bg-bg-tertiary]="selectedStudentId() !== s.id"
+              [class.text-text-secondary]="selectedStudentId() !== s.id"
+              [class.border-border-secondary]="selectedStudentId() !== s.id">
+              <div class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-[10px] overflow-hidden">
+                @if (s.photo_url) {
+                  <img [src]="s.photo_url" class="w-full h-full object-cover">
+                } @else {
+                  <span>{{ (s.first_name[0] || 'S') }}</span>
+                }
+              </div>
+              <div class="flex flex-col text-left">
+                <span class="leading-none text-[11px] truncate max-w-[100px]">{{ s.first_name }} {{ s.last_name }}</span>
+                <span class="text-[9px] opacity-75 font-mono">{{ s.enrollment_num || 'STU' }}</span>
+              </div>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- SECTION 2: TEMPLATE DESIGN SELECTOR -->
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-xl flex flex-col gap-4">
+        <div class="flex items-center justify-between border-b border-border-primary pb-3">
+          <div class="flex items-center gap-2.5">
+            <span class="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-black">2</span>
+            <h2 class="text-sm font-black text-text-primary uppercase tracking-wider">Template Layout</h2>
+          </div>
+          <span class="text-xs text-text-muted font-bold">5 Specialized Layouts</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          @for (tpl of templates; track tpl.id) {
+            <button type="button" (click)="setTemplate(tpl.id)"
+              class="p-3.5 rounded-2xl border text-left transition-all flex items-start gap-3 cursor-pointer relative overflow-hidden"
+              [class.bg-blue-600\/10]="selectedTemplate() === tpl.id"
+              [class.border-blue-500]="selectedTemplate() === tpl.id"
+              [class.shadow-md]="selectedTemplate() === tpl.id"
+              [class.bg-bg-tertiary]="selectedTemplate() !== tpl.id"
+              [class.border-border-secondary]="selectedTemplate() !== tpl.id">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center text-base shrink-0"
+                [class.bg-blue-600]="selectedTemplate() === tpl.id"
+                [class.text-white]="selectedTemplate() === tpl.id"
+                [class.bg-bg-primary]="selectedTemplate() !== tpl.id"
+                [class.text-text-muted]="selectedTemplate() !== tpl.id">
+                <i [class]="tpl.icon"></i>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-xs font-black text-text-primary uppercase tracking-tight">{{ tpl.name }}</span>
+                <span class="text-[11px] text-text-muted mt-0.5">{{ tpl.desc }}</span>
+              </div>
+              @if (selectedTemplate() === tpl.id) {
+                <div class="absolute top-2 right-2 w-2 h-2 rounded-full bg-blue-500"></div>
+              }
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- SECTION 3: INSTITUTIONAL COLOR THEMES -->
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-xl flex flex-col gap-4">
+        <div class="flex items-center justify-between border-b border-border-primary pb-3">
+          <div class="flex items-center gap-2.5">
+            <span class="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-black">3</span>
+            <h2 class="text-sm font-black text-text-primary uppercase tracking-wider">Color Palette & Brand Accent</h2>
+          </div>
+          <span class="text-xs text-text-muted font-bold">8 Curated Palettes</span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          @for (th of themes; track th.id) {
+            <button type="button" (click)="setTheme(th.id)"
+              class="p-2.5 rounded-xl border transition-all flex items-center gap-2.5 cursor-pointer text-left"
+              [class.border-blue-500]="selectedTheme() === th.id"
+              [class.bg-bg-primary]="selectedTheme() === th.id"
+              [class.shadow-md]="selectedTheme() === th.id"
+              [class.border-border-secondary]="selectedTheme() !== th.id"
+              [class.bg-bg-tertiary]="selectedTheme() !== th.id">
+              <div class="w-6 h-6 rounded-full border-2 border-white/80 shrink-0 shadow-sm flex items-center justify-center"
+                   [style.background]="th.primary">
+                @if (selectedTheme() === th.id) {
+                  <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                }
+              </div>
+              <span class="text-xs font-bold text-text-primary truncate">{{ th.name }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- SECTION 4: SMART FEATURE & FIELD TOGGLES -->
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-xl flex flex-col gap-4">
+        <div class="flex items-center justify-between border-b border-border-primary pb-3">
+          <div class="flex items-center gap-2.5">
+            <span class="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-black">4</span>
+            <h2 class="text-sm font-black text-text-primary uppercase tracking-wider">Verification & Safety Elements</h2>
+          </div>
+          <span class="text-xs text-text-muted font-bold">Live Fields</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- Code 128 Barcode Toggle -->
+          <label class="flex items-center justify-between p-3 rounded-xl bg-bg-tertiary border border-border-secondary cursor-pointer hover:border-blue-500/40 transition-colors">
+            <div class="flex flex-col">
+              <span class="text-xs font-black text-text-primary">Vector Barcode (Code 128)</span>
+              <span class="text-[10px] text-text-muted">High-density turnstile scanning</span>
+            </div>
+            <input type="checkbox" [ngModel]="showBarcode()" (ngModelChange)="showBarcode.set($event)"
+              class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 bg-bg-primary border-border-secondary cursor-pointer">
+          </label>
+
+          <!-- QR Smart Pass Toggle -->
+          <label class="flex items-center justify-between p-3 rounded-xl bg-bg-tertiary border border-border-secondary cursor-pointer hover:border-blue-500/40 transition-colors">
+            <div class="flex flex-col">
+              <span class="text-xs font-black text-text-primary">Smart QR Code Pass</span>
+              <span class="text-[10px] text-text-muted">Digital verification payload</span>
+            </div>
+            <input type="checkbox" [ngModel]="showQrCode()" (ngModelChange)="showQrCode.set($event)"
+              class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 bg-bg-primary border-border-secondary cursor-pointer">
+          </label>
+
+          <!-- Emergency Contact Toggle -->
+          <label class="flex items-center justify-between p-3 rounded-xl bg-bg-tertiary border border-border-secondary cursor-pointer hover:border-blue-500/40 transition-colors">
+            <div class="flex flex-col">
+              <span class="text-xs font-black text-text-primary">Emergency & Guardian Box</span>
+              <span class="text-[10px] text-text-muted">Back side emergency hotline</span>
+            </div>
+            <input type="checkbox" [ngModel]="showEmergencyContact()" (ngModelChange)="showEmergencyContact.set($event)"
+              class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 bg-bg-primary border-border-secondary cursor-pointer">
+          </label>
+
+          <!-- Blood Group & Medical Alert -->
+          <label class="flex items-center justify-between p-3 rounded-xl bg-bg-tertiary border border-border-secondary cursor-pointer hover:border-blue-500/40 transition-colors">
+            <div class="flex flex-col">
+              <span class="text-xs font-black text-text-primary">Blood Group & Medical Alert</span>
+              <span class="text-[10px] text-text-muted">Infirmary & emergency tag</span>
+            </div>
+            <input type="checkbox" [ngModel]="showMedicalAlert()" (ngModelChange)="showMedicalAlert.set($event)"
+              class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 bg-bg-primary border-border-secondary cursor-pointer">
+          </label>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: STICKY 3D LIVE PREVIEW (5 Cols) -->
+    <div class="lg:col-span-5 sticky top-6 flex flex-col gap-5">
+
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-2xl flex flex-col gap-4">
+        
+        <!-- Live Preview Header with 3D Flip Action -->
+        <div class="flex items-center justify-between pb-3 border-b border-border-primary">
+          <div class="flex items-center gap-2">
+            <span class="relative flex h-2.5 w-2.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span class="text-xs font-black text-text-primary uppercase tracking-wider">Live Card Preview</span>
+          </div>
+
+          <!-- Flip Card Action -->
+          <button type="button" (click)="toggleFlip()"
+            class="px-3 py-1.5 rounded-xl bg-bg-tertiary hover:bg-bg-primary border border-border-secondary text-text-primary text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 14 5-5-5-5"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/><path d="m9 10-5 5 5 5"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
+            <span>Flip to {{ isFlipped() ? 'Front' : 'Back' }}</span>
+          </button>
+        </div>
+
+        <!-- Render Card Component -->
+        <div class="w-full flex items-center justify-center p-2">
+          @if (activeStudent()) {
+            <app-student-id-card
+              [student]="activeStudent()!"
+              [template]="selectedTemplate()"
+              [theme]="selectedTheme()"
+              [showControls]="false"
+              [showBarcode]="showBarcode()"
+              [showQrCode]="showQrCode()"
+              [isFlipped]="isFlipped()">
+            </app-student-id-card>
+          } @else {
+            <div class="p-12 text-center text-text-muted text-xs">
+              No student selected. Choose a candidate from the roster.
+            </div>
+          }
+        </div>
+
+        <!-- Card Metadata Specs -->
+        @if (activeStudent(); as current) {
+          <div class="bg-bg-tertiary/60 border border-border-secondary rounded-2xl p-4 flex flex-col gap-2 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-text-muted font-semibold">Active Candidate:</span>
+              <strong class="text-text-primary uppercase">{{ current.first_name }} {{ current.last_name }}</strong>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-text-muted font-semibold">Assigned ID:</span>
+              <strong class="text-text-primary font-mono">{{ current.enrollment_num || current.id || 'STU-2026-0001' }}</strong>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-text-muted font-semibold">Dimensions & Standard:</span>
+              <span class="text-text-secondary font-mono text-[11px]">85.60 × 53.98 mm (CR80 PVC)</span>
+            </div>
+          </div>
+        }
+
+        <!-- Batch & Single Print Actions -->
+        <div class="flex flex-col gap-2 pt-2">
+          <button type="button" (click)="openBatchModal()"
+            class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 cursor-pointer active:scale-98">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+            <span>Batch Print All Class Cards</span>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ========================================== -->
+  <!-- BATCH ID PRINTING MODAL                    -->
+  <!-- ========================================== -->
+  @if (isBatchModalOpen()) {
+    <app-batch-id-card-modal
+      [allStudents]="students()"
+      [classes]="classes()"
+      (close)="closeBatchModal()">
+    </app-batch-id-card-modal>
+  }
+
+</div>

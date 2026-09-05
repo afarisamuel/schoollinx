@@ -55,7 +55,7 @@
           <button type="button" (click)="toggleFlip()"
             class="px-2.5 py-1 rounded-xl bg-bg-secondary hover:bg-bg-primary border border-border-secondary text-text-secondary text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 14 5-5-5-5"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/><path d="m9 10-5 5 5 5"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
-            {{ isBackSide() ? 'Front Side' : 'Back Side' }}
+            {{ activeIsBackSide() ? 'Front Side' : 'Back Side' }}
           </button>
           <button type="button" (click)="printCard()"
             class="px-3.5 py-1 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-black uppercase tracking-wider transition-all flex items-center gap-1 shadow-md shadow-blue-600/20 cursor-pointer hover:scale-105 active:scale-95">
@@ -73,10 +73,10 @@
   <!-- ========================================================= -->
   <div id="student-id-card-badge" 
        class="relative w-full mx-auto select-none transition-all duration-300 bg-white"
-       [class.max-w-\[540px\]]="selectedTemplate() !== 'vertical'"
-       [class.aspect-\[1\.586\]]="selectedTemplate() !== 'vertical'"
-       [class.max-w-\[340px\]]="selectedTemplate() === 'vertical'"
-       [class.aspect-\[0\.63\]]="selectedTemplate() === 'vertical'"
+       [class.max-w-\[540px\]]="activeTemplate() !== 'vertical'"
+       [class.aspect-\[1\.586\]]="activeTemplate() !== 'vertical'"
+       [class.max-w-\[340px\]]="activeTemplate() === 'vertical'"
+       [class.aspect-\[0\.63\]]="activeTemplate() === 'vertical'"
        [class.rounded-2xl]="true"
        [class.overflow-hidden]="true"
        [class.shadow-2xl]="true"
@@ -84,25 +84,25 @@
        [class.border-gray-200]="true"
        [style.box-shadow]="'0 20px 40px -15px ' + currentThemeConfig().primary + '40'">
 
-    @if (!isBackSide()) {
+    @if (!activeIsBackSide()) {
       
       <!-- ========================================================================= -->
       <!-- TEMPLATE 1: MODERN FLUID WAVE (Landscape)                                 -->
       <!-- ========================================================================= -->
-      @if (selectedTemplate() === 'wave') {
+      @if (activeTemplate() === 'wave') {
         <div class="relative w-full h-full flex flex-col justify-between overflow-hidden bg-white">
           <!-- Top Wave Ribbon Header -->
           <div class="absolute top-0 left-0 right-0 h-[48%] overflow-hidden z-0 pointer-events-none">
             <svg viewBox="0 0 540 180" class="w-full h-full object-cover" preserveAspectRatio="none">
               <defs>
-                <linearGradient [id]="'waveGradTop_' + selectedTheme()" x1="0%" y1="0%" x2="100%" y2="80%">
+                <linearGradient [id]="'waveGradTop_' + activeTheme()" x1="0%" y1="0%" x2="100%" y2="80%">
                   <stop offset="0%" [attr.stop-color]="currentThemeConfig().primary" />
                   <stop offset="50%" [attr.stop-color]="currentThemeConfig().secondary" />
                   <stop offset="100%" [attr.stop-color]="currentThemeConfig().accent" />
                 </linearGradient>
               </defs>
               <path d="M 0,0 L 540,0 L 540,110 C 440,175 320,135 220,95 C 130,55 50,85 0,140 Z" 
-                    [attr.fill]="'url(#waveGradTop_' + selectedTheme() + ')'" />
+                    [attr.fill]="'url(#waveGradTop_' + activeTheme() + ')'" />
               <path d="M 0,0 L 540,0 L 540,80 C 420,130 300,105 180,65 C 100,35 40,55 0,100 Z" 
                     fill="white" opacity="0.1" />
             </svg>
@@ -112,14 +112,14 @@
           <div class="absolute bottom-0 left-0 right-0 h-[28%] overflow-hidden z-0 pointer-events-none">
             <svg viewBox="0 0 540 100" class="w-full h-full object-cover" preserveAspectRatio="none">
               <defs>
-                <linearGradient [id]="'waveGradBottom_' + selectedTheme()" x1="0%" y1="100%" x2="100%" y2="0%">
+                <linearGradient [id]="'waveGradBottom_' + activeTheme()" x1="0%" y1="100%" x2="100%" y2="0%">
                   <stop offset="0%" [attr.stop-color]="currentThemeConfig().accent" />
                   <stop offset="50%" [attr.stop-color]="currentThemeConfig().secondary" />
                   <stop offset="100%" [attr.stop-color]="currentThemeConfig().primary" />
                 </linearGradient>
               </defs>
               <path d="M 0,60 C 150,20 350,90 540,30 L 540,100 L 0,100 Z" 
-                    [attr.fill]="'url(#waveGradBottom_' + selectedTheme() + ')'" />
+                    [attr.fill]="'url(#waveGradBottom_' + activeTheme() + ')'" />
               <path d="M 0,80 C 180,45 360,95 540,65" 
                     fill="none" stroke="white" stroke-width="1.5" opacity="0.3" />
             </svg>
@@ -219,7 +219,7 @@
       <!-- ========================================================================= -->
       <!-- TEMPLATE 2: ACADEMIC SHIELD (Prestigious Crest, Gold Foil Trim & Crest)    -->
       <!-- ========================================================================= -->
-      @else if (selectedTemplate() === 'academic') {
+      @else if (activeTemplate() === 'academic') {
         <div class="relative w-full h-full flex flex-col justify-between overflow-hidden bg-[#fafafa]">
           <!-- Top Prestigious Header with Double Gold Border Accent -->
           <div class="relative z-10 px-5 pt-3.5 pb-2.5 flex items-center justify-between text-white border-b-2 border-amber-400 shadow-sm"
@@ -265,56 +265,45 @@
               </div>
             </div>
 
-            <!-- Labeled Student Biodata Table -->
-            <div class="flex-1 flex flex-col gap-1 text-[11px] text-gray-800">
+            <div class="flex-1 flex flex-col justify-center gap-1 text-[11px] text-gray-800">
               <div class="border-b border-gray-200 pb-1">
-                <span class="text-[8px] font-black uppercase tracking-wider text-gray-500">Student Full Name</span>
-                <div class="font-black text-xs text-gray-900 uppercase font-serif tracking-tight truncate">
-                  {{ resolvedName() }}
-                </div>
+                <span class="text-[8px] font-black uppercase text-amber-700 tracking-wider">Candidate</span>
+                <h4 class="font-serif font-black text-xs text-gray-900 uppercase tracking-tight">{{ resolvedName() }}</h4>
               </div>
 
-              <div class="grid grid-cols-2 gap-x-3 gap-y-1 pt-0.5 text-[10px]">
+              <div class="grid grid-cols-2 gap-x-3 gap-y-1 pt-1 text-[10px]">
                 <div>
-                  <span class="text-[7.5px] font-black uppercase text-gray-500">Student ID:</span>
+                  <span class="text-[7.5px] font-black uppercase text-gray-400">ID Number</span>
                   <p class="font-mono font-bold text-gray-900">{{ resolvedId() }}</p>
                 </div>
                 <div>
-                  <span class="text-[7.5px] font-black uppercase text-gray-500">Date of Birth:</span>
-                  <p class="font-semibold text-gray-900">{{ resolvedDob() }}</p>
+                  <span class="text-[7.5px] font-black uppercase text-gray-400">Date of Birth</span>
+                  <p class="font-bold text-gray-800">{{ resolvedDob() }}</p>
                 </div>
                 <div>
-                  <span class="text-[7.5px] font-black uppercase text-gray-500">Level / Class:</span>
-                  <p class="font-bold text-gray-900">{{ resolvedClass() }}</p>
+                  <span class="text-[7.5px] font-black uppercase text-gray-400">Class Stream</span>
+                  <p class="font-bold text-gray-800">{{ resolvedClass() }}</p>
                 </div>
                 <div>
-                  <span class="text-[7.5px] font-black uppercase text-gray-500">Blood Group:</span>
-                  <p class="font-black text-rose-700">{{ resolvedBloodGroup() }}</p>
+                  <span class="text-[7.5px] font-black uppercase text-gray-400">Blood Group</span>
+                  <p class="font-black text-rose-600">{{ resolvedBloodGroup() }}</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Bottom Footer Bar: Barcode, QR Code & School Stamp Box -->
-          <div class="relative z-10 px-6 py-2 bg-gray-100 border-t border-gray-300 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              @if (showBarcode()) {
-                <svg [attr.width]="barcodeData().totalWidth" height="20" class="max-w-[130px] h-4">
-                  @for (bar of barcodeData().bars; track $index) {
-                    <rect [attr.x]="bar.x" y="0" [attr.width]="bar.width" height="20" fill="#0f172a" />
-                  }
-                </svg>
-              }
-            </div>
-            @if (showQrCode()) {
-              <div class="flex items-center gap-2">
-                <qrcode [qrdata]="qrPayload()" [width]="38" [errorCorrectionLevel]="'M'" [margin]="0"></qrcode>
-                <div class="flex flex-col text-[7.5px] font-bold text-gray-600 uppercase leading-tight">
-                  <span class="text-amber-700 font-black">Authorized</span>
-                  <span>Credential</span>
-                </div>
-              </div>
+          <!-- Bottom Footer Bar -->
+          <div class="relative z-10 px-6 py-2 bg-gray-100 border-t border-gray-200 flex items-center justify-between">
+            @if (showBarcode()) {
+              <svg [attr.width]="barcodeData().totalWidth" height="18" class="max-w-[130px] h-4">
+                @for (bar of barcodeData().bars; track $index) {
+                  <rect [attr.x]="bar.x" y="0" [attr.width]="bar.width" height="18" fill="#0f172a" />
+                }
+              </svg>
             }
+            <div class="text-[8px] font-bold text-gray-500 uppercase tracking-wider">
+              Principal Signature Certified
+            </div>
           </div>
         </div>
       }
@@ -322,7 +311,7 @@
       <!-- ========================================================================= -->
       <!-- TEMPLATE 3: EXECUTIVE DUAL-TONE (Bold Solid Left Column & Clean Right)    -->
       <!-- ========================================================================= -->
-      @else if (selectedTemplate() === 'corporate') {
+      @else if (activeTemplate() === 'corporate') {
         <div class="relative w-full h-full flex overflow-hidden bg-white">
           <!-- Left Color Accent Column (36% Width) -->
           <div class="w-[36%] h-full p-4 flex flex-col justify-between text-white relative z-10 shadow-lg"
@@ -416,20 +405,20 @@
       <!-- ========================================================================= -->
       <!-- TEMPLATE 4: ANGULAR POLY (Futuristic Dynamic Angled Geometry)             -->
       <!-- ========================================================================= -->
-      @else if (selectedTemplate() === 'cyber') {
+      @else if (activeTemplate() === 'cyber') {
         <div class="relative w-full h-full flex flex-col justify-between overflow-hidden bg-white text-gray-900">
           
           <!-- Dynamic Top Angular Header Polygon (SVG) -->
           <div class="absolute top-0 left-0 right-0 h-[45%] overflow-hidden z-0 pointer-events-none">
             <svg viewBox="0 0 540 160" class="w-full h-full object-cover" preserveAspectRatio="none">
               <defs>
-                <linearGradient [id]="'polyGradTop_' + selectedTheme()" x1="0%" y1="0%" x2="100%" y2="100%">
+                <linearGradient [id]="'polyGradTop_' + activeTheme()" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" [attr.stop-color]="currentThemeConfig().primary" />
                   <stop offset="60%" [attr.stop-color]="currentThemeConfig().secondary" />
                   <stop offset="100%" [attr.stop-color]="currentThemeConfig().accent" />
                 </linearGradient>
               </defs>
-              <polygon points="0,0 540,0 540,90 280,140 0,110" [attr.fill]="'url(#polyGradTop_' + selectedTheme() + ')'" />
+              <polygon points="0,0 540,0 540,90 280,140 0,110" [attr.fill]="'url(#polyGradTop_' + activeTheme() + ')'" />
               <polygon points="0,0 540,0 540,60 320,110 0,80" fill="white" opacity="0.12" />
             </svg>
           </div>
@@ -438,12 +427,12 @@
           <div class="absolute bottom-0 left-0 right-0 h-[28%] overflow-hidden z-0 pointer-events-none">
             <svg viewBox="0 0 540 100" class="w-full h-full object-cover" preserveAspectRatio="none">
               <defs>
-                <linearGradient [id]="'polyGradBottom_' + selectedTheme()" x1="0%" y1="0%" x2="100%" y2="0%">
+                <linearGradient [id]="'polyGradBottom_' + activeTheme()" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" [attr.stop-color]="currentThemeConfig().secondary" />
                   <stop offset="100%" [attr.stop-color]="currentThemeConfig().primary" />
                 </linearGradient>
               </defs>
-              <polygon points="0,45 220,15 540,65 540,100 0,100" [attr.fill]="'url(#polyGradBottom_' + selectedTheme() + ')'" />
+              <polygon points="0,45 220,15 540,65 540,100 0,100" [attr.fill]="'url(#polyGradBottom_' + activeTheme() + ')'" />
             </svg>
           </div>
 
@@ -539,7 +528,7 @@
       <!-- ========================================================================= -->
       <!-- TEMPLATE 5: LANYARD VERTICAL (Portrait CR80 with Top Punch Slot)          -->
       <!-- ========================================================================= -->
-      @else if (selectedTemplate() === 'vertical') {
+      @else if (activeTemplate() === 'vertical') {
         <div class="relative w-full h-full flex flex-col justify-between overflow-hidden bg-white text-gray-900 p-4 border-2 border-gray-300">
           
           <!-- Top Lanyard Punch Slot Indicator -->

@@ -79,6 +79,16 @@ export const tenantRoutes: Routes = [
                 pathMatch: 'full'
             },
             {
+                path: 'id-cards',
+                redirectTo: 'students/id-cards',
+                pathMatch: 'full'
+            },
+            {
+                path: 'id-card-studio',
+                redirectTo: 'students/id-cards',
+                pathMatch: 'full'
+            },
+            {
                 path: 'guardians',
                 loadChildren: () => import('./features/guardians/guardian.routes').then(m => m.guardianRoutes)
             },

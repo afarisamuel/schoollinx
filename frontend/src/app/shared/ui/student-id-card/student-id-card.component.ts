@@ -157,12 +157,22 @@ export class StudentIdCardComponent implements OnInit {
   showBarcode = input<boolean>(true);
   showControls = input<boolean>(true);
 
+  // Optional External Controls (from IdCardStudio)
+  theme = input<IdCardTheme | undefined>(undefined);
+  template = input<IdCardTemplate | undefined>(undefined);
+  isFlipped = input<boolean | undefined>(undefined);
+
   // Interactive Configuration Signals
   selectedTheme = signal<IdCardTheme>('teal');
   selectedTemplate = signal<IdCardTemplate>('wave');
   customPrimaryColor = signal<string>('#0d695b');
   customSecondaryColor = signal<string>('#138b75');
   isBackSide = signal<boolean>(false);
+
+  // Effective Values
+  activeTheme = computed(() => this.theme() || this.selectedTheme());
+  activeTemplate = computed(() => this.template() || this.selectedTemplate());
+  activeIsBackSide = computed(() => this.isFlipped() !== undefined ? (this.isFlipped() || false) : this.isBackSide());
 
   themes = ID_CARD_THEMES;
   templates = ID_CARD_TEMPLATES;
@@ -235,7 +245,7 @@ export class StudentIdCardComponent implements OnInit {
 
   // Current Theme Config
   currentThemeConfig = computed(() => {
-    const themeId = this.selectedTheme();
+    const themeId = this.activeTheme();
     if (themeId === 'custom') {
       return {
         id: 'custom' as IdCardTheme,
