@@ -10,16 +10,45 @@
 
         <div class="form-grid">
             <div class="form-group full-width">
-                <label for="class_id">Class ID</label>
-                <input id="class_id" type="number" formControlName="class_id" placeholder="E.g. 101"
-                    [class.is-invalid]="studentForm['class_id'].invalid && studentForm['class_id'].touched">
+                <label for="class_id">Class *</label>
+                @if (classes.length > 0) {
+                    <select id="class_id" formControlName="class_id" class="select-input"
+                        [class.is-invalid]="studentForm['class_id'].invalid && studentForm['class_id'].touched">
+                        <option value="" disabled>Select Class</option>
+                        @for (cls of classes; track cls.id) {
+                            <option [value]="cls.id">{{ cls.name }}</option>
+                        }
+                    </select>
+                } @else {
+                    <input id="class_id" type="text" formControlName="class_id" placeholder="Class UUID"
+                        [class.is-invalid]="studentForm['class_id'].invalid && studentForm['class_id'].touched">
+                }
                 @if(studentForm['class_id'].invalid && studentForm['class_id'].touched) {
-                <div class="error-text">Class ID is required.</div>
+                <div class="error-text">Class is required.</div>
                 }
             </div>
 
             <div class="form-group">
-                <label for="score">Score (%)</label>
+                <label for="subject">Subject *</label>
+                @if (subjects.length > 0) {
+                    <select id="subject" formControlName="subject" class="select-input"
+                        [class.is-invalid]="studentForm['subject'].invalid && studentForm['subject'].touched">
+                        <option value="" disabled>Select Subject</option>
+                        @for (sub of subjects; track sub.id) {
+                            <option [value]="sub.name">{{ sub.name }}</option>
+                        }
+                    </select>
+                } @else {
+                    <input id="subject" type="text" formControlName="subject" placeholder="E.g. Mathematics"
+                        [class.is-invalid]="studentForm['subject'].invalid && studentForm['subject'].touched">
+                }
+                @if(studentForm['subject'].invalid && studentForm['subject'].touched) {
+                <div class="error-text">Subject is required.</div>
+                }
+            </div>
+
+            <div class="form-group">
+                <label for="score">Score (%) *</label>
                 <input id="score" type="number" step="0.1" min="0" max="100" formControlName="score"
                     placeholder="E.g. 95.5"
                     [class.is-invalid]="studentForm['score'].invalid && studentForm['score'].touched">
@@ -29,32 +58,23 @@
             </div>
 
             <div class="form-group">
-                <label for="subject">Subject</label>
-                <input id="subject" type="text" formControlName="subject" placeholder="E.g. Mathematics"
-                    [class.is-invalid]="studentForm['subject'].invalid && studentForm['subject'].touched">
-                @if(studentForm['subject'].invalid && studentForm['subject'].touched) {
-                <div class="error-text">Subject is required.</div>
-                }
-            </div>
-
-            <div class="form-group">
-                <label for="category">Category</label>
+                <label for="category">Category *</label>
                 <select id="category" formControlName="category" class="select-input">
-                    <option value="ASSIGNMENT text-text-primary bg-bg-secondary">Assignment</option>
-                    <option value="QUIZ text-text-primary bg-bg-secondary">Quiz</option>
-                    <option value="MIDTERM text-text-primary bg-bg-secondary">Midterm</option>
-                    <option value="FINAL text-text-primary bg-bg-secondary">Final</option>
+                    <option value="ASSIGNMENT">Assignment</option>
+                    <option value="QUIZ">Quiz</option>
+                    <option value="MIDTERM">Midterm</option>
+                    <option value="FINAL">Final</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label for="term">Academic Term</label>
+                <label for="term">Academic Term *</label>
                 @if(terms.length > 0) {
                     <select id="term" formControlName="term" class="select-input"
                         [class.is-invalid]="studentForm['term'].invalid && studentForm['term'].touched">
                         <option value="" disabled>Select Term</option>
                         @for(t of terms; track t) {
-                            <option [value]="t" class="text-text-primary bg-bg-secondary">{{ t }}</option>
+                            <option [value]="t">{{ t }}</option>
                         }
                     </select>
                 } @else {

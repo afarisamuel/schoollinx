@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"mime/multipart"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/user/high-school-management/backend/internal/domain"
@@ -175,9 +176,16 @@ func (u *teacherPortalUseCase) BulkSubmitGrades(ctx context.Context, classID uui
 		return nil, errors.New("failed to fetch existing grades")
 	}
 
+	normalizeKey := func(studentID uuid.UUID, subject, term, category string) string {
+		cleanSub := strings.ToLower(strings.TrimSpace(subject))
+		cleanTerm := strings.ToLower(strings.TrimSpace(term))
+		cleanCat := strings.ToLower(strings.TrimSpace(category))
+		return studentID.String() + "|" + cleanSub + "|" + cleanTerm + "|" + cleanCat
+	}
+
 	gradeMap := make(map[string]domain.Grade)
 	for _, g := range existingGrades {
-		key := g.StudentID.String() + "|" + g.Subject + "|" + g.Term + "|" + string(g.Category)
+		key := normalizeKey(g.StudentID, g.Subject, g.Term, string(g.Category))
 		gradeMap[key] = g
 	}
 
@@ -192,7 +200,7 @@ func (u *teacherPortalUseCase) BulkSubmitGrades(ctx context.Context, classID uui
 			entries[i].MaxScore = 100
 		}
 
-		key := entries[i].StudentID.String() + "|" + entries[i].Subject + "|" + entries[i].Term + "|" + string(entries[i].Category)
+		key := normalizeKey(entries[i].StudentID, entries[i].Subject, entries[i].Term, string(entries[i].Category))
 		var oldScore float32 = 0
 		gradeID := entries[i].ID
 

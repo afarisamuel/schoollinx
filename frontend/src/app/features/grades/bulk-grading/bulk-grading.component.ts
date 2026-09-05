@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { GradeService } from '../../../core/infrastructure/grade/grade.service';
 import { ClassService, Class } from '../../../core/infrastructure/curriculum/class.service';
 import { StudentService } from '../../../core/infrastructure/student/student.service';
@@ -51,6 +51,8 @@ export class BulkGradingComponent implements OnInit {
   private teacherPortalService = inject(TeacherPortalService);
   private authService = inject(AuthService);
   private dialog = inject(DialogService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   classes = signal<Class[]>([]);
   subjects = signal<Subject[]>([]);
@@ -199,9 +201,9 @@ export class BulkGradingComponent implements OnInit {
   isSaving = signal(false);
 
   ngOnInit() {
-    this.loadClasses();
-    this.loadSubjects();
     this.loadTerms();
+    this.loadSubjects();
+    this.loadClasses();
   }
 
   getStorageKey(): string {
@@ -218,18 +220,26 @@ export class BulkGradingComponent implements OnInit {
   }
 
   loadTerms() {
+    const savedTerm = this.route.snapshot.queryParams['term'] || sessionStorage.getItem('schoollinx_bulk_grade_term') || '';
     this.academicPeriodService.getActive().subscribe({
       next: (period) => {
         if (period && period.terms) {
           this.activePeriodId.set(period.id || '');
           this.terms.set(period.terms);
-          const currentTerm = period.terms.find(t => t.term_number === period.current_term);
-          if (currentTerm) {
-            this.selectedTerm.set(currentTerm.name);
-            this.activeTermId.set(currentTerm.id || '');
-          } else if (period.terms.length > 0) {
-            this.selectedTerm.set(period.terms[0].name);
-            this.activeTermId.set(period.terms[0].id || '');
+          
+          if (savedTerm && period.terms.some(t => t.name === savedTerm || t.id === savedTerm)) {
+            this.selectedTerm.set(savedTerm);
+            const foundTerm = period.terms.find(t => t.name === savedTerm || t.id === savedTerm);
+            if (foundTerm?.id) this.activeTermId.set(foundTerm.id);
+          } else {
+            const currentTerm = period.terms.find(t => t.term_number === period.current_term);
+            if (currentTerm) {
+              this.selectedTerm.set(currentTerm.name);
+              this.activeTermId.set(currentTerm.id || '');
+            } else if (period.terms.length > 0) {
+              this.selectedTerm.set(period.terms[0].name);
+              this.activeTermId.set(period.terms[0].id || '');
+            }
           }
         }
       },
@@ -240,18 +250,55 @@ export class BulkGradingComponent implements OnInit {
   }
 
   loadClasses() {
+    const savedClass = this.route.snapshot.queryParams['class_id'] || sessionStorage.getItem('schoollinx_bulk_grade_class') || '';
     this.classService.getClasses().subscribe((classes) => {
-      this.classes.set(classes);
+      this.classes.set(classes || []);
+      if (classes && classes.length > 0) {
+        if (savedClass && classes.some(c => c.id === savedClass)) {
+          this.selectedClassId.set(savedClass);
+        } else if (!this.selectedClassId()) {
+          this.selectedClassId.set(classes[0].id);
+        }
+        this.onClassChange();
+      }
     });
   }
 
   loadSubjects() {
+    const savedSubject = this.route.snapshot.queryParams['subject'] || sessionStorage.getItem('schoollinx_bulk_grade_subject') || '';
     this.subjectService.getSubjects().subscribe((subjects) => {
-      this.subjects.set(subjects);
+      this.subjects.set(subjects || []);
+      if (subjects && subjects.length > 0) {
+        if (savedSubject && subjects.some(s => s.name === savedSubject || s.id === savedSubject)) {
+          this.selectedSubjectId.set(savedSubject);
+        } else if (!this.selectedSubjectId()) {
+          this.selectedSubjectId.set(subjects[0].name);
+        }
+        if (this.selectedClassId()) {
+          this.loadExistingGrades();
+        }
+      }
+    });
+  }
+
+  private syncUrlAndSession() {
+    const cId = this.selectedClassId();
+    const sId = this.selectedSubjectId();
+    const term = this.selectedTerm();
+
+    if (cId) sessionStorage.setItem('schoollinx_bulk_grade_class', cId);
+    if (sId) sessionStorage.setItem('schoollinx_bulk_grade_subject', sId);
+    if (term) sessionStorage.setItem('schoollinx_bulk_grade_term', term);
+
+    this.router.navigate([], {
+      queryParams: { class_id: cId || null, subject: sId || null, term: term || null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
     });
   }
 
   onClassChange() {
+    this.syncUrlAndSession();
     if (this.selectedClassId()) {
       this.loadWeights();
       this.loadStudents();
@@ -275,7 +322,11 @@ export class BulkGradingComponent implements OnInit {
         this.initDraftGrades();
       },
       error: () => {
-         this.configuredColumns.set([]);
+         this.configuredColumns.set([
+           { class_id: this.selectedClassId(), category: 'ASSIGNMENT', weight: 0.3 },
+           { class_id: this.selectedClassId(), category: 'EXAMS', weight: 0.7 }
+         ]);
+         this.initDraftGrades();
       }
     });
   }
@@ -291,7 +342,10 @@ export class BulkGradingComponent implements OnInit {
   loadExistingGrades() {
     this.initDraftGrades();
     this.hasUnsavedChanges.set(false);
-    if (!this.selectedClassId()) return;
+    if (!this.selectedClassId() || !this.selectedSubjectId()) {
+      this.isLoading.set(false);
+      return;
+    }
 
     this.isLoading.set(true);
 
@@ -304,7 +358,7 @@ export class BulkGradingComponent implements OnInit {
         const subCode = selectedSub?.code || '';
 
         const matchSubject = (gSub: string) => {
-          if (!this.selectedSubjectId()) return true;
+          if (!this.selectedSubjectId()) return false;
           if (!gSub) return false;
           const sNorm = gSub.trim().toLowerCase();
           return sNorm === subId.toLowerCase() ||
@@ -325,6 +379,37 @@ export class BulkGradingComponent implements OnInit {
         };
 
         const filtered = (grades || []).filter(g => matchSubject(g.subject) && matchTerm(g.term));
+
+        // Dynamically ensure all categories present in the database are visible as table columns
+        const currentCols = [...this.configuredColumns()];
+        let colsModified = false;
+        filtered.forEach(g => {
+          if (g.category) {
+            const matchingCol = currentCols.find(col => {
+              const c1 = col.category.trim().toLowerCase();
+              const c2 = g.category.trim().toLowerCase();
+              if (c1 === c2) return true;
+              if ((c1.includes('home') || c1.includes('assign')) && (c2.includes('home') || c2.includes('assign'))) return true;
+              if ((c1.includes('mid') || c1.includes('test') || c1.includes('quiz')) && (c2.includes('mid') || c2.includes('test') || c2.includes('quiz'))) return true;
+              if ((c1.includes('exam') || c1.includes('final') || c1.includes('end')) && (c2.includes('exam') || c2.includes('final') || c2.includes('end'))) return true;
+              return false;
+            });
+            if (!matchingCol) {
+              currentCols.push({
+                class_id: this.selectedClassId(),
+                category: g.category,
+                weight: 0.2
+              });
+              colsModified = true;
+            }
+          }
+        });
+
+        if (colsModified) {
+          this.configuredColumns.set(currentCols);
+          this.initDraftGrades();
+        }
+
         const map = this.draftGrades();
 
         filtered.forEach(g => {
@@ -335,7 +420,7 @@ export class BulkGradingComponent implements OnInit {
               const c2 = (g.category || '').trim().toLowerCase();
               if (c1 === c2) return true;
               if ((c1.includes('home') || c1.includes('assign')) && (c2.includes('home') || c2.includes('assign'))) return true;
-              if ((c1.includes('mid') || c1.includes('test')) && (c2.includes('mid') || c2.includes('test'))) return true;
+              if ((c1.includes('mid') || c1.includes('test') || c1.includes('quiz')) && (c2.includes('mid') || c2.includes('test') || c2.includes('quiz'))) return true;
               if ((c1.includes('exam') || c1.includes('final') || c1.includes('end')) && (c2.includes('exam') || c2.includes('final') || c2.includes('end'))) return true;
               return false;
             });
@@ -366,6 +451,7 @@ export class BulkGradingComponent implements OnInit {
     if (termObj && termObj.id) {
       this.activeTermId.set(termObj.id);
     }
+    this.syncUrlAndSession();
     if (this.selectedClassId()) {
       this.loadExistingGrades();
     }

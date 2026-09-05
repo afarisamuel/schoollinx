@@ -289,8 +289,8 @@ func (r *gradeRepository) BulkCreate(ctx context.Context, grades []domain.Grade)
 		// 2. Try to find existing grade by composite key (student, class, subject, term, category)
 		var existing domain.Grade
 		err := r.db.WithContext(ctx).
-			Where("student_id = ? AND class_id = ? AND subject = ? AND term = ? AND category = ?",
-				g.StudentID, g.ClassID, g.Subject, g.Term, g.Category).
+			Where("student_id = ? AND class_id = ? AND LOWER(TRIM(subject)) = LOWER(TRIM(?)) AND LOWER(TRIM(term)) = LOWER(TRIM(?)) AND LOWER(TRIM(category)) = LOWER(TRIM(?))",
+				g.StudentID, g.ClassID, g.Subject, g.Term, string(g.Category)).
 			First(&existing).Error
 
 		if err == nil {

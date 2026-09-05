@@ -113,6 +113,7 @@ export class TeacherPortalComponent implements OnInit {
     // Auto-Save System
     autoSaveStatus = signal<'idle' | 'saving' | 'saved' | 'error'>('idle');
     lastAutoSavedAt = signal<Date | null>(null);
+    gradesLoaded = signal(false);
     private autoSaveTrigger$ = new Subject<void>();
     private autoSaveSub?: Subscription;
 
@@ -285,6 +286,7 @@ export class TeacherPortalComponent implements OnInit {
         this.selectedAssignment.set(assignment);
         this.successMsg.set('');
         this.errorMsg.set('');
+        this.gradesLoaded.set(false);
         const classId = assignment.class_id;
 
         // Auto-set subject from assignment, or clear for class-teacher assignments
@@ -296,7 +298,13 @@ export class TeacherPortalComponent implements OnInit {
 
         // Load class subjects for class-teacher selection
         this.classService.getClassSubjects(classId).subscribe({
-            next: (subs) => this.classSubjects.set(subs || []),
+            next: (subs) => {
+                this.classSubjects.set(subs || []);
+                if (subs && subs.length > 0 && !this.selectedSubjectId()) {
+                    this.selectedSubjectId.set(subs[0].id);
+                }
+                this.populateGridWithExistingGrades();
+            },
             error: () => this.classSubjects.set([])
         });
 
@@ -317,9 +325,17 @@ export class TeacherPortalComponent implements OnInit {
         });
 
         // Load existing grades for this class to show history
-        this.portalService.getClassGrades(classId).subscribe(grades => {
-            this.existingGrades.set(grades);
-            this.populateGridWithExistingGrades();
+        this.portalService.getClassGrades(classId).subscribe({
+            next: (grades) => {
+                this.existingGrades.set(grades || []);
+                this.gradesLoaded.set(true);
+                this.populateGridWithExistingGrades();
+            },
+            error: () => {
+                this.existingGrades.set([]);
+                this.gradesLoaded.set(true);
+                this.populateGridWithExistingGrades();
+            }
         });
 
         // Load classroom mastery suite
@@ -425,19 +441,57 @@ export class TeacherPortalComponent implements OnInit {
         const students = this.students();
         const cols = this.gradeColumns();
         const existing = this.existingGrades();
-        const currentSubject = this.selectedSubjectId();
+        const currentSubjectId = this.selectedSubjectId();
         const currentTerm = this.term();
 
         if (!students || students.length === 0 || !cols || cols.length === 0) return;
+
+        // Resolve selected subject details
+        const selectedSub = this.classSubjects().find(s => s.id === currentSubjectId || s.name === currentSubjectId);
+        const subId = selectedSub?.id || currentSubjectId;
+        const subName = selectedSub?.name || currentSubjectId;
+        const subCode = selectedSub?.code || '';
+
+        const matchSubject = (gSub: string) => {
+            if (!currentSubjectId) return false;
+            if (!gSub) return false;
+            const norm = gSub.trim().toLowerCase();
+            return norm === subId.toLowerCase() ||
+                   norm === subName.toLowerCase() ||
+                   (subCode !== '' && norm === subCode.toLowerCase());
+        };
+
+        const matchTerm = (gTerm: string) => {
+            if (!currentTerm) return true;
+            if (!gTerm) return false;
+            const cleanG = gTerm.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const cleanSel = currentTerm.toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (cleanG === cleanSel) return true;
+            if ((cleanSel.includes('first') || cleanSel.includes('1')) && (cleanG.includes('first') || cleanG.includes('1') || cleanG === 'term1')) return true;
+            if ((cleanSel.includes('second') || cleanSel.includes('2')) && (cleanG.includes('second') || cleanG.includes('2') || cleanG === 'term2')) return true;
+            if ((cleanSel.includes('third') || cleanSel.includes('3')) && (cleanG.includes('third') || cleanG.includes('3') || cleanG === 'term3')) return true;
+            return false;
+        };
+
+        const matchCategory = (colName: string, gCat: string) => {
+            if (!colName || !gCat) return false;
+            const c1 = colName.trim().toLowerCase();
+            const c2 = gCat.trim().toLowerCase();
+            if (c1 === c2) return true;
+            if ((c1.includes('home') || c1.includes('assign')) && (c2.includes('home') || c2.includes('assign'))) return true;
+            if ((c1.includes('mid') || c1.includes('test') || c1.includes('quiz')) && (c2.includes('mid') || c2.includes('test') || c2.includes('quiz'))) return true;
+            if ((c1.includes('exam') || c1.includes('final') || c1.includes('end')) && (c2.includes('exam') || c2.includes('final') || c2.includes('end'))) return true;
+            return false;
+        };
 
         const grid: Record<string, number[]> = {};
         students.forEach(s => {
             grid[s.id] = cols.map(c => {
                 const found = existing.find(g =>
                     g.student_id === s.id &&
-                    (g.subject === currentSubject || g.subject_id === currentSubject) &&
-                    g.term === currentTerm &&
-                    g.category === c.name
+                    (matchSubject(g.subject) || (g.subject_id && matchSubject(g.subject_id))) &&
+                    matchTerm(g.term) &&
+                    matchCategory(c.name, g.category)
                 );
                 return found ? found.score : 0;
             });
@@ -619,6 +673,9 @@ export class TeacherPortalComponent implements OnInit {
     }
 
     performAutoSave(manual = false) {
+        // Guard: prevent auto-saving if data has not yet loaded
+        if (!this.gradesLoaded() && !manual) return;
+
         const assignment = this.selectedAssignment();
         if (!assignment) return;
 
@@ -635,6 +692,9 @@ export class TeacherPortalComponent implements OnInit {
         const cols = this.gradeColumns();
         if (!cols || cols.length === 0) return;
 
+        const selectedSub = this.classSubjects().find(s => s.id === this.selectedSubjectId() || s.name === this.selectedSubjectId());
+        const resolvedSubject = selectedSub?.name || this.selectedSubjectId();
+
         const entries: GradeEntry[] = [];
 
         Object.keys(grid).forEach(studentId => {
@@ -643,7 +703,7 @@ export class TeacherPortalComponent implements OnInit {
                     const weightPct = cols[i].weight > 1 ? cols[i].weight : Math.round(cols[i].weight * 100);
                     entries.push({
                         student_id: studentId,
-                        subject: this.selectedSubjectId(),
+                        subject: resolvedSubject,
                         category: cols[i].name as any,
                         score: score,
                         max_score: 100,
