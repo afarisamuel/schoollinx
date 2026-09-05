@@ -893,21 +893,21 @@
   (submitTopUp)="submitTopUp($event)"></app-fiscal-topup-modal>
 }
 
-<!-- SMS Defaulters Preview Modal -->
+<!-- SMS & WhatsApp Defaulters Preview Modal -->
 @if (showSmsPreviewModal()) {
 <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in"
   (click)="closeSmsPreviewModal()">
-  <div class="relative w-full max-w-md bg-white dark:bg-bg-secondary border border-slate-200 dark:border-border-primary rounded-3xl shadow-2xl p-6 sm:p-8 my-auto animate-fade-in"
+  <div class="relative w-full max-w-lg bg-white dark:bg-bg-secondary border border-slate-200 dark:border-border-primary rounded-3xl shadow-2xl p-6 sm:p-8 my-auto animate-fade-in"
     (click)="$event.stopPropagation()">
     
     <div class="flex items-center justify-between mb-5">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center text-base border border-rose-500/20">
-          <i class="fas fa-comment-dots"></i>
+          <i class="fas fa-bullhorn"></i>
         </div>
         <div>
-          <h3 class="text-base font-black text-slate-900 dark:text-white">Fee Defaulters SMS Dispatch</h3>
-          <p class="text-xs text-text-muted">Direct SMS Dispatch Gateway</p>
+          <h3 class="text-base font-black text-slate-900 dark:text-white">Fee Debt Recovery Broadcast</h3>
+          <p class="text-xs text-text-muted">Automated SMS & WhatsApp Reminder Dispatch</p>
         </div>
       </div>
       <button (click)="closeSmsPreviewModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-bg-tertiary text-slate-500 flex items-center justify-center cursor-pointer transition-colors">
@@ -915,19 +915,62 @@
       </button>
     </div>
 
-    <div class="bg-slate-50 dark:bg-bg-tertiary border border-slate-200 dark:border-border-primary rounded-2xl p-4 mb-5 space-y-3">
-      <div class="flex justify-between items-center text-xs">
-        <span class="font-bold text-text-muted">Target Guardians</span>
-        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
-          {{ defaultersCount() }} fee defaulters
-        </span>
+    <div class="bg-slate-50 dark:bg-bg-tertiary border border-slate-200 dark:border-border-primary rounded-2xl p-4 mb-5 space-y-4">
+      
+      <!-- Target & Channel Selector -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-text-muted">Target Guardians:</span>
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+            {{ defaultersCount() }} fee defaulters
+          </span>
+        </div>
+
+        <div class="flex items-center gap-1 bg-bg-secondary p-1 rounded-xl border border-border-primary">
+          <button type="button" (click)="selectedChannel.set('SMS')"
+            class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase transition-all cursor-pointer"
+            [class.bg-blue-600]="selectedChannel() === 'SMS'"
+            [class.text-white]="selectedChannel() === 'SMS'"
+            [class.text-text-muted]="selectedChannel() !== 'SMS'">
+            SMS Gateway
+          </button>
+          <button type="button" (click)="selectedChannel.set('WHATSAPP')"
+            class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase transition-all cursor-pointer"
+            [class.bg-emerald-600]="selectedChannel() === 'WHATSAPP'"
+            [class.text-white]="selectedChannel() === 'WHATSAPP'"
+            [class.text-text-muted]="selectedChannel() !== 'WHATSAPP'">
+            WhatsApp API
+          </button>
+        </div>
       </div>
 
+      <!-- Quick Debtor Preset Templates -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[10px] font-black uppercase tracking-widest text-text-muted">Dynamic Smart Templates</label>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+          @for (tpl of debtorTemplates; track tpl.key) {
+            <button type="button" (click)="applyDebtorTemplate(tpl.key)"
+              class="p-2 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-0.5"
+              [class.bg-rose-500\/10]="selectedTemplateKey() === tpl.key"
+              [class.border-rose-500\/40]="selectedTemplateKey() === tpl.key"
+              [class.text-rose-600]="selectedTemplateKey() === tpl.key"
+              [class.dark:text-rose-400]="selectedTemplateKey() === tpl.key"
+              [class.bg-bg-secondary]="selectedTemplateKey() !== tpl.key"
+              [class.border-border-primary]="selectedTemplateKey() !== tpl.key"
+              [class.text-text-secondary]="selectedTemplateKey() !== tpl.key">
+              <span class="text-[10px] font-bold">{{ tpl.title }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Message Text Area -->
       <div>
-        <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">SMS Message Body</label>
+        <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Message Content</label>
         <textarea [ngModel]="smsPreviewMessage()" (ngModelChange)="smsPreviewMessage.set($event)" rows="3"
           class="w-full bg-white dark:bg-bg-secondary border border-slate-200 dark:border-border-primary rounded-xl p-3 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-rose-500 resize-none font-medium"></textarea>
       </div>
+
     </div>
 
     <div class="flex items-center gap-3">

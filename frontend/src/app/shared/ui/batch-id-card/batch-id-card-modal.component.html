@@ -1,0 +1,146 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in select-none">
+  <div class="bg-bg-secondary border border-border-primary w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    
+    <!-- Modal Header -->
+    <div class="p-6 border-b border-border-primary/60 flex items-center justify-between bg-bg-tertiary/40">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-teal-500/10 text-teal-400 border border-teal-500/20 flex items-center justify-center">
+          <i class="fas fa-id-card text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-lg font-black text-text-primary tracking-tight">Batch ID Card Studio</h3>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-teal-500/10 text-teal-400 border border-teal-500/20">
+              Bulk Production
+            </span>
+          </div>
+          <p class="text-xs text-text-muted">Generate and print high-fidelity CR80 badges for entire classes or selected scholars</p>
+        </div>
+      </div>
+
+      <button (click)="close.emit()" class="w-8 h-8 rounded-xl bg-bg-tertiary hover:bg-bg-primary text-text-muted hover:text-text-primary flex items-center justify-center transition-all cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6 overflow-y-auto flex flex-col gap-6 custom-scrollbar">
+      
+      <!-- Top Grid: Target Stream & Print Layout Mode -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Target Class Stream -->
+        <div class="flex flex-col gap-2">
+          <label class="text-[11px] font-black uppercase tracking-wider text-text-muted">1. Target Class Roster / Scope</label>
+          <select [(ngModel)]="selectedClassId" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 text-xs font-bold text-text-primary focus:outline-none focus:border-teal-500">
+            <option value="all">Entire School Roster (Up to 100 Scholars)</option>
+            @for (cls of classes; track cls.id) {
+              <option [value]="cls.id">{{ cls.name }} (Stream)</option>
+            }
+          </select>
+          <div class="flex items-center gap-1.5 text-[11px] text-text-muted">
+            <span>Ready to generate:</span>
+            <strong class="text-teal-400 font-mono font-bold">{{ targetStudents().length }} Scholar Badges</strong>
+          </div>
+        </div>
+
+        <!-- Print Output Layout -->
+        <div class="flex flex-col gap-2">
+          <label class="text-[11px] font-black uppercase tracking-wider text-text-muted">2. Print Layout & Media Format</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" (click)="printMode.set('a4-paired')"
+              class="p-2.5 rounded-xl border text-left flex flex-col gap-1 transition-all cursor-pointer"
+              [class.bg-teal-600/10]="printMode() === 'a4-paired'"
+              [class.border-teal-500]="printMode() === 'a4-paired'"
+              [class.text-teal-400]="printMode() === 'a4-paired'"
+              [class.bg-bg-tertiary]="printMode() !== 'a4-paired'"
+              [class.border-border-primary]="printMode() !== 'a4-paired'"
+              [class.text-text-muted]="printMode() !== 'a4-paired'">
+              <span class="text-xs font-black">A4 Sheet (Paired Front & Back)</span>
+              <span class="text-[10px] opacity-80 leading-tight">Side-by-side with fold guide for instant cutting & lamination.</span>
+            </button>
+
+            <button type="button" (click)="printMode.set('pvc-duplex')"
+              class="p-2.5 rounded-xl border text-left flex flex-col gap-1 transition-all cursor-pointer"
+              [class.bg-teal-600/10]="printMode() === 'pvc-duplex'"
+              [class.border-teal-500]="printMode() === 'pvc-duplex'"
+              [class.text-teal-400]="printMode() === 'pvc-duplex'"
+              [class.bg-bg-tertiary]="printMode() !== 'pvc-duplex'"
+              [class.border-border-primary]="printMode() !== 'pvc-duplex'"
+              [class.text-text-muted]="printMode() !== 'pvc-duplex'">
+              <span class="text-xs font-black">PVC Card Duplex</span>
+              <span class="text-[10px] opacity-80 leading-tight">Sequential Front/Back pages for dedicated PVC card printers.</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Color Theme Swatches -->
+      <div class="flex flex-col gap-2">
+        <label class="text-[11px] font-black uppercase tracking-wider text-text-muted">3. Institutional Accent Palette</label>
+        <div class="flex items-center gap-2 flex-wrap">
+          @for (th of themes; track th.id) {
+            <button type="button" (click)="selectedTheme.set(th.id)"
+              class="px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+              [class.bg-teal-600]="selectedTheme() === th.id"
+              [class.text-white]="selectedTheme() === th.id"
+              [class.border-teal-500]="selectedTheme() === th.id"
+              [class.bg-bg-tertiary]="selectedTheme() !== th.id"
+              [class.border-border-primary]="selectedTheme() !== th.id"
+              [class.text-text-secondary]="selectedTheme() !== th.id">
+              <span class="w-3 h-3 rounded-full border border-white/40" [style.background]="th.primary"></span>
+              <span>{{ th.name }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Candidate Preview Strip -->
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <label class="text-[11px] font-black uppercase tracking-wider text-text-muted">Candidate Roster Roster Sample (First 6 shown)</label>
+          <span class="text-[10px] font-mono text-text-muted">{{ targetStudents().length }} Total Candidates</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+          @for (st of targetStudents().slice(0, 6); track st.id) {
+            <div class="p-2.5 rounded-xl bg-bg-tertiary border border-border-primary/60 flex flex-col items-center text-center gap-1.5">
+              <div class="w-10 h-10 rounded-full bg-bg-secondary border border-border-secondary overflow-hidden flex items-center justify-center font-bold text-xs text-text-primary">
+                @if (st.photo_url) {
+                  <img [src]="st.photo_url" alt="Photo" class="w-full h-full object-cover">
+                } @else {
+                  {{ getInitials(st) }}
+                }
+              </div>
+              <div class="w-full">
+                <p class="text-[10px] font-bold text-text-primary truncate">{{ getStudentFullName(st) }}</p>
+                <p class="text-[8px] font-mono text-text-muted">{{ getStudentId(st) }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div class="p-5 border-t border-border-primary/60 bg-bg-tertiary/40 flex items-center justify-between">
+      <div class="text-xs text-text-muted flex items-center gap-1.5">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-teal-400"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        <span>Vector SVG barcodes & 300DPI ready-to-print graphics embedded.</span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button type="button" (click)="close.emit()" class="px-5 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-secondary text-text-secondary hover:text-text-primary text-xs font-bold rounded-xl transition-all">
+          Cancel
+        </button>
+        <button type="button" (click)="printBatch()"
+          class="px-6 py-2.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg shadow-teal-600/25 flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+          <span>Generate & Print ({{ targetStudents().length }} Badges)</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

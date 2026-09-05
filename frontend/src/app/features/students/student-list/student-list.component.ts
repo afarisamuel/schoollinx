@@ -13,10 +13,12 @@ import { ScholasticLevelService } from '../../../core/infrastructure/scholastic-
 import { ScholasticLevel } from '../../../core/domain/scholastic-level.model';
 import { PaginationState, defaultPaginationState } from '../../../core/domain/pagination.model';
 
+import { BatchIdCardModalComponent } from '../../../shared/ui/batch-id-card/batch-id-card-modal.component';
+
 @Component({
     selector: 'app-student-list',
     standalone: true,
-    imports: [RouterLink, CommonModule, FormsModule, DocumentRequestModalComponent, GraduationModalComponent],
+    imports: [RouterLink, CommonModule, FormsModule, DocumentRequestModalComponent, GraduationModalComponent, BatchIdCardModalComponent],
     templateUrl: './student-list.component.html',
     styleUrl: './student-list.component.css'
 })
@@ -28,8 +30,23 @@ export class StudentListComponent implements OnInit {
     selectedIds = signal<Set<string>>(new Set());
     selectedStudentForDocs = signal<Student | null>(null);
     selectedStudentForGraduation = signal<Student | null>(null);
+    isBatchIdModalOpen = signal<boolean>(false);
     importResult = signal<{ imported: number; failed: number; errors: string[] } | null>(null);
     exportMenuOpen = signal(false);
+
+    selectedStudentsList = computed(() => {
+        const ids = this.selectedIds();
+        if (ids.size === 0) return [];
+        return this.students().filter(s => !!s.id && ids.has(s.id));
+    });
+
+    openBatchIdStudio() {
+        this.isBatchIdModalOpen.set(true);
+    }
+
+    closeBatchIdStudio() {
+        this.isBatchIdModalOpen.set(false);
+    }
 
     // View mode: 'grid' | 'table' — persisted in localStorage
     viewMode = signal<'grid' | 'table'>(

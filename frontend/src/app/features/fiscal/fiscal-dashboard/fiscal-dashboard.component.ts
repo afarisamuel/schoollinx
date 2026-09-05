@@ -152,9 +152,37 @@ export class FiscalDashboardComponent implements OnInit {
         this.selectedRecordIds.set(new Set());
     }
 
-    // SMS Defaulters Preview Modal
+    // SMS & WhatsApp Defaulters Preview Modal
     showSmsPreviewModal = signal(false);
-    smsPreviewMessage = signal('Dear Parent, your child has an outstanding fee balance. Please contact the school bursar to settle your account. Thank you.');
+    selectedChannel = signal<'SMS' | 'WHATSAPP'>('SMS');
+    selectedTemplateKey = signal<'POLITE' | 'URGENT' | 'PAYMENT_LINK'>('URGENT');
+    smsPreviewMessage = signal('Dear Parent, your child has an outstanding fee balance. Please contact the school bursar or settle online to maintain active enrollment. Thank you.');
+
+    debtorTemplates = [
+        {
+            key: 'POLITE',
+            title: 'Friendly Pre-Due Reminder',
+            text: 'Dear Parent, this is a gentle reminder that your ward has an upcoming term fee balance. Kindly settle at the bursary or via mobile money to avoid late charges. Thank you.'
+        },
+        {
+            key: 'URGENT',
+            title: 'Urgent Overdue Notice',
+            text: 'URGENT NOTICE: Outstanding tuition balance detected for your ward. Please settle the pending account immediately to prevent academic interruption.'
+        },
+        {
+            key: 'PAYMENT_LINK',
+            title: 'Digital MoMo Payment Link',
+            text: 'Dear Parent, your school fee balance is due. Tap here to pay securely via MTN/Telecel/AirtelTigo Mobile Money or Card: https://schoollinx.com/pay'
+        }
+    ];
+
+    applyDebtorTemplate(tplKey: string) {
+        this.selectedTemplateKey.set(tplKey as any);
+        const tpl = this.debtorTemplates.find(t => t.key === tplKey);
+        if (tpl) {
+            this.smsPreviewMessage.set(tpl.text);
+        }
+    }
 
     openSmsPreviewModal() {
         this.showSmsPreviewModal.set(true);

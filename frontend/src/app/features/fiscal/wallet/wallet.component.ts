@@ -7,6 +7,9 @@ import { Student } from '../../../core/domain/student.model';
 import { ToastService } from '../../../shared/ui/toast/toast.service';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 
+import { StudentService } from '../../../core/infrastructure/student/student.service';
+import { OnDestroy } from '@angular/core';
+
 export interface CanteenPresetItem {
     id: string;
     name: string;
@@ -24,16 +27,90 @@ export interface CanteenPresetItem {
     templateUrl: './wallet.component.html',
     styleUrl: './wallet.component.css'
 })
-export class WalletComponent {
+export class WalletComponent implements OnInit, OnDestroy {
     private http = inject(HttpClient);
     private toast = inject(ToastService);
     private dialog = inject(DialogService);
+    private studentService = inject(StudentService);
 
     selectedStudent = signal<Student | null>(null);
     selectedStudentId = signal<string | null>(null);
     balance = signal<number>(0);
     transactions = signal<any[]>([]);
     isLoading = signal(false);
+
+    // Hardware Scanner Buffer
+    private keyBuffer: string = '';
+    private lastKeyTime: number = 0;
+    allStudents = signal<Student[]>([]);
+
+    ngOnInit(): void {
+        this.loadAllStudentsRoster();
+        this.setupHardwareBarcodeListener();
+    }
+
+    ngOnDestroy(): void {
+        this.removeHardwareBarcodeListener();
+    }
+
+    private loadAllStudentsRoster() {
+        this.studentService.getStudents().subscribe({
+            next: (list) => this.allStudents.set(list || []),
+            error: () => {}
+        });
+    }
+
+    private handleBarcodeScan = (event: KeyboardEvent) => {
+        const activeEl = document.activeElement;
+        if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+            return;
+        }
+
+        const currentTime = Date.now();
+        if (currentTime - this.lastKeyTime > 200) {
+            this.keyBuffer = '';
+        }
+        this.lastKeyTime = currentTime;
+
+        if (event.key === 'Enter') {
+            if (this.keyBuffer.trim().length > 0) {
+                event.preventDefault();
+                this.lookupStudentByBarcode(this.keyBuffer.trim());
+                this.keyBuffer = '';
+            }
+        } else if (event.key.length === 1) {
+            this.keyBuffer += event.key;
+        }
+    };
+
+    private setupHardwareBarcodeListener() {
+        if (typeof window !== 'undefined') {
+            window.addEventListener('keydown', this.handleBarcodeScan);
+        }
+    }
+
+    private removeHardwareBarcodeListener() {
+        if (typeof window !== 'undefined') {
+            window.removeEventListener('keydown', this.handleBarcodeScan);
+        }
+    }
+
+    lookupStudentByBarcode(code: string) {
+        let clean = code.trim().toLowerCase();
+        const student = this.allStudents().find(s => 
+            (s.id && s.id.toLowerCase() === clean) ||
+            (s.id && `stu-${s.id.substring(0, 8)}`.toLowerCase() === clean) ||
+            (s.enrollment_num && s.enrollment_num.toLowerCase() === clean) ||
+            (clean.length >= 4 && `${s.first_name} ${s.last_name}`.toLowerCase().includes(clean))
+        );
+
+        if (student) {
+            this.onStudentSelected(student);
+            this.toast.success(`Card Verified: ${student.first_name} ${student.last_name}`, 'Badge Swiped');
+        } else {
+            this.toast.warning(`No candidate found matching credential "${code}"`, 'Card Lookup');
+        }
+    }
 
     // Terminal active mode tab: 'POS' | 'TOPUP' | 'SECURITY'
     activeTerminalTab = signal<'POS' | 'TOPUP' | 'SECURITY'>('POS');

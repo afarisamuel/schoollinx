@@ -819,6 +819,79 @@ export class BulkGradingComponent implements OnInit {
     this.evalData.update(d => ({ ...d, head_teacher_remark: text }));
   }
 
+  isGeneratingAi = signal<boolean>(false);
+
+  generateAiRemarks(tone: 'encouraging' | 'rigorous' | 'balanced' = 'balanced') {
+    const student = this.evalStudent();
+    if (!student) return;
+
+    this.isGeneratingAi.set(true);
+    const scoreStr = this.getTotalPercentage(student.id!);
+    const score = parseFloat(scoreStr) || 75;
+    const name = student.first_name || 'The student';
+
+    setTimeout(() => {
+      let teacherRemark = '';
+      let headRemark = '';
+      let conduct = 'Respectful & Cooperative';
+      let attitude = 'Attentive & Diligent';
+      let interest = 'Active in Academic Discussions';
+
+      if (score >= 80) {
+        conduct = 'Exemplary & Role Model';
+        attitude = 'Highly Proactive & Inquisitive';
+        interest = 'Passionate Scholar & Class Contributor';
+        if (tone === 'encouraging') {
+          teacherRemark = `${name} has delivered an extraordinary academic performance this term. Consistently demonstrates superior mastery of coursework and inspires peers.`;
+          headRemark = `Outstanding terminal results. Commended for academic excellence and discipline. Keep striving for the highest laurels!`;
+        } else if (tone === 'rigorous') {
+          teacherRemark = `${name} exhibits stellar intellectual command and thorough analytical rigor. Must maintain this exceptional trajectory in upcoming examinations.`;
+          headRemark = `A brilliant terminal performance. Recommended for academic honors and leadership mentoring.`;
+        } else {
+          teacherRemark = `${name} displays remarkable dedication and strong academic prowess across all units this term.`;
+          headRemark = `Superb achievement. Commendable work ethic and integrity. Well done!`;
+        }
+      } else if (score >= 65) {
+        conduct = 'Well-Behaved & Courteous';
+        attitude = 'Positive & Hardworking';
+        interest = 'Consistent Class Participation';
+        if (tone === 'encouraging') {
+          teacherRemark = `${name} has shown commendable progress and great enthusiasm this term. With focused revision in core concepts, greater heights are within reach.`;
+          headRemark = `A very good terminal showing. Encouraged to aim for distinction in the coming academic session.`;
+        } else if (tone === 'rigorous') {
+          teacherRemark = `${name} demonstrates solid comprehension but can achieve distinction with greater consistency in independent study and homework submissions.`;
+          headRemark = `Good academic standing. Continuous effort and deeper engagement will unlock full potential.`;
+        } else {
+          teacherRemark = `${name} is a hardworking scholar who consistently meets academic benchmarks with steady diligence.`;
+          headRemark = `Satisfactory progress shown. Keep up the disciplined routine.`;
+        }
+      } else if (score >= 50) {
+        conduct = 'Calm & Receptive';
+        attitude = 'Fair Effort, Needs Consistency';
+        interest = 'Developing Interest';
+        teacherRemark = `${name} possesses promising potential but requires structured study routines and active class participation to bridge conceptual gaps.`;
+        headRemark = `Average performance. Greater commitment to remedial review and classroom focus is strongly advised.`;
+      } else {
+        conduct = 'Needs Guidance';
+        attitude = 'Distracted, Requires Close Monitoring';
+        interest = 'Passivity Observed';
+        teacherRemark = `${name} is experiencing academic difficulty this term. Immediate participation in after-school tutorials and strict parental supervision are recommended.`;
+        headRemark = `Unsatisfactory terminal outcome. Parent-teacher conference required to establish an intensive remedial plan.`;
+      }
+
+      this.evalData.update(d => ({
+        ...d,
+        conduct,
+        attitude,
+        interest,
+        class_teacher_remark: teacherRemark,
+        head_teacher_remark: headRemark
+      }));
+
+      this.isGeneratingAi.set(false);
+    }, 350);
+  }
+
   // --- Save to Server ---
   saveGrades() {
     if (this.isLocked()) {

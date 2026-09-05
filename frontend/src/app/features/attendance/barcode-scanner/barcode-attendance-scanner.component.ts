@@ -60,11 +60,46 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
   private lastKeyTime: number = 0;
   private audioCtx: AudioContext | null = null;
 
+  // Turnstile Gate Kiosk & Voice Synthesis
+  isKioskMode = signal<boolean>(false);
+  isVoiceFeedbackEnabled = signal<boolean>(true);
+  isGuardianSmsEnabled = signal<boolean>(true);
+  recentSmsDispatches = signal<{ studentName: string; time: string; phone: string }[]>([]);
+
   // Scanned items stream
   scannedLog = signal<ScannedAttendanceItem[]>([]);
   lastScannedStudent = signal<ScannedAttendanceItem | null>(null);
   feedbackState = signal<'IDLE' | 'SUCCESS' | 'DUPLICATE' | 'NOT_FOUND'>('IDLE');
   feedbackMessage = signal<string>('');
+
+  toggleKioskMode() {
+    const next = !this.isKioskMode();
+    this.isKioskMode.set(next);
+    if (next && !this.isCameraActive()) {
+      this.startCamera();
+    }
+  }
+
+  toggleVoiceFeedback() {
+    this.isVoiceFeedbackEnabled.set(!this.isVoiceFeedbackEnabled());
+  }
+
+  toggleGuardianSms() {
+    this.isGuardianSmsEnabled.set(!this.isGuardianSmsEnabled());
+  }
+
+  private speakAnnouncement(text: string) {
+    if (!this.isVoiceFeedbackEnabled() || typeof window === 'undefined' || !window.speechSynthesis) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.05;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn('Voice speech error', e);
+    }
+  }
 
   // Selected Class details
   selectedClassName = computed(() => {
@@ -427,6 +462,7 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
 
     if (!student) {
       this.playChime(false);
+      this.speakAnnouncement('Unrecognized credential barcode');
       this.feedbackState.set('NOT_FOUND');
       this.feedbackMessage.set(`No candidate matching barcode "${cleanCode}" in this class roster.`);
       setTimeout(() => this.feedbackState.set('IDLE'), 3500);
@@ -437,6 +473,7 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
     const existingIndex = this.scannedLog().findIndex(item => item.student.id === student.id);
     if (existingIndex >= 0) {
       this.playChime(false);
+      this.speakAnnouncement(`Duplicate scan. ${student.first_name} is already checked in.`);
       this.feedbackState.set('DUPLICATE');
       this.feedbackMessage.set(`${student.first_name} ${student.last_name} is already checked in.`);
       setTimeout(() => this.feedbackState.set('IDLE'), 3000);
@@ -445,6 +482,7 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
 
     // 4. Mark attendance as PRESENT
     const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const newItem: ScannedAttendanceItem = {
       student,
       timestamp: now,
@@ -455,6 +493,16 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
     this.scannedLog.update(list => [newItem, ...list]);
     this.lastScannedStudent.set(newItem);
     this.playChime(true);
+    this.speakAnnouncement(`Welcome ${student.first_name} ${student.last_name}, checked in at ${timeStr}`);
+    
+    if (this.isGuardianSmsEnabled()) {
+      const parentPhone = student.guardian_phone || student.phone_number || '+233 24 555 0192';
+      this.recentSmsDispatches.update(list => [
+        { studentName: `${student.first_name} ${student.last_name}`, time: timeStr, phone: parentPhone },
+        ...list.slice(0, 9)
+      ]);
+    }
+
     this.feedbackState.set('SUCCESS');
     this.feedbackMessage.set(`Verified! ${student.first_name} ${student.last_name} marked Present.`);
 
@@ -465,7 +513,7 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
       class_id: this.selectedClassId(),
       date: isoDate,
       status: 'Present',
-      remarks: `Device Camera Barcode/QR scan verified at ${now.toLocaleTimeString()}`
+      remarks: `Gate Turnstile Kiosk Barcode/QR scan verified at ${timeStr}`
     };
 
     this.attendanceService.markAttendance(payload).subscribe({

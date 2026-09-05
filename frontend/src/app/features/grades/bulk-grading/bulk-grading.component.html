@@ -734,6 +734,39 @@
             <p class="text-xs font-bold text-text-muted uppercase tracking-wider">Loading student evaluation records...</p>
           </div>
         } @else {
+          <!-- AI Academic Remark Generator Bar -->
+          <div class="p-4 rounded-2xl bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-emerald-600/10 border border-blue-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs">
+                ✨
+              </div>
+              <div>
+                <p class="text-xs font-black text-text-primary">AI Remark & Conduct Assistant</p>
+                <p class="text-[11px] text-text-muted">Generate individualized remarks based on this candidate's grade score ({{ getTotalPercentage(evalStudent()?.id || '') }})</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button type="button" (click)="generateAiRemarks('balanced')" [disabled]="isGeneratingAi()"
+                class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold transition-all shadow-sm flex items-center gap-1 cursor-pointer disabled:opacity-50">
+                @if (isGeneratingAi()) {
+                  <i class="fas fa-circle-notch fa-spin text-xs"></i>
+                  <span>Synthesizing...</span>
+                } @else {
+                  <span>Auto-Generate</span>
+                }
+              </button>
+              <button type="button" (click)="generateAiRemarks('encouraging')" [disabled]="isGeneratingAi()"
+                class="px-2.5 py-1.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-secondary hover:text-text-primary text-[11px] font-semibold transition-all cursor-pointer">
+                Encouraging
+              </button>
+              <button type="button" (click)="generateAiRemarks('rigorous')" [disabled]="isGeneratingAi()"
+                class="px-2.5 py-1.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-secondary hover:text-text-primary text-[11px] font-semibold transition-all cursor-pointer">
+                Rigorous
+              </button>
+            </div>
+          </div>
+
           <!-- Quick Status & Overview -->
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
