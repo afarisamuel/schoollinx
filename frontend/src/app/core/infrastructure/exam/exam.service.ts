@@ -8,7 +8,7 @@ export interface Exam {
     description: string;
     academic_year: string;
     term: string;
-    status: 'DRAFT' | 'PUBLISHED' | 'COMPLETED';
+    status: 'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'COMPLETED';
     start_date: string;
     end_date: string;
     schedules?: ExamSchedule[];
@@ -19,6 +19,7 @@ export interface ExamSchedule {
     exam_id: string;
     class_id: string;
     subject: string;
+    room?: string;
     date: string;
     start_time: string;
     end_time: string;
@@ -32,6 +33,23 @@ export interface ExamResult {
     student_id: string;
     score: number;
     remarks: string;
+}
+
+export interface ExamConflict {
+    type: string;
+    date: string;
+    start_time: string;
+    end_time: string;
+    schedule_a: string;
+    schedule_b: string;
+    description: string;
+}
+
+export interface ExamConflictReport {
+    exam_id: string;
+    conflict_count: number;
+    conflicts: ExamConflict[];
+    has_conflicts: boolean;
 }
 
 @Injectable({
@@ -57,12 +75,24 @@ export class ExamService {
         return this.http.put<Exam>(`${this.apiUrl}/${id}`, exam);
     }
 
+    deleteExam(id: string): Observable<any> {
+        return this.http.delete(`${this.apiUrl}/${id}`);
+    }
+
     addSchedule(examId: string, schedule: Partial<ExamSchedule>): Observable<ExamSchedule> {
         return this.http.post<ExamSchedule>(`${this.apiUrl}/${examId}/schedules`, schedule);
     }
 
+    deleteSchedule(examId: string, scheduleId: string): Observable<any> {
+        return this.http.delete(`${this.apiUrl}/${examId}/schedules/${scheduleId}`);
+    }
+
     getSchedules(examId: string): Observable<ExamSchedule[]> {
         return this.http.get<ExamSchedule[]>(`${this.apiUrl}/${examId}/schedules`);
+    }
+
+    checkConflicts(examId: string): Observable<ExamConflictReport> {
+        return this.http.get<ExamConflictReport>(`${this.apiUrl}/${examId}/conflicts`);
     }
 
     submitResults(scheduleId: string, results: ExamResult[]): Observable<any> {

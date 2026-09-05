@@ -31,4 +31,16 @@ export class TimetableService {
     getExamSchedule(classId: string): Observable<ExamSession[]> {
         return this.http.get<ExamSession[]>(`${this.apiUrl}/exam/class/${classId}`);
     }
+
+    getExamScheduleByPeriod(periodId: string): Observable<ExamSession[]> {
+        return this.http.get<ExamSession[]>(`${this.apiUrl}/exam/period/${periodId}`);
+    }
+
+    createExamSession(session: Partial<ExamSession>): Observable<ExamSession> {
+        return this.http.post<ExamSession>(`${this.apiUrl}/exam/session`, session);
+    }
+
+    deleteExamSession(id: string): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/exam/session/${id}`);
+    }
 }

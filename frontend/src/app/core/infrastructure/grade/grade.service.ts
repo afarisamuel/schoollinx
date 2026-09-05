@@ -53,13 +53,19 @@ export class GradeService {
     }
 
     addGrade(grade: Partial<Grade>): Observable<Grade> {
-        this.offlineSync.queueOperation('POST', this.apiUrl, grade);
-        return of(grade as Grade);
+        if (!navigator.onLine) {
+            this.offlineSync.queueOperation('POST', this.apiUrl, grade);
+            return of(grade as Grade);
+        }
+        return this.http.post<Grade>(this.apiUrl, grade);
     }
 
     updateGrade(id: string, grade: Partial<Grade>): Observable<Grade> {
-        this.offlineSync.queueOperation('PUT', `${this.apiUrl}/${id}`, grade);
-        return of(grade as Grade);
+        if (!navigator.onLine) {
+            this.offlineSync.queueOperation('PUT', `${this.apiUrl}/${id}`, grade);
+            return of(grade as Grade);
+        }
+        return this.http.put<Grade>(`${this.apiUrl}/${id}`, grade);
     }
 
     deleteGrade(id: string): Observable<any> {
@@ -67,8 +73,11 @@ export class GradeService {
     }
 
     bulkCreateGrades(grades: Partial<Grade>[]): Observable<{ imported: number, errors: string[] }> {
-        this.offlineSync.queueOperation('POST', `${this.apiUrl}/bulk`, grades);
-        return of({ imported: grades.length, errors: [] });
+        if (!navigator.onLine) {
+            this.offlineSync.queueOperation('POST', `${this.apiUrl}/bulk`, grades);
+            return of({ imported: grades.length, errors: [] });
+        }
+        return this.http.post<{ imported: number, errors: string[] }>(`${this.apiUrl}/bulk`, grades);
     }
 
     generateTerminalReport(studentId: string, periodId?: string, termId?: string): Observable<Blob> {

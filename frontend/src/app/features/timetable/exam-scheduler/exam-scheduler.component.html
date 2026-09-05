@@ -1,191 +1,453 @@
-<div class="space-y-4 sm:space-y-6 animate-fade-in pb-12">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6 mb-4 sm:mb-6">
-        <div>
-            <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-blue-400 uppercase italic">
-                Temporal Exam Scheduler
+<div class="max-w-[1440px] mx-auto space-y-6 animate-fade-in pb-20 relative">
+    <!-- Ambient Futuristic Glows -->
+    <div class="absolute -top-10 left-1/4 w-[500px] h-[500px] bg-blue-600/10 rounded-full mix-blend-screen filter blur-[120px] pointer-events-none -z-10"></div>
+    <div class="absolute top-1/3 right-10 w-[450px] h-[450px] bg-indigo-600/10 rounded-full mix-blend-screen filter blur-[120px] pointer-events-none -z-10"></div>
+
+    <!-- Header Section -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+        <div class="space-y-2">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest">
+                <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                <span>Automated Matrix Engine</span>
+            </div>
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight flex items-center gap-3">
+                <span>Temporal Exam Scheduler</span>
+                <span class="text-xs font-black px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 align-middle">
+                    Constraint Solver
+                </span>
             </h1>
-            <p class="text-xs sm:text-sm font-medium text-text-secondary mt-1 sm:mt-2">
-                Automated constraint-satisfaction scheduling engine for academic evaluations
+            <p class="text-text-muted font-medium text-sm sm:text-base max-w-2xl">
+                Automated constraint-satisfaction scheduling engine resolving multi-class room assignments, subject evaluation windows, and invigilation timetables.
             </p>
         </div>
-    </div>
 
-    <!-- Controls Panel -->
-    <div class="bg-bg-secondary/40 backdrop-blur-xl border border-border-primary/60 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-4 sm:mb-8 shadow-2xl relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[100px] rounded-full pointer-events-none"></div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end relative z-10">
-            <!-- Period Selector -->
-            <div class="flex flex-col gap-3">
-                <label class="text-[11px] font-black text-text-muted uppercase tracking-[0.2em] flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Academic Period
-                </label>
-                <select [ngModel]="selectedPeriodId()" (ngModelChange)="selectedPeriodId.set($event)"
-                    class="bg-bg-tertiary/60 border border-border-secondary/80 rounded-2xl px-5 py-4 text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all cursor-pointer shadow-inner">
-                    <option value="">Select Period…</option>
-                    @for (p of periods(); track p.id) {
-                    <option [value]="p.id">{{ p.name }} ({{ p.term_type }})</option>
-                    }
-                </select>
-            </div>
+        <!-- Quick Header Actions -->
+        <div class="flex flex-wrap items-center gap-3">
+            <button (click)="exportCSV()" [disabled]="examSessions().length === 0" title="Export Timetable as CSV"
+                class="px-4 py-3 bg-bg-secondary/80 hover:bg-bg-tertiary text-text-primary hover:text-white border border-white/10 text-xs font-bold rounded-2xl transition-all duration-200 flex items-center gap-2 disabled:opacity-40 disabled:pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-emerald-400"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Export CSV</span>
+            </button>
 
-            <!-- Class Selector -->
-            <div class="flex flex-col gap-3">
-                <label class="text-[11px] font-black text-text-muted uppercase tracking-[0.2em] flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> View Exams for Class
-                </label>
-                <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event); loadExamSchedule()"
-                    class="bg-bg-tertiary/60 border border-border-secondary/80 rounded-2xl px-5 py-4 text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all cursor-pointer shadow-inner">
-                    <option value="">Select Class…</option>
-                    @for (c of classes(); track c.id) {
-                    <option [value]="c.id">{{ c.name }}</option>
-                    }
-                </select>
-            </div>
-
-            <!-- Auto-Generate Action Button -->
-            <button (click)="generate()" [disabled]="isGenerating() || !selectedPeriodId()"
-                class="px-8 py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:pointer-events-none text-white text-xs font-black rounded-2xl shadow-xl shadow-blue-500/10 hover:shadow-blue-500/25 transition-all active:scale-[0.98] whitespace-nowrap flex items-center justify-center gap-3 border border-blue-400/20 group">
-                @if (isGenerating()) {
-                <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Compiling Schedule…
-                } @else {
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="group-hover:rotate-180 transition-transform duration-500"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-                Auto-Generate Engine
-                }
+            <button (click)="openAddModal()" [disabled]="!selectedPeriodId()"
+                class="px-4 py-3 bg-bg-secondary/80 hover:bg-bg-tertiary text-text-primary hover:text-white border border-white/10 text-xs font-bold rounded-2xl transition-all duration-200 flex items-center gap-2 disabled:opacity-40">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-blue-400"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Add Session</span>
             </button>
         </div>
     </div>
 
-    <!-- Alert Messages -->
-    @if (successMsg()) {
-    <div class="mb-6 p-5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-400 text-sm font-bold flex items-center gap-3 animate-fade-in">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-emerald-400"><polyline points="20 6 9 17 4 12"/></svg>
-        {{ successMsg() }}
-    </div>
-    }
-    @if (errorMsg()) {
-    <div class="mb-6 p-5 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-400 text-sm font-bold flex items-center gap-3 animate-fade-in">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-red-400"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        {{ errorMsg() }}
-    </div>
-    }
-
-    <!-- Exam Sessions Layout -->
-    @if (isLoading()) {
-    <div class="flex flex-col items-center justify-center py-24 gap-4 text-text-muted">
-        <div class="relative w-12 h-12">
-            <div class="absolute inset-0 border-4 border-blue-500/20 rounded-full"></div>
-            <div class="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+    <!-- Analytics & Constraint Engine Status Deck -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
+        <!-- Metric 1: Constraint Engine -->
+        <div class="bg-bg-secondary/60 backdrop-blur-xl border border-white/5 hover:border-blue-500/20 rounded-3xl p-5 transition-all duration-300 hover:-translate-y-1">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-text-muted uppercase tracking-widest">Engine Mode</span>
+                <div class="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+            </div>
+            <div class="flex items-baseline justify-between">
+                <div class="text-lg font-black text-white">Genetic Solver</div>
+                <div class="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">Conflict-Free</div>
+            </div>
         </div>
-        <span class="text-sm font-black tracking-wider uppercase text-blue-400/80 animate-pulse">Resolving Timetable Matrix…</span>
+
+        <!-- Metric 2: Academic Period -->
+        <div class="bg-bg-secondary/60 backdrop-blur-xl border border-white/5 hover:border-emerald-500/20 rounded-3xl p-5 transition-all duration-300 hover:-translate-y-1">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-text-muted uppercase tracking-widest">Target Period</span>
+                <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+            </div>
+            <div class="flex items-baseline justify-between">
+                <div class="text-lg font-black text-emerald-400 truncate max-w-[150px]">{{ selectedPeriod()?.name || 'Select Period' }}</div>
+                <div class="text-[11px] font-bold text-text-muted">{{ selectedPeriod()?.term_type || 'Active Term' }}</div>
+            </div>
+        </div>
+
+        <!-- Metric 3: Scheduled Sessions -->
+        <div class="bg-bg-secondary/60 backdrop-blur-xl border border-white/5 hover:border-indigo-500/20 rounded-3xl p-5 transition-all duration-300 hover:-translate-y-1">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-text-muted uppercase tracking-widest">Scheduled Sessions</span>
+                <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </div>
+            </div>
+            <div class="flex items-baseline justify-between">
+                <div class="text-3xl font-black text-indigo-400">{{ totalSessionsCount() }}</div>
+                <div class="text-[11px] font-bold text-text-muted">{{ morningSessionsCount() }} AM / {{ afternoonSessionsCount() }} PM</div>
+            </div>
+        </div>
+
+        <!-- Metric 4: Facilities Utilized -->
+        <div class="bg-bg-secondary/60 backdrop-blur-xl border border-white/5 hover:border-amber-500/20 rounded-3xl p-5 transition-all duration-300 hover:-translate-y-1">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-text-muted uppercase tracking-widest">Venues / Halls</span>
+                <div class="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                </div>
+            </div>
+            <div class="flex items-baseline justify-between">
+                <div class="text-3xl font-black text-amber-400">{{ uniqueRoomsUsedCount() }}</div>
+                <div class="text-[11px] font-bold text-text-muted">of {{ rooms().length }} Facilities</div>
+            </div>
+        </div>
     </div>
-    } @else if (examSessions().length > 0) {
-    <!-- Main Content Area -->
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <!-- Timetable Chronological View (Left/Center) -->
-        <div class="xl:col-span-2 flex flex-col gap-6">
-            <div class="flex items-center justify-between">
-                <h2 class="text-lg font-black tracking-wider text-text-primary uppercase flex items-center gap-3">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Chronological Evaluations
-                </h2>
-                <span class="px-4 py-1.5 bg-bg-secondary border border-border-primary rounded-full text-xs font-black text-text-secondary">
-                    {{ examSessions().length }} Scheduled Sessions
-                </span>
+
+    <!-- Generator & Filter Control Hub -->
+    <div class="bg-bg-secondary/70 backdrop-blur-2xl border border-white/10 rounded-3xl p-5 md:p-6 relative z-10 shadow-xl space-y-5">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <!-- Period Selector -->
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-text-muted uppercase tracking-widest pl-1 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                    <span>Academic Period</span>
+                </label>
+                <select 
+                    [ngModel]="selectedPeriodId()" 
+                    (ngModelChange)="selectedPeriodId.set($event); loadExamSchedule()"
+                    class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-sm font-bold text-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                    <option value="" class="bg-bg-secondary text-text-muted">Select Academic Period...</option>
+                    @for (p of periods(); track p.id) {
+                        <option [value]="p.id" class="bg-bg-secondary text-white">{{ p.name }} ({{ p.term_type }}) {{ p.is_active ? '• ACTIVE' : '' }}</option>
+                    }
+                </select>
             </div>
 
-            <!-- List layout of elegant cards -->
-            <div class="flex flex-col gap-4">
-                @for (session of examSessions(); track session.id; let idx = $index) {
-                <div class="bg-bg-secondary/40 hover:bg-bg-secondary/70 border border-border-primary hover:border-blue-500/30 rounded-3xl p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-xl hover:shadow-blue-500/[0.02] flex flex-col md:flex-row md:items-center justify-between gap-6 group">
-                    <!-- Date Card section -->
-                    <div class="flex items-center gap-5">
-                        <div class="w-16 h-16 rounded-2xl bg-bg-tertiary flex flex-col items-center justify-center border border-border-secondary shadow-md group-hover:border-blue-500/20 transition-colors">
-                            <span class="text-[10px] font-black text-text-muted uppercase tracking-widest">{{ session.date | date:'LLL' }}</span>
-                            <span class="text-2xl font-black text-blue-500 mt-0.5 leading-none">{{ session.date | date:'dd' }}</span>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-black text-text-primary uppercase tracking-wider">{{ session.date | date:'EEEE' }}</h3>
-                            <!-- Morning/Afternoon session tag -->
-                            <div class="flex items-center gap-2 mt-1.5">
-                                <span class="w-2 h-2 rounded-full" [ngClass]="session.start_time < '12:00' ? 'bg-amber-500' : 'bg-blue-500'"></span>
-                                <span class="text-xs font-bold text-text-secondary">
-                                    {{ session.start_time }} – {{ session.end_time }}
-                                </span>
-                            </div>
-                        </div>
+            <!-- Class Scope Selector -->
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-text-muted uppercase tracking-widest pl-1 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                    <span>Class Scope</span>
+                </label>
+                <select 
+                    [ngModel]="selectedClassId()" 
+                    (ngModelChange)="selectedClassId.set($event); loadExamSchedule()"
+                    class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-sm font-bold text-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                    <option value="ALL" class="bg-bg-secondary text-blue-400 font-bold">All Classes (Whole School Timetable)</option>
+                    @for (c of classes(); track c.id) {
+                        <option [value]="c.id" class="bg-bg-secondary text-white">{{ c.name }}</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Auto-Generate Engine CTA -->
+            <button (click)="generate()" [disabled]="isGenerating() || !selectedPeriodId()"
+                class="group relative w-full p-4 bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 disabled:pointer-events-none text-white text-sm font-bold rounded-2xl shadow-xl shadow-blue-600/30 transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 overflow-hidden">
+                <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                @if (isGenerating()) {
+                    <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span class="relative z-10">Optimizing Constraints Matrix...</span>
+                } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="relative z-10 group-hover:rotate-180 transition-transform duration-500"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    <span class="relative z-10">⚡ Auto-Generate Exam Schedule</span>
+                }
+            </button>
+        </div>
+
+        <!-- Secondary Toolbar: Search, Time Filter Pills & View Mode -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-3 border-t border-white/5">
+            <!-- Search -->
+            <div class="relative flex-1 min-w-[200px]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input 
+                    [ngModel]="searchQuery()" 
+                    (ngModelChange)="searchQuery.set($event)"
+                    type="text" 
+                    placeholder="Filter by subject, class, or venue..." 
+                    class="w-full bg-black/40 border border-white/10 rounded-2xl pl-11 pr-4 py-2.5 text-xs text-white focus:ring-2 focus:ring-blue-500 outline-none placeholder:text-text-muted/60">
+            </div>
+
+            <!-- Time Filter Pills -->
+            <div class="flex items-center gap-2">
+                <button (click)="selectedSessionTimeFilter.set('ALL')"
+                    [ngClass]="selectedSessionTimeFilter() === 'ALL' ? 'bg-blue-600 text-white' : 'bg-black/30 text-text-muted hover:text-white border border-white/5'"
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition-colors">
+                    All Slots ({{ totalSessionsCount() }})
+                </button>
+                <button (click)="selectedSessionTimeFilter.set('MORNING')"
+                    [ngClass]="selectedSessionTimeFilter() === 'MORNING' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-black/30 text-text-muted hover:text-white border border-white/5'"
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                    <span>Morning ({{ morningSessionsCount() }})</span>
+                </button>
+                <button (click)="selectedSessionTimeFilter.set('AFTERNOON')"
+                    [ngClass]="selectedSessionTimeFilter() === 'AFTERNOON' ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' : 'bg-black/30 text-text-muted hover:text-white border border-white/5'"
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+                    <span>Afternoon ({{ afternoonSessionsCount() }})</span>
+                </button>
+            </div>
+
+            <!-- View Switcher -->
+            <div class="flex items-center bg-black/40 border border-white/10 rounded-2xl p-1 shrink-0">
+                <button (click)="viewMode.set('timeline')"
+                    [class.bg-blue-600]="viewMode() === 'timeline'"
+                    [class.text-white]="viewMode() === 'timeline'"
+                    [class.text-text-muted]="viewMode() !== 'timeline'"
+                    class="p-2 rounded-xl text-xs transition-colors" title="Chronological Timeline View">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </button>
+                <button (click)="viewMode.set('table')"
+                    [class.bg-blue-600]="viewMode() === 'table'"
+                    [class.text-white]="viewMode() === 'table'"
+                    [class.text-text-muted]="viewMode() !== 'table'"
+                    class="p-2 rounded-xl text-xs transition-colors" title="Matrix Table View">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN EVALUATIONS TIMETABLE CONTENT -->
+    <div class="relative z-10">
+        @if (isLoading()) {
+            <div class="flex flex-col items-center justify-center py-28 text-center bg-bg-secondary/40 backdrop-blur-xl border border-white/5 rounded-3xl">
+                <div class="w-14 h-14 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+                <p class="text-sm font-bold text-text-muted animate-pulse">Resolving timetable matrix & room allocations...</p>
+            </div>
+        } @else if (examSessions().length === 0) {
+            <!-- Empty / Ready to Generate State -->
+            <div class="bg-gradient-to-b from-bg-secondary/90 to-bg-secondary/40 backdrop-blur-2xl border border-white/10 rounded-[36px] p-8 md:p-14 text-center shadow-2xl relative overflow-hidden">
+                <div class="absolute -top-24 -left-24 w-72 h-72 bg-blue-500/10 rounded-full filter blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-indigo-500/10 rounded-full filter blur-3xl pointer-events-none"></div>
+
+                <div class="max-w-2xl mx-auto space-y-6">
+                    <div class="w-20 h-20 mx-auto bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-500/30 border border-white/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                     </div>
 
-                    <!-- Subject and Details -->
-                    <div class="flex flex-col md:items-end gap-2">
-                        <div class="flex items-center gap-3">
-                            <span class="px-3.5 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-black rounded-xl uppercase tracking-widest">
-                                {{ getSubjectDetail(session.subject_id).code }}
-                            </span>
-                            <span class="text-sm font-black text-text-primary">
-                                {{ getSubjectDetail(session.subject_id).name }}
-                            </span>
-                        </div>
-                        
-                        <div class="flex items-center gap-2 text-xs text-text-muted mt-1 font-bold">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
-                            <span>{{ getRoomName(session.facility_id) }}</span>
-                        </div>
+                    <div class="space-y-2">
+                        <h3 class="text-2xl md:text-3xl font-black text-white">No Timetable Compiled Yet</h3>
+                        <p class="text-text-muted text-sm md:text-base leading-relaxed">
+                            The temporal constraint engine automatically balances class subject schedules, avoids room double-bookings, and creates morning and afternoon evaluation slots.
+                        </p>
+                    </div>
+
+                    <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <button (click)="generate()" [disabled]="isGenerating() || !selectedPeriodId()"
+                            class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-2xl shadow-xl shadow-blue-600/40 transition-all hover:scale-105 active:scale-95 disabled:opacity-50">
+                            ⚡ Compile Whole-School Exam Schedule
+                        </button>
+                        <button (click)="openAddModal()" [disabled]="!selectedPeriodId()"
+                            class="px-6 py-4 bg-white/5 hover:bg-white/10 text-text-primary text-sm font-bold rounded-2xl border border-white/10 transition-all">
+                            + Schedule Manually
+                        </button>
                     </div>
                 </div>
+            </div>
+        } @else if (viewMode() === 'timeline') {
+            <!-- CHRONOLOGICAL TIMELINE VIEW (Grouped by Date) -->
+            <div class="space-y-6">
+                @for (dayGroup of sessionsGroupedByDate(); track dayGroup.date) {
+                    <div class="bg-bg-secondary/70 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
+                        <!-- Date Header Banner -->
+                        <div class="flex items-center justify-between pb-3 border-b border-white/5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex flex-col items-center justify-center">
+                                    <span class="text-[9px] font-black uppercase tracking-widest">{{ dayGroup.date | date:'LLL' }}</span>
+                                    <span class="text-lg font-black leading-none mt-0.5">{{ dayGroup.date | date:'dd' }}</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-white">{{ dayGroup.date | date:'EEEE, MMMM d, yyyy' }}</h3>
+                                    <p class="text-xs text-text-muted">{{ dayGroup.sessions.length }} Evaluation Sessions Scheduled</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-text-muted">
+                                Day {{ $index + 1 }}
+                            </span>
+                        </div>
+
+                        <!-- Session Cards for this Date -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                            @for (session of dayGroup.sessions; track session.id) {
+                                @let isMorning = (session.start_time || '') < '12:00';
+                                <div class="group bg-black/30 hover:bg-black/50 border border-white/5 hover:border-blue-500/30 rounded-2xl p-4 transition-all duration-200 flex flex-col justify-between gap-4">
+                                    <div>
+                                        <div class="flex items-start justify-between gap-2 mb-2">
+                                            <div class="flex items-center gap-2">
+                                                <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border"
+                                                    [ngClass]="isMorning ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' : 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20'">
+                                                    {{ isMorning ? 'Morning Slot' : 'Afternoon Slot' }}
+                                                </span>
+                                                <span class="text-xs font-bold text-text-muted">{{ session.start_time }} – {{ session.end_time }}</span>
+                                            </div>
+
+                                            <button (click)="deleteSession(session, $event)" title="Delete session"
+                                                class="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-white/5 hover:bg-rose-500/20 text-text-muted hover:text-rose-400 transition-all">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/></svg>
+                                            </button>
+                                        </div>
+
+                                        <!-- Subject & Class Info -->
+                                        <div class="space-y-1">
+                                            <div class="flex items-center gap-2">
+                                                <span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-mono font-bold border border-blue-500/20">
+                                                    {{ getSubjectDetail(session.subject_id).code }}
+                                                </span>
+                                                <h4 class="text-sm font-bold text-white group-hover:text-blue-300 transition-colors">
+                                                    {{ getSubjectDetail(session.subject_id).name }}
+                                                </h4>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Bottom Pills: Target Class & Venue -->
+                                    <div class="pt-2 border-t border-white/5 flex items-center justify-between text-xs">
+                                        <span class="font-bold text-blue-400 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
+                                            {{ getClassName(session.class_id) }}
+                                        </span>
+                                        <span class="text-text-muted flex items-center gap-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-indigo-400"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                            <span>{{ getRoomName(session.facility_id) }}</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
                 }
             </div>
-        </div>
+        } @else {
+            <!-- MASTER MATRIX TABLE VIEW -->
+            <div class="bg-bg-secondary/70 backdrop-blur-2xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-black/30 border-b border-white/5">
+                                <th class="p-4 sm:p-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Exam Date</th>
+                                <th class="p-4 sm:p-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Time Window</th>
+                                <th class="p-4 sm:p-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Cohort / Class</th>
+                                <th class="p-4 sm:p-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Subject</th>
+                                <th class="p-4 sm:p-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Facility / Room</th>
+                                <th class="p-4 sm:p-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            @for (session of filteredSessions(); track session.id) {
+                                @let isMorning = (session.start_time || '') < '12:00';
+                                <tr class="hover:bg-white/[0.02] transition-colors group">
+                                    <td class="p-4 sm:p-5">
+                                        <div class="font-bold text-white">{{ session.date | date:'mediumDate' }}</div>
+                                        <div class="text-[11px] text-text-muted">{{ session.date | date:'EEEE' }}</div>
+                                    </td>
+                                    <td class="p-4 sm:p-5">
+                                        <span class="px-2.5 py-1 rounded-lg text-xs font-bold border inline-flex items-center gap-1.5"
+                                            [ngClass]="isMorning ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' : 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20'">
+                                            <span class="w-1.5 h-1.5 rounded-full" [ngClass]="isMorning ? 'bg-amber-400' : 'bg-indigo-400'"></span>
+                                            {{ session.start_time }} - {{ session.end_time }}
+                                        </span>
+                                    </td>
+                                    <td class="p-4 sm:p-5">
+                                        <span class="font-bold text-blue-400 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5 text-xs">
+                                            {{ getClassName(session.class_id) }}
+                                        </span>
+                                    </td>
+                                    <td class="p-4 sm:p-5">
+                                        <div class="font-bold text-white">{{ getSubjectDetail(session.subject_id).name }}</div>
+                                        <div class="text-xs text-text-muted font-mono">{{ getSubjectDetail(session.subject_id).code }}</div>
+                                    </td>
+                                    <td class="p-4 sm:p-5">
+                                        <span class="text-xs font-medium text-text-secondary flex items-center gap-1.5">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-indigo-400"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                            {{ getRoomName(session.facility_id) }}
+                                        </span>
+                                    </td>
+                                    <td class="p-4 sm:p-5 text-right">
+                                        <button (click)="deleteSession(session, $event)" title="Delete session"
+                                            class="p-2 rounded-lg bg-white/5 hover:bg-rose-500/20 text-text-muted hover:text-rose-400 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/></svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
 
-        <!-- Sidebar Summary / Action center (Right) -->
-        <div class="flex flex-col gap-6">
-            <h2 class="text-lg font-black tracking-wider text-text-primary uppercase flex items-center gap-3">
-                <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Summary Details
-            </h2>
-
-            <div class="bg-bg-secondary/40 border border-border-primary rounded-3xl p-6 shadow-xl flex flex-col gap-6">
-                <!-- Class metrics -->
-                <div class="flex justify-between items-center border-b border-border-primary pb-4">
-                    <span class="text-xs font-black text-text-muted uppercase tracking-wider">Schedule Status</span>
-                    <span class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black rounded-lg uppercase tracking-wider">
-                        Active
-                    </span>
+    <!-- ADD CUSTOM EXAM SESSION MODAL -->
+    @if (showAddModal()) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+            <div class="bg-bg-secondary border border-white/10 rounded-[32px] w-full max-w-lg overflow-hidden shadow-2xl animate-scale-up">
+                <!-- Modal Header -->
+                <div class="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-black text-white">Add Exam Evaluation Session</h3>
+                            <p class="text-xs text-text-muted">Insert a custom paper timeslot into the schedule.</p>
+                        </div>
+                    </div>
+                    <button (click)="closeAddModal()" class="p-2 text-text-muted hover:text-white rounded-full transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
                 </div>
 
-                <div class="flex justify-between items-center border-b border-border-primary pb-4">
-                    <span class="text-xs font-black text-text-muted uppercase tracking-wider">Evaluation Count</span>
-                    <span class="text-sm font-black text-text-primary">
-                        {{ examSessions().length }} subjects
-                    </span>
+                <!-- Modal Body -->
+                <div class="p-6 space-y-4">
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold text-text-muted uppercase tracking-widest">Target Class <span class="text-rose-400">*</span></label>
+                        <select [(ngModel)]="newSessionForm().class_id" class="w-full bg-black/40 border border-white/10 rounded-2xl p-3.5 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                            @for (c of classes(); track c.id) {
+                                <option [value]="c.id" class="bg-bg-secondary text-white">{{ c.name }}</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold text-text-muted uppercase tracking-widest">Subject <span class="text-rose-400">*</span></label>
+                        <select [(ngModel)]="newSessionForm().subject_id" class="w-full bg-black/40 border border-white/10 rounded-2xl p-3.5 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                            @for (s of subjects(); track s.id) {
+                                <option [value]="s.id" class="bg-bg-secondary text-white">{{ s.name }} ({{ s.code }})</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold text-text-muted uppercase tracking-widest">Exam Date <span class="text-rose-400">*</span></label>
+                        <input [(ngModel)]="newSessionDateStr" type="date" class="w-full bg-black/40 border border-white/10 rounded-2xl p-3.5 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold text-text-muted uppercase tracking-widest">Start Time</label>
+                            <input [(ngModel)]="newSessionForm().start_time" type="time" class="w-full bg-black/40 border border-white/10 rounded-2xl p-3.5 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold text-text-muted uppercase tracking-widest">End Time</label>
+                            <input [(ngModel)]="newSessionForm().end_time" type="time" class="w-full bg-black/40 border border-white/10 rounded-2xl p-3.5 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold text-text-muted uppercase tracking-widest">Room / Facility</label>
+                        <select [(ngModel)]="newSessionForm().facility_id" class="w-full bg-black/40 border border-white/10 rounded-2xl p-3.5 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                            @for (r of rooms(); track r.id) {
+                                <option [value]="r.id" class="bg-bg-secondary text-white">{{ r.name }} (Cap: {{ r.capacity }})</option>
+                            }
+                        </select>
+                    </div>
                 </div>
 
-                <!-- Guidelines info block -->
-                <div class="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-5 mt-2">
-                    <h4 class="text-xs font-black text-blue-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                        Invigilation Rules
-                    </h4>
-                    <p class="text-[11px] text-text-secondary leading-relaxed font-medium">
-                        Exam scheduling adheres to the conflict-free assignment rule: no class is assigned more than one exam per day. Facilities are automatically cross-checked to avoid double-bookings.
-                    </p>
+                <!-- Modal Footer -->
+                <div class="p-6 border-t border-white/5 flex items-center justify-end gap-3 bg-white/[0.01]">
+                    <button (click)="closeAddModal()" class="px-5 py-2.5 text-text-muted hover:text-white text-xs font-bold transition-colors">
+                        Cancel
+                    </button>
+                    <button (click)="saveCustomSession()" [disabled]="isSavingSession()"
+                        class="px-7 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 transition-all hover:scale-105 disabled:opacity-50">
+                        Add Session
+                    </button>
                 </div>
             </div>
         </div>
-    </div>
-    } @else if (selectedClassId()) {
-    <!-- Empty State -->
-    <div class="flex flex-col items-center justify-center py-28 gap-6 bg-bg-secondary/20 border border-dashed border-border-primary rounded-3xl">
-        <div class="w-20 h-20 rounded-3xl bg-bg-tertiary flex items-center justify-center border border-border-secondary shadow-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.5"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg>
-        </div>
-        <div class="text-center max-w-sm">
-            <h3 class="text-base font-black text-text-primary uppercase tracking-wider mb-2">No Evaluations Registered</h3>
-            <p class="text-xs font-semibold text-text-muted leading-relaxed">
-                This class does not currently have any generated exam sessions. Use the Auto-Generate button to construct a conflict-free schedule.
-            </p>
-        </div>
-    </div>
     }
 </div>
-

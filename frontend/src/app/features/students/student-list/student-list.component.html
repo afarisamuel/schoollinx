@@ -410,15 +410,15 @@
                 <div class="flex items-start justify-between">
                   <div class="relative">
                     @if (student.photo_url) {
-                      <img [src]="student.photo_url" [alt]="student.first_name" class="w-14 h-14 rounded-2xl object-cover border-2 border-border-primary shadow-sm group-hover:scale-105 transition-transform">
-                    } @else {
-                      <div class="w-14 h-14 rounded-2xl flex items-center justify-center font-mono text-base font-black border shadow-sm group-hover:scale-105 transition-transform"
-                        [ngClass]="student.gender === 'female'
-                          ? 'bg-gradient-to-br from-pink-500/20 to-purple-500/20 border-pink-500/30 text-pink-600 dark:text-pink-400'
-                          : 'bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border-blue-500/30 text-blue-600 dark:text-blue-400'">
-                        {{ student.first_name[0] }}{{ student.last_name[0] }}
-                      </div>
+                      <img [src]="student.photo_url" [alt]="student.first_name" (error)="$any($event.target).style.display='none'; $any($event.target).nextElementSibling?.classList.remove('hidden')" class="w-14 h-14 rounded-2xl object-cover border-2 border-border-primary shadow-sm group-hover:scale-105 transition-transform">
                     }
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center font-mono text-base font-black border shadow-sm group-hover:scale-105 transition-transform"
+                      [class.hidden]="student.photo_url"
+                      [ngClass]="student.gender === 'female'
+                        ? 'bg-gradient-to-br from-pink-500/20 to-purple-500/20 border-pink-500/30 text-pink-600 dark:text-pink-400'
+                        : 'bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border-blue-500/30 text-blue-600 dark:text-blue-400'">
+                      {{ student.first_name[0] }}{{ student.last_name[0] }}
+                    </div>
 
                     <!-- Gender / Active Indicator Ring -->
                     <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-bg-secondary flex items-center justify-center shadow-sm"
@@ -556,15 +556,15 @@
                       <div class="flex items-center gap-3">
                         <div class="relative shrink-0">
                           @if (student.photo_url) {
-                            <img [src]="student.photo_url" [alt]="student.first_name" class="w-9 h-9 rounded-xl object-cover border border-border-primary">
-                          } @else {
-                            <div class="w-9 h-9 rounded-xl flex items-center justify-center font-mono text-xs font-black border"
-                              [ngClass]="student.gender === 'female'
-                                ? 'bg-pink-500/15 border-pink-500/25 text-pink-600 dark:text-pink-400'
-                                : 'bg-blue-500/15 border-blue-500/25 text-blue-600 dark:text-blue-400'">
-                              {{ student.first_name[0] }}{{ student.last_name[0] }}
-                            </div>
+                            <img [src]="student.photo_url" [alt]="student.first_name" (error)="$any($event.target).style.display='none'; $any($event.target).nextElementSibling?.classList.remove('hidden')" class="w-9 h-9 rounded-xl object-cover border border-border-primary">
                           }
+                          <div class="w-9 h-9 rounded-xl flex items-center justify-center font-mono text-xs font-black border"
+                            [class.hidden]="student.photo_url"
+                            [ngClass]="student.gender === 'female'
+                              ? 'bg-pink-500/15 border-pink-500/25 text-pink-600 dark:text-pink-400'
+                              : 'bg-blue-500/15 border-blue-500/25 text-blue-600 dark:text-blue-400'">
+                            {{ student.first_name[0] }}{{ student.last_name[0] }}
+                          </div>
                         </div>
                         <div>
                           <a [routerLink]="['/students/details', student.id]" class="block text-sm font-black text-text-primary hover:text-blue-500 transition-colors uppercase">

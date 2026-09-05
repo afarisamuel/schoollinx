@@ -78,8 +78,7 @@
 
     <!-- LEFT COLUMN: CUSTOMIZATION CONTROLS (7 Cols) -->
     <div class="lg:col-span-7 flex flex-col gap-6"
-         [class.hidden]="mobileTab() !== 'controls'"
-         [class.flex]="mobileTab() === 'controls'">
+         [class.max-lg:hidden]="mobileTab() !== 'controls'">
 
       <!-- SECTION 1: CANDIDATE SELECTION -->
       <div class="bg-bg-secondary border border-border-primary rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col gap-4">
@@ -129,10 +128,9 @@
               [class.border-border-secondary]="selectedStudentId() !== s.id">
               <div class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-[10px] overflow-hidden">
                 @if (s.photo_url) {
-                  <img [src]="s.photo_url" class="w-full h-full object-cover">
-                } @else {
-                  <span>{{ (s.first_name ? s.first_name[0] : 'S') }}</span>
+                  <img [src]="s.photo_url" (error)="$any($event.target).style.display='none'; $any($event.target).nextElementSibling?.classList.remove('hidden')" class="w-full h-full object-cover">
                 }
+                <span [class.hidden]="s.photo_url">{{ (s.first_name ? s.first_name[0] : 'S') }}</span>
               </div>
               <div class="flex flex-col text-left">
                 <span class="leading-none text-[11px] truncate max-w-[100px]">{{ s.first_name }} {{ s.last_name }}</span>
@@ -268,9 +266,8 @@
     </div>
 
     <!-- RIGHT COLUMN: STICKY 3D LIVE PREVIEW (5 Cols) -->
-    <div class="lg:col-span-5 sticky top-6 flex-col gap-5"
-         [class.hidden]="mobileTab() !== 'preview'"
-         [class.flex]="mobileTab() === 'preview' || true">
+    <div class="lg:col-span-5 sticky top-6 flex flex-col gap-5"
+         [class.max-lg:hidden]="mobileTab() !== 'preview'">
 
       <div class="bg-bg-secondary border border-border-primary rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col gap-4">
         

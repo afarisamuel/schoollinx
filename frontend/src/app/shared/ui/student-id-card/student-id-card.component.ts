@@ -194,6 +194,10 @@ export class StudentIdCardComponent implements OnInit, AfterViewInit, OnDestroy 
       this.activeTemplate();
       this.calculateScale();
     });
+    effect(() => {
+      this.resolvedPhoto();
+      this.photoError.set(false);
+    });
   }
 
   // Fully Reactive Computed Properties
@@ -216,6 +220,12 @@ export class StudentIdCardComponent implements OnInit, AfterViewInit, OnDestroy 
     if (st?.id) return `STU-${st.id.substring(0, 8).toUpperCase()}`;
     return 'STU-2026-0042';
   });
+
+  photoError = signal<boolean>(false);
+
+  onPhotoError(): void {
+    this.photoError.set(true);
+  }
 
   resolvedDob = computed(() => {
     const raw = this.studentDob() || this.student()?.dob;

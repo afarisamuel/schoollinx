@@ -35,14 +35,19 @@ type TimetableRepository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 	GetByOverlap(ctx context.Context, dayOfWeek int, startTime, endTime string) ([]TimetableEntry, error)
 	CreateExamSession(ctx context.Context, session *ExamSession) error
+	DeleteExamSession(ctx context.Context, id uuid.UUID) error
 	CreateInvigilationDuty(ctx context.Context, duty *InvigilationDuty) error
 	GetExamSchedule(ctx context.Context, classID uuid.UUID) ([]ExamSession, error)
+	GetExamScheduleByPeriod(ctx context.Context, academicPeriodID uuid.UUID) ([]ExamSession, error)
 	AutoGenerateExamSchedule(ctx context.Context, academicPeriodID uuid.UUID) error
 }
 
 type TimetableUseCase interface {
 	AutoGenerateExamSchedule(ctx context.Context, academicPeriodID uuid.UUID) error
 	GetExamSchedule(ctx context.Context, classID uuid.UUID) ([]ExamSession, error)
+	GetExamScheduleByPeriod(ctx context.Context, academicPeriodID uuid.UUID) ([]ExamSession, error)
+	CreateExamSession(ctx context.Context, session *ExamSession) error
+	DeleteExamSession(ctx context.Context, id uuid.UUID) error
 	RemoveEntry(ctx context.Context, id uuid.UUID) error
 	GetClassTimetable(ctx context.Context, classID uuid.UUID) ([]TimetableEntry, error)
 	GetTeacherTimetable(ctx context.Context, teacherID uuid.UUID) ([]TimetableEntry, error)

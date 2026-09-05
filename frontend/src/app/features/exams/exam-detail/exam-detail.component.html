@@ -1,125 +1,385 @@
-<div class="max-w-[1440px] mx-auto p-4 md:p-8 animate-fade-in pb-24">
+<div class="max-w-[1440px] mx-auto space-y-6 animate-fade-in pb-20 relative">
+    <!-- Ambient Glows -->
+    <div class="absolute -top-10 left-1/4 w-[500px] h-[500px] bg-blue-600/10 rounded-full mix-blend-screen filter blur-[120px] pointer-events-none -z-10"></div>
+    <div class="absolute top-1/3 right-10 w-[450px] h-[450px] bg-indigo-600/10 rounded-full mix-blend-screen filter blur-[120px] pointer-events-none -z-10"></div>
+
     @if (loading()) {
-        <div class="flex items-center justify-center h-64">
-            <div class="w-12 h-12 border-4 border-slate-300 border-t-slate-500 rounded-full animate-spin"></div>
+        <!-- Loading State -->
+        <div class="flex flex-col items-center justify-center py-28 text-center bg-bg-secondary/40 backdrop-blur-xl border border-white/5 rounded-3xl">
+            <div class="w-14 h-14 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+            <p class="text-sm font-bold text-text-muted animate-pulse">Loading examination timetable & marks sheet...</p>
         </div>
     } @else if (exam()) {
-        <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10">
-            <div>
-                <a routerLink="/exams" class="text-xs font-bold text-blue-400 hover:text-blue-300 uppercase tracking-widest flex items-center gap-1 mb-4 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
-                    Back to Exams
+        <!-- Header & Breadcrumbs -->
+        <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
+            <div class="space-y-2">
+                <a routerLink="/exams" class="text-xs font-bold text-blue-400 hover:text-blue-300 uppercase tracking-widest inline-flex items-center gap-1.5 transition-colors group">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="transform group-hover:-translate-x-1 transition-transform"><path d="m15 18-6-6 6-6"/></svg>
+                    <span>Back to Examinations</span>
                 </a>
-                <h1 class="text-3xl md:text-5xl font-black text-blue-400 tracking-tight mb-2">
+                <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight">
                     {{ exam()?.title }}
                 </h1>
-                <p class="text-text-muted font-medium text-sm">{{ exam()?.description }}</p>
-                <div class="flex items-center gap-4 mt-4">
-                    <span class="px-3 py-1 bg-bg-tertiary rounded-lg text-[10px] font-black uppercase tracking-widest">{{ exam()?.academic_year }} - {{ exam()?.term }}</span>
-                    <span class="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest">{{ exam()?.status }}</span>
+                <p class="text-text-muted font-medium text-sm sm:text-base max-w-3xl">
+                    {{ exam()?.description || 'No additional instructions recorded for this examination cycle.' }}
+                </p>
+                <div class="flex flex-wrap items-center gap-3 pt-2">
+                    <span class="px-3 py-1 rounded-xl bg-white/5 border border-white/10 text-blue-400 text-xs font-black uppercase tracking-widest">
+                        {{ exam()?.academic_year }} • {{ exam()?.term }}
+                    </span>
+                    <span class="px-3 py-1 rounded-xl text-xs font-black uppercase tracking-widest border"
+                        [ngClass]="{
+                            'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': exam()?.status === 'PUBLISHED',
+                            'bg-amber-500/10 text-amber-400 border-amber-500/20': exam()?.status === 'DRAFT',
+                            'bg-sky-500/10 text-sky-400 border-sky-500/20': exam()?.status === 'SCHEDULED',
+                            'bg-slate-500/10 text-slate-400 border-slate-500/20': exam()?.status === 'COMPLETED'
+                        }">
+                        {{ exam()?.status }}
+                    </span>
+                    @if (exam()?.start_date && exam()?.end_date) {
+                        <span class="text-xs font-medium text-text-muted flex items-center gap-1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-400"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            {{ exam()?.start_date | date:'mediumDate' }} - {{ exam()?.end_date | date:'mediumDate' }}
+                        </span>
+                    }
                 </div>
             </div>
-        </div>
 
-        <div class="flex items-center gap-2 border-b border-border-primary pb-4 mb-8 overflow-x-auto">
-            <button (click)="activeTab.set('schedules')" [class.bg-bg-tertiary]="activeTab() === 'schedules'" [class.text-text-primary]="activeTab() === 'schedules'" class="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-[0.15em] text-text-muted hover:text-text-primary hover:bg-bg-tertiary/50 transition-all whitespace-nowrap">Schedules</button>
-            <button (click)="activeTab.set('results')" [class.bg-bg-tertiary]="activeTab() === 'results'" [class.text-text-primary]="activeTab() === 'results'" class="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-[0.15em] text-text-muted hover:text-text-primary hover:bg-bg-tertiary/50 transition-all whitespace-nowrap">Results</button>
-        </div>
-
-        @if (activeTab() === 'schedules') {
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-bold text-text-primary">Exam Schedules</h2>
-                <button (click)="addingSchedule.set(true)" *ngIf="!addingSchedule()" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-colors">Add Schedule</button>
+            <!-- Quick Action / Add Schedule Button -->
+            <div class="flex items-center gap-3">
+                <button (click)="addingSchedule.set(true)" *ngIf="!addingSchedule()"
+                    class="px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-2xl transition-all shadow-lg shadow-blue-600/30 flex items-center gap-2 hover:scale-105 active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span>Add Subject Schedule</span>
+                </button>
             </div>
+        </div>
 
+        <!-- Conflict Alert Banner if conflicts exist -->
+        @if (conflicts().length > 0) {
+            <div class="p-4 sm:p-5 bg-rose-500/10 border border-rose-500/30 rounded-3xl backdrop-blur-xl relative z-10 flex items-start gap-3 text-rose-300">
+                <div class="w-8 h-8 rounded-xl bg-rose-500/20 flex items-center justify-center shrink-0 text-rose-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-sm font-bold text-rose-200">Exam Schedule Conflict Detected ({{ conflicts().length }})</h4>
+                    <p class="text-xs text-rose-300/80 mt-0.5">Some examination papers overlap with class or room bookings. Check the Conflicts tab to resolve them.</p>
+                </div>
+                <button (click)="activeTab.set('conflicts')" class="px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 rounded-xl text-xs font-bold transition-colors">
+                    Review Conflicts
+                </button>
+            </div>
+        }
+
+        <!-- Navigation Tabs -->
+        <div class="flex items-center gap-2 border-b border-white/5 pb-3 relative z-10 overflow-x-auto">
+            <button 
+                (click)="activeTab.set('schedules')" 
+                [ngClass]="activeTab() === 'schedules' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'bg-bg-secondary/60 text-text-muted hover:text-white border border-white/5'"
+                class="px-5 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>Exam Timetable ({{ schedules().length }})</span>
+            </button>
+
+            <button 
+                (click)="activeTab.set('results')" 
+                [ngClass]="activeTab() === 'results' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'bg-bg-secondary/60 text-text-muted hover:text-white border border-white/5'"
+                class="px-5 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <span>Score Entry & Marks Sheet</span>
+            </button>
+
+            @if (conflicts().length > 0) {
+                <button 
+                    (click)="activeTab.set('conflicts')" 
+                    [ngClass]="activeTab() === 'conflicts' ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30' : 'bg-rose-500/10 text-rose-300 border border-rose-500/20'"
+                    class="px-5 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap">
+                    <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+                    <span>Conflicts ({{ conflicts().length }})</span>
+                </button>
+            }
+        </div>
+
+        <!-- TAB 1: SCHEDULES TIMETABLE -->
+        @if (activeTab() === 'schedules') {
+            <!-- ADD SCHEDULE DRAWER / FORM -->
             @if (addingSchedule()) {
-                <div class="p-6 bg-bg-secondary border border-border-primary rounded-3xl mb-8">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="text-[10px] font-bold text-text-muted uppercase">Class</label>
-                            <select [(ngModel)]="newSchedule().class_id" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1">
-                                @for(c of classes(); track c.id) {
-                                    <option [value]="c.id">{{ c.name }}</option>
+                <div class="p-6 md:p-8 bg-bg-secondary/90 backdrop-blur-2xl border border-blue-500/30 rounded-3xl shadow-2xl relative z-10 animate-slide-down space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white">Schedule Subject Paper</h3>
+                                <p class="text-xs text-text-muted">Allocate date, time, venue, and score ceiling.</p>
+                            </div>
+                        </div>
+                        <button (click)="addingSchedule.set(false)" class="p-2 text-text-muted hover:text-white rounded-full transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold text-text-muted uppercase tracking-widest">Target Class <span class="text-rose-400">*</span></label>
+                            <select [(ngModel)]="newSchedule().class_id" class="w-full bg-black/40 border border-white/10 rounded-2xl p-3.5 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                                <option value="" class="bg-bg-secondary text-text-muted">Select Class</option>
+                                @for (c of classes(); track c.id) {
+                                    <option [value]="c.id" class="bg-bg-secondary text-white">{{ c.name }}</option>
                                 }
                             </select>
                         </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-text-muted uppercase">Subject</label>
-                            <input [(ngModel)]="newSchedule().subject" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1">
+
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold text-text-muted uppercase tracking-widest">Subject Name <span class="text-rose-400">*</span></label>
+                            <input [(ngModel)]="newSchedule().subject" placeholder="e.g. Mathematics Core" class="w-full bg-black/40 border border-white/10 rounded-2xl p-3.5 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none placeholder:text-text-muted/50">
                         </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-text-muted uppercase">Date</label>
-                            <input [(ngModel)]="newSchedule().date" type="date" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1">
+
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold text-text-muted uppercase tracking-widest">Exam Date <span class="text-rose-400">*</span></label>
+                            <input [(ngModel)]="newSchedule().date" type="date" class="w-full bg-black/40 border border-white/10 rounded-2xl p-3.5 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
-                        <div class="flex gap-4">
-                            <div class="flex-1">
-                                <label class="text-[10px] font-bold text-text-muted uppercase">Start Time</label>
-                                <input [(ngModel)]="newSchedule().start_time" type="time" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1">
-                            </div>
-                            <div class="flex-1">
-                                <label class="text-[10px] font-bold text-text-muted uppercase">End Time</label>
-                                <input [(ngModel)]="newSchedule().end_time" type="time" class="w-full bg-bg-tertiary border border-border-secondary rounded-xl p-3 text-sm text-text-primary mt-1">
-                            </div>
+
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold text-text-muted uppercase tracking-widest">Start Time</label>
+                            <input [(ngModel)]="newSchedule().start_time" type="time" class="w-full bg-black/40 border border-white/10 rounded-2xl p-3.5 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold text-text-muted uppercase tracking-widest">End Time</label>
+                            <input [(ngModel)]="newSchedule().end_time" type="time" class="w-full bg-black/40 border border-white/10 rounded-2xl p-3.5 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold text-text-muted uppercase tracking-widest">Maximum Marks</label>
+                            <input [(ngModel)]="newSchedule().max_score" type="number" min="1" max="500" class="w-full bg-black/40 border border-white/10 rounded-2xl p-3.5 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                     </div>
-                    <div class="flex items-center gap-3 mt-6">
-                        <button (click)="saveSchedule()" class="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-colors">Save Schedule</button>
-                        <button (click)="addingSchedule.set(false)" class="px-6 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-xs font-bold hover:bg-bg-primary transition-colors">Cancel</button>
+
+                    <div class="flex items-center justify-end gap-3 pt-4 border-t border-white/5">
+                        <button (click)="addingSchedule.set(false)" class="px-5 py-2.5 text-text-muted hover:text-white text-xs font-bold transition-colors">
+                            Cancel
+                        </button>
+                        <button (click)="saveSchedule()" class="px-7 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 transition-all hover:scale-105">
+                            Save Schedule
+                        </button>
                     </div>
                 </div>
             }
 
-            <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-2xl">
+            <!-- TIMETABLE DATA TABLE -->
+            <div class="bg-bg-secondary/70 backdrop-blur-2xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative z-10">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-black/20 border-b border-border-primary/50">
-                            <th class="p-6 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Class / Subject</th>
-                            <th class="p-6 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Date & Time</th>
-                            <th class="p-6 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Max Score</th>
-                            <th class="p-6 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] text-right">Actions</th>
+                        <tr class="bg-black/30 border-b border-white/5">
+                            <th class="p-4 sm:p-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Subject & Class</th>
+                            <th class="p-4 sm:p-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Examination Date</th>
+                            <th class="p-4 sm:p-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Time Window</th>
+                            <th class="p-4 sm:p-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Max Marks</th>
+                            <th class="p-4 sm:p-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-border-primary/30">
+                    <tbody class="divide-y divide-white/5">
                         @for (sch of schedules(); track sch.id) {
-                            <tr class="hover:bg-white/5 transition-colors group">
-                                <td class="p-6">
-                                    <div class="font-bold text-text-primary">{{ sch.subject }}</div>
-                                    <div class="text-[10px] font-bold text-text-muted uppercase tracking-widest">{{ $any(sch).class?.name || 'Class ' + sch.class_id }}</div>
+                            <tr class="hover:bg-white/[0.02] transition-colors group">
+                                <td class="p-4 sm:p-5">
+                                    <div class="font-bold text-white group-hover:text-blue-400 transition-colors">{{ sch.subject }}</div>
+                                    <div class="text-xs text-text-muted font-medium">{{ getClassName(sch.class_id) }}</div>
                                 </td>
-                                <td class="p-6">
-                                    <div class="text-sm font-medium text-text-secondary">{{ sch.date | date }}</div>
-                                    <div class="text-xs text-text-muted">{{ sch.start_time }} - {{ sch.end_time }}</div>
+                                <td class="p-4 sm:p-5">
+                                    <div class="text-xs font-medium text-white">{{ sch.date | date:'mediumDate' }}</div>
                                 </td>
-                                <td class="p-6 text-sm font-medium">{{ sch.max_score }}</td>
-                                <td class="p-6 text-right">
-                                    <button (click)="selectSchedule(sch.id!)" class="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all border border-blue-500/20">Enter Results</button>
+                                <td class="p-4 sm:p-5">
+                                    <div class="text-xs text-text-muted font-medium">{{ sch.start_time }} - {{ sch.end_time }}</div>
+                                </td>
+                                <td class="p-4 sm:p-5">
+                                    <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-white">
+                                        {{ sch.max_score }} pts
+                                    </span>
+                                </td>
+                                <td class="p-4 sm:p-5 text-right">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <button (click)="deleteSchedule(sch, $event)" title="Remove Paper"
+                                            class="p-2 rounded-lg bg-white/5 hover:bg-rose-500/20 text-text-muted hover:text-rose-400 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/></svg>
+                                        </button>
+                                        <button (click)="selectSchedule(sch.id!)" 
+                                            class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-blue-600/30 flex items-center gap-1.5">
+                                            <span>Enter Scores</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         } @empty {
                             <tr>
-                                <td colspan="4" class="p-12 text-center text-text-muted font-bold">No schedules configured yet.</td>
+                                <td colspan="5" class="p-16 text-center text-text-muted">
+                                    <div class="w-14 h-14 mx-auto rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-text-muted mb-3">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                    </div>
+                                    <h4 class="text-base font-bold text-white mb-1">No Subject Schedules Configured</h4>
+                                    <p class="text-xs text-text-muted max-w-sm mx-auto mb-4">Add the subjects, dates, and classes scheduled for this examination period.</p>
+                                    <button (click)="addingSchedule.set(true)" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/30 transition-all">
+                                        + Add First Schedule
+                                    </button>
+                                </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
-        } @else {
-            <div class="flex flex-col gap-6">
-                @if (selectedScheduleId()) {
-                    <div class="p-6 bg-bg-secondary border border-border-primary rounded-3xl">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-lg font-bold">Results Entry</h3>
-                            <button class="px-4 py-2 bg-blue-500 text-white rounded-xl text-xs font-bold">Save All Results</button>
+        }
+
+        <!-- TAB 2: RESULTS & SCORE ENTRY -->
+        @if (activeTab() === 'results') {
+            <div class="space-y-6 relative z-10">
+                <!-- Subject Schedule Selector Dropdown / Pills -->
+                <div class="bg-bg-secondary/70 backdrop-blur-2xl border border-white/10 rounded-3xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Select Scheduled Paper</label>
+                        <select 
+                            [ngModel]="selectedScheduleId()" 
+                            (ngModelChange)="selectSchedule($event)"
+                            class="bg-black/40 border border-white/10 rounded-2xl px-4 py-2.5 text-sm font-bold text-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                            <option [value]="null" class="bg-bg-secondary text-text-muted">-- Choose Subject Paper --</option>
+                            @for (s of schedules(); track s.id) {
+                                <option [value]="s.id" class="bg-bg-secondary text-white">
+                                    {{ s.subject }} ({{ getClassName(s.class_id) }}) - {{ s.date | date:'MMM d' }}
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    @if (selectedScheduleId()) {
+                        <div class="flex items-center gap-3">
+                            <button (click)="saveAllResults()" [disabled]="isSavingResults() || loadingStudents()"
+                                class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-emerald-600/30 transition-all hover:scale-105 flex items-center gap-2">
+                                @if (isSavingResults()) {
+                                    <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                }
+                                <span>Save All Scores</span>
+                            </button>
                         </div>
-                        <div class="text-center p-12 text-text-muted border border-dashed border-border-primary rounded-2xl">
-                            <p class="font-bold">Select a student roster to enter results.</p>
-                            <p class="text-xs mt-2">In a full implementation, this will display the list of students in the class with input fields for scores.</p>
+                    }
+                </div>
+
+                @if (selectedScheduleId()) {
+                    <!-- Class Performance Live KPI Deck -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="p-4 bg-bg-secondary/60 border border-white/5 rounded-2xl text-center">
+                            <div class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Graded Students</div>
+                            <div class="text-2xl font-black text-white mt-1">{{ scheduleStats().count }} / {{ studentScores().length }}</div>
+                        </div>
+
+                        <div class="p-4 bg-bg-secondary/60 border border-white/5 rounded-2xl text-center">
+                            <div class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Class Average</div>
+                            <div class="text-2xl font-black text-blue-400 mt-1">{{ scheduleStats().avg }} / {{ selectedSchedule()?.max_score }}</div>
+                        </div>
+
+                        <div class="p-4 bg-bg-secondary/60 border border-white/5 rounded-2xl text-center">
+                            <div class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Highest Mark</div>
+                            <div class="text-2xl font-black text-emerald-400 mt-1">{{ scheduleStats().highest }} pts</div>
+                        </div>
+
+                        <div class="p-4 bg-bg-secondary/60 border border-white/5 rounded-2xl text-center">
+                            <div class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Pass Rate (≥50%)</div>
+                            <div class="text-2xl font-black text-indigo-400 mt-1">{{ scheduleStats().passRate }}%</div>
                         </div>
                     </div>
+
+                    <!-- Scores Entry Sheet -->
+                    <div class="bg-bg-secondary/70 backdrop-blur-2xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+                        @if (loadingStudents()) {
+                            <div class="py-20 text-center text-text-muted">
+                                <div class="w-10 h-10 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mx-auto mb-3"></div>
+                                <p class="text-xs font-bold">Loading student class roster...</p>
+                            </div>
+                        } @else {
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-black/30 border-b border-white/5">
+                                        <th class="p-4 sm:p-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Student</th>
+                                        <th class="p-4 sm:p-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Student ID</th>
+                                        <th class="p-4 sm:p-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] w-40">Score (Max: {{ selectedSchedule()?.max_score }})</th>
+                                        <th class="p-4 sm:p-5 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Remarks / Feedback</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-white/5">
+                                    @for (row of studentScores(); track row.student.id) {
+                                        <tr class="hover:bg-white/[0.02] transition-colors">
+                                            <td class="p-4 sm:p-5">
+                                                <div class="font-bold text-white">{{ row.student.first_name }} {{ row.student.last_name }}</div>
+                                                <div class="text-xs text-text-muted">{{ row.student.gender || 'Student' }}</div>
+                                            </td>
+                                            <td class="p-4 sm:p-5">
+                                                <span class="font-mono text-xs text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-lg border border-blue-500/20">
+                                                    {{ row.student.enrollment_num || (row.student.id ? row.student.id.substring(0, 8) : 'STU') }}
+                                                </span>
+                                            </td>
+                                            <td class="p-4 sm:p-5">
+                                                <input 
+                                                    [(ngModel)]="row.score" 
+                                                    type="number" 
+                                                    [min]="0" 
+                                                    [max]="selectedSchedule()?.max_score || 100" 
+                                                    placeholder="--"
+                                                    class="w-28 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-white focus:ring-2 focus:ring-blue-500 outline-none text-center">
+                                            </td>
+                                            <td class="p-4 sm:p-5">
+                                                <input 
+                                                    [(ngModel)]="row.remarks" 
+                                                    type="text" 
+                                                    placeholder="Optional teacher remarks..." 
+                                                    class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:ring-2 focus:ring-blue-500 outline-none placeholder:text-text-muted/40">
+                                            </td>
+                                        </tr>
+                                    } @empty {
+                                        <tr>
+                                            <td colspan="4" class="p-12 text-center text-text-muted">
+                                                No enrolled students found in this class roster.
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                    </div>
                 } @else {
-                    <div class="text-center py-20 text-text-muted">
-                        <p class="font-bold">Please select a schedule to view or enter results.</p>
-                        <button (click)="activeTab.set('schedules')" class="mt-4 px-6 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-xs font-bold hover:text-text-primary transition-colors">Go to Schedules</button>
+                    <div class="bg-bg-secondary/40 backdrop-blur-xl border border-white/5 rounded-3xl p-16 text-center">
+                        <div class="w-16 h-16 mx-auto rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-blue-400 mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-1">Select a Scheduled Subject Paper</h3>
+                        <p class="text-xs text-text-muted max-w-sm mx-auto mb-6">Choose a subject paper from the dropdown above to load the student roster and record marks.</p>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- TAB 3: CONFLICTS INSPECTOR -->
+        @if (activeTab() === 'conflicts') {
+            <div class="space-y-4 relative z-10">
+                @for (conflict of conflicts(); track $index) {
+                    <div class="p-5 bg-rose-500/10 border border-rose-500/30 rounded-3xl flex items-start gap-4 text-rose-200">
+                        <div class="w-10 h-10 rounded-2xl bg-rose-500/20 flex items-center justify-center shrink-0 text-rose-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 rounded-md bg-rose-500/20 text-rose-300 text-[10px] font-black uppercase tracking-widest border border-rose-500/30">
+                                    {{ conflict.type }}
+                                </span>
+                                <span class="text-xs text-rose-300 font-bold">{{ conflict.date | date:'mediumDate' }} ({{ conflict.start_time }} - {{ conflict.end_time }})</span>
+                            </div>
+                            <p class="text-xs text-rose-200/90 mt-2 font-medium">{{ conflict.description }}</p>
+                        </div>
+                    </div>
+                } @empty {
+                    <div class="p-12 text-center bg-bg-secondary/40 border border-white/5 rounded-3xl text-emerald-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mx-auto mb-2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <h4 class="text-base font-bold text-white">No Schedule Conflicts</h4>
+                        <p class="text-xs text-text-muted mt-1">All examination timeslots and venues are conflict-free.</p>
                     </div>
                 }
             </div>

@@ -157,8 +157,8 @@
             <div class="relative flex-shrink-0">
               <div class="w-24 h-24 sm:w-26 sm:h-26 rounded-full overflow-hidden border-[4px] shadow-xl bg-gray-100 flex items-center justify-center"
                    [style.border-color]="currentThemeConfig().secondary">
-                @if (resolvedPhoto()) {
-                  <img [src]="resolvedPhoto()" alt="Portrait" class="w-full h-full object-cover">
+                @if (resolvedPhoto() && !photoError()) {
+                  <img [src]="resolvedPhoto()" (error)="onPhotoError()" alt="Portrait" class="w-full h-full object-cover">
                 } @else {
                   <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex flex-col items-center justify-center text-gray-600 font-black text-2xl tracking-wider">
                     {{ resolvedInitials() }}
@@ -256,8 +256,8 @@
             <div class="relative flex-shrink-0">
               <div class="w-24 h-28 rounded-xl overflow-hidden border-[3px] border-amber-400 p-0.5 shadow-lg bg-white flex items-center justify-center">
                 <div class="w-full h-full rounded-lg overflow-hidden bg-gray-100">
-                  @if (resolvedPhoto()) {
-                    <img [src]="resolvedPhoto()" alt="Portrait" class="w-full h-full object-cover">
+                  @if (resolvedPhoto() && !photoError()) {
+                    <img [src]="resolvedPhoto()" (error)="onPhotoError()" alt="Portrait" class="w-full h-full object-cover">
                   } @else {
                     <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex flex-col items-center justify-center font-serif font-black text-gray-700 text-2xl">
                       {{ resolvedInitials() }}
@@ -327,8 +327,8 @@
               
               <!-- Circular Portrait with Thick White Ring -->
               <div class="w-22 h-22 rounded-full overflow-hidden border-[3px] border-white shadow-md bg-white flex items-center justify-center">
-                @if (resolvedPhoto()) {
-                  <img [src]="resolvedPhoto()" alt="Portrait" class="w-full h-full object-cover">
+                @if (resolvedPhoto() && !photoError()) {
+                  <img [src]="resolvedPhoto()" (error)="onPhotoError()" alt="Portrait" class="w-full h-full object-cover">
                 } @else {
                   <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center font-black text-gray-800 text-xl">
                     {{ resolvedInitials() }}
@@ -468,8 +468,8 @@
             <div class="relative flex-shrink-0">
               <div class="w-24 h-24 rounded-2xl overflow-hidden border-[3px] shadow-xl bg-gray-100 flex items-center justify-center"
                    [style.border-color]="currentThemeConfig().secondary">
-                @if (resolvedPhoto()) {
-                  <img [src]="resolvedPhoto()" alt="Portrait" class="w-full h-full object-cover">
+                @if (resolvedPhoto() && !photoError()) {
+                  <img [src]="resolvedPhoto()" (error)="onPhotoError()" alt="Portrait" class="w-full h-full object-cover">
                 } @else {
                   <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-600 font-black text-2xl">
                     {{ resolvedInitials() }}
@@ -554,8 +554,8 @@
           <div class="flex flex-col items-center my-1.5">
             <div class="w-24 h-28 rounded-2xl overflow-hidden border-[3px] shadow-lg bg-gray-100 flex items-center justify-center"
                  [style.border-color]="currentThemeConfig().primary">
-              @if (resolvedPhoto()) {
-                <img [src]="resolvedPhoto()" alt="Portrait" class="w-full h-full object-cover">
+              @if (resolvedPhoto() && !photoError()) {
+                <img [src]="resolvedPhoto()" (error)="onPhotoError()" alt="Portrait" class="w-full h-full object-cover">
               } @else {
                 <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center font-black text-gray-600 text-2xl">
                   {{ resolvedInitials() }}

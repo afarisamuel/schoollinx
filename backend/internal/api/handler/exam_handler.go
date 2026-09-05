@@ -26,9 +26,11 @@ func (h *ExamHandler) RegisterRoutes(api *gin.RouterGroup, middleware ...gin.Han
 		exams.GET("", h.GetExams)
 		exams.GET("/:id", h.GetExamByID)
 		exams.PUT("/:id", h.UpdateExam)
+		exams.DELETE("/:id", h.DeleteExam)
 		
 		exams.POST("/:id/schedules", h.AddSchedule)
 		exams.GET("/:id/schedules", h.GetSchedules)
+		exams.DELETE("/:id/schedules/:scheduleId", h.DeleteSchedule)
 		exams.GET("/:id/conflicts", h.CheckConflicts)
 		
 		exams.POST("/schedules/:scheduleId/results", h.SubmitResults)
@@ -204,3 +206,34 @@ func (h *ExamHandler) CheckConflicts(c *gin.Context) {
 		"has_conflicts":  len(conflicts) > 0,
 	})
 }
+
+func (h *ExamHandler) DeleteExam(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid exam ID format"})
+		return
+	}
+
+	if err := h.useCase.DeleteExam(c.Request.Context(), id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete exam"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Exam deleted successfully"})
+}
+
+func (h *ExamHandler) DeleteSchedule(c *gin.Context) {
+	scheduleID, err := uuid.Parse(c.Param("scheduleId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid schedule ID format"})
+		return
+	}
+
+	if err := h.useCase.DeleteSchedule(c.Request.Context(), scheduleID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete schedule"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Schedule deleted successfully"})
+}
+

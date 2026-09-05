@@ -98,8 +98,10 @@ type ExamRepository interface {
 	GetExams(ctx context.Context) ([]Exam, error)
 	GetExamByID(ctx context.Context, id uuid.UUID) (*Exam, error)
 	UpdateExam(ctx context.Context, exam *Exam) error
+	DeleteExam(ctx context.Context, id uuid.UUID) error
 	
 	CreateSchedule(ctx context.Context, schedule *ExamSchedule) error
+	DeleteSchedule(ctx context.Context, id uuid.UUID) error
 	GetSchedulesByExam(ctx context.Context, examID uuid.UUID) ([]ExamSchedule, error)
 	
 	SaveResults(ctx context.Context, scheduleID uuid.UUID, results []ExamResult) error
@@ -112,8 +114,10 @@ type ExamUseCase interface {
 	GetExams(ctx context.Context) ([]Exam, error)
 	GetExamByID(ctx context.Context, id uuid.UUID) (*Exam, error)
 	UpdateExam(ctx context.Context, exam *Exam) error
+	DeleteExam(ctx context.Context, id uuid.UUID) error
 	
 	AddSchedule(ctx context.Context, schedule *ExamSchedule) error
+	DeleteSchedule(ctx context.Context, id uuid.UUID) error
 	GetExamSchedules(ctx context.Context, examID uuid.UUID) ([]ExamSchedule, error)
 	
 	SubmitResults(ctx context.Context, scheduleID uuid.UUID, results []ExamResult) error

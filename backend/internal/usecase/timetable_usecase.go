@@ -80,3 +80,16 @@ func (u *TimetableUseCase) AutoGenerateExamSchedule(ctx context.Context, academi
 func (u *TimetableUseCase) GetExamSchedule(ctx context.Context, classID uuid.UUID) ([]domain.ExamSession, error) {
 	return u.repo.GetExamSchedule(ctx, classID)
 }
+
+func (u *TimetableUseCase) GetExamScheduleByPeriod(ctx context.Context, academicPeriodID uuid.UUID) ([]domain.ExamSession, error) {
+	return u.repo.GetExamScheduleByPeriod(ctx, academicPeriodID)
+}
+
+func (u *TimetableUseCase) CreateExamSession(ctx context.Context, session *domain.ExamSession) error {
+	return u.repo.CreateExamSession(ctx, session)
+}
+
+func (u *TimetableUseCase) DeleteExamSession(ctx context.Context, id uuid.UUID) error {
+	return u.repo.DeleteExamSession(ctx, id)
+}
+

@@ -238,16 +238,16 @@
           <div class="flex flex-col items-center flex-shrink-0">
             @if (!isFormBlank() && student()?.photo_url) {
               <div class="w-28 h-32 rounded-xl border-2 border-gray-900 overflow-hidden shadow-sm bg-gray-100">
-                <img [src]="student()?.photo_url" alt="Candidate Photo" class="w-full h-full object-cover">
-              </div>
-            } @else {
-              <div class="w-28 h-32 rounded-xl border-2 border-dashed border-gray-400 flex flex-col items-center justify-center p-2 text-center bg-gray-50/80">
-                <svg class="text-gray-400 mb-1" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                <span class="text-[9px] font-black text-gray-500 uppercase tracking-wider leading-tight">
-                  Affix Recent 2x2 Passport Photo
-                </span>
+                <img [src]="student()?.photo_url" (error)="$any($event.target).parentElement.style.display='none'; $any($event.target).parentElement.nextElementSibling?.classList.remove('hidden')" alt="Candidate Photo" class="w-full h-full object-cover">
               </div>
             }
+            <div class="w-28 h-32 rounded-xl border-2 border-dashed border-gray-400 flex flex-col items-center justify-center p-2 text-center bg-gray-50/80"
+                 [class.hidden]="!isFormBlank() && student()?.photo_url">
+              <svg class="text-gray-400 mb-1" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              <span class="text-[9px] font-black text-gray-500 uppercase tracking-wider leading-tight">
+                Affix Recent 2x2 Passport Photo
+              </span>
+            </div>
             <span class="text-[9px] font-mono font-bold text-gray-500 mt-1.5">REF: {{ referenceNumber() }}</span>
           </div>
         </div>

@@ -63,6 +63,10 @@ func (r *TimetableRepository) CreateExamSession(ctx context.Context, session *do
 	return r.db.WithContext(ctx).Create(session).Error
 }
 
+func (r *TimetableRepository) DeleteExamSession(ctx context.Context, id uuid.UUID) error {
+	return r.db.WithContext(ctx).Delete(&domain.ExamSession{}, "id = ?", id).Error
+}
+
 func (r *TimetableRepository) CreateInvigilationDuty(ctx context.Context, duty *domain.InvigilationDuty) error {
 	return r.db.WithContext(ctx).Create(duty).Error
 }
@@ -73,6 +77,12 @@ func (r *TimetableRepository) GetExamSchedule(ctx context.Context, classID uuid.
 	return sessions, err
 }
 
+func (r *TimetableRepository) GetExamScheduleByPeriod(ctx context.Context, academicPeriodID uuid.UUID) ([]domain.ExamSession, error) {
+	var sessions []domain.ExamSession
+	err := r.db.WithContext(ctx).Where("academic_period_id = ?", academicPeriodID).Order("date ASC, start_time ASC").Find(&sessions).Error
+	return sessions, err
+}
+
 func (r *TimetableRepository) AutoGenerateExamSchedule(ctx context.Context, academicPeriodID uuid.UUID) error {
 	// 1. Fetch all classes
 	var classes []domain.Class
@@ -80,11 +90,13 @@ func (r *TimetableRepository) AutoGenerateExamSchedule(ctx context.Context, acad
 		return err
 	}
 
-	// 2. Fetch all rooms/facilities
+	// 2. Fetch all subjects for fallback
+	var allSubjects []domain.Subject
+	_ = r.db.WithContext(ctx).Find(&allSubjects).Error
+
+	// 3. Fetch all rooms/facilities
 	var rooms []domain.Room
-	if err := r.db.WithContext(ctx).Find(&rooms).Error; err != nil {
-		// Log or handle error but don't fail completely
-	}
+	_ = r.db.WithContext(ctx).Find(&rooms).Error
 
 	var facilityID uuid.UUID
 	if len(rooms) > 0 {
@@ -111,54 +123,65 @@ func (r *TimetableRepository) AutoGenerateExamSchedule(ctx context.Context, acad
 		}
 	}
 
-	// 3. Clear existing exam sessions for this period
+	// 4. Clear existing exam sessions for this period
 	if err := r.db.WithContext(ctx).Where("academic_period_id = ?", academicPeriodID).Delete(&domain.ExamSession{}).Error; err != nil {
 		return err
 	}
 
-	// 4. Exams start next Monday
+	// 5. Exams start next Monday
 	startDate := time.Now()
 	for startDate.Weekday() != time.Monday {
 		startDate = startDate.AddDate(0, 0, 1)
 	}
 
-	// 5. For each class, schedule one exam per academic assignment (class-subject mapping)
+	// 6. For each class, schedule exams
 	for _, class := range classes {
+		var subjectIDs []uuid.UUID
+
 		var assignments []domain.AcademicAssignment
-		if err := r.db.WithContext(ctx).Where("class_id = ?", class.ID).Find(&assignments).Error; err == nil {
-			examDate := startDate
-			for i, assign := range assignments {
-				startTime := "09:00"
-				endTime := "12:00"
-				if i%2 == 1 {
-					startTime = "14:00"
-					endTime = "17:00"
-				}
+		if err := r.db.WithContext(ctx).Where("class_id = ?", class.ID).Find(&assignments).Error; err == nil && len(assignments) > 0 {
+			for _, a := range assignments {
+				subjectIDs = append(subjectIDs, a.SubjectID)
+			}
+		} else if len(allSubjects) > 0 {
+			// Fallback to scheduling available curriculum subjects
+			for _, s := range allSubjects {
+				subjectIDs = append(subjectIDs, s.ID)
+			}
+		}
 
-				roomID := facilityID
-				if len(rooms) > 0 {
-					roomID = rooms[i%len(rooms)].ID
-				}
+		examDate := startDate
+		for i, subjID := range subjectIDs {
+			startTime := "09:00"
+			endTime := "12:00"
+			if i%2 == 1 {
+				startTime = "14:00"
+				endTime = "17:00"
+			}
 
-				session := &domain.ExamSession{
-					ID:               uuid.New(),
-					ClassID:          class.ID,
-					SubjectID:        assign.SubjectID,
-					FacilityID:       roomID,
-					AcademicPeriodID: academicPeriodID,
-					Date:             examDate,
-					StartTime:        startTime,
-					EndTime:          endTime,
-				}
-				r.db.WithContext(ctx).Create(session)
+			roomID := facilityID
+			if len(rooms) > 0 {
+				roomID = rooms[i%len(rooms)].ID
+			}
 
-				// Next exam is on next day (skipping weekend)
+			session := &domain.ExamSession{
+				ID:               uuid.New(),
+				ClassID:          class.ID,
+				SubjectID:        subjID,
+				FacilityID:       roomID,
+				AcademicPeriodID: academicPeriodID,
+				Date:             examDate,
+				StartTime:        startTime,
+				EndTime:          endTime,
+			}
+			r.db.WithContext(ctx).Create(session)
+
+			// Next exam is on next day (skipping weekend)
+			examDate = examDate.AddDate(0, 0, 1)
+			if examDate.Weekday() == time.Saturday {
+				examDate = examDate.AddDate(0, 0, 2)
+			} else if examDate.Weekday() == time.Sunday {
 				examDate = examDate.AddDate(0, 0, 1)
-				if examDate.Weekday() == time.Saturday {
-					examDate = examDate.AddDate(0, 0, 2)
-				} else if examDate.Weekday() == time.Sunday {
-					examDate = examDate.AddDate(0, 0, 1)
-				}
 			}
 		}
 	}

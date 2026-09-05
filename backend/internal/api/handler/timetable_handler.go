@@ -25,6 +25,9 @@ func NewTimetableHandler(r *gin.RouterGroup, uc *usecase.TimetableUseCase) {
 		g.POST("/detect-clashes", h.DetectClashes)
 		g.POST("/exam/generate", h.GenerateExamSchedule)
 		g.GET("/exam/class/:id", h.GetExamSchedule)
+		g.GET("/exam/period/:id", h.GetExamScheduleByPeriod)
+		g.POST("/exam/session", h.CreateExamSession)
+		g.DELETE("/exam/session/:id", h.DeleteExamSession)
 	}
 }
 
@@ -122,6 +125,52 @@ func (h *TimetableHandler) GetExamSchedule(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, sessions)
+}
+
+func (h *TimetableHandler) GetExamScheduleByPeriod(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid period ID format"})
+		return
+	}
+
+	sessions, err := h.useCase.GetExamScheduleByPeriod(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, sessions)
+}
+
+func (h *TimetableHandler) CreateExamSession(c *gin.Context) {
+	var req domain.ExamSession
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.useCase.CreateExamSession(c.Request.Context(), &req); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, req)
+}
+
+func (h *TimetableHandler) DeleteExamSession(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid session ID format"})
+		return
+	}
+
+	if err := h.useCase.DeleteExamSession(c.Request.Context(), id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Exam session deleted successfully"})
 }
 
 // DetectClashes analyzes potential scheduling overlaps across classes, teachers, and rooms (Gap #17).

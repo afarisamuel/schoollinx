@@ -31,8 +31,16 @@ func (u *examUseCase) UpdateExam(ctx context.Context, exam *domain.Exam) error {
 	return u.repo.UpdateExam(ctx, exam)
 }
 
+func (u *examUseCase) DeleteExam(ctx context.Context, id uuid.UUID) error {
+	return u.repo.DeleteExam(ctx, id)
+}
+
 func (u *examUseCase) AddSchedule(ctx context.Context, schedule *domain.ExamSchedule) error {
 	return u.repo.CreateSchedule(ctx, schedule)
+}
+
+func (u *examUseCase) DeleteSchedule(ctx context.Context, id uuid.UUID) error {
+	return u.repo.DeleteSchedule(ctx, id)
 }
 
 func (u *examUseCase) GetExamSchedules(ctx context.Context, examID uuid.UUID) ([]domain.ExamSchedule, error) {

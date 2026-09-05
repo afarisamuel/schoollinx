@@ -340,7 +340,7 @@ export class BulkGradingComponent implements OnInit {
   }
 
   loadExistingGrades() {
-    this.initDraftGrades();
+    this.initDraftGrades(false);
     this.hasUnsavedChanges.set(false);
     if (!this.selectedClassId() || !this.selectedSubjectId()) {
       this.isLoading.set(false);
@@ -385,19 +385,12 @@ export class BulkGradingComponent implements OnInit {
         let colsModified = false;
         filtered.forEach(g => {
           if (g.category) {
-            const matchingCol = currentCols.find(col => {
-              const c1 = col.category.trim().toLowerCase();
-              const c2 = g.category.trim().toLowerCase();
-              if (c1 === c2) return true;
-              if ((c1.includes('home') || c1.includes('assign')) && (c2.includes('home') || c2.includes('assign'))) return true;
-              if ((c1.includes('mid') || c1.includes('test') || c1.includes('quiz')) && (c2.includes('mid') || c2.includes('test') || c2.includes('quiz'))) return true;
-              if ((c1.includes('exam') || c1.includes('final') || c1.includes('end')) && (c2.includes('exam') || c2.includes('final') || c2.includes('end'))) return true;
-              return false;
-            });
-            if (!matchingCol) {
+            const cleanCat = g.category.trim().toUpperCase();
+            const exists = currentCols.some(col => col.category.trim().toUpperCase() === cleanCat);
+            if (!exists) {
               currentCols.push({
                 class_id: this.selectedClassId(),
-                category: g.category,
+                category: g.category.trim().toUpperCase(),
                 weight: 0.2
               });
               colsModified = true;
@@ -407,33 +400,26 @@ export class BulkGradingComponent implements OnInit {
 
         if (colsModified) {
           this.configuredColumns.set(currentCols);
-          this.initDraftGrades();
         }
 
         const map = this.draftGrades();
 
         filtered.forEach(g => {
-          const studentDraft = map.get(g.student_id);
-          if (studentDraft) {
-            const matchingCol = this.configuredColumns().find(col => {
-              const c1 = col.category.trim().toLowerCase();
-              const c2 = (g.category || '').trim().toLowerCase();
-              if (c1 === c2) return true;
-              if ((c1.includes('home') || c1.includes('assign')) && (c2.includes('home') || c2.includes('assign'))) return true;
-              if ((c1.includes('mid') || c1.includes('test') || c1.includes('quiz')) && (c2.includes('mid') || c2.includes('test') || c2.includes('quiz'))) return true;
-              if ((c1.includes('exam') || c1.includes('final') || c1.includes('end')) && (c2.includes('exam') || c2.includes('final') || c2.includes('end'))) return true;
-              return false;
-            });
-            const targetCategory = matchingCol ? matchingCol.category : g.category;
-            
-            // Check if score is marked with a flag in remarks
-            let flag: string | undefined;
-            if (g.remarks?.includes('[ABS]')) flag = 'ABS';
-            else if (g.remarks?.includes('[EX]')) flag = 'EX';
-            else if (g.remarks?.includes('[INC]')) flag = 'INC';
-
-            studentDraft[targetCategory] = { score: g.score, flag, id: g.id };
+          let studentDraft = map.get(g.student_id);
+          if (!studentDraft) {
+            studentDraft = {};
+            map.set(g.student_id, studentDraft);
           }
+
+          const catKey = (g.category || '').trim().toUpperCase();
+          
+          // Check if score is marked with a flag in remarks
+          let flag: string | undefined;
+          if (g.remarks?.includes('[ABS]')) flag = 'ABS';
+          else if (g.remarks?.includes('[EX]')) flag = 'EX';
+          else if (g.remarks?.includes('[INC]')) flag = 'INC';
+
+          studentDraft[catKey] = { score: g.score, flag, id: g.id };
         });
 
         this.draftGrades.set(new Map(map));
@@ -457,15 +443,19 @@ export class BulkGradingComponent implements OnInit {
     }
   }
 
-  initDraftGrades() {
+  initDraftGrades(reset = false) {
+    const currentMap = this.draftGrades();
     const newMap = new Map<string, { [category: string]: { score: number | null, flag?: string, id?: string } }>();
     this.students().forEach(student => {
       if (student.id) {
-        const initialMap: any = {};
+        const existingStudentDraft = (!reset && currentMap.has(student.id)) ? { ...currentMap.get(student.id) } : {};
         this.configuredColumns().forEach(col => {
-          initialMap[col.category] = { score: null };
+          const catKey = col.category.trim().toUpperCase();
+          if (!existingStudentDraft[catKey]) {
+            existingStudentDraft[catKey] = { score: null };
+          }
         });
-        newMap.set(student.id, initialMap);
+        newMap.set(student.id, existingStudentDraft);
       }
     });
     this.draftGrades.set(newMap);
@@ -600,34 +590,37 @@ export class BulkGradingComponent implements OnInit {
   }
 
   private processRawInput(studentId: string, category: string, rawVal: string, map: Map<string, any>) {
+    const catKey = (category || '').trim().toUpperCase();
     let studentDraft = map.get(studentId);
     if (!studentDraft) {
       studentDraft = {};
       map.set(studentId, studentDraft);
     }
-    if (!studentDraft[category]) {
-      studentDraft[category] = { score: null };
+    if (!studentDraft[catKey]) {
+      studentDraft[catKey] = { score: null };
     }
 
     const clean = rawVal.toUpperCase().trim();
     if (clean === 'ABS' || clean === 'EX' || clean === 'INC') {
-      studentDraft[category].score = clean === 'ABS' ? 0 : null;
-      studentDraft[category].flag = clean;
+      studentDraft[catKey].score = clean === 'ABS' ? 0 : null;
+      studentDraft[catKey].flag = clean;
     } else if (clean === '' || isNaN(Number(clean))) {
-      studentDraft[category].score = null;
-      studentDraft[category].flag = undefined;
+      studentDraft[catKey].score = null;
+      studentDraft[catKey].flag = undefined;
     } else {
       const num = Math.min(100, Math.max(0, parseFloat(clean)));
-      studentDraft[category].score = num;
-      studentDraft[category].flag = undefined;
+      studentDraft[catKey].score = num;
+      studentDraft[catKey].flag = undefined;
     }
   }
 
   // --- Score Value Handling ---
   getDraftDisplayValue(studentId: string, category: string): string {
+    const catKey = (category || '').trim().toUpperCase();
     const studentDraft = this.draftGrades().get(studentId);
-    if (!studentDraft || !studentDraft[category]) return '';
-    const item = studentDraft[category];
+    if (!studentDraft) return '';
+    const item = studentDraft[catKey] || studentDraft[category];
+    if (!item) return '';
     if (item.flag) return item.flag;
     return item.score !== null && item.score !== undefined ? String(item.score) : '';
   }
@@ -641,8 +634,9 @@ export class BulkGradingComponent implements OnInit {
   }
 
   getDraftFlag(studentId: string, category: string): string | undefined {
+    const catKey = (category || '').trim().toUpperCase();
     const studentDraft = this.draftGrades().get(studentId);
-    return studentDraft?.[category]?.flag;
+    return studentDraft?.[catKey]?.flag || studentDraft?.[category]?.flag;
   }
 
   // --- Calculation Methods ---
@@ -654,7 +648,8 @@ export class BulkGradingComponent implements OnInit {
     let hasAnyScore = false;
 
     this.configuredColumns().forEach(col => {
-      const draft = studentDraft[col.category];
+      const catKey = col.category.trim().toUpperCase();
+      const draft = studentDraft[catKey] || studentDraft[col.category];
       if (draft) {
         if (draft.score !== null && draft.score !== undefined) {
           total += (draft.score * col.weight);
@@ -815,21 +810,24 @@ export class BulkGradingComponent implements OnInit {
 
   applyBatchTool() {
     const cat = this.activeBatchColumn();
+    const catKey = cat.trim().toUpperCase();
     const type = this.batchActionType();
     const val = this.batchValue();
     const map = this.draftGrades();
 
     this.students().forEach(s => {
-      const studentDraft = map.get(s.id!);
-      if (studentDraft) {
-        if (!studentDraft[cat]) studentDraft[cat] = { score: null };
-        if (type === 'fill') {
-          studentDraft[cat].score = Math.min(100, Math.max(0, val));
-          studentDraft[cat].flag = undefined;
-        } else if (type === 'curve') {
-          const current = studentDraft[cat].score ?? 0;
-          studentDraft[cat].score = Math.min(100, Math.max(0, current + val));
-        }
+      let studentDraft = map.get(s.id!);
+      if (!studentDraft) {
+        studentDraft = {};
+        map.set(s.id!, studentDraft);
+      }
+      if (!studentDraft[catKey]) studentDraft[catKey] = { score: null };
+      if (type === 'fill') {
+        studentDraft[catKey].score = Math.min(100, Math.max(0, val));
+        studentDraft[catKey].flag = undefined;
+      } else if (type === 'curve') {
+        const current = studentDraft[catKey].score ?? 0;
+        studentDraft[catKey].score = Math.min(100, Math.max(0, current + val));
       }
     });
 
@@ -1000,7 +998,8 @@ export class BulkGradingComponent implements OnInit {
         const studentDraft = this.draftGrades().get(student.id);
         if (studentDraft) {
           this.configuredColumns().forEach(col => {
-            const draft = studentDraft[col.category];
+            const catKey = col.category.trim().toUpperCase();
+            const draft = studentDraft[catKey] || studentDraft[col.category];
             if (draft && (draft.score !== null || draft.flag)) {
               let remarkText = 'Verified & Saved via Admin Console';
               if (draft.flag) {
@@ -1012,7 +1011,7 @@ export class BulkGradingComponent implements OnInit {
                 student_id: student.id,
                 class_id: this.selectedClassId(),
                 subject: resolvedSubject,
-                category: col.category,
+                category: col.category.trim(),
                 score: draft.score ?? 0,
                 max_score: 100,
                 term: this.selectedTerm(),
@@ -1058,20 +1057,21 @@ export class BulkGradingComponent implements OnInit {
     }
 
     const weightDecimal = this.newColumnWeight() / 100;
+    const catName = this.newColumnCategory().trim().toUpperCase();
 
     const newWeight: GradeWeight = {
       class_id: this.selectedClassId(),
-      category: this.newColumnCategory().toUpperCase(),
+      category: catName,
       weight: weightDecimal
     };
 
     this.gradeService.upsertGradeWeight(newWeight).subscribe({
       next: (res) => {
-        const normalized = { ...res, weight: res.weight > 1 ? res.weight / 100 : res.weight };
+        const normalized = { ...res, category: (res.category || catName).trim().toUpperCase(), weight: res.weight > 1 ? res.weight / 100 : res.weight };
         this.configuredColumns.update(cols => [...cols, normalized]);
         this.newColumnCategory.set('');
         this.newColumnWeight.set(0);
-        this.initDraftGrades();
+        this.initDraftGrades(false);
       },
       error: () => {
         this.dialog.alert('Failed to save column configuration.', 'Error', 'error').subscribe();
@@ -1085,7 +1085,7 @@ export class BulkGradingComponent implements OnInit {
       updated.splice(index, 1);
       return updated;
     });
-    this.initDraftGrades();
+    this.initDraftGrades(false);
   }
 
   getTotalWeightPercentage(): number {

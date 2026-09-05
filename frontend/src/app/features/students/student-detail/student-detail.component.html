@@ -83,21 +83,38 @@
             <!-- Left: Avatar & Identity Block -->
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 flex-1 min-w-0">
                 <!-- Avatar -->
-                <div class="relative shrink-0">
-                    <div class="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl sm:rounded-3xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 p-0.5 sm:p-1 shadow-lg shadow-blue-500/15">
-                        <div class="w-full h-full rounded-[0.9rem] sm:rounded-[1.35rem] bg-bg-tertiary flex items-center justify-center overflow-hidden">
-                            @if (student()?.photo_url) {
-                                <img [src]="student()?.photo_url" alt="Student Photo" class="w-full h-full object-cover">
+                <div class="relative shrink-0 group">
+                    <div class="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl sm:rounded-3xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 p-0.5 sm:p-1 shadow-lg shadow-blue-500/15 overflow-hidden">
+                        <div class="w-full h-full rounded-[0.9rem] sm:rounded-[1.35rem] bg-bg-tertiary flex items-center justify-center overflow-hidden relative">
+                            @if (student()?.photo_url && !photoLoadError()) {
+                                <img [src]="student()?.photo_url" (error)="onPhotoError()" alt="Student Avatar" class="w-full h-full object-cover">
                             } @else {
-                                <span class="text-2xl sm:text-3xl md:text-4xl font-black bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">
-                                    {{ student()?.first_name?.[0] }}{{ student()?.last_name?.[0] }}
-                                </span>
+                                <div class="w-full h-full bg-gradient-to-br from-blue-600/20 via-indigo-600/15 to-purple-600/25 flex items-center justify-center">
+                                    <span class="text-2xl sm:text-3xl md:text-4xl font-black bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent select-none">
+                                        {{ student()?.first_name?.[0] || '' }}{{ student()?.last_name?.[0] || '' }}
+                                    </span>
+                                </div>
+                            }
+
+                            @if (isAdmin() || isTeacher()) {
+                                <!-- Hover Photo Upload Overlay -->
+                                <label class="absolute inset-0 bg-black/60 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white z-10 p-1 text-center"
+                                       title="Upload or update student photo">
+                                    <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="hidden" (change)="uploadStudentPhoto($event)" [disabled]="isUploadingPhoto()">
+                                    @if (isUploadingPhoto()) {
+                                        <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        <span class="text-[9px] font-bold mt-1 uppercase tracking-wider">Saving...</span>
+                                    } @else {
+                                        <i class="fas fa-camera text-base sm:text-lg mb-0.5 drop-shadow"></i>
+                                        <span class="text-[9px] font-black uppercase tracking-wider">{{ student()?.photo_url && !photoLoadError() ? 'Change' : 'Upload' }}</span>
+                                    }
+                                </label>
                             }
                         </div>
                     </div>
 
                     <!-- Online/Enrolled Status Dot -->
-                    <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-bg-secondary border-2 border-bg-secondary flex items-center justify-center">
+                    <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-bg-secondary border-2 border-bg-secondary flex items-center justify-center z-20">
                         <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
                     </div>
                 </div>

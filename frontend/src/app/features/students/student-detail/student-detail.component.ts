@@ -34,6 +34,7 @@ export interface TimelineEvent {
 }
 
 import { AcademicPeriodService } from '../../../core/infrastructure/academic-period/academic-period.service';
+import { DocumentService } from '../../../core/infrastructure/document/document.service';
 
 @Component({
     selector: 'app-student-detail',
@@ -55,12 +56,17 @@ export class StudentDetailComponent implements OnInit {
     private authService = inject(AuthService);
     private dialog = inject(DialogService);
     private periodService = inject(AcademicPeriodService);
+    private documentService = inject(DocumentService);
 
     isAdmin = computed(() => this.authService.currentUserValue?.role === 'ADMIN');
     isTeacher = computed(() => this.authService.currentUserValue?.role === 'TEACHER');
     isGuardian = computed(() => this.authService.currentUserValue?.role === 'GUARDIAN');
 
     activeTab = signal<Tab>('overview');
+    
+    // Photo management signals
+    photoLoadError = signal<boolean>(false);
+    isUploadingPhoto = signal<boolean>(false);
     
     // Data Signals
     student = signal<Student | null>(null);
@@ -190,6 +196,7 @@ export class StudentDetailComponent implements OnInit {
 
     loadStudentData(id: string) {
         this.loading.set(true);
+        this.photoLoadError.set(false);
         
         // Fetch core profile first to ensure student exists
         this.studentService.getStudent(id).subscribe({
@@ -399,6 +406,73 @@ export class StudentDetailComponent implements OnInit {
             error: (err) => {
                 this.isSubmittingTopUp.set(false);
                 this.dialog.alert(err.error?.error || 'Failed to top up wallet', 'Top-Up Error', 'error');
+            }
+        });
+    }
+
+    onPhotoError() {
+        this.photoLoadError.set(true);
+    }
+
+    uploadStudentPhoto(event: Event) {
+        const input = event.target as HTMLInputElement;
+        if (!input.files || input.files.length === 0) return;
+        const file = input.files[0];
+        const studentObj = this.student();
+        const studentId = studentObj?.id;
+        if (!studentObj || !studentId) return;
+
+        this.isUploadingPhoto.set(true);
+        this.documentService.upload(file, {
+            owner_id: studentId,
+            owner_type: 'STUDENT',
+            category: 'IDENTITY',
+            description: 'Passport Photo'
+        }).subscribe({
+            next: (doc) => {
+                const photoUrl = `/api/documents/${doc.id}/download`;
+                const updated = { ...studentObj, photo_url: photoUrl };
+                this.studentService.updateStudent(studentId, updated).subscribe({
+                    next: (res) => {
+                        this.student.set(res || updated);
+                        this.photoLoadError.set(false);
+                        this.isUploadingPhoto.set(false);
+                        input.value = '';
+                        this.dialog.alert('Passport photo updated successfully.', 'Photo Updated', 'success');
+                    },
+                    error: (err) => {
+                        this.isUploadingPhoto.set(false);
+                        input.value = '';
+                        this.dialog.alert(err.error?.error || 'Failed to save photo to student record.', 'Update Error', 'error');
+                    }
+                });
+            },
+            error: (err) => {
+                this.isUploadingPhoto.set(false);
+                input.value = '';
+                this.dialog.alert(err.error?.error || 'Failed to upload photo.', 'Upload Error', 'error');
+            }
+        });
+    }
+
+    removeStudentPhoto() {
+        const studentObj = this.student();
+        const studentId = studentObj?.id;
+        if (!studentObj || !studentId) return;
+
+        this.dialog.confirm('Are you sure you want to remove the student passport photo?', 'Remove Photo', 'danger', 'Remove').subscribe(confirmed => {
+            if (confirmed) {
+                const updated = { ...studentObj, photo_url: '' };
+                this.studentService.updateStudent(studentId, updated).subscribe({
+                    next: (res) => {
+                        this.student.set(res || updated);
+                        this.photoLoadError.set(false);
+                        this.dialog.alert('Photo removed.', 'Photo Cleared', 'success');
+                    },
+                    error: (err) => {
+                        this.dialog.alert(err.error?.error || 'Failed to update student profile.', 'Error', 'error');
+                    }
+                });
             }
         });
     }
