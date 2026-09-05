@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject, computed, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, inject, computed, PLATFORM_ID } from '@angular/core';
 import { CommonModule, DecimalPipe, isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -18,6 +18,8 @@ import { AttendanceService } from '../../core/infrastructure/attendance/attendan
 import { CommunicationService } from '../../core/infrastructure/communication/communication.service';
 import { StudentService } from '../../core/infrastructure/student/student.service';
 import { GradeService } from '../../core/infrastructure/grade/grade.service';
+import { HrService } from '../../core/infrastructure/hr/hr.service';
+import { StaffAttendance, StaffProfile } from '../../core/domain/hr/hr.model';
 
 export interface RollCallPupil {
   id: string;
@@ -73,7 +75,7 @@ export interface InspectedStudentData {
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private intelligenceService = inject(IntelligenceService);
   private analyticsService = inject(AnalyticsService);
@@ -87,6 +89,7 @@ export class DashboardComponent implements OnInit {
   private communicationService = inject(CommunicationService);
   private studentService = inject(StudentService);
   private gradeService = inject(GradeService);
+  private hrService = inject(HrService);
   private platformId = inject(PLATFORM_ID);
   private isBrowser = isPlatformBrowser(this.platformId);
 
@@ -103,6 +106,17 @@ export class DashboardComponent implements OnInit {
   teachersList = signal<Teacher[]>([]);
   fiscalSummary = signal<FiscalSummary | null>(null);
   recentFiscalRecords = signal<FiscalRecord[]>([]);
+
+  // Staff Time Clock & Duty Status Signals
+  myStaffProfile = signal<StaffProfile | null>(null);
+  todayStaffAttendance = signal<StaffAttendance | null>(null);
+  isClockingStaff = signal<boolean>(false);
+  staffClockMessage = signal<string>('');
+  staffClockError = signal<string>('');
+  currentLiveTime = signal<string>('');
+  currentLiveDate = signal<string>('');
+  liveDutyElapsed = signal<string>('00:00:00');
+  private clockTimerInterval: any = null;
 
   // Teacher Specific Live Signals
   teacherData = signal<{ id: string; first_name: string; last_name: string; subject: string; can_collect_fees?: boolean } | null>(null);
@@ -394,6 +408,8 @@ export class DashboardComponent implements OnInit {
         return;
       }
 
+      this.initLiveClock();
+      this.loadStaffDutyClock();
       this.loadRealDashboardData();
     }
   }
@@ -928,6 +944,120 @@ export class DashboardComponent implements OnInit {
     if (!this.isBrowser) return;
     this.closeExportDialog();
     setTimeout(() => window.print(), 100);
+  }
+
+  ngOnDestroy(): void {
+    if (this.clockTimerInterval) {
+      clearInterval(this.clockTimerInterval);
+      this.clockTimerInterval = null;
+    }
+  }
+
+  // Feature: Staff Time Clock & Live Duty Tracker
+  initLiveClock() {
+    const updateTime = () => {
+      const now = new Date();
+      this.currentLiveTime.set(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      this.currentLiveDate.set(now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }));
+
+      // Calculate elapsed duty time if clocked in
+      const att = this.todayStaffAttendance();
+      if (att && att.clock_in && !att.clock_out) {
+        const diffMs = Math.max(0, now.getTime() - new Date(att.clock_in).getTime());
+        const totalSec = Math.floor(diffMs / 1000);
+        const hrs = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+        const secs = String(totalSec % 60).padStart(2, '0');
+        this.liveDutyElapsed.set(`${hrs}:${mins}:${secs}`);
+      } else if (att && att.clock_in && att.clock_out) {
+        const diffMs = Math.max(0, new Date(att.clock_out).getTime() - new Date(att.clock_in).getTime());
+        const totalSec = Math.floor(diffMs / 1000);
+        const hrs = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+        const secs = String(totalSec % 60).padStart(2, '0');
+        this.liveDutyElapsed.set(`${hrs}:${mins}:${secs}`);
+      } else {
+        this.liveDutyElapsed.set('00:00:00');
+      }
+    };
+
+    updateTime();
+    if (this.isBrowser) {
+      if (this.clockTimerInterval) clearInterval(this.clockTimerInterval);
+      this.clockTimerInterval = setInterval(updateTime, 1000);
+    }
+  }
+
+  loadStaffDutyClock() {
+    const user = this.authService.currentUserValue;
+    const todayStr = new Date().toISOString().slice(0, 10);
+
+    this.hrService.getStaffProfiles().subscribe({
+      next: (profiles) => {
+        if (!profiles || profiles.length === 0) return;
+        const matched = profiles.find(p => p.user_id === user?.id || (user?.email && p.email === user.email)) || profiles[0];
+        if (matched) {
+          this.myStaffProfile.set(matched);
+          this.hrService.getStaffAttendanceLogs(matched.id, todayStr, todayStr).subscribe({
+            next: (logs) => {
+              if (logs && logs.length > 0) {
+                this.todayStaffAttendance.set(logs[0]);
+              } else {
+                this.todayStaffAttendance.set(null);
+              }
+            },
+            error: () => this.todayStaffAttendance.set(null)
+          });
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  clockInStaff() {
+    const profile = this.myStaffProfile();
+    if (!profile) return;
+    this.isClockingStaff.set(true);
+    this.staffClockMessage.set('');
+    this.staffClockError.set('');
+
+    this.hrService.clockIn(profile.id).subscribe({
+      next: (record) => {
+        this.isClockingStaff.set(false);
+        this.todayStaffAttendance.set(record);
+        const timeStr = record.clock_in ? new Date(record.clock_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now';
+        this.staffClockMessage.set(`Clocked In at ${timeStr}`);
+        setTimeout(() => this.staffClockMessage.set(''), 4500);
+      },
+      error: (e) => {
+        this.isClockingStaff.set(false);
+        this.staffClockError.set(e.error?.error || 'Clock-in failed. Please try again.');
+        setTimeout(() => this.staffClockError.set(''), 4500);
+      }
+    });
+  }
+
+  clockOutStaff() {
+    const profile = this.myStaffProfile();
+    if (!profile) return;
+    this.isClockingStaff.set(true);
+    this.staffClockMessage.set('');
+    this.staffClockError.set('');
+
+    this.hrService.clockOut(profile.id).subscribe({
+      next: (record) => {
+        this.isClockingStaff.set(false);
+        this.todayStaffAttendance.set(record);
+        const timeStr = record.clock_out ? new Date(record.clock_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now';
+        this.staffClockMessage.set(`Clocked Out at ${timeStr}`);
+        setTimeout(() => this.staffClockMessage.set(''), 4500);
+      },
+      error: (e) => {
+        this.isClockingStaff.set(false);
+        this.staffClockError.set(e.error?.error || 'Clock-out failed. Must have an active clock-in.');
+        setTimeout(() => this.staffClockError.set(''), 4500);
+      }
+    });
   }
 
   private downloadCSV(csvContent: string, fileName: string) {

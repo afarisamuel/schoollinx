@@ -6,7 +6,7 @@ export const hrRoutes: Routes = [
         path: '',
         loadComponent: () => import('./hr-shell/hr-shell').then(c => c.HrShell),
         canActivate: [roleGuard],
-        data: { roles: ['ADMIN'] },
+        data: { roles: ['ADMIN', 'TEACHER', 'ECOPOWER_ADMIN'] },
         children: [
             {
                 path: '',

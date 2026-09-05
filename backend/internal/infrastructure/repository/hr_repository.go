@@ -262,7 +262,7 @@ func (r *hrRepository) GetAttendanceByPeriod(ctx context.Context, startDate, end
 
 func (r *hrRepository) GetStaffAttendanceByPeriod(ctx context.Context, staffID uuid.UUID, startDate, endDate time.Time) ([]domain.StaffAttendance, error) {
 	var logs []domain.StaffAttendance
-	err := r.db.WithContext(ctx).Where("staff_id = ? AND date >= ? AND date <= ?", staffID, startDate, endDate).Order("date desc").Find(&logs).Error
+	err := r.db.WithContext(ctx).Preload("Staff").Where("staff_id = ? AND date >= ? AND date <= ?", staffID, startDate, endDate).Order("date desc").Find(&logs).Error
 	return logs, err
 }
 
