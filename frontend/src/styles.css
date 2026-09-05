@@ -612,3 +612,96 @@ select option {
     line-height: 1.85rem !important;
   }
 }
+
+/* ========================================== */
+/* UNIVERSAL DOCUMENT PRINTING ENGINE         */
+/* ========================================== */
+@media print {
+  /* 1. Completely hide all application UI Chrome (navbar, sidebar, chatbot, buttons) */
+  app-sidebar,
+  app-navbar,
+  app-ai-chatbot,
+  app-command-palette,
+  nav,
+  header,
+  aside,
+  .print\:hidden,
+  button:not(.print\:show) {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* 2. Reset html, body, and layout container heights to allow full multi-page document flow */
+  html, body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 10pt !important;
+  }
+
+  /* Reset main layout flex/grid containers so multi-page documents paginate naturally */
+  .h-screen,
+  div[class*="h-screen"],
+  .overflow-hidden,
+  .overflow-y-auto,
+  main,
+  div[class*="flex-1"],
+  div[class*="min-h-0"] {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+  }
+
+  /* Ensure background colors, borders, and images render crisply */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm 8mm 10mm;
+  }
+
+  /* Printable Document Container Overrides */
+  #admission-printable-doc,
+  #report-card-printable-doc,
+  .printable-document {
+    background: #ffffff !important;
+    color: #111827 !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+  }
+
+  /* Prevent awkward page splits inside sections */
+  .page-break-avoid,
+  .grid,
+  .border,
+  section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}

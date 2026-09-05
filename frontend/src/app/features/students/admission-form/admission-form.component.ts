@@ -9,6 +9,25 @@ import { ClassService, Class } from '../../../core/infrastructure/curriculum/cla
 import { ScholasticLevelService } from '../../../core/infrastructure/scholastic-level/scholastic-level.service';
 import { ScholasticLevel } from '../../../core/domain/scholastic-level.model';
 
+export interface AdmissionCustomField {
+  id: string;
+  title: string;
+  section: 'biodata' | 'academic' | 'guardian' | 'medical' | 'custom';
+  value?: string;
+  lineType: 'single' | 'double' | 'checkboxes';
+  options?: string[];
+  span: 'full' | 'half' | 'third';
+}
+
+export interface CustomFieldPreset {
+  title: string;
+  section: 'biodata' | 'academic' | 'guardian' | 'medical' | 'custom';
+  lineType: 'single' | 'double' | 'checkboxes';
+  options?: string[];
+  span: 'full' | 'half' | 'third';
+  icon: string;
+}
+
 @Component({
   selector: 'app-admission-form',
   standalone: true,
@@ -38,6 +57,38 @@ export class AdmissionFormComponent implements OnInit {
   includeDeclaration = signal(true);
   academicYear = signal('2026/2027');
   admissionDate = signal(new Date());
+
+  // Custom Dynamic Fields System
+  isCustomizerOpen = signal(false);
+  customFields = signal<AdmissionCustomField[]>([]);
+
+  // New Custom Field Form State
+  newFieldTitle = signal('');
+  newFieldSection = signal<'biodata' | 'academic' | 'guardian' | 'medical' | 'custom'>('custom');
+  newFieldLineType = signal<'single' | 'double' | 'checkboxes'>('single');
+  newFieldSpan = signal<'full' | 'half' | 'third'>('half');
+  newFieldOptionsText = signal('Yes, No');
+
+  // Preset Template Chips
+  presetTemplates: CustomFieldPreset[] = [
+    { title: 'Mother Tongue / Native Dialect', section: 'biodata', lineType: 'single', span: 'half', icon: 'fas fa-language' },
+    { title: 'Hometown & Region of Origin', section: 'biodata', lineType: 'single', span: 'half', icon: 'fas fa-map-pin' },
+    { title: 'Denominational Parish / Local Mosque', section: 'biodata', lineType: 'single', span: 'half', icon: 'fas fa-place-of-worship' },
+    { title: 'Transportation Zone / Bus Route', section: 'academic', lineType: 'single', span: 'half', icon: 'fas fa-bus' },
+    { title: 'Sibling(s) Currently Enrolled in School', section: 'academic', lineType: 'single', span: 'full', icon: 'fas fa-user-group' },
+    { title: 'House / Dormitory Preference', section: 'academic', lineType: 'single', span: 'half', icon: 'fas fa-bed' },
+    { title: 'Sports, Music & Extracurricular Talents', section: 'academic', lineType: 'double', span: 'full', icon: 'fas fa-trophy' },
+    { title: 'Scholarship / Educational Sponsor Particulars', section: 'guardian', lineType: 'double', span: 'full', icon: 'fas fa-hand-holding-dollar' },
+    { title: 'Special Dietary Needs & Restrictions', section: 'medical', lineType: 'double', span: 'full', icon: 'fas fa-utensils' },
+    { title: 'Special Educational Needs / Learning Accommodations', section: 'medical', lineType: 'double', span: 'full', icon: 'fas fa-hands-holding-child' },
+  ];
+
+  // Filtered Custom Fields by Section
+  biodataCustomFields = computed(() => this.customFields().filter(f => f.section === 'biodata'));
+  academicCustomFields = computed(() => this.customFields().filter(f => f.section === 'academic'));
+  guardianCustomFields = computed(() => this.customFields().filter(f => f.section === 'guardian'));
+  medicalCustomFields = computed(() => this.customFields().filter(f => f.section === 'medical'));
+  standaloneCustomFields = computed(() => this.customFields().filter(f => f.section === 'custom'));
 
   // Computed Properties
   candidateFullName = computed(() => {
@@ -115,6 +166,7 @@ export class AdmissionFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadMetadata();
+    this.loadPersistedCustomFields();
 
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
@@ -161,6 +213,99 @@ export class AdmissionFormComponent implements OnInit {
         this.isLoading.set(false);
       }
     });
+  }
+
+  // --- Custom Field Operations ---
+
+  loadPersistedCustomFields() {
+    try {
+      const saved = localStorage.getItem('schoollinx_admission_custom_fields');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          this.customFields.set(parsed);
+        }
+      }
+    } catch {
+      // Fallback
+    }
+  }
+
+  saveCustomFieldsToStorage() {
+    try {
+      localStorage.setItem('schoollinx_admission_custom_fields', JSON.stringify(this.customFields()));
+    } catch {
+      // Ignore
+    }
+  }
+
+  toggleCustomizer() {
+    this.isCustomizerOpen.update(v => !v);
+  }
+
+  addCustomField() {
+    const title = this.newFieldTitle().trim();
+    if (!title) return;
+
+    let options: string[] | undefined = undefined;
+    if (this.newFieldLineType() === 'checkboxes') {
+      options = this.newFieldOptionsText()
+        .split(',')
+        .map(o => o.trim())
+        .filter(Boolean);
+      if (options.length === 0) options = ['Yes', 'No'];
+    }
+
+    const newField: AdmissionCustomField = {
+      id: 'field_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      title: title,
+      section: this.newFieldSection(),
+      lineType: this.newFieldLineType(),
+      span: this.newFieldSpan(),
+      options: options,
+      value: ''
+    };
+
+    this.customFields.update(list => [...list, newField]);
+    this.saveCustomFieldsToStorage();
+
+    // Reset input
+    this.newFieldTitle.set('');
+  }
+
+  addPresetField(preset: CustomFieldPreset) {
+    // Check if already exists with same title
+    const exists = this.customFields().some(f => f.title.toLowerCase() === preset.title.toLowerCase());
+    if (exists) return;
+
+    const newField: AdmissionCustomField = {
+      id: 'field_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      title: preset.title,
+      section: preset.section,
+      lineType: preset.lineType,
+      span: preset.span,
+      options: preset.options,
+      value: ''
+    };
+
+    this.customFields.update(list => [...list, newField]);
+    this.saveCustomFieldsToStorage();
+  }
+
+  removeCustomField(id: string) {
+    this.customFields.update(list => list.filter(f => f.id !== id));
+    this.saveCustomFieldsToStorage();
+  }
+
+  clearAllCustomFields() {
+    this.customFields.set([]);
+    this.saveCustomFieldsToStorage();
+  }
+
+  updateCustomFieldValue(id: string, val: string) {
+    this.customFields.update(list =>
+      list.map(f => f.id === id ? { ...f, value: val } : f)
+    );
   }
 
   toggleBlankMode(blank: boolean) {

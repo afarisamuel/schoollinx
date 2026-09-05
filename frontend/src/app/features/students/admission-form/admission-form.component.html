@@ -3,55 +3,181 @@
   <!-- ========================================== -->
   <!-- SCREEN-ONLY CONTROL BAR & PRINT CONTROLS   -->
   <!-- ========================================== -->
-  <div class="bg-bg-secondary border border-border-primary rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
-    <div class="flex items-center gap-3">
-      <button (click)="goBack()" class="p-2.5 bg-bg-tertiary hover:bg-bg-primary border border-border-secondary hover:border-border-primary text-text-muted hover:text-text-primary rounded-xl transition-all shadow-sm cursor-pointer">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-      </button>
-      <div>
-        <div class="flex items-center gap-2">
-          <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
-            Official Document
-          </span>
-          <span class="text-xs text-text-muted">• Standard A4 Admission Application</span>
+  <div class="bg-bg-secondary border border-border-primary rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col gap-4 print:hidden">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <button (click)="goBack()" class="p-2.5 bg-bg-tertiary hover:bg-bg-primary border border-border-secondary hover:border-border-primary text-text-muted hover:text-text-primary rounded-xl transition-all shadow-sm cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        </button>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              Official Document Suite
+            </span>
+            <span class="text-xs text-text-muted">• Standard A4 Admission Application</span>
+          </div>
+          <h1 class="text-lg sm:text-xl font-black text-text-primary tracking-tight mt-0.5">
+            {{ isFormBlank() ? 'Official Blank Admission Form (Print / Handwrite)' : (candidateFullName() || 'Candidate Admission Record') }}
+          </h1>
         </div>
-        <h1 class="text-lg sm:text-xl font-black text-text-primary tracking-tight mt-0.5">
-          {{ isFormBlank() ? 'Official Blank Admission Form (Handwrite / Print)' : (candidateFullName() || 'Candidate Admission Record') }}
-        </h1>
+      </div>
+
+      <!-- Right Controls: Toggle Form Mode, Custom Fields Builder, & Print -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        
+        <!-- Custom Fields Builder Toggle Button -->
+        <button type="button" (click)="toggleCustomizer()"
+          class="px-3.5 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 cursor-pointer"
+          [class.bg-blue-600]="isCustomizerOpen()"
+          [class.text-white]="isCustomizerOpen()"
+          [class.border-blue-500]="isCustomizerOpen()"
+          [class.bg-bg-tertiary]="!isCustomizerOpen()"
+          [class.text-text-primary]="!isCustomizerOpen()"
+          [class.border-border-secondary]="!isCustomizerOpen()">
+          <i class="fas fa-sliders-h text-xs"></i>
+          <span>Custom Fields</span>
+          @if (customFields().length > 0) {
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-white/20 text-white">
+              {{ customFields().length }}
+            </span>
+          }
+        </button>
+
+        <!-- Mode Toggle: Filled vs Blank -->
+        <div class="flex items-center bg-bg-tertiary p-1 rounded-xl border border-border-secondary text-xs font-bold">
+          <button type="button" (click)="toggleBlankMode(false)"
+            class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+            [class.bg-blue-600]="!isFormBlank()"
+            [class.text-white]="!isFormBlank()"
+            [class.shadow-sm]="!isFormBlank()"
+            [class.text-text-secondary]="isFormBlank()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Filled Form
+          </button>
+          <button type="button" (click)="toggleBlankMode(true)"
+            class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+            [class.bg-blue-600]="isFormBlank()"
+            [class.text-white]="isFormBlank()"
+            [class.shadow-sm]="isFormBlank()"
+            [class.text-text-secondary]="!isFormBlank()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+            Blank (Handwrite)
+          </button>
+        </div>
+
+        <!-- Action: Print Form / Save PDF -->
+        <button (click)="printForm()"
+          class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-600/20 transition-all hover:scale-105 active:scale-95">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+          Print / Save PDF
+        </button>
       </div>
     </div>
 
-    <!-- Right Controls: Toggle Form Mode & Print Button -->
-    <div class="flex flex-wrap items-center gap-3">
-      <!-- Mode Toggle: Filled vs Blank -->
-      <div class="flex items-center bg-bg-tertiary p-1 rounded-xl border border-border-secondary text-xs font-bold">
-        <button type="button" (click)="toggleBlankMode(false)"
-          class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
-          [class.bg-blue-600]="!isFormBlank()"
-          [class.text-white]="!isFormBlank()"
-          [class.shadow-sm]="!isFormBlank()"
-          [class.text-text-secondary]="isFormBlank()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          Filled Form
-        </button>
-        <button type="button" (click)="toggleBlankMode(true)"
-          class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
-          [class.bg-blue-600]="isFormBlank()"
-          [class.text-white]="isFormBlank()"
-          [class.shadow-sm]="isFormBlank()"
-          [class.text-text-secondary]="!isFormBlank()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          Blank (For Pen Handwriting)
-        </button>
-      </div>
+    <!-- ========================================== -->
+    <!-- EXPANDABLE CUSTOM FIELDS BUILDER PANEL     -->
+    <!-- ========================================== -->
+    @if (isCustomizerOpen()) {
+      <div class="pt-4 border-t border-border-primary flex flex-col gap-4 animate-fade-in">
+        
+        <!-- Preset Suggestion Chips -->
+        <div>
+          <div class="text-[11px] font-black uppercase text-text-muted tracking-wider mb-2 flex items-center gap-1.5">
+            <i class="fas fa-magic text-blue-500"></i> One-Click Common Admission Inquiries:
+          </div>
+          <div class="flex flex-wrap gap-2">
+            @for (preset of presetTemplates; track preset.title) {
+              <button type="button" (click)="addPresetField(preset)"
+                class="px-3 py-1.5 bg-bg-tertiary hover:bg-blue-600 hover:text-white border border-border-secondary hover:border-blue-500 rounded-xl text-xs font-bold text-text-secondary transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                <i [class]="preset.icon + ' text-[11px]'"></i>
+                <span>+ {{ preset.title }}</span>
+              </button>
+            }
+          </div>
+        </div>
 
-      <!-- Action: Print Form -->
-      <button (click)="printForm()"
-        class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-600/20 transition-all hover:scale-105 active:scale-95">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-        Print / Save PDF
-      </button>
-    </div>
+        <!-- Add Custom Field Creator Form -->
+        <div class="bg-bg-tertiary p-4 rounded-2xl border border-border-secondary flex flex-col md:flex-row items-end gap-3">
+          <!-- Field Title -->
+          <div class="flex-1 w-full flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase text-text-muted">Custom Field Question / Title</label>
+            <input type="text" [(ngModel)]="newFieldTitle" (keyup.enter)="addCustomField()"
+              placeholder="e.g., Mother Tongue, Sibling Name, Bus Stop, Talents..."
+              class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3.5 py-2 text-xs font-bold text-text-primary focus:outline-none focus:border-blue-500">
+          </div>
+
+          <!-- Section Placement -->
+          <div class="w-full md:w-44 flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase text-text-muted">Target Section</label>
+            <select [(ngModel)]="newFieldSection"
+              class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs font-bold text-text-primary focus:outline-none focus:border-blue-500">
+              <option value="biodata">Section A (Biodata)</option>
+              <option value="academic">Section B (Academic)</option>
+              <option value="guardian">Section C (Parents)</option>
+              <option value="medical">Section D (Medical)</option>
+              <option value="custom">Additional Inquiries</option>
+            </select>
+          </div>
+
+          <!-- Line Format -->
+          <div class="w-full md:w-36 flex flex-col gap-1">
+            <label class="text-[10px] font-black uppercase text-text-muted">Write-in Format</label>
+            <select [(ngModel)]="newFieldLineType"
+              class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs font-bold text-text-primary focus:outline-none focus:border-blue-500">
+              <option value="single">Single Line</option>
+              <option value="double">2 Lines (Paragraph)</option>
+              <option value="checkboxes">Checkboxes</option>
+            </select>
+          </div>
+
+          <!-- Options Text (if checkboxes) -->
+          @if (newFieldLineType() === 'checkboxes') {
+            <div class="w-full md:w-40 flex flex-col gap-1">
+              <label class="text-[10px] font-black uppercase text-text-muted">Options (comma-separated)</label>
+              <input type="text" [(ngModel)]="newFieldOptionsText" placeholder="Yes, No"
+                class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs font-bold text-text-primary focus:outline-none focus:border-blue-500">
+            </div>
+          }
+
+          <!-- Add Button -->
+          <button type="button" (click)="addCustomField()"
+            class="w-full md:w-auto px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-blue-600/20 shrink-0">
+            <i class="fas fa-plus"></i> Add Field
+          </button>
+        </div>
+
+        <!-- Active Custom Fields List -->
+        @if (customFields().length > 0) {
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-black text-text-primary uppercase tracking-wide">
+                Active Custom Fields on Document ({{ customFields().length }}):
+              </span>
+              <button (click)="clearAllCustomFields()" class="text-[11px] text-rose-500 hover:text-rose-400 font-bold cursor-pointer">
+                Clear All Fields
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+              @for (field of customFields(); track field.id) {
+                <div class="p-3 bg-bg-tertiary border border-border-secondary rounded-xl flex items-center justify-between gap-2 text-xs">
+                  <div class="flex flex-col min-w-0">
+                    <span class="font-black text-text-primary truncate">{{ field.title }}</span>
+                    <span class="text-[10px] text-text-muted capitalize">
+                      {{ field.section }} • {{ field.lineType }}
+                    </span>
+                  </div>
+                  <button (click)="removeCustomField(field.id)" class="p-1.5 text-text-muted hover:text-rose-500 rounded-lg hover:bg-rose-500/10 transition-all cursor-pointer">
+                    <i class="fas fa-trash-alt text-xs"></i>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
   </div>
 
   <!-- Loading State -->
@@ -255,6 +381,31 @@
               </div>
             </div>
 
+            <!-- Dynamic Custom Fields for Biodata -->
+            @for (cf of biodataCustomFields(); track cf.id) {
+              <div class="col-span-12" [class.sm:col-span-6]="cf.span === 'half'" [class.sm:col-span-4]="cf.span === 'third'">
+                <span class="text-[10px] font-black uppercase text-gray-700">{{ cf.title }}:</span>
+                @if (cf.lineType === 'checkboxes') {
+                  <div class="border-b-2 border-gray-800 h-10 flex items-center gap-4 text-xs font-bold text-gray-900">
+                    @for (opt of cf.options; track opt) {
+                      <span class="flex items-center gap-1.5">
+                        <span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> {{ opt }}
+                      </span>
+                    }
+                  </div>
+                } @else if (cf.lineType === 'double') {
+                  <div class="flex flex-col gap-2 pt-1">
+                    <div class="border-b-2 border-gray-800 h-8 flex items-end pb-1 font-bold text-xs text-gray-900">{{ cf.value || '' }}</div>
+                    <div class="border-b-2 border-gray-800 h-8"></div>
+                  </div>
+                } @else {
+                  <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
+                    {{ cf.value || '' }}
+                  </div>
+                }
+              </div>
+            }
+
           </div>
         </div>
 
@@ -313,6 +464,31 @@
               <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-mono font-bold text-xs text-gray-900">
               </div>
             </div>
+
+            <!-- Dynamic Custom Fields for Academic Section -->
+            @for (cf of academicCustomFields(); track cf.id) {
+              <div class="col-span-12" [class.sm:col-span-6]="cf.span === 'half'" [class.sm:col-span-4]="cf.span === 'third'">
+                <span class="text-[10px] font-black uppercase text-gray-700">{{ cf.title }}:</span>
+                @if (cf.lineType === 'checkboxes') {
+                  <div class="border-b-2 border-gray-800 h-10 flex items-center gap-4 text-xs font-bold text-gray-900">
+                    @for (opt of cf.options; track opt) {
+                      <span class="flex items-center gap-1.5">
+                        <span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> {{ opt }}
+                      </span>
+                    }
+                  </div>
+                } @else if (cf.lineType === 'double') {
+                  <div class="flex flex-col gap-2 pt-1">
+                    <div class="border-b-2 border-gray-800 h-8 flex items-end pb-1 font-bold text-xs text-gray-900">{{ cf.value || '' }}</div>
+                    <div class="border-b-2 border-gray-800 h-8"></div>
+                  </div>
+                } @else {
+                  <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
+                    {{ cf.value || '' }}
+                  </div>
+                }
+              </div>
+            }
 
           </div>
         </div>
@@ -464,167 +640,273 @@
               </div>
             </div>
 
+            <!-- Dynamic Custom Fields for Guardian Section -->
+            @for (cf of guardianCustomFields(); track cf.id) {
+              <div class="col-span-12" [class.sm:col-span-6]="cf.span === 'half'" [class.sm:col-span-4]="cf.span === 'third'">
+                <span class="text-[10px] font-black uppercase text-gray-700">{{ cf.title }}:</span>
+                @if (cf.lineType === 'checkboxes') {
+                  <div class="border-b-2 border-gray-800 h-10 flex items-center gap-4 text-xs font-bold text-gray-900">
+                    @for (opt of cf.options; track opt) {
+                      <span class="flex items-center gap-1.5">
+                        <span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> {{ opt }}
+                      </span>
+                    }
+                  </div>
+                } @else if (cf.lineType === 'double') {
+                  <div class="flex flex-col gap-2 pt-1">
+                    <div class="border-b-2 border-gray-800 h-8 flex items-end pb-1 font-bold text-xs text-gray-900">{{ cf.value || '' }}</div>
+                    <div class="border-b-2 border-gray-800 h-8"></div>
+                  </div>
+                } @else {
+                  <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
+                    {{ cf.value || '' }}
+                  </div>
+                }
+              </div>
+            }
+
           </div>
         </div>
 
         <!-- ========================================== -->
-        <!-- SECTION D: HEALTH, MEDICAL & EMERGENCY     -->
+        <!-- PAGE 2: MEDICAL, INQUIRIES & SIGN-OFF      -->
         <!-- ========================================== -->
-        @if (includeMedical()) {
-          <div class="flex flex-col gap-4">
-            <div class="flex items-center justify-between bg-gray-100 px-3.5 py-2 rounded-lg border-l-4 border-gray-900">
+        <div class="print:break-before-page flex flex-col gap-6 pt-4 print:pt-0">
+
+          <!-- Page 2 Sub-Header for Print -->
+          <div class="hidden print:flex items-center justify-between pb-3 border-b-2 border-gray-900">
+            <div class="flex items-center gap-3">
               <span class="text-xs font-black uppercase tracking-wider text-gray-900 font-serif">
-                SECTION D: HEALTH, MEDICAL & INFIRMARY PROTOCOL
+                {{ tenantProfile()?.name || 'SchoolLinx International Academy' }}
               </span>
-              <span class="text-[10px] font-bold text-gray-500">MEDICAL DATA</span>
+              <span class="text-[10px] text-gray-500 font-mono">• ADMISSION DOSSIER (PAGE 2 OF 2)</span>
             </div>
-
-            <div class="grid grid-cols-12 gap-x-5 gap-y-4 text-xs">
-              
-              <!-- Blood Group -->
-              <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
-                <span class="text-[10px] font-black uppercase text-gray-700">1. Blood Group:</span>
-                <div class="border-b-2 border-gray-800 h-10 flex items-center gap-3 font-bold text-xs text-gray-900">
-                  @if (!isFormBlank() && student()?.blood_group) {
-                    <span class="font-black text-sm text-rose-700">[ ✓ ] Blood Group: {{ student()?.blood_group }}</span>
-                  } @else {
-                    <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> A+</span>
-                    <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> B+</span>
-                    <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> O+</span>
-                    <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> AB+</span>
-                    <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> O-</span>
-                  }
-                </div>
-              </div>
-
-              <!-- Emergency Dispatch Contact Person -->
-              <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
-                <span class="text-[10px] font-black uppercase text-gray-700">2. Emergency Contact Person:</span>
-                <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
-                  {{ (!isFormBlank() && student()?.emergency_contact_name) ? student()?.emergency_contact_name : '' }}
-                </div>
-              </div>
-
-              <!-- Emergency Phone -->
-              <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
-                <span class="text-[10px] font-black uppercase text-gray-700">3. Emergency Telephone Line:</span>
-                <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-mono font-bold text-xs text-gray-900">
-                  {{ (!isFormBlank() && student()?.emergency_contact_phone) ? student()?.emergency_contact_phone : '' }}
-                </div>
-              </div>
-
-              <!-- Known Allergies (2 Ruled Lines) -->
-              <div class="col-span-12 sm:col-span-6 flex flex-col gap-1">
-                <span class="text-[10px] font-black uppercase text-gray-700">4. Known Allergies (Food, Penicillin, Asthma, Stings):</span>
-                <div class="flex flex-col gap-2 pt-1">
-                  <div class="border-b-2 border-gray-800 h-8 flex items-end pb-1 font-bold text-xs text-gray-900">
-                    {{ (!isFormBlank() && student()?.allergies) ? student()?.allergies : '' }}
-                  </div>
-                  <div class="border-b-2 border-gray-800 h-8"></div>
-                </div>
-              </div>
-
-              <!-- Pre-existing Medical Conditions (2 Ruled Lines) -->
-              <div class="col-span-12 sm:col-span-6 flex flex-col gap-1">
-                <span class="text-[10px] font-black uppercase text-gray-700">5. Pre-existing Conditions / Daily Medications:</span>
-                <div class="flex flex-col gap-2 pt-1">
-                  <div class="border-b-2 border-gray-800 h-8 flex items-end pb-1 font-bold text-xs text-gray-900">
-                    {{ (!isFormBlank() && student()?.health_conditions) ? student()?.health_conditions : '' }}
-                  </div>
-                  <div class="border-b-2 border-gray-800 h-8"></div>
-                </div>
-              </div>
-
-            </div>
+            <span class="text-[9px] font-mono font-bold text-gray-500">REF: {{ referenceNumber() }}</span>
           </div>
-        }
 
-        <!-- ========================================== -->
-        <!-- SECTION E: CHECKLIST OF REQUIRED ENCLOSURES -->
-        <!-- ========================================== -->
-        @if (includeChecklist()) {
-          <div class="flex flex-col gap-2.5 p-4 rounded-2xl border-2 border-gray-300 bg-gray-50/60 text-xs">
-            <span class="text-[10px] font-black uppercase tracking-wider text-gray-900 font-serif">
-              SECTION E: CHECKLIST OF REQUIRED ADMISSION ATTACHMENTS (For Registrar Office Verification):
-            </span>
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-[11px] text-gray-800 pt-1">
-              <span class="flex items-center gap-2 font-medium"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Copy of Birth Certificate / Passport</span>
-              <span class="flex items-center gap-2 font-medium"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> 2 Recent Passport Photographs</span>
-              <span class="flex items-center gap-2 font-medium"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Cumulative Terminal Academic Report</span>
-              <span class="flex items-center gap-2 font-medium"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Child Immunization / Health Card</span>
-              <span class="flex items-center gap-2 font-medium"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Placement Slip / BECE Results Sheet</span>
-              <span class="flex items-center gap-2 font-medium"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Official Fee Deposit Receipt</span>
-            </div>
-          </div>
-        }
-
-        <!-- ========================================== -->
-        <!-- SECTION F: DECLARATION & OFFICIAL SIGN-OFF -->
-        <!-- ========================================== -->
-        @if (includeDeclaration()) {
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t-2 border-gray-900 text-xs">
-            
-            <!-- Parent / Guardian Undertaking -->
-            <div class="flex flex-col justify-between gap-4 p-5 rounded-2xl border-2 border-gray-300 bg-gray-50/40">
-              <div>
-                <span class="text-[11px] font-black uppercase text-gray-900 font-serif">SECTION F: Parent / Guardian Legal Undertaking</span>
-                <p class="text-[10px] text-gray-600 leading-relaxed mt-1.5">
-                  "I hereby certify that all information submitted on this form is complete, true, and accurate. I agree that my ward will abide by the academic regulations, school code of conduct, and prompt fee settlement schedules."
-                </p>
+          <!-- SECTION D: HEALTH, MEDICAL & EMERGENCY     -->
+          @if (includeMedical()) {
+            <div class="flex flex-col gap-4">
+              <div class="flex items-center justify-between bg-gray-100 px-3.5 py-2 rounded-lg border-l-4 border-gray-900">
+                <span class="text-xs font-black uppercase tracking-wider text-gray-900 font-serif">
+                  SECTION D: HEALTH, MEDICAL & INFIRMARY PROTOCOL
+                </span>
+                <span class="text-[10px] font-bold text-gray-500">MEDICAL DATA</span>
               </div>
 
-              <div class="grid grid-cols-2 gap-4 pt-4">
-                <div class="flex flex-col gap-1">
-                  <span class="text-[9px] font-black uppercase text-gray-600">Parent / Guardian Signature:</span>
-                  <div class="border-b-2 border-gray-800 h-10"></div>
-                </div>
-                <div class="flex flex-col gap-1">
-                  <span class="text-[9px] font-black uppercase text-gray-600">Date:</span>
-                  <div class="border-b-2 border-gray-800 h-10 flex items-end font-mono text-gray-700 pb-1">
-                    ____ / ____ / 2026
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Head of Admissions / Registrar Endorsement -->
-            <div class="flex flex-col justify-between gap-4 p-5 rounded-2xl border-2 border-gray-300 bg-gray-50/40">
-              <div>
-                <div class="flex items-center justify-between">
-                  <span class="text-[11px] font-black uppercase text-gray-900 font-serif">SECTION G: Institutional Endorsement</span>
-                  <span class="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded border border-emerald-400">
-                    APPROVED & REGISTERED
-                  </span>
-                </div>
-                <p class="text-[10px] text-gray-600 leading-relaxed mt-1.5">
-                  Provisioned into the student registry ledger. Authorized for classroom participation and academic attendance.
-                </p>
-              </div>
-
-              <div class="grid grid-cols-2 gap-4 pt-4">
-                <div class="flex flex-col gap-1">
-                  <span class="text-[9px] font-black uppercase text-gray-600">Registrar / Head Signature:</span>
-                  <div class="border-b-2 border-gray-800 h-10 flex items-center justify-center">
-                    @if (tenantProfile()?.headmaster_signature_url) {
-                      <img [src]="tenantProfile()?.headmaster_signature_url" alt="Signature" class="max-h-8 object-contain">
+              <div class="grid grid-cols-12 gap-x-5 gap-y-4 text-xs">
+                
+                <!-- Blood Group -->
+                <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
+                  <span class="text-[10px] font-black uppercase text-gray-700">1. Blood Group:</span>
+                  <div class="border-b-2 border-gray-800 h-10 flex items-center gap-3 font-bold text-xs text-gray-900">
+                    @if (!isFormBlank() && student()?.blood_group) {
+                      <span class="font-black text-sm text-rose-700">[ ✓ ] Blood Group: {{ student()?.blood_group }}</span>
+                    } @else {
+                      <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> A+</span>
+                      <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> B+</span>
+                      <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> O+</span>
+                      <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> AB+</span>
+                      <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> O-</span>
                     }
                   </div>
                 </div>
-                <div class="flex flex-col gap-1">
-                  <span class="text-[9px] font-black uppercase text-gray-600">Official Stamp / Date:</span>
-                  <div class="border-b-2 border-gray-800 h-10 flex items-end font-mono text-gray-700 pb-1">
-                    {{ admissionDate() | date:'dd / MM / yyyy' }}
+
+                <!-- Emergency Dispatch Contact Person -->
+                <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
+                  <span class="text-[10px] font-black uppercase text-gray-700">2. Emergency Contact Person:</span>
+                  <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
+                    {{ (!isFormBlank() && student()?.emergency_contact_name) ? student()?.emergency_contact_name : '' }}
+                  </div>
+                </div>
+
+                <!-- Emergency Phone -->
+                <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
+                  <span class="text-[10px] font-black uppercase text-gray-700">3. Emergency Telephone Line:</span>
+                  <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-mono font-bold text-xs text-gray-900">
+                    {{ (!isFormBlank() && student()?.emergency_contact_phone) ? student()?.emergency_contact_phone : '' }}
+                  </div>
+                </div>
+
+                <!-- Known Allergies (2 Ruled Lines) -->
+                <div class="col-span-12 sm:col-span-6 flex flex-col gap-1">
+                  <span class="text-[10px] font-black uppercase text-gray-700">4. Known Allergies (Food, Penicillin, Asthma, Stings):</span>
+                  <div class="flex flex-col gap-2 pt-1">
+                    <div class="border-b-2 border-gray-800 h-8 flex items-end pb-1 font-bold text-xs text-gray-900">
+                      {{ (!isFormBlank() && student()?.allergies) ? student()?.allergies : '' }}
+                    </div>
+                    <div class="border-b-2 border-gray-800 h-8"></div>
+                  </div>
+                </div>
+
+                <!-- Pre-existing Medical Conditions (2 Ruled Lines) -->
+                <div class="col-span-12 sm:col-span-6 flex flex-col gap-1">
+                  <span class="text-[10px] font-black uppercase text-gray-700">5. Pre-existing Conditions / Daily Medications:</span>
+                  <div class="flex flex-col gap-2 pt-1">
+                    <div class="border-b-2 border-gray-800 h-8 flex items-end pb-1 font-bold text-xs text-gray-900">
+                      {{ (!isFormBlank() && student()?.health_conditions) ? student()?.health_conditions : '' }}
+                    </div>
+                    <div class="border-b-2 border-gray-800 h-8"></div>
+                  </div>
+                </div>
+
+                <!-- Dynamic Custom Fields for Medical Section -->
+                @for (cf of medicalCustomFields(); track cf.id) {
+                  <div class="col-span-12" [class.sm:col-span-6]="cf.span === 'half'" [class.sm:col-span-4]="cf.span === 'third'">
+                    <span class="text-[10px] font-black uppercase text-gray-700">{{ cf.title }}:</span>
+                    @if (cf.lineType === 'checkboxes') {
+                      <div class="border-b-2 border-gray-800 h-10 flex items-center gap-4 text-xs font-bold text-gray-900">
+                        @for (opt of cf.options; track opt) {
+                          <span class="flex items-center gap-1.5">
+                            <span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> {{ opt }}
+                          </span>
+                        }
+                      </div>
+                    } @else if (cf.lineType === 'double') {
+                      <div class="flex flex-col gap-2 pt-1">
+                        <div class="border-b-2 border-gray-800 h-8 flex items-end pb-1 font-bold text-xs text-gray-900">{{ cf.value || '' }}</div>
+                        <div class="border-b-2 border-gray-800 h-8"></div>
+                      </div>
+                    } @else {
+                      <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
+                        {{ cf.value || '' }}
+                      </div>
+                    }
+                  </div>
+                }
+
+              </div>
+            </div>
+          }
+
+          <!-- ======================================================== -->
+          <!-- SECTION E: ADDITIONAL INSTITUTIONAL INQUIRIES (CUSTOM)   -->
+          <!-- ======================================================== -->
+          @if (standaloneCustomFields().length > 0) {
+            <div class="flex flex-col gap-4">
+              <div class="flex items-center justify-between bg-gray-100 px-3.5 py-2 rounded-lg border-l-4 border-gray-900">
+                <span class="text-xs font-black uppercase tracking-wider text-gray-900 font-serif">
+                  SECTION E: ADDITIONAL INSTITUTIONAL INQUIRIES & SPECIAL PARTICULARS
+                </span>
+                <span class="text-[10px] font-bold text-gray-500">CUSTOM RECORDS</span>
+              </div>
+
+              <div class="grid grid-cols-12 gap-x-5 gap-y-4 text-xs">
+                @for (cf of standaloneCustomFields(); track cf.id) {
+                  <div class="col-span-12" [class.sm:col-span-6]="cf.span === 'half'" [class.sm:col-span-4]="cf.span === 'third'">
+                    <span class="text-[10px] font-black uppercase text-gray-700">{{ cf.title }}:</span>
+                    @if (cf.lineType === 'checkboxes') {
+                      <div class="border-b-2 border-gray-800 h-10 flex items-center gap-4 text-xs font-bold text-gray-900">
+                        @for (opt of cf.options; track opt) {
+                          <span class="flex items-center gap-1.5">
+                            <span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> {{ opt }}
+                          </span>
+                        }
+                      </div>
+                    } @else if (cf.lineType === 'double') {
+                      <div class="flex flex-col gap-2 pt-1">
+                        <div class="border-b-2 border-gray-800 h-8 flex items-end pb-1 font-bold text-xs text-gray-900">{{ cf.value || '' }}</div>
+                        <div class="border-b-2 border-gray-800 h-8"></div>
+                      </div>
+                    } @else {
+                      <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
+                        {{ cf.value || '' }}
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- ========================================== -->
+          <!-- CHECKLIST OF REQUIRED ENCLOSURES           -->
+          <!-- ========================================== -->
+          @if (includeChecklist()) {
+            <div class="flex flex-col gap-2.5 p-4 rounded-2xl border-2 border-gray-300 bg-gray-50/60 text-xs">
+              <span class="text-[10px] font-black uppercase tracking-wider text-gray-900 font-serif">
+                CHECKLIST OF REQUIRED ADMISSION ATTACHMENTS (For Registrar Office Verification):
+              </span>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-[11px] text-gray-800 pt-1">
+                <span class="flex items-center gap-2 font-medium"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Copy of Birth Certificate / Passport</span>
+                <span class="flex items-center gap-2 font-medium"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> 2 Recent Passport Photographs</span>
+                <span class="flex items-center gap-2 font-medium"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Cumulative Terminal Academic Report</span>
+                <span class="flex items-center gap-2 font-medium"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Child Immunization / Health Card</span>
+                <span class="flex items-center gap-2 font-medium"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Placement Slip / BECE Results Sheet</span>
+                <span class="flex items-center gap-2 font-medium"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Official Fee Deposit Receipt</span>
+              </div>
+            </div>
+          }
+
+          <!-- ========================================== -->
+          <!-- DECLARATION & OFFICIAL SIGN-OFF            -->
+          <!-- ========================================== -->
+          @if (includeDeclaration()) {
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t-2 border-gray-900 text-xs">
+              
+              <!-- Parent / Guardian Undertaking -->
+              <div class="flex flex-col justify-between gap-4 p-5 rounded-2xl border-2 border-gray-300 bg-gray-50/40">
+                <div>
+                  <span class="text-[11px] font-black uppercase text-gray-900 font-serif">Parent / Guardian Legal Undertaking</span>
+                  <p class="text-[10px] text-gray-600 leading-relaxed mt-1.5">
+                    "I hereby certify that all information submitted on this form is complete, true, and accurate. I agree that my ward will abide by the academic regulations, school code of conduct, and prompt fee settlement schedules."
+                  </p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 pt-4">
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[9px] font-black uppercase text-gray-600">Parent / Guardian Signature:</span>
+                    <div class="border-b-2 border-gray-800 h-10"></div>
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[9px] font-black uppercase text-gray-600">Date:</span>
+                    <div class="border-b-2 border-gray-800 h-10 flex items-end font-mono text-gray-700 pb-1">
+                      ____ / ____ / 2026
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-          </div>
-        }
+              <!-- Head of Admissions / Registrar Endorsement -->
+              <div class="flex flex-col justify-between gap-4 p-5 rounded-2xl border-2 border-gray-300 bg-gray-50/40">
+                <div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-black uppercase text-gray-900 font-serif">Institutional Endorsement</span>
+                    <span class="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded border border-emerald-400">
+                      APPROVED & REGISTERED
+                    </span>
+                  </div>
+                  <p class="text-[10px] text-gray-600 leading-relaxed mt-1.5">
+                    Provisioned into the student registry ledger. Authorized for classroom participation and academic attendance.
+                  </p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 pt-4">
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[9px] font-black uppercase text-gray-600">Registrar / Head Signature:</span>
+                    <div class="border-b-2 border-gray-800 h-10 flex items-center justify-center">
+                      @if (tenantProfile()?.headmaster_signature_url) {
+                        <img [src]="tenantProfile()?.headmaster_signature_url" alt="Signature" class="max-h-8 object-contain">
+                      }
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[9px] font-black uppercase text-gray-600">Official Stamp / Date:</span>
+                    <div class="border-b-2 border-gray-800 h-10 flex items-end font-mono text-gray-700 pb-1">
+                      {{ admissionDate() | date:'dd / MM / yyyy' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          }
+
+        </div>
 
         <!-- Document Footer -->
         <div class="pt-3 border-t border-gray-300 flex items-center justify-between text-[9px] text-gray-500 font-mono">
-          <span>SchoolLinx Student Information System • Admission Form Rev 3.0</span>
+          <span>SchoolLinx Student Information System • Admission Form Rev 3.5</span>
           <span>Confidential Official Academic Record</span>
         </div>
 
