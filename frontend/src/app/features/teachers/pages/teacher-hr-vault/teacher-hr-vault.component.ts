@@ -2,14 +2,13 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { TeacherSubnavComponent } from '../../teacher-subnav/teacher-subnav.component';
 import { TeacherPortalService } from '../../../../core/infrastructure/teacher/teacher-portal.service';
 import { ToastService } from '../../../../shared/ui/toast/toast.service';
 
 @Component({
   selector: 'app-teacher-hr-vault',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, TeacherSubnavComponent],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './teacher-hr-vault.component.html'
 })
 export class TeacherHrVaultComponent implements OnInit {

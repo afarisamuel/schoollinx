@@ -13,14 +13,13 @@ import { ClassService } from '../../../core/infrastructure/curriculum/class.serv
 import { AcademicPeriodService } from '../../../core/infrastructure/academic-period/academic-period.service';
 import { CampusOpsService } from '../../../core/infrastructure/campus-ops/campus-ops.service';
 import { RouterModule } from '@angular/router';
-import { TeacherSubnavComponent } from '../teacher-subnav/teacher-subnav.component';
 import { ToastService } from '../../../shared/ui/toast/toast.service';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 
 @Component({
     selector: 'app-teacher-portal',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, TeacherSubnavComponent],
+    imports: [CommonModule, FormsModule, RouterModule],
     templateUrl: './teacher-portal.component.html',
     styleUrl: './teacher-portal.component.css'
 })

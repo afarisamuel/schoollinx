@@ -34,7 +34,19 @@ export class HouseService {
         return this.http.post<House>(this.apiUrl, house);
     }
 
+    update(id: string, house: Partial<House>): Observable<House> {
+        return this.http.put<House>(`${this.apiUrl}/${id}`, house);
+    }
+
+    delete(id: string): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    }
+
     assignStudent(studentId: string, houseId: string): Observable<void> {
         return this.http.post<void>(`${this.apiUrl}/assign`, { student_id: studentId, house_id: houseId });
+    }
+
+    getStudentHouse(studentId: string): Observable<House | null> {
+        return this.http.get<House | null>(`${this.apiUrl}/student/${studentId}`);
     }
 }

@@ -2,7 +2,6 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { TeacherSubnavComponent } from '../../teacher-subnav/teacher-subnav.component';
 import { TeacherPortalService } from '../../../../core/infrastructure/teacher/teacher-portal.service';
 import { CampusOpsService } from '../../../../core/infrastructure/campus-ops/campus-ops.service';
 import { ToastService } from '../../../../shared/ui/toast/toast.service';
@@ -17,7 +16,7 @@ interface DeskItem {
 @Component({
   selector: 'app-teacher-seating',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, TeacherSubnavComponent],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './teacher-seating.component.html'
 })
 export class TeacherSeatingComponent implements OnInit {

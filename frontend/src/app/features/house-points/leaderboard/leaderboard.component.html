@@ -1,112 +1,1049 @@
-<div class="space-y-8 animate-fade-in">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-        <div>
-            <h1 class="text-3xl font-bold text-blue-400">House Championship</h1>
-            <p class="text-text-primary/70 mt-1">Live point standings and rankings</p>
+<div class="space-y-8 animate-fade-in pb-24 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+
+  <!-- ── 1. Top Subdomain Navigation Ribbon ──────────────────────────── -->
+  <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-2 pt-1 border-b border-border-primary/50 text-xs">
+    <a 
+      routerLink="/house-points" 
+      routerLinkActive="active-pill" 
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="nav-link whitespace-nowrap !py-2 !px-4 !text-xs"
+    >
+      <i class="fas fa-trophy text-amber-400"></i>
+      <span>House Championship</span>
+    </a>
+    <a 
+      routerLink="/welfare" 
+      routerLinkActive="active-pill" 
+      class="nav-link whitespace-nowrap !py-2 !px-4 !text-xs"
+    >
+      <i class="fas fa-heart-pulse text-rose-400"></i>
+      <span>Student Welfare</span>
+    </a>
+    <a 
+      routerLink="/students" 
+      routerLinkActive="active-pill" 
+      class="nav-link whitespace-nowrap !py-2 !px-4 !text-xs"
+    >
+      <i class="fas fa-user-graduate text-blue-400"></i>
+      <span>Student Directory</span>
+    </a>
+    <a 
+      routerLink="/guardians" 
+      routerLinkActive="active-pill" 
+      class="nav-link whitespace-nowrap !py-2 !px-4 !text-xs"
+    >
+      <i class="fas fa-users text-indigo-400"></i>
+      <span>Guardians Directory</span>
+    </a>
+    <a 
+      routerLink="/clubs" 
+      routerLinkActive="active-pill" 
+      class="nav-link whitespace-nowrap !py-2 !px-4 !text-xs"
+    >
+      <i class="fas fa-futbol text-emerald-400"></i>
+      <span>Clubs & Societies</span>
+    </a>
+  </div>
+
+  <!-- ── 2. Executive Command Hero Header ────────────────────────────── -->
+  <div class="relative overflow-hidden rounded-3xl bg-bg-secondary border border-border-primary shadow-sm p-6 sm:p-8 group">
+    <!-- Ambient radial glow lighting -->
+    <div class="absolute -right-16 -top-16 w-96 h-96 bg-gradient-to-br from-amber-500/15 via-yellow-500/10 to-transparent rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
+    <div class="absolute -left-16 -bottom-16 w-80 h-80 bg-gradient-to-tr from-blue-500/10 via-indigo-500/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+      
+      <!-- Title & Branding -->
+      <div class="space-y-2">
+        <div class="flex flex-wrap items-center gap-2.5">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <i class="fas fa-shield-halved text-amber-400"></i>
+            Campus Civic & House Championship
+          </span>
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+            2026/2027 Season Active
+          </span>
         </div>
-        <button (click)="loadLeaderboard()" class="px-4 py-2 rounded-xl bg-blue-500/10 text-blue-400 font-medium hover:bg-blue-500/20 transition-colors flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [class.animate-spin]="isLoading()"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-            Refresh
+
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-text-primary tracking-tight">
+          House Championship & <span class="bg-gradient-to-r from-amber-500 via-yellow-400 to-orange-500 dark:from-amber-400 dark:via-yellow-300 dark:to-orange-400 bg-clip-text text-transparent">Civic Leaderboard</span>
+        </h1>
+        <p class="text-xs sm:text-sm text-text-muted max-w-2xl leading-relaxed font-medium">
+          Track inter-house standings in real time, award merit commendations for academic & athletic feats, and manage house rosters.
+        </p>
+      </div>
+
+      <!-- Action Cluster -->
+      <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+        
+        <!-- Award Points Button -->
+        <button 
+          (click)="openAwardModal()"
+          class="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 active:scale-95 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
+        >
+          <i class="fas fa-plus-circle text-xs"></i>
+          <span>Award Points</span>
         </button>
+
+        <!-- Create House Button -->
+        <button 
+          (click)="openCreateModal()"
+          class="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-95 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
+        >
+          <i class="fas fa-shield-plus text-xs"></i>
+          <span>+ Create House</span>
+        </button>
+
+        <!-- Assign Scholar Button -->
+        <button 
+          (click)="openAssignModal()"
+          class="w-full sm:w-auto px-4 py-2.5 bg-bg-tertiary hover:bg-bg-secondary border border-border-primary text-text-primary rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-95"
+        >
+          <i class="fas fa-user-plus text-text-muted"></i>
+          <span>Assign Scholar</span>
+        </button>
+
+        <!-- Refresh Button -->
+        <button 
+          (click)="loadLeaderboard()"
+          class="p-2.5 bg-bg-tertiary hover:bg-bg-secondary border border-border-primary text-text-muted hover:text-text-primary rounded-xl text-xs font-bold transition-all flex items-center justify-center shadow-sm cursor-pointer active:scale-95"
+          title="Refresh Standings"
+        >
+          <i class="fas fa-rotate-right" [class.fa-spin]="isLoading()"></i>
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── 3. Feedback Toasts ──────────────────────────────────────────── -->
+  <div *ngIf="successMessage()" class="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl flex items-center gap-3 shadow-sm animate-fade-in">
+    <i class="fas fa-circle-check text-lg"></i>
+    <span class="font-bold text-xs sm:text-sm">{{ successMessage() }}</span>
+  </div>
+
+  <div *ngIf="errorMessage()" class="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center gap-3 shadow-sm animate-fade-in">
+    <i class="fas fa-circle-exclamation text-lg"></i>
+    <span class="font-bold text-xs sm:text-sm">{{ errorMessage() }}</span>
+  </div>
+
+  <!-- ── 4. Top Telemetry KPI Cards ──────────────────────────────────── -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    
+    <!-- KPI 1: Defending Champion -->
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:border-amber-500/40 transition-all">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">Current Leader</span>
+        <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center text-sm">
+          <i class="fas fa-crown"></i>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <span class="text-2xl font-black text-text-primary font-mono tracking-tight truncate">
+          {{ topHouse() ? topHouse()?.name : 'No Leader Yet' }}
+        </span>
+      </div>
+      <p class="text-[11px] text-text-muted mt-2 flex items-center gap-1.5">
+        <span class="font-bold text-amber-400 font-mono">{{ topHouse()?.total_points || 0 }} pts</span>
+        <span>• Defending Champion</span>
+      </p>
     </div>
 
-    @if (isLoading() && houses().length === 0) {
-        <div class="h-64 flex items-center justify-center">
-            <div class="w-10 h-10 border-4 border-slate-300 border-t-slate-500 rounded-full animate-spin"></div>
+    <!-- KPI 2: Total Championship Points -->
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:border-blue-500/40 transition-all">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">Total Points Awarded</span>
+        <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center text-sm">
+          <i class="fas fa-award"></i>
         </div>
-    } @else if (error()) {
-        <div class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-center">
-            {{ error() }}
-        </div>
-    } @else {
-        <!-- Podium View (Top 3) -->
-        <div class="pt-12 pb-8 px-4 flex items-end justify-center gap-2 md:gap-6">
-            @for (house of houses().slice(0, 3); track house.id) {
-                <div class="flex flex-col items-center flex-1 max-w-[140px]" [style.order]="house.rank === 1 ? 2 : (house.rank === 2 ? 1 : 3)">
-                    
-                    <!-- House Avatar / Info -->
-                    <div class="flex flex-col items-center mb-4 transition-transform duration-500 hover:-translate-y-2">
-                        <div class="w-12 h-12 md:w-20 md:h-20 rounded-full shadow-2xl flex items-center justify-center text-2xl md:text-4xl mb-2"
-                             [style.backgroundColor]="house.color + '20'"
-                             [style.color]="house.color"
-                             [style.border]="'2px solid ' + house.color + '50'">
-                             @if (house.crest) {
-                                <span>{{ house.crest }}</span>
-                             } @else {
-                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                             }
-                        </div>
-                        <span class="text-xs md:text-sm font-bold text-center text-text-primary">{{ house.name }}</span>
-                        <span class="text-sm md:text-lg font-black mt-1" [style.color]="house.color">{{ house.total_points | number }}</span>
-                    </div>
+      </div>
+      <div class="flex items-baseline gap-2">
+        <span class="text-2xl sm:text-3xl font-black text-text-primary font-mono tracking-tight">
+          {{ totalPoints() | number }}
+        </span>
+        <span class="text-xs font-bold text-blue-400">Total Pts</span>
+      </div>
+      <p class="text-[11px] text-text-muted mt-2">
+        Aggregated across all academic & athletic events
+      </p>
+    </div>
 
-                    <!-- Pillar -->
-                    <div class="w-full rounded-t-xl bg-blue-600 shadow-lg flex flex-col items-center justify-start pt-4 relative overflow-hidden"
-                         [ngClass]="getRankColor(house.rank)"
-                         [ngClass]="getPodiumHeight(house.rank)">
-                         <!-- Glass reflection -->
-                         <div class="absolute inset-0 bg-white/10 w-1/2 skew-x-12 transform -translate-x-full"></div>
-                         <span class="text-3xl md:text-5xl font-black text-white/50">{{ house.rank }}</span>
-                    </div>
-                </div>
-            }
+    <!-- KPI 3: Scholars in Houses -->
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:border-emerald-500/40 transition-all">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">House Membership</span>
+        <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-sm">
+          <i class="fas fa-users"></i>
         </div>
+      </div>
+      <div class="flex items-baseline gap-2">
+        <span class="text-2xl sm:text-3xl font-black text-text-primary font-mono tracking-tight">
+          {{ totalMembers() | number }}
+        </span>
+        <span class="text-xs font-bold text-emerald-400">Scholars</span>
+      </div>
+      <p class="text-[11px] text-text-muted mt-2">
+        Enrolled into institutional houses
+      </p>
+    </div>
 
-        <!-- Leaderboard List -->
-        <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-xl">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="border-b border-border-primary bg-bg-tertiary">
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-primary/50 w-24 text-center">Rank</th>
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-primary/50">House</th>
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-primary/50 text-right">Members</th>
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-primary/50 text-right">Total Points</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-border-primary">
-                        @for (house of houses(); track house.id) {
-                            <tr class="hover:bg-white/5 transition-colors group">
-                                <td class="px-6 py-4 text-center">
-                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm"
-                                          [ngClass]="{
-                                              'bg-yellow-500/20 text-yellow-500': house.rank === 1,
-                                              'bg-slate-400/20 text-slate-400': house.rank === 2,
-                                              'bg-amber-600/20 text-amber-600': house.rank === 3,
-                                              'text-text-primary/50': house.rank > 3
-                                          }">
-                                        #{{ house.rank }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-10 h-10 rounded-full flex items-center justify-center shadow-inner"
-                                             [style.backgroundColor]="house.color + '20'"
-                                             [style.color]="house.color">
-                                             @if (house.crest) {
-                                                <span>{{ house.crest }}</span>
-                                             } @else {
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                                             }
-                                        </div>
-                                        <div>
-                                            <p class="font-bold text-text-primary group-hover:text-blue-400 transition-colors">{{ house.name }}</p>
-                                            <p class="text-xs text-text-primary/50 truncate max-w-[200px] md:max-w-md">{{ house.description }}</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <span class="text-sm font-medium text-text-primary/70">{{ house.member_count | number }}</span>
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <span class="text-lg font-bold" [style.color]="house.color">{{ house.total_points | number }}</span>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+    <!-- KPI 4: Active Houses -->
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:border-purple-500/40 transition-all">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">Active Houses</span>
+        <div class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center text-sm">
+          <i class="fas fa-fort-awesome"></i>
+        </div>
+      </div>
+      <div class="flex items-baseline gap-2">
+        <span class="text-2xl sm:text-3xl font-black text-text-primary font-mono tracking-tight">
+          {{ houses().length }}
+        </span>
+        <span class="text-xs font-bold text-purple-400">Divisions</span>
+      </div>
+      <p class="text-[11px] text-text-muted mt-2">
+        Competing for 2026/2027 Cup
+      </p>
+    </div>
+
+  </div>
+
+  <!-- ── 5. Podium Celebration Arena (Top 3 Houses) ─────────────────── -->
+  @if (houses().length >= 2) {
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-10 shadow-sm relative overflow-hidden">
+      
+      <!-- Arena Title -->
+      <div class="text-center mb-8">
+        <span class="px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full text-[10px] font-black uppercase tracking-widest inline-block mb-2">
+          Championship Podium
+        </span>
+        <h2 class="text-xl sm:text-2xl font-black text-text-primary">Current Podium Standings</h2>
+        <p class="text-xs text-text-muted mt-1">Live top 3 point standings based on merit scores</p>
+      </div>
+
+      <!-- Podium Grid -->
+      <div class="flex items-end justify-center gap-3 sm:gap-6 md:gap-10 max-w-4xl mx-auto pt-6">
+        
+        <!-- #2 Runner Up (Silver) -->
+        @if (houses()[1]; as h2) {
+          <div class="flex flex-col items-center flex-1 max-w-[200px] order-1 group">
+            
+            <!-- Crest & Score -->
+            <div class="flex flex-col items-center mb-4 transition-all duration-300 group-hover:-translate-y-2">
+              <span class="text-xs font-black text-slate-400 mb-1.5 flex items-center gap-1">
+                <i class="fas fa-medal"></i> 2nd Place
+              </span>
+              <div 
+                class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl shadow-xl flex items-center justify-center text-3xl mb-2 border-2 transition-transform group-hover:scale-105"
+                [style.backgroundColor]="h2.color + '20'"
+                [style.color]="h2.color"
+                [style.borderColor]="h2.color"
+              >
+                <span>{{ h2.crest || '🦅' }}</span>
+              </div>
+              <h3 class="text-xs sm:text-sm font-black text-text-primary text-center truncate max-w-[150px]">{{ h2.name }}</h3>
+              <span class="text-sm sm:text-base font-black font-mono mt-0.5" [style.color]="h2.color">
+                {{ h2.total_points | number }} pts
+              </span>
             </div>
+
+            <!-- Silver Pillar -->
+            <div class="w-full rounded-t-2xl bg-gradient-to-t from-slate-700 via-slate-600 to-slate-500 shadow-xl flex flex-col items-center justify-start pt-4 relative overflow-hidden h-36 sm:h-48 border-t border-x border-slate-400/30">
+              <div class="absolute inset-0 bg-white/10 w-1/2 skew-x-12 -translate-x-full"></div>
+              <span class="text-3xl sm:text-5xl font-black text-white/40 font-mono">2</span>
+              <span class="text-[10px] font-black uppercase tracking-wider text-white/70 mt-1">Silver</span>
+            </div>
+
+          </div>
+        }
+
+        <!-- #1 Champion (Gold) -->
+        @if (houses()[0]; as h1) {
+          <div class="flex flex-col items-center flex-1 max-w-[220px] order-2 group">
+            
+            <!-- Crest & Score -->
+            <div class="flex flex-col items-center mb-4 transition-all duration-300 group-hover:-translate-y-2">
+              <span class="text-xs font-black text-yellow-400 mb-1.5 flex items-center gap-1 animate-pulse">
+                <i class="fas fa-crown text-yellow-400"></i> 1st Champion
+              </span>
+              <div 
+                class="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl shadow-2xl flex items-center justify-center text-4xl sm:text-5xl mb-2 border-4 transition-transform group-hover:scale-110 shadow-yellow-500/20"
+                [style.backgroundColor]="h1.color + '25'"
+                [style.color]="h1.color"
+                [style.borderColor]="h1.color"
+              >
+                <span>{{ h1.crest || '🦁' }}</span>
+              </div>
+              <h3 class="text-sm sm:text-base font-black text-text-primary text-center truncate max-w-[170px]">{{ h1.name }}</h3>
+              <span class="text-base sm:text-xl font-black font-mono mt-0.5" [style.color]="h1.color">
+                {{ h1.total_points | number }} pts
+              </span>
+            </div>
+
+            <!-- Gold Pillar -->
+            <div class="w-full rounded-t-2xl bg-gradient-to-t from-amber-700 via-yellow-600 to-amber-500 shadow-2xl flex flex-col items-center justify-start pt-4 relative overflow-hidden h-48 sm:h-64 border-t border-x border-yellow-300/40">
+              <div class="absolute inset-0 bg-white/20 w-1/2 skew-x-12 -translate-x-full animate-shimmer"></div>
+              <span class="text-4xl sm:text-6xl font-black text-white/50 font-mono">1</span>
+              <span class="text-xs font-black uppercase tracking-wider text-slate-950 px-2 py-0.5 bg-yellow-300 rounded-full mt-1">Champion</span>
+            </div>
+
+          </div>
+        }
+
+        <!-- #3 2nd Runner Up (Bronze) -->
+        @if (houses()[2]; as h3) {
+          <div class="flex flex-col items-center flex-1 max-w-[200px] order-3 group">
+            
+            <!-- Crest & Score -->
+            <div class="flex flex-col items-center mb-4 transition-all duration-300 group-hover:-translate-y-2">
+              <span class="text-xs font-black text-amber-600 mb-1.5 flex items-center gap-1">
+                <i class="fas fa-award"></i> 3rd Place
+              </span>
+              <div 
+                class="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl shadow-xl flex items-center justify-center text-3xl mb-2 border-2 transition-transform group-hover:scale-105"
+                [style.backgroundColor]="h3.color + '20'"
+                [style.color]="h3.color"
+                [style.borderColor]="h3.color"
+              >
+                <span>{{ h3.crest || '🐉' }}</span>
+              </div>
+              <h3 class="text-xs sm:text-sm font-black text-text-primary text-center truncate max-w-[150px]">{{ h3.name }}</h3>
+              <span class="text-sm sm:text-base font-black font-mono mt-0.5" [style.color]="h3.color">
+                {{ h3.total_points | number }} pts
+              </span>
+            </div>
+
+            <!-- Bronze Pillar -->
+            <div class="w-full rounded-t-2xl bg-gradient-to-t from-amber-900 via-amber-800 to-amber-700 shadow-xl flex flex-col items-center justify-start pt-4 relative overflow-hidden h-28 sm:h-36 border-t border-x border-amber-600/30">
+              <div class="absolute inset-0 bg-white/10 w-1/2 skew-x-12 -translate-x-full"></div>
+              <span class="text-3xl sm:text-5xl font-black text-white/40 font-mono">3</span>
+              <span class="text-[10px] font-black uppercase tracking-wider text-white/70 mt-1">Bronze</span>
+            </div>
+
+          </div>
+        }
+
+      </div>
+    </div>
+  }
+
+  <!-- ── 6. Navigation Tabs & Search ─────────────────────────────────── -->
+  <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-b border-border-primary pb-4">
+    
+    <!-- Tab Switcher -->
+    <div class="flex flex-wrap items-center gap-2">
+      <button 
+        (click)="activeTab.set('leaderboard')"
+        class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+        [ngClass]="activeTab() === 'leaderboard' ? 'bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/25' : 'bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary'"
+      >
+        <i class="fas fa-ranking-star text-xs"></i>
+        <span>Championship Table</span>
+      </button>
+
+      <button 
+        (click)="activeTab.set('houses')"
+        class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+        [ngClass]="activeTab() === 'houses' ? 'bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/25' : 'bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary'"
+      >
+        <i class="fas fa-fort-awesome text-xs"></i>
+        <span>House Catalog ({{ houses().length }})</span>
+      </button>
+
+      <button 
+        (click)="activeTab.set('logs')"
+        class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+        [ngClass]="activeTab() === 'logs' ? 'bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/25' : 'bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary'"
+      >
+        <i class="fas fa-timeline text-xs"></i>
+        <span>Points Activity Log</span>
+      </button>
+    </div>
+
+    <!-- Search Input -->
+    <div class="relative w-full sm:w-64">
+      <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
+      <input 
+        type="text" 
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+        placeholder="Filter houses..."
+        class="w-full pl-9 pr-3 py-2 bg-bg-secondary border border-border-primary rounded-xl text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-amber-500"
+      />
+    </div>
+
+  </div>
+
+  <!-- ── 7. TAB 1: CHAMPIONSHIP TABLE ────────────────────────────────── -->
+  @if (activeTab() === 'leaderboard') {
+    
+    @if (isLoading()) {
+      <div class="py-20 text-center bg-bg-secondary border border-border-primary rounded-3xl">
+        <div class="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+        <p class="text-xs font-bold text-text-muted">Loading live championship standings...</p>
+      </div>
+    } @else if (houses().length === 0) {
+      
+      <!-- Empty State with 1-Click Initialization -->
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-10 sm:p-14 text-center shadow-sm relative overflow-hidden group">
+        <div class="w-20 h-20 bg-amber-500/10 text-amber-400 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-5 border border-amber-500/20 shadow-inner">
+          <i class="fas fa-trophy"></i>
         </div>
+        <h3 class="text-2xl font-black text-text-primary mb-2">No Houses Established Yet</h3>
+        <p class="text-sm text-text-muted max-w-md mx-auto mb-8 leading-relaxed">
+          Create houses for student divisions (e.g. Volta, Densu, Ankobra, Pra) to track civic participation, athletic sports, and academic competitions.
+        </p>
+
+        <div class="flex flex-wrap items-center justify-center gap-3">
+          <button 
+            (click)="initializeSampleHouses()"
+            [disabled]="isSubmitting()"
+            class="px-6 py-3 bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-amber-500/25 flex items-center gap-2 cursor-pointer transition-all active:scale-95 disabled:opacity-50"
+          >
+            <i class="fas fa-wand-magic-sparkles text-xs"></i>
+            <span>Initialize 4 Standard Houses</span>
+          </button>
+
+          <button 
+            (click)="openCreateModal()"
+            class="px-6 py-3 bg-bg-tertiary hover:bg-bg-secondary border border-border-primary text-text-primary font-bold text-xs sm:text-sm rounded-xl transition-all cursor-pointer"
+          >
+            + Create Custom House
+          </button>
+        </div>
+      </div>
+
+    } @else {
+
+      <!-- Standings Table -->
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-border-primary bg-bg-tertiary/60">
+                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-text-muted w-24 text-center">Rank</th>
+                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-text-muted">House & Motto</th>
+                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-text-muted min-w-[200px]">Points Progress Bar</th>
+                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-text-muted text-right">Roster</th>
+                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-text-muted text-right">Total Score</th>
+                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-text-muted text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-primary">
+              @for (house of filteredHouses(); track house.id) {
+                <tr class="hover:bg-bg-tertiary/40 transition-colors group">
+                  
+                  <!-- Rank Badge -->
+                  <td class="px-6 py-4 text-center">
+                    <span 
+                      class="inline-flex items-center justify-center w-8 h-8 rounded-xl font-mono font-black text-xs border"
+                      [ngClass]="getRankBadge(house.rank).bg"
+                    >
+                      #{{ house.rank }}
+                    </span>
+                  </td>
+
+                  <!-- House Identity -->
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-3.5">
+                      <div 
+                        class="w-11 h-11 rounded-2xl flex items-center justify-center text-2xl border shadow-inner shrink-0"
+                        [style.backgroundColor]="house.color + '15'"
+                        [style.color]="house.color"
+                        [style.borderColor]="house.color + '40'"
+                      >
+                        <span>{{ house.crest || '🛡️' }}</span>
+                      </div>
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                          <h4 class="font-black text-sm text-text-primary group-hover:text-amber-400 transition-colors truncate">
+                            {{ house.name }}
+                          </h4>
+                          @if (house.rank === 1) {
+                            <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                              Leader
+                            </span>
+                          }
+                        </div>
+                        <p class="text-xs text-text-muted truncate max-w-sm mt-0.5">
+                          {{ house.description || 'Institutional House Division' }}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Relative Point Meter -->
+                  <td class="px-6 py-4">
+                    <div class="space-y-1.5">
+                      <div class="flex items-center justify-between text-[11px] font-mono">
+                        <span class="text-text-muted">{{ getRelativePercent(house.total_points) }}% of leader</span>
+                        <span class="font-bold text-text-primary">{{ house.total_points | number }} pts</span>
+                      </div>
+                      <div class="w-full h-2 bg-bg-tertiary rounded-full overflow-hidden border border-border-primary">
+                        <div 
+                          class="h-full rounded-full transition-all duration-700"
+                          [style.width.%]="getRelativePercent(house.total_points)"
+                          [style.backgroundColor]="house.color"
+                        ></div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Member Count -->
+                  <td class="px-6 py-4 text-right">
+                    <span class="px-2.5 py-1 rounded-lg bg-bg-tertiary border border-border-primary text-xs font-mono font-bold text-text-primary inline-flex items-center gap-1.5">
+                      <i class="fas fa-users text-[10px] text-text-muted"></i>
+                      <span>{{ house.member_count | number }}</span>
+                    </span>
+                  </td>
+
+                  <!-- Total Points -->
+                  <td class="px-6 py-4 text-right">
+                    <span class="text-base sm:text-lg font-black font-mono" [style.color]="house.color">
+                      {{ house.total_points | number }}
+                    </span>
+                  </td>
+
+                  <!-- Actions -->
+                  <td class="px-6 py-4 text-right">
+                    <div class="flex items-center justify-end gap-1.5">
+                      <button 
+                        (click)="openAwardModal(house)"
+                        class="p-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 text-xs font-bold transition-all cursor-pointer active:scale-95"
+                        title="Award Points to this house"
+                      >
+                        <i class="fas fa-plus text-[10px]"></i>
+                      </button>
+
+                      <button 
+                        (click)="openEditModal(house)"
+                        class="p-2 rounded-xl bg-bg-tertiary hover:bg-blue-500/15 text-text-muted hover:text-blue-400 border border-border-primary text-xs transition-all cursor-pointer active:scale-95"
+                        title="Edit house configuration"
+                      >
+                        <i class="fas fa-pen-to-square text-[10px]"></i>
+                      </button>
+
+                      <button 
+                        (click)="deleteHouse(house.id, house.name)"
+                        class="p-2 rounded-xl bg-bg-tertiary hover:bg-rose-500/15 text-text-muted hover:text-rose-400 border border-border-primary text-xs transition-all cursor-pointer active:scale-95"
+                        title="Delete house"
+                      >
+                        <i class="fas fa-trash-can text-[10px]"></i>
+                      </button>
+                    </div>
+                  </td>
+
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     }
+
+  }
+
+  <!-- ── 8. TAB 2: HOUSES CATALOG (BENTO CARDS) ──────────────────────── -->
+  @if (activeTab() === 'houses') {
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 animate-fade-in">
+      @for (house of filteredHouses(); track house.id) {
+        <div class="bg-bg-secondary border border-border-primary hover:border-amber-500/40 rounded-3xl p-6 shadow-sm flex flex-col justify-between group transition-all relative overflow-hidden">
+          
+          <div class="space-y-4">
+            <!-- Header with Crest and Actions -->
+            <div class="flex items-start justify-between">
+              <div 
+                class="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl border shadow-inner group-hover:scale-105 transition-transform"
+                [style.backgroundColor]="house.color + '20'"
+                [style.color]="house.color"
+                [style.borderColor]="house.color + '50'"
+              >
+                <span>{{ house.crest || '🛡️' }}</span>
+              </div>
+
+              <div class="flex items-center gap-1">
+                <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase font-mono" [ngClass]="getRankBadge(house.rank).bg">
+                  #{{ house.rank }}
+                </span>
+                <button (click)="openEditModal(house)" class="p-1.5 text-text-muted hover:text-blue-400 rounded-lg hover:bg-bg-tertiary transition-colors">
+                  <i class="fas fa-pen text-xs"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- House Name & Description -->
+            <div>
+              <h3 class="text-lg font-black text-text-primary group-hover:text-amber-400 transition-colors">
+                {{ house.name }}
+              </h3>
+              <p class="text-xs text-text-muted mt-1 leading-relaxed line-clamp-2">
+                {{ house.description || 'Championship division for institutional competition.' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Footer Stats & Award CTA -->
+          <div class="pt-4 mt-6 border-t border-border-primary/60 space-y-3">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-text-muted font-medium">Scholars: <strong class="text-text-primary">{{ house.member_count | number }}</strong></span>
+              <span class="font-black font-mono" [style.color]="house.color">{{ house.total_points | number }} pts</span>
+            </div>
+
+            <button 
+              (click)="openAwardModal(house)"
+              class="w-full py-2 bg-bg-tertiary hover:bg-amber-500 hover:text-slate-950 border border-border-primary hover:border-transparent rounded-xl text-xs font-bold text-text-primary transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+            >
+              <i class="fas fa-plus text-[10px]"></i>
+              <span>Award Points</span>
+            </button>
+          </div>
+
+        </div>
+      }
+    </div>
+
+  }
+
+  <!-- ── 9. TAB 3: POINTS ACTIVITY LOG ───────────────────────────────── -->
+  @if (activeTab() === 'logs') {
+    
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm space-y-4 animate-fade-in">
+      <div class="flex items-center justify-between pb-4 border-b border-border-primary">
+        <div>
+          <h3 class="text-base font-black text-text-primary">Merit & Championship Points Ledger</h3>
+          <p class="text-xs text-text-muted mt-0.5">Chronological record of house points awarded for civic, academic, and athletic excellence</p>
+        </div>
+        <span class="px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold rounded-lg">
+          {{ pointLogs().length }} Logged Events
+        </span>
+      </div>
+
+      <div class="divide-y divide-border-primary">
+        @for (log of pointLogs(); track log.id) {
+          <div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group">
+            
+            <div class="flex items-center gap-3.5">
+              <div 
+                class="w-10 h-10 rounded-xl flex items-center justify-center text-xl border shadow-inner shrink-0"
+                [style.backgroundColor]="log.house_color + '15'"
+                [style.color]="log.house_color"
+                [style.borderColor]="log.house_color + '40'"
+              >
+                <span>{{ log.house_crest }}</span>
+              </div>
+
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-black text-xs text-text-primary">{{ log.house_name }}</span>
+                  <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    {{ log.category }}
+                  </span>
+                </div>
+                <p class="text-xs text-text-secondary font-medium mt-0.5">{{ log.reason }}</p>
+                <span class="text-[10px] text-text-muted mt-0.5 block">
+                  Awarded by <strong class="text-text-primary">{{ log.awarded_by }}</strong> • {{ log.timestamp | date:'medium' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="flex items-center sm:justify-end">
+              <span class="px-3 py-1.5 rounded-xl font-mono font-black text-sm bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                +{{ log.points }} pts
+              </span>
+            </div>
+
+          </div>
+        }
+      </div>
+    </div>
+
+  }
+
+  <!-- ── 10. FIXED VIEWPORT MODALS (z-[9999]) ────────────────────────── -->
+
+  <!-- Modal 1: Create House -->
+  @if (isCreateModalOpen()) {
+    <div class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6 my-auto">
+        
+        <div class="flex items-center justify-between pb-4 border-b border-border-primary">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center text-base">
+              <i class="fas fa-shield-plus"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-black text-text-primary">Create New House</h3>
+              <p class="text-xs text-text-muted mt-0.5">Configure institutional division parameters</p>
+            </div>
+          </div>
+          <button (click)="closeCreateModal()" class="text-text-muted hover:text-text-primary text-sm p-1">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Name -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">House Name *</label>
+            <input 
+              type="text" 
+              [(ngModel)]="houseForm.name" 
+              placeholder="e.g. Volta Lions" 
+              class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <!-- Color Presets -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Primary Theme Color</label>
+            <div class="flex flex-wrap items-center gap-2 mb-2">
+              @for (c of colorPresets; track c.hex) {
+                <button 
+                  type="button"
+                  (click)="houseForm.color = c.hex"
+                  class="w-7 h-7 rounded-xl border-2 transition-all cursor-pointer"
+                  [style.backgroundColor]="c.hex"
+                  [class.border-white]="houseForm.color === c.hex"
+                  [class.scale-110]="houseForm.color === c.hex"
+                  [class.border-transparent]="houseForm.color !== c.hex"
+                  [title]="c.name"
+                ></button>
+              }
+            </div>
+          </div>
+
+          <!-- Crest Presets -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Crest Symbol / Emoji</label>
+            <div class="flex flex-wrap items-center gap-2">
+              @for (cr of crestPresets; track cr) {
+                <button 
+                  type="button"
+                  (click)="houseForm.crest = cr"
+                  class="w-8 h-8 rounded-xl bg-bg-tertiary border text-base flex items-center justify-center transition-all cursor-pointer"
+                  [class.border-blue-500]="houseForm.crest === cr"
+                  [class.bg-blue-500/20]="houseForm.crest === cr"
+                  [class.border-border-primary]="houseForm.crest !== cr"
+                >
+                  {{ cr }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Motto / Core Values</label>
+            <textarea 
+              [(ngModel)]="houseForm.description" 
+              rows="2" 
+              placeholder="e.g. Strength, Leadership, and Academic Rigor"
+              class="w-full px-4 py-2 bg-bg-tertiary border border-border-primary rounded-xl text-xs text-text-primary focus:outline-none focus:border-blue-500 resize-none"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-border-primary">
+          <button (click)="closeCreateModal()" class="px-4 py-2.5 text-xs font-bold text-text-muted hover:text-text-primary">
+            Cancel
+          </button>
+          <button 
+            (click)="submitCreateHouse()" 
+            [disabled]="isSubmitting() || !houseForm.name"
+            class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition-all cursor-pointer disabled:opacity-50"
+          >
+            Create House
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- Modal 2: Edit House -->
+  @if (isEditModalOpen()) {
+    <div class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6 my-auto">
+        
+        <div class="flex items-center justify-between pb-4 border-b border-border-primary">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center text-base">
+              <i class="fas fa-pen-to-square"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-black text-text-primary">Edit House Configuration</h3>
+              <p class="text-xs text-text-muted mt-0.5">{{ selectedHouse()?.name }}</p>
+            </div>
+          </div>
+          <button (click)="closeEditModal()" class="text-text-muted hover:text-text-primary text-sm p-1">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">House Name *</label>
+            <input 
+              type="text" 
+              [(ngModel)]="houseForm.name" 
+              class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Primary Theme Color</label>
+            <div class="flex flex-wrap items-center gap-2">
+              @for (c of colorPresets; track c.hex) {
+                <button 
+                  type="button"
+                  (click)="houseForm.color = c.hex"
+                  class="w-7 h-7 rounded-xl border-2 transition-all cursor-pointer"
+                  [style.backgroundColor]="c.hex"
+                  [class.border-white]="houseForm.color === c.hex"
+                  [class.scale-110]="houseForm.color === c.hex"
+                  [class.border-transparent]="houseForm.color !== c.hex"
+                ></button>
+              }
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Crest Symbol / Emoji</label>
+            <div class="flex flex-wrap items-center gap-2">
+              @for (cr of crestPresets; track cr) {
+                <button 
+                  type="button"
+                  (click)="houseForm.crest = cr"
+                  class="w-8 h-8 rounded-xl bg-bg-tertiary border text-base flex items-center justify-center transition-all cursor-pointer"
+                  [class.border-blue-500]="houseForm.crest === cr"
+                  [class.bg-blue-500/20]="houseForm.crest === cr"
+                  [class.border-border-primary]="houseForm.crest !== cr"
+                >
+                  {{ cr }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Motto / Core Values</label>
+            <textarea 
+              [(ngModel)]="houseForm.description" 
+              rows="2" 
+              class="w-full px-4 py-2 bg-bg-tertiary border border-border-primary rounded-xl text-xs text-text-primary focus:outline-none focus:border-blue-500 resize-none"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-border-primary">
+          <button (click)="closeEditModal()" class="px-4 py-2.5 text-xs font-bold text-text-muted hover:text-text-primary">
+            Cancel
+          </button>
+          <button 
+            (click)="submitEditHouse()" 
+            [disabled]="isSubmitting() || !houseForm.name"
+            class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition-all cursor-pointer disabled:opacity-50"
+          >
+            Save Changes
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- Modal 3: Award Points -->
+  @if (isAwardModalOpen()) {
+    <div class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6 my-auto">
+        
+        <div class="flex items-center justify-between pb-4 border-b border-border-primary">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center text-base">
+              <i class="fas fa-trophy"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-black text-text-primary">Award House Championship Points</h3>
+              <p class="text-xs text-text-muted mt-0.5">Commend excellence across academic & sports events</p>
+            </div>
+          </div>
+          <button (click)="closeAwardModal()" class="text-text-muted hover:text-text-primary text-sm p-1">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Target House -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Target House *</label>
+            <select 
+              [(ngModel)]="awardForm.house_id"
+              class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:border-amber-500"
+            >
+              @for (h of houses(); track h.id) {
+                <option [value]="h.id">{{ h.crest }} {{ h.name }} (Current: {{ h.total_points }} pts)</option>
+              }
+            </select>
+          </div>
+
+          <!-- Points Amount Presets & Custom -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Points to Award *</label>
+            <div class="grid grid-cols-4 gap-2 mb-2">
+              <button 
+                type="button"
+                (click)="awardForm.points = 10" 
+                class="py-2 rounded-xl text-xs font-bold border"
+                [class.bg-amber-500]="awardForm.points === 10"
+                [class.text-slate-950]="awardForm.points === 10"
+                [class.bg-bg-tertiary]="awardForm.points !== 10"
+                [class.border-border-primary]="awardForm.points !== 10"
+              >+10 pts</button>
+              <button 
+                type="button"
+                (click)="awardForm.points = 25" 
+                class="py-2 rounded-xl text-xs font-bold border"
+                [class.bg-amber-500]="awardForm.points === 25"
+                [class.text-slate-950]="awardForm.points === 25"
+                [class.bg-bg-tertiary]="awardForm.points !== 25"
+                [class.border-border-primary]="awardForm.points !== 25"
+              >+25 pts</button>
+              <button 
+                type="button"
+                (click)="awardForm.points = 50" 
+                class="py-2 rounded-xl text-xs font-bold border"
+                [class.bg-amber-500]="awardForm.points === 50"
+                [class.text-slate-950]="awardForm.points === 50"
+                [class.bg-bg-tertiary]="awardForm.points !== 50"
+                [class.border-border-primary]="awardForm.points !== 50"
+              >+50 pts</button>
+              <button 
+                type="button"
+                (click)="awardForm.points = 100" 
+                class="py-2 rounded-xl text-xs font-bold border"
+                [class.bg-amber-500]="awardForm.points === 100"
+                [class.text-slate-950]="awardForm.points === 100"
+                [class.bg-bg-tertiary]="awardForm.points !== 100"
+                [class.border-border-primary]="awardForm.points !== 100"
+              >+100 pts</button>
+            </div>
+            <input 
+              type="number" 
+              [(ngModel)]="awardForm.points" 
+              class="w-full px-4 py-2 bg-bg-tertiary border border-border-primary rounded-xl text-xs font-mono font-bold text-text-primary focus:outline-none focus:border-amber-500"
+            />
+          </div>
+
+          <!-- Category -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Achievement Category *</label>
+            <select 
+              [(ngModel)]="awardForm.category"
+              class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-xs text-text-primary focus:outline-none focus:border-amber-500"
+            >
+              @for (cat of categoryPresets; track cat) {
+                <option [value]="cat">{{ cat }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Reason -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Commendation Reason / Context</label>
+            <input 
+              type="text" 
+              [(ngModel)]="awardForm.reason" 
+              placeholder="e.g. 1st Place in Inter-House Science Fair" 
+              class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-xs text-text-primary focus:outline-none focus:border-amber-500"
+            />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-border-primary">
+          <button (click)="closeAwardModal()" class="px-4 py-2.5 text-xs font-bold text-text-muted hover:text-text-primary">
+            Cancel
+          </button>
+          <button 
+            (click)="submitAwardPoints()" 
+            [disabled]="isSubmitting() || !awardForm.house_id || !awardForm.points"
+            class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-amber-500/25 transition-all cursor-pointer disabled:opacity-50"
+          >
+            Award Points Now
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- Modal 4: Assign Scholar to House -->
+  @if (isAssignModalOpen()) {
+    <div class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6 my-auto">
+        
+        <div class="flex items-center justify-between pb-4 border-b border-border-primary">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center text-base">
+              <i class="fas fa-user-plus"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-black text-text-primary">Allocate Scholar to House</h3>
+              <p class="text-xs text-text-muted mt-0.5">Assign student membership to house division</p>
+            </div>
+          </div>
+          <button (click)="closeAssignModal()" class="text-text-muted hover:text-text-primary text-sm p-1">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Student Selector -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Select Scholar *</label>
+            <select 
+              [(ngModel)]="assignForm.student_id"
+              class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-xs text-text-primary focus:outline-none focus:border-blue-500"
+            >
+              <option value="" disabled>-- Choose Scholar --</option>
+              @for (st of students(); track st.id) {
+                <option [value]="st.id">{{ st.first_name }} {{ st.last_name }} ({{ st.enrollment_num || st.id }})</option>
+              }
+            </select>
+          </div>
+
+          <!-- Target House -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Destination House *</label>
+            <select 
+              [(ngModel)]="assignForm.house_id"
+              class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500"
+            >
+              @for (h of houses(); track h.id) {
+                <option [value]="h.id">{{ h.crest }} {{ h.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-border-primary">
+          <button (click)="closeAssignModal()" class="px-4 py-2.5 text-xs font-bold text-text-muted hover:text-text-primary">
+            Cancel
+          </button>
+          <button 
+            (click)="submitAssignStudent()" 
+            [disabled]="isSubmitting() || !assignForm.student_id || !assignForm.house_id"
+            class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition-all cursor-pointer disabled:opacity-50"
+          >
+            Confirm Allocation
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
 </div>

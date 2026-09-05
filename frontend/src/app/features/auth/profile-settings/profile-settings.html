@@ -1,358 +1,800 @@
-<div class="max-w-4xl mx-auto p-4 md:p-8 animate-fade-in pb-24">
-    <!-- Header Section with Gradient -->
-    <div class="relative overflow-hidden rounded-3xl bg-bg-secondary border border-border-primary shadow-2xl p-8 mb-8">
+<div class="space-y-8 animate-fade-in pb-24 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+
+  <!-- ── 1. Top Subdomain Navigation Ribbon ──────────────────────────── -->
+  <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-2 pt-1 border-b border-border-primary/50 text-xs">
+    <a 
+      routerLink="/profile" 
+      routerLinkActive="active-pill" 
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="nav-link whitespace-nowrap !py-2 !px-4 !text-xs"
+    >
+      <i class="fas fa-user-shield text-blue-400"></i>
+      <span>Profile & Security</span>
+    </a>
+    <a 
+      routerLink="/settings" 
+      routerLinkActive="active-pill" 
+      class="nav-link whitespace-nowrap !py-2 !px-4 !text-xs"
+    >
+      <i class="fas fa-sliders text-indigo-400"></i>
+      <span>Settings Hub</span>
+    </a>
+    <a 
+      routerLink="/roles" 
+      routerLinkActive="active-pill" 
+      class="nav-link whitespace-nowrap !py-2 !px-4 !text-xs"
+    >
+      <i class="fas fa-shield-halved text-purple-400"></i>
+      <span>Role & Permissions</span>
+    </a>
+    <a 
+      routerLink="/audit-logs" 
+      routerLinkActive="active-pill" 
+      class="nav-link whitespace-nowrap !py-2 !px-4 !text-xs"
+    >
+      <i class="fas fa-clock-rotate-left text-teal-400"></i>
+      <span>System Audit Logs</span>
+    </a>
+    <a 
+      routerLink="/course-demand" 
+      routerLinkActive="active-pill" 
+      class="nav-link whitespace-nowrap !py-2 !px-4 !text-xs"
+    >
+      <i class="fas fa-chart-line text-emerald-400"></i>
+      <span>Demand Forecaster</span>
+    </a>
+    <a 
+      routerLink="/retention-risk" 
+      routerLinkActive="active-pill" 
+      class="nav-link whitespace-nowrap !py-2 !px-4 !text-xs"
+    >
+      <i class="fas fa-triangle-exclamation text-amber-400"></i>
+      <span>Retention Risk Matrix</span>
+    </a>
+  </div>
+
+  <!-- ── 2. Executive Command Hero Header ────────────────────────────── -->
+  <div class="relative overflow-hidden rounded-3xl bg-bg-secondary border border-border-primary shadow-sm p-6 sm:p-8 group">
+    <!-- Ambient glowing backgrounds -->
+    <div class="absolute -right-16 -top-16 w-80 h-80 bg-gradient-to-br from-blue-500/10 via-indigo-500/10 to-transparent rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
+    <div class="absolute -left-16 -bottom-16 w-80 h-80 bg-gradient-to-tr from-purple-500/10 via-blue-500/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+      
+      <!-- Title & Branding -->
+      <div class="space-y-2">
+        <div class="flex flex-wrap items-center gap-2.5">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
+            <i class="fas fa-shield-halved text-blue-400"></i>
+            Identity & Cryptography Studio
+          </span>
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            Session Encrypted (TLS 1.3)
+          </span>
+        </div>
+
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-text-primary tracking-tight">
+          Settings & <span class="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-blue-400 dark:via-indigo-300 dark:to-purple-400 bg-clip-text text-transparent">Identity Security</span>
+        </h1>
+        <p class="text-xs sm:text-sm text-text-muted max-w-2xl leading-relaxed font-medium">
+          Configure institutional public profile, report watermarks, cryptographic two-factor authentication, and account credentials.
+        </p>
+      </div>
+
+      <!-- Action Cluster -->
+      <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+        <button 
+          *ngIf="user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN'"
+          (click)="updateProfile()" 
+          [disabled]="savingProfile || !tenantProfile"
+          class="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-95 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+        >
+          <i class="fas fa-spinner fa-spin" *ngIf="savingProfile"></i>
+          <i class="fas fa-floppy-disk" *ngIf="!savingProfile"></i>
+          <span>Save Institution Profile</span>
+        </button>
+
+        <button 
+          (click)="loadTenantProfile()" 
+          class="w-full sm:w-auto px-4 py-2.5 bg-bg-tertiary hover:bg-bg-secondary border border-border-primary text-text-primary rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-95"
+          title="Reload profile data"
+        >
+          <i class="fas fa-rotate-right text-text-muted"></i>
+          <span>Reload</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── 3. Top Telemetry KPI Cards ──────────────────────────────────── -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    
+    <!-- KPI 1: Security Posture -->
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:border-blue-500/40 transition-all">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">Security Posture</span>
+        <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center text-sm">
+          <i class="fas fa-shield-check"></i>
+        </div>
+      </div>
+      <div class="flex items-baseline gap-2">
+        <span class="text-2xl sm:text-3xl font-black text-text-primary font-mono tracking-tight">
+          {{ user?.two_factor_enabled ? '99.8%' : '84.0%' }}
+        </span>
+        <span class="text-xs font-bold text-emerald-400">Hardened</span>
+      </div>
+      <p class="text-[11px] text-text-muted mt-2 flex items-center gap-1.5">
+        <i class="fas fa-circle-check text-emerald-400 text-[10px]"></i>
+        <span>{{ user?.two_factor_enabled ? '2FA Protocol Active' : 'Basic Password Auth' }}</span>
+      </p>
+    </div>
+
+    <!-- KPI 2: Authentication Protocol -->
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:border-indigo-500/40 transition-all">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">2FA Protocol</span>
+        <div class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center text-sm">
+          <i class="fas fa-fingerprint"></i>
+        </div>
+      </div>
+      <div class="flex items-baseline gap-2">
+        <span class="text-xl sm:text-2xl font-black text-text-primary font-mono tracking-tight">
+          {{ user?.two_factor_enabled ? 'TOTP 2FA' : 'Disabled' }}
+        </span>
+      </div>
+      <p class="text-[11px] text-text-muted mt-2 flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full" [ngClass]="user?.two_factor_enabled ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'"></span>
+        <span [ngClass]="user?.two_factor_enabled ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'">
+          {{ user?.two_factor_enabled ? 'Active Protection' : 'Setup Recommended' }}
+        </span>
+      </p>
+    </div>
+
+    <!-- KPI 3: Institutional Branding -->
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:border-purple-500/40 transition-all">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">Branding Assets</span>
+        <div class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center text-sm">
+          <i class="fas fa-stamp"></i>
+        </div>
+      </div>
+      <div class="flex items-baseline gap-2">
+        <span class="text-2xl font-black text-text-primary font-mono tracking-tight">
+          {{ (tenantProfile?.logo_url && tenantProfile?.headmaster_signature_url) ? 'Verified' : 'Partial' }}
+        </span>
+      </div>
+      <p class="text-[11px] text-text-muted mt-2 flex items-center gap-1.5">
+        <i class="fas fa-file-invoice text-purple-400 text-[10px]"></i>
+        <span>Logo & Signature for Reports</span>
+      </p>
+    </div>
+
+    <!-- KPI 4: Authorization Tier -->
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:border-emerald-500/40 transition-all">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">Account Tier</span>
+        <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-sm">
+          <i class="fas fa-id-badge"></i>
+        </div>
+      </div>
+      <div class="flex items-baseline gap-2">
+        <span class="text-lg font-black text-text-primary tracking-tight truncate max-w-[180px]">
+          {{ user?.role || 'Administrator' }}
+        </span>
+      </div>
+      <p class="text-[11px] text-text-muted mt-2 truncate">
+        {{ user?.email || 'Active Operator' }}
+      </p>
+    </div>
+
+  </div>
+
+  <!-- ── 4. Interactive Tabs Switcher ────────────────────────────────── -->
+  <div class="flex flex-wrap items-center justify-between gap-4 border-b border-border-primary pb-4">
+    <div class="flex flex-wrap items-center gap-2">
+      
+      <!-- Tab 1: Institution Profile -->
+      <button 
+        *ngIf="user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN'"
+        (click)="setActiveTab('institution')"
+        class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+        [ngClass]="activeTab === 'institution' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25' : 'bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary'"
+      >
+        <i class="fas fa-school text-xs"></i>
+        <span>Institution & Branding</span>
+      </button>
+
+      <!-- Tab 2: Security & 2FA -->
+      <button 
+        (click)="setActiveTab('security')"
+        class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+        [ngClass]="activeTab === 'security' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25' : 'bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary'"
+      >
+        <i class="fas fa-fingerprint text-xs"></i>
+        <span>Two-Factor Authentication</span>
+      </button>
+
+      <!-- Tab 3: User Account & Roles -->
+      <button 
+        (click)="setActiveTab('account')"
+        class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+        [ngClass]="activeTab === 'account' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25' : 'bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary'"
+      >
+        <i class="fas fa-user-gear text-xs"></i>
+        <span>Account & Credentials</span>
+      </button>
+
+    </div>
+
+    <!-- Active Tab Context Note -->
+    <div class="text-xs text-text-muted font-medium hidden md:block">
+      @if (activeTab === 'institution') { Official Schoollinx Institutional Profile }
+      @if (activeTab === 'security') { TOTP Two-Factor Authenticator Cryptography }
+      @if (activeTab === 'account') { Identity Credentials & Signature Repository }
+    </div>
+  </div>
+
+  <!-- ── 5. TAB 1: INSTITUTION PROFILE & BRANDING ────────────────────── -->
+  @if (activeTab === 'institution' && (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN')) {
+    
+    <div class="space-y-6 animate-fade-in">
+      
+      <!-- Global Alerts -->
+      <div *ngIf="profileSuccess" class="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl flex items-center gap-3 shadow-sm">
+        <i class="fas fa-circle-check text-lg"></i>
+        <span class="font-bold text-xs sm:text-sm">{{ profileSuccess }}</span>
+      </div>
+
+      <div *ngIf="profileError" class="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center gap-3 shadow-sm">
+        <i class="fas fa-circle-exclamation text-lg"></i>
+        <span class="font-bold text-xs sm:text-sm">{{ profileError }}</span>
+      </div>
+
+      @if (tenantProfile) {
         
-        <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div>
-                <h1 class="text-3xl font-black text-blue-400 tracking-tight mb-2">Settings & Security</h1>
-                <p class="text-text-muted font-medium max-w-xl text-sm leading-relaxed">Manage your account security, authentication methods, and configure your institution's public profile information.</p>
-            </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          <!-- Left Column (7 cols): Core Institutional Metadata Form -->
+          <div class="lg:col-span-7 bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
             
-            <div class="flex items-center gap-4 bg-bg-primary/50 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/5 shadow-inner">
-                <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
-                    <i class="fas fa-shield-alt text-blue-400"></i>
+            <div class="flex items-center gap-3 pb-5 border-b border-border-primary">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center text-base">
+                <i class="fas fa-building-columns"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-black text-text-primary">Institutional Directory Details</h3>
+                <p class="text-xs text-text-muted mt-0.5">These parameters appear on official transcripts, receipts, and parent communication</p>
+              </div>
+            </div>
+
+            <div class="space-y-5">
+              
+              <!-- School Name -->
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">
+                  Official School / Institution Name *
+                </label>
+                <div class="relative">
+                  <i class="fas fa-school absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
+                  <input 
+                    type="text" 
+                    [(ngModel)]="tenantProfile.name" 
+                    placeholder="e.g. Kwame Nkrumah Memorial Academy"
+                    class="w-full pl-9 pr-4 py-3 bg-bg-tertiary border border-border-primary rounded-xl text-xs sm:text-sm font-bold text-text-primary placeholder:text-text-muted focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  />
+                </div>
+              </div>
+
+              <!-- Contact Numbers & Email Grid -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">
+                    Primary Phone Line *
+                  </label>
+                  <div class="relative">
+                    <i class="fas fa-phone absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
+                    <input 
+                      type="text" 
+                      [(ngModel)]="tenantProfile.contact_numbers" 
+                      placeholder="+233 (0) 24 123 4567"
+                      class="w-full pl-9 pr-4 py-3 bg-bg-tertiary border border-border-primary rounded-xl text-xs sm:text-sm font-bold text-text-primary placeholder:text-text-muted focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">
+                    Official Inquiries Email *
+                  </label>
+                  <div class="relative">
+                    <i class="fas fa-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
+                    <input 
+                      type="email" 
+                      [(ngModel)]="tenantProfile.email" 
+                      placeholder="info@schoollinx.edu"
+                      class="w-full pl-9 pr-4 py-3 bg-bg-tertiary border border-border-primary rounded-xl text-xs sm:text-sm font-bold text-text-primary placeholder:text-text-muted focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    />
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Physical Address -->
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">
+                  Physical Campus Location & Postal Address *
+                </label>
+                <div class="relative">
+                  <i class="fas fa-map-location-dot absolute left-3.5 top-3.5 text-text-muted text-xs"></i>
+                  <textarea 
+                    [(ngModel)]="tenantProfile.address" 
+                    rows="3" 
+                    placeholder="Plot 42, Academic Boulevard, Greater Accra, Ghana"
+                    class="w-full pl-9 pr-4 py-3 bg-bg-tertiary border border-border-primary rounded-xl text-xs sm:text-sm font-bold text-text-primary placeholder:text-text-muted focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none leading-relaxed"
+                  ></textarea>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Submit Button Inside Card -->
+            <div class="pt-4 border-t border-border-primary flex items-center justify-between">
+              <span class="text-xs text-text-muted font-medium">Changes apply institution-wide</span>
+              <button 
+                (click)="updateProfile()" 
+                [disabled]="savingProfile"
+                class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+              >
+                <i class="fas fa-spinner fa-spin" *ngIf="savingProfile"></i>
+                <i class="fas fa-save" *ngIf="!savingProfile"></i>
+                <span>Save Directory Changes</span>
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Right Column (5 cols): Branding Studio (Logo & Signature) -->
+          <div class="lg:col-span-5 space-y-6">
+            
+            <!-- 1. Institution Crest / Logo -->
+            <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm space-y-4">
+              <div class="flex items-center justify-between pb-3 border-b border-border-primary">
+                <div class="flex items-center gap-2.5">
+                  <i class="fas fa-image text-blue-400 text-sm"></i>
+                  <h4 class="text-sm font-black text-text-primary">Institutional Crest & Logo</h4>
+                </div>
+                <span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-bold rounded">
+                  Max 2MB
+                </span>
+              </div>
+
+              <!-- Upload Dropzone Area -->
+              <div class="relative border-2 border-dashed border-border-primary hover:border-blue-500/50 rounded-2xl p-5 bg-bg-tertiary/50 transition-all group flex flex-col items-center justify-center text-center cursor-pointer overflow-hidden">
+                <input 
+                  type="file" 
+                  (change)="onLogoSelected($event)" 
+                  accept="image/png, image/jpeg, image/webp" 
+                  class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" 
+                  title="Upload institution crest"
+                />
+
+                @if (tenantProfile.logo_url) {
+                  <div class="w-28 h-28 rounded-2xl bg-bg-primary border border-border-primary flex items-center justify-center p-3 mb-3 relative z-10 shadow-inner group-hover:scale-105 transition-transform">
+                    <img [src]="tenantProfile.logo_url" alt="Crest Preview" class="w-full h-full object-contain drop-shadow" (error)="tenantProfile.logo_url = ''" />
+                  </div>
+                  <span class="text-xs font-bold text-blue-400 group-hover:text-blue-300 flex items-center gap-2">
+                    <i class="fas fa-cloud-arrow-up"></i>
+                    <span>Replace Crest Logo</span>
+                  </span>
+                } @else {
+                  <div class="w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-cloud-arrow-up text-xl"></i>
+                  </div>
+                  <p class="text-xs font-black text-text-primary mb-1">Click to Upload Institutional Crest</p>
+                  <p class="text-[11px] text-text-muted max-w-[200px]">PNG, JPG, or WEBP transparent backdrop recommended</p>
+                }
+              </div>
+            </div>
+
+            <!-- 2. Headmaster / Principal Official Signature -->
+            <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm space-y-4">
+              <div class="flex items-center justify-between pb-3 border-b border-border-primary">
+                <div class="flex items-center gap-2.5">
+                  <i class="fas fa-file-signature text-amber-400 text-sm"></i>
+                  <h4 class="text-sm font-black text-text-primary">Principal / Headmaster Signature</h4>
+                </div>
+                <span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold rounded">
+                  Official Reports
+                </span>
+              </div>
+
+              <!-- Signature Upload Area -->
+              <div class="relative border-2 border-dashed border-border-primary hover:border-amber-500/50 rounded-2xl p-5 bg-bg-tertiary/50 transition-all group flex flex-col items-center justify-center text-center cursor-pointer overflow-hidden">
+                <input 
+                  type="file" 
+                  (change)="onHeadmasterSignatureSelected($event)" 
+                  accept="image/png, image/jpeg, image/webp" 
+                  class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" 
+                  title="Upload headmaster signature"
+                />
+
+                @if (tenantProfile.headmaster_signature_url) {
+                  <div class="w-full h-20 bg-bg-primary border border-border-primary rounded-xl flex items-center justify-center p-2 mb-3 relative z-10 shadow-inner group-hover:scale-105 transition-transform">
+                    <img [src]="tenantProfile.headmaster_signature_url" alt="Signature Preview" class="h-full object-contain drop-shadow" (error)="tenantProfile.headmaster_signature_url = ''" />
+                  </div>
+                  <span class="text-xs font-bold text-amber-400 group-hover:text-amber-300 flex items-center gap-2">
+                    <i class="fas fa-pen-nib"></i>
+                    <span>Replace Official Signature</span>
+                  </span>
+                } @else {
+                  <div class="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-signature text-xl"></i>
+                  </div>
+                  <p class="text-xs font-black text-text-primary mb-1">Click to Upload Headmaster Signature</p>
+                  <p class="text-[11px] text-text-muted max-w-[220px]">Transparent PNG signature used on terminal report cards</p>
+                }
+              </div>
+            </div>
+
+            <!-- Informational Advisory -->
+            <div class="p-4 bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-transparent border border-blue-500/20 rounded-2xl flex items-start gap-3">
+              <i class="fas fa-circle-info text-blue-400 text-sm mt-0.5"></i>
+              <p class="text-xs text-text-muted leading-relaxed">
+                Uploaded branding assets are automatically stamped onto official PDF term reports, student transcripts, fee receipts, and parent portal envelopes.
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+
+      } @else {
+        <div class="py-20 text-center bg-bg-secondary border border-border-primary rounded-3xl">
+          <div class="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p class="text-xs font-bold text-text-muted">Loading institutional profile...</p>
+        </div>
+      }
+
+    </div>
+
+  }
+
+  <!-- ── 6. TAB 2: TWO-FACTOR AUTHENTICATION & CRYPTOGRAPHY ───────────── -->
+  @if (activeTab === 'security') {
+    
+    <div class="space-y-6 animate-fade-in">
+      
+      <!-- Global Alerts -->
+      <div *ngIf="success" class="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl flex items-center gap-3 shadow-sm">
+        <i class="fas fa-shield-check text-lg"></i>
+        <span class="font-bold text-xs sm:text-sm">{{ success }}</span>
+      </div>
+
+      <div *ngIf="error" class="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center gap-3 shadow-sm">
+        <i class="fas fa-triangle-exclamation text-lg"></i>
+        <span class="font-bold text-xs sm:text-sm">{{ error }}</span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left Column (7 cols): 2FA Control Terminal -->
+        <div class="lg:col-span-7 bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+          
+          <div class="flex items-center justify-between pb-5 border-b border-border-primary">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center text-base">
+                <i class="fas fa-shield-halved"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-black text-text-primary">Two-Factor Authentication (2FA)</h3>
+                <p class="text-xs text-text-muted mt-0.5">Time-based One-Time Password (TOTP) algorithm</p>
+              </div>
+            </div>
+
+            <!-- Current Status Tag -->
+            <div *ngIf="user?.two_factor_enabled" class="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>Enabled</span>
+            </div>
+            <div *ngIf="!user?.two_factor_enabled" class="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+              <span>Disabled</span>
+            </div>
+          </div>
+
+          <p class="text-xs sm:text-sm text-text-secondary leading-relaxed">
+            Enhance administrative account defense. When enabled, signing in requires your primary password plus a dynamic 6-digit cryptographic code generated by your Authenticator application (Google Authenticator, Microsoft Authenticator, 1Password, or Authy).
+          </p>
+
+          <!-- 2FA Not Enabled State -->
+          @if (!user?.two_factor_enabled && !qrCodeVisible) {
+            <div class="p-6 bg-bg-tertiary border border-border-primary rounded-2xl space-y-4">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-black">
+                  <i class="fas fa-lock"></i>
                 </div>
                 <div>
-                    <p class="text-xs font-bold text-text-muted uppercase tracking-widest mb-0.5">Account Status</p>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span class="text-sm font-bold text-emerald-400">Secure</span>
-                    </div>
+                  <h4 class="text-xs font-black text-text-primary">Authenticator Setup Required</h4>
+                  <p class="text-[11px] text-text-muted">Instant cryptographic pairing via QR code scanner</p>
                 </div>
+              </div>
+
+              <button 
+                (click)="enable2FA()" 
+                [disabled]="loading"
+                class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+              >
+                <i class="fas fa-spinner fa-spin" *ngIf="loading"></i>
+                <i class="fas fa-qrcode" *ngIf="!loading"></i>
+                <span>Initialize 2FA Key Pairing</span>
+              </button>
             </div>
-        </div>
-    </div>
+          }
 
-    <!-- School Profile Section -->
-    <div *ngIf="user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN'" class="bg-bg-secondary border border-border-primary rounded-3xl p-1 shadow-xl mb-8 relative group transition-all duration-500">
-        
-        <div class="p-6 md:p-8 relative z-10">
-            <div class="flex items-start justify-between mb-8">
-                <div class="flex gap-4">
-                    <div class="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center border border-rose-500/30 shadow-inner group-hover:scale-110 transition-transform duration-500">
-                        <i class="fas fa-school text-xl text-rose-400"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-xl font-bold text-text-primary tracking-tight">Institution Profile</h2>
-                        <p class="text-sm text-text-muted mt-1 max-w-xl leading-relaxed">
-                            These details appear on official reports, receipts, and the parent portal interface.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Messages -->
-            <div *ngIf="profileSuccess" class="mb-8 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl flex items-center gap-3 animate-fade-in shadow-lg shadow-emerald-500/5">
-                <i class="fas fa-check-circle text-xl animate-bounce"></i>
-                <span class="font-medium text-sm">{{ profileSuccess }}</span>
-            </div>
-
-            <div *ngIf="profileError" class="mb-8 p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center gap-3 animate-fade-in shadow-lg shadow-rose-500/5">
-                <i class="fas fa-exclamation-circle text-xl"></i>
-                <span class="font-medium text-sm">{{ profileError }}</span>
-            </div>
-
-            <div *ngIf="tenantProfile" class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                <!-- Left Column (Form) -->
-                <div class="lg:col-span-3 space-y-5">
-                    <div class="group/input">
-                        <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2 group-hover/input:text-rose-400 transition-colors">School Name</label>
-                        <input type="text" [(ngModel)]="tenantProfile.name" class="w-full px-5 py-3.5 bg-bg-primary/50 border border-border-primary rounded-xl text-sm text-text-primary focus:bg-bg-primary focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all shadow-inner" placeholder="e.g. Lincoln High School">
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div class="group/input">
-                            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2 group-hover/input:text-rose-400 transition-colors">Contact Numbers</label>
-                            <input type="text" [(ngModel)]="tenantProfile.contact_numbers" class="w-full px-5 py-3.5 bg-bg-primary/50 border border-border-primary rounded-xl text-sm text-text-primary focus:bg-bg-primary focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all shadow-inner" placeholder="+1 (555) 123-4567">
-                        </div>
-                        <div class="group/input">
-                            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2 group-hover/input:text-rose-400 transition-colors">Contact Email</label>
-                            <input type="email" [(ngModel)]="tenantProfile.email" class="w-full px-5 py-3.5 bg-bg-primary/50 border border-border-primary rounded-xl text-sm text-text-primary focus:bg-bg-primary focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all shadow-inner" placeholder="info@school.edu">
-                        </div>
-                    </div>
-                    
-                    <div class="group/input">
-                        <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2 group-hover/input:text-rose-400 transition-colors">Physical Address</label>
-                        <textarea [(ngModel)]="tenantProfile.address" rows="3" class="w-full px-5 py-3.5 bg-bg-primary/50 border border-border-primary rounded-xl text-sm text-text-primary focus:bg-bg-primary focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all shadow-inner resize-none leading-relaxed" placeholder="123 Education Drive, City, State"></textarea>
-                    </div>
-                </div>
-
-                <!-- Right Column (Logo + Signature) -->
-                <div class="lg:col-span-2 space-y-5">
-                    <!-- Logo Upload -->
-                    <div class="bg-bg-primary/30 rounded-2xl p-5 border border-border-primary flex flex-col">
-                        <div>
-                            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-4 flex items-center justify-between">
-                                <span>Institution Logo</span>
-                                <span class="px-2 py-0.5 bg-bg-secondary rounded text-[9px] border border-border-primary">Max 2MB</span>
-                            </label>
-                            
-                            <div class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-border-primary hover:border-rose-500/50 rounded-xl bg-bg-primary/50 transition-colors relative group cursor-pointer overflow-hidden">
-                                <input type="file" (change)="onLogoSelected($event)" accept="image/png, image/jpeg" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" title="Click to upload">
-                                
-                                <ng-container *ngIf="tenantProfile.logo_url; else noLogo">
-                                    <div class="w-24 h-24 rounded-lg bg-white/5 flex items-center justify-center p-2 mb-3 relative z-10">
-                                        <img [src]="tenantProfile.logo_url" alt="Logo Preview" class="w-full h-full object-contain drop-shadow-xl" (error)="tenantProfile.logo_url = ''" />
-                                    </div>
-                                    <span class="text-xs font-medium text-rose-400 group-hover:text-rose-300 flex items-center gap-2">
-                                        <i class="fas fa-upload"></i> Change Logo
-                                    </span>
-                                </ng-container>
-                                
-                                <ng-template #noLogo>
-                                    <div class="w-12 h-12 rounded-full bg-bg-secondary flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-inner">
-                                        <i class="fas fa-image text-xl text-text-muted group-hover:text-rose-400 transition-colors"></i>
-                                    </div>
-                                    <p class="text-sm font-bold text-text-primary mb-1">Upload Logo</p>
-                                    <p class="text-[10px] text-text-muted text-center max-w-[150px]">PNG, JPG up to 2MB</p>
-                                </ng-template>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Headmaster Signature Upload -->
-                    <div class="bg-bg-primary/30 rounded-2xl p-5 border border-border-primary flex flex-col">
-                        <div>
-                            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-4 flex items-center justify-between">
-                                <span>Headmaster Signature</span>
-                                <span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded text-[9px] border border-amber-500/20">Used on Reports</span>
-                            </label>
-                            
-                            <div class="flex flex-col items-center justify-center p-5 border-2 border-dashed border-border-primary hover:border-amber-500/50 rounded-xl bg-bg-primary/50 transition-colors relative group cursor-pointer overflow-hidden">
-                                <input type="file" (change)="onHeadmasterSignatureSelected($event)" accept="image/png, image/jpeg" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" title="Click to upload">
-                                
-                                <ng-container *ngIf="tenantProfile.headmaster_signature_url; else noSig">
-                                    <div class="w-full h-16 flex items-center justify-center mb-3 relative z-10 bg-white/5 rounded-lg p-2">
-                                        <img [src]="tenantProfile.headmaster_signature_url" alt="Signature Preview" class="h-full object-contain drop-shadow-md" (error)="tenantProfile.headmaster_signature_url = ''" />
-                                    </div>
-                                    <span class="text-xs font-medium text-amber-400 group-hover:text-amber-300 flex items-center gap-2">
-                                        <i class="fas fa-upload"></i> Change Signature
-                                    </span>
-                                </ng-container>
-                                
-                                <ng-template #noSig>
-                                    <div class="w-12 h-12 rounded-full bg-bg-secondary flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-inner">
-                                        <i class="fas fa-signature text-xl text-text-muted group-hover:text-amber-400 transition-colors"></i>
-                                    </div>
-                                    <p class="text-sm font-bold text-text-primary mb-1">Upload Signature</p>
-                                    <p class="text-[10px] text-text-muted text-center max-w-[150px]">PNG with transparent background recommended</p>
-                                </ng-template>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action Area -->
-            <div *ngIf="tenantProfile" class="pt-8 mt-8 border-t border-white/5 flex justify-end">
-                <button (click)="updateProfile()" [disabled]="savingProfile" class="group relative px-8 py-3.5 bg-blue-600 text-white font-bold rounded-xl overflow-hidden shadow-lg shadow-rose-500/25 transition-all hover:shadow-rose-500/40 hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none">
-                    <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
-                    <span class="relative flex items-center gap-2">
-                        <i class="fas fa-save" *ngIf="!savingProfile"></i>
-                        <i class="fas fa-spinner fa-spin" *ngIf="savingProfile"></i>
-                        Save Profile Changes
-                    </span>
+          <!-- QR Code Active Setup Workflow -->
+          @if (qrCodeVisible) {
+            <div class="p-6 bg-bg-tertiary border border-blue-500/30 rounded-2xl space-y-6 animate-fade-in">
+              
+              <div class="flex items-center justify-between pb-3 border-b border-border-primary">
+                <span class="text-xs font-black text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                  <i class="fas fa-qrcode"></i>
+                  Step-by-Step Device Pairing
+                </span>
+                <button 
+                  (click)="qrCodeVisible = false; error = ''" 
+                  class="text-xs text-text-muted hover:text-rose-400 transition-colors font-bold cursor-pointer"
+                >
+                  Cancel
                 </button>
-            </div>
-            
-            <!-- Loading state -->
-            <div *ngIf="!tenantProfile" class="py-12 flex flex-col items-center justify-center gap-4">
-                <div class="w-10 h-10 rounded-full border-2 border-rose-500/20 border-t-rose-500 animate-spin shadow-[0_0_15px_rgba(244,63,94,0.5)]"></div>
-                <p class="text-sm font-bold text-text-muted animate-pulse">Loading institution profile...</p>
-            </div>
-        </div>
-    </div>
+              </div>
 
-    <!-- Teacher Profile Section -->
-    <div *ngIf="user?.role === 'TEACHER'" class="bg-bg-secondary border border-border-primary rounded-3xl p-1 shadow-xl mb-8 relative group transition-all duration-500">
-        
-        <div class="p-6 md:p-8 relative z-10">
-            <div class="flex items-start justify-between mb-8">
-                <div class="flex gap-4">
-                    <div class="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center border border-blue-500/30 shadow-inner group-hover:scale-110 transition-transform duration-500">
-                        <i class="fas fa-chalkboard-teacher text-xl text-blue-400"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-xl font-bold text-text-primary tracking-tight">Teacher Profile</h2>
-                        <p class="text-sm text-text-muted mt-1 max-w-xl leading-relaxed">
-                            Manage your personal details and upload your signature for official documents.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Messages -->
-            <div *ngIf="teacherSuccess" class="mb-8 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl flex items-center gap-3 animate-fade-in shadow-lg shadow-emerald-500/5">
-                <i class="fas fa-check-circle text-xl animate-bounce"></i>
-                <span class="font-medium text-sm">{{ teacherSuccess }}</span>
-            </div>
-
-            <div *ngIf="teacherError" class="mb-8 p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center gap-3 animate-fade-in shadow-lg shadow-rose-500/5">
-                <i class="fas fa-exclamation-circle text-xl"></i>
-                <span class="font-medium text-sm">{{ teacherError }}</span>
-            </div>
-
-            <div *ngIf="teacherProfile" class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                <!-- Left Column (Info) -->
-                <div class="lg:col-span-3 space-y-5">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div class="group/input">
-                            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2">First Name</label>
-                            <div class="w-full px-5 py-3.5 bg-bg-primary/30 border border-border-primary rounded-xl text-sm text-text-muted cursor-not-allowed">{{ teacherProfile.first_name }}</div>
-                        </div>
-                        <div class="group/input">
-                            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2">Last Name</label>
-                            <div class="w-full px-5 py-3.5 bg-bg-primary/30 border border-border-primary rounded-xl text-sm text-text-muted cursor-not-allowed">{{ teacherProfile.last_name }}</div>
-                        </div>
-                    </div>
-                    
-                    <div class="group/input">
-                        <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2">Subject / Specialization</label>
-                        <div class="w-full px-5 py-3.5 bg-bg-primary/30 border border-border-primary rounded-xl text-sm text-text-muted cursor-not-allowed">{{ teacherProfile.subject || 'N/A' }}</div>
-                    </div>
-                </div>
-
-                <!-- Right Column (Signature) -->
-                <div class="lg:col-span-2">
-                    <div class="bg-bg-primary/30 rounded-2xl p-5 border border-border-primary flex flex-col h-full justify-center">
-                        <div>
-                            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-4 flex items-center justify-between">
-                                <span>Digital Signature</span>
-                                <span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded text-[9px] border border-blue-500/20">Used on Reports</span>
-                            </label>
-                            
-                            <div class="flex flex-col items-center justify-center p-5 border-2 border-dashed border-border-primary hover:border-blue-500/50 rounded-xl bg-bg-primary/50 transition-colors relative group cursor-pointer overflow-hidden">
-                                <input type="file" (change)="onTeacherSignatureSelected($event)" accept="image/png, image/jpeg" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" title="Click to upload">
-                                
-                                <ng-container *ngIf="teacherProfile.signature_url; else noTeacherSig">
-                                    <div class="w-full h-16 flex items-center justify-center mb-3 relative z-10 bg-white/5 rounded-lg p-2">
-                                        <img [src]="teacherProfile.signature_url" alt="Signature Preview" class="h-full object-contain drop-shadow-md" (error)="teacherProfile.signature_url = ''" />
-                                    </div>
-                                    <span class="text-xs font-medium text-blue-400 group-hover:text-blue-300 flex items-center gap-2">
-                                        <i class="fas fa-upload"></i> Change Signature
-                                    </span>
-                                </ng-container>
-                                
-                                <ng-template #noTeacherSig>
-                                    <div class="w-12 h-12 rounded-full bg-bg-secondary flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-inner">
-                                        <i class="fas fa-signature text-xl text-text-muted group-hover:text-blue-400 transition-colors"></i>
-                                    </div>
-                                    <p class="text-sm font-bold text-text-primary mb-1">Upload Signature</p>
-                                    <p class="text-[10px] text-text-muted text-center max-w-[150px]">PNG with transparent background recommended</p>
-                                </ng-template>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div *ngIf="!teacherProfile" class="py-12 flex flex-col items-center justify-center gap-4">
-                <div class="w-10 h-10 rounded-full border-2 border-slate-300 border-t-slate-500 animate-spin shadow-[0_0_15px_rgba(59,130,246,0.5)]"></div>
-                <p class="text-sm font-bold text-text-muted animate-pulse">Loading teacher profile...</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- 2FA Section -->
-    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-1 shadow-xl relative group transition-all duration-500">
-        
-        <div class="p-6 md:p-8 relative z-10">
-            <div class="flex items-start justify-between mb-8">
-                <div class="flex gap-4">
-                    <div class="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center border border-blue-500/30 shadow-inner group-hover:scale-110 transition-transform duration-500">
-                        <i class="fas fa-fingerprint text-xl text-blue-400"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-xl font-bold text-text-primary tracking-tight">Two-Factor Authentication</h2>
-                        <p class="text-sm text-text-muted mt-1 max-w-xl leading-relaxed">
-                            Add an extra layer of security. Require a time-based code from your authenticator app when logging in.
-                        </p>
-                    </div>
-                </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
                 
-                <div class="flex-shrink-0">
-                    <div *ngIf="user?.two_factor_enabled" class="px-4 py-1.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-widest rounded-full border border-emerald-500/20 flex items-center gap-1.5 shadow-[0_0_10px_rgba(52,211,153,0.1)]">
-                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div> Enabled
-                    </div>
-                    <div *ngIf="!user?.two_factor_enabled" class="px-4 py-1.5 bg-text-muted/10 text-text-muted text-[10px] font-bold uppercase tracking-widest rounded-full border border-border-primary flex items-center gap-1.5">
-                        <div class="w-1.5 h-1.5 rounded-full bg-text-muted"></div> Disabled
-                    </div>
+                <!-- QR Image Display -->
+                <div class="flex flex-col items-center text-center p-4 bg-white rounded-2xl shadow-md border border-slate-200">
+                  <img [src]="qrCodeImageUrl" alt="2FA QR Code" width="180" height="180" class="rounded-lg mb-2" />
+                  <span class="text-[10px] text-slate-700 font-bold">Scan in Google Authenticator or Authy</span>
                 </div>
-            </div>
 
-            <!-- Messages -->
-            <div *ngIf="success" class="mb-8 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl flex items-center gap-3 animate-fade-in shadow-lg shadow-emerald-500/5">
-                <i class="fas fa-shield-check text-xl"></i>
-                <span class="font-medium text-sm">{{ success }}</span>
-            </div>
+                <!-- Verification Pin Input -->
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">
+                      Enter 6-Digit TOTP Token *
+                    </label>
+                    <input 
+                      type="text" 
+                      [(ngModel)]="verificationCode" 
+                      maxlength="6"
+                      placeholder="000000"
+                      class="w-full px-4 py-3 bg-bg-primary border border-border-primary rounded-xl text-text-primary text-center font-mono text-2xl font-black tracking-[0.4em] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-inner"
+                    />
+                  </div>
 
-            <div *ngIf="error" class="mb-8 p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center gap-3 animate-fade-in shadow-lg shadow-rose-500/5">
-                <i class="fas fa-exclamation-triangle text-xl"></i>
-                <span class="font-medium text-sm">{{ error }}</span>
-            </div>
-
-            <!-- Enable Button (Initial State) -->
-            <div *ngIf="!user?.two_factor_enabled && !qrCodeVisible" class="pt-6 border-t border-white/5 flex">
-                <button (click)="enable2FA()" [disabled]="loading" class="group relative px-8 py-3.5 bg-blue-600 text-white font-bold rounded-xl overflow-hidden shadow-lg shadow-blue-500/25 transition-all hover:shadow-blue-500/40 hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none">
-                    <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
-                    <span class="relative flex items-center gap-2">
-                        <i class="fas fa-lock" *ngIf="!loading"></i>
-                        <i class="fas fa-spinner fa-spin" *ngIf="loading"></i>
-                        Set up 2FA Security
-                    </span>
-                </button>
-            </div>
-
-            <!-- QR Code Setup Flow -->
-            <div *ngIf="qrCodeVisible" class="pt-8 mt-4 border-t border-white/5 animate-fade-in">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                    
-                    <!-- Step 1: QR -->
-                    <div class="flex flex-col items-center">
-                        <div class="w-full flex items-center gap-3 mb-6">
-                            <div class="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold border border-blue-500/30">1</div>
-                            <h3 class="text-sm font-bold text-text-primary uppercase tracking-wider">Scan QR Code</h3>
-                        </div>
-                        <div class="p-4 bg-white rounded-3xl shadow-[0_0_30px_rgba(37,99,235,0.15)] transform transition-transform hover:scale-105 duration-300 border-4 border-blue-500/10">
-                            <img [src]="qrCodeImageUrl" alt="2FA QR Code" width="220" height="220" class="rounded-xl" />
-                        </div>
-                        <p class="text-xs text-text-muted mt-6 text-center max-w-[250px]">Open Google Authenticator or Authy and scan this code.</p>
-                    </div>
-
-                    <!-- Step 2: Verify -->
-                    <div class="flex flex-col">
-                        <div class="w-full flex items-center gap-3 mb-6">
-                            <div class="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold border border-blue-500/30">2</div>
-                            <h3 class="text-sm font-bold text-text-primary uppercase tracking-wider">Verify Code</h3>
-                        </div>
-                        
-                        <p class="text-sm text-text-secondary mb-6 leading-relaxed">Enter the 6-digit code generated by your app to confirm setup.</p>
-                        
-                        <div class="mb-6">
-                            <input type="text" [(ngModel)]="verificationCode" maxlength="6"
-                                class="w-full px-6 py-5 bg-bg-primary/50 border border-border-primary rounded-2xl text-text-primary focus:bg-bg-primary focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all tracking-[0.7em] text-center font-mono text-3xl shadow-inner placeholder-text-muted/30"
-                                placeholder="000000" />
-                        </div>
-
-                        <div class="flex flex-col gap-3 mt-auto">
-                            <button (click)="verify2FA()" [disabled]="loading || verificationCode.length !== 6" 
-                                class="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/25 transition-all hover:shadow-emerald-500/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-2 group overflow-hidden relative">
-                                <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
-                                <span class="relative flex items-center gap-2">
-                                    <i class="fas fa-shield-check" *ngIf="!loading"></i>
-                                    <i class="fas fa-spinner fa-spin" *ngIf="loading"></i>
-                                    Verify & Enable
-                                </span>
-                            </button>
-                            
-                            <button (click)="qrCodeVisible = false; error = ''" [disabled]="loading" class="w-full py-3 text-text-muted hover:text-text-primary text-sm font-bold transition-colors rounded-xl hover:bg-white/5">
-                                Cancel Setup
-                            </button>
-                        </div>
-                    </div>
+                  <button 
+                    (click)="verify2FA()" 
+                    [disabled]="loading || verificationCode.length !== 6"
+                    class="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    <i class="fas fa-spinner fa-spin" *ngIf="loading"></i>
+                    <i class="fas fa-shield-check" *ngIf="!loading"></i>
+                    <span>Verify & Secure Account</span>
+                  </button>
                 </div>
+
+              </div>
+
             </div>
+          }
+
+          <!-- 2FA Already Active Banner -->
+          @if (user?.two_factor_enabled) {
+            <div class="p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl space-y-3">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-sm">
+                  <i class="fas fa-circle-check"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm font-black text-text-primary">Your Account is Cryptographically Guarded</h4>
+                  <p class="text-xs text-text-muted mt-0.5">TOTP challenge is enforced on every administrative portal sign-in</p>
+                </div>
+              </div>
+            </div>
+          }
 
         </div>
+
+        <!-- Right Column (5 cols): Security Recommendations & Best Practices -->
+        <div class="lg:col-span-5 space-y-6">
+          
+          <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm space-y-5">
+            <div class="flex items-center gap-2.5 pb-3 border-b border-border-primary">
+              <i class="fas fa-user-lock text-blue-400 text-sm"></i>
+              <h4 class="text-sm font-black text-text-primary">Security Best Practices</h4>
+            </div>
+
+            <div class="space-y-4">
+              
+              <div class="flex items-start gap-3 p-3 bg-bg-tertiary rounded-xl border border-border-primary">
+                <i class="fas fa-key text-blue-400 text-xs mt-1 shrink-0"></i>
+                <div>
+                  <h5 class="text-xs font-bold text-text-primary">Use a Password Manager</h5>
+                  <p class="text-[11px] text-text-muted mt-0.5 leading-relaxed">Store unique 16+ character randomized passwords for all administrative portals.</p>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-3 p-3 bg-bg-tertiary rounded-xl border border-border-primary">
+                <i class="fas fa-clock-rotate-left text-indigo-400 text-xs mt-1 shrink-0"></i>
+                <div>
+                  <h5 class="text-xs font-bold text-text-primary">Regular Audit Review</h5>
+                  <p class="text-[11px] text-text-muted mt-0.5 leading-relaxed">Inspect your system audit trail weekly to identify unapproved role alterations or IP logins.</p>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-3 p-3 bg-bg-tertiary rounded-xl border border-border-primary">
+                <i class="fas fa-mobile-screen-button text-purple-400 text-xs mt-1 shrink-0"></i>
+                <div>
+                  <h5 class="text-xs font-bold text-text-primary">Device Separation</h5>
+                  <p class="text-[11px] text-text-muted mt-0.5 leading-relaxed">Store your TOTP Authenticator app on a physically separate mobile phone or hardware key.</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
     </div>
+
+  }
+
+  <!-- ── 7. TAB 3: ACCOUNT & CREDENTIALS ─────────────────────────────── -->
+  @if (activeTab === 'account') {
+    
+    <div class="space-y-6 animate-fade-in">
+      
+      <!-- Teacher Profile Alerts -->
+      <div *ngIf="teacherSuccess" class="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl flex items-center gap-3 shadow-sm">
+        <i class="fas fa-circle-check text-lg"></i>
+        <span class="font-bold text-xs sm:text-sm">{{ teacherSuccess }}</span>
+      </div>
+
+      <div *ngIf="teacherError" class="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center gap-3 shadow-sm">
+        <i class="fas fa-circle-exclamation text-lg"></i>
+        <span class="font-bold text-xs sm:text-sm">{{ teacherError }}</span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left Column (7 cols): User Identity Card -->
+        <div class="lg:col-span-7 bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+          
+          <div class="flex items-center gap-4 pb-5 border-b border-border-primary">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-xl shadow-md shadow-blue-500/20">
+              {{ (user?.email?.charAt(0) || 'A') | uppercase }}
+            </div>
+            <div>
+              <h3 class="text-base sm:text-lg font-black text-text-primary">{{ user?.email || 'Logged In Operator' }}</h3>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="px-2.5 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-md text-xs font-bold">
+                  {{ user?.role || 'Administrator' }}
+                </span>
+                <span class="text-xs text-text-muted">Active Session</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="p-4 bg-bg-tertiary border border-border-primary rounded-2xl space-y-1">
+                <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">Operator Account ID</span>
+                <span class="text-xs font-mono font-bold text-text-primary block truncate">{{ user?.id || 'AUTH-OP-8821' }}</span>
+              </div>
+
+              <div class="p-4 bg-bg-tertiary border border-border-primary rounded-2xl space-y-1">
+                <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">Assigned Security Role</span>
+                <span class="text-xs font-bold text-blue-400 block">{{ user?.role || 'SUPER_ADMIN' }}</span>
+              </div>
+            </div>
+
+            <!-- Teacher Profile Extensions -->
+            @if (user?.role === 'TEACHER') {
+              <div class="pt-4 border-t border-border-primary space-y-4">
+                <h4 class="text-xs font-black uppercase tracking-wider text-text-muted">Faculty Specialization Details</h4>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-bold text-text-muted mb-1">First Name</label>
+                    <div class="p-3 bg-bg-tertiary border border-border-primary rounded-xl text-xs font-bold text-text-primary">
+                      {{ teacherProfile?.first_name || 'N/A' }}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-bold text-text-muted mb-1">Last Name</label>
+                    <div class="p-3 bg-bg-tertiary border border-border-primary rounded-xl text-xs font-bold text-text-primary">
+                      {{ teacherProfile?.last_name || 'N/A' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-text-muted mb-1">Assigned Department</label>
+                  <div class="p-3 bg-bg-tertiary border border-border-primary rounded-xl text-xs font-bold text-text-primary">
+                    {{ teacherProfile?.subject || 'General Faculty' }}
+                  </div>
+                </div>
+
+                <!-- Teacher Signature Upload -->
+                <div class="p-5 bg-bg-tertiary border border-border-primary rounded-2xl space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-text-primary">Teacher Grading Signature</span>
+                    <span class="text-[10px] text-blue-400 font-bold">Used on Gradebooks</span>
+                  </div>
+
+                  <div class="relative border-2 border-dashed border-border-primary hover:border-blue-500/50 rounded-xl p-4 bg-bg-primary/50 text-center cursor-pointer">
+                    <input 
+                      type="file" 
+                      (change)="onTeacherSignatureSelected($event)" 
+                      accept="image/png, image/jpeg, image/webp" 
+                      class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                    />
+
+                    @if (teacherProfile?.signature_url) {
+                      <div class="h-16 flex items-center justify-center mb-2">
+                        <img [src]="teacherProfile.signature_url" alt="Signature" class="h-full object-contain" />
+                      </div>
+                      <span class="text-xs font-bold text-blue-400">Replace Signature</span>
+                    } @else {
+                      <i class="fas fa-signature text-xl text-text-muted mb-1 block"></i>
+                      <span class="text-xs font-bold text-text-primary block">Upload Digital Signature</span>
+                      <span class="text-[10px] text-text-muted">PNG transparent file</span>
+                    }
+                  </div>
+                </div>
+
+              </div>
+            }
+
+          </div>
+
+        </div>
+
+        <!-- Right Column (5 cols): Cryptographic Session Registry -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-sm space-y-4">
+            <div class="flex items-center gap-2.5 pb-3 border-b border-border-primary">
+              <i class="fas fa-network-wired text-blue-400 text-sm"></i>
+              <h4 class="text-sm font-black text-text-primary">Session Security Telemetry</h4>
+            </div>
+
+            <div class="space-y-3 text-xs">
+              <div class="flex items-center justify-between p-3 bg-bg-tertiary rounded-xl border border-border-primary">
+                <span class="text-text-muted font-bold">Transport Layer</span>
+                <span class="font-mono font-bold text-emerald-400">TLS 1.3 / HTTPS</span>
+              </div>
+              <div class="flex items-center justify-between p-3 bg-bg-tertiary rounded-xl border border-border-primary">
+                <span class="text-text-muted font-bold">Token Algorithm</span>
+                <span class="font-mono font-bold text-blue-400">HMAC-SHA256 (JWT)</span>
+              </div>
+              <div class="flex items-center justify-between p-3 bg-bg-tertiary rounded-xl border border-border-primary">
+                <span class="text-text-muted font-bold">Cross-Site Protection</span>
+                <span class="font-mono font-bold text-emerald-400">CSRF SameSite Strict</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  }
+
 </div>

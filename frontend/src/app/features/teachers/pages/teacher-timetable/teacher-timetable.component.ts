@@ -1,13 +1,12 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { TeacherSubnavComponent } from '../../teacher-subnav/teacher-subnav.component';
 import { TeacherPortalService } from '../../../../core/infrastructure/teacher/teacher-portal.service';
 
 @Component({
   selector: 'app-teacher-timetable',
   standalone: true,
-  imports: [CommonModule, RouterModule, TeacherSubnavComponent],
+  imports: [CommonModule, RouterModule],
   templateUrl: './teacher-timetable.component.html'
 })
 export class TeacherTimetableComponent implements OnInit {

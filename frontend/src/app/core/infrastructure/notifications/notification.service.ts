@@ -40,11 +40,16 @@ export class NotificationService {
     private connectedSubject = new BehaviorSubject<boolean>(false);
     public connected$ = this.connectedSubject.asObservable();
 
+    private currentUserId: string = '';
+
     constructor() {
         if (this.isBrowser) {
             this.authService.currentUser$.subscribe(user => {
                 if (user) {
+                    this.currentUserId = user.id || user.email || 'operator';
                     this.shouldReconnect = true;
+                    // Restore from local cache immediately for instant visibility
+                    this.restoreCachedNotifications();
                     this.connect();
                     this.loadInitialNotifications();
                 } else {
@@ -55,6 +60,34 @@ export class NotificationService {
         }
     }
 
+    private getStorageKey(): string {
+        return `schoollinx_notifications_${this.currentUserId || 'default'}`;
+    }
+
+    private restoreCachedNotifications() {
+        if (!this.isBrowser) return;
+        try {
+            const raw = localStorage.getItem(this.getStorageKey());
+            if (raw) {
+                const parsed: Notification[] = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    this.notificationsSubject.next(parsed);
+                }
+            }
+        } catch (e) {
+            console.warn('Failed to restore cached notifications', e);
+        }
+    }
+
+    private persistNotifications(notifs: Notification[]) {
+        if (!this.isBrowser) return;
+        try {
+            localStorage.setItem(this.getStorageKey(), JSON.stringify(notifs.slice(0, 100)));
+        } catch (e) {
+            console.warn('Failed to persist notifications', e);
+        }
+    }
+
     public loadInitialNotifications() {
         const token = this.authService.getToken();
         if (!token) return;
@@ -62,10 +95,21 @@ export class NotificationService {
         this.http.get<Notification[]>('/api/notifications?limit=50').subscribe({
             next: (data) => {
                 if (Array.isArray(data)) {
-                    this.notificationsSubject.next(data);
+                    const existing = this.notificationsSubject.value;
+                    // Merge and deduplicate by ID
+                    const map = new Map<string, Notification>();
+                    existing.forEach(n => map.set(n.id, n));
+                    data.forEach(n => map.set(n.id, n));
+
+                    const merged = Array.from(map.values()).sort((a, b) => 
+                        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                    ).slice(0, 50);
+
+                    this.notificationsSubject.next(merged);
+                    this.persistNotifications(merged);
                 }
             },
-            error: (err) => console.warn('Could not fetch notifications:', err)
+            error: (err) => console.warn('Could not fetch notifications from API:', err)
         });
     }
 
@@ -103,17 +147,15 @@ export class NotificationService {
 
             this.socket.onopen = () => {
                 this.connectedSubject.next(true);
-                this.reconnectDelay = 3000; // Reset backoff on success
+                this.reconnectDelay = 3000;
             };
 
             this.socket.onmessage = (event) => {
                 try {
                     const msg = JSON.parse(event.data);
-                    // Support both raw notifications and wrapped { type, payload } format
                     if (msg.type === 'notification' && msg.payload) {
                         this.addNotification(msg.payload as Notification);
                     } else if (msg.title && msg.message) {
-                        // Raw notification object
                         this.addNotification(msg as Notification);
                     }
                 } catch (e) {
@@ -143,7 +185,6 @@ export class NotificationService {
         this.reconnectTimer = setTimeout(() => {
             if (this.shouldReconnect) {
                 this.connect();
-                // Exponential backoff capped at maxReconnectDelay
                 this.reconnectDelay = Math.min(this.reconnectDelay * 2, this.maxReconnectDelay);
             }
         }, this.reconnectDelay);
@@ -154,22 +195,26 @@ export class NotificationService {
         this.socket?.close();
         this.socket = undefined;
         this.connectedSubject.next(false);
-        this.notificationsSubject.next([]);
     }
 
     private addNotification(n: Notification) {
         if (!n.read) n.read = false;
         if (!n.created_at) n.created_at = new Date().toISOString();
         const current = this.notificationsSubject.value;
-        // Deduplicate by ID
         if (current.some(existing => existing.id === n.id)) return;
-        this.notificationsSubject.next([n, ...current].slice(0, 50)); // keep last 50
+        
+        const updated = [n, ...current].slice(0, 50);
+        this.notificationsSubject.next(updated);
+        this.persistNotifications(updated);
         this.newNotificationSubject.next(n);
     }
 
     markAsRead(id: string) {
         const current = this.notificationsSubject.value;
-        this.notificationsSubject.next(current.map(n => n.id === id ? { ...n, read: true } : n));
+        const updated = current.map(n => n.id === id ? { ...n, read: true } : n);
+        this.notificationsSubject.next(updated);
+        this.persistNotifications(updated);
+
         this.http.put(`/api/notifications/${id}/read`, {}).subscribe({
             error: (err) => console.warn('Failed to mark notification as read:', err)
         });
@@ -177,7 +222,10 @@ export class NotificationService {
 
     markAllAsRead() {
         const current = this.notificationsSubject.value;
-        this.notificationsSubject.next(current.map(n => ({ ...n, read: true })));
+        const updated = current.map(n => ({ ...n, read: true }));
+        this.notificationsSubject.next(updated);
+        this.persistNotifications(updated);
+
         this.http.put('/api/notifications/read-all', {}).subscribe({
             error: (err) => console.warn('Failed to mark all notifications as read:', err)
         });
@@ -185,6 +233,9 @@ export class NotificationService {
 
     clearAll() {
         this.notificationsSubject.next([]);
+        if (this.isBrowser) {
+            localStorage.removeItem(this.getStorageKey());
+        }
     }
 
     getTypeIcon(type: Notification['type']): string {

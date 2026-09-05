@@ -6,19 +6,7 @@ import { RouterModule } from '@angular/router';
   selector: 'app-teacher-subnav',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  template: `
-    <nav class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 mb-3 sm:mb-6 custom-scrollbar text-[11px] sm:text-xs font-black uppercase tracking-wider">
-      @for (link of navLinks; track link.route) {
-        <a [routerLink]="link.route"
-           routerLinkActive="bg-blue-600 text-white shadow-md shadow-blue-600/25 border-blue-500"
-           [routerLinkActiveOptions]="{ exact: link.exact }"
-           class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl bg-bg-secondary text-text-muted hover:text-text-primary border border-border-primary transition-all flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer">
-          <i [class]="link.icon" [ngClass]="link.iconColor"></i>
-          <span>{{ link.label }}</span>
-        </a>
-      }
-    </nav>
-  `,
+  template: ``,
   styles: [`
     :host {
       display: block;

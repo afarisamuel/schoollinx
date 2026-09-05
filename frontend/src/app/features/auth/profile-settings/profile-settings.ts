@@ -8,10 +8,12 @@ import { TenantProfileService } from '../../../core/infrastructure/tenant-profil
 import { TeacherPortalService } from '../../../core/infrastructure/teacher/teacher-portal.service';
 import { TeacherService } from '../../../core/infrastructure/teacher/teacher.service';
 
+import { RouterLink, RouterLinkActive } from '@angular/router';
+
 @Component({
   selector: 'app-profile-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive],
   templateUrl: './profile-settings.html',
 })
 export class ProfileSettings implements OnInit {
@@ -28,6 +30,14 @@ export class ProfileSettings implements OnInit {
   loading: boolean = false;
   error: string = '';
   success: string = '';
+
+  // Active Tab navigation
+  activeTab: 'institution' | 'security' | 'account' = 'institution';
+
+  setActiveTab(tab: 'institution' | 'security' | 'account') {
+    this.activeTab = tab;
+    this.cdr.detectChanges();
+  }
 
   // Teacher Profile Settings
   private teacherPortalService = inject(TeacherPortalService);
