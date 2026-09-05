@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { GradeService } from '../../../core/infrastructure/grade/grade.service';
 import { ClassService, Class } from '../../../core/infrastructure/curriculum/class.service';
 import { StudentService } from '../../../core/infrastructure/student/student.service';
@@ -36,7 +37,7 @@ export interface GradeScaleDefinition {
 @Component({
   selector: 'app-bulk-grading',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './bulk-grading.component.html',
   styleUrl: './bulk-grading.component.css'
 })
@@ -61,6 +62,28 @@ export class BulkGradingComponent implements OnInit {
   terms = signal<AcademicTerm[]>([]);
   activePeriodId = signal('');
   activeTermId = signal('');
+
+  // Computed Telemetry
+  selectedClassName = computed(() => {
+    const c = this.classes().find(cls => cls.id === this.selectedClassId());
+    return c ? c.name : 'No Class Selected';
+  });
+
+  selectedSubjectName = computed(() => {
+    const s = this.subjects().find(sub => sub.id === this.selectedSubjectId());
+    return s ? s.name : 'No Subject Selected';
+  });
+
+  gradedStudentsCount = computed(() => {
+    return this.students().filter(s => this.getTotalPercentage(s.id!) !== '—').length;
+  });
+
+  completionPercentage = computed(() => {
+    const total = this.students().length;
+    if (!total) return 0;
+    return Math.round((this.gradedStudentsCount() / total) * 100);
+  });
+
 
   // Role permissions
   isHeadmasterOrAdmin = computed(() => {

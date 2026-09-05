@@ -1,341 +1,916 @@
-<div class="flex flex-col gap-4 sm:gap-6 font-sans animate-fade-in">
-  <!-- Header -->
-  <header
-    class="flex justify-between items-center bg-bg-secondary p-1 sm:p-6 rounded-xl sm:rounded-2xl border border-border-primary shadow-xl relative overflow-hidden">
-    <!-- Ambient glow -->
-    <div class="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/10 blur-[50px] rounded-full pointer-events-none"></div>
+<div class="flex flex-col gap-8 pb-16 animate-fade-in text-text-primary">
 
-    <div class="relative z-10">
-      <h1 class="text-3xl font-extrabold text-blue-400">
-        Assessment Builder
-      </h1>
-      <p class="text-sm text-text-secondary mt-1 font-medium">Design and publish Computer-Based Tests (CBT)</p>
+  <!-- Top Ambient Lighting Cones -->
+  <div class="fixed top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+  <div class="fixed top-24 right-1/4 w-96 h-96 bg-rose-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+
+  <!-- 1. Executive Hero Header & Sub-Domain Quick Bar -->
+  <div class="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-bg-secondary via-bg-secondary/95 to-bg-tertiary border border-border-primary p-8 md:p-10 shadow-2xl backdrop-blur-xl">
+    <div class="absolute -right-20 -top-20 w-96 h-96 bg-gradient-to-br from-purple-500/20 via-indigo-500/15 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-rose-500/10 rounded-full blur-2xl pointer-events-none"></div>
+    
+    <div class="relative z-10 flex flex-col gap-6">
+      <!-- Breadcrumbs & Meta Badges -->
+      <div class="flex flex-wrap items-center justify-between gap-4 border-b border-border-primary/60 pb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-rose-500 animate-pulse"></div>
+          <div class="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-text-muted">
+            <a routerLink="/teachers/cockpit" class="hover:text-text-primary transition-colors">Faculty Workspace</a>
+            <span>/</span>
+            <span class="text-rose-400">Instructional Systems</span>
+            <span>/</span>
+            <span class="text-text-primary font-bold">CBT Assessment Studio</span>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+            <i class="fas fa-layer-group text-[10px]"></i>
+            {{ classes().length }} Classrooms Active
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <i class="fas fa-check-circle text-[10px]"></i>
+            {{ publishedQuizzesCount() }} Published
+          </span>
+        </div>
+      </div>
+
+      <!-- Title & Quick Operations Sub-Domain Navigation -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div class="space-y-2">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 via-indigo-600 to-rose-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/25">
+              <i class="fas fa-laptop-code text-xl"></i>
+            </div>
+            <div>
+              <h1 class="text-3xl lg:text-4xl font-black tracking-tight text-text-primary flex items-center gap-3">
+                CBT Assessment <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 bg-clip-text text-transparent">Studio</span>
+              </h1>
+              <p class="text-sm font-medium text-text-secondary mt-0.5">
+                Author, configure, and publish Computer-Based Tests with instant student simulations and telemetry.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sibling Domain Navigation Shortcuts -->
+        <div class="flex flex-wrap items-center gap-2 bg-bg-primary/50 backdrop-blur-md p-1.5 rounded-2xl border border-border-primary/80 self-start lg:self-auto">
+          <a routerLink="/teachers/cbt-builder" 
+             class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-purple-500/20 text-purple-300 border border-purple-500/30 shadow-sm">
+            <i class="fas fa-laptop-code text-xs"></i>
+            CBT Builder
+          </a>
+          <a routerLink="/teachers/homework" 
+             class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-text-muted hover:text-text-primary hover:bg-bg-tertiary">
+            <i class="fas fa-book-reader text-xs"></i>
+            Homework Portal
+          </a>
+          <a routerLink="/teachers/lesson-planner" 
+             class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-text-muted hover:text-text-primary hover:bg-bg-tertiary">
+            <i class="fas fa-project-diagram text-xs"></i>
+            Lesson Planner
+          </a>
+          <a routerLink="/grading/entry" 
+             class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-text-muted hover:text-text-primary hover:bg-bg-tertiary">
+            <i class="fas fa-award text-xs"></i>
+            Classroom Grading
+          </a>
+          <a routerLink="/teachers/cockpit" 
+             class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-text-muted hover:text-text-primary hover:bg-bg-tertiary">
+            <i class="fas fa-chalkboard-teacher text-xs"></i>
+            Cockpit
+          </a>
+        </div>
+      </div>
     </div>
-    <button (click)="showQuizForm.set(true)"
-      class="relative z-10 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-lg shadow-blue-500/25 active:scale-95 flex items-center gap-2 border border-blue-500/20">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
-      </svg>
-      New Assessment
-    </button>
-  </header>
+  </div>
 
-  <!-- Main Layout -->
-  <div class="flex flex-col lg:flex-row flex-1 gap-6 min-h-0">
-    <!-- Left Pane: Quiz List -->
-    <aside
-      class="w-full lg:w-1/3 xl:w-1/4 bg-bg-secondary rounded-2xl border border-border-primary flex flex-col overflow-hidden shadow-xl">
-      <div class="p-5 border-b border-border-primary bg-bg-tertiary/50">
-        <h2 class="font-bold text-text-primary text-sm uppercase tracking-wider">Active Assessments</h2>
-      </div>
-      <div class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-        <div *ngFor="let q of quizzes()" (click)="selectQuiz(q)" [class.border-blue-500]="selectedQuiz()?.id === q.id"
-          [class.bg-blue-500_5]="selectedQuiz()?.id === q.id" [class.shadow-md]="selectedQuiz()?.id === q.id"
-          class="p-4 rounded-xl border border-border-primary bg-bg-primary hover:bg-bg-tertiary cursor-pointer transition-all duration-200 group relative overflow-hidden">
-
-          <div
-            class="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-            *ngIf="selectedQuiz()?.id !== q.id"></div>
-
-          <div class="flex justify-between items-start mb-2 relative z-10">
-            <h3 class="font-bold text-text-primary group-hover:text-blue-500 transition-colors line-clamp-1 pr-2"
-              [class.text-blue-500]="selectedQuiz()?.id === q.id">{{ q.title }}</h3>
-            <span class="text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-black shrink-0 border"
-              [ngClass]="{
-                    'bg-amber-500/10 text-amber-500 border-amber-500/20': q.status === 'DRAFT',
-                    'bg-emerald-500/10 text-emerald-500 border-emerald-500/20': q.status === 'PUBLISHED'
-                  }">
-              {{ q.status }}
-            </span>
-          </div>
-          <p class="text-xs text-text-secondary line-clamp-2 font-medium relative z-10">{{ q.description || 'No
-            description provided.' }}</p>
-          <div class="mt-3 flex items-center gap-4 text-xs font-bold text-text-muted relative z-10">
-            <span class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5 text-blue-400" fill="none"
-                stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z">
-                </path>
-              </svg> {{ q.time_limit_mins }} mins</span>
-          </div>
+  <!-- 2. High-Impact Telemetry Hub (4 Glassmorphic KPI Cards) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+    <!-- 1. Total CBT Assessments -->
+    <div class="relative overflow-hidden bg-bg-secondary/90 border border-border-primary hover:border-purple-500/40 rounded-3xl p-6 shadow-lg backdrop-blur-md group transition-all">
+      <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-purple-500/10 rounded-full blur-2xl group-hover:scale-125 transition-transform"></div>
+      <div class="relative z-10 flex items-center justify-between">
+        <div class="space-y-1">
+          <p class="text-[11px] font-black uppercase tracking-widest text-text-muted">Total Assessments</p>
+          <h3 class="text-3xl font-black tracking-tight text-text-primary mt-1">{{ totalQuizzesCount() }}</h3>
         </div>
-
-        <div *ngIf="quizzes().length === 0"
-          class="flex flex-col items-center justify-center p-8 text-text-muted gap-3 opacity-60">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="1.5">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-          <span class="text-sm font-semibold">No assessments found.</span>
+        <div class="w-12 h-12 rounded-2xl bg-purple-500/15 flex items-center justify-center text-purple-400 border border-purple-500/20">
+          <i class="fas fa-file-signature text-xl"></i>
         </div>
       </div>
-    </aside>
+      <div class="relative z-10 flex items-center justify-between mt-4 pt-3 border-t border-border-primary/60 text-xs text-text-secondary">
+        <span class="font-bold text-purple-400 flex items-center gap-1">
+          <i class="fas fa-layer-group text-[10px]"></i>
+          {{ draftQuizzesCount() }} Drafts in Progress
+        </span>
+        <span class="text-[11px] font-mono text-text-muted">Active Scope</span>
+      </div>
+    </div>
 
-    <!-- Right Pane: Quiz Editor -->
-    <main
-      class="flex-1 bg-bg-secondary rounded-2xl border border-border-primary flex flex-col overflow-hidden shadow-xl relative">
-      <div *ngIf="selectedQuiz() as quiz" class="flex flex-col h-full animate-fade-in">
-        <!-- Editor Header -->
-        <div
-          class="p-6 md:p-8 border-b border-border-primary flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-bg-tertiary/30 backdrop-blur">
-          <div>
-            <h2 class="text-2xl font-black text-text-primary tracking-tight">{{ quiz.title }}</h2>
-            <p class="text-text-secondary text-sm mt-1 font-medium">{{ quiz.description }}</p>
-          </div>
-          <div class="flex gap-3 shrink-0">
-            <button
-              class="bg-bg-primary hover:bg-bg-tertiary border border-border-primary text-text-primary px-5 py-2.5 rounded-xl text-sm font-bold transition-colors">Preview</button>
-            <button
-              class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-500/20 active:scale-95 border border-emerald-500/20">Publish</button>
+    <!-- 2. Published & Active -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-900 border border-emerald-400/30 rounded-3xl p-6 shadow-xl shadow-emerald-900/20 group hover:border-emerald-400/50 transition-all text-white">
+      <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform"></div>
+      <div class="relative z-10 flex items-center justify-between">
+        <div class="space-y-1">
+          <p class="text-[11px] font-black uppercase tracking-widest text-emerald-200">Published Live</p>
+          <h3 class="text-3xl font-black tracking-tight mt-1 text-white">{{ publishedQuizzesCount() }}</h3>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white border border-white/20">
+          <i class="fas fa-play text-xl"></i>
+        </div>
+      </div>
+      <div class="relative z-10 flex items-center justify-between mt-4 pt-3 border-t border-white/15 text-xs text-emerald-100">
+        <span class="flex items-center gap-1.5 font-bold">
+          <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+          Ready for Student Examination
+        </span>
+        <span class="font-mono text-[11px] opacity-80">Live</span>
+      </div>
+    </div>
+
+    <!-- 3. Question Bank Repository -->
+    <div class="relative overflow-hidden bg-bg-secondary/90 border border-border-primary hover:border-border-secondary rounded-3xl p-6 shadow-lg backdrop-blur-md group transition-all">
+      <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-blue-500/10 rounded-full blur-2xl group-hover:scale-125 transition-transform"></div>
+      <div class="relative z-10 flex items-center justify-between">
+        <div class="space-y-1">
+          <p class="text-[11px] font-black uppercase tracking-widest text-text-muted">Questions Compiled</p>
+          <h3 class="text-3xl font-black tracking-tight text-text-primary mt-1">{{ totalQuestionsCount() }}</h3>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-blue-500/15 flex items-center justify-center text-blue-400 border border-blue-500/20">
+          <i class="fas fa-question-circle text-xl"></i>
+        </div>
+      </div>
+      <div class="relative z-10 flex items-center justify-between mt-4 pt-3 border-t border-border-primary/60 text-xs text-text-secondary">
+        <span class="font-bold text-blue-400 flex items-center gap-1">
+          <i class="fas fa-stream text-[10px]"></i>
+          Multiple Choice & Short Ans
+        </span>
+        <span class="text-[11px] font-bold text-text-muted">Bank Depth</span>
+      </div>
+    </div>
+
+    <!-- 4. Selected Classroom Scope -->
+    <div class="relative overflow-hidden bg-bg-secondary/90 border border-border-primary hover:border-border-secondary rounded-3xl p-6 shadow-lg backdrop-blur-md group transition-all">
+      <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-rose-500/10 rounded-full blur-2xl group-hover:scale-125 transition-transform"></div>
+      <div class="relative z-10 flex items-center justify-between">
+        <div class="space-y-1">
+          <p class="text-[11px] font-black uppercase tracking-widest text-text-muted">Target Classroom</p>
+          <h3 class="text-lg font-black tracking-tight text-text-primary mt-1 truncate max-w-[160px]">
+            {{ getClassName(selectedClassId()) }}
+          </h3>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-rose-500/15 flex items-center justify-center text-rose-400 border border-rose-500/20">
+          <i class="fas fa-chalkboard text-xl"></i>
+        </div>
+      </div>
+      <div class="relative z-10 flex items-center justify-between mt-4 pt-3 border-t border-border-primary/60 text-xs text-text-secondary">
+        <span class="font-bold text-rose-400">{{ classes().length }} Classes Available</span>
+        <span class="text-[11px] font-mono text-text-muted">Scope</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Master-Detail CBT Studio Workspace -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+    <!-- Left 4 Cols: Assessment Selection & Filter Deck -->
+    <div class="lg:col-span-4 flex flex-col gap-5">
+      
+      <!-- Class Filter Selector & New Assessment Button -->
+      <div class="bg-bg-secondary/90 border border-border-primary rounded-3xl p-5 shadow-xl backdrop-blur-md space-y-4">
+        
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-black uppercase tracking-widest text-text-muted flex items-center gap-1.5">
+            <i class="fas fa-filter text-purple-400"></i>
+            Classroom Scope
+          </label>
+          <button (click)="openNewQuizModal()"
+                  class="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-md shadow-purple-500/20 transition-all flex items-center gap-1.5 active:scale-95">
+            <i class="fas fa-plus text-xs"></i>
+            <span>New Test</span>
+          </button>
+        </div>
+
+        <!-- Class Dropdown -->
+        <div class="relative">
+          <select [ngModel]="selectedClassId()" 
+                  (ngModelChange)="onClassFilterChange($event)"
+                  class="w-full bg-bg-primary border border-border-primary focus:border-purple-500 rounded-2xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none transition-all appearance-none cursor-pointer">
+            @for (cls of classes(); track cls.id) {
+              <option [value]="cls.id">🎓 {{ cls.name }}</option>
+            }
+          </select>
+          <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-text-muted">
+            <i class="fas fa-chevron-down text-xs"></i>
           </div>
         </div>
 
-        <!-- Questions List -->
-        <div class="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
-          <div class="flex justify-between items-center mb-8">
-            <h3 class="text-lg font-black text-text-primary tracking-tight">Questions <span
-                class="text-text-muted font-medium text-sm ml-2">({{ quiz.questions?.length || 0 }} total)</span></h3>
-            <button (click)="showQuestionForm.set(true)"
-              class="text-sm bg-blue-500/10 text-blue-500 border border-blue-500/20 hover:bg-blue-500 hover:text-white px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-2 active:scale-95 shadow-sm">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
-              </svg> Add Question
+        <!-- Search Input -->
+        <div class="relative">
+          <div class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-text-muted">
+            <i class="fas fa-search text-xs"></i>
+          </div>
+          <input type="text" 
+                 placeholder="Search by test title, subject..."
+                 [value]="searchQuery()"
+                 (input)="searchQuery.set($any($event.target).value)"
+                 class="w-full pl-9 pr-8 py-2.5 bg-bg-primary/80 border border-border-primary rounded-xl text-xs font-medium text-text-primary focus:outline-none focus:border-purple-500 transition-all placeholder:text-text-muted">
+          @if (searchQuery()) {
+            <button (click)="searchQuery.set('')" class="absolute inset-y-0 right-3 flex items-center text-text-muted hover:text-text-primary">
+              <i class="fas fa-times text-xs"></i>
             </button>
+          }
+        </div>
+
+        <!-- Status Filter Segment Chips -->
+        <div class="flex items-center gap-1.5 pt-1 border-t border-border-primary/50 text-xs">
+          <button (click)="selectedStatusFilter.set('ALL')"
+                  [class.bg-purple-600]="selectedStatusFilter() === 'ALL'"
+                  [class.text-white]="selectedStatusFilter() === 'ALL'"
+                  [class.bg-bg-tertiary]="selectedStatusFilter() !== 'ALL'"
+                  [class.text-text-muted]="selectedStatusFilter() !== 'ALL'"
+                  class="flex-1 py-1.5 rounded-xl font-bold transition-all text-center">
+            All ({{ quizzes().length }})
+          </button>
+          <button (click)="selectedStatusFilter.set('PUBLISHED')"
+                  [class.bg-purple-600]="selectedStatusFilter() === 'PUBLISHED'"
+                  [class.text-white]="selectedStatusFilter() === 'PUBLISHED'"
+                  [class.bg-bg-tertiary]="selectedStatusFilter() !== 'PUBLISHED'"
+                  [class.text-text-muted]="selectedStatusFilter() !== 'PUBLISHED'"
+                  class="flex-1 py-1.5 rounded-xl font-bold transition-all text-center">
+            Live ({{ publishedQuizzesCount() }})
+          </button>
+          <button (click)="selectedStatusFilter.set('DRAFT')"
+                  [class.bg-purple-600]="selectedStatusFilter() === 'DRAFT'"
+                  [class.text-white]="selectedStatusFilter() === 'DRAFT'"
+                  [class.bg-bg-tertiary]="selectedStatusFilter() !== 'DRAFT'"
+                  [class.text-text-muted]="selectedStatusFilter() !== 'DRAFT'"
+                  class="flex-1 py-1.5 rounded-xl font-bold transition-all text-center">
+            Drafts ({{ draftQuizzesCount() }})
+          </button>
+        </div>
+      </div>
+
+      <!-- Assessments Feed List -->
+      <div class="bg-bg-secondary/90 border border-border-primary rounded-3xl p-4 shadow-xl backdrop-blur-md space-y-3 max-h-[600px] overflow-y-auto">
+        <div class="flex items-center justify-between px-2 pt-1 pb-2 border-b border-border-primary/50">
+          <span class="text-xs font-black uppercase tracking-widest text-text-muted">Assessments Roster</span>
+          <span class="text-[11px] font-bold text-purple-400">{{ filteredQuizzes().length }} found</span>
+        </div>
+
+        @if (isLoading()) {
+          <div class="py-16 text-center space-y-3">
+            <div class="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p class="text-xs font-bold text-text-muted">Loading assessments...</p>
           </div>
-
-          <div class="space-y-5">
-            <div *ngFor="let q of quiz.questions; let i = index"
-              class="p-6 bg-bg-primary border border-border-primary rounded-2xl relative group hover:border-blue-500/30 transition-colors shadow-sm">
-              <div
-                class="absolute -left-3 -top-3 w-8 h-8 bg-bg-secondary border border-border-primary text-text-primary rounded-xl flex items-center justify-center text-xs font-black shadow-lg">
-                {{ i + 1 }}
+        } @else {
+          @for (q of filteredQuizzes(); track q.id) {
+            <div (click)="selectQuiz(q)" 
+                 [class.border-purple-500]="selectedQuiz()?.id === q.id"
+                 [class.bg-purple-500/10]="selectedQuiz()?.id === q.id"
+                 [class.shadow-md]="selectedQuiz()?.id === q.id"
+                 class="p-4 rounded-2xl border border-border-primary bg-bg-primary/70 hover:bg-bg-tertiary/60 cursor-pointer transition-all duration-200 group relative overflow-hidden space-y-2.5">
+              
+              <div class="flex items-start justify-between gap-2">
+                <h3 class="font-black text-sm text-text-primary group-hover:text-purple-400 transition-colors line-clamp-1"
+                    [class.text-purple-400]="selectedQuiz()?.id === q.id">
+                  {{ q.title }}
+                </h3>
+                <span class="text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-black shrink-0 border"
+                      [class.bg-emerald-500/10]="q.status === 'PUBLISHED'"
+                      [class.text-emerald-400]="q.status === 'PUBLISHED'"
+                      [class.border-emerald-500/20]="q.status === 'PUBLISHED'"
+                      [class.bg-amber-500/10]="q.status === 'DRAFT'"
+                      [class.text-amber-400]="q.status === 'DRAFT'"
+                      [class.border-amber-500/20]="q.status === 'DRAFT'">
+                  {{ q.status }}
+                </span>
               </div>
 
-              <div class="flex justify-between items-start ml-2 mb-4">
-                <span
-                  class="text-[10px] font-black tracking-widest uppercase bg-bg-tertiary border border-border-primary text-text-secondary px-3 py-1 rounded-lg">{{
-                  q.type.replace('_', ' ') }}</span>
-                <span
-                  class="text-xs font-black text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg">{{
-                  q.points }} pts</span>
-              </div>
+              <p class="text-xs text-text-secondary line-clamp-2 leading-relaxed">
+                {{ q.description || 'No instructions provided.' }}
+              </p>
 
-              <p class="text-text-primary ml-2 font-bold mb-5 text-base leading-relaxed">{{ q.content }}</p>
-
-              <div *ngIf="q.type === 'MULTIPLE_CHOICE' && q.options" class="ml-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div
-                  class="p-3 border border-border-secondary rounded-xl bg-bg-tertiary/50 text-sm font-medium text-text-secondary flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="16" x2="12" y2="12" />
-                    <line x1="12" y1="8" x2="12.01" y2="8" />
-                  </svg>
-                  Options preview unavailable
-                </div>
+              <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border-primary/40 text-[11px] text-text-muted font-bold">
+                <span class="flex items-center gap-1.5 text-indigo-400">
+                  <i class="far fa-clock text-[10px]"></i>
+                  {{ q.time_limit_mins ? q.time_limit_mins + ' mins' : 'Untimed' }}
+                </span>
+                <span class="flex items-center gap-1.5 text-rose-400">
+                  <i class="fas fa-list-ol text-[10px]"></i>
+                  {{ q.questions?.length || 0 }} Questions
+                </span>
               </div>
             </div>
-
-            <div *ngIf="!quiz.questions?.length"
-              class="text-center p-16 text-text-muted border-2 border-dashed border-border-primary rounded-3xl bg-bg-tertiary/30">
-              <div
-                class="w-16 h-16 bg-bg-secondary border border-border-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <svg class="w-8 h-8 text-text-muted opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                  stroke-width="1.5">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                  </path>
-                </svg>
-              </div>
-              <p class="font-bold text-text-primary text-lg mb-1">No questions added</p>
-              <p class="text-sm">Click "Add Question" to build your assessment.</p>
+          } @empty {
+            <div class="flex flex-col items-center justify-center py-16 text-center space-y-3 opacity-60">
+              <i class="fas fa-folder-open text-3xl text-text-muted"></i>
+              <p class="text-xs font-bold text-text-muted uppercase tracking-widest">No assessments found</p>
+              <button (click)="openNewQuizModal()" class="text-xs text-purple-400 font-bold hover:underline">
+                + Create new assessment
+              </button>
             </div>
-          </div>
-        </div>
+          }
+        }
       </div>
-
-      <!-- Empty State -->
-      <div *ngIf="!selectedQuiz()" class="flex-1 flex flex-col items-center justify-center text-text-muted p-8">
-        <div class="absolute inset-0 bg-blue-500/5 pointer-events-none opacity-50"></div>
-        <div
-          class="w-24 h-24 bg-bg-tertiary border border-border-primary rounded-3xl flex items-center justify-center mb-6 shadow-sm relative z-10">
-          <svg class="w-10 h-10 text-text-muted opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-            stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-            </path>
-          </svg>
-        </div>
-        <p class="text-xl font-black text-text-primary tracking-tight relative z-10">Select an assessment</p>
-        <p class="text-sm font-medium mt-2 relative z-10 max-w-xs text-center">Choose an existing test from the sidebar
-          or create a new one to get started.</p>
-      </div>
-    </main>
-  </div>
-</div>
-
-<!-- Modal: New Quiz -->
-<div *ngIf="showQuizForm()"
-  class="fixed inset-0 bg-bg-primary/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in" (click)="showQuizForm.set(false)">
-  <div
-    class="bg-bg-secondary rounded-t-3xl sm:rounded-3xl border border-border-primary shadow-2xl w-full max-w-md overflow-hidden animate-slide-up sm:animate-scale-in max-h-[90vh] sm:max-h-[85vh] flex flex-col" (click)="$event.stopPropagation()">
-    <!-- Mobile Handle -->
-    <div class="sm:hidden flex justify-center pt-3 pb-1">
-      <div class="bottomsheet-handle"></div>
     </div>
-    <div class="p-5 sm:p-6 border-b border-border-primary flex justify-between items-center bg-bg-tertiary/50">
-      <h3 class="text-base sm:text-lg font-black text-text-primary tracking-tight">Create Assessment</h3>
-      <button (click)="showQuizForm.set(false)"
-        class="w-8 h-8 rounded-xl bg-bg-primary border border-border-primary flex items-center justify-center text-text-muted hover:text-text-primary transition-colors"><svg
-          class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-        </svg></button>
-    </div>
-    <form [formGroup]="quizForm" (ngSubmit)="submitQuiz()" class="p-5 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto">
-      <div>
-        <label class="block text-[10px] font-black text-text-muted mb-1.5 sm:mb-2 uppercase tracking-widest">Assessment
-          Title</label>
-        <input type="text" formControlName="title"
-          class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted"
-          placeholder="e.g. Mid-Term Physics">
-      </div>
-      <div>
-        <label class="block text-[10px] font-black text-text-muted mb-1.5 sm:mb-2 uppercase tracking-widest">Description</label>
-        <textarea formControlName="description" rows="3"
-          class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted resize-none"
-          placeholder="Brief instructions..."></textarea>
-      </div>
-      <div>
-        <label class="block text-[10px] font-black text-text-muted mb-1.5 sm:mb-2 uppercase tracking-widest">Time Limit
-          (Minutes)</label>
-        <input type="number" formControlName="time_limit_mins"
-          class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted">
-        <p class="text-[10px] font-bold text-text-muted mt-1.5 flex items-center gap-1"><svg
-            xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
-          </svg> Set to 0 for untimed.</p>
-      </div>
-      <div class="pt-4 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 border-t border-border-primary mt-2">
-        <button type="button" (click)="showQuizForm.set(false)"
-          class="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-border-primary text-xs sm:text-sm font-bold text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors">Cancel</button>
-        <button type="submit" [disabled]="quizForm.invalid"
-          class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md active:scale-95">Create</button>
-      </div>
-    </form>
-  </div>
-</div>
 
-<!-- Modal: New Question -->
-<div *ngIf="showQuestionForm()"
-  class="fixed inset-0 bg-bg-primary/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in" (click)="showQuestionForm.set(false)">
-  <div
-    class="bg-bg-secondary rounded-t-3xl sm:rounded-3xl border border-border-primary shadow-2xl w-full max-w-xl overflow-hidden animate-slide-up sm:animate-scale-in max-h-[92vh] sm:max-h-[85vh] flex flex-col" (click)="$event.stopPropagation()">
-    <!-- Mobile Handle -->
-    <div class="sm:hidden flex justify-center pt-3 pb-1">
-      <div class="bottomsheet-handle"></div>
-    </div>
-    <div class="p-5 sm:p-6 border-b border-border-primary flex justify-between items-center bg-bg-tertiary/50 shrink-0">
-      <h3 class="text-base sm:text-lg font-black text-text-primary tracking-tight">Add Question</h3>
-      <button (click)="showQuestionForm.set(false)"
-        class="w-8 h-8 rounded-xl bg-bg-primary border border-border-primary flex items-center justify-center text-text-muted hover:text-text-primary transition-colors"><svg
-          class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-        </svg></button>
-    </div>
-    <form [formGroup]="questionForm" (ngSubmit)="submitQuestion()"
-      class="p-5 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto custom-scrollbar flex-1">
-      <div class="flex flex-col sm:flex-row gap-3 sm:gap-5">
-        <div class="flex-1">
-          <label class="block text-[10px] font-black text-text-muted mb-1.5 sm:mb-2 uppercase tracking-widest">Question
-            Type</label>
-          <div class="relative">
-            <select formControlName="type"
-              class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none">
-              <option value="MULTIPLE_CHOICE">Multiple Choice</option>
-              <option value="TRUE_FALSE">True / False</option>
-              <option value="SHORT_ANSWER">Short Answer</option>
-            </select>
-            <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-text-muted"><svg
-                xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2.5">
-                <path d="m6 9 6 6 6-6" />
-              </svg></div>
-          </div>
-        </div>
-        <div class="w-full sm:w-24">
-          <label class="block text-[10px] font-black text-text-muted mb-1.5 sm:mb-2 uppercase tracking-widest">Points</label>
-          <input type="number" formControlName="points"
-            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all">
-        </div>
-      </div>
+    <!-- Right 8 Cols: Interactive Assessment Studio Canvas -->
+    <div class="lg:col-span-8 flex flex-col gap-6">
 
-      <div>
-        <label class="block text-[10px] font-black text-text-muted mb-1.5 sm:mb-2 uppercase tracking-widest">Question
-          Prompt</label>
-        <textarea formControlName="content" rows="3"
-          class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted resize-none"
-          placeholder="Enter question text..."></textarea>
-      </div>
+      @if (selectedQuiz(); as quiz) {
+        <div class="bg-gradient-to-br from-bg-secondary via-bg-secondary/95 to-bg-tertiary border border-border-primary rounded-3xl p-6 md:p-8 shadow-2xl backdrop-blur-xl space-y-6">
+          
+          <!-- Studio Header Controls -->
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-5 border-b border-border-primary/60 pb-6">
+            <div class="space-y-2">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-500/15 text-purple-300 border border-purple-500/25">
+                  <i class="fas fa-book text-[9px] mr-1"></i>
+                  {{ getSubjectName(quiz.subject_id) }}
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/15 text-blue-300 border border-blue-500/25">
+                  <i class="fas fa-graduation-cap text-[9px] mr-1"></i>
+                  {{ getClassName(quiz.class_id) }}
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider"
+                      [class.bg-emerald-500/15]="quiz.status === 'PUBLISHED'"
+                      [class.text-emerald-400]="quiz.status === 'PUBLISHED'"
+                      [class.bg-amber-500/15]="quiz.status === 'DRAFT'"
+                      [class.text-amber-400]="quiz.status === 'DRAFT'">
+                  ● {{ quiz.status }}
+                </span>
+              </div>
 
-      <ng-container *ngIf="questionForm.get('type')?.value === 'MULTIPLE_CHOICE'">
-        <div class="bg-bg-primary border border-border-primary rounded-2xl p-3.5 sm:p-4">
-          <div class="flex justify-between items-center mb-3">
-            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest">Options</label>
-            <button type="button" (click)="addOption()"
-              class="text-[10px] font-black text-blue-500 hover:text-blue-400 uppercase tracking-widest bg-blue-500/10 px-2.5 py-1 rounded-lg border border-blue-500/20 transition-colors">+
-              Add Option</button>
-          </div>
-          <div formArrayName="options" class="space-y-3">
-            <div *ngFor="let opt of optionsArray.controls; let i=index" class="flex gap-2 sm:gap-3 items-center">
-              <span
-                class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-bg-secondary border border-border-primary text-text-secondary rounded-xl text-xs font-black shadow-sm shrink-0">{{
-                i + 1 }}</span>
-              <input [formControlName]="i" type="text"
-                class="flex-1 bg-bg-tertiary border border-border-primary rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted"
-                placeholder="Option text">
-              <button type="button" (click)="removeOption(i)" [disabled]="optionsArray.length <= 2"
-                class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                  </path>
-                </svg>
+              <h2 class="text-2xl md:text-3xl font-black text-text-primary tracking-tight">
+                {{ quiz.title }}
+              </h2>
+              @if (quiz.description) {
+                <p class="text-xs font-medium text-text-secondary leading-relaxed max-w-2xl">
+                  {{ quiz.description }}
+                </p>
+              }
+            </div>
+
+            <!-- Action Triggers -->
+            <div class="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
+              <button (click)="openSimulatorPreview()"
+                      class="px-4 py-2.5 bg-bg-tertiary hover:bg-bg-primary border border-border-primary rounded-xl text-xs font-bold text-text-primary transition-all flex items-center gap-2 shadow-sm">
+                <i class="fas fa-eye text-indigo-400"></i>
+                <span>Simulator Preview</span>
+              </button>
+
+              <button (click)="togglePublishStatus()"
+                      [disabled]="isPublishing()"
+                      class="px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-md active:scale-95 border"
+                      [class.bg-emerald-600]="quiz.status === 'DRAFT'"
+                      [class.hover:bg-emerald-500]="quiz.status === 'DRAFT'"
+                      [class.text-white]="quiz.status === 'DRAFT'"
+                      [class.border-emerald-500/30]="quiz.status === 'DRAFT'"
+                      [class.bg-amber-600]="quiz.status === 'PUBLISHED'"
+                      [class.hover:bg-amber-500]="quiz.status === 'PUBLISHED'"
+                      [class.text-white]="quiz.status === 'PUBLISHED'"
+                      [class.border-amber-500/30]="quiz.status === 'PUBLISHED'">
+                @if (quiz.status === 'DRAFT') {
+                  <i class="fas fa-paper-plane"></i>
+                  <span>Publish Test</span>
+                } @else {
+                  <i class="fas fa-pause"></i>
+                  <span>Set to Draft</span>
+                }
               </button>
             </div>
           </div>
-        </div>
 
-        <div>
-          <label class="block text-[10px] font-black text-text-muted mb-1.5 sm:mb-2 uppercase tracking-widest">Correct Answer
-            Index (1-based)</label>
-          <input type="text" formControlName="correct_answer"
-            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted"
-            placeholder="e.g. 2">
-        </div>
-      </ng-container>
+          <!-- Assessment Telemetry Strip -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-bg-primary/50 border border-border-primary/60 rounded-2xl p-4 text-xs font-bold">
+            <div class="space-y-0.5">
+              <span class="text-[10px] text-text-muted uppercase tracking-wider">Duration</span>
+              <p class="text-sm font-black text-text-primary flex items-center gap-1.5">
+                <i class="far fa-clock text-indigo-400"></i>
+                {{ quiz.time_limit_mins ? quiz.time_limit_mins + ' Minutes' : 'Untimed' }}
+              </p>
+            </div>
+            <div class="space-y-0.5">
+              <span class="text-[10px] text-text-muted uppercase tracking-wider">Total Questions</span>
+              <p class="text-sm font-black text-text-primary flex items-center gap-1.5">
+                <i class="fas fa-list-ol text-purple-400"></i>
+                {{ quiz.questions?.length || 0 }} Items
+              </p>
+            </div>
+            <div class="space-y-0.5">
+              <span class="text-[10px] text-text-muted uppercase tracking-wider">Total Points</span>
+              <p class="text-sm font-black text-text-primary flex items-center gap-1.5">
+                <i class="fas fa-award text-amber-400"></i>
+                {{ selectedQuizTotalPoints() }} Points
+              </p>
+            </div>
+            <div class="space-y-0.5">
+              <span class="text-[10px] text-text-muted uppercase tracking-wider">Passing Standard</span>
+              <p class="text-sm font-black text-emerald-400 flex items-center gap-1.5">
+                <i class="fas fa-shield-alt"></i>
+                Auto-Evaluated
+              </p>
+            </div>
+          </div>
 
-      <ng-container *ngIf="questionForm.get('type')?.value !== 'MULTIPLE_CHOICE'">
-        <div>
-          <label class="block text-[10px] font-black text-text-muted mb-1.5 sm:mb-2 uppercase tracking-widest">Correct
-            Answer</label>
-          <input type="text" formControlName="correct_answer"
-            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 sm:py-3 text-sm font-bold text-text-primary focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder-text-muted"
-            placeholder="e.g. true, false, or short text">
-        </div>
-      </ng-container>
+          <!-- Questions Canvas Header -->
+          <div class="flex items-center justify-between pt-2">
+            <div class="space-y-0.5">
+              <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                <i class="fas fa-layer-group text-purple-400"></i>
+                Question Canvas
+              </h3>
+              <p class="text-[11px] font-bold text-text-muted uppercase tracking-widest">
+                {{ quiz.questions?.length || 0 }} Questions Configured
+              </p>
+            </div>
 
-      <div class="pt-4 sm:pt-5 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 border-t border-border-primary mt-4 sm:mt-6">
-        <button type="button" (click)="showQuestionForm.set(false)"
-          class="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-border-primary text-xs sm:text-sm font-bold text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors">Cancel</button>
-        <button type="submit" [disabled]="questionForm.invalid"
-          class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md active:scale-95">Save
-          Question</button>
-      </div>
-    </form>
+            <button (click)="openAddQuestionModal()"
+                    class="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-purple-500/20 flex items-center gap-2 active:scale-95">
+              <i class="fas fa-plus text-xs"></i>
+              <span>Add Question</span>
+            </button>
+          </div>
+
+          <!-- Questions List -->
+          <div class="space-y-4">
+            @for (q of quiz.questions; track q.id || $index) {
+              <div class="relative bg-bg-primary/80 border border-border-primary hover:border-purple-500/30 rounded-2xl p-5 shadow-md transition-all group space-y-4">
+                
+                <!-- Question Number & Header -->
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-md">
+                      {{ $index + 1 }}
+                    </div>
+                    <div>
+                      <span class="text-[10px] font-black uppercase tracking-widest bg-bg-tertiary border border-border-primary text-text-secondary px-2.5 py-1 rounded-lg">
+                        {{ q.type.replace('_', ' ') }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <span class="text-xs font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-xl">
+                    {{ q.points }} {{ q.points === 1 ? 'Point' : 'Points' }}
+                  </span>
+                </div>
+
+                <!-- Prompt -->
+                <p class="font-bold text-text-primary text-sm leading-relaxed pl-1">
+                  {{ q.content }}
+                </p>
+
+                <!-- Multiple Choice Options -->
+                @if (q.type === 'MULTIPLE_CHOICE') {
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                    @for (opt of parseOptions(q.options); track $index) {
+                      <div class="p-3 rounded-xl border transition-all text-xs font-medium flex items-center gap-2.5"
+                           [class.bg-emerald-500/10]="isCorrectOption($index, q.correct_answer)"
+                           [class.border-emerald-500/30]="isCorrectOption($index, q.correct_answer)"
+                           [class.text-emerald-300]="isCorrectOption($index, q.correct_answer)"
+                           [class.bg-bg-tertiary/40]="!isCorrectOption($index, q.correct_answer)"
+                           [class.border-border-primary]="!isCorrectOption($index, q.correct_answer)"
+                           [class.text-text-secondary]="!isCorrectOption($index, q.correct_answer)">
+                        
+                        <span class="w-5 h-5 rounded-lg flex items-center justify-center font-black text-[10px]"
+                              [class.bg-emerald-500]="isCorrectOption($index, q.correct_answer)"
+                              [class.text-white]="isCorrectOption($index, q.correct_answer)"
+                              [class.bg-bg-primary]="!isCorrectOption($index, q.correct_answer)"
+                              [class.text-text-muted]="!isCorrectOption($index, q.correct_answer)">
+                          {{ ['A', 'B', 'C', 'D', 'E', 'F'][$index] }}
+                        </span>
+
+                        <span class="flex-grow">{{ opt }}</span>
+
+                        @if (isCorrectOption($index, q.correct_answer)) {
+                          <i class="fas fa-check-circle text-emerald-400 text-xs shrink-0"></i>
+                        }
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <!-- True/False or Short Answer -->
+                  <div class="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-xs flex items-center gap-2">
+                    <i class="fas fa-key text-emerald-400 text-xs"></i>
+                    <span class="text-text-muted font-bold">Designated Correct Answer:</span>
+                    <span class="font-black text-emerald-300 font-mono">{{ q.correct_answer }}</span>
+                  </div>
+                }
+              </div>
+            } @empty {
+              <!-- Empty Questions State -->
+              <div class="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-border-primary rounded-3xl bg-bg-primary/40 space-y-4">
+                <div class="w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-2xl">
+                  <i class="fas fa-file-signature"></i>
+                </div>
+                <div class="space-y-1 max-w-sm">
+                  <h4 class="text-base font-black text-text-primary">No Questions in Assessment</h4>
+                  <p class="text-xs text-text-muted">
+                    Click the button below to start building multiple-choice or short-answer questions.
+                  </p>
+                </div>
+                <button (click)="openAddQuestionModal()"
+                        class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 flex items-center gap-2">
+                  <i class="fas fa-plus"></i>
+                  <span>Add First Question</span>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      } @else {
+        <!-- No Quiz Selected Empty State -->
+        <div class="flex flex-col items-center justify-center py-32 px-6 text-center bg-bg-secondary/70 border border-border-primary border-dashed rounded-3xl shadow-xl backdrop-blur-md space-y-4">
+          <div class="w-20 h-20 rounded-3xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-3xl shadow-inner">
+            <i class="fas fa-laptop-code"></i>
+          </div>
+          <div class="space-y-1 max-w-md">
+            <h3 class="text-lg font-black text-text-primary">Select or Draft an Assessment</h3>
+            <p class="text-xs font-medium text-text-muted leading-relaxed">
+              Choose an active CBT test from the roster on the left, or click "New Test" to draft questions and configure exam parameters.
+            </p>
+          </div>
+          <button (click)="openNewQuizModal()"
+                  class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 flex items-center gap-2">
+            <i class="fas fa-plus"></i>
+            <span>Create New Assessment</span>
+          </button>
+        </div>
+      }
+    </div>
   </div>
 </div>
+
+<!-- 4. Fixed-Viewport Centered Modal: Create Assessment -->
+@if (showQuizForm()) {
+  <div class="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in"
+       (click)="showQuizForm.set(false)">
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden my-auto flex flex-col"
+         (click)="$event.stopPropagation()">
+      
+      <!-- Modal Header -->
+      <div class="p-6 border-b border-border-primary flex items-center justify-between bg-bg-tertiary/50">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-purple-500/15 border border-purple-500/25 flex items-center justify-center text-purple-400">
+            <i class="fas fa-file-alt"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-text-primary">Create CBT Assessment</h3>
+            <p class="text-xs text-text-muted font-bold">Configure exam title, time limit, and subject</p>
+          </div>
+        </div>
+
+        <button (click)="showQuizForm.set(false)"
+                class="w-8 h-8 rounded-xl bg-bg-primary hover:bg-bg-tertiary border border-border-primary flex items-center justify-center text-text-muted hover:text-text-primary transition-colors">
+          <i class="fas fa-times text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Modal Form -->
+      <form [formGroup]="quizForm" (ngSubmit)="submitQuiz()" class="p-6 space-y-4 overflow-y-auto max-h-[75vh]">
+        
+        <div>
+          <label class="block text-xs font-black uppercase tracking-widest text-text-muted mb-2">
+            Assessment Title *
+          </label>
+          <input type="text" formControlName="title"
+                 class="w-full bg-bg-primary border border-border-primary focus:border-purple-500 rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none transition-all placeholder:text-text-muted"
+                 placeholder="e.g. Mid-Term Physics CBT Evaluation">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-black uppercase tracking-widest text-text-muted mb-2">
+              Target Class *
+            </label>
+            <select formControlName="class_id"
+                    class="w-full bg-bg-primary border border-border-primary focus:border-purple-500 rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none transition-all cursor-pointer">
+              @for (cls of classes(); track cls.id) {
+                <option [value]="cls.id">{{ cls.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-black uppercase tracking-widest text-text-muted mb-2">
+              Subject Discipline *
+            </label>
+            <select formControlName="subject_id"
+                    class="w-full bg-bg-primary border border-border-primary focus:border-purple-500 rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none transition-all cursor-pointer">
+              @for (sub of subjects(); track sub.id) {
+                <option [value]="sub.id">{{ sub.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-black uppercase tracking-widest text-text-muted mb-2">
+            Time Limit (Minutes) *
+          </label>
+          <div class="relative">
+            <input type="number" formControlName="time_limit_mins"
+                   class="w-full bg-bg-primary border border-border-primary focus:border-purple-500 rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none transition-all"
+                   placeholder="30">
+            <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-text-muted text-xs font-bold">
+              mins
+            </div>
+          </div>
+          <p class="text-[11px] font-bold text-text-muted mt-1.5 flex items-center gap-1">
+            <i class="fas fa-info-circle text-purple-400"></i> Set to 0 for untimed open assessment.
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-black uppercase tracking-widest text-text-muted mb-2">
+            Instructions & Description
+          </label>
+          <textarea formControlName="description" rows="3"
+                    class="w-full bg-bg-primary border border-border-primary focus:border-purple-500 rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none transition-all placeholder:text-text-muted resize-none"
+                    placeholder="Enter instructions for students before they begin..."></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="pt-4 flex items-center justify-end gap-3 border-t border-border-primary">
+          <button type="button" (click)="showQuizForm.set(false)"
+                  class="px-5 py-2.5 rounded-xl border border-border-primary text-xs font-bold text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors">
+            Cancel
+          </button>
+          <button type="submit" [disabled]="quizForm.invalid"
+                  class="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95">
+            Create Assessment
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- 5. Fixed-Viewport Centered Modal: Add Question -->
+@if (showQuestionForm()) {
+  <div class="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in"
+       (click)="showQuestionForm.set(false)">
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden my-auto flex flex-col"
+         (click)="$event.stopPropagation()">
+      
+      <!-- Modal Header -->
+      <div class="p-6 border-b border-border-primary flex items-center justify-between bg-bg-tertiary/50">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-purple-500/15 border border-purple-500/25 flex items-center justify-center text-purple-400">
+            <i class="fas fa-question text-base"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-text-primary">Add Question Item</h3>
+            <p class="text-xs text-text-muted font-bold">Configure prompt, options, and correct answer</p>
+          </div>
+        </div>
+
+        <button (click)="showQuestionForm.set(false)"
+                class="w-8 h-8 rounded-xl bg-bg-primary hover:bg-bg-tertiary border border-border-primary flex items-center justify-center text-text-muted hover:text-text-primary transition-colors">
+          <i class="fas fa-times text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Modal Form -->
+      <form [formGroup]="questionForm" (ngSubmit)="submitQuestion()" class="p-6 space-y-4 overflow-y-auto max-h-[75vh]">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-black uppercase tracking-widest text-text-muted mb-2">
+              Question Type *
+            </label>
+            <select formControlName="type"
+                    class="w-full bg-bg-primary border border-border-primary focus:border-purple-500 rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none transition-all cursor-pointer">
+              <option value="MULTIPLE_CHOICE">Multiple Choice (A, B, C, D)</option>
+              <option value="TRUE_FALSE">True / False</option>
+              <option value="SHORT_ANSWER">Short Answer / Exact Match</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-black uppercase tracking-widest text-text-muted mb-2">
+              Point Weight *
+            </label>
+            <input type="number" formControlName="points"
+                   class="w-full bg-bg-primary border border-border-primary focus:border-purple-500 rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none transition-all"
+                   placeholder="1">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-black uppercase tracking-widest text-text-muted mb-2">
+            Question Prompt *
+          </label>
+          <textarea formControlName="content" rows="3"
+                    class="w-full bg-bg-primary border border-border-primary focus:border-purple-500 rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none transition-all placeholder:text-text-muted resize-none"
+                    placeholder="Type the question content or problem statement..."></textarea>
+        </div>
+
+        <!-- Multiple Choice Options Array -->
+        @if (questionForm.get('type')?.value === 'MULTIPLE_CHOICE') {
+          <div class="bg-bg-primary/70 border border-border-primary rounded-2xl p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black uppercase tracking-widest text-text-muted">Answer Options</span>
+              <button type="button" (click)="addOption()"
+                      class="px-2.5 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/20 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors">
+                + Add Option
+              </button>
+            </div>
+
+            <div formArrayName="options" class="space-y-2.5">
+              @for (opt of optionsArray.controls; track $index) {
+                <div class="flex items-center gap-2">
+                  <span class="w-7 h-7 rounded-lg bg-bg-tertiary border border-border-primary text-text-secondary flex items-center justify-center text-xs font-black shrink-0">
+                    {{ ['A', 'B', 'C', 'D', 'E', 'F'][$index] }}
+                  </span>
+
+                  <input [formControlName]="$index" type="text"
+                         class="flex-1 bg-bg-secondary border border-border-primary rounded-xl px-3.5 py-2 text-xs font-bold text-text-primary focus:outline-none focus:border-purple-500 transition-all placeholder:text-text-muted"
+                         [placeholder]="'Option ' + ['A', 'B', 'C', 'D', 'E', 'F'][$index] + ' text'">
+
+                  <button type="button" (click)="removeOption($index)" [disabled]="optionsArray.length <= 2"
+                          class="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white border border-rose-500/20 disabled:opacity-30 flex items-center justify-center transition-all shrink-0">
+                    <i class="fas fa-trash-alt text-[10px]"></i>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-black uppercase tracking-widest text-text-muted mb-2">
+              Designate Correct Option *
+            </label>
+            <select formControlName="correct_answer"
+                    class="w-full bg-bg-primary border border-border-primary focus:border-emerald-500 rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none transition-all cursor-pointer">
+              @for (opt of optionsArray.controls; track $index) {
+                <option [value]="String($index + 1)">Option {{ ['A', 'B', 'C', 'D', 'E', 'F'][$index] }} is Correct</option>
+              }
+            </select>
+          </div>
+        } @else {
+          <!-- True / False or Short Answer Value -->
+          <div>
+            <label class="block text-xs font-black uppercase tracking-widest text-text-muted mb-2">
+              Correct Answer Value *
+            </label>
+            <input type="text" formControlName="correct_answer"
+                   class="w-full bg-bg-primary border border-border-primary focus:border-purple-500 rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none transition-all placeholder:text-text-muted"
+                   placeholder="e.g. true, false, or expected exact answer string">
+          </div>
+        }
+
+        <!-- Action Buttons -->
+        <div class="pt-4 flex items-center justify-end gap-3 border-t border-border-primary">
+          <button type="button" (click)="showQuestionForm.set(false)"
+                  class="px-5 py-2.5 rounded-xl border border-border-primary text-xs font-bold text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors">
+            Cancel
+          </button>
+          <button type="submit" [disabled]="questionForm.invalid"
+                  class="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95">
+            Save Question
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- 6. Fixed-Viewport Centered Modal: Student CBT Exam Simulator -->
+@if (showPreviewModal() && selectedQuiz(); as quiz) {
+  <div class="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in"
+       (click)="showPreviewModal.set(false)">
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden my-auto flex flex-col max-h-[90vh]"
+         (click)="$event.stopPropagation()">
+      
+      <!-- Simulator Top Bar -->
+      <div class="p-5 sm:p-6 border-b border-border-primary flex items-center justify-between bg-gradient-to-r from-bg-tertiary/70 to-bg-secondary">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-black">
+            <i class="fas fa-desktop"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-indigo-500/20 text-indigo-300">
+                Student Examination Simulator
+              </span>
+            </div>
+            <h3 class="text-base font-black text-text-primary mt-0.5">{{ quiz.title }}</h3>
+          </div>
+        </div>
+
+        <!-- Simulated Countdown Timer -->
+        <div class="flex items-center gap-3">
+          <div class="px-3.5 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center gap-2 text-rose-400 font-mono text-xs font-black">
+            <i class="fas fa-stopwatch animate-pulse"></i>
+            <span>{{ quiz.time_limit_mins ? quiz.time_limit_mins + ':00' : 'UNTIMED' }}</span>
+          </div>
+
+          <button (click)="showPreviewModal.set(false)"
+                  class="w-8 h-8 rounded-xl bg-bg-primary hover:bg-bg-tertiary border border-border-primary flex items-center justify-center text-text-muted hover:text-text-primary transition-colors">
+            <i class="fas fa-times text-xs"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Simulator Active Question Slide -->
+      @if (getCurrentPreviewQuestion(); as currentQ) {
+        <div class="p-6 md:p-8 space-y-6 overflow-y-auto flex-1">
+          
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black uppercase tracking-widest text-text-muted">
+              Question {{ previewCurrentQuestionIndex() + 1 }} of {{ quiz.questions?.length || 0 }}
+            </span>
+            <span class="text-xs font-black text-purple-400">
+              {{ currentQ.points }} Points
+            </span>
+          </div>
+
+          <!-- Question Content -->
+          <div class="p-5 rounded-2xl bg-bg-primary/80 border border-border-primary">
+            <p class="text-base font-bold text-text-primary leading-relaxed">
+              {{ currentQ.content }}
+            </p>
+          </div>
+
+          <!-- Question Interactive Answers -->
+          @if (currentQ.type === 'MULTIPLE_CHOICE') {
+            <div class="space-y-3">
+              @for (opt of parseOptions(currentQ.options); track $index) {
+                <div (click)="selectPreviewAnswer(previewCurrentQuestionIndex(), String($index + 1))"
+                     class="p-4 rounded-2xl border cursor-pointer transition-all flex items-center gap-3.5"
+                     [class.bg-purple-500/15]="previewSelectedAnswers()[previewCurrentQuestionIndex()] === String($index + 1)"
+                     [class.border-purple-500]="previewSelectedAnswers()[previewCurrentQuestionIndex()] === String($index + 1)"
+                     [class.text-purple-300]="previewSelectedAnswers()[previewCurrentQuestionIndex()] === String($index + 1)"
+                     [class.bg-bg-tertiary/40]="previewSelectedAnswers()[previewCurrentQuestionIndex()] !== String($index + 1)"
+                     [class.border-border-primary]="previewSelectedAnswers()[previewCurrentQuestionIndex()] !== String($index + 1)">
+                  
+                  <div class="w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black border"
+                       [class.bg-purple-600]="previewSelectedAnswers()[previewCurrentQuestionIndex()] === String($index + 1)"
+                       [class.text-white]="previewSelectedAnswers()[previewCurrentQuestionIndex()] === String($index + 1)"
+                       [class.border-purple-500]="previewSelectedAnswers()[previewCurrentQuestionIndex()] === String($index + 1)"
+                       [class.bg-bg-primary]="previewSelectedAnswers()[previewCurrentQuestionIndex()] !== String($index + 1)"
+                       [class.text-text-muted]="previewSelectedAnswers()[previewCurrentQuestionIndex()] !== String($index + 1)"
+                       [class.border-border-primary]="previewSelectedAnswers()[previewCurrentQuestionIndex()] !== String($index + 1)">
+                    {{ ['A', 'B', 'C', 'D', 'E', 'F'][$index] }}
+                  </div>
+
+                  <span class="text-sm font-bold flex-1">{{ opt }}</span>
+
+                  @if (previewSelectedAnswers()[previewCurrentQuestionIndex()] === String($index + 1)) {
+                    <i class="fas fa-check-circle text-purple-400 text-sm"></i>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <div>
+              <input type="text"
+                     [value]="previewSelectedAnswers()[previewCurrentQuestionIndex()] || ''"
+                     (input)="selectPreviewAnswer(previewCurrentQuestionIndex(), $any($event.target).value)"
+                     class="w-full bg-bg-primary border border-border-primary focus:border-purple-500 rounded-2xl px-4 py-3 text-sm font-bold text-text-primary focus:outline-none transition-all placeholder:text-text-muted"
+                     placeholder="Type your response here...">
+            </div>
+          }
+
+          <!-- Question Pagination Controls -->
+          <div class="flex items-center justify-between pt-4 border-t border-border-primary/60">
+            <button [disabled]="previewCurrentQuestionIndex() === 0"
+                    (click)="previewCurrentQuestionIndex.set(previewCurrentQuestionIndex() - 1)"
+                    class="px-4 py-2 bg-bg-tertiary hover:bg-bg-primary disabled:opacity-40 rounded-xl text-xs font-bold text-text-primary transition-all flex items-center gap-1.5">
+              <i class="fas fa-chevron-left text-xs"></i>
+              <span>Previous</span>
+            </button>
+
+            <!-- Question Number Dots -->
+            @if (quiz.questions) {
+              <div class="flex items-center gap-1.5 overflow-x-auto px-2">
+                @for (q of quiz.questions; track $index) {
+                  <button (click)="previewCurrentQuestionIndex.set($index)"
+                          class="w-7 h-7 rounded-lg text-xs font-bold transition-all flex items-center justify-center"
+                          [class.bg-purple-600]="previewCurrentQuestionIndex() === $index"
+                          [class.text-white]="previewCurrentQuestionIndex() === $index"
+                          [class.bg-emerald-500/20]="previewSelectedAnswers()[$index] && previewCurrentQuestionIndex() !== $index"
+                          [class.text-emerald-400]="previewSelectedAnswers()[$index] && previewCurrentQuestionIndex() !== $index"
+                          [class.bg-bg-tertiary]="!previewSelectedAnswers()[$index] && previewCurrentQuestionIndex() !== $index"
+                          [class.text-text-muted]="!previewSelectedAnswers()[$index] && previewCurrentQuestionIndex() !== $index">
+                    {{ $index + 1 }}
+                  </button>
+                }
+              </div>
+            }
+
+            <button [disabled]="!quiz.questions || previewCurrentQuestionIndex() === quiz.questions.length - 1"
+                    (click)="previewCurrentQuestionIndex.set(previewCurrentQuestionIndex() + 1)"
+                    class="px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+              <span>Next</span>
+              <i class="fas fa-chevron-right text-xs"></i>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}

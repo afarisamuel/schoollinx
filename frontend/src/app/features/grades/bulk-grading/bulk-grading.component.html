@@ -1,705 +1,806 @@
-<div class="relative">
-  <!-- Ambient Background Orbs -->
-  <div class="absolute inset-x-0 top-0 h-[600px] overflow-hidden pointer-events-none z-0">
-    <div class="absolute top-0 left-1/4 w-[600px] h-[600px] bg-blue-500/5 blur-[160px] rounded-full"></div>
-    <div class="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-blue-500/5 blur-[140px] rounded-full"></div>
-  </div>
+<div class="flex flex-col gap-8 pb-16 animate-fade-in text-text-primary">
 
-  <div class="relative z-10 px-1 sm:px-4 md:px-6 py-2 sm:py-6 max-w-[1700px] mx-auto animate-fade-in">
+  <!-- Top Ambient Lighting Cones -->
+  <div class="fixed top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+  <div class="fixed top-24 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
-    <!-- ── DRAFT RECOVERY BANNER ────────────────────────────── -->
-    @if (hasRecoverableDraft()) {
-      <div class="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in shadow-lg shadow-amber-500/5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          </div>
-          <div>
-            <h4 class="text-sm font-black text-text-primary">Unsaved Local Draft Available</h4>
-            <p class="text-xs text-text-secondary">We detected an unsaved draft from {{ draftSavedTime() || 'a recent session' }}. Would you like to restore your edits?</p>
-          </div>
+  <!-- ── DRAFT RECOVERY BANNER ────────────────────────────── -->
+  @if (hasRecoverableDraft()) {
+    <div class="p-4 rounded-3xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl backdrop-blur-md">
+      <div class="flex items-center gap-3.5">
+        <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30 text-base">
+          <i class="fas fa-history"></i>
         </div>
-        <div class="flex items-center gap-2 shrink-0">
-          <button (click)="discardLocalDraft()" class="px-3.5 py-1.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary text-xs font-bold transition-all">
-            Discard
-          </button>
-          <button (click)="restoreLocalDraft()" class="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs transition-all shadow-md shadow-amber-500/20">
-            Restore Draft
-          </button>
+        <div>
+          <h4 class="text-sm font-black text-text-primary">Unsaved Local Draft Available</h4>
+          <p class="text-xs text-text-secondary">We detected an unsaved draft from {{ draftSavedTime() || 'a recent session' }}. Would you like to restore your edits?</p>
         </div>
       </div>
-    }
+      <div class="flex items-center gap-2 shrink-0">
+        <button (click)="discardLocalDraft()" class="px-4 py-2 rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary text-xs font-bold transition-all">
+          Discard
+        </button>
+        <button (click)="restoreLocalDraft()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs transition-all shadow-md shadow-amber-500/20">
+          Restore Draft
+        </button>
+      </div>
+    </div>
+  }
 
-    <!-- ── PAGE HEADER ──────────────────────────────────────── -->
-    <header class="mb-8">
-      <div class="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6">
-        <div>
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-            </div>
-            <span class="px-3 py-1 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">Assessment Engine</span>
-            
-            <!-- Lock Status Badge -->
-            @if (isLocked()) {
-              <span class="px-3 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
-                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                Locked &amp; Finalized
-              </span>
-            } @else if (hasUnsavedChanges()) {
-              <span class="px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 animate-pulse">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                Draft (Unsaved)
-              </span>
-            } @else {
-              <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                Synchronized
-              </span>
-            }
+  <!-- 1. Executive Hero Header & Sub-Domain Quick Bar -->
+  <div class="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-bg-secondary via-bg-secondary/95 to-bg-tertiary border border-border-primary p-8 md:p-10 shadow-2xl backdrop-blur-xl">
+    <div class="absolute -right-20 -top-20 w-96 h-96 bg-gradient-to-br from-blue-500/20 via-indigo-500/15 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-teal-500/10 rounded-full blur-2xl pointer-events-none"></div>
+    
+    <div class="relative z-10 flex flex-col gap-6">
+      <!-- Breadcrumbs & Meta Badges -->
+      <div class="flex flex-wrap items-center justify-between gap-4 border-b border-border-primary/60 pb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-blue-500 animate-pulse"></div>
+          <div class="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-text-muted">
+            <a routerLink="/teachers/cockpit" class="hover:text-text-primary transition-colors">Faculty Workspace</a>
+            <span>/</span>
+            <span class="text-blue-400">Academic Operations</span>
+            <span>/</span>
+            <span class="text-text-primary font-bold">Classroom Grading Console</span>
           </div>
-          <h1 class="text-3xl md:text-5xl font-black text-text-primary tracking-tighter leading-none mb-2">
-            Grading <span class="text-blue-400">Console</span>
-          </h1>
-          <p class="text-text-secondary text-base max-w-2xl font-medium">Excel-like keyboard navigation, multi-scale curriculum conversion, and automated rank analytics.</p>
         </div>
 
-        <div class="flex items-center gap-3 flex-wrap">
-          <!-- Admin Lock Button -->
-          @if (isHeadmasterOrAdmin() && selectedClassId() && selectedSubjectId()) {
-            <button
-              (click)="toggleLock()"
-              class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all border shadow-sm"
-              [ngClass]="isLocked() 
-                ? 'bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20'
-                : 'bg-bg-secondary border-border-primary text-text-secondary hover:text-text-primary hover:border-blue-500/40'"
-            >
-              @if (isLocked()) {
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                <span>Unlock Grades</span>
-              } @else {
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
-                <span>Lock Grades</span>
-              }
-            </button>
+        <div class="flex flex-wrap items-center gap-2.5">
+          <!-- Lock Status Badge -->
+          @if (isLocked()) {
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+              <i class="fas fa-lock text-[10px]"></i>
+              Locked &amp; Finalized
+            </span>
+          } @else if (hasUnsavedChanges()) {
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+              Draft (Unsaved)
+            </span>
+          } @else {
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              Synchronized
+            </span>
           }
 
-          <button
-            (click)="toggleConfigMode()"
-            [disabled]="!selectedClassId() || isLocked()"
-            class="flex items-center gap-2 px-4 py-2.5 bg-bg-secondary border rounded-xl font-bold text-xs transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-            [ngClass]="isConfigMode()
-              ? 'border-blue-500 text-blue-500 bg-blue-500/5 shadow-lg shadow-blue-500/10'
-              : 'border-border-primary text-text-secondary hover:border-blue-500/50 hover:text-blue-500'"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            {{ isConfigMode() ? 'Done Configuring' : 'Configure Columns' }}
-          </button>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+            <i class="fas fa-layer-group text-[10px]"></i>
+            {{ selectedTerm() || 'First Term' }}
+          </span>
+        </div>
+      </div>
 
-          <button
-            (click)="saveGrades()"
-            [disabled]="isSaving() || isLocked() || students().length === 0 || configuredColumns().length === 0"
-            class="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl transition-all shadow-lg shadow-blue-500/20 hover:-translate-y-0.5 border border-white/10 cursor-pointer"
-          >
-            @if (isSaving()) {
-              <span class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-              Saving...
-            } @else {
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-              Save Grades
+      <!-- Title & Quick Operations Sub-Domain Navigation -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div class="space-y-2">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/25">
+              <i class="fas fa-pen-nib text-xl"></i>
+            </div>
+            <div>
+              <h1 class="text-3xl lg:text-4xl font-black tracking-tight text-text-primary flex items-center gap-3">
+                Grading <span class="bg-gradient-to-r from-blue-400 via-indigo-300 to-teal-300 bg-clip-text text-transparent">Console</span>
+              </h1>
+              <p class="text-sm font-medium text-text-secondary mt-0.5">
+                Excel-like keyboard navigation, multi-scale curriculum conversion, and automated rank analytics.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sibling Domain Navigation Shortcuts -->
+        <div class="flex flex-wrap items-center gap-2 bg-bg-primary/50 backdrop-blur-md p-1.5 rounded-2xl border border-border-primary/80 self-start lg:self-auto">
+          <a routerLink="/grading/entry" 
+             class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-blue-500/20 text-blue-300 border border-blue-500/30 shadow-sm">
+            <i class="fas fa-pen-nib text-xs"></i>
+            Classroom Grading
+          </a>
+          <a routerLink="/teachers/homework" 
+             class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-text-muted hover:text-text-primary hover:bg-bg-tertiary">
+            <i class="fas fa-book-reader text-xs"></i>
+            Homework Portal
+          </a>
+          <a routerLink="/teachers/cbt-builder" 
+             class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-text-muted hover:text-text-primary hover:bg-bg-tertiary">
+            <i class="fas fa-laptop-code text-xs"></i>
+            CBT Builder
+          </a>
+          <a routerLink="/teachers/lesson-planner" 
+             class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-text-muted hover:text-text-primary hover:bg-bg-tertiary">
+            <i class="fas fa-project-diagram text-xs"></i>
+            Lesson Planner
+          </a>
+          <a routerLink="/teachers/cockpit" 
+             class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-text-muted hover:text-text-primary hover:bg-bg-tertiary">
+            <i class="fas fa-chalkboard-teacher text-xs"></i>
+            Cockpit
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. High-Impact Telemetry Hub (4 Glassmorphic KPI Cards) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+    <!-- 1. Roster Enrollment & Target Class -->
+    <div class="relative overflow-hidden bg-bg-secondary/90 border border-border-primary hover:border-blue-500/40 rounded-3xl p-6 shadow-lg backdrop-blur-md group transition-all">
+      <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-blue-500/10 rounded-full blur-2xl group-hover:scale-125 transition-transform"></div>
+      <div class="relative z-10 flex items-center justify-between">
+        <div class="space-y-1">
+          <p class="text-[11px] font-black uppercase tracking-widest text-text-muted">Target Roster</p>
+          <h3 class="text-3xl font-black tracking-tight text-text-primary mt-1">{{ students().length }}</h3>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-blue-500/15 flex items-center justify-center text-blue-400 border border-blue-500/20">
+          <i class="fas fa-user-graduate text-xl"></i>
+        </div>
+      </div>
+      <div class="relative z-10 flex items-center justify-between mt-4 pt-3 border-t border-border-primary/60 text-xs text-text-secondary">
+        <span class="font-bold text-blue-400 truncate max-w-[150px]">
+          {{ selectedClassName() }}
+        </span>
+        <span class="text-[11px] font-mono text-text-muted">{{ selectedSubjectName() }}</span>
+      </div>
+    </div>
+
+    <!-- 2. Grading Completion Rate -->
+    <div class="relative overflow-hidden bg-bg-secondary/90 border border-border-primary hover:border-border-secondary rounded-3xl p-6 shadow-lg backdrop-blur-md group transition-all">
+      <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl group-hover:scale-125 transition-transform"></div>
+      <div class="relative z-10 flex items-center justify-between">
+        <div class="space-y-1">
+          <p class="text-[11px] font-black uppercase tracking-widest text-text-muted">Grading Progress</p>
+          <h3 class="text-3xl font-black tracking-tight text-text-primary mt-1">{{ completionPercentage() }}%</h3>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
+          <i class="fas fa-check-double text-xl"></i>
+        </div>
+      </div>
+      <div class="relative z-10 mt-4 pt-3 border-t border-border-primary/60">
+        <div class="w-full h-2 bg-bg-tertiary rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500" [style.width.%]="completionPercentage()"></div>
+        </div>
+        <div class="flex items-center justify-between mt-1.5 text-[10px] text-text-muted font-bold">
+          <span>Graded Cells</span>
+          <span class="text-emerald-400">{{ getGradedCount() }} / {{ students().length }} Students</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Class Performance Average -->
+    <div class="relative overflow-hidden bg-bg-secondary/90 border border-border-primary hover:border-border-secondary rounded-3xl p-6 shadow-lg backdrop-blur-md group transition-all">
+      <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-indigo-500/10 rounded-full blur-2xl group-hover:scale-125 transition-transform"></div>
+      <div class="relative z-10 flex items-center justify-between">
+        <div class="space-y-1">
+          <p class="text-[11px] font-black uppercase tracking-widest text-text-muted">Class Mean Score</p>
+          <h3 class="text-3xl font-black tracking-tight mt-1" [ngClass]="getAverageColor(getClassAverage())">{{ getClassAverage() }}</h3>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-indigo-500/15 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
+          <i class="fas fa-chart-line text-xl"></i>
+        </div>
+      </div>
+      <div class="relative z-10 flex items-center justify-between mt-4 pt-3 border-t border-border-primary/60 text-xs text-text-secondary">
+        <span class="font-bold text-emerald-400 flex items-center gap-1">
+          <i class="fas fa-shield-alt text-[10px]"></i>
+          Pass Rate: {{ getPassRate() }}
+        </span>
+        <span class="text-[11px] font-bold text-amber-400">Top: {{ getTopScore() }}</span>
+      </div>
+    </div>
+
+    <!-- 4. Active Grading System Scale -->
+    <div class="relative overflow-hidden bg-bg-secondary/90 border border-border-primary hover:border-border-secondary rounded-3xl p-6 shadow-lg backdrop-blur-md group transition-all">
+      <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-purple-500/10 rounded-full blur-2xl group-hover:scale-125 transition-transform"></div>
+      <div class="relative z-10 flex items-center justify-between">
+        <div class="space-y-1">
+          <p class="text-[11px] font-black uppercase tracking-widest text-text-muted">Curriculum Scale</p>
+          <h3 class="text-lg font-black tracking-tight text-text-primary mt-1 truncate max-w-[160px]">
+            {{ gradingScales[selectedScale()].name }}
+          </h3>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-purple-500/15 flex items-center justify-center text-purple-400 border border-purple-500/20">
+          <i class="fas fa-award text-xl"></i>
+        </div>
+      </div>
+      <div class="relative z-10 flex items-center justify-between mt-4 pt-3 border-t border-border-primary/60 text-xs text-text-secondary">
+        <span class="font-bold text-purple-400">{{ configuredColumns().length }} Assessment Types</span>
+        <span class="text-[11px] font-mono text-text-muted">{{ gradingScales[selectedScale()].bands.length }} Bands</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Control Panel Bar -->
+  <div class="bg-gradient-to-r from-bg-secondary via-bg-secondary/95 to-bg-tertiary border border-border-primary rounded-3xl p-6 shadow-xl backdrop-blur-md space-y-5">
+    
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-primary/50 pb-4">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-sliders-h text-blue-400 text-sm"></i>
+        <span class="text-xs font-black uppercase tracking-widest text-text-muted">Curriculum Filters &amp; Scale Setup</span>
+      </div>
+
+      <!-- Excel Navigation Guide -->
+      <div class="flex items-center gap-2 text-xs text-text-muted font-mono bg-bg-primary/80 px-3.5 py-1.5 rounded-xl border border-border-primary/60 self-start sm:self-auto">
+        <span class="font-bold text-blue-400 flex items-center gap-1"><i class="fas fa-keyboard"></i> ProTip:</span>
+        <span>Use <kbd class="px-1.5 py-0.5 bg-bg-secondary border border-border-primary rounded text-[10px]">Enter</kbd> / <kbd class="px-1.5 py-0.5 bg-bg-secondary border border-border-primary rounded text-[10px]">Arrows</kbd> to navigate · Paste Excel data</span>
+      </div>
+    </div>
+
+    <!-- Selectors & Action Buttons Row -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- Class -->
+      <div class="space-y-1.5">
+        <label class="block text-[11px] font-black text-text-muted uppercase tracking-wider">Class Cohort *</label>
+        <div class="relative">
+          <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event); onClassChange()" 
+                  class="w-full bg-bg-primary border border-border-primary rounded-2xl px-4 py-3 text-text-primary text-sm font-bold focus:outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer">
+            <option value="">Select a class...</option>
+            @for (cls of classes(); track cls.id) {
+              <option [value]="cls.id">🎓 {{ cls.name }}</option>
             }
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <!-- ── CONTROL PANEL ───────────────────────────────────── -->
-    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 mb-4 shadow-sm">
-      <div class="flex items-center justify-between mb-4">
-        <p class="text-[10px] font-black uppercase tracking-widest text-text-muted">Filters &amp; Curriculum Scale</p>
-        
-        <!-- Keyboard Hint Badge -->
-        <div class="hidden md:flex items-center gap-2 text-[10px] text-text-muted font-mono bg-bg-tertiary px-3 py-1 rounded-lg border border-border-primary/50">
-          <span class="font-bold text-blue-400">ProTip:</span> Use <kbd class="px-1 py-0.5 bg-bg-secondary border border-border-primary rounded">Enter</kbd> / <kbd class="px-1 py-0.5 bg-bg-secondary border border-border-primary rounded">Arrows</kbd> to navigate · Paste multi-cell Excel data
+          </select>
+          <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-text-muted">
+            <i class="fas fa-chevron-down text-xs"></i>
+          </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Class -->
-        <div>
-          <label class="block text-[10px] font-black text-text-muted uppercase tracking-[0.15em] mb-2">Class</label>
-          <div class="relative">
-            <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event); onClassChange()" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all appearance-none">
-              <option value="">Select a class...</option>
-              @for (cls of classes(); track cls.id) {
-                <option [value]="cls.id">{{ cls.name }}</option>
-              }
-            </select>
-            <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-text-muted">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-            </div>
+      <!-- Subject -->
+      <div class="space-y-1.5">
+        <label class="block text-[11px] font-black text-text-muted uppercase tracking-wider">Subject Discipline *</label>
+        <div class="relative">
+          <select [ngModel]="selectedSubjectId()" (ngModelChange)="selectedSubjectId.set($event); onFilterChange()" 
+                  class="w-full bg-bg-primary border border-border-primary rounded-2xl px-4 py-3 text-text-primary text-sm font-bold focus:outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer">
+            <option value="">Select a subject...</option>
+            @for (sub of subjects(); track sub.name) {
+              <option [value]="sub.name">📖 {{ sub.name }}</option>
+            }
+          </select>
+          <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-text-muted">
+            <i class="fas fa-chevron-down text-xs"></i>
           </div>
         </div>
+      </div>
 
-        <!-- Subject -->
-        <div>
-          <label class="block text-[10px] font-black text-text-muted uppercase tracking-[0.15em] mb-2">Subject</label>
-          <div class="relative">
-            <select [ngModel]="selectedSubjectId()" (ngModelChange)="selectedSubjectId.set($event); onFilterChange()" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all appearance-none">
-              <option value="">Select a subject...</option>
-              @for (sub of subjects(); track sub.name) {
-                <option [value]="sub.name">{{ sub.name }}</option>
-              }
-            </select>
-            <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-text-muted">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-            </div>
+      <!-- Term -->
+      <div class="space-y-1.5">
+        <label class="block text-[11px] font-black text-text-muted uppercase tracking-wider">Academic Term *</label>
+        <div class="relative">
+          <select [ngModel]="selectedTerm()" (ngModelChange)="selectedTerm.set($event); onFilterChange()" 
+                  class="w-full bg-bg-primary border border-border-primary rounded-2xl px-4 py-3 text-text-primary text-sm font-bold focus:outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer">
+            @for (term of terms(); track term.id) {
+              <option [value]="term.name">📅 {{ term.name }}</option>
+            }
+          </select>
+          <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-text-muted">
+            <i class="fas fa-chevron-down text-xs"></i>
           </div>
         </div>
+      </div>
 
-        <!-- Term -->
-        <div>
-          <label class="block text-[10px] font-black text-text-muted uppercase tracking-[0.15em] mb-2">Academic Term</label>
-          <div class="relative">
-            <select [ngModel]="selectedTerm()" (ngModelChange)="selectedTerm.set($event); onFilterChange()" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all appearance-none">
-              @for (term of terms(); track term.id) {
-                <option [value]="term.name">{{ term.name }}</option>
-              }
-            </select>
-            <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-text-muted">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-            </div>
-          </div>
-        </div>
-
-        <!-- Grading Scale Selector -->
-        <div>
-          <label class="block text-[10px] font-black text-text-muted uppercase tracking-[0.15em] mb-2">Grading System</label>
-          <div class="relative">
-            <select [ngModel]="selectedScale()" (ngModelChange)="selectedScale.set($event)" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-text-primary text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all appearance-none">
-              <option value="STANDARD">Standard (A–F)</option>
-              <option value="WAEC">WAEC / BECE (A1–F9)</option>
-              <option value="CAMBRIDGE">Cambridge / IGCSE (A*–U)</option>
-              <option value="GPA">GPA (4.0 Scale)</option>
-            </select>
-            <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-text-muted">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-            </div>
+      <!-- Grading Scale Selector -->
+      <div class="space-y-1.5">
+        <label class="block text-[11px] font-black text-text-muted uppercase tracking-wider">Evaluation Scale *</label>
+        <div class="relative">
+          <select [ngModel]="selectedScale()" (ngModelChange)="selectedScale.set($event)" 
+                  class="w-full bg-bg-primary border border-border-primary rounded-2xl px-4 py-3 text-text-primary text-sm font-bold focus:outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer">
+            <option value="STANDARD">Standard Letter (A–F)</option>
+            <option value="WAEC">WAEC / BECE (A1–F9)</option>
+            <option value="CAMBRIDGE">Cambridge / IGCSE (A*–U)</option>
+            <option value="GPA">GPA Grade Point (4.0 Scale)</option>
+          </select>
+          <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-text-muted">
+            <i class="fas fa-chevron-down text-xs"></i>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ── STATISTICS STRIP ──────────────────────────────────── -->
-    @if (!isLoading() && students().length > 0 && configuredColumns().length > 0) {
-      <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 animate-fade-in">
-        <!-- Students -->
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 flex flex-col gap-1.5 hover:border-blue-500/30 transition-colors">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            </div>
-            <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Enrolled</span>
-          </div>
-          <span class="text-2xl md:text-3xl font-black text-text-primary">{{ students().length }}</span>
-        </div>
-
-        <!-- Graded Count -->
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 flex flex-col gap-1.5 hover:border-blue-500/30 transition-colors">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-            </div>
-            <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Completed</span>
-          </div>
-          <div class="flex items-baseline gap-1.5">
-            <span class="text-2xl md:text-3xl font-black text-text-primary">{{ getGradedCount() }}</span>
-            <span class="text-xs text-text-muted">/ {{ students().length }}</span>
-          </div>
-        </div>
-
-        <!-- Class Average -->
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 flex flex-col gap-1.5 hover:border-blue-500/30 transition-colors">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-            </div>
-            <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Class Avg</span>
-          </div>
-          <span class="text-2xl md:text-3xl font-black" [ngClass]="getAverageColor(getClassAverage())">{{ getClassAverage() }}</span>
-        </div>
-
-        <!-- Pass Rate -->
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 flex flex-col gap-1.5 hover:border-emerald-500/30 transition-colors">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Pass Rate</span>
-          </div>
-          <span class="text-2xl md:text-3xl font-black text-emerald-500">{{ getPassRate() }}</span>
-        </div>
-
-        <!-- Top Score -->
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 flex flex-col gap-1.5 hover:border-amber-500/30 transition-colors">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            </div>
-            <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Top Score</span>
-          </div>
-          <span class="text-2xl md:text-3xl font-black text-amber-500">{{ getTopScore() }}</span>
-        </div>
-      </div>
-
-      <!-- Grade Distribution Bar -->
-      <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 mb-6 animate-fade-in">
-        <div class="flex items-center justify-between mb-4">
-          <p class="text-[10px] font-black uppercase tracking-widest text-text-muted">
-            Score Distribution — <span class="text-text-primary">{{ gradingScales[selectedScale()].name }}</span>
-          </p>
-          <span class="text-[10px] text-text-secondary font-medium">{{ gradingScales[selectedScale()].description }}</span>
-        </div>
-        <div class="flex items-end gap-2 h-16">
-          @for (band of getGradeDistribution(); track band.label) {
-            <div class="flex flex-col items-center gap-1 flex-1">
-              <span class="text-[9px] font-black text-text-muted">{{ band.count }}</span>
-              <div class="w-full rounded-t-lg transition-all duration-700" [style.height.px]="band.count > 0 ? Math.max(8, (band.count / students().length) * 48) : 4" [ngClass]="band.color"></div>
-              <span class="text-[9px] font-black uppercase tracking-wider text-center" [ngClass]="band.textColor">{{ band.label }}</span>
-            </div>
-          }
-        </div>
-      </div>
-    }
-
-    <!-- ── COLUMN CONFIGURATION MODE ──────────────────────── -->
-    @if (isConfigMode()) {
-      <div class="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-6 mb-6 animate-fade-in">
-        <div class="flex items-center gap-2 mb-5">
-          <div class="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/20 flex items-center justify-center text-blue-500">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          </div>
-          <h3 class="text-sm font-black text-text-primary uppercase tracking-wider">Assessment Column Setup</h3>
-        </div>
-
-        <!-- Existing Columns -->
-        <div class="flex flex-wrap gap-3 mb-6">
-          @for (col of configuredColumns(); track col.category; let i = $index) {
-            <div class="flex items-center gap-2 bg-bg-primary border border-border-primary rounded-xl pl-4 pr-2 py-2 group">
-              <span class="text-sm font-bold text-text-primary">{{ col.category }}</span>
-              <span class="text-xs font-black text-blue-500 font-mono bg-blue-500/10 px-2 py-0.5 rounded-lg">{{ getDisplayWeight(col.weight) }}%</span>
-              <button (click)="removeColumn(i)" class="w-6 h-6 rounded-md hover:bg-rose-500/10 text-text-muted hover:text-rose-500 flex items-center justify-center transition-colors ml-1 cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-              </button>
-            </div>
-          }
-          @if (configuredColumns().length === 0) {
-            <p class="text-sm text-text-muted italic">No columns configured. Add one below.</p>
-          }
-        </div>
-
-        <!-- Add Column Form -->
-        <div class="flex flex-col sm:flex-row items-end gap-4 max-w-2xl">
-          <div class="flex-1 w-full">
-            <label class="block text-[10px] font-black text-text-muted uppercase tracking-[0.15em] mb-2">Column Name</label>
-            <input type="text" [ngModel]="newColumnCategory()" (ngModelChange)="newColumnCategory.set($event)" placeholder="e.g. CLASS WORK, HOMEWORK, EXAMS" class="w-full bg-bg-primary border border-border-primary rounded-xl px-4 py-2.5 text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
-          </div>
-          <div class="w-full sm:w-36">
-            <label class="block text-[10px] font-black text-text-muted uppercase tracking-[0.15em] mb-2">Weight (%)</label>
-            <input type="number" [ngModel]="newColumnWeight()" (ngModelChange)="newColumnWeight.set($event)" placeholder="e.g. 30" min="1" max="100" class="w-full bg-bg-primary border border-border-primary rounded-xl px-4 py-2.5 text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
-          </div>
-          <button (click)="addColumn()" class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm rounded-xl transition-all active:scale-95 whitespace-nowrap cursor-pointer">
-            + Add Column
-          </button>
-        </div>
-
-        <!-- Weight Meter -->
-        <div class="mt-5">
-          <div class="flex items-center justify-between mb-2">
-            <p class="text-xs font-black uppercase tracking-widest" [ngClass]="getTotalWeightPercentage() === 100 ? 'text-emerald-500' : 'text-amber-500'">
-              Total Weight: {{ getTotalWeightPercentage() }}%
-            </p>
-            @if (getTotalWeightPercentage() !== 100) {
-              <span class="text-[10px] text-amber-500 font-bold flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 1 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                Should equal 100%
-              </span>
+    <!-- Action Toolbar Bottom Strip -->
+    <div class="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-border-primary/50">
+      <div class="flex flex-wrap items-center gap-2.5">
+        <!-- Admin Lock Button -->
+        @if (isHeadmasterOrAdmin() && selectedClassId() && selectedSubjectId()) {
+          <button (click)="toggleLock()"
+                  class="px-4 py-2.5 rounded-xl font-bold text-xs transition-all border shadow-sm flex items-center gap-2"
+                  [ngClass]="isLocked() 
+                    ? 'bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20'
+                    : 'bg-bg-primary border-border-primary text-text-secondary hover:text-text-primary hover:border-blue-500/40'">
+            @if (isLocked()) {
+              <i class="fas fa-lock"></i>
+              <span>Unlock Grades</span>
             } @else {
-              <span class="text-[10px] text-emerald-500 font-bold flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                Balanced
-              </span>
+              <i class="fas fa-lock-open"></i>
+              <span>Lock Grades</span>
             }
+          </button>
+        }
+
+        <button (click)="toggleConfigMode()"
+                [disabled]="!selectedClassId() || isLocked()"
+                class="px-4 py-2.5 rounded-xl font-bold text-xs transition-all border disabled:opacity-40 disabled:cursor-not-allowed shadow-sm flex items-center gap-2"
+                [ngClass]="isConfigMode()
+                  ? 'border-blue-500 text-blue-400 bg-blue-500/15 shadow-md shadow-blue-500/10'
+                  : 'bg-bg-primary border-border-primary text-text-secondary hover:border-blue-500/50 hover:text-text-primary'">
+          <i class="fas fa-columns"></i>
+          <span>{{ isConfigMode() ? 'Done Configuring' : 'Configure Columns' }}</span>
+        </button>
+      </div>
+
+      <!-- Save Grades Primary Button -->
+      <button (click)="saveGrades()"
+              [disabled]="isSaving() || isLocked() || students().length === 0 || configuredColumns().length === 0"
+              class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-blue-500/20 active:scale-95 flex items-center gap-2">
+        @if (isSaving()) {
+          <i class="fas fa-circle-notch fa-spin text-sm"></i>
+          <span>Saving Grades...</span>
+        } @else {
+          <i class="fas fa-save text-sm"></i>
+          <span>Save Grades</span>
+        }
+      </button>
+    </div>
+  </div>
+
+  <!-- 4. Dynamic Grade Distribution Spectrum -->
+  @if (!isLoading() && students().length > 0 && configuredColumns().length > 0) {
+    <div class="bg-gradient-to-br from-bg-secondary via-bg-secondary/95 to-bg-tertiary border border-border-primary rounded-3xl p-6 shadow-xl backdrop-blur-md space-y-4">
+      <div class="flex items-center justify-between border-b border-border-primary/50 pb-3">
+        <p class="text-xs font-black uppercase tracking-widest text-text-muted flex items-center gap-2">
+          <i class="fas fa-chart-bar text-blue-400"></i>
+          Score Distribution Spectrum — <span class="text-text-primary">{{ gradingScales[selectedScale()].name }}</span>
+        </p>
+        <span class="text-xs text-text-secondary font-medium">{{ gradingScales[selectedScale()].description }}</span>
+      </div>
+
+      <div class="flex items-end gap-2.5 h-20 pt-2">
+        @for (band of getGradeDistribution(); track band.label) {
+          <div class="flex flex-col items-center gap-1.5 flex-1">
+            <span class="text-[10px] font-black text-text-muted">{{ band.count }}</span>
+            <div class="w-full rounded-t-xl transition-all duration-700 shadow-sm" 
+                 [style.height.px]="band.count > 0 ? Math.max(12, (band.count / students().length) * 56) : 4" 
+                 [ngClass]="band.color"></div>
+            <span class="text-[10px] font-black uppercase tracking-wider text-center" [ngClass]="band.textColor">{{ band.label }}</span>
           </div>
-          <div class="h-2 w-full max-w-xs bg-border-primary rounded-full overflow-hidden">
-            <div
-              class="h-full rounded-full transition-all duration-500"
-              [style.width.%]="Math.min(getTotalWeightPercentage(), 100)"
-              [ngClass]="getTotalWeightPercentage() === 100 ? 'bg-emerald-500' : getTotalWeightPercentage() > 100 ? 'bg-rose-500' : 'bg-amber-500'"
-            ></div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- 5. Column Configuration Mode Panel -->
+  @if (isConfigMode()) {
+    <div class="bg-gradient-to-br from-blue-500/10 via-indigo-500/5 to-bg-secondary border border-blue-500/30 rounded-3xl p-6 md:p-8 shadow-2xl backdrop-blur-xl space-y-6 animate-fade-in">
+      
+      <div class="flex items-center gap-3 border-b border-blue-500/20 pb-4">
+        <div class="w-10 h-10 rounded-2xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+          <i class="fas fa-columns text-base"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-black text-text-primary uppercase tracking-wider">Assessment Column Architecture</h3>
+          <p class="text-xs text-text-secondary">Define weighted assessment categories (Classwork, Homework, Mid-Term, Terminal Exam).</p>
+        </div>
+      </div>
+
+      <!-- Existing Columns Chips -->
+      <div class="flex flex-wrap gap-3">
+        @for (col of configuredColumns(); track col.category; let i = $index) {
+          <div class="flex items-center gap-2.5 bg-bg-primary border border-border-primary rounded-2xl pl-4 pr-2.5 py-2.5 shadow-sm group">
+            <span class="text-sm font-bold text-text-primary">{{ col.category }}</span>
+            <span class="text-xs font-black text-blue-400 font-mono bg-blue-500/10 border border-blue-500/20 px-2.5 py-0.5 rounded-xl">{{ getDisplayWeight(col.weight) }}%</span>
+            <button (click)="removeColumn(i)" class="w-7 h-7 rounded-xl hover:bg-rose-500/10 text-text-muted hover:text-rose-400 flex items-center justify-center transition-colors cursor-pointer">
+              <i class="fas fa-times text-xs"></i>
+            </button>
           </div>
+        }
+        @if (configuredColumns().length === 0) {
+          <p class="text-sm text-text-muted italic py-2">No columns configured yet. Add your first assessment column below.</p>
+        }
+      </div>
+
+      <!-- Add Column Form -->
+      <div class="flex flex-col sm:flex-row items-end gap-4 max-w-2xl pt-2">
+        <div class="flex-1 w-full space-y-1.5">
+          <label class="block text-xs font-black text-text-muted uppercase tracking-wider">Column Category Name</label>
+          <input type="text" [ngModel]="newColumnCategory()" (ngModelChange)="newColumnCategory.set($event)" 
+                 placeholder="e.g. CLASS WORK, HOMEWORK, EXAMS" 
+                 class="w-full bg-bg-primary border border-border-primary rounded-2xl px-4 py-3 text-text-primary text-sm font-bold focus:outline-none focus:border-blue-500 transition-all placeholder:text-text-muted">
+        </div>
+        <div class="w-full sm:w-40 space-y-1.5">
+          <label class="block text-xs font-black text-text-muted uppercase tracking-wider">Weight (%)</label>
+          <input type="number" [ngModel]="newColumnWeight()" (ngModelChange)="newColumnWeight.set($event)" 
+                 placeholder="e.g. 30" min="1" max="100" 
+                 class="w-full bg-bg-primary border border-border-primary rounded-2xl px-4 py-3 text-text-primary text-sm font-bold focus:outline-none focus:border-blue-500 transition-all">
+        </div>
+        <button (click)="addColumn()" 
+                class="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-wider rounded-2xl transition-all shadow-md active:scale-95 whitespace-nowrap cursor-pointer">
+          + Add Column
+        </button>
+      </div>
+
+      <!-- Total Weight Meter -->
+      <div class="pt-4 border-t border-border-primary/50 space-y-2">
+        <div class="flex items-center justify-between">
+          <p class="text-xs font-black uppercase tracking-widest" [ngClass]="getTotalWeightPercentage() === 100 ? 'text-emerald-400' : 'text-amber-400'">
+            Total Weight: {{ getTotalWeightPercentage() }}%
+          </p>
+          @if (getTotalWeightPercentage() !== 100) {
+            <span class="text-xs text-amber-400 font-bold flex items-center gap-1.5">
+              <i class="fas fa-exclamation-triangle"></i>
+              Weights should balance to exactly 100%
+            </span>
+          } @else {
+            <span class="text-xs text-emerald-400 font-bold flex items-center gap-1.5">
+              <i class="fas fa-check-circle"></i>
+              Perfect 100% Balanced
+            </span>
+          }
+        </div>
+        <div class="h-2.5 w-full max-w-md bg-bg-primary rounded-full overflow-hidden border border-border-primary/60">
+          <div class="h-full rounded-full transition-all duration-500"
+               [style.width.%]="Math.min(getTotalWeightPercentage(), 100)"
+               [ngClass]="getTotalWeightPercentage() === 100 ? 'bg-emerald-500' : getTotalWeightPercentage() > 100 ? 'bg-rose-500' : 'bg-amber-500'"></div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 6. Main High-Throughput Score Entry Grid Table -->
+  <div class="bg-gradient-to-br from-bg-secondary via-bg-secondary/95 to-bg-tertiary border border-border-primary rounded-3xl overflow-hidden shadow-2xl backdrop-blur-md">
+
+    <!-- Table Header Bar -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-6 py-5 border-b border-border-primary/60">
+      <div class="flex items-center gap-3.5">
+        <div class="w-10 h-10 bg-blue-500/15 border border-blue-500/25 rounded-2xl flex items-center justify-center text-blue-400">
+          <i class="fas fa-table text-base"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-black text-text-primary uppercase tracking-wider">Classroom Score Entry Matrix</h3>
+          <p class="text-xs text-text-muted font-medium mt-0.5">
+            Numeric scores 0–100 or special tokens: <span class="font-mono text-blue-400 font-bold">ABS</span> (Absent), <span class="font-mono text-amber-400 font-bold">EX</span> (Exempt), <span class="font-mono text-rose-400 font-bold">INC</span> (Incomplete)
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        @if (students().length > 0 && configuredColumns().length > 0) {
+          <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-black text-emerald-400">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            {{ getGradedCount() }} / {{ students().length }} Graded
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="py-28 flex flex-col items-center justify-center gap-4">
+        <div class="w-12 h-12 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-sm text-text-primary font-bold">Loading student roster and scores...</p>
+        <p class="text-xs text-text-muted">Synchronizing local grade drafts</p>
+      </div>
+    }
+
+    <!-- Empty - No Class Selected -->
+    @if (!isLoading() && students().length === 0 && !selectedClassId()) {
+      <div class="py-28 flex flex-col items-center justify-center gap-4 text-center px-6">
+        <div class="w-20 h-20 bg-blue-500/10 border border-blue-500/20 rounded-3xl flex items-center justify-center text-blue-400 text-3xl shadow-inner">
+          <i class="fas fa-chalkboard-teacher"></i>
+        </div>
+        <div class="space-y-1 max-w-sm">
+          <p class="text-text-primary font-black text-lg">Select a Class First</p>
+          <p class="text-text-muted text-xs leading-relaxed">Choose a class and subject from the control panel above to load the student roster and begin grading.</p>
         </div>
       </div>
     }
 
-    <!-- ── GRADING TABLE ────────────────────────────────────── -->
-    <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-xl">
-
-      <!-- Table Header Bar -->
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-6 py-5 border-b border-border-primary">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-center text-blue-500">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-          </div>
-          <div>
-            <h3 class="text-sm font-black text-text-primary uppercase tracking-wider">Score Entry Grid</h3>
-            <p class="text-[10px] text-text-muted font-medium mt-0.5">Numeric scores 0–100 or special tokens: <span class="font-mono text-blue-400 font-bold">ABS</span> (Absent), <span class="font-mono text-amber-400 font-bold">EX</span> (Exempt), <span class="font-mono text-rose-400 font-bold">INC</span> (Incomplete)</p>
-          </div>
+    <!-- Empty - Class Selected but No Columns -->
+    @if (!isLoading() && students().length > 0 && configuredColumns().length === 0) {
+      <div class="py-28 flex flex-col items-center justify-center gap-4 text-center px-6">
+        <div class="w-20 h-20 bg-blue-500/10 border border-blue-500/20 rounded-3xl flex items-center justify-center text-blue-400 text-3xl shadow-inner">
+          <i class="fas fa-columns"></i>
         </div>
-
-        <div class="flex items-center gap-3">
-          @if (students().length > 0 && configuredColumns().length > 0) {
-            <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-text-muted">
-              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              {{ getGradedCount() }} / {{ students().length }} Graded
-            </div>
-          }
+        <div class="space-y-1 max-w-sm">
+          <p class="text-text-primary font-black text-lg">No Grading Columns Configured</p>
+          <p class="text-text-muted text-xs leading-relaxed">Click below to setup assessment categories like Classwork, Homework, Mid-Term, and Exams.</p>
         </div>
+        <button (click)="toggleConfigMode()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer">
+          Configure Columns →
+        </button>
       </div>
+    }
 
-      <!-- Loading State -->
-      @if (isLoading()) {
-        <div class="py-24 flex flex-col items-center justify-center gap-4">
-          <div class="w-12 h-12 border-2 border-slate-300 border-t-slate-500 rounded-full animate-spin"></div>
-          <p class="text-sm text-text-muted font-semibold">Loading student roster...</p>
-        </div>
-      }
+    <!-- The Grade Matrix Table -->
+    @if (!isLoading() && students().length > 0 && configuredColumns().length > 0) {
+      <div class="overflow-x-auto w-full">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-bg-primary/70 text-[11px] font-black uppercase tracking-widest text-text-muted border-b border-border-primary/60">
+              <th class="px-5 py-4 w-12">#</th>
+              <th class="px-5 py-4 min-w-[220px]">Scholar Dossier</th>
+              <th class="px-4 py-4 text-center min-w-[80px]">Rank</th>
 
-      <!-- Empty - No Class Selected -->
-      @if (!isLoading() && students().length === 0 && !selectedClassId()) {
-        <div class="py-24 flex flex-col items-center justify-center gap-5">
-          <div class="w-20 h-20 bg-bg-tertiary border border-border-primary rounded-3xl flex items-center justify-center">
-            <svg class="text-text-muted opacity-30" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </div>
-          <div class="text-center max-w-xs">
-            <p class="text-text-primary font-black text-lg">Select a Class First</p>
-            <p class="text-text-muted text-sm mt-1">Choose a class from the control panel above to load the student roster and begin grading.</p>
-          </div>
-        </div>
-      }
+              @for (col of configuredColumns(); track col.category; let colIdx = $index) {
+                <th class="px-4 py-4 text-center border-l border-border-primary/50 min-w-[140px] group/col">
+                  <div class="flex flex-col items-center gap-1">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-[11px] font-black text-blue-400 uppercase tracking-wider">{{ col.category }}</span>
+                      
+                      <!-- Column Batch Action Trigger -->
+                      @if (!isLocked()) {
+                        <div class="opacity-0 group-hover/col:opacity-100 transition-opacity flex items-center gap-1">
+                          <button (click)="openBatchTool(col.category, 'fill')" title="Fill all students" class="p-1 rounded hover:bg-blue-500/20 text-blue-400 cursor-pointer">
+                            <i class="fas fa-check-double text-[10px]"></i>
+                          </button>
+                          <button (click)="openBatchTool(col.category, 'curve')" title="Curve scores (+X points)" class="p-1 rounded hover:bg-blue-500/20 text-blue-400 cursor-pointer">
+                            <i class="fas fa-plus text-[10px]"></i>
+                          </button>
+                        </div>
+                      }
+                    </div>
+                    <span class="text-[10px] font-bold text-blue-300 bg-blue-500/15 px-2 py-0.5 rounded-full">{{ getDisplayWeight(col.weight) }}%</span>
+                  </div>
+                </th>
+              }
 
-      <!-- Empty - Class Selected but No Columns -->
-      @if (!isLoading() && students().length > 0 && configuredColumns().length === 0) {
-        <div class="py-24 flex flex-col items-center justify-center gap-5">
-          <div class="w-20 h-20 bg-blue-500/5 border border-blue-500/20 rounded-3xl flex items-center justify-center">
-            <svg class="text-blue-400 opacity-60" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          </div>
-          <div class="text-center max-w-xs">
-            <p class="text-text-primary font-black text-lg">No Grading Columns</p>
-            <p class="text-text-muted text-sm mt-1">Click <strong class="text-blue-500">Configure Columns</strong> above to define assessment types like Assignments, Exams, etc.</p>
-          </div>
-          <button (click)="toggleConfigMode()" class="px-5 py-2.5 bg-blue-500/10 border border-blue-500/20 text-blue-500 font-bold text-sm rounded-xl hover:bg-blue-500/20 transition-all cursor-pointer">
-            Configure Columns →
-          </button>
-        </div>
-      }
-
-      <!-- The Grade Table -->
-      @if (!isLoading() && students().length > 0 && configuredColumns().length > 0) {
-        <div class="overflow-x-auto w-full">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-bg-tertiary/60">
-                <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] w-12">#</th>
-                <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] min-w-[220px]">Student</th>
-                <th class="px-4 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] text-center min-w-[70px]">Rank</th>
-
-                @for (col of configuredColumns(); track col.category; let colIdx = $index) {
-                  <th class="px-4 py-4 text-center border-l border-border-primary/50 min-w-[140px] group/col">
-                    <div class="flex flex-col items-center gap-1">
-                      <div class="flex items-center gap-1.5">
-                        <span class="text-[10px] font-black text-blue-500 uppercase tracking-[0.15em]">{{ col.category }}</span>
-                        
-                        <!-- Column Batch Action Trigger -->
-                        @if (!isLocked()) {
-                          <div class="opacity-0 group-hover/col:opacity-100 transition-opacity flex items-center gap-1">
-                            <button (click)="openBatchTool(col.category, 'fill')" title="Fill all students" class="p-1 rounded hover:bg-blue-500/10 text-blue-400 cursor-pointer">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                            </button>
-                            <button (click)="openBatchTool(col.category, 'curve')" title="Curve scores (+X points)" class="p-1 rounded hover:bg-blue-500/10 text-blue-400 cursor-pointer">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-                            </button>
-                          </div>
+              <th class="px-5 py-4 text-center border-l border-border-primary bg-bg-secondary text-text-primary min-w-[100px]">Total</th>
+              <th class="px-5 py-4 text-center border-l border-border-primary/50 min-w-[90px]">Grade</th>
+              <th class="px-5 py-4 text-center border-l border-border-primary/50 min-w-[130px]">Remarks</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border-primary/50 text-sm">
+            @for (student of students(); track student.id; let i = $index) {
+              <tr class="hover:bg-bg-tertiary/40 transition-colors duration-150 group" [class.bg-rose-500/5]="isAtRisk(student.id!)">
+                <td class="px-5 py-4 text-xs font-mono text-text-muted">{{ i + 1 }}</td>
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/30 flex items-center justify-center text-xs font-black text-blue-400 group-hover:scale-105 transition-transform shrink-0">
+                      {{ student.first_name[0] }}{{ student.last_name[0] }}
+                    </div>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-sm font-bold text-text-primary block leading-tight">{{ student.first_name }} {{ student.last_name }}</span>
+                        @if (isAtRisk(student.id!)) {
+                          <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-rose-500/15 text-rose-400 border border-rose-500/20 uppercase" title="Score below passing threshold">At Risk</span>
                         }
                       </div>
-                      <span class="text-[9px] font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full">{{ getDisplayWeight(col.weight) }}%</span>
+                      <span class="text-[10px] text-text-muted font-mono mt-0.5 block">{{ student.enrollment_num }}</span>
                     </div>
-                  </th>
+                  </div>
+                </td>
+
+                <!-- Rank Badge -->
+                <td class="px-4 py-4 text-center">
+                  @if (getStudentRank(student.id!); as r) {
+                    <span class="inline-flex items-center gap-1 font-mono text-xs font-black" [ngClass]="r.rank <= 3 ? 'text-amber-400' : 'text-text-muted'">
+                      @if (r.medal) {
+                        <span class="text-sm">{{ r.medal }}</span>
+                      }
+                      <span>{{ r.rank }}{{ r.suffix }}</span>
+                    </span>
+                  } @else {
+                    <span class="text-text-muted text-xs">—</span>
+                  }
+                </td>
+
+                <!-- Dynamic Assessment Score Inputs -->
+                @for (col of configuredColumns(); track col.category; let colIdx = $index) {
+                  <td class="px-3 py-2.5 border-l border-border-primary/50 relative">
+                    <div class="relative">
+                      <input
+                        id="grade-input-{{i}}-{{colIdx}}"
+                        type="text"
+                        [disabled]="isLocked()"
+                        [value]="getDraftDisplayValue(student.id!, col.category)"
+                        (input)="updateDraftValue(student.id!, col.category, $any($event.target).value)"
+                        (keydown)="handleKeyDown($event, i, colIdx)"
+                        (paste)="handlePaste($event, i, col.category)"
+                        placeholder="—"
+                        class="w-full bg-bg-primary/90 border border-border-primary rounded-xl px-3 py-2 text-text-primary text-sm font-mono text-center focus:outline-none focus:border-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        [ngClass]="{
+                          'border-rose-500/40 text-rose-400 bg-rose-500/10 font-bold': getDraftFlag(student.id!, col.category) === 'ABS' || getDraftFlag(student.id!, col.category) === 'INC',
+                          'border-amber-500/40 text-amber-400 bg-amber-500/10 font-bold': getDraftFlag(student.id!, col.category) === 'EX'
+                        }"
+                      >
+                    </div>
+                  </td>
                 }
 
-                <th class="px-5 py-4 text-[10px] font-black text-text-primary uppercase tracking-[0.2em] min-w-[100px] text-center border-l border-border-primary bg-bg-secondary">Total</th>
-                <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] min-w-[90px] text-center border-l border-border-primary/50">Grade</th>
-                <th class="px-5 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em] min-w-[120px] text-center border-l border-border-primary/50">Evaluation</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-border-primary/50">
-              @for (student of students(); track student.id; let i = $index) {
-                <tr class="hover:bg-bg-tertiary/40 transition-colors duration-150 group" [class.bg-rose-500/5]="isAtRisk(student.id!)">
-                  <td class="px-5 py-4 text-xs font-mono text-text-muted">{{ i + 1 }}</td>
-                  <td class="px-5 py-4">
-                    <div class="flex items-center gap-3">
-                      <div class="w-9 h-9 rounded-xl bg-blue-500/15 border border-border-primary flex items-center justify-center text-[11px] font-black text-blue-500 group-hover:scale-105 transition-transform shrink-0">
-                        {{ student.first_name[0] }}{{ student.last_name[0] }}
-                      </div>
-                      <div>
-                        <div class="flex items-center gap-2">
-                          <span class="text-sm font-bold text-text-primary block leading-tight">{{ student.first_name }} {{ student.last_name }}</span>
-                          @if (isAtRisk(student.id!)) {
-                            <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase" title="Score below passing threshold">At Risk</span>
-                          }
-                        </div>
-                        <span class="text-[10px] text-text-muted font-mono mt-0.5 block">{{ student.enrollment_num }}</span>
-                      </div>
-                    </div>
-                  </td>
+                <!-- Total Percentage Column -->
+                <td class="px-5 py-4 text-center border-l border-border-primary bg-bg-secondary/50 group-hover:bg-bg-tertiary/60 transition-colors">
+                  <span class="text-base font-black font-mono" [ngClass]="getGradeColor(student.id!)">
+                    {{ getTotalPercentage(student.id!) }}
+                  </span>
+                </td>
 
-                  <!-- Rank Badge -->
-                  <td class="px-4 py-4 text-center">
-                    @if (getStudentRank(student.id!); as r) {
-                      <span class="inline-flex items-center gap-1 font-mono text-xs font-black" [ngClass]="r.rank <= 3 ? 'text-amber-400' : 'text-text-muted'">
-                        @if (r.medal) {
-                          <span class="text-sm">{{ r.medal }}</span>
-                        }
-                        <span>{{ r.rank }}{{ r.suffix }}</span>
-                      </span>
-                    } @else {
-                      <span class="text-text-muted text-xs">—</span>
-                    }
-                  </td>
-
-                  <!-- Dynamic Assessment Score Inputs -->
-                  @for (col of configuredColumns(); track col.category; let colIdx = $index) {
-                    <td class="px-3 py-2.5 border-l border-border-primary/50 relative">
-                      <div class="relative">
-                        <input
-                          id="grade-input-{{i}}-{{colIdx}}"
-                          type="text"
-                          [disabled]="isLocked()"
-                          [value]="getDraftDisplayValue(student.id!, col.category)"
-                          (input)="updateDraftValue(student.id!, col.category, $any($event.target).value)"
-                          (keydown)="handleKeyDown($event, i, colIdx)"
-                          (paste)="handlePaste($event, i, col.category)"
-                          placeholder="—"
-                          class="w-full bg-bg-primary border border-border-primary rounded-xl px-3 py-2 text-text-primary text-sm font-mono text-center focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                          [ngClass]="{
-                            'border-rose-500/40 text-rose-400 bg-rose-500/5 font-bold': getDraftFlag(student.id!, col.category) === 'ABS' || getDraftFlag(student.id!, col.category) === 'INC',
-                            'border-amber-500/40 text-amber-400 bg-amber-500/5 font-bold': getDraftFlag(student.id!, col.category) === 'EX'
-                          }"
-                        >
-                      </div>
-                    </td>
-                  }
-
-                  <!-- Total Percentage Column -->
-                  <td class="px-5 py-4 text-center border-l border-border-primary bg-bg-secondary/50 group-hover:bg-bg-tertiary/60 transition-colors">
-                    <span class="text-base font-black font-mono" [ngClass]="getGradeColor(student.id!)">
-                      {{ getTotalPercentage(student.id!) }}
+                <!-- Scale-Specific Grade Column -->
+                <td class="px-4 py-4 text-center border-l border-border-primary/50">
+                  @if (getTotalPercentage(student.id!) !== '—') {
+                    <span class="inline-flex items-center justify-center min-w-[36px] h-8 px-2.5 rounded-xl text-xs font-black border"
+                          [ngClass]="getGradeBadgeClass(student.id!)"
+                          [title]="getScaleBand(student.id!)?.remark || ''">
+                      {{ getFormattedGrade(student.id!) }}
                     </span>
-                  </td>
-
-                  <!-- Scale-Specific Grade Column -->
-                  <td class="px-4 py-4 text-center border-l border-border-primary/50">
-                    @if (getTotalPercentage(student.id!) !== '—') {
-                      <span class="inline-flex items-center justify-center min-w-[36px] h-8 px-2 rounded-xl text-xs font-black border"
-                        [ngClass]="getGradeBadgeClass(student.id!)"
-                        [title]="getScaleBand(student.id!)?.remark || ''">
-                        {{ getFormattedGrade(student.id!) }}
-                      </span>
-                    } @else {
-                      <span class="text-text-muted text-sm">—</span>
-                    }
-                  </td>
-
-                  <!-- Remarks & Evaluation Column -->
-                  <td class="px-4 py-3 text-center border-l border-border-primary/50">
-                    <button
-                      type="button"
-                      (click)="openEvaluation(student)"
-                      class="px-3 py-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 border border-blue-500/30 text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
-                      title="Edit Conduct, Attitude & Headmaster Remarks"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                      <span>Remarks</span>
-                    </button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Table Footer Key / Scale Legend -->
-        <div class="px-6 py-4 border-t border-border-primary bg-bg-tertiary/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div class="flex items-center gap-3 flex-wrap">
-            <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Scale Legend:</span>
-            @for (band of gradingScales[selectedScale()].bands; track band.label) {
-              <div class="flex items-center gap-1.5">
-                <span class="px-2 py-0.5 rounded-md text-[9px] font-black border" [ngClass]="band.badgeClass">{{ band.label }}</span>
-                <span class="text-[10px] text-text-muted font-medium">{{ band.min }}–{{ band.max }}%</span>
-              </div>
-            }
-          </div>
-          <span class="text-[10px] text-text-muted font-medium shrink-0">{{ students().length }} students · {{ configuredColumns().length }} assessment{{ configuredColumns().length !== 1 ? 's' : '' }}</span>
-        </div>
-      }
-    </div>
-
-  </div>
-
-  <!-- ── BATCH OPERATION MODAL (Fill / Curve) ── -->
-  @if (isBatchModalOpen()) {
-    <div class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" (click)="isBatchModalOpen.set(false)">
-      <div class="bg-bg-secondary w-full max-w-md rounded-t-3xl sm:rounded-3xl border border-border-primary shadow-2xl p-5 sm:p-6 max-h-[92vh] sm:max-h-[85vh] overflow-y-auto animate-slide-up" (click)="$event.stopPropagation()">
-        <div class="bottomsheet-handle sm:hidden"></div>
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-base font-black text-text-primary">
-            {{ batchActionType() === 'fill' ? 'Fill Column: ' + activeBatchColumn() : 'Curve Column: ' + activeBatchColumn() }}
-          </h3>
-          <button (click)="isBatchModalOpen.set(false)" class="p-1 rounded-lg text-text-muted hover:text-text-primary cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-          </button>
-        </div>
-
-        <p class="text-xs text-text-secondary mb-4 leading-relaxed">
-          {{ batchActionType() === 'fill' 
-            ? 'Set a uniform score for all students in this assessment column.' 
-            : 'Add extra points to every student’s existing score in this assessment column (capped at 100).' }}
-        </p>
-
-        <div class="mb-6">
-          <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">
-            {{ batchActionType() === 'fill' ? 'Score to assign (0–100)' : 'Points to add (+)' }}
-          </label>
-          <input
-            type="number"
-            [min]="batchActionType() === 'fill' ? 0 : 1"
-            [max]="100"
-            [ngModel]="batchValue()"
-            (ngModelChange)="batchValue.set($event)"
-            class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-mono text-text-primary focus:border-blue-500 focus:outline-none"
-          >
-        </div>
-
-        <div class="flex flex-col-reverse sm:flex-row items-center gap-3">
-          <button (click)="isBatchModalOpen.set(false)" class="w-full sm:flex-1 py-2.5 rounded-xl border border-border-primary text-xs font-bold text-text-muted hover:text-text-primary cursor-pointer">
-            Cancel
-          </button>
-          <button (click)="applyBatchTool()" class="w-full sm:flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black shadow-lg shadow-blue-500/20 cursor-pointer">
-            Apply to All
-          </button>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- ── TERMINAL EVALUATION & REMARKS MODAL ── -->
-  @if (isEvalModalOpen()) {
-    <div class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" (click)="closeEvaluation()">
-      <div class="bg-bg-secondary w-full max-w-2xl rounded-t-3xl sm:rounded-[32px] border border-border-primary shadow-2xl overflow-hidden max-h-[92vh] sm:max-h-[85vh] flex flex-col animate-slide-up" (click)="$event.stopPropagation()">
-        <div class="bottomsheet-handle sm:hidden shrink-0 mt-3"></div>
-        <div class="p-5 sm:p-6 md:p-8 border-b border-border-primary flex items-center justify-between bg-bg-tertiary shrink-0">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/><path d="M15 5l4 4"/></svg>
-            </div>
-            <div>
-              <h3 class="text-base sm:text-xl font-black text-text-primary">Terminal Evaluation &amp; Remarks</h3>
-              <p class="text-xs font-bold text-text-muted mt-0.5">{{ evalStudent()?.first_name }} {{ evalStudent()?.last_name }} • {{ selectedTerm() }}</p>
-            </div>
-          </div>
-          <button class="w-9 h-9 rounded-xl bg-bg-secondary border border-border-primary flex items-center justify-center text-text-muted hover:text-rose-500 hover:border-rose-500/30 transition-all cursor-pointer shrink-0" (click)="closeEvaluation()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-          </button>
-        </div>
-
-        <div class="p-5 sm:p-6 md:p-8 overflow-y-auto space-y-6 flex-1">
-          @if (isEvalLoading()) {
-            <div class="py-12 flex flex-col items-center justify-center gap-3">
-              <div class="w-10 h-10 border-2 border-slate-300 border-t-slate-500 rounded-full animate-spin"></div>
-              <p class="text-xs font-bold text-text-muted uppercase tracking-wider">Loading student evaluation records...</p>
-            </div>
-          } @else {
-            <!-- Quick Status & Overview -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label class="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 block">Conduct</label>
-                <input type="text" [ngModel]="evalData().conduct" (ngModelChange)="updateEvalField('conduct', $event)" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 text-sm font-semibold text-text-primary focus:border-blue-500 focus:outline-none transition-all" placeholder="e.g. Excellent, Good, Fair">
-              </div>
-              <div>
-                <label class="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 block">Attitude</label>
-                <input type="text" [ngModel]="evalData().attitude" (ngModelChange)="updateEvalField('attitude', $event)" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 text-sm font-semibold text-text-primary focus:border-blue-500 focus:outline-none transition-all" placeholder="e.g. Positive, Hardworking">
-              </div>
-              <div>
-                <label class="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 block">Interest / Extra-Curricular</label>
-                <input type="text" [ngModel]="evalData().interest" (ngModelChange)="updateEvalField('interest', $event)" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 text-sm font-semibold text-text-primary focus:border-blue-500 focus:outline-none transition-all" placeholder="e.g. Football, Science Club">
-              </div>
-            </div>
-
-            <!-- Class Teacher Remark -->
-            <div>
-              <div class="flex items-center justify-between mb-1.5">
-                <label class="text-[10px] font-black text-text-muted uppercase tracking-widest block">Class Teacher Remark</label>
-                <span class="text-[10px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded">Form Teacher</span>
-              </div>
-              <textarea [ngModel]="evalData().class_teacher_remark" (ngModelChange)="updateEvalField('class_teacher_remark', $event)" rows="3" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-medium text-text-primary focus:border-blue-500 focus:outline-none transition-all" placeholder="Teacher's academic and behavioral summary..."></textarea>
-            </div>
-
-            <!-- Head Teacher / Headmaster Remark (Admin Authorized) -->
-            <div class="pt-2 border-t border-border-primary/60">
-              <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-2">
-                  <label class="text-[10px] font-black text-emerald-400 uppercase tracking-widest block">Headmaster / Head Teacher Remark</label>
-                  <span class="text-[9px] font-black text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">Admin Authorization</span>
-                </div>
-              </div>
-              <textarea [ngModel]="evalData().head_teacher_remark" (ngModelChange)="updateEvalField('head_teacher_remark', $event)" rows="3" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-3 text-sm font-medium text-text-primary focus:border-emerald-500 focus:outline-none transition-all" placeholder="Official Headmaster terminal remark and promotion status..."></textarea>
-
-              <!-- Quick Template Chips -->
-              <div class="mt-2.5">
-                <p class="text-[10px] font-bold text-text-muted mb-1.5">Quick Remark Presets:</p>
-                <div class="flex flex-wrap gap-1.5">
-                  @for (tpl of headmasterTemplates; track tpl) {
-                    <button
-                      type="button"
-                      (click)="applyTemplate(tpl)"
-                      class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-bg-tertiary hover:bg-emerald-500/10 text-text-muted hover:text-emerald-400 border border-border-primary hover:border-emerald-500/30 transition-all text-left cursor-pointer"
-                    >
-                      + {{ tpl }}
-                    </button>
+                  } @else {
+                    <span class="text-text-muted text-sm">—</span>
                   }
-                </div>
-              </div>
+                </td>
+
+                <!-- Remarks & Evaluation Column -->
+                <td class="px-4 py-3 text-center border-l border-border-primary/50">
+                  <button type="button"
+                          (click)="openEvaluation(student)"
+                          class="px-3.5 py-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 border border-blue-500/30 text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                          title="Edit Conduct, Attitude & Headmaster Remarks">
+                    <i class="fas fa-comment-dots text-xs"></i>
+                    <span>Remarks</span>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Table Footer Key / Scale Legend -->
+      <div class="px-6 py-4 border-t border-border-primary/60 bg-bg-primary/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div class="flex items-center gap-3 flex-wrap">
+          <span class="text-xs font-black uppercase tracking-widest text-text-muted">Scale Legend:</span>
+          @for (band of gradingScales[selectedScale()].bands; track band.label) {
+            <div class="flex items-center gap-1.5">
+              <span class="px-2 py-0.5 rounded-lg text-[10px] font-black border" [ngClass]="band.badgeClass">{{ band.label }}</span>
+              <span class="text-xs text-text-muted font-medium">{{ band.min }}–{{ band.max }}%</span>
             </div>
           }
         </div>
+        <span class="text-xs text-text-muted font-bold shrink-0">{{ students().length }} Scholars Enrolled · {{ configuredColumns().length }} Assessment Columns</span>
+      </div>
+    }
+  </div>
+</div>
 
-        <div class="p-4 sm:p-6 border-t border-border-primary bg-bg-tertiary flex flex-col-reverse sm:flex-row items-center justify-between gap-3 shrink-0">
-          <button class="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-border-primary text-text-muted hover:text-text-primary text-xs font-bold transition-all cursor-pointer" (click)="closeEvaluation()">Cancel</button>
-          <button
-            class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black rounded-xl shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-            (click)="saveEvaluation()"
-            [disabled]="isEvalSaving() || isEvalLoading()"
-          >
-            @if (isEvalSaving()) {
-              <span class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-              Saving...
-            } @else {
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-              Save Evaluation &amp; Remarks
-            }
-          </button>
-        </div>
+<!-- ── BATCH OPERATION MODAL (Fill / Curve) ── -->
+@if (isBatchModalOpen()) {
+  <div class="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in"
+       (click)="isBatchModalOpen.set(false)">
+    <div class="bg-bg-secondary w-full max-w-md rounded-3xl border border-border-primary shadow-2xl p-6 my-auto space-y-4"
+         (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between border-b border-border-primary/50 pb-3">
+        <h3 class="text-base font-black text-text-primary">
+          {{ batchActionType() === 'fill' ? 'Fill Column: ' + activeBatchColumn() : 'Curve Column: ' + activeBatchColumn() }}
+        </h3>
+        <button (click)="isBatchModalOpen.set(false)" class="p-1 rounded-lg text-text-muted hover:text-text-primary cursor-pointer">
+          <i class="fas fa-times text-sm"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-text-secondary leading-relaxed">
+        {{ batchActionType() === 'fill' 
+          ? 'Set a uniform score for all students in this assessment column.' 
+          : 'Add extra points to every student’s existing score in this assessment column (capped at 100).' }}
+      </p>
+
+      <div>
+        <label class="block text-xs font-black text-text-muted uppercase tracking-widest mb-2">
+          {{ batchActionType() === 'fill' ? 'Score to assign (0–100)' : 'Points to add (+)' }}
+        </label>
+        <input type="number"
+               [min]="batchActionType() === 'fill' ? 0 : 1"
+               [max]="100"
+               [ngModel]="batchValue()"
+               (ngModelChange)="batchValue.set($event)"
+               class="w-full bg-bg-primary border border-border-primary rounded-xl px-4 py-3 text-sm font-mono font-bold text-text-primary focus:border-blue-500 focus:outline-none">
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-2 border-t border-border-primary/50">
+        <button (click)="isBatchModalOpen.set(false)" class="px-5 py-2.5 rounded-xl border border-border-primary text-xs font-bold text-text-muted hover:text-text-primary cursor-pointer">
+          Cancel
+        </button>
+        <button (click)="applyBatchTool()" class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black shadow-lg shadow-blue-500/20 cursor-pointer">
+          Apply to All
+        </button>
       </div>
     </div>
-  }
-</div>
+  </div>
+}
+
+<!-- ── TERMINAL EVALUATION & REMARKS MODAL ── -->
+@if (isEvalModalOpen()) {
+  <div class="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in"
+       (click)="closeEvaluation()">
+    <div class="bg-bg-secondary w-full max-w-2xl rounded-3xl border border-border-primary shadow-2xl overflow-hidden my-auto flex flex-col max-h-[90vh]"
+         (click)="$event.stopPropagation()">
+      
+      <!-- Evaluation Modal Header -->
+      <div class="p-6 border-b border-border-primary flex items-center justify-between bg-bg-tertiary/70 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-blue-500/15 text-blue-400 border border-blue-500/25 flex items-center justify-center shrink-0">
+            <i class="fas fa-comment-dots text-base"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-text-primary">Terminal Evaluation &amp; Remarks</h3>
+            <p class="text-xs font-bold text-text-muted mt-0.5">{{ evalStudent()?.first_name }} {{ evalStudent()?.last_name }} • {{ selectedTerm() }}</p>
+          </div>
+        </div>
+        <button class="w-8 h-8 rounded-xl bg-bg-secondary border border-border-primary flex items-center justify-center text-text-muted hover:text-rose-500 hover:border-rose-500/30 transition-all cursor-pointer shrink-0" (click)="closeEvaluation()">
+          <i class="fas fa-times text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Evaluation Modal Body -->
+      <div class="p-6 md:p-8 overflow-y-auto space-y-5 flex-1">
+        @if (isEvalLoading()) {
+          <div class="py-16 flex flex-col items-center justify-center gap-3">
+            <div class="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-xs font-bold text-text-muted uppercase tracking-wider">Loading student evaluation records...</p>
+          </div>
+        } @else {
+          <!-- Quick Status & Overview -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="text-xs font-black text-text-muted uppercase tracking-widest mb-1.5 block">Conduct</label>
+              <input type="text" [ngModel]="evalData().conduct" (ngModelChange)="updateEvalField('conduct', $event)" class="w-full bg-bg-primary border border-border-primary rounded-xl px-4 py-2.5 text-sm font-bold text-text-primary focus:border-blue-500 focus:outline-none transition-all" placeholder="e.g. Excellent, Good, Fair">
+            </div>
+            <div>
+              <label class="text-xs font-black text-text-muted uppercase tracking-widest mb-1.5 block">Attitude</label>
+              <input type="text" [ngModel]="evalData().attitude" (ngModelChange)="updateEvalField('attitude', $event)" class="w-full bg-bg-primary border border-border-primary rounded-xl px-4 py-2.5 text-sm font-bold text-text-primary focus:border-blue-500 focus:outline-none transition-all" placeholder="e.g. Positive, Hardworking">
+            </div>
+            <div>
+              <label class="text-xs font-black text-text-muted uppercase tracking-widest mb-1.5 block">Interest</label>
+              <input type="text" [ngModel]="evalData().interest" (ngModelChange)="updateEvalField('interest', $event)" class="w-full bg-bg-primary border border-border-primary rounded-xl px-4 py-2.5 text-sm font-bold text-text-primary focus:border-blue-500 focus:outline-none transition-all" placeholder="e.g. Football, Science Club">
+            </div>
+          </div>
+
+          <!-- Class Teacher Remark -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-xs font-black text-text-muted uppercase tracking-widest block">Class Teacher Remark</label>
+              <span class="text-[10px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded">Form Teacher</span>
+            </div>
+            <textarea [ngModel]="evalData().class_teacher_remark" (ngModelChange)="updateEvalField('class_teacher_remark', $event)" rows="3" class="w-full bg-bg-primary border border-border-primary rounded-xl px-4 py-3 text-sm font-medium text-text-primary focus:border-blue-500 focus:outline-none transition-all resize-none" placeholder="Teacher's academic and behavioral summary..."></textarea>
+          </div>
+
+          <!-- Head Teacher / Headmaster Remark (Admin Authorized) -->
+          <div class="pt-3 border-t border-border-primary/60">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <label class="text-xs font-black text-emerald-400 uppercase tracking-widest block">Headmaster Remark</label>
+                <span class="text-[9px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">Admin Authorization</span>
+              </div>
+            </div>
+            <textarea [ngModel]="evalData().head_teacher_remark" (ngModelChange)="updateEvalField('head_teacher_remark', $event)" rows="3" class="w-full bg-bg-primary border border-border-primary rounded-xl px-4 py-3 text-sm font-medium text-text-primary focus:border-emerald-500 focus:outline-none transition-all resize-none" placeholder="Official Headmaster terminal remark and promotion status..."></textarea>
+
+            <!-- Quick Template Chips -->
+            <div class="mt-2.5">
+              <p class="text-xs font-bold text-text-muted mb-1.5">Quick Remark Presets:</p>
+              <div class="flex flex-wrap gap-1.5">
+                @for (tpl of headmasterTemplates; track tpl) {
+                  <button type="button"
+                          (click)="applyTemplate(tpl)"
+                          class="text-xs font-bold px-2.5 py-1 rounded-lg bg-bg-primary hover:bg-emerald-500/10 text-text-muted hover:text-emerald-400 border border-border-primary hover:border-emerald-500/30 transition-all text-left cursor-pointer">
+                    + {{ tpl }}
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Modal Actions -->
+      <div class="p-6 border-t border-border-primary bg-bg-tertiary/60 flex items-center justify-end gap-3 shrink-0">
+        <button class="px-5 py-2.5 rounded-xl border border-border-primary text-text-muted hover:text-text-primary text-xs font-bold transition-all cursor-pointer" (click)="closeEvaluation()">Cancel</button>
+        <button class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                (click)="saveEvaluation()"
+                [disabled]="isEvalSaving() || isEvalLoading()">
+          @if (isEvalSaving()) {
+            <i class="fas fa-circle-notch fa-spin text-sm"></i>
+            <span>Saving...</span>
+          } @else {
+            <i class="fas fa-save text-sm"></i>
+            <span>Save Remarks</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

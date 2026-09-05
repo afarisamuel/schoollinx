@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { FiscalService, DailyBill } from '../../../core/infrastructure/fiscal/fiscal.service';
 import { AcademicPeriodService } from '../../../core/infrastructure/academic-period/academic-period.service';
 import { LogisticsService } from '../../../core/infrastructure/logistics/logistics.service';
@@ -10,7 +11,7 @@ import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 @Component({
     selector: 'app-daily-collection',
     standalone: true,
-    imports: [CommonModule, CurrencyPipe, DatePipe, FormsModule],
+    imports: [CommonModule, CurrencyPipe, DatePipe, FormsModule, RouterLink],
     templateUrl: './daily-collection.component.html',
     styleUrl: './daily-collection.component.css'
 })
@@ -28,17 +29,65 @@ export class DailyCollectionComponent implements OnInit {
     myCollections = signal<DailyBill[]>([]);
     myTotal = signal(0);
     searchTerm = signal('');
+    auditSearchTerm = signal('');
     isLoading = signal(true);
     isCollecting = signal<string | null>(null); // billId being processed
     isGenerating = signal(false);
+    isBatchCollecting = signal(false);
     activePeriodId = signal<string | null>(null);
+    activePeriodName = signal<string>('Current Term');
+    viewMode = signal<'grid' | 'table'>('grid');
+    filterScope = signal<'all' | 'high' | 'standard'>('all');
 
     today = new Date();
 
+    // Computed Telemetry
+    pendingTotal = computed(() => {
+        return this.pendingBills().reduce((acc, bill) => acc + (bill.amount || 0), 0);
+    });
+
+    totalScopeBillsCount = computed(() => {
+        return this.pendingBills().length + this.myCollections().length;
+    });
+
+    clearanceRate = computed(() => {
+        const total = this.totalScopeBillsCount();
+        if (!total) return 0;
+        return Math.round((this.myCollections().length / total) * 100);
+    });
+
+    selectedRouteDetails = computed(() => {
+        const id = this.selectedRouteId();
+        if (!id) return null;
+        if (id === 'walk-ins') {
+            return { name: 'Walk-in Scholars (Canteen Only)', rate: 0, isWalkIn: true };
+        }
+        const route = this.routes().find(r => r.id === id);
+        return route ? { name: route.name, rate: route.daily_fee, isWalkIn: false } : null;
+    });
+
     filteredBills = computed(() => {
         const q = this.searchTerm().toLowerCase();
-        return this.pendingBills().filter(b =>
-            !q ||
+        const scope = this.filterScope();
+
+        return this.pendingBills().filter(b => {
+            const matchesSearch = !q ||
+                b.student?.first_name?.toLowerCase().includes(q) ||
+                b.student?.last_name?.toLowerCase().includes(q) ||
+                b.student_id.toLowerCase().includes(q);
+
+            if (!matchesSearch) return false;
+
+            if (scope === 'high') return b.amount >= 15;
+            if (scope === 'standard') return b.amount < 15;
+            return true;
+        });
+    });
+
+    filteredAuditCollections = computed(() => {
+        const q = this.auditSearchTerm().toLowerCase();
+        if (!q) return this.myCollections();
+        return this.myCollections().filter(b => 
             b.student?.first_name?.toLowerCase().includes(q) ||
             b.student?.last_name?.toLowerCase().includes(q) ||
             b.student_id.toLowerCase().includes(q)
@@ -49,7 +98,10 @@ export class DailyCollectionComponent implements OnInit {
         this.periodService.getAll().subscribe({
             next: (periods) => {
                 const active = periods.find(p => p.is_active);
-                if (active) this.activePeriodId.set(active.id);
+                if (active) {
+                    this.activePeriodId.set(active.id);
+                    this.activePeriodName.set(active.name || 'Active Term');
+                }
             }
         });
         
@@ -176,4 +228,32 @@ export class DailyCollectionComponent implements OnInit {
             });
         });
     }
+
+    exportAuditCsv() {
+        const collections = this.myCollections();
+        if (collections.length === 0) {
+            this.dialog.alert('No collections logged today to export.', 'Empty Ledger', 'info');
+            return;
+        }
+
+        const headers = ['Receipt / Bill ID', 'Student Name', 'Student ID', 'Amount (GHS)', 'Collection Time', 'Status'];
+        const rows = collections.map(b => [
+            b.id,
+            `"${b.student?.first_name ?? ''} ${b.student?.last_name ?? ''}"`,
+            b.student_id,
+            (b.amount || 0).toFixed(2),
+            b.collected_at ? new Date(b.collected_at).toLocaleTimeString() : 'N/A',
+            'COLLECTED'
+        ]);
+
+        const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', `Daily_Collection_Shift_Audit_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
 }
+

@@ -82,6 +82,27 @@ export class TeacherPortalComponent implements OnInit {
     columnCount = signal(3);
     isColumnsAdminConfigured = signal(false);
     isClassSpecificWeights = signal(false);
+    // Telemetry Computed Signals
+    totalStudentsCount = computed(() => this.students().length);
+    gradedStudentsCount = computed(() => {
+        const stats = this.studentStats();
+        return Object.values(stats).filter(s => s.total > 0).length;
+    });
+    completionPercentage = computed(() => {
+        const total = this.totalStudentsCount();
+        if (total === 0) return 0;
+        return Math.round((this.gradedStudentsCount() / total) * 100);
+    });
+    classMeanScore = computed(() => {
+        const stats = Object.values(this.studentStats());
+        const scored = stats.filter(s => s.total > 0);
+        if (scored.length === 0) return 0;
+        const sum = scored.reduce((acc, curr) => acc + curr.total, 0);
+        return parseFloat((sum / scored.length).toFixed(1));
+    });
+    selectedClassName = computed(() => this.selectedAssignment()?.class?.name || (this.selectedAssignment()?.class_id ? 'Class #' + this.selectedAssignment()?.class_id : ''));
+    selectedSubjectName = computed(() => this.selectedAssignment()?.subject?.name || (this.selectedSubjectId() ? this.getSubjectNameById(this.selectedSubjectId()) : 'All Subjects'));
+
     cumulativeThreshold = computed(() => {
         const cols = this.gradeColumns();
         const total = cols.reduce((sum, c) => sum + (c.weight > 1 ? c.weight : c.weight * 100), 0);

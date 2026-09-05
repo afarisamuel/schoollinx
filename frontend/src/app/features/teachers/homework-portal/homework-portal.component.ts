@@ -8,10 +8,12 @@ import { Homework, HomeworkSubmission } from '../../../core/domain/homework.mode
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 
+import { RouterLink } from '@angular/router';
+
 @Component({
   selector: 'app-homework-portal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './homework-portal.component.html',
   styleUrl: './homework-portal.component.css'
 })
@@ -25,6 +27,13 @@ export class HomeworkPortalComponent implements OnInit {
   homeworks: Homework[] = [];
   classes: Class[] = [];
   subjects: Subject[] = [];
+
+  // Search & Filter State
+  searchQuery = '';
+  selectedClassFilter = 'ALL';
+  selectedSubjectFilter = 'ALL';
+  dueFilter: 'ALL' | 'ACTIVE' | 'OVERDUE' = 'ALL';
+  viewMode: 'grid' | 'table' = 'grid';
 
   showForm = false;
   editingId: string | null = null;
@@ -63,6 +72,50 @@ export class HomeworkPortalComponent implements OnInit {
     class_id: '',
     subject: ''
   };
+
+  get filteredHomeworks(): Homework[] {
+    const query = this.searchQuery.toLowerCase().trim();
+    const classId = this.selectedClassFilter;
+    const subject = this.selectedSubjectFilter;
+    const due = this.dueFilter;
+    const now = new Date();
+
+    return this.homeworks.filter(hw => {
+      const matchesQuery = !query ||
+        hw.title?.toLowerCase().includes(query) ||
+        hw.subject?.toLowerCase().includes(query) ||
+        hw.description?.toLowerCase().includes(query) ||
+        this.getClassName(hw.class_id).toLowerCase().includes(query);
+
+      if (!matchesQuery) return false;
+
+      if (classId !== 'ALL' && hw.class_id !== classId) return false;
+      if (subject !== 'ALL' && hw.subject !== subject) return false;
+
+      if (due === 'ACTIVE') {
+        const dueDate = new Date(hw.due_date);
+        if (dueDate < now) return false;
+      } else if (due === 'OVERDUE') {
+        const dueDate = new Date(hw.due_date);
+        if (dueDate >= now) return false;
+      }
+
+      return true;
+    });
+  }
+
+  get distinctClassesCount(): number {
+    return new Set(this.homeworks.map(h => h.class_id)).size;
+  }
+
+  get distinctSubjectsCount(): number {
+    return new Set(this.homeworks.map(h => h.subject)).size;
+  }
+
+  isPastDue(dueDateStr: string): boolean {
+    if (!dueDateStr) return false;
+    return new Date(dueDateStr) < new Date();
+  }
 
   ngOnInit() {
     this.loadInitialData();
