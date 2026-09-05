@@ -65,6 +65,82 @@ export class BulkGradingComponent implements OnInit {
   activePeriodId = signal('');
   activeTermId = signal('');
 
+  // Teacher Profile & Assignments for Scoped Subject Access
+  teacher = signal<any>(null);
+  assignments = signal<any[]>([]);
+  currentClassSubjects = signal<Subject[]>([]);
+
+  // Role permissions
+  isHeadmasterOrAdmin = computed(() => {
+    const role = (this.authService.currentUserValue?.role || '') as string;
+    return role === 'ADMIN' || role === 'HEADMASTER' || role === 'ECOPOWER_ADMIN' || role === 'IT_ADMIN';
+  });
+
+  // Determines if logged-in teacher is the Form Master / Class Teacher for the selected class
+  isClassTeacherForSelectedClass = computed(() => {
+    if (this.isHeadmasterOrAdmin()) return true;
+    const cId = this.selectedClassId();
+    if (!cId) return false;
+    const cls = this.classes().find(c => c.id === cId);
+    const teacherId = this.teacher()?.id || this.authService.currentUserValue?.id;
+    if (cls?.teacher_id && teacherId && cls.teacher_id === teacherId) return true;
+    const isAssignedAsClassTeacher = this.assignments().some(a => a.class_id === cId && (!a.subject_id || a.subject_id === '00000000-0000-0000-0000-000000000000'));
+    return isAssignedAsClassTeacher;
+  });
+
+  // Dynamic Subjects Filter:
+  // - Admins/Headmasters & Class Teachers: Access ALL class subjects
+  // - Subject Teachers: Restricted ONLY to subjects assigned to them for this specific class
+  availableSubjects = computed(() => {
+    const cId = this.selectedClassId();
+    const allSubs = this.subjects();
+    if (!cId) return allSubs;
+
+    // If Admin/Headmaster or Class Teacher, show all subjects for that class
+    if (this.isHeadmasterOrAdmin() || this.isClassTeacherForSelectedClass()) {
+      const classSubs = this.currentClassSubjects();
+      if (classSubs && classSubs.length > 0) {
+        return classSubs;
+      }
+      return allSubs;
+    }
+
+    // Subject Teacher: Show only assigned subjects for this class
+    const teacherClassAssignments = this.assignments().filter(a => a.class_id === cId);
+    if (teacherClassAssignments.length === 0) {
+      return [];
+    }
+
+    const assignedKeys = new Set<string>();
+    teacherClassAssignments.forEach(a => {
+      if (a.subject_id) assignedKeys.add(a.subject_id.toLowerCase());
+      if (a.subject?.id) assignedKeys.add(a.subject.id.toLowerCase());
+      if (a.subject?.name) assignedKeys.add(a.subject.name.trim().toLowerCase());
+    });
+
+    const filtered = allSubs.filter(s => 
+      assignedKeys.has(s.id.toLowerCase()) || 
+      assignedKeys.has(s.name.trim().toLowerCase()) ||
+      (s.code && assignedKeys.has(s.code.trim().toLowerCase()))
+    );
+
+    if (filtered.length === 0) {
+      const extracted: Subject[] = [];
+      teacherClassAssignments.forEach(a => {
+        if (a.subject) {
+          extracted.push({
+            id: a.subject.id,
+            name: a.subject.name,
+            code: a.subject.code || ''
+          } as Subject);
+        }
+      });
+      return extracted;
+    }
+
+    return filtered;
+  });
+
   // Computed Telemetry
   selectedClassName = computed(() => {
     const c = this.classes().find(cls => cls.id === this.selectedClassId());
@@ -72,8 +148,14 @@ export class BulkGradingComponent implements OnInit {
   });
 
   selectedSubjectName = computed(() => {
-    const s = this.subjects().find(sub => sub.id === this.selectedSubjectId());
-    return s ? s.name : 'No Subject Selected';
+    const current = this.selectedSubjectId();
+    if (!current) return 'No Subject Selected';
+    const s = this.subjects().find(sub => 
+      sub.id === current || 
+      sub.name.toLowerCase() === current.toLowerCase() || 
+      (sub.code && sub.code.toLowerCase() === current.toLowerCase())
+    );
+    return s ? s.name : current;
   });
 
   gradedStudentsCount = computed(() => {
@@ -84,13 +166,6 @@ export class BulkGradingComponent implements OnInit {
     const total = this.students().length;
     if (!total) return 0;
     return Math.round((this.gradedStudentsCount() / total) * 100);
-  });
-
-
-  // Role permissions
-  isHeadmasterOrAdmin = computed(() => {
-    const role = (this.authService.currentUserValue?.role || '') as string;
-    return role === 'ADMIN' || role === 'HEADMASTER' || role === 'ECOPOWER_ADMIN' || role === 'IT_ADMIN';
   });
 
   // Dynamic columns configured for this class
@@ -202,8 +277,99 @@ export class BulkGradingComponent implements OnInit {
 
   ngOnInit() {
     this.loadTerms();
+    this.loadTeacherAssignments();
     this.loadSubjects();
     this.loadClasses();
+
+    // Listen to query parameters reactively so changes in URL automatically refresh grading view
+    this.route.queryParams.subscribe(params => {
+      const qClass = params['class_id'];
+      const qSub = params['subject'];
+      const qTerm = params['term'];
+
+      let stateChanged = false;
+
+      if (qClass && qClass !== this.selectedClassId()) {
+        this.selectedClassId.set(qClass);
+        this.loadClassSpecificSubjects(qClass);
+        this.loadWeights();
+        this.loadStudents();
+        stateChanged = true;
+      }
+
+      if (qSub && qSub !== this.selectedSubjectId()) {
+        this.selectedSubjectId.set(qSub);
+        stateChanged = true;
+      }
+
+      if (qTerm && qTerm !== this.selectedTerm()) {
+        this.selectedTerm.set(qTerm);
+        const foundTerm = this.terms().find(t => t.name === qTerm || t.id === qTerm);
+        if (foundTerm?.id) this.activeTermId.set(foundTerm.id);
+        stateChanged = true;
+      }
+
+      if (stateChanged && this.selectedClassId() && this.selectedSubjectId()) {
+        this.loadExistingGrades();
+      }
+    });
+  }
+
+  loadTeacherAssignments() {
+    this.teacherPortalService.getMyClasses().subscribe({
+      next: (resp) => {
+        if (resp) {
+          this.teacher.set(resp.teacher);
+          this.assignments.set(resp.assignments || []);
+          this.validateSubjectForCurrentClass();
+        }
+      },
+      error: () => {
+        // Fallback for non-teacher/admin sessions
+      }
+    });
+  }
+
+  loadClassSpecificSubjects(classId: string) {
+    if (!classId) return;
+    this.classService.getClassSubjects(classId).subscribe({
+      next: (subs) => {
+        if (subs && subs.length > 0) {
+          this.currentClassSubjects.set(subs.map(s => ({
+            id: s.id,
+            name: s.name,
+            code: s.code || ''
+          } as Subject)));
+        } else {
+          this.currentClassSubjects.set([]);
+        }
+        this.validateSubjectForCurrentClass();
+      },
+      error: () => {
+        this.currentClassSubjects.set([]);
+        this.validateSubjectForCurrentClass();
+      }
+    });
+  }
+
+  validateSubjectForCurrentClass() {
+    const available = this.availableSubjects();
+    if (available.length === 0) return;
+
+    const currentSub = this.selectedSubjectId();
+    const isCurrentValid = available.some(s => 
+      s.id === currentSub || 
+      s.name.toLowerCase() === currentSub.toLowerCase() || 
+      (s.code && s.code.toLowerCase() === currentSub.toLowerCase())
+    );
+
+    if (!isCurrentValid && available.length > 0) {
+      this.selectedSubjectId.set(available[0].name || available[0].id);
+      this.syncUrlAndSession();
+      if (this.selectedClassId()) {
+        this.loadExistingGrades();
+      }
+    }
   }
 
   getStorageKey(): string {
@@ -274,6 +440,7 @@ export class BulkGradingComponent implements OnInit {
         } else if (!this.selectedSubjectId()) {
           this.selectedSubjectId.set(subjects[0].name);
         }
+        this.validateSubjectForCurrentClass();
         if (this.selectedClassId()) {
           this.loadExistingGrades();
         }
@@ -298,11 +465,14 @@ export class BulkGradingComponent implements OnInit {
   }
 
   onClassChange() {
-    this.syncUrlAndSession();
-    if (this.selectedClassId()) {
+    const cId = this.selectedClassId();
+    if (cId) {
+      this.loadClassSpecificSubjects(cId);
       this.loadWeights();
       this.loadStudents();
+      this.validateSubjectForCurrentClass();
     }
+    this.syncUrlAndSession();
   }
 
   loadWeights() {

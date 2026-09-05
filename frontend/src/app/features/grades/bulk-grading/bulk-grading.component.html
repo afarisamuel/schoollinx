@@ -247,12 +247,23 @@
 
       <!-- Subject -->
       <div class="space-y-1.5">
-        <label class="block text-[11px] font-black text-text-muted uppercase tracking-wider">Subject Discipline *</label>
+        <div class="flex items-center justify-between">
+          <label class="block text-[11px] font-black text-text-muted uppercase tracking-wider">Subject Discipline *</label>
+          @if (isClassTeacherForSelectedClass()) {
+            <span class="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20" title="Class Form Master: All class subjects accessible">
+              Class Teacher
+            </span>
+          } @else if (!isHeadmasterOrAdmin()) {
+            <span class="text-[9px] font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20" title="Assigned Subject Teacher">
+              Assigned ({{ availableSubjects().length }})
+            </span>
+          }
+        </div>
         <div class="relative">
           <select [ngModel]="selectedSubjectId()" (ngModelChange)="selectedSubjectId.set($event); onFilterChange()" 
                   class="w-full bg-bg-primary border border-border-primary rounded-2xl px-4 py-3 text-text-primary text-sm font-bold focus:outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer">
             <option value="">Select a subject...</option>
-            @for (sub of subjects(); track sub.name) {
+            @for (sub of availableSubjects(); track sub.name || sub.id) {
               <option [value]="sub.name">📖 {{ sub.name }}</option>
             }
           </select>
