@@ -1,225 +1,661 @@
-<div class="flex flex-col gap-8 animate-fade-in p-4 lg:p-8">
+<div class="flex flex-col gap-6 animate-fade-in p-4 lg:p-8 max-w-[1600px] mx-auto w-full">
 
-    <!-- Header Section -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <!-- ========================================== -->
+    <!-- TOP NOTIFICATION TOAST                     -->
+    <!-- ========================================== -->
+    @if (toastMessage()) {
+        <div class="fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-emerald-500/90 text-white font-bold text-xs shadow-2xl backdrop-blur-md border border-white/20 animate-slide-down">
+            <i class="fas fa-check-circle text-base"></i>
+            <span>{{ toastMessage() }}</span>
+        </div>
+    }
+
+    <!-- ========================================== -->
+    <!-- HEADER SECTION                             -->
+    <!-- ========================================== -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div class="flex flex-col gap-1">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600/20 to-indigo-600/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-md">
+                    <i class="fas fa-cubes-stacked text-xl"></i>
                 </div>
-                <h1 class="text-2xl md:text-3xl font-black text-text-primary tracking-tight">Physical Resource Ledger</h1>
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-black text-text-primary tracking-tight">Physical Resource Ledger</h1>
+                    <p class="text-xs md:text-sm text-text-secondary font-medium">Book and manage specialized campus assets, scientific laboratories, fleet, and smart facilities</p>
+                </div>
             </div>
-            <p class="text-text-secondary font-medium pl-13">Book and manage school assets, labs, and equipment</p>
         </div>
-        <div class="flex items-center gap-3">
-            <button
-                (click)="viewMyBookings = !viewMyBookings"
-                class="inline-flex items-center gap-2 px-4 py-2.5 transition-all text-xs font-bold rounded-xl"
-                [class.bg-blue-600]="!viewMyBookings"
-                [class.hover:bg-blue-500]="!viewMyBookings"
-                [class.text-white]="!viewMyBookings"
-                [class.shadow-lg]="!viewMyBookings"
-                [class.shadow-blue-500\/20]="!viewMyBookings"
-                [class.bg-bg-tertiary]="viewMyBookings"
-                [class.border]="viewMyBookings"
-                [class.border-border-primary]="viewMyBookings"
-                [class.text-text-secondary]="viewMyBookings"
-                [class.hover:text-text-primary]="viewMyBookings">
-                @if (!viewMyBookings) {
-                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-                My Bookings
-                } @else {
-                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                View Resources
+
+        <!-- Action Toolbar -->
+        <div class="flex flex-wrap items-center gap-2.5">
+            <!-- View Switcher -->
+            <div class="flex items-center bg-bg-secondary p-1 rounded-2xl border border-border-primary shadow-sm">
+                <button type="button" (click)="activeView.set('resources')"
+                        class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+                        [class.bg-blue-600]="activeView() === 'resources'"
+                        [class.text-white]="activeView() === 'resources'"
+                        [class.shadow-md]="activeView() === 'resources'"
+                        [class.text-text-secondary]="activeView() !== 'resources'">
+                    <i class="fas fa-th-large text-[11px]"></i>
+                    <span>Asset Catalog</span>
+                </button>
+                <button type="button" (click)="activeView.set('my-bookings')"
+                        class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+                        [class.bg-blue-600]="activeView() === 'my-bookings'"
+                        [class.text-white]="activeView() === 'my-bookings'"
+                        [class.shadow-md]="activeView() === 'my-bookings'"
+                        [class.text-text-secondary]="activeView() !== 'my-bookings'">
+                    <i class="fas fa-user-check text-[11px]"></i>
+                    <span>My Bookings ({{ myBookings().length }})</span>
+                </button>
+                <button type="button" (click)="activeView.set('all-schedule')"
+                        class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+                        [class.bg-blue-600]="activeView() === 'all-schedule'"
+                        [class.text-white]="activeView() === 'all-schedule'"
+                        [class.shadow-md]="activeView() === 'all-schedule'"
+                        [class.text-text-secondary]="activeView() !== 'all-schedule'">
+                    <i class="fas fa-calendar-alt text-[11px]"></i>
+                    <span>Master Schedule</span>
+                </button>
+            </div>
+
+            <!-- Add Asset Action -->
+            <button type="button" (click)="openCreateAssetModal()"
+                    class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95">
+                <i class="fas fa-plus text-xs"></i>
+                <span>Provision Asset</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- STATS STRIP                                -->
+    <!-- ========================================== -->
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+        <div class="flex items-center gap-3.5 p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-sm hover:border-blue-500/30 transition-all">
+            <div class="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 flex-shrink-0">
+                <i class="fas fa-boxes-stacked text-lg"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">Total Assets</span>
+                <span class="text-2xl font-black text-text-primary">{{ totalResourcesCount() }}</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3.5 p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-sm hover:border-emerald-500/30 transition-all">
+            <div class="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                <i class="fas fa-flask text-lg"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">Labs & Studios</span>
+                <span class="text-2xl font-black text-emerald-400">{{ labsCount() }}</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3.5 p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-sm hover:border-amber-500/30 transition-all">
+            <div class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 flex-shrink-0">
+                <i class="fas fa-microchip text-lg"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">Equipment & AV</span>
+                <span class="text-2xl font-black text-amber-400">{{ equipmentCount() }}</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3.5 p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-sm hover:border-purple-500/30 transition-all">
+            <div class="w-11 h-11 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 flex-shrink-0">
+                <i class="fas fa-landmark text-lg"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">Halls & Fleet</span>
+                <span class="text-2xl font-black text-purple-400">{{ roomsCount() }}</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3.5 p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-sm hover:border-blue-500/30 transition-all col-span-2 sm:col-span-1">
+            <div class="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 flex-shrink-0">
+                <i class="fas fa-calendar-check text-lg"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">My Active Reservations</span>
+                <span class="text-2xl font-black text-indigo-400">{{ activeBookingsCount() }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 1: ASSET CATALOG                                                     -->
+    <!-- ========================================================================= -->
+    @if (activeView() === 'resources') {
+        
+        <!-- Filter & Search Toolbar -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 bg-bg-secondary border border-border-primary rounded-2xl shadow-sm">
+            <!-- Search Input -->
+            <div class="relative flex-1 max-w-md">
+                <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
+                <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+                       placeholder="Search asset, lab, room, custodian, tag..."
+                       class="w-full bg-bg-tertiary border border-border-secondary rounded-xl pl-9 pr-4 py-2 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-blue-500 transition-all">
+                @if (searchQuery()) {
+                    <button type="button" (click)="searchQuery.set('')" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary text-xs">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
                 }
-            </button>
-        </div>
-    </div>
+            </div>
 
-    <!-- Stats Strip -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="flex flex-col gap-1 p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-xl">
-            <span class="text-[9px] font-bold text-text-muted uppercase tracking-tighter">Total Resources</span>
-            <span class="text-2xl font-black text-text-primary">{{ resources().length }}</span>
+            <!-- Status Filter -->
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] font-bold uppercase text-text-muted">Status:</span>
+                <select [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event)"
+                        class="bg-bg-tertiary border border-border-secondary rounded-xl px-3 py-1.5 text-xs font-bold text-text-primary focus:outline-none focus:border-blue-500">
+                    <option value="ALL">All Statuses</option>
+                    <option value="AVAILABLE">🟢 Available Now</option>
+                    <option value="RESERVED">🟡 In Use / Reserved</option>
+                    <option value="MAINTENANCE">🔴 Under Maintenance</option>
+                </select>
+            </div>
         </div>
-        <div class="flex flex-col gap-1 p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-xl">
-            <span class="text-[9px] font-bold text-text-muted uppercase tracking-tighter">Labs</span>
-            <span class="text-2xl font-black text-emerald-400">{{ countByType('LAB') }}</span>
-        </div>
-        <div class="flex flex-col gap-1 p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-xl">
-            <span class="text-[9px] font-bold text-text-muted uppercase tracking-tighter">Equipment</span>
-            <span class="text-2xl font-black text-amber-400">{{ countByType('EQUIPMENT') }}</span>
-        </div>
-        <div class="flex flex-col gap-1 p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-xl">
-            <span class="text-[9px] font-bold text-text-muted uppercase tracking-tighter">My Bookings</span>
-            <span class="text-2xl font-black text-blue-400">{{ myBookings().length }}</span>
-        </div>
-    </div>
 
-    <!-- Resources Grid -->
-    @if (!viewMyBookings) {
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 animate-fade-in">
-        @for (res of resources(); track res.id) {
-        <div
-            (click)="openBooking(res)"
-            class="group relative bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-xl flex flex-col gap-4 cursor-pointer hover:border-blue-500/30 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/5 transition-all duration-300">
-
-            <!-- Top Row: Type Badge + Icon -->
-            <div class="flex items-start justify-between">
-                <!-- Type Badge -->
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest"
-                      [class.bg-blue-500/10]="res.type === 'BOOK'"
-                      [class.text-blue-400]="res.type === 'BOOK'"
-                      [class.border]="true"
-                      [class.border-blue-500/20]="res.type === 'BOOK'"
-                      [class.bg-emerald-500/10]="res.type === 'LAB'"
-                      [class.text-emerald-400]="res.type === 'LAB'"
-                      [class.border-emerald-500/20]="res.type === 'LAB'"
-                      [class.bg-amber-500/10]="res.type === 'EQUIPMENT'"
-                      [class.text-amber-400]="res.type === 'EQUIPMENT'"
-                      [class.border-amber-500/20]="res.type === 'EQUIPMENT'">
-                    @if (res.type === 'BOOK') {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg>
-                    } @else if (res.type === 'LAB') {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 19.5A2 2 0 0 0 6.52 22h10.96a2 2 0 0 0 1.8-2.5l-5.069-9.077A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/></svg>
-                    } @else {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <!-- Category Filter Pills Cloud -->
+        <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1">
+            @for (cat of categories; track cat.id) {
+                <button type="button" (click)="selectedCategory.set(cat.id)"
+                        class="px-3.5 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer"
+                        [class.bg-blue-600]="selectedCategory() === cat.id"
+                        [class.text-white]="selectedCategory() === cat.id"
+                        [class.border-blue-500]="selectedCategory() === cat.id"
+                        [class.shadow-md]="selectedCategory() === cat.id"
+                        [class.bg-bg-secondary]="selectedCategory() !== cat.id"
+                        [class.text-text-secondary]="selectedCategory() !== cat.id"
+                        [class.border-border-primary]="selectedCategory() !== cat.id"
+                        [class.hover:border-blue-500/40]="selectedCategory() !== cat.id">
+                    <i [class]="cat.icon + ' text-[11px]'"></i>
+                    <span>{{ cat.label }}</span>
+                    @if (cat.id === 'ALL') {
+                        <span class="px-1.5 py-0.2 rounded-full text-[9px] bg-white/20 text-white font-mono">{{ resources().length }}</span>
                     }
-                    {{ res.type }}
-                </span>
-
-                <!-- Resource Icon -->
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center opacity-40 group-hover:opacity-70 transition-opacity"
-                     [class.bg-blue-500/10]="res.type === 'BOOK'"
-                     [class.bg-emerald-500/10]="res.type === 'LAB'"
-                     [class.bg-amber-500/10]="res.type === 'EQUIPMENT'">
-                    @if (res.type === 'BOOK') {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6.5 18H20"/></svg>
-                    } @else if (res.type === 'LAB') {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-400"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 19.5A2 2 0 0 0 6.52 22h10.96a2 2 0 0 0 1.8-2.5l-5.069-9.077A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></svg>
-                    } @else {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-400"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                    }
-                </div>
-            </div>
-
-            <!-- Name & Description -->
-            <div class="flex flex-col gap-2 flex-1">
-                <h3 class="text-base font-black text-text-primary leading-snug group-hover:text-blue-400 transition-colors">{{ res.name }}</h3>
-                <p class="text-xs text-text-muted leading-relaxed line-clamp-3">{{ res.description }}</p>
-            </div>
-
-            <!-- Footer CTA -->
-            <div class="flex items-center justify-between pt-4 border-t border-border-primary">
-                <span class="text-[10px] font-black text-blue-400 uppercase tracking-wider group-hover:tracking-widest transition-all">Check Availability</span>
-                <div class="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center group-hover:bg-blue-500 group-hover:border-blue-500 transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400 group-hover:text-text-primary transition-colors"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                </div>
-            </div>
-        </div>
-        } @empty {
-        <div class="col-span-full flex flex-col items-center justify-center gap-4 py-20 bg-bg-secondary border border-dashed border-border-secondary rounded-3xl">
-            <div class="w-16 h-16 rounded-2xl bg-bg-tertiary border border-border-primary flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-text-muted"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            </div>
-            <div class="flex flex-col items-center gap-1">
-                <p class="text-sm font-bold text-text-primary">No resources available</p>
-                <p class="text-xs text-text-muted">Check back soon or contact your administrator</p>
-            </div>
-        </div>
-        }
-    </div>
-    }
-
-    <!-- My Bookings Table -->
-    @if (viewMyBookings) {
-    <div class="bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl overflow-hidden animate-fade-in">
-        <div class="flex items-center justify-between px-6 py-5 border-b border-border-primary">
-            <div class="flex flex-col gap-0.5">
-                <h2 class="text-base font-black text-text-primary">My Reservations</h2>
-                <p class="text-[10px] text-text-muted uppercase tracking-widest font-bold">{{ myBookings().length }} total bookings</p>
-            </div>
-            <button (click)="viewMyBookings = false" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-bg-tertiary border border-border-primary text-text-muted hover:text-text-primary text-[10px] font-bold rounded-lg transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                Back to Resources
-            </button>
+                </button>
+            }
         </div>
 
-        <div class="overflow-x-auto w-full">
-<table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Resource</th>
-                        <th>Start Time</th>
-                        <th>End Time</th>
-                        <th>Duration</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (booking of myBookings(); track booking.id) {
-                    <tr class="table-row">
-                        <td>
-                            <div class="flex flex-col gap-0.5">
-                                <span class="text-sm font-bold text-text-primary">{{ getResourceName(booking.resource_id) }}</span>
-                                <span class="text-[10px] font-mono text-text-muted">#{{ booking.id }}</span>
+        <!-- Asset Cards Grid -->
+        @if (filteredResources().length > 0) {
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 animate-fade-in">
+                @for (res of filteredResources(); track res.id) {
+                    <div class="group relative bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-xl flex flex-col justify-between gap-5 hover:border-blue-500/40 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300">
+                        
+                        <!-- Card Header: Category Tag & Status Pill -->
+                        <div class="flex flex-col gap-3">
+                            <div class="flex items-start justify-between gap-2">
+                                <!-- Type Badge -->
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border shadow-2xs"
+                                      [class.bg-emerald-500/10]="res.type === 'LAB'"
+                                      [class.text-emerald-400]="res.type === 'LAB'"
+                                      [class.border-emerald-500/30]="res.type === 'LAB'"
+                                      [class.bg-amber-500/10]="res.type === 'EQUIPMENT'"
+                                      [class.text-amber-400]="res.type === 'EQUIPMENT'"
+                                      [class.border-amber-500/30]="res.type === 'EQUIPMENT'"
+                                      [class.bg-blue-500/10]="res.type === 'ROOM' || res.type === 'BOOK'"
+                                      [class.text-blue-400]="res.type === 'ROOM' || res.type === 'BOOK'"
+                                      [class.border-blue-500/30]="res.type === 'ROOM' || res.type === 'BOOK'"
+                                      [class.bg-purple-500/10]="res.type === 'VEHICLE'"
+                                      [class.text-purple-400]="res.type === 'VEHICLE'"
+                                      [class.border-purple-500/30]="res.type === 'VEHICLE'"
+                                      [class.bg-rose-500/10]="res.type === 'SPORTS'"
+                                      [class.text-rose-400]="res.type === 'SPORTS'"
+                                      [class.border-rose-500/30]="res.type === 'SPORTS'">
+                                    <i class="fas fa-tag text-[9px]"></i>
+                                    {{ res.type }}
+                                </span>
+
+                                <!-- Status Badge -->
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border"
+                                      [class.bg-emerald-500/10]="(res.status || 'AVAILABLE') === 'AVAILABLE'"
+                                      [class.text-emerald-400]="(res.status || 'AVAILABLE') === 'AVAILABLE'"
+                                      [class.border-emerald-500/20]="(res.status || 'AVAILABLE') === 'AVAILABLE'"
+                                      [class.bg-amber-500/10]="res.status === 'RESERVED'"
+                                      [class.text-amber-400]="res.status === 'RESERVED'"
+                                      [class.border-amber-500/20]="res.status === 'RESERVED'"
+                                      [class.bg-rose-500/10]="res.status === 'MAINTENANCE'"
+                                      [class.text-rose-400]="res.status === 'MAINTENANCE'"
+                                      [class.border-rose-500/20]="res.status === 'MAINTENANCE'">
+                                    <span class="w-1.5 h-1.5 rounded-full animate-pulse"
+                                          [class.bg-emerald-400]="(res.status || 'AVAILABLE') === 'AVAILABLE'"
+                                          [class.bg-amber-400]="res.status === 'RESERVED'"
+                                          [class.bg-rose-400]="res.status === 'MAINTENANCE'"></span>
+                                    {{ res.status || 'AVAILABLE' }}
+                                </span>
                             </div>
-                        </td>
-                        <td>
-                            <div class="flex flex-col gap-0.5">
-                                <span class="text-sm font-semibold text-text-primary">{{ booking.start_time | date:'MMM d, y' }}</span>
-                                <span class="text-[10px] text-text-muted">{{ booking.start_time | date:'h:mm a' }}</span>
+
+                            <!-- Title & Location -->
+                            <div>
+                                <h3 class="text-base sm:text-lg font-black text-text-primary group-hover:text-blue-400 transition-colors leading-tight line-clamp-2">
+                                    {{ res.name }}
+                                </h3>
+                                <p class="text-xs text-text-secondary mt-1 flex items-center gap-1.5">
+                                    <i class="fas fa-map-pin text-rose-400 text-[11px]"></i>
+                                    <span>{{ res.location || 'Main Campus Facility' }}</span>
+                                </p>
                             </div>
-                        </td>
-                        <td>
-                            <div class="flex flex-col gap-0.5">
-                                <span class="text-sm font-semibold text-text-primary">{{ booking.end_time | date:'MMM d, y' }}</span>
-                                <span class="text-[10px] text-text-muted">{{ booking.end_time | date:'h:mm a' }}</span>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="text-xs font-mono text-text-secondary">{{ getDuration(booking.start_time, booking.end_time) }}</span>
-                        </td>
-                        <td>
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border"
-                                  [class.bg-emerald-500/10]="booking.status === 'CONFIRMED'"
-                                  [class.text-emerald-400]="booking.status === 'CONFIRMED'"
-                                  [class.border-emerald-500/20]="booking.status === 'CONFIRMED'"
-                                  [class.bg-red-500/10]="booking.status === 'CANCELLED'"
-                                  [class.text-red-400]="booking.status === 'CANCELLED'"
-                                  [class.border-red-500/20]="booking.status === 'CANCELLED'">
-                                <span class="w-1.5 h-1.5 rounded-full"
-                                      [class.bg-emerald-500]="booking.status === 'CONFIRMED'"
-                                      [class.bg-red-500]="booking.status === 'CANCELLED'"></span>
-                                {{ booking.status }}
-                            </span>
-                        </td>
-                    </tr>
-                    } @empty {
-                    <tr>
-                        <td colspan="5">
-                            <div class="flex flex-col items-center justify-center gap-3 py-16">
-                                <div class="w-12 h-12 rounded-xl bg-bg-tertiary border border-border-primary flex items-center justify-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-text-muted"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+
+                            <!-- Description -->
+                            @if (res.description) {
+                                <p class="text-xs text-text-muted leading-relaxed line-clamp-2">
+                                    {{ res.description }}
+                                </p>
+                            }
+
+                            <!-- Metadata Matrix -->
+                            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-border-primary/60 text-[11px]">
+                                <div class="flex items-center gap-2 text-text-secondary">
+                                    <i class="fas fa-users text-text-muted text-[10px]"></i>
+                                    <span>Cap: <strong>{{ res.capacity || 1 }} persons</strong></span>
                                 </div>
-                                <div class="flex flex-col items-center gap-1">
-                                    <p class="text-sm font-bold text-text-primary">No bookings yet</p>
-                                    <p class="text-xs text-text-muted">Browse resources to make a reservation</p>
+                                <div class="flex items-center gap-2 text-text-secondary">
+                                    <i class="fas fa-layer-group text-text-muted text-[10px]"></i>
+                                    <span>Qty: <strong>{{ res.quantity || 1 }} units</strong></span>
                                 </div>
-                                <button (click)="viewMyBookings = false" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all mt-2">
-                                    Browse Resources
+                                @if (res.custodian) {
+                                    <div class="col-span-2 flex items-center gap-2 text-text-muted text-[10px] truncate">
+                                        <i class="fas fa-user-shield text-blue-400"></i>
+                                        <span>Custodian: <strong class="text-text-secondary">{{ res.custodian }}</strong></span>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Tags -->
+                            @if (res.tags) {
+                                <div class="flex flex-wrap gap-1 pt-1">
+                                    @for (tag of res.tags.split(','); track tag) {
+                                        <span class="px-2 py-0.5 rounded-md bg-bg-tertiary border border-border-secondary text-[9.5px] font-medium text-text-muted">
+                                            #{{ tag.trim() }}
+                                        </span>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Card Footer Action Buttons -->
+                        <div class="flex items-center justify-between gap-2 pt-4 border-t border-border-primary">
+                            <!-- Left Controls: QR Tag & Edit -->
+                            <div class="flex items-center gap-1">
+                                <button type="button" (click)="openQrModal(res, $event)" title="View QR Asset Tag"
+                                        class="w-8 h-8 rounded-xl bg-bg-tertiary hover:bg-bg-primary border border-border-secondary text-text-secondary hover:text-text-primary flex items-center justify-center transition-all cursor-pointer">
+                                    <i class="fas fa-qrcode text-xs"></i>
+                                </button>
+                                <button type="button" (click)="openEditAssetModal(res, $event)" title="Edit Asset"
+                                        class="w-8 h-8 rounded-xl bg-bg-tertiary hover:bg-bg-primary border border-border-secondary text-text-secondary hover:text-text-primary flex items-center justify-center transition-all cursor-pointer">
+                                    <i class="fas fa-pen text-xs"></i>
+                                </button>
+                                <button type="button" (click)="deleteAsset(res, $event)" title="Decommission Asset"
+                                        class="w-8 h-8 rounded-xl bg-bg-tertiary hover:bg-rose-500/20 border border-border-secondary text-text-muted hover:text-rose-400 flex items-center justify-center transition-all cursor-pointer">
+                                    <i class="fas fa-trash text-xs"></i>
                                 </button>
                             </div>
-                        </td>
-                    </tr>
-                    }
-                </tbody>
-            </table>
-</div>
-    </div>
-    }
-</div>
 
-@if (selectedResource()) {
-<app-booking-modal [resource]="selectedResource()" (close)="closeBooking()" (confirmed)="loadBookings()" />
-}
+                            <!-- Right Primary: Book Resource -->
+                            <button type="button" (click)="openBooking(res)"
+                                    class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-blue-600/20 flex items-center gap-1.5 cursor-pointer hover:scale-105 active:scale-95">
+                                <i class="fas fa-calendar-plus text-xs"></i>
+                                <span>Book Asset</span>
+                            </button>
+                        </div>
+
+                    </div>
+                }
+            </div>
+        } @else {
+            <!-- Empty State / Seeding Prompt -->
+            <div class="bg-bg-secondary border border-border-primary rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-4 shadow-xl animate-fade-in my-6">
+                <div class="w-16 h-16 rounded-3xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                    <i class="fas fa-boxes-packing text-2xl"></i>
+                </div>
+                <div class="max-w-md">
+                    <h3 class="text-lg font-black text-text-primary">No Matching Assets Found</h3>
+                    <p class="text-xs text-text-secondary mt-1">There are no physical resources matching your current search or category filter. You can provision a new asset or initialize realistic campus sample resources.</p>
+                </div>
+                <div class="flex items-center gap-3 mt-2">
+                    <button type="button" (click)="seedSamples(true)"
+                            class="px-4 py-2.5 rounded-xl bg-bg-tertiary hover:bg-bg-primary border border-border-secondary text-text-primary text-xs font-bold transition-all flex items-center gap-2">
+                        <i class="fas fa-magic text-amber-400"></i>
+                        <span>Auto-Provision Sample Campus Assets</span>
+                    </button>
+                    <button type="button" (click)="openCreateAssetModal()"
+                            class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md flex items-center gap-2">
+                        <i class="fas fa-plus"></i>
+                        <span>Create New Asset</span>
+                    </button>
+                </div>
+            </div>
+        }
+
+    }
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 2: MY ACTIVE BOOKINGS                                                -->
+    <!-- ========================================================================= -->
+    @else if (activeView() === 'my-bookings') {
+        <div class="flex flex-col gap-4 animate-fade-in">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-black text-text-primary">My Active & Past Bookings</h2>
+                    <p class="text-xs text-text-secondary">Track your confirmed reservations, room checkouts, and equipment lending</p>
+                </div>
+            </div>
+
+            @if (myBookings().length > 0) {
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    @for (b of myBookings(); track b.id) {
+                        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-5 shadow-xl flex flex-col justify-between gap-4">
+                            <div class="flex flex-col gap-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                        {{ b.resource_type || 'RESOURCE' }}
+                                    </span>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-bold border"
+                                          [class.bg-emerald-500/10]="b.status === 'CONFIRMED'"
+                                          [class.text-emerald-400]="b.status === 'CONFIRMED'"
+                                          [class.border-emerald-500/20]="b.status === 'CONFIRMED'"
+                                          [class.bg-rose-500/10]="b.status === 'CANCELLED'"
+                                          [class.text-rose-400]="b.status === 'CANCELLED'"
+                                          [class.border-rose-500/20]="b.status === 'CANCELLED'">
+                                        {{ b.status }}
+                                    </span>
+                                </div>
+
+                                <h3 class="text-sm font-black text-text-primary">{{ b.resource_name || 'Campus Resource' }}</h3>
+                                
+                                @if (b.purpose) {
+                                    <p class="text-xs text-text-secondary font-medium">
+                                        <i class="fas fa-bullseye text-blue-400 text-[10px] mr-1"></i>
+                                        {{ b.purpose }}
+                                    </p>
+                                }
+
+                                <div class="bg-bg-tertiary p-3 rounded-2xl border border-border-secondary flex flex-col gap-1 text-[11px]">
+                                    <div class="flex items-center justify-between text-text-muted">
+                                        <span>Start:</span>
+                                        <strong class="text-text-primary font-mono">{{ formatDate(b.start_time) }}</strong>
+                                    </div>
+                                    <div class="flex items-center justify-between text-text-muted">
+                                        <span>End:</span>
+                                        <strong class="text-text-primary font-mono">{{ formatDate(b.end_time) }}</strong>
+                                    </div>
+                                    <div class="flex items-center justify-between text-text-muted pt-1 border-t border-border-primary/50">
+                                        <span>Duration:</span>
+                                        <strong class="text-emerald-400">{{ getDuration(b.start_time, b.end_time) }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if (b.status === 'CONFIRMED') {
+                                <div class="pt-2 border-t border-border-primary flex items-center justify-end">
+                                    <button type="button" (click)="cancelBooking(b.id)"
+                                            class="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1.5">
+                                        <i class="fas fa-times-circle text-[10px]"></i>
+                                        <span>Cancel Reservation</span>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            } @else {
+                <div class="bg-bg-secondary border border-border-primary rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3">
+                    <i class="fas fa-calendar-xmark text-3xl text-text-muted"></i>
+                    <h3 class="text-sm font-black text-text-primary">No Active Bookings</h3>
+                    <p class="text-xs text-text-secondary">You haven't reserved any campus resources yet.</p>
+                    <button type="button" (click)="activeView.set('resources')" class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold mt-2">
+                        Browse Asset Catalog
+                    </button>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 3: MASTER CAMPUS SCHEDULE                                            -->
+    <!-- ========================================================================= -->
+    @else if (activeView() === 'all-schedule') {
+        <div class="flex flex-col gap-4 animate-fade-in">
+            <div>
+                <h2 class="text-lg font-black text-text-primary">School-Wide Reservation Master Schedule</h2>
+                <p class="text-xs text-text-secondary">Real-time timetable of all departmental bookings, lab schedules, and facility allocations</p>
+            </div>
+
+            <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-xl overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="border-b border-border-primary text-[10px] font-black uppercase tracking-wider text-text-muted">
+                            <th class="pb-3 px-3">Resource Asset</th>
+                            <th class="pb-3 px-3">Type</th>
+                            <th class="pb-3 px-3">Reservation Window</th>
+                            <th class="pb-3 px-3">Purpose</th>
+                            <th class="pb-3 px-3">Headcount</th>
+                            <th class="pb-3 px-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border-primary/50 text-text-secondary">
+                        @for (b of allBookings(); track b.id) {
+                            <tr class="hover:bg-bg-tertiary/40 transition-colors">
+                                <td class="py-3 px-3 font-bold text-text-primary">{{ b.resource_name || 'Facility' }}</td>
+                                <td class="py-3 px-3">
+                                    <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-bg-tertiary border border-border-secondary">
+                                        {{ b.resource_type || 'ASSET' }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-3 font-mono text-[11px]">
+                                    {{ formatDate(b.start_time) }} - {{ formatDate(b.end_time) }}
+                                </td>
+                                <td class="py-3 px-3 font-medium text-text-primary">{{ b.purpose || 'Academic' }}</td>
+                                <td class="py-3 px-3">{{ b.headcount || 1 }} attendees</td>
+                                <td class="py-3 px-3">
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-bold border"
+                                          [class.bg-emerald-500/10]="b.status === 'CONFIRMED'"
+                                          [class.text-emerald-400]="b.status === 'CONFIRMED'"
+                                          [class.border-emerald-500/20]="b.status === 'CONFIRMED'"
+                                          [class.bg-rose-500/10]="b.status === 'CANCELLED'"
+                                          [class.text-rose-400]="b.status === 'CANCELLED'"
+                                          [class.border-rose-500/20]="b.status === 'CANCELLED'">
+                                        {{ b.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 1: BOOKING MODAL (EMBEDDED COMPONENT)                               -->
+    <!-- ========================================================================= -->
+    @if (selectedResourceForBooking()) {
+        <app-booking-modal
+            [resource]="selectedResourceForBooking()"
+            (close)="closeBooking()"
+            (confirmed)="onBookingConfirmed()">
+        </app-booking-modal>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 2: ASSET PROVISION / EDIT MODAL                                     -->
+    <!-- ========================================================================= -->
+    @if (isAssetFormOpen()) {
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in" (click)="closeAssetFormModal()">
+            <div class="w-full max-w-xl bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-slide-up" (click)="$event.stopPropagation()">
+                
+                <!-- Modal Header -->
+                <div class="px-6 pt-6 pb-4 border-b border-border-primary flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                            <i [class]="isEditingAsset() ? 'fas fa-pen' : 'fas fa-plus'"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-black text-text-primary">{{ isEditingAsset() ? 'Edit Campus Asset' : 'Provision New Campus Asset' }}</h2>
+                            <p class="text-xs text-text-secondary">Register or update equipment, laboratory, room, or shuttle details</p>
+                        </div>
+                    </div>
+                    <button type="button" (click)="closeAssetFormModal()" class="w-8 h-8 rounded-xl bg-bg-tertiary hover:bg-bg-primary border border-border-primary flex items-center justify-center text-text-muted hover:text-text-primary transition-all">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- Modal Body Form -->
+                <div class="flex flex-col gap-4 p-6 overflow-y-auto custom-scrollbar">
+                    
+                    <!-- Asset Name -->
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-bold text-text-secondary">Asset Name *</label>
+                        <input type="text" [(ngModel)]="assetForm.name" placeholder="e.g. Advanced Chemistry & Spectroscopy Lab"
+                               class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 py-2 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-blue-500 transition-all">
+                    </div>
+
+                    <!-- Category & Status -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-bold text-text-secondary">Category</label>
+                            <select [(ngModel)]="assetForm.type"
+                                    class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary focus:outline-none focus:border-blue-500">
+                                <option value="LAB">Labs & Research Studios</option>
+                                <option value="EQUIPMENT">Equipment, AV & Hardware</option>
+                                <option value="ROOM">Halls & Multipurpose Spaces</option>
+                                <option value="VEHICLE">Vehicles & Shuttles</option>
+                                <option value="SPORTS">Sports, Arena & Field</option>
+                                <option value="BOOK">Curriculum Sets & Books</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-bold text-text-secondary">Operational Status</label>
+                            <select [(ngModel)]="assetForm.status"
+                                    class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary focus:outline-none focus:border-blue-500">
+                                <option value="AVAILABLE">🟢 Available for Booking</option>
+                                <option value="RESERVED">🟡 Reserved / In Use</option>
+                                <option value="MAINTENANCE">🔴 Under Maintenance</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Location & Custodian -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-bold text-text-secondary">Campus Location</label>
+                            <input type="text" [(ngModel)]="assetForm.location" placeholder="e.g. Science Block, Room S-204"
+                                   class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 py-2 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-bold text-text-secondary">In-Charge / Custodian</label>
+                            <input type="text" [(ngModel)]="assetForm.custodian" placeholder="e.g. Dr. Kwame Mensah"
+                                   class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 py-2 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+
+                    <!-- Capacity & Quantity -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-bold text-text-secondary">Max Capacity (Persons)</label>
+                            <input type="number" [(ngModel)]="assetForm.capacity" min="1"
+                                   class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 py-2 text-xs text-text-primary focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs font-bold text-text-secondary">Total Units / Quantity</label>
+                            <input type="number" [(ngModel)]="assetForm.quantity" min="1"
+                                   class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 py-2 text-xs text-text-primary focus:outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+
+                    <!-- Tags -->
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-bold text-text-secondary">Feature Tags (comma-separated)</label>
+                        <input type="text" [(ngModel)]="assetForm.tags" placeholder="e.g. 3D Printers, Python, Robotics, Microscope"
+                               class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 py-2 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-blue-500">
+                    </div>
+
+                    <!-- Description -->
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-bold text-text-secondary">Asset Specifications & Usage Guidelines</label>
+                        <textarea [(ngModel)]="assetForm.description" rows="3" placeholder="Provide details on equipment specs, safety guidelines..."
+                                  class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-3.5 py-2 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-blue-500 resize-none"></textarea>
+                    </div>
+
+                    @if (errorMessage()) {
+                        <div class="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-xs text-rose-400 font-bold">
+                            {{ errorMessage() }}
+                        </div>
+                    }
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="flex items-center gap-3 p-5 border-t border-border-primary bg-bg-secondary">
+                    <button type="button" (click)="closeAssetFormModal()"
+                            class="flex-1 py-2.5 px-4 rounded-xl border border-border-secondary bg-bg-tertiary hover:bg-bg-primary text-text-secondary text-xs font-bold transition-all">
+                        Cancel
+                    </button>
+                    <button type="button" (click)="saveAsset()"
+                            [disabled]="isActionLoading() || !assetForm.name"
+                            class="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2">
+                        @if (isActionLoading()) {
+                            <i class="fas fa-spinner fa-spin text-xs"></i>
+                            <span>Saving...</span>
+                        } @else {
+                            <i class="fas fa-save text-xs"></i>
+                            <span>{{ isEditingAsset() ? 'Save Changes' : 'Provision Asset' }}</span>
+                        }
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 3: ASSET QR INVENTORY TAG MODAL                                     -->
+    <!-- ========================================================================= -->
+    @if (selectedResourceForQr()) {
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in" (click)="closeQrModal()">
+            <div class="w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 flex flex-col items-center gap-4 text-gray-900 animate-slide-up" (click)="$event.stopPropagation()">
+                
+                <!-- Tag Header -->
+                <div class="flex items-center justify-between w-full border-b border-gray-200 pb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-cubes text-blue-600 text-lg"></i>
+                        <span class="text-xs font-black uppercase tracking-wider">Asset Inventory Tag</span>
+                    </div>
+                    <button type="button" (click)="closeQrModal()" class="text-gray-400 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- Printable Asset Badge -->
+                <div class="w-full p-4 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center text-center gap-3 bg-gray-50">
+                    <h3 class="text-sm font-black uppercase tracking-tight text-gray-900 leading-tight">
+                        {{ selectedResourceForQr()?.name }}
+                    </h3>
+                    <span class="text-[10px] font-bold text-gray-500 flex items-center gap-1">
+                        <i class="fas fa-map-marker-alt text-rose-500"></i>
+                        {{ selectedResourceForQr()?.location || 'Campus Asset' }}
+                    </span>
+
+                    <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-200">
+                        <qrcode [qrdata]="getAssetQrPayload(selectedResourceForQr()!)" [width]="140" [errorCorrectionLevel]="'M'" [margin]="1"></qrcode>
+                    </div>
+
+                    <span class="font-mono text-[10px] font-bold text-gray-600">ID: {{ selectedResourceForQr()?.id }}</span>
+                </div>
+
+                <div class="flex items-center gap-2 w-full">
+                    <button type="button" (click)="closeQrModal()" class="flex-1 py-2 rounded-xl border border-gray-300 text-gray-700 text-xs font-bold">
+                        Close
+                    </button>
+                    <button type="button" (click)="printQrTag()" class="flex-1 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md">
+                        <i class="fas fa-print"></i>
+                        <span>Print Tag</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    }
+
+</div>

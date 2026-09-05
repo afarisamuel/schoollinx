@@ -307,8 +307,7 @@ export class StudentIdCardComponent implements OnInit {
 
   /**
    * Isolated ID Card Printing Engine
-   * Creates an isolated print frame containing ONLY the ID card element,
-   * completely ignoring the outer webpage / form, and printing in exact CR80 format.
+   * Renders the complete, scaled CR80 ID card with 100% fidelity in an isolated print frame.
    */
   printCard() {
     const cardEl = document.getElementById('student-id-card-badge');
@@ -320,7 +319,7 @@ export class StudentIdCardComponent implements OnInit {
     // Clone element
     const cardHtml = cardEl.outerHTML;
 
-    // Collect all stylesheets from the host document
+    // Collect all stylesheets and style rules
     let stylesHtml = '';
     const styleElements = document.querySelectorAll('style, link[rel="stylesheet"]');
     styleElements.forEach(el => {
@@ -328,8 +327,11 @@ export class StudentIdCardComponent implements OnInit {
     });
 
     const isVertical = this.selectedTemplate() === 'vertical';
-    const cardWidth = isVertical ? '53.98mm' : '85.6mm';
-    const cardHeight = isVertical ? '85.6mm' : '53.98mm';
+    const cardWidthMm = isVertical ? '53.98mm' : '85.6mm';
+    const cardHeightMm = isVertical ? '85.6mm' : '53.98mm';
+    const baseWidthPx = isVertical ? 340 : 540;
+    const baseHeightPx = isVertical ? 540 : 340.48;
+    const scaleFactor = isVertical ? 0.5997 : 0.5991;
 
     // Create an isolated hidden iframe
     const iframe = document.createElement('iframe');
@@ -353,48 +355,66 @@ export class StudentIdCardComponent implements OnInit {
       <!DOCTYPE html>
       <html>
         <head>
+          <meta charset="utf-8">
           <title>Student ID Badge - ${this.resolvedName()}</title>
           ${stylesHtml}
           <style>
             @page {
-              size: ${cardWidth} ${cardHeight};
+              size: ${cardWidthMm} ${cardHeightMm};
               margin: 0;
+            }
+            *, *::before, *::after {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              color-adjust: exact !important;
+              box-sizing: border-box !important;
             }
             html, body {
               margin: 0 !important;
               padding: 0 !important;
               background: #ffffff !important;
-              width: ${cardWidth} !important;
-              height: ${cardHeight} !important;
-              display: flex !important;
-              align-items: center !important;
-              justify-content: center !important;
+              width: ${cardWidthMm} !important;
+              height: ${cardHeightMm} !important;
               overflow: hidden !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
+            }
+            .print-scale-container {
+              width: ${baseWidthPx}px !important;
+              height: ${baseHeightPx}px !important;
+              transform-origin: top left !important;
+              transform: scale(${scaleFactor}) !important;
+              overflow: hidden !important;
+              position: absolute !important;
+              top: 0 !important;
+              left: 0 !important;
             }
             #student-id-card-badge {
-              width: ${cardWidth} !important;
-              height: ${cardHeight} !important;
-              max-width: ${cardWidth} !important;
-              max-height: ${cardHeight} !important;
-              border-radius: 3.18mm !important;
+              width: ${baseWidthPx}px !important;
+              height: ${baseHeightPx}px !important;
+              max-width: ${baseWidthPx}px !important;
+              border-radius: 20px !important;
               box-shadow: none !important;
               margin: 0 !important;
-              border: none !important;
+              border: 1px solid #e2e8f0 !important;
               overflow: hidden !important;
             }
           </style>
         </head>
         <body>
-          ${cardHtml}
+          <div class="print-scale-container">
+            ${cardHtml}
+          </div>
           <script>
-            window.onload = function() {
+            function triggerPrint() {
               setTimeout(function() {
                 window.focus();
                 window.print();
-              }, 250);
-            };
+              }, 300);
+            }
+            if (document.readyState === 'complete') {
+              triggerPrint();
+            } else {
+              window.addEventListener('load', triggerPrint);
+            }
           </script>
         </body>
       </html>
