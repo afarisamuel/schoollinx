@@ -90,14 +90,45 @@ func (r *studentRepository) GetStudentsForTeacherPaginated(ctx context.Context, 
 	var count int64
 	var students []domain.Student
 
-	db := r.db.WithContext(ctx).Model(&domain.Student{}).
-		Where("class_id IN (?)",
-			r.db.Table("classes").
-				Select("classes.id").
-				Joins("LEFT JOIN teacher_class_assignments tca ON tca.class_id = classes.id").
-				Joins("LEFT JOIN teachers t ON (t.id = tca.teacher_id OR t.id = classes.teacher_id)").
-				Where("t.user_id = ?", userID),
-		)
+	// 1. Resolve Teacher ID
+	var teacherID *uuid.UUID
+	var teacher domain.Teacher
+	if err := r.db.WithContext(ctx).Where("user_id = ?", userID).First(&teacher).Error; err == nil {
+		teacherID = &teacher.ID
+	} else {
+		var user domain.User
+		if err := r.db.WithContext(ctx).Where("id = ?", userID).First(&user).Error; err == nil && string(user.Email) != "" {
+			if err := r.db.WithContext(ctx).Where("email = ?", user.Email).First(&teacher).Error; err == nil {
+				teacherID = &teacher.ID
+			}
+		}
+	}
+
+	if teacherID == nil {
+		var countTeacher int64
+		r.db.WithContext(ctx).Model(&domain.Teacher{}).Count(&countTeacher)
+		if countTeacher == 1 {
+			if err := r.db.WithContext(ctx).First(&teacher).Error; err == nil {
+				teacherID = &teacher.ID
+			}
+		}
+	}
+
+	if teacherID == nil {
+		return 0, []domain.Student{}, nil
+	}
+
+	var classIDs []uuid.UUID
+	_ = r.db.WithContext(ctx).Model(&domain.Class{}).Where("teacher_id = ?", *teacherID).Pluck("id", &classIDs)
+	var assignedClassIDs []uuid.UUID
+	_ = r.db.WithContext(ctx).Table("teacher_class_assignments").Where("teacher_id = ?", *teacherID).Pluck("class_id", &assignedClassIDs)
+	allClassIDs := append(classIDs, assignedClassIDs...)
+
+	if len(allClassIDs) == 0 {
+		return 0, []domain.Student{}, nil
+	}
+
+	db := r.db.WithContext(ctx).Model(&domain.Student{}).Where("class_id IN ?", allClassIDs)
 
 	if err := db.Count(&count).Error; err != nil {
 		return 0, nil, err

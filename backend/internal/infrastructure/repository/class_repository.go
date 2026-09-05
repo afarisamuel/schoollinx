@@ -82,14 +82,48 @@ func (r *classRepository) IsLocked(ctx context.Context, classID uuid.UUID, term 
 
 func (r *classRepository) GetClassesForTeacher(ctx context.Context, userID uuid.UUID) ([]domain.Class, error) {
 	var classes []domain.Class
-	err := r.db.WithContext(ctx).
-		Distinct("classes.*").
-		Joins("LEFT JOIN teacher_class_assignments tca ON tca.class_id = classes.id").
-		Joins("LEFT JOIN teachers t ON (t.id = tca.teacher_id OR t.id = classes.teacher_id)").
-		Where("t.user_id = ? OR t.email = (SELECT email FROM users WHERE id = ?)", userID, userID).
-		Preload("ScholasticLevel").
-		Preload("Subjects").
-		Find(&classes).Error
+
+	// 1. Resolve Teacher ID by user_id or email
+	var teacherID *uuid.UUID
+	var teacher domain.Teacher
+	if err := r.db.WithContext(ctx).Where("user_id = ?", userID).First(&teacher).Error; err == nil {
+		teacherID = &teacher.ID
+	} else {
+		var user domain.User
+		if err := r.db.WithContext(ctx).Where("id = ?", userID).First(&user).Error; err == nil && string(user.Email) != "" {
+			if err := r.db.WithContext(ctx).Where("email = ?", user.Email).First(&teacher).Error; err == nil {
+				teacherID = &teacher.ID
+			}
+		}
+	}
+
+	// Fallback for single-teacher school environments
+	if teacherID == nil {
+		var count int64
+		r.db.WithContext(ctx).Model(&domain.Teacher{}).Count(&count)
+		if count == 1 {
+			if err := r.db.WithContext(ctx).First(&teacher).Error; err == nil {
+				teacherID = &teacher.ID
+			}
+		}
+	}
+
+	if teacherID == nil {
+		return []domain.Class{}, nil
+	}
+
+	// 2. Query classes assigned via primary teacher_id or teacher_class_assignments
+	var classIDs []uuid.UUID
+	_ = r.db.WithContext(ctx).Table("teacher_class_assignments").Where("teacher_id = ?", *teacherID).Pluck("class_id", &classIDs)
+
+	query := r.db.WithContext(ctx).Model(&domain.Class{})
+	if len(classIDs) > 0 {
+		query = query.Where("teacher_id = ? OR id IN ?", *teacherID, classIDs)
+	} else {
+		query = query.Where("teacher_id = ?", *teacherID)
+	}
+
+	err := query.Preload("ScholasticLevel").Preload("Subjects").Find(&classes).Error
 	if err != nil {
 		return nil, err
 	}

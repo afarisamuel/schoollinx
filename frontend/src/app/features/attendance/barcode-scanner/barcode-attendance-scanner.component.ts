@@ -9,6 +9,7 @@ import { TeacherPortalService } from '../../../core/infrastructure/teacher/teach
 import { Student } from '../../../core/domain/student.model';
 import { AttendanceStatus, Attendance } from '../../../core/domain/attendance.model';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
+import { ThemeService } from '../../../core/infrastructure/theme/theme.service';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 
 export interface ScannedAttendanceItem {
@@ -36,6 +37,7 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
   private classService = inject(ClassService);
   private teacherPortalService = inject(TeacherPortalService);
   private dialog = inject(DialogService);
+  public themeService = inject(ThemeService);
 
   @ViewChild('barcodeInput') barcodeInput?: ElementRef<HTMLInputElement>;
 
@@ -43,6 +45,14 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
   students = signal<Student[]>([]);
   selectedClassId = signal<string>('');
   selectedDate = signal<string>(new Date().toISOString().split('T')[0]);
+
+  // Turnstile Gate Kiosk Theme & Mobile Layout
+  kioskTheme = signal<'dark' | 'light'>('dark');
+  kioskMobileTab = signal<'SCANNER' | 'TELEMETRY' | 'STREAM' | 'KEYPAD'>('SCANNER');
+
+  setKioskMobileTab(tab: 'SCANNER' | 'TELEMETRY' | 'STREAM' | 'KEYPAD') {
+    this.kioskMobileTab.set(tab);
+  }
 
   // Camera State
   isCameraActive = signal<boolean>(false);
@@ -112,6 +122,10 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
     if (next || wasCameraActive) {
       await this.startCamera();
     }
+  }
+
+  toggleKioskTheme() {
+    this.kioskTheme.set(this.kioskTheme() === 'dark' ? 'light' : 'dark');
   }
 
   async flipCamera() {
@@ -630,6 +644,7 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
     );
 
     if (!student) {
+      this.kioskMobileTab.set('SCANNER');
       this.playChime(false);
       this.speakAnnouncement('Unrecognized credential barcode');
       this.feedbackState.set('NOT_FOUND');
@@ -641,6 +656,7 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
     // 3. Check if already scanned today
     const existingIndex = this.scannedLog().findIndex(item => item.student.id === student.id);
     if (existingIndex >= 0) {
+      this.kioskMobileTab.set('SCANNER');
       this.playChime(false);
       this.speakAnnouncement(`Duplicate scan. ${student.first_name} is already checked in.`);
       this.feedbackState.set('DUPLICATE');
@@ -661,6 +677,7 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
 
     this.scannedLog.update(list => [newItem, ...list]);
     this.lastScannedStudent.set(newItem);
+    this.kioskMobileTab.set('SCANNER');
     this.playChime(true);
     this.speakAnnouncement(`Welcome ${student.first_name} ${student.last_name}, checked in at ${timeStr}`);
     
@@ -676,10 +693,11 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
     this.feedbackMessage.set(`Verified! ${student.first_name} ${student.last_name} marked Present.`);
 
     // Persist via AttendanceService
+    const effectiveClassId = this.selectedClassId() || student.class_id || '';
     const isoDate = new Date(this.selectedDate() + 'T00:00:00Z').toISOString();
     const payload: Attendance = {
       student_id: student.id!,
-      class_id: this.selectedClassId(),
+      class_id: effectiveClassId,
       date: isoDate,
       status: 'Present',
       remarks: `Gate Turnstile Kiosk Barcode/QR scan verified at ${timeStr}`
@@ -702,10 +720,11 @@ export class BarcodeAttendanceScannerComponent implements OnInit, OnDestroy {
     item.status = newStatus;
     this.scannedLog.update(list => [...list]);
 
+    const effectiveClassId = this.selectedClassId() || item.student.class_id || '';
     const isoDate = new Date(this.selectedDate() + 'T00:00:00Z').toISOString();
     this.attendanceService.markAttendance({
       student_id: item.student.id!,
-      class_id: this.selectedClassId(),
+      class_id: effectiveClassId,
       date: isoDate,
       status: newStatus
     }).subscribe();

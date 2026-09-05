@@ -42,7 +42,7 @@
       <div class="flex flex-col gap-1">
         <label class="text-[10px] font-black uppercase tracking-wider text-text-muted">Attendance Date</label>
         <input type="date" [ngModel]="selectedDate()" (ngModelChange)="selectedDate.set($event); loadStudentsForClass()"
-          class="bg-bg-tertiary border border-border-secondary focus:border-teal-500 text-text-primary text-xs font-semibold rounded-xl px-3 py-2 outline-none [color-scheme:dark]">
+          class="bg-bg-tertiary border border-border-secondary focus:border-teal-500 text-text-primary text-xs font-semibold rounded-xl px-3 py-2 outline-none">
       </div>
 
       <!-- Voice TTS Toggle -->
@@ -416,129 +416,336 @@
 <!-- FULLSCREEN GATE TURNSTILE KIOSK OVERLAY (ENTERPRISE HUD)   -->
 <!-- ========================================================= -->
 @if (isKioskMode()) {
-  <div class="fixed inset-0 z-[99999] bg-[#030712] text-white flex flex-col justify-between p-4 sm:p-6 lg:p-7 select-none overflow-hidden font-sans">
+  <div class="fixed inset-0 z-[99999] kiosk-overlay flex flex-col justify-between p-3 sm:p-5 lg:p-6 select-none overflow-hidden font-sans transition-colors duration-300"
+       [class.kiosk-dark]="kioskTheme() === 'dark'"
+       [class.kiosk-light]="kioskTheme() === 'light'"
+       [class.bg-[#030712]]="kioskTheme() === 'dark'"
+       [class.text-white]="kioskTheme() === 'dark'"
+       [class.bg-slate-100]="kioskTheme() === 'light'"
+       [class.text-slate-900]="kioskTheme() === 'light'">
     
-    <!-- Cyber Ambient Lighting Background -->
+    <!-- Ambient Lighting Background -->
     <div class="absolute inset-0 pointer-events-none overflow-hidden">
-      <div class="absolute -top-40 left-1/4 w-[650px] h-[650px] bg-teal-500/10 rounded-full blur-[150px]"></div>
-      <div class="absolute -bottom-40 right-1/4 w-[650px] h-[650px] bg-blue-600/10 rounded-full blur-[150px]"></div>
-      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-500/5 rounded-full blur-[180px]"></div>
-      <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:28px_28px] opacity-25"></div>
+      @if (kioskTheme() === 'dark') {
+        <div class="absolute -top-40 left-1/4 w-[650px] h-[650px] bg-teal-500/10 rounded-full blur-[150px]"></div>
+        <div class="absolute -bottom-40 right-1/4 w-[650px] h-[650px] bg-blue-600/10 rounded-full blur-[150px]"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-500/5 rounded-full blur-[180px]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:28px_28px] opacity-25"></div>
+      } @else {
+        <div class="absolute -top-40 left-1/4 w-[650px] h-[650px] bg-teal-200/40 rounded-full blur-[140px]"></div>
+        <div class="absolute -bottom-40 right-1/4 w-[650px] h-[650px] bg-blue-200/30 rounded-full blur-[140px]"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-100/40 rounded-full blur-[160px]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-40"></div>
+      }
     </div>
 
     <!-- 1. KIOSK TOP COMMAND BAR -->
-    <div class="relative z-10 flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/10">
+    <div class="relative z-10 flex flex-wrap items-center justify-between gap-3 pb-3 border-b"
+         [class.border-white\/10]="kioskTheme() === 'dark'"
+         [class.border-slate-200]="kioskTheme() === 'light'">
       
       <!-- Left: Station Brand & Live Telemetry Status -->
-      <div class="flex items-center gap-3.5">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-500/20 to-blue-600/20 border-2 border-teal-500/40 flex items-center justify-center text-teal-300 shadow-[0_0_20px_rgba(20,184,166,0.3)]">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" x2="17" y1="8" y2="8"/><line x1="7" x2="17" y1="12" y2="12"/><line x1="7" x2="17" y1="16" y2="16"/></svg>
+      <div class="flex items-center gap-2.5 sm:gap-3.5">
+        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-md transition-all"
+             [class.bg-gradient-to-br]="true"
+             [class.from-teal-500\/20]="kioskTheme() === 'dark'"
+             [class.to-blue-600\/20]="kioskTheme() === 'dark'"
+             [class.border-2]="true"
+             [class.border-teal-500\/40]="kioskTheme() === 'dark'"
+             [class.text-teal-300]="kioskTheme() === 'dark'"
+             [class.from-teal-600]="kioskTheme() === 'light'"
+             [class.to-emerald-600]="kioskTheme() === 'light'"
+             [class.text-white]="kioskTheme() === 'light'"
+             [class.border-teal-500]="kioskTheme() === 'light'">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" x2="17" y1="8" y2="8"/><line x1="7" x2="17" y1="12" y2="12"/><line x1="7" x2="17" y1="16" y2="16"/></svg>
         </div>
         <div class="flex flex-col">
-          <div class="flex items-center gap-2.5">
-            <h1 class="text-base sm:text-lg font-black uppercase tracking-wider text-white">Campus Turnstile Kiosk</h1>
-            <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1.5 shadow-[0_0_10px_rgba(52,211,153,0.3)]">
+          <div class="flex items-center gap-2">
+            <h1 class="text-sm sm:text-base lg:text-lg font-black uppercase tracking-wider leading-tight"
+                [class.text-white]="kioskTheme() === 'dark'"
+                [class.text-slate-900]="kioskTheme() === 'light'">
+              Turnstile Kiosk
+            </h1>
+            <span class="px-2 py-0.5 rounded-full text-[8.5px] sm:text-[9px] font-black uppercase flex items-center gap-1.5 shadow-sm"
+                  [class.bg-emerald-500\/20]="kioskTheme() === 'dark'"
+                  [class.text-emerald-400]="kioskTheme() === 'dark'"
+                  [class.border]="true"
+                  [class.border-emerald-500\/40]="kioskTheme() === 'dark'"
+                  [class.bg-emerald-100]="kioskTheme() === 'light'"
+                  [class.text-emerald-800]="kioskTheme() === 'light'"
+                  [class.border-emerald-300]="kioskTheme() === 'light'">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-              <span>LIVE & RECORDING</span>
+              <span class="hidden sm:inline">LIVE RECORDING</span>
+              <span class="sm:hidden">LIVE</span>
             </span>
           </div>
-          <div class="flex items-center gap-2 text-xs text-white/60">
-            <span class="font-mono text-teal-400 font-bold">{{ terminalName() }}</span>
+          <div class="flex items-center gap-1.5 text-[11px] sm:text-xs"
+               [class.text-white\/60]="kioskTheme() === 'dark'"
+               [class.text-slate-500]="kioskTheme() === 'light'">
+            <span class="font-mono font-bold"
+                  [class.text-teal-400]="kioskTheme() === 'dark'"
+                  [class.text-teal-700]="kioskTheme() === 'light'">{{ terminalName() }}</span>
             <span>•</span>
-            <span class="truncate max-w-[200px]">{{ selectedClassName() }}</span>
+            <span class="truncate max-w-[130px] sm:max-w-[200px]">{{ selectedClassName() }}</span>
           </div>
         </div>
       </div>
 
-      <!-- Center: Live High-Precision Clock & Operation Mode Toggle -->
-      <div class="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl p-1.5 px-4 backdrop-blur-md shadow-inner">
+      <!-- Center: Live Digital Clock & Mode Toggle -->
+      <div class="flex items-center gap-2 sm:gap-3 rounded-2xl p-1 sm:p-1.5 px-2.5 sm:px-4 backdrop-blur-md shadow-xs border"
+           [class.bg-white\/5]="kioskTheme() === 'dark'"
+           [class.border-white\/10]="kioskTheme() === 'dark'"
+           [class.bg-white]="kioskTheme() === 'light'"
+           [class.border-slate-200]="kioskTheme() === 'light'">
         <div class="flex flex-col items-center">
-          <span class="text-lg sm:text-xl font-black font-mono tracking-wider text-white drop-shadow-sm">{{ currentTime() || '07:45:00 AM' }}</span>
-          <span class="text-[10px] font-bold text-white/50 uppercase tracking-wider leading-none">{{ currentDate() }}</span>
+          <span class="text-base sm:text-lg lg:text-xl font-black font-mono tracking-wider leading-tight"
+                [class.text-white]="kioskTheme() === 'dark'"
+                [class.text-slate-900]="kioskTheme() === 'light'">
+            {{ currentTime() || '07:45:00 AM' }}
+          </span>
+          <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider leading-none"
+                [class.text-white\/50]="kioskTheme() === 'dark'"
+                [class.text-slate-400]="kioskTheme() === 'light'">
+            {{ currentDate() }}
+          </span>
         </div>
 
-        <div class="h-8 w-px bg-white/10 mx-1"></div>
+        <div class="h-6 sm:h-8 w-px mx-0.5"
+             [class.bg-white\/10]="kioskTheme() === 'dark'"
+             [class.bg-slate-200]="kioskTheme() === 'light'"></div>
 
         <button type="button" (click)="toggleOperationMode()"
           [title]="'Click to toggle between Arrival and Departure mode'"
-          class="px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
+          class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
           [class.bg-emerald-500]="kioskOperationMode() === 'ARRIVAL'"
           [class.text-gray-950]="kioskOperationMode() === 'ARRIVAL'"
           [class.bg-amber-500]="kioskOperationMode() === 'DEPARTURE'"
           [class.text-gray-950]="kioskOperationMode() === 'DEPARTURE'">
-          <svg *ngIf="kioskOperationMode() === 'ARRIVAL'" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-          <svg *ngIf="kioskOperationMode() === 'DEPARTURE'" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="17 14 12 9 7 14"/><line x1="12" x2="12" y1="9" y2="21"/></svg>
-          <span>{{ kioskOperationMode() === 'ARRIVAL' ? 'Morning Entry' : 'Evening Exit' }}</span>
+          <svg *ngIf="kioskOperationMode() === 'ARRIVAL'" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          <svg *ngIf="kioskOperationMode() === 'DEPARTURE'" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="17 14 12 9 7 14"/><line x1="12" x2="12" y1="9" y2="21"/></svg>
+          <span class="hidden sm:inline">{{ kioskOperationMode() === 'ARRIVAL' ? 'Morning Entry' : 'Evening Exit' }}</span>
+          <span class="sm:hidden">{{ kioskOperationMode() === 'ARRIVAL' ? 'Entry' : 'Exit' }}</span>
         </button>
       </div>
 
-      <!-- Right: Controls & Exit -->
-      <div class="flex items-center gap-2">
+      <!-- Right: Controls & Theme & Exit -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
         <!-- Class Quick Switcher -->
         <select [ngModel]="selectedClassId()" (ngModelChange)="onClassChange($event)"
-          class="bg-white/10 hover:bg-white/15 border border-white/20 text-white rounded-xl text-xs font-bold px-3 py-2 outline-none focus:border-teal-400 transition-all cursor-pointer">
-          <option value="" class="bg-gray-900 text-white">All Classes</option>
+          class="rounded-xl text-xs font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 outline-none transition-all cursor-pointer border max-w-[110px] sm:max-w-[150px]"
+          [class.bg-white\/10]="kioskTheme() === 'dark'"
+          [class.border-white\/20]="kioskTheme() === 'dark'"
+          [class.text-white]="kioskTheme() === 'dark'"
+          [class.bg-white]="kioskTheme() === 'light'"
+          [class.border-slate-200]="kioskTheme() === 'light'"
+          [class.text-slate-800]="kioskTheme() === 'light'">
+          <option value="" [class.bg-gray-900]="kioskTheme() === 'dark'" [class.bg-white]="kioskTheme() === 'light'">All Classes</option>
           @for (c of classes(); track c.id) {
-            <option [value]="c.id" class="bg-gray-900 text-white">{{ c.name }}</option>
+            <option [value]="c.id" [class.bg-gray-900]="kioskTheme() === 'dark'" [class.bg-white]="kioskTheme() === 'light'">{{ c.name }}</option>
           }
         </select>
+
+        <!-- Kiosk Theme Switcher (Cyber HUD vs Daylight Kiosk) -->
+        <button type="button" (click)="toggleKioskTheme()"
+          [title]="kioskTheme() === 'dark' ? 'Switch to Daylight Kiosk Mode' : 'Switch to Cyber HUD Mode'"
+          class="p-2 sm:p-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center cursor-pointer shadow-xs active:scale-95"
+          [class.bg-amber-500\/20]="kioskTheme() === 'dark'"
+          [class.border-amber-500\/40]="kioskTheme() === 'dark'"
+          [class.text-amber-300]="kioskTheme() === 'dark'"
+          [class.bg-white]="kioskTheme() === 'light'"
+          [class.border-slate-200]="kioskTheme() === 'light'"
+          [class.text-slate-700]="kioskTheme() === 'light'">
+          @if (kioskTheme() === 'dark') {
+            <!-- Sun Icon for switching to light -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          } @else {
+            <!-- Moon Icon for switching to dark -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          }
+        </button>
 
         <!-- Voice Speech Feedback Toggle -->
         <button type="button" (click)="toggleVoiceFeedback()"
           [title]="isVoiceFeedbackEnabled() ? 'Speech synthesis active' : 'Speech synthesis muted'"
-          class="p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer"
-          [class.bg-teal-500/20]="isVoiceFeedbackEnabled()"
-          [class.border-teal-500/40]="isVoiceFeedbackEnabled()"
-          [class.text-teal-300]="isVoiceFeedbackEnabled()"
-          [class.bg-white/5]="!isVoiceFeedbackEnabled()"
-          [class.border-white/10]="!isVoiceFeedbackEnabled()"
-          [class.text-white/40]="!isVoiceFeedbackEnabled()">
+          class="p-2 sm:p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 hidden sm:flex"
+          [class.bg-teal-500\/20]="isVoiceFeedbackEnabled() && kioskTheme() === 'dark'"
+          [class.border-teal-500\/40]="isVoiceFeedbackEnabled() && kioskTheme() === 'dark'"
+          [class.text-teal-300]="isVoiceFeedbackEnabled() && kioskTheme() === 'dark'"
+          [class.bg-teal-50]="isVoiceFeedbackEnabled() && kioskTheme() === 'light'"
+          [class.border-teal-300]="isVoiceFeedbackEnabled() && kioskTheme() === 'light'"
+          [class.text-teal-700]="isVoiceFeedbackEnabled() && kioskTheme() === 'light'"
+          [class.bg-white\/5]="!isVoiceFeedbackEnabled() && kioskTheme() === 'dark'"
+          [class.border-white\/10]="!isVoiceFeedbackEnabled() && kioskTheme() === 'dark'"
+          [class.text-white\/40]="!isVoiceFeedbackEnabled() && kioskTheme() === 'dark'"
+          [class.bg-white]="!isVoiceFeedbackEnabled() && kioskTheme() === 'light'"
+          [class.border-slate-200]="!isVoiceFeedbackEnabled() && kioskTheme() === 'light'"
+          [class.text-slate-400]="!isVoiceFeedbackEnabled() && kioskTheme() === 'light'">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
         </button>
 
         <!-- Guardian SMS Toggle -->
         <button type="button" (click)="toggleGuardianSms()"
           [title]="isGuardianSmsEnabled() ? 'Automatic Parent SMS dispatch active' : 'Parent SMS dispatch disabled'"
-          class="p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer"
-          [class.bg-blue-500/20]="isGuardianSmsEnabled()"
-          [class.border-blue-500/40]="isGuardianSmsEnabled()"
-          [class.text-blue-300]="isGuardianSmsEnabled()"
-          [class.bg-white/5]="!isGuardianSmsEnabled()"
-          [class.border-white/10]="!isGuardianSmsEnabled()"
-          [class.text-white/40]="!isGuardianSmsEnabled()">
+          class="p-2 sm:p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 hidden sm:flex"
+          [class.bg-blue-500\/20]="isGuardianSmsEnabled() && kioskTheme() === 'dark'"
+          [class.border-blue-500\/40]="isGuardianSmsEnabled() && kioskTheme() === 'dark'"
+          [class.text-blue-300]="isGuardianSmsEnabled() && kioskTheme() === 'dark'"
+          [class.bg-blue-50]="isGuardianSmsEnabled() && kioskTheme() === 'light'"
+          [class.border-blue-300]="isGuardianSmsEnabled() && kioskTheme() === 'light'"
+          [class.text-blue-700]="isGuardianSmsEnabled() && kioskTheme() === 'light'"
+          [class.bg-white\/5]="!isGuardianSmsEnabled() && kioskTheme() === 'dark'"
+          [class.border-white\/10]="!isGuardianSmsEnabled() && kioskTheme() === 'dark'"
+          [class.text-white\/40]="!isGuardianSmsEnabled() && kioskTheme() === 'dark'"
+          [class.bg-white]="!isGuardianSmsEnabled() && kioskTheme() === 'light'"
+          [class.border-slate-200]="!isGuardianSmsEnabled() && kioskTheme() === 'light'"
+          [class.text-slate-400]="!isGuardianSmsEnabled() && kioskTheme() === 'light'">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </button>
 
         <!-- Fullscreen Native Mode -->
         <button type="button" (click)="toggleNativeFullscreen()"
           title="Toggle Fullscreen Viewport"
-          class="p-2.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl text-xs font-bold transition-all cursor-pointer">
+          class="p-2 sm:p-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border shadow-xs active:scale-95"
+          [class.bg-white\/10]="kioskTheme() === 'dark'"
+          [class.hover:bg-white\/20]="kioskTheme() === 'dark'"
+          [class.border-white\/20]="kioskTheme() === 'dark'"
+          [class.text-white]="kioskTheme() === 'dark'"
+          [class.bg-white]="kioskTheme() === 'light'"
+          [class.hover:bg-slate-50]="kioskTheme() === 'light'"
+          [class.border-slate-200]="kioskTheme() === 'light'"
+          [class.text-slate-700]="kioskTheme() === 'light'">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg>
         </button>
 
         <!-- Exit Kiosk Button -->
         <button type="button" (click)="toggleKioskMode()"
-          class="px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-lg shadow-rose-500/10">
+          class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-md active:scale-95"
+          [class.bg-rose-500\/20]="kioskTheme() === 'dark'"
+          [class.hover:bg-rose-500\/30]="kioskTheme() === 'dark'"
+          [class.border]="true"
+          [class.border-rose-500\/40]="kioskTheme() === 'dark'"
+          [class.text-rose-300]="kioskTheme() === 'dark'"
+          [class.bg-rose-600]="kioskTheme() === 'light'"
+          [class.hover:bg-rose-700]="kioskTheme() === 'light'"
+          [class.text-white]="kioskTheme() === 'light'"
+          [class.border-rose-600]="kioskTheme() === 'light'">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          <span>Exit <kbd class="hidden sm:inline font-mono text-[9px] opacity-70 bg-white/10 px-1 py-0.5 rounded">ESC</kbd></span>
+          <span class="hidden sm:inline">Exit</span>
+          <kbd class="hidden md:inline font-mono text-[9px] opacity-80 px-1 py-0.5 rounded"
+               [class.bg-white\/10]="kioskTheme() === 'dark'"
+               [class.bg-white\/20]="kioskTheme() === 'light'">ESC</kbd>
         </button>
       </div>
 
     </div>
 
+    <!-- MOBILE / TABLET SEGMENTED TAB NAVIGATOR (Visible only on < lg screens) -->
+    <div class="lg:hidden relative z-10 pt-2.5 pb-1 flex items-center gap-1">
+      <button type="button" (click)="setKioskMobileTab('SCANNER')"
+        class="flex-1 py-2 px-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs border"
+        [class.bg-teal-500]="kioskMobileTab() === 'SCANNER' && kioskTheme() === 'dark'"
+        [class.text-gray-950]="kioskMobileTab() === 'SCANNER' && kioskTheme() === 'dark'"
+        [class.border-teal-400]="kioskMobileTab() === 'SCANNER' && kioskTheme() === 'dark'"
+        [class.bg-teal-600]="kioskMobileTab() === 'SCANNER' && kioskTheme() === 'light'"
+        [class.text-white]="kioskMobileTab() === 'SCANNER' && kioskTheme() === 'light'"
+        [class.border-teal-600]="kioskMobileTab() === 'SCANNER' && kioskTheme() === 'light'"
+        [class.bg-white\/5]="kioskMobileTab() !== 'SCANNER' && kioskTheme() === 'dark'"
+        [class.text-white\/60]="kioskMobileTab() !== 'SCANNER' && kioskTheme() === 'dark'"
+        [class.border-white\/10]="kioskMobileTab() !== 'SCANNER' && kioskTheme() === 'dark'"
+        [class.bg-white]="kioskMobileTab() !== 'SCANNER' && kioskTheme() === 'light'"
+        [class.text-slate-600]="kioskMobileTab() !== 'SCANNER' && kioskTheme() === 'light'"
+        [class.border-slate-200]="kioskMobileTab() !== 'SCANNER' && kioskTheme() === 'light'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" x2="17" y1="8" y2="8"/></svg>
+        <span>Scanner</span>
+      </button>
+
+      <button type="button" (click)="setKioskMobileTab('TELEMETRY')"
+        class="flex-1 py-2 px-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs border"
+        [class.bg-teal-500]="kioskMobileTab() === 'TELEMETRY' && kioskTheme() === 'dark'"
+        [class.text-gray-950]="kioskMobileTab() === 'TELEMETRY' && kioskTheme() === 'dark'"
+        [class.border-teal-400]="kioskMobileTab() === 'TELEMETRY' && kioskTheme() === 'dark'"
+        [class.bg-teal-600]="kioskMobileTab() === 'TELEMETRY' && kioskTheme() === 'light'"
+        [class.text-white]="kioskMobileTab() === 'TELEMETRY' && kioskTheme() === 'light'"
+        [class.border-teal-600]="kioskMobileTab() === 'TELEMETRY' && kioskTheme() === 'light'"
+        [class.bg-white\/5]="kioskMobileTab() !== 'TELEMETRY' && kioskTheme() === 'dark'"
+        [class.text-white\/60]="kioskMobileTab() !== 'TELEMETRY' && kioskTheme() === 'dark'"
+        [class.border-white\/10]="kioskMobileTab() !== 'TELEMETRY' && kioskTheme() === 'dark'"
+        [class.bg-white]="kioskMobileTab() !== 'TELEMETRY' && kioskTheme() === 'light'"
+        [class.text-slate-600]="kioskMobileTab() !== 'TELEMETRY' && kioskTheme() === 'light'"
+        [class.border-slate-200]="kioskMobileTab() !== 'TELEMETRY' && kioskTheme() === 'light'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        <span>Stats ({{ attendanceRate() }}%)</span>
+      </button>
+
+      <button type="button" (click)="setKioskMobileTab('STREAM')"
+        class="flex-1 py-2 px-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs border"
+        [class.bg-teal-500]="kioskMobileTab() === 'STREAM' && kioskTheme() === 'dark'"
+        [class.text-gray-950]="kioskMobileTab() === 'STREAM' && kioskTheme() === 'dark'"
+        [class.border-teal-400]="kioskMobileTab() === 'STREAM' && kioskTheme() === 'dark'"
+        [class.bg-teal-600]="kioskMobileTab() === 'STREAM' && kioskTheme() === 'light'"
+        [class.text-white]="kioskMobileTab() === 'STREAM' && kioskTheme() === 'light'"
+        [class.border-teal-600]="kioskMobileTab() === 'STREAM' && kioskTheme() === 'light'"
+        [class.bg-white\/5]="kioskMobileTab() !== 'STREAM' && kioskTheme() === 'dark'"
+        [class.text-white\/60]="kioskMobileTab() !== 'STREAM' && kioskTheme() === 'dark'"
+        [class.border-white\/10]="kioskMobileTab() !== 'STREAM' && kioskTheme() === 'dark'"
+        [class.bg-white]="kioskMobileTab() !== 'STREAM' && kioskTheme() === 'light'"
+        [class.text-slate-600]="kioskMobileTab() !== 'STREAM' && kioskTheme() === 'light'"
+        [class.border-slate-200]="kioskMobileTab() !== 'STREAM' && kioskTheme() === 'light'">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>Stream ({{ scannedLog().length }})</span>
+      </button>
+
+      <button type="button" (click)="setKioskMobileTab('KEYPAD')"
+        class="flex-1 py-2 px-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs border"
+        [class.bg-teal-500]="kioskMobileTab() === 'KEYPAD' && kioskTheme() === 'dark'"
+        [class.text-gray-950]="kioskMobileTab() === 'KEYPAD' && kioskTheme() === 'dark'"
+        [class.border-teal-400]="kioskMobileTab() === 'KEYPAD' && kioskTheme() === 'dark'"
+        [class.bg-teal-600]="kioskMobileTab() === 'KEYPAD' && kioskTheme() === 'light'"
+        [class.text-white]="kioskMobileTab() === 'KEYPAD' && kioskTheme() === 'light'"
+        [class.border-teal-600]="kioskMobileTab() === 'KEYPAD' && kioskTheme() === 'light'"
+        [class.bg-white\/5]="kioskMobileTab() !== 'KEYPAD' && kioskTheme() === 'dark'"
+        [class.text-white\/60]="kioskMobileTab() !== 'KEYPAD' && kioskTheme() === 'dark'"
+        [class.border-white\/10]="kioskMobileTab() !== 'KEYPAD' && kioskTheme() === 'dark'"
+        [class.bg-white]="kioskMobileTab() !== 'KEYPAD' && kioskTheme() === 'light'"
+        [class.text-slate-600]="kioskMobileTab() !== 'KEYPAD' && kioskTheme() === 'light'"
+        [class.border-slate-200]="kioskMobileTab() !== 'KEYPAD' && kioskTheme() === 'light'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h.01M12 7h.01M17 7h.01M7 12h.01M12 12h.01M17 12h.01M7 17h.01M12 17h.01M17 17h.01"/></svg>
+        <span>PIN</span>
+      </button>
+    </div>
+
     <!-- 2. MAIN INTERACTIVE 3-COLUMN STAGE -->
-    <div class="relative z-10 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 py-4 min-h-0 overflow-y-auto lg:overflow-hidden custom-scrollbar">
+    <div class="relative z-10 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5 py-2 sm:py-4 min-h-0 overflow-y-auto lg:overflow-hidden custom-scrollbar">
       
       <!-- ========================================================================= -->
       <!-- LEFT STAGE (3 Cols): TELEMETRY, PROGRESS & GUARD KEYPAD / ABSENT QUEUE    -->
       <!-- ========================================================================= -->
-      <div class="lg:col-span-3 flex flex-col gap-4 min-h-0 overflow-y-auto custom-scrollbar pr-1">
+      <div class="lg:col-span-3 flex flex-col gap-3 sm:gap-4 min-h-0 overflow-y-auto custom-scrollbar lg:pr-1"
+           [class.hidden]="kioskMobileTab() !== 'TELEMETRY' && kioskMobileTab() !== 'KEYPAD'"
+           [class.lg:flex]="true">
         
         <!-- Live Roll Call Progress Card -->
-        <div class="bg-gradient-to-b from-white/10 to-white/5 border border-white/15 rounded-3xl p-5 backdrop-blur-xl shadow-xl flex flex-col gap-3">
+        <div class="rounded-3xl p-4 sm:p-5 backdrop-blur-xl shadow-xl flex flex-col gap-3 border transition-all"
+             [class.bg-gradient-to-b]="true"
+             [class.from-white\/10]="kioskTheme() === 'dark'"
+             [class.to-white\/5]="kioskTheme() === 'dark'"
+             [class.border-white\/15]="kioskTheme() === 'dark'"
+             [class.from-white]="kioskTheme() === 'light'"
+             [class.to-slate-50]="kioskTheme() === 'light'"
+             [class.border-slate-200]="kioskTheme() === 'light'">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-black uppercase tracking-wider text-teal-400">Roll Call Telemetry</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-black bg-teal-500/20 text-teal-300 border border-teal-500/30">
+            <span class="text-[11px] font-black uppercase tracking-wider"
+                  [class.text-teal-400]="kioskTheme() === 'dark'"
+                  [class.text-teal-700]="kioskTheme() === 'light'">
+              Roll Call Telemetry
+            </span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-black border"
+                  [class.bg-teal-500\/20]="kioskTheme() === 'dark'"
+                  [class.text-teal-300]="kioskTheme() === 'dark'"
+                  [class.border-teal-500\/30]="kioskTheme() === 'dark'"
+                  [class.bg-teal-50]="kioskTheme() === 'light'"
+                  [class.text-teal-800]="kioskTheme() === 'light'"
+                  [class.border-teal-200]="kioskTheme() === 'light'">
               {{ attendanceRate() }}% Checked In
             </span>
           </div>
@@ -546,76 +753,154 @@
           <!-- Large Stat Count -->
           <div class="flex items-baseline justify-between pt-1">
             <div class="flex items-baseline gap-1.5">
-              <span class="text-4xl font-black font-mono text-white tracking-tight">{{ checkedInCount() }}</span>
-              <span class="text-sm font-bold text-white/50 font-mono">/ {{ totalStudents() }} Total</span>
+              <span class="text-3xl sm:text-4xl font-black font-mono tracking-tight"
+                    [class.text-white]="kioskTheme() === 'dark'"
+                    [class.text-slate-900]="kioskTheme() === 'light'">
+                {{ checkedInCount() }}
+              </span>
+              <span class="text-xs sm:text-sm font-bold font-mono"
+                    [class.text-white\/50]="kioskTheme() === 'dark'"
+                    [class.text-slate-400]="kioskTheme() === 'light'">
+                / {{ totalStudents() }} Total
+              </span>
             </div>
-            <span class="text-xs font-bold text-rose-400 font-mono">{{ remainingCount() }} Remaining</span>
+            <span class="text-xs font-bold font-mono"
+                  [class.text-rose-400]="kioskTheme() === 'dark'"
+                  [class.text-rose-600]="kioskTheme() === 'light'">
+              {{ remainingCount() }} Remaining
+            </span>
           </div>
 
           <!-- Progress Bar -->
-          <div class="w-full h-3 bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/10">
+          <div class="w-full h-3 rounded-full overflow-hidden p-0.5 border"
+               [class.bg-white\/10]="kioskTheme() === 'dark'"
+               [class.border-white\/10]="kioskTheme() === 'dark'"
+               [class.bg-slate-200]="kioskTheme() === 'light'"
+               [class.border-slate-300]="kioskTheme() === 'light'">
             <div class="h-full bg-gradient-to-r from-teal-500 via-emerald-400 to-cyan-400 rounded-full transition-all duration-500 shadow-[0_0_12px_rgba(52,211,153,0.5)]"
                  [style.width.%]="attendanceRate()"></div>
           </div>
 
           <!-- Breakdown Sub-Metrics -->
-          <div class="grid grid-cols-2 gap-2 pt-2 border-t border-white/10 text-xs">
-            <div class="bg-white/5 p-2.5 rounded-2xl border border-white/5">
-              <span class="text-[10px] uppercase font-bold text-white/50 block leading-none mb-1">On-Time</span>
-              <span class="text-base font-black text-emerald-400 font-mono leading-none">{{ onTimeCount() }}</span>
+          <div class="grid grid-cols-2 gap-2 pt-2 border-t text-xs"
+               [class.border-white\/10]="kioskTheme() === 'dark'"
+               [class.border-slate-200]="kioskTheme() === 'light'">
+            <div class="p-2.5 rounded-2xl border"
+                 [class.bg-white\/5]="kioskTheme() === 'dark'"
+                 [class.border-white\/5]="kioskTheme() === 'dark'"
+                 [class.bg-emerald-50\/80]="kioskTheme() === 'light'"
+                 [class.border-emerald-100]="kioskTheme() === 'light'">
+              <span class="text-[9.5px] sm:text-[10px] uppercase font-bold block leading-none mb-1"
+                    [class.text-white\/50]="kioskTheme() === 'dark'"
+                    [class.text-emerald-700]="kioskTheme() === 'light'">On-Time</span>
+              <span class="text-sm sm:text-base font-black font-mono leading-none"
+                    [class.text-emerald-400]="kioskTheme() === 'dark'"
+                    [class.text-emerald-800]="kioskTheme() === 'light'">{{ onTimeCount() }}</span>
             </div>
-            <div class="bg-white/5 p-2.5 rounded-2xl border border-white/5">
-              <span class="text-[10px] uppercase font-bold text-white/50 block leading-none mb-1">Tardy / Late</span>
-              <span class="text-base font-black text-amber-400 font-mono leading-none">{{ tardyCount() }}</span>
+            <div class="p-2.5 rounded-2xl border"
+                 [class.bg-white\/5]="kioskTheme() === 'dark'"
+                 [class.border-white\/5]="kioskTheme() === 'dark'"
+                 [class.bg-amber-50\/80]="kioskTheme() === 'light'"
+                 [class.border-amber-100]="kioskTheme() === 'light'">
+              <span class="text-[9.5px] sm:text-[10px] uppercase font-bold block leading-none mb-1"
+                    [class.text-white\/50]="kioskTheme() === 'dark'"
+                    [class.text-amber-700]="kioskTheme() === 'light'">Tardy / Late</span>
+              <span class="text-sm sm:text-base font-black font-mono leading-none"
+                    [class.text-amber-400]="kioskTheme() === 'dark'"
+                    [class.text-amber-800]="kioskTheme() === 'light'">{{ tardyCount() }}</span>
             </div>
-            <div class="bg-white/5 p-2.5 rounded-2xl border border-white/5">
-              <span class="text-[10px] uppercase font-bold text-white/50 block leading-none mb-1">Day Scholars</span>
-              <span class="text-base font-black text-blue-400 font-mono leading-none">{{ dayScholarCount() }}</span>
+            <div class="p-2.5 rounded-2xl border"
+                 [class.bg-white\/5]="kioskTheme() === 'dark'"
+                 [class.border-white\/5]="kioskTheme() === 'dark'"
+                 [class.bg-blue-50\/80]="kioskTheme() === 'light'"
+                 [class.border-blue-100]="kioskTheme() === 'light'">
+              <span class="text-[9.5px] sm:text-[10px] uppercase font-bold block leading-none mb-1"
+                    [class.text-white\/50]="kioskTheme() === 'dark'"
+                    [class.text-blue-700]="kioskTheme() === 'light'">Day Scholars</span>
+              <span class="text-sm sm:text-base font-black font-mono leading-none"
+                    [class.text-blue-400]="kioskTheme() === 'dark'"
+                    [class.text-blue-800]="kioskTheme() === 'light'">{{ dayScholarCount() }}</span>
             </div>
-            <div class="bg-white/5 p-2.5 rounded-2xl border border-white/5">
-              <span class="text-[10px] uppercase font-bold text-white/50 block leading-none mb-1">Boarders</span>
-              <span class="text-base font-black text-purple-400 font-mono leading-none">{{ boarderCount() }}</span>
+            <div class="p-2.5 rounded-2xl border"
+                 [class.bg-white\/5]="kioskTheme() === 'dark'"
+                 [class.border-white\/5]="kioskTheme() === 'dark'"
+                 [class.bg-purple-50\/80]="kioskTheme() === 'light'"
+                 [class.border-purple-100]="kioskTheme() === 'light'">
+              <span class="text-[9.5px] sm:text-[10px] uppercase font-bold block leading-none mb-1"
+                    [class.text-white\/50]="kioskTheme() === 'dark'"
+                    [class.text-purple-700]="kioskTheme() === 'light'">Boarders</span>
+              <span class="text-sm sm:text-base font-black font-mono leading-none"
+                    [class.text-purple-400]="kioskTheme() === 'dark'"
+                    [class.text-purple-800]="kioskTheme() === 'light'">{{ boarderCount() }}</span>
             </div>
           </div>
         </div>
 
         <!-- Left Drawer Tabs: Guard PIN Pad vs Unchecked Scholars -->
-        <div class="bg-white/5 border border-white/10 rounded-3xl p-4 backdrop-blur-xl flex flex-col gap-3 flex-1 min-h-[300px]">
+        <div class="rounded-3xl p-3.5 sm:p-4 backdrop-blur-xl flex flex-col gap-3 flex-1 min-h-[280px] sm:min-h-[300px] border shadow-md transition-all"
+             [class.bg-white\/5]="kioskTheme() === 'dark'"
+             [class.border-white\/10]="kioskTheme() === 'dark'"
+             [class.bg-white]="kioskTheme() === 'light'"
+             [class.border-slate-200]="kioskTheme() === 'light'">
           <!-- Tab Navigation -->
-          <div class="flex items-center gap-1 p-1 bg-white/5 rounded-2xl border border-white/10">
+          <div class="flex items-center gap-1 p-1 rounded-2xl border"
+               [class.bg-white\/5]="kioskTheme() === 'dark'"
+               [class.border-white\/10]="kioskTheme() === 'dark'"
+               [class.bg-slate-100]="kioskTheme() === 'light'"
+               [class.border-slate-200]="kioskTheme() === 'light'">
             <button type="button" (click)="setKioskTab('SCANNER')"
               class="flex-1 py-1.5 rounded-xl text-[11px] font-bold transition-all text-center cursor-pointer"
-              [class.bg-teal-500]="kioskActiveTab() === 'SCANNER'"
-              [class.text-gray-950]="kioskActiveTab() === 'SCANNER'"
-              [class.text-white/60]="kioskActiveTab() !== 'SCANNER'">
+              [class.bg-teal-500]="kioskActiveTab() === 'SCANNER' && kioskTheme() === 'dark'"
+              [class.text-gray-950]="kioskActiveTab() === 'SCANNER' && kioskTheme() === 'dark'"
+              [class.bg-teal-600]="kioskActiveTab() === 'SCANNER' && kioskTheme() === 'light'"
+              [class.text-white]="kioskActiveTab() === 'SCANNER' && kioskTheme() === 'light'"
+              [class.text-white\/60]="kioskActiveTab() !== 'SCANNER' && kioskTheme() === 'dark'"
+              [class.text-slate-600]="kioskActiveTab() !== 'SCANNER' && kioskTheme() === 'light'">
               HUD Target
             </button>
             <button type="button" (click)="setKioskTab('KEYPAD')"
               class="flex-1 py-1.5 rounded-xl text-[11px] font-bold transition-all text-center cursor-pointer"
-              [class.bg-teal-500]="kioskActiveTab() === 'KEYPAD'"
-              [class.text-gray-950]="kioskActiveTab() === 'KEYPAD'"
-              [class.text-white/60]="kioskActiveTab() !== 'KEYPAD'">
+              [class.bg-teal-500]="kioskActiveTab() === 'KEYPAD' && kioskTheme() === 'dark'"
+              [class.text-gray-950]="kioskActiveTab() === 'KEYPAD' && kioskTheme() === 'dark'"
+              [class.bg-teal-600]="kioskActiveTab() === 'KEYPAD' && kioskTheme() === 'light'"
+              [class.text-white]="kioskActiveTab() === 'KEYPAD' && kioskTheme() === 'light'"
+              [class.text-white\/60]="kioskActiveTab() !== 'KEYPAD' && kioskTheme() === 'dark'"
+              [class.text-slate-600]="kioskActiveTab() !== 'KEYPAD' && kioskTheme() === 'light'">
               PIN Pad
             </button>
             <button type="button" (click)="setKioskTab('UNSCANNED')"
               class="flex-1 py-1.5 rounded-xl text-[11px] font-bold transition-all text-center cursor-pointer"
-              [class.bg-teal-500]="kioskActiveTab() === 'UNSCANNED'"
-              [class.text-gray-950]="kioskActiveTab() === 'UNSCANNED'"
-              [class.text-white/60]="kioskActiveTab() !== 'UNSCANNED'">
+              [class.bg-teal-500]="kioskActiveTab() === 'UNSCANNED' && kioskTheme() === 'dark'"
+              [class.text-gray-950]="kioskActiveTab() === 'UNSCANNED' && kioskTheme() === 'dark'"
+              [class.bg-teal-600]="kioskActiveTab() === 'UNSCANNED' && kioskTheme() === 'light'"
+              [class.text-white]="kioskActiveTab() === 'UNSCANNED' && kioskTheme() === 'light'"
+              [class.text-white\/60]="kioskActiveTab() !== 'UNSCANNED' && kioskTheme() === 'dark'"
+              [class.text-slate-600]="kioskActiveTab() !== 'UNSCANNED' && kioskTheme() === 'light'">
               Unchecked ({{ unscannedStudents().length }})
             </button>
           </div>
 
           <!-- TAB 1: QUICK MANUAL PIN / ID NUMBER KEYPAD -->
-          @if (kioskActiveTab() === 'KEYPAD') {
+          @if (kioskActiveTab() === 'KEYPAD' || kioskMobileTab() === 'KEYPAD') {
             <div class="flex flex-col gap-2.5 flex-1 justify-between">
               <!-- PIN Display Box -->
-              <div class="bg-black/50 border border-teal-500/30 rounded-2xl p-3 flex items-center justify-between">
-                <span class="font-mono text-base font-black tracking-widest text-teal-300 truncate">
+              <div class="rounded-2xl p-3 flex items-center justify-between border"
+                   [class.bg-black\/50]="kioskTheme() === 'dark'"
+                   [class.border-teal-500\/30]="kioskTheme() === 'dark'"
+                   [class.bg-slate-100]="kioskTheme() === 'light'"
+                   [class.border-slate-300]="kioskTheme() === 'light'">
+                <span class="font-mono text-base font-black tracking-widest truncate"
+                      [class.text-teal-300]="kioskTheme() === 'dark'"
+                      [class.text-teal-800]="kioskTheme() === 'light'">
                   {{ pinKeypad() || 'ENTER ID NUMBER...' }}
                 </span>
                 @if (pinKeypad()) {
-                  <button type="button" (click)="clearKeypad()" class="text-white/40 hover:text-white text-xs cursor-pointer">
+                  <button type="button" (click)="clearKeypad()"
+                    class="text-xs font-bold cursor-pointer transition-colors"
+                    [class.text-white\/50]="kioskTheme() === 'dark'"
+                    [class.hover:text-white]="kioskTheme() === 'dark'"
+                    [class.text-slate-500]="kioskTheme() === 'light'"
+                    [class.hover:text-slate-900]="kioskTheme() === 'light'">
                     Clear
                   </button>
                 }
@@ -625,16 +910,38 @@
               <div class="grid grid-cols-3 gap-2">
                 @for (num of ['1','2','3','4','5','6','7','8','9','0']; track num) {
                   <button type="button" (click)="pressKey(num)"
-                    class="py-3 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 border border-white/15 text-lg font-mono font-black text-white transition-all cursor-pointer flex items-center justify-center">
+                    class="py-3 sm:py-3.5 rounded-xl active:scale-95 text-lg font-mono font-black transition-all cursor-pointer flex items-center justify-center border shadow-xs"
+                    [class.bg-white\/10]="kioskTheme() === 'dark'"
+                    [class.hover:bg-white\/20]="kioskTheme() === 'dark'"
+                    [class.border-white\/15]="kioskTheme() === 'dark'"
+                    [class.text-white]="kioskTheme() === 'dark'"
+                    [class.bg-white]="kioskTheme() === 'light'"
+                    [class.hover:bg-slate-100]="kioskTheme() === 'light'"
+                    [class.border-slate-200]="kioskTheme() === 'light'"
+                    [class.text-slate-900]="kioskTheme() === 'light'">
                     {{ num }}
                   </button>
                 }
                 <button type="button" (click)="deleteKey()"
-                  class="py-3 rounded-xl bg-white/5 hover:bg-white/15 active:scale-95 border border-white/10 text-xs font-bold text-rose-300 transition-all cursor-pointer flex items-center justify-center">
+                  class="py-3 sm:py-3.5 rounded-xl active:scale-95 text-xs font-bold transition-all cursor-pointer flex items-center justify-center border"
+                  [class.bg-white\/5]="kioskTheme() === 'dark'"
+                  [class.hover:bg-white\/15]="kioskTheme() === 'dark'"
+                  [class.border-white\/10]="kioskTheme() === 'dark'"
+                  [class.text-rose-300]="kioskTheme() === 'dark'"
+                  [class.bg-rose-50]="kioskTheme() === 'light'"
+                  [class.hover:bg-rose-100]="kioskTheme() === 'light'"
+                  [class.border-rose-200]="kioskTheme() === 'light'"
+                  [class.text-rose-700]="kioskTheme() === 'light'">
                   ⌫ Del
                 </button>
                 <button type="button" (click)="submitKeypad()"
-                  class="py-3 rounded-xl bg-teal-500 hover:bg-teal-400 active:scale-95 text-gray-950 font-black text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center shadow-lg shadow-teal-500/20">
+                  class="py-3 sm:py-3.5 rounded-xl active:scale-95 font-black text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center shadow-lg"
+                  [class.bg-teal-500]="kioskTheme() === 'dark'"
+                  [class.hover:bg-teal-400]="kioskTheme() === 'dark'"
+                  [class.text-gray-950]="kioskTheme() === 'dark'"
+                  [class.bg-teal-600]="kioskTheme() === 'light'"
+                  [class.hover:bg-teal-700]="kioskTheme() === 'light'"
+                  [class.text-white]="kioskTheme() === 'light'">
                   Verify
                 </button>
               </div>
@@ -647,26 +954,58 @@
               <!-- Quick Search Filter -->
               <div class="relative">
                 <input type="text" [(ngModel)]="kioskSearchQuery" placeholder="Filter candidates..."
-                  class="w-full bg-white/10 border border-white/15 rounded-xl px-3 py-1.5 text-xs text-white placeholder-white/40 outline-none focus:border-teal-400">
+                  class="w-full rounded-xl px-3 py-1.5 text-xs outline-none border transition-all"
+                  [class.bg-white\/10]="kioskTheme() === 'dark'"
+                  [class.border-white\/15]="kioskTheme() === 'dark'"
+                  [class.text-white]="kioskTheme() === 'dark'"
+                  [class.placeholder-white\/40]="kioskTheme() === 'dark'"
+                  [class.bg-slate-50]="kioskTheme() === 'light'"
+                  [class.border-slate-200]="kioskTheme() === 'light'"
+                  [class.text-slate-800]="kioskTheme() === 'light'"
+                  [class.placeholder-slate-400]="kioskTheme() === 'light'">
               </div>
 
               <!-- Fast Click Check-in List -->
               <div class="flex flex-col gap-1.5 overflow-y-auto flex-1 max-h-[220px] custom-scrollbar pr-1">
                 @for (s of unscannedStudents(); track s.id) {
                   <button type="button" (click)="quickScanStudent(s)"
-                    class="p-2 rounded-xl bg-white/5 hover:bg-teal-500/20 border border-white/10 hover:border-teal-500/40 text-left transition-all flex items-center justify-between cursor-pointer group">
+                    class="p-2 rounded-xl border text-left transition-all flex items-center justify-between cursor-pointer group shadow-xs"
+                    [class.bg-white\/5]="kioskTheme() === 'dark'"
+                    [class.hover:bg-teal-500\/20]="kioskTheme() === 'dark'"
+                    [class.border-white\/10]="kioskTheme() === 'dark'"
+                    [class.hover:border-teal-500\/40]="kioskTheme() === 'dark'"
+                    [class.bg-slate-50]="kioskTheme() === 'light'"
+                    [class.hover:bg-teal-50]="kioskTheme() === 'light'"
+                    [class.border-slate-200]="kioskTheme() === 'light'"
+                    [class.hover:border-teal-300]="kioskTheme() === 'light'">
                     <div class="flex items-center gap-2 truncate">
-                      <div class="w-6 h-6 rounded-full bg-white/10 text-[10px] font-bold flex items-center justify-center text-white shrink-0">
+                      <div class="w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center shrink-0"
+                           [class.bg-white\/10]="kioskTheme() === 'dark'"
+                           [class.text-white]="kioskTheme() === 'dark'"
+                           [class.bg-teal-100]="kioskTheme() === 'light'"
+                           [class.text-teal-800]="kioskTheme() === 'light'">
                         {{ s.first_name[0] }}
                       </div>
-                      <span class="text-xs font-bold text-white group-hover:text-teal-300 truncate">
+                      <span class="text-xs font-bold truncate"
+                            [class.text-white]="kioskTheme() === 'dark'"
+                            [class.group-hover:text-teal-300]="kioskTheme() === 'dark'"
+                            [class.text-slate-800]="kioskTheme() === 'light'"
+                            [class.group-hover:text-teal-800]="kioskTheme() === 'light'">
                         {{ s.first_name }} {{ s.last_name }}
                       </span>
                     </div>
-                    <span class="text-[10px] font-mono text-white/40 group-hover:text-teal-400 shrink-0">+ Check In</span>
+                    <span class="text-[10px] font-mono shrink-0 font-semibold"
+                          [class.text-white\/40]="kioskTheme() === 'dark'"
+                          [class.group-hover:text-teal-400]="kioskTheme() === 'dark'"
+                          [class.text-slate-400]="kioskTheme() === 'light'"
+                          [class.group-hover:text-teal-700]="kioskTheme() === 'light'">
+                      + Check In
+                    </span>
                   </button>
                 } @empty {
-                  <div class="py-10 text-center text-xs text-white/40">
+                  <div class="py-10 text-center text-xs"
+                       [class.text-white\/40]="kioskTheme() === 'dark'"
+                       [class.text-slate-400]="kioskTheme() === 'light'">
                     All candidates checked in!
                   </div>
                 }
@@ -677,13 +1016,27 @@
           <!-- TAB 3: DEFAULT RADAR / HUD TELEMETRY SUMMARY -->
           @else {
             <div class="flex flex-col items-center justify-center gap-3 text-center p-4 flex-1">
-              <div class="w-16 h-16 rounded-full border border-teal-500/30 flex items-center justify-center relative">
+              <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center relative border"
+                   [class.border-teal-500\/30]="kioskTheme() === 'dark'"
+                   [class.border-teal-300]="kioskTheme() === 'light'">
                 <div class="absolute inset-0 rounded-full border-2 border-t-teal-400 border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-teal-400"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     [class.text-teal-400]="kioskTheme() === 'dark'"
+                     [class.text-teal-600]="kioskTheme() === 'light'">
+                  <circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/>
+                </svg>
               </div>
               <div class="flex flex-col">
-                <span class="text-xs font-black uppercase text-teal-300 tracking-wider">Gate Guard Security Active</span>
-                <span class="text-[11px] text-white/50">USB HID Reader & Video Stream Synchronized</span>
+                <span class="text-xs font-black uppercase tracking-wider"
+                      [class.text-teal-300]="kioskTheme() === 'dark'"
+                      [class.text-teal-800]="kioskTheme() === 'light'">
+                  Gate Guard Active
+                </span>
+                <span class="text-[10.5px]"
+                      [class.text-white\/50]="kioskTheme() === 'dark'"
+                      [class.text-slate-500]="kioskTheme() === 'light'">
+                  USB Barcode & Optical Stream Synchronized
+                </span>
               </div>
             </div>
           }
@@ -695,66 +1048,134 @@
       <!-- ========================================================================= -->
       <!-- CENTER STAGE (6 Cols): ACTIVE VERIFICATION SPOTLIGHT & SCANNER VIEWPORT   -->
       <!-- ========================================================================= -->
-      <div class="lg:col-span-6 flex flex-col justify-center items-center min-h-0 relative">
+      <div class="lg:col-span-6 flex flex-col justify-center items-center min-h-0 relative"
+           [class.hidden]="kioskMobileTab() !== 'SCANNER'"
+           [class.lg:flex]="true">
         
         <!-- SUCCESS STATE: HIGH IMPACT HOLOGRAPHIC CANDIDATE SPOTLIGHT -->
         @if (feedbackState() === 'SUCCESS' && lastScannedStudent()) {
-          <div class="w-full max-w-xl bg-gradient-to-b from-teal-950/80 via-gray-900/90 to-gray-950/95 border-2 border-emerald-400 rounded-3xl p-6 sm:p-8 shadow-[0_0_50px_rgba(52,211,153,0.35)] flex flex-col items-center text-center gap-5 backdrop-blur-2xl animate-scale-up relative overflow-hidden">
+          <div class="w-full max-w-xl rounded-3xl p-5 sm:p-7 shadow-2xl flex flex-col items-center text-center gap-4 sm:gap-5 backdrop-blur-2xl animate-scale-up relative overflow-hidden border-2"
+               [class.bg-gradient-to-b]="true"
+               [class.from-teal-950\/90]="kioskTheme() === 'dark'"
+               [class.via-gray-900\/95]="kioskTheme() === 'dark'"
+               [class.to-gray-950]="kioskTheme() === 'dark'"
+               [class.border-emerald-400]="kioskTheme() === 'dark'"
+               [class.from-white]="kioskTheme() === 'light'"
+               [class.via-emerald-50\/40]="kioskTheme() === 'light'"
+               [class.to-white]="kioskTheme() === 'light'"
+               [class.border-emerald-500]="kioskTheme() === 'light'">
             
             <!-- Neon Glow Accents -->
             <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-20 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none"></div>
 
             <!-- Top Verified Badge -->
-            <div class="flex items-center gap-2 px-4 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+            <div class="flex items-center gap-2 px-3.5 sm:px-4 py-1 rounded-full border shadow-sm"
+                 [class.bg-emerald-500\/20]="kioskTheme() === 'dark'"
+                 [class.text-emerald-300]="kioskTheme() === 'dark'"
+                 [class.border-emerald-500\/50]="kioskTheme() === 'dark'"
+                 [class.bg-emerald-100]="kioskTheme() === 'light'"
+                 [class.text-emerald-800]="kioskTheme() === 'light'"
+                 [class.border-emerald-300]="kioskTheme() === 'light'">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-              <span class="text-xs font-black uppercase tracking-widest">PASSPORT VERIFIED • ACCESS GRANTED</span>
+              <span class="text-[10px] sm:text-xs font-black uppercase tracking-widest">PASSPORT VERIFIED • ACCESS GRANTED</span>
             </div>
 
             <!-- Large Candidate Portrait Frame -->
             <div class="relative">
-              <div class="w-36 h-36 rounded-3xl overflow-hidden border-4 border-emerald-400 shadow-[0_0_35px_rgba(52,211,153,0.5)] bg-gray-800 flex items-center justify-center">
+              <div class="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl overflow-hidden border-4 shadow-xl flex items-center justify-center"
+                   [class.border-emerald-400]="kioskTheme() === 'dark'"
+                   [class.bg-gray-800]="kioskTheme() === 'dark'"
+                   [class.border-emerald-500]="kioskTheme() === 'light'"
+                   [class.bg-slate-100]="kioskTheme() === 'light'">
                 @if (lastScannedStudent()!.student.photo_url) {
                   <img [src]="lastScannedStudent()!.student.photo_url" alt="Portrait" class="w-full h-full object-cover">
                 } @else {
-                  <div class="w-full h-full bg-gradient-to-br from-teal-800 to-gray-900 flex items-center justify-center font-serif font-black text-white text-4xl">
+                  <div class="w-full h-full flex items-center justify-center font-serif font-black text-3xl sm:text-4xl"
+                       [class.bg-gradient-to-br]="true"
+                       [class.from-teal-800]="kioskTheme() === 'dark'"
+                       [class.to-gray-900]="kioskTheme() === 'dark'"
+                       [class.text-white]="kioskTheme() === 'dark'"
+                       [class.from-teal-600]="kioskTheme() === 'light'"
+                       [class.to-emerald-700]="kioskTheme() === 'light'"
+                       [class.text-white]="kioskTheme() === 'light'">
                     {{ lastScannedStudent()!.student.first_name[0] }}{{ lastScannedStudent()!.student.last_name[0] }}
                   </div>
                 }
               </div>
-              <div class="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl bg-emerald-500 text-gray-950 flex items-center justify-center border-2 border-gray-900 shadow-md">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              <div class="absolute -bottom-2 -right-2 w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-emerald-500 text-gray-950 flex items-center justify-center border-2 border-white shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
             </div>
 
             <!-- Candidate Identity Titles -->
             <div class="flex flex-col items-center">
-              <h2 class="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white drop-shadow-md">
+              <h2 class="text-xl sm:text-2xl lg:text-3xl font-black uppercase tracking-tight"
+                  [class.text-white]="kioskTheme() === 'dark'"
+                  [class.text-slate-950]="kioskTheme() === 'light'">
                 {{ lastScannedStudent()!.student.first_name }} {{ lastScannedStudent()!.student.last_name }}
               </h2>
               <div class="flex items-center gap-2 mt-1">
-                <span class="px-2.5 py-0.5 rounded-lg text-xs font-mono font-bold bg-white/10 text-teal-300 border border-white/15">
+                <span class="px-2.5 py-0.5 rounded-lg text-xs font-mono font-bold border"
+                      [class.bg-white\/10]="kioskTheme() === 'dark'"
+                      [class.text-teal-300]="kioskTheme() === 'dark'"
+                      [class.border-white\/15]="kioskTheme() === 'dark'"
+                      [class.bg-slate-100]="kioskTheme() === 'light'"
+                      [class.text-teal-800]="kioskTheme() === 'light'"
+                      [class.border-slate-200]="kioskTheme() === 'light'">
                   {{ lastScannedStudent()!.student.enrollment_num || lastScannedStudent()!.student.id }}
                 </span>
-                <span class="text-white/40">•</span>
-                <span class="text-xs font-bold text-white/80 uppercase tracking-wider">
+                <span class="opacity-40">•</span>
+                <span class="text-xs font-bold uppercase tracking-wider"
+                      [class.text-white\/80]="kioskTheme() === 'dark'"
+                      [class.text-slate-700]="kioskTheme() === 'light'">
                   {{ lastScannedStudent()!.student.class_name || selectedClassName() }}
                 </span>
               </div>
             </div>
 
             <!-- Detailed Telemetry Metrics -->
-            <div class="w-full grid grid-cols-3 gap-2.5 pt-2 border-t border-white/10 text-xs">
-              <div class="bg-white/5 p-3 rounded-2xl border border-white/10">
-                <span class="text-[9px] uppercase font-black text-white/50 block leading-none mb-1">Time Logged</span>
-                <span class="font-mono font-bold text-emerald-400 text-sm">{{ lastScannedStudent()!.timestamp | date:'shortTime' }}</span>
+            <div class="w-full grid grid-cols-3 gap-2 pt-2 border-t text-xs"
+                 [class.border-white\/10]="kioskTheme() === 'dark'"
+                 [class.border-slate-200]="kioskTheme() === 'light'">
+              <div class="p-2.5 sm:p-3 rounded-2xl border"
+                   [class.bg-white\/5]="kioskTheme() === 'dark'"
+                   [class.border-white\/10]="kioskTheme() === 'dark'"
+                   [class.bg-slate-50]="kioskTheme() === 'light'"
+                   [class.border-slate-200]="kioskTheme() === 'light'">
+                <span class="text-[9px] uppercase font-black block leading-none mb-1"
+                      [class.text-white\/50]="kioskTheme() === 'dark'"
+                      [class.text-slate-500]="kioskTheme() === 'light'">Time Logged</span>
+                <span class="font-mono font-bold text-xs sm:text-sm"
+                      [class.text-emerald-400]="kioskTheme() === 'dark'"
+                      [class.text-emerald-700]="kioskTheme() === 'light'">
+                  {{ lastScannedStudent()!.timestamp | date:'shortTime' }}
+                </span>
               </div>
-              <div class="bg-white/5 p-3 rounded-2xl border border-white/10">
-                <span class="text-[9px] uppercase font-black text-white/50 block leading-none mb-1">Gate Status</span>
-                <span class="font-bold text-emerald-300 text-sm uppercase">On Time</span>
+              <div class="p-2.5 sm:p-3 rounded-2xl border"
+                   [class.bg-white\/5]="kioskTheme() === 'dark'"
+                   [class.border-white\/10]="kioskTheme() === 'dark'"
+                   [class.bg-slate-50]="kioskTheme() === 'light'"
+                   [class.border-slate-200]="kioskTheme() === 'light'">
+                <span class="text-[9px] uppercase font-black block leading-none mb-1"
+                      [class.text-white\/50]="kioskTheme() === 'dark'"
+                      [class.text-slate-500]="kioskTheme() === 'light'">Gate Status</span>
+                <span class="font-bold text-xs sm:text-sm uppercase"
+                      [class.text-emerald-300]="kioskTheme() === 'dark'"
+                      [class.text-emerald-700]="kioskTheme() === 'light'">
+                  On Time
+                </span>
               </div>
-              <div class="bg-white/5 p-3 rounded-2xl border border-white/10">
-                <span class="text-[9px] uppercase font-black text-white/50 block leading-none mb-1">Residence</span>
-                <span class="font-bold text-teal-300 text-xs truncate block">
+              <div class="p-2.5 sm:p-3 rounded-2xl border"
+                   [class.bg-white\/5]="kioskTheme() === 'dark'"
+                   [class.border-white\/10]="kioskTheme() === 'dark'"
+                   [class.bg-slate-50]="kioskTheme() === 'light'"
+                   [class.border-slate-200]="kioskTheme() === 'light'">
+                <span class="text-[9px] uppercase font-black block leading-none mb-1"
+                      [class.text-white\/50]="kioskTheme() === 'dark'"
+                      [class.text-slate-500]="kioskTheme() === 'light'">Residence</span>
+                <span class="font-bold text-xs truncate block"
+                      [class.text-teal-300]="kioskTheme() === 'dark'"
+                      [class.text-teal-700]="kioskTheme() === 'light'">
                   Day Scholar
                 </span>
               </div>
@@ -762,12 +1183,18 @@
 
             <!-- Parent SMS Auto-Notification Alert Banner -->
             @if (isGuardianSmsEnabled()) {
-              <div class="w-full p-2.5 px-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-xs text-emerald-300">
-                <div class="flex items-center gap-2">
+              <div class="w-full p-2.5 px-3.5 sm:px-4 rounded-2xl border flex items-center justify-between text-xs"
+                   [class.bg-emerald-500\/10]="kioskTheme() === 'dark'"
+                   [class.border-emerald-500\/30]="kioskTheme() === 'dark'"
+                   [class.text-emerald-300]="kioskTheme() === 'dark'"
+                   [class.bg-emerald-50]="kioskTheme() === 'light'"
+                   [class.border-emerald-200]="kioskTheme() === 'light'"
+                   [class.text-emerald-800]="kioskTheme() === 'light'">
+                <div class="flex items-center gap-2 truncate">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                  <span class="font-bold">Guardian Arrival SMS Dispatched</span>
+                  <span class="font-bold truncate">Guardian SMS Dispatched</span>
                 </div>
-                <span class="font-mono text-[11px] opacity-80">
+                <span class="font-mono text-[10.5px] sm:text-[11px] opacity-80 shrink-0">
                   {{ lastScannedStudent()!.student.guardian_phone || '+233 24 555 0192' }}
                 </span>
               </div>
@@ -778,63 +1205,144 @@
 
         <!-- DUPLICATE SCAN WARNING -->
         @else if (feedbackState() === 'DUPLICATE') {
-          <div class="w-full max-w-lg bg-gradient-to-b from-amber-950/80 to-gray-900/90 border-2 border-amber-400 rounded-3xl p-8 shadow-[0_0_50px_rgba(251,191,36,0.3)] flex flex-col items-center text-center gap-4 backdrop-blur-2xl animate-scale-up">
-            <div class="w-20 h-20 rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-amber-400">
-              <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+          <div class="w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col items-center text-center gap-4 backdrop-blur-2xl animate-scale-up border-2"
+               [class.bg-gradient-to-b]="true"
+               [class.from-amber-950\/80]="kioskTheme() === 'dark'"
+               [class.to-gray-900\/90]="kioskTheme() === 'dark'"
+               [class.border-amber-400]="kioskTheme() === 'dark'"
+               [class.from-amber-50]="kioskTheme() === 'light'"
+               [class.to-white]="kioskTheme() === 'light'"
+               [class.border-amber-400]="kioskTheme() === 'light'">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 flex items-center justify-center"
+                 [class.bg-amber-500\/20]="kioskTheme() === 'dark'"
+                 [class.border-amber-400]="kioskTheme() === 'dark'"
+                 [class.text-amber-400]="kioskTheme() === 'dark'"
+                 [class.bg-amber-100]="kioskTheme() === 'light'"
+                 [class.border-amber-400]="kioskTheme() === 'light'"
+                 [class.text-amber-700]="kioskTheme() === 'light'">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
             </div>
             <div class="flex flex-col">
-              <span class="px-3 py-1 rounded-full text-xs font-black uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40 inline-block self-center mb-2">
+              <span class="px-3 py-1 rounded-full text-xs font-black uppercase border inline-block self-center mb-2"
+                    [class.bg-amber-500\/20]="kioskTheme() === 'dark'"
+                    [class.text-amber-300]="kioskTheme() === 'dark'"
+                    [class.border-amber-500\/40]="kioskTheme() === 'dark'"
+                    [class.bg-amber-100]="kioskTheme() === 'light'"
+                    [class.text-amber-800]="kioskTheme() === 'light'"
+                    [class.border-amber-300]="kioskTheme() === 'light'">
                 DUPLICATE SCAN DETECTED
               </span>
-              <h3 class="text-2xl font-black text-white uppercase">{{ feedbackMessage() }}</h3>
-              <p class="text-xs text-white/60 mt-1">This candidate has already been checked into the campus register today.</p>
+              <h3 class="text-xl sm:text-2xl font-black uppercase"
+                  [class.text-white]="kioskTheme() === 'dark'"
+                  [class.text-slate-900]="kioskTheme() === 'light'">
+                {{ feedbackMessage() }}
+              </h3>
+              <p class="text-xs mt-1"
+                 [class.text-white\/60]="kioskTheme() === 'dark'"
+                 [class.text-slate-500]="kioskTheme() === 'light'">
+                This candidate has already been checked into the campus register today.
+              </p>
             </div>
           </div>
         }
 
         <!-- UNRECOGNIZED CARD WARNING -->
         @else if (feedbackState() === 'NOT_FOUND') {
-          <div class="w-full max-w-lg bg-gradient-to-b from-rose-950/80 to-gray-900/90 border-2 border-rose-500 rounded-3xl p-8 shadow-[0_0_50px_rgba(244,63,94,0.3)] flex flex-col items-center text-center gap-4 backdrop-blur-2xl animate-scale-up">
-            <div class="w-20 h-20 rounded-full bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center text-rose-400">
-              <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
+          <div class="w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col items-center text-center gap-4 backdrop-blur-2xl animate-scale-up border-2"
+               [class.bg-gradient-to-b]="true"
+               [class.from-rose-950\/80]="kioskTheme() === 'dark'"
+               [class.to-gray-900\/90]="kioskTheme() === 'dark'"
+               [class.border-rose-500]="kioskTheme() === 'dark'"
+               [class.from-rose-50]="kioskTheme() === 'light'"
+               [class.to-white]="kioskTheme() === 'light'"
+               [class.border-rose-400]="kioskTheme() === 'light'">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 flex items-center justify-center"
+                 [class.bg-rose-500\/20]="kioskTheme() === 'dark'"
+                 [class.border-rose-500]="kioskTheme() === 'dark'"
+                 [class.text-rose-400]="kioskTheme() === 'dark'"
+                 [class.bg-rose-100]="kioskTheme() === 'light'"
+                 [class.border-rose-400]="kioskTheme() === 'light'"
+                 [class.text-rose-700]="kioskTheme() === 'light'">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
             </div>
             <div class="flex flex-col">
-              <span class="px-3 py-1 rounded-full text-xs font-black uppercase bg-rose-500/20 text-rose-300 border border-rose-500/40 inline-block self-center mb-2">
+              <span class="px-3 py-1 rounded-full text-xs font-black uppercase border inline-block self-center mb-2"
+                    [class.bg-rose-500\/20]="kioskTheme() === 'dark'"
+                    [class.text-rose-300]="kioskTheme() === 'dark'"
+                    [class.border-rose-500\/40]="kioskTheme() === 'dark'"
+                    [class.bg-rose-100]="kioskTheme() === 'light'"
+                    [class.text-rose-800]="kioskTheme() === 'light'"
+                    [class.border-rose-300]="kioskTheme() === 'light'">
                 UNRECOGNIZED CREDENTIAL
               </span>
-              <h3 class="text-xl font-black text-white uppercase">{{ feedbackMessage() }}</h3>
-              <p class="text-xs text-white/60 mt-1">Please verify the candidate belongs to this class or use manual PIN entry.</p>
+              <h3 class="text-lg sm:text-xl font-black uppercase"
+                  [class.text-white]="kioskTheme() === 'dark'"
+                  [class.text-slate-900]="kioskTheme() === 'light'">
+                {{ feedbackMessage() }}
+              </h3>
+              <p class="text-xs mt-1"
+                 [class.text-white\/60]="kioskTheme() === 'dark'"
+                 [class.text-slate-500]="kioskTheme() === 'light'">
+                Please verify candidate belongs to this class or use manual PIN entry.
+              </p>
             </div>
           </div>
         }
 
         <!-- IDLE SCANNER TARGET STAGE (LIVE CAMERA VIEWPORT & LASER TARGET) -->
         @else {
-          <div class="w-full max-w-xl flex flex-col items-center justify-center gap-4">
+          <div class="w-full max-w-xl flex flex-col items-center justify-center gap-3 sm:gap-4">
             
             <!-- Viewfinder Card Container -->
-            <div class="relative w-full aspect-[16/10] max-h-[380px] rounded-3xl overflow-hidden bg-gradient-to-b from-gray-900/90 to-[#050b14] border-2 border-teal-500/50 p-2 shadow-[0_0_50px_rgba(20,184,166,0.3)] backdrop-blur-2xl flex items-center justify-center">
+            <div class="relative w-full aspect-[16/11] sm:aspect-[16/10] max-h-[380px] rounded-3xl overflow-hidden p-2 shadow-2xl backdrop-blur-2xl flex items-center justify-center border-2 transition-all"
+                 [class.bg-gradient-to-b]="true"
+                 [class.from-gray-900\/90]="kioskTheme() === 'dark'"
+                 [class.to-[#050b14]]="kioskTheme() === 'dark'"
+                 [class.border-teal-500\/50]="kioskTheme() === 'dark'"
+                 [class.shadow-[0_0_50px_rgba(20,184,166,0.3)]]="kioskTheme() === 'dark'"
+                 [class.from-white]="kioskTheme() === 'light'"
+                 [class.to-slate-50]="kioskTheme() === 'light'"
+                 [class.border-teal-400]="kioskTheme() === 'light'"
+                 [class.shadow-xl]="kioskTheme() === 'light'">
               
               <!-- Live Camera Feed Mount Point -->
-              <div id="kiosk-qr-reader-container" class="w-full h-full min-h-[280px] flex items-center justify-center relative z-10" [class.hidden]="!isCameraActive()"></div>
+              <div id="kiosk-qr-reader-container" class="w-full h-full min-h-[240px] sm:min-h-[280px] flex items-center justify-center relative z-10" [class.hidden]="!isCameraActive()"></div>
 
-              <!-- Futuristic Corner Reticle HUD Brackets -->
-              <div class="absolute top-4 left-4 w-7 h-7 border-t-2 border-l-2 border-teal-400 pointer-events-none z-20"></div>
-              <div class="absolute top-4 right-4 w-7 h-7 border-t-2 border-r-2 border-teal-400 pointer-events-none z-20"></div>
-              <div class="absolute bottom-4 left-4 w-7 h-7 border-b-2 border-l-2 border-teal-400 pointer-events-none z-20"></div>
-              <div class="absolute bottom-4 right-4 w-7 h-7 border-b-2 border-r-2 border-teal-400 pointer-events-none z-20"></div>
+              <!-- Reticle HUD Brackets -->
+              <div class="absolute top-3 sm:top-4 left-3 sm:left-4 w-6 sm:w-7 h-6 sm:h-7 border-t-2 border-l-2 pointer-events-none z-20"
+                   [class.border-teal-400]="kioskTheme() === 'dark'"
+                   [class.border-teal-500]="kioskTheme() === 'light'"></div>
+              <div class="absolute top-3 sm:top-4 right-3 sm:right-4 w-6 sm:w-7 h-6 sm:h-7 border-t-2 border-r-2 pointer-events-none z-20"
+                   [class.border-teal-400]="kioskTheme() === 'dark'"
+                   [class.border-teal-500]="kioskTheme() === 'light'"></div>
+              <div class="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 w-6 sm:w-7 h-6 sm:h-7 border-b-2 border-l-2 pointer-events-none z-20"
+                   [class.border-teal-400]="kioskTheme() === 'dark'"
+                   [class.border-teal-500]="kioskTheme() === 'light'"></div>
+              <div class="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 w-6 sm:w-7 h-6 sm:h-7 border-b-2 border-r-2 pointer-events-none z-20"
+                   [class.border-teal-400]="kioskTheme() === 'dark'"
+                   [class.border-teal-500]="kioskTheme() === 'light'"></div>
 
-              <!-- Animated Neon Laser Scan Beam (Active during camera scanning) -->
+              <!-- Animated Laser Scan Beam -->
               @if (isCameraActive()) {
                 <div class="absolute left-6 right-6 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_20px_#34d399] pointer-events-none animate-scanline z-20"></div>
                 
                 <!-- Live Telemetry Status Pill -->
-                <div class="absolute top-4 inset-x-0 flex justify-center pointer-events-none z-30">
-                  <div class="px-3.5 py-1 bg-black/70 backdrop-blur-md rounded-full border border-teal-400/40 text-[10px] font-mono font-bold text-emerald-400 flex items-center gap-2 shadow-lg">
+                <div class="absolute top-3 sm:top-4 inset-x-0 flex justify-center pointer-events-none z-30">
+                  <div class="px-3.5 py-1 rounded-full border text-[10px] font-mono font-bold flex items-center gap-2 shadow-lg"
+                       [class.bg-black\/70]="kioskTheme() === 'dark'"
+                       [class.border-teal-400\/40]="kioskTheme() === 'dark'"
+                       [class.text-emerald-400]="kioskTheme() === 'dark'"
+                       [class.bg-white\/90]="kioskTheme() === 'light'"
+                       [class.border-teal-300]="kioskTheme() === 'light'"
+                       [class.text-emerald-700]="kioskTheme() === 'light'">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span>OPTICAL SENSOR ACTIVE</span>
                     @if (availableCameras().length > 1) {
-                      <button type="button" (click)="flipCamera()" class="pointer-events-auto ml-1 text-white/70 hover:text-white underline text-[9px] cursor-pointer">
+                      <button type="button" (click)="flipCamera()" class="pointer-events-auto ml-1 underline text-[9px] cursor-pointer font-sans"
+                              [class.text-white\/80]="kioskTheme() === 'dark'"
+                              [class.hover:text-white]="kioskTheme() === 'dark'"
+                              [class.text-teal-700]="kioskTheme() === 'light'"
+                              [class.hover:text-teal-900]="kioskTheme() === 'light'">
                         Flip Cam
                       </button>
                     }
@@ -844,40 +1352,65 @@
 
               <!-- Camera Standby / Prompt State (when camera is OFF) -->
               @if (!isCameraActive()) {
-                <div class="relative z-10 w-full h-full flex flex-col items-center justify-center gap-3 p-4 text-center">
+                <div class="relative z-10 w-full h-full flex flex-col items-center justify-center gap-2.5 sm:gap-3 p-4 text-center">
                   
                   <!-- Central Target Pulse Ring -->
-                  <div class="w-20 h-20 rounded-3xl bg-teal-500/10 border-2 border-dashed border-teal-400/60 flex items-center justify-center text-teal-300 animate-pulse-glow">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" x2="17" y1="8" y2="8"/><line x1="7" x2="17" y1="12" y2="12"/><line x1="7" x2="17" y1="16" y2="16"/></svg>
+                  <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl border-2 border-dashed flex items-center justify-center animate-pulse-glow"
+                       [class.bg-teal-500\/10]="kioskTheme() === 'dark'"
+                       [class.border-teal-400\/60]="kioskTheme() === 'dark'"
+                       [class.text-teal-300]="kioskTheme() === 'dark'"
+                       [class.bg-teal-50]="kioskTheme() === 'light'"
+                       [class.border-teal-400]="kioskTheme() === 'light'"
+                       [class.text-teal-700]="kioskTheme() === 'light'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" x2="17" y1="8" y2="8"/><line x1="7" x2="17" y1="12" y2="12"/><line x1="7" x2="17" y1="16" y2="16"/></svg>
                   </div>
 
                   <div>
-                    <h3 class="text-lg sm:text-xl font-black uppercase tracking-wider text-white">Present Student Credential</h3>
-                    <p class="text-xs text-white/60 mt-1 max-w-sm">
+                    <h3 class="text-base sm:text-lg lg:text-xl font-black uppercase tracking-wider"
+                        [class.text-white]="kioskTheme() === 'dark'"
+                        [class.text-slate-900]="kioskTheme() === 'light'">
+                      Present Student Credential
+                    </h3>
+                    <p class="text-[11px] sm:text-xs mt-0.5 max-w-sm"
+                       [class.text-white\/60]="kioskTheme() === 'dark'"
+                       [class.text-slate-500]="kioskTheme() === 'light'">
                       Hold Student ID Card / Smart Pass badge in front of laser reader or activate device webcam
                     </p>
                   </div>
 
                   <!-- Activate Camera Button & Hardware Scanner Ready -->
-                  <div class="flex items-center gap-2.5 mt-1">
+                  <div class="flex items-center gap-2 mt-1">
                     <button type="button" (click)="startCamera()" [disabled]="isCameraInitializing()"
-                      class="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-gray-950 font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-teal-500/30 flex items-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50">
+                      class="px-3.5 sm:px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50"
+                      [class.bg-gradient-to-r]="true"
+                      [class.from-teal-500]="kioskTheme() === 'dark'"
+                      [class.to-emerald-500]="kioskTheme() === 'dark'"
+                      [class.text-gray-950]="kioskTheme() === 'dark'"
+                      [class.from-teal-600]="kioskTheme() === 'light'"
+                      [class.to-emerald-600]="kioskTheme() === 'light'"
+                      [class.text-white]="kioskTheme() === 'light'">
                       @if (isCameraInitializing()) {
-                        <div class="w-3.5 h-3.5 border-2 border-gray-950 border-t-transparent rounded-full animate-spin"></div>
+                        <div class="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                         <span>Initializing...</span>
                       } @else {
                         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                        <span>Activate Webcam</span>
+                        <span>Activate Camera</span>
                       }
                     </button>
-                    <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 border border-white/15 text-[11px] font-mono text-teal-300">
-                      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <div class="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[10.5px] sm:text-[11px] font-mono"
+                         [class.bg-white\/10]="kioskTheme() === 'dark'"
+                         [class.border-white\/15]="kioskTheme() === 'dark'"
+                         [class.text-teal-300]="kioskTheme() === 'dark'"
+                         [class.bg-slate-100]="kioskTheme() === 'light'"
+                         [class.border-slate-200]="kioskTheme() === 'light'"
+                         [class.text-teal-800]="kioskTheme() === 'light'">
+                      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                       <span>USB Gun: READY</span>
                     </div>
                   </div>
 
                   @if (cameraError()) {
-                    <span class="text-[11px] text-rose-400 mt-1 font-semibold max-w-xs">{{ cameraError() }}</span>
+                    <span class="text-[11px] text-rose-500 mt-1 font-semibold max-w-xs">{{ cameraError() }}</span>
                   }
 
                 </div>
@@ -885,8 +1418,10 @@
 
             </div>
 
-            <!-- Auxiliary Guidance Sub-text -->
-            <div class="flex flex-wrap items-center justify-center gap-4 text-xs text-white/50">
+            <!-- Guidance Sub-text -->
+            <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-[11px] sm:text-xs"
+                 [class.text-white\/50]="kioskTheme() === 'dark'"
+                 [class.text-slate-500]="kioskTheme() === 'light'">
               <span class="flex items-center gap-1.5">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 Auto-Audio Speech
@@ -894,7 +1429,7 @@
               <span>•</span>
               <span class="flex items-center gap-1.5">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                Instant Parent Arrival SMS
+                Parent Arrival SMS
               </span>
               <span>•</span>
               <span class="flex items-center gap-1.5">
@@ -911,23 +1446,47 @@
       <!-- ========================================================================= -->
       <!-- RIGHT STAGE (3 Cols): LIVE ARRIVAL STREAM & GUARDIAN SMS MONITOR          -->
       <!-- ========================================================================= -->
-      <div class="lg:col-span-3 flex flex-col gap-4 min-h-0 overflow-y-auto custom-scrollbar pl-1">
+      <div class="lg:col-span-3 flex flex-col gap-3 sm:gap-4 min-h-0 overflow-y-auto custom-scrollbar lg:pl-1"
+           [class.hidden]="kioskMobileTab() !== 'STREAM'"
+           [class.lg:flex]="true">
         
         <!-- Live Real-Time Stream Ticker -->
-        <div class="bg-white/5 border border-white/10 rounded-3xl p-4 backdrop-blur-xl flex flex-col gap-3 flex-1 min-h-[260px]">
-          <div class="flex items-center justify-between pb-2 border-b border-white/10">
-            <span class="text-xs font-black uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
+        <div class="rounded-3xl p-4 backdrop-blur-xl flex flex-col gap-3 flex-1 min-h-[240px] sm:min-h-[260px] border shadow-md transition-all"
+             [class.bg-white\/5]="kioskTheme() === 'dark'"
+             [class.border-white\/10]="kioskTheme() === 'dark'"
+             [class.bg-white]="kioskTheme() === 'light'"
+             [class.border-slate-200]="kioskTheme() === 'light'">
+          <div class="flex items-center justify-between pb-2 border-b"
+               [class.border-white\/10]="kioskTheme() === 'dark'"
+               [class.border-slate-200]="kioskTheme() === 'light'">
+            <span class="text-xs font-black uppercase tracking-wider flex items-center gap-1.5"
+                  [class.text-teal-400]="kioskTheme() === 'dark'"
+                  [class.text-teal-700]="kioskTheme() === 'light'">
               <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
               Live Arrival Stream
             </span>
-            <span class="text-[10px] font-mono text-white/50">{{ scannedLog().length }} Scanned</span>
+            <span class="text-[10px] font-mono"
+                  [class.text-white\/50]="kioskTheme() === 'dark'"
+                  [class.text-slate-400]="kioskTheme() === 'light'">{{ scannedLog().length }} Scanned</span>
           </div>
 
           <div class="flex flex-col gap-2 overflow-y-auto custom-scrollbar flex-1 max-h-[220px] pr-1">
             @for (item of scannedLog(); track (item.student.id || '') + item.timestamp.toString()) {
-              <div class="p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between transition-all">
+              <div class="p-2.5 rounded-2xl border flex items-center justify-between transition-all shadow-xs"
+                   [class.bg-white\/5]="kioskTheme() === 'dark'"
+                   [class.hover:bg-white\/10]="kioskTheme() === 'dark'"
+                   [class.border-white\/10]="kioskTheme() === 'dark'"
+                   [class.bg-slate-50]="kioskTheme() === 'light'"
+                   [class.hover:bg-slate-100]="kioskTheme() === 'light'"
+                   [class.border-slate-200]="kioskTheme() === 'light'">
                 <div class="flex items-center gap-2.5 truncate">
-                  <div class="w-8 h-8 rounded-full overflow-hidden bg-white/10 flex items-center justify-center font-bold text-xs text-white shrink-0 border border-white/20">
+                  <div class="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center font-bold text-xs shrink-0 border"
+                       [class.bg-white\/10]="kioskTheme() === 'dark'"
+                       [class.text-white]="kioskTheme() === 'dark'"
+                       [class.border-white\/20]="kioskTheme() === 'dark'"
+                       [class.bg-teal-100]="kioskTheme() === 'light'"
+                       [class.text-teal-900]="kioskTheme() === 'light'"
+                       [class.border-teal-200]="kioskTheme() === 'light'">
                     @if (item.student.photo_url) {
                       <img [src]="item.student.photo_url" alt="" class="w-full h-full object-cover">
                     } @else {
@@ -935,18 +1494,28 @@
                     }
                   </div>
                   <div class="flex flex-col truncate">
-                    <span class="text-xs font-bold text-white truncate leading-tight">{{ item.student.first_name }} {{ item.student.last_name }}</span>
-                    <span class="text-[10px] text-teal-300 font-mono">{{ item.student.class_name || selectedClassName() }}</span>
+                    <span class="text-xs font-bold truncate leading-tight"
+                          [class.text-white]="kioskTheme() === 'dark'"
+                          [class.text-slate-900]="kioskTheme() === 'light'">{{ item.student.first_name }} {{ item.student.last_name }}</span>
+                    <span class="text-[10px] font-mono"
+                          [class.text-teal-300]="kioskTheme() === 'dark'"
+                          [class.text-teal-700]="kioskTheme() === 'light'">{{ item.student.class_name || selectedClassName() }}</span>
                   </div>
                 </div>
 
                 <div class="flex flex-col items-end shrink-0">
-                  <span class="text-[10px] font-black font-mono text-emerald-400">{{ item.timestamp | date:'shortTime' }}</span>
-                  <span class="text-[8px] font-bold uppercase text-emerald-300/80">Verified</span>
+                  <span class="text-[10px] font-black font-mono"
+                        [class.text-emerald-400]="kioskTheme() === 'dark'"
+                        [class.text-emerald-700]="kioskTheme() === 'light'">{{ item.timestamp | date:'shortTime' }}</span>
+                  <span class="text-[8px] font-bold uppercase"
+                        [class.text-emerald-300\/80]="kioskTheme() === 'dark'"
+                        [class.text-emerald-600]="kioskTheme() === 'light'">Verified</span>
                 </div>
               </div>
             } @empty {
-              <div class="py-12 flex flex-col items-center justify-center text-center gap-2 text-white/40">
+              <div class="py-12 flex flex-col items-center justify-center text-center gap-2"
+                   [class.text-white\/40]="kioskTheme() === 'dark'"
+                   [class.text-slate-400]="kioskTheme() === 'light'">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
                 <span class="text-xs">Awaiting first scan of the day</span>
               </div>
@@ -955,31 +1524,57 @@
         </div>
 
         <!-- Guardian SMS Dispatch Monitor -->
-        <div class="bg-white/5 border border-white/10 rounded-3xl p-4 backdrop-blur-xl flex flex-col gap-3 flex-1 min-h-[220px]">
-          <div class="flex items-center justify-between pb-2 border-b border-white/10">
-            <span class="text-xs font-black uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
+        <div class="rounded-3xl p-4 backdrop-blur-xl flex flex-col gap-3 flex-1 min-h-[200px] sm:min-h-[220px] border shadow-md transition-all"
+             [class.bg-white\/5]="kioskTheme() === 'dark'"
+             [class.border-white\/10]="kioskTheme() === 'dark'"
+             [class.bg-white]="kioskTheme() === 'light'"
+             [class.border-slate-200]="kioskTheme() === 'light'">
+          <div class="flex items-center justify-between pb-2 border-b"
+               [class.border-white\/10]="kioskTheme() === 'dark'"
+               [class.border-slate-200]="kioskTheme() === 'light'">
+            <span class="text-xs font-black uppercase tracking-wider flex items-center gap-1.5"
+                  [class.text-blue-400]="kioskTheme() === 'dark'"
+                  [class.text-blue-700]="kioskTheme() === 'light'">
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               Guardian SMS Gateway
             </span>
-            <span class="text-[9px] font-mono px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
+            <span class="text-[9px] font-mono px-2 py-0.5 rounded-full border"
+                  [class.bg-blue-500\/20]="kioskTheme() === 'dark'"
+                  [class.text-blue-300]="kioskTheme() === 'dark'"
+                  [class.border-blue-500\/30]="kioskTheme() === 'dark'"
+                  [class.bg-blue-50]="kioskTheme() === 'light'"
+                  [class.text-blue-800]="kioskTheme() === 'light'"
+                  [class.border-blue-200]="kioskTheme() === 'light'">
               Auto-Active
             </span>
           </div>
 
-          <div class="flex flex-col gap-2 overflow-y-auto custom-scrollbar flex-1 max-h-[180px] pr-1">
+          <div class="flex flex-col gap-2 overflow-y-auto custom-scrollbar flex-1 max-h-[160px] pr-1">
             @for (sms of recentSmsDispatches(); track sms.studentName + sms.time) {
-              <div class="p-2 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-xs">
+              <div class="p-2 rounded-xl border flex items-center justify-between text-xs shadow-xs"
+                   [class.bg-white\/5]="kioskTheme() === 'dark'"
+                   [class.border-white\/10]="kioskTheme() === 'dark'"
+                   [class.bg-slate-50]="kioskTheme() === 'light'"
+                   [class.border-slate-200]="kioskTheme() === 'light'">
                 <div class="flex flex-col truncate">
-                  <span class="font-bold text-white truncate leading-tight">{{ sms.studentName }}</span>
-                  <span class="text-[9.5px] text-white/50 font-mono">{{ sms.phone }}</span>
+                  <span class="font-bold truncate leading-tight"
+                        [class.text-white]="kioskTheme() === 'dark'"
+                        [class.text-slate-900]="kioskTheme() === 'light'">{{ sms.studentName }}</span>
+                  <span class="text-[9.5px] font-mono"
+                        [class.text-white\/50]="kioskTheme() === 'dark'"
+                        [class.text-slate-500]="kioskTheme() === 'light'">{{ sms.phone }}</span>
                 </div>
-                <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-400 shrink-0 font-mono">
+                <div class="flex items-center gap-1 text-[10px] font-bold shrink-0 font-mono"
+                     [class.text-emerald-400]="kioskTheme() === 'dark'"
+                     [class.text-emerald-700]="kioskTheme() === 'light'">
                   <span>✓ Sent</span>
-                  <span class="text-white/40">• {{ sms.time }}</span>
+                  <span class="opacity-50">• {{ sms.time }}</span>
                 </div>
               </div>
             } @empty {
-              <div class="py-8 text-center text-xs text-white/40">
+              <div class="py-8 text-center text-xs"
+                   [class.text-white\/40]="kioskTheme() === 'dark'"
+                   [class.text-slate-400]="kioskTheme() === 'light'">
                 Guardian arrival notifications will appear here
               </div>
             }
@@ -991,20 +1586,28 @@
     </div>
 
     <!-- 3. KIOSK BOTTOM COMMAND BAR -->
-    <div class="relative z-10 pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs text-white/60">
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span class="font-bold text-white/80">Biometric & Barcode Subsystem Online</span>
+    <div class="relative z-10 pt-2.5 sm:pt-3 border-t flex flex-wrap items-center justify-between gap-2 sm:gap-3 text-xs"
+         [class.border-white\/10]="kioskTheme() === 'dark'"
+         [class.text-white\/60]="kioskTheme() === 'dark'"
+         [class.border-slate-200]="kioskTheme() === 'light'"
+         [class.text-slate-500]="kioskTheme() === 'light'">
+      <div class="flex items-center gap-2.5 sm:gap-4">
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="font-bold"
+                [class.text-white\/80]="kioskTheme() === 'dark'"
+                [class.text-slate-800]="kioskTheme() === 'light'">
+            Turnstile Online
+          </span>
         </div>
-        <span class="hidden sm:inline text-white/30">•</span>
-        <span class="hidden sm:inline font-mono text-white/50">2026/2027 Academic Session</span>
+        <span class="hidden sm:inline opacity-30">•</span>
+        <span class="hidden sm:inline font-mono opacity-60">2026/2027 Academic Session</span>
       </div>
 
-      <div class="flex items-center gap-3 font-mono text-[11px] text-white/40">
-        <span>Press <kbd class="bg-white/10 px-1 py-0.5 rounded text-white/70">ESC</kbd> to exit kiosk</span>
-        <span>•</span>
-        <span>SchoolLinx Enterprise Turnstile v3.0</span>
+      <div class="flex items-center gap-2 sm:gap-3 font-mono text-[10px] sm:text-[11px] opacity-60">
+        <span class="hidden sm:inline">Press <kbd class="px-1 py-0.5 rounded" [class.bg-white\/10]="kioskTheme() === 'dark'" [class.bg-slate-200]="kioskTheme() === 'light'">ESC</kbd> to exit</span>
+        <span class="hidden sm:inline">•</span>
+        <span>SchoolLinx Turnstile v3.0</span>
       </div>
     </div>
 

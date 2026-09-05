@@ -110,6 +110,47 @@
 
 :host ::ng-deep #qr-reader-container__scan_region,
 :host ::ng-deep #kiosk-qr-reader-container__scan_region {
-  min-height: 260px !important;
+  min-height: 240px !important;
+}
+
+@media (max-width: 640px) {
+  :host ::ng-deep #qr-reader-container,
+  :host ::ng-deep #kiosk-qr-reader-container {
+    min-height: 220px !important;
+  }
+  
+  :host ::ng-deep #qr-reader-container video,
+  :host ::ng-deep #kiosk-qr-reader-container video {
+    min-height: 220px !important;
+    max-height: 320px !important;
+  }
+}
+
+/* Custom scrollbars for kiosk widgets */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.kiosk-dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+
+.kiosk-light .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.25);
+  border-radius: 9999px;
+}
+
+.kiosk-dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.kiosk-light .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.4);
 }
 

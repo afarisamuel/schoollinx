@@ -26,6 +26,12 @@ func NewAttendanceUseCase(repo domain.AttendanceRepository, campaignMgr Campaign
 }
 
 func (u *AttendanceUseCase) MarkAttendance(ctx context.Context, attendance *domain.Attendance) error {
+	if attendance.ClassID == uuid.Nil && attendance.StudentID != uuid.Nil && u.studentRepo != nil {
+		if student, err := u.studentRepo.GetByID(ctx, attendance.StudentID); err == nil && student != nil && student.ClassID != nil {
+			attendance.ClassID = *student.ClassID
+		}
+	}
+
 	err := u.repo.Create(ctx, attendance)
 	if err == nil && attendance.Status == domain.StatusPresent {
 		if activePeriod, pErr := u.academicRepo.GetActive(ctx); pErr == nil && activePeriod != nil {

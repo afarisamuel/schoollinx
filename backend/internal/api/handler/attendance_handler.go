@@ -47,6 +47,16 @@ func NewAttendanceHandler(r *gin.RouterGroup, useCase domain.AttendanceUseCase) 
 }
 
 // MarkAttendance godoc
+type markAttendanceDTO struct {
+	ID        *string `json:"id"`
+	StudentID string  `json:"student_id" binding:"required"`
+	ClassID   *string `json:"class_id"`
+	Date      string  `json:"date"`
+	Status    string  `json:"status"`
+	Remarks   string  `json:"remarks"`
+}
+
+// MarkAttendance godoc
 // @Summary      Mark a single attendance record
 // @Description  Records attendance for one student (admin/teacher only)
 // @Tags         Attendance
@@ -58,10 +68,49 @@ func NewAttendanceHandler(r *gin.RouterGroup, useCase domain.AttendanceUseCase) 
 // @Failure      500   {object}  map[string]string
 // @Router       /attendance [post]
 func (h *AttendanceHandler) MarkAttendance(c *gin.Context) {
-	var req domain.Attendance
-	if err := c.ShouldBindJSON(&req); err != nil {
+	var dto markAttendanceDTO
+	if err := c.ShouldBindJSON(&dto); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	studentID, err := uuid.Parse(dto.StudentID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid student_id UUID"})
+		return
+	}
+
+	var classID uuid.UUID
+	if dto.ClassID != nil && *dto.ClassID != "" {
+		if parsedClassID, err := uuid.Parse(*dto.ClassID); err == nil {
+			classID = parsedClassID
+		}
+	}
+
+	parsedDate, err := time.Parse(time.RFC3339, dto.Date)
+	if err != nil {
+		if parsedDate, err = time.Parse("2006-01-02", dto.Date); err != nil {
+			parsedDate = time.Now()
+		}
+	}
+
+	status := domain.AttendanceStatus(dto.Status)
+	if status == "" {
+		status = domain.StatusPresent
+	}
+
+	req := domain.Attendance{
+		StudentID: studentID,
+		ClassID:   classID,
+		Date:      parsedDate,
+		Status:    status,
+		Remarks:   dto.Remarks,
+	}
+
+	if dto.ID != nil && *dto.ID != "" {
+		if parsedID, err := uuid.Parse(*dto.ID); err == nil {
+			req.ID = parsedID
+		}
 	}
 
 	if err := h.useCase.MarkAttendance(c.Request.Context(), &req); err != nil {
@@ -84,13 +133,59 @@ func (h *AttendanceHandler) MarkAttendance(c *gin.Context) {
 // @Failure      500   {object}  map[string]string
 // @Router       /attendance/bulk [post]
 func (h *AttendanceHandler) MarkBulkAttendance(c *gin.Context) {
-	var req []domain.Attendance
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var dtos []markAttendanceDTO
+	if err := c.ShouldBindJSON(&dtos); err != nil {
+		// Fallback to domain.Attendance
+		var req []domain.Attendance
+		if err2 := c.ShouldBindJSON(&req); err2 != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if err := h.useCase.MarkBulkAttendance(c.Request.Context(), req); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, gin.H{"message": "Bulk attendance marked successfully"})
 		return
 	}
 
-	if err := h.useCase.MarkBulkAttendance(c.Request.Context(), req); err != nil {
+	var attendances []domain.Attendance
+	for _, dto := range dtos {
+		studentID, err := uuid.Parse(dto.StudentID)
+		if err != nil {
+			continue
+		}
+
+		var classID uuid.UUID
+		if dto.ClassID != nil && *dto.ClassID != "" {
+			if parsedClassID, err := uuid.Parse(*dto.ClassID); err == nil {
+				classID = parsedClassID
+			}
+		}
+
+		parsedDate, err := time.Parse(time.RFC3339, dto.Date)
+		if err != nil {
+			if parsedDate, err = time.Parse("2006-01-02", dto.Date); err != nil {
+				parsedDate = time.Now()
+			}
+		}
+
+		status := domain.AttendanceStatus(dto.Status)
+		if status == "" {
+			status = domain.StatusPresent
+		}
+
+		item := domain.Attendance{
+			StudentID: studentID,
+			ClassID:   classID,
+			Date:      parsedDate,
+			Status:    status,
+			Remarks:   dto.Remarks,
+		}
+		attendances = append(attendances, item)
+	}
+
+	if err := h.useCase.MarkBulkAttendance(c.Request.Context(), attendances); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
