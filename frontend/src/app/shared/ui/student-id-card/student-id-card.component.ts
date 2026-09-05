@@ -120,11 +120,11 @@ export const ID_CARD_THEMES: ThemeConfig[] = [
 ];
 
 export const ID_CARD_TEMPLATES: TemplateOption[] = [
-  { id: 'wave', name: 'Fluid Wave', icon: 'fas fa-water', desc: 'Modern wave with circular portrait' },
-  { id: 'academic', name: 'Academic Shield', icon: 'fas fa-graduation-cap', desc: 'Formal crest bar with gold accents' },
-  { id: 'corporate', name: 'Corporate Clean', icon: 'fas fa-id-badge', desc: 'Minimalist dual-tone side accent' },
-  { id: 'cyber', name: 'Tech Grid', icon: 'fas fa-microchip', desc: 'Futuristic geometric neon layout' },
-  { id: 'vertical', name: 'Lanyard Vertical', icon: 'fas fa-arrows-up-down', desc: 'Portrait badge with top punch slot' }
+  { id: 'wave', name: 'Fluid Wave', icon: 'fas fa-water', desc: 'Modern wave ribbons with circular portrait' },
+  { id: 'academic', name: 'Academic Shield', icon: 'fas fa-graduation-cap', desc: 'Prestigious crest with gold accents' },
+  { id: 'corporate', name: 'Executive Dual-Tone', icon: 'fas fa-id-badge', desc: 'Modern solid side accent strip' },
+  { id: 'cyber', name: 'Angular Poly', icon: 'fas fa-shapes', desc: 'Futuristic geometric angled ribbons' },
+  { id: 'vertical', name: 'Lanyard Vertical', icon: 'fas fa-arrows-up-down', desc: 'Portrait badge with punch slot' }
 ];
 
 @Component({
@@ -268,7 +268,6 @@ export class StudentIdCardComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    // Check saved theme and template in localStorage
     const savedTheme = localStorage.getItem('schoollinx_id_card_theme');
     if (savedTheme && (ID_CARD_THEMES.some(t => t.id === savedTheme) || savedTheme === 'custom')) {
       this.selectedTheme.set(savedTheme as IdCardTheme);
@@ -306,7 +305,107 @@ export class StudentIdCardComponent implements OnInit {
     this.isBackSide.set(!this.isBackSide());
   }
 
+  /**
+   * Isolated ID Card Printing Engine
+   * Creates an isolated print frame containing ONLY the ID card element,
+   * completely ignoring the outer webpage / form, and printing in exact CR80 format.
+   */
   printCard() {
-    window.print();
+    const cardEl = document.getElementById('student-id-card-badge');
+    if (!cardEl) {
+      window.print();
+      return;
+    }
+
+    // Clone element
+    const cardHtml = cardEl.outerHTML;
+
+    // Collect all stylesheets from the host document
+    let stylesHtml = '';
+    const styleElements = document.querySelectorAll('style, link[rel="stylesheet"]');
+    styleElements.forEach(el => {
+      stylesHtml += el.outerHTML;
+    });
+
+    const isVertical = this.selectedTemplate() === 'vertical';
+    const cardWidth = isVertical ? '53.98mm' : '85.6mm';
+    const cardHeight = isVertical ? '85.6mm' : '53.98mm';
+
+    // Create an isolated hidden iframe
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0px';
+    iframe.style.height = '0px';
+    iframe.style.border = 'none';
+    iframe.style.visibility = 'hidden';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow?.document;
+    if (!doc) {
+      window.print();
+      return;
+    }
+
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Student ID Badge - ${this.resolvedName()}</title>
+          ${stylesHtml}
+          <style>
+            @page {
+              size: ${cardWidth} ${cardHeight};
+              margin: 0;
+            }
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #ffffff !important;
+              width: ${cardWidth} !important;
+              height: ${cardHeight} !important;
+              display: flex !important;
+              align-items: center !important;
+              justify-content: center !important;
+              overflow: hidden !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            #student-id-card-badge {
+              width: ${cardWidth} !important;
+              height: ${cardHeight} !important;
+              max-width: ${cardWidth} !important;
+              max-height: ${cardHeight} !important;
+              border-radius: 3.18mm !important;
+              box-shadow: none !important;
+              margin: 0 !important;
+              border: none !important;
+              overflow: hidden !important;
+            }
+          </style>
+        </head>
+        <body>
+          ${cardHtml}
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.focus();
+                window.print();
+              }, 250);
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    doc.close();
+
+    // Clean up iframe after printing dialog closes
+    setTimeout(() => {
+      if (document.body.contains(iframe)) {
+        document.body.removeChild(iframe);
+      }
+    }, 4000);
   }
 }

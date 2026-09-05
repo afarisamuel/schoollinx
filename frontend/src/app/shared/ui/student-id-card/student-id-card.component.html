@@ -9,11 +9,11 @@
       <!-- Top Row: Template Layout Selector -->
       <div class="flex items-center justify-between gap-2">
         <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">Template:</span>
-        <div class="flex items-center gap-1 overflow-x-auto custom-scrollbar pb-0.5">
+        <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-0.5">
           @for (tpl of templates; track tpl.id) {
             <button type="button" (click)="setTemplate(tpl.id)"
               [title]="tpl.desc"
-              class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+              class="px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
               [class.bg-blue-600]="selectedTemplate() === tpl.id"
               [class.text-white]="selectedTemplate() === tpl.id"
               [class.border-blue-500]="selectedTemplate() === tpl.id"
@@ -32,14 +32,14 @@
         <!-- Color Dots -->
         <div class="flex items-center gap-1.5">
           <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">Color:</span>
-          <div class="flex items-center gap-1 flex-wrap">
+          <div class="flex items-center gap-1.5 flex-wrap">
             @for (theme of themes; track theme.id) {
               <button type="button" (click)="setTheme(theme.id)"
                 [title]="theme.name"
                 class="w-5 h-5 rounded-full border-2 transition-all hover:scale-125 cursor-pointer flex items-center justify-center shrink-0"
                 [style.background]="theme.primary"
                 [class.border-white]="selectedTheme() === theme.id"
-                [class.scale-120]="selectedTheme() === theme.id"
+                [class.scale-125]="selectedTheme() === theme.id"
                 [class.shadow-md]="selectedTheme() === theme.id"
                 [class.border-transparent]="selectedTheme() !== theme.id">
                 @if (selectedTheme() === theme.id) {
@@ -53,12 +53,12 @@
         <!-- Action Buttons: Flip & Print -->
         <div class="flex items-center gap-1.5">
           <button type="button" (click)="toggleFlip()"
-            class="px-2.5 py-1 rounded-lg bg-bg-secondary hover:bg-bg-primary border border-border-secondary text-text-secondary text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer">
+            class="px-2.5 py-1 rounded-xl bg-bg-secondary hover:bg-bg-primary border border-border-secondary text-text-secondary text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 14 5-5-5-5"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/><path d="m9 10-5 5 5 5"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
             {{ isBackSide() ? 'Front Side' : 'Back Side' }}
           </button>
           <button type="button" (click)="printCard()"
-            class="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-black uppercase tracking-wider transition-all flex items-center gap-1 shadow-sm cursor-pointer hover:scale-105 active:scale-95">
+            class="px-3.5 py-1 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-black uppercase tracking-wider transition-all flex items-center gap-1 shadow-md shadow-blue-600/20 cursor-pointer hover:scale-105 active:scale-95">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
             Print Badge
           </button>
@@ -69,7 +69,7 @@
   }
 
   <!-- ========================================================= -->
-  <!-- CR80 STUDENT ID BADGE CONTAINER                            -->
+  <!-- CR80 STUDENT ID BADGE CONTAINER (Standard 85.6 x 53.98mm)  -->
   <!-- ========================================================= -->
   <div id="student-id-card-badge" 
        class="relative w-full mx-auto select-none transition-all duration-300 bg-white"
@@ -217,213 +217,321 @@
       }
 
       <!-- ========================================================================= -->
-      <!-- TEMPLATE 2: ACADEMIC SHIELD (Formal Crested Header with Gold Accent)      -->
+      <!-- TEMPLATE 2: ACADEMIC SHIELD (Prestigious Crest, Gold Foil Trim & Crest)    -->
       <!-- ========================================================================= -->
       @else if (selectedTemplate() === 'academic') {
-        <div class="relative w-full h-full flex flex-col justify-between overflow-hidden bg-[#fafafa] border-4" [style.border-color]="currentThemeConfig().primary">
-          <!-- Top Solid Header Bar with Gold Border -->
-          <div class="relative z-10 p-3.5 flex items-center justify-between text-white border-b-2 border-amber-400"
+        <div class="relative w-full h-full flex flex-col justify-between overflow-hidden bg-[#fafafa]">
+          <!-- Top Prestigious Header with Double Gold Border Accent -->
+          <div class="relative z-10 px-5 pt-3.5 pb-2.5 flex items-center justify-between text-white border-b-2 border-amber-400 shadow-sm"
                [style.background]="currentThemeConfig().primary">
             <div class="flex items-center gap-3">
               @if (resolvedSchoolLogo()) {
-                <img [src]="resolvedSchoolLogo()" alt="Logo" class="w-9 h-9 object-contain rounded-md bg-white p-0.5 shadow-sm">
+                <img [src]="resolvedSchoolLogo()" alt="Logo" class="w-10 h-10 object-contain rounded-md bg-white p-0.5 shadow-sm border border-amber-300">
               } @else {
-                <div class="w-8 h-8 rounded-lg bg-white/20 border border-white/40 flex items-center justify-center text-white">
-                  <i class="fas fa-graduation-cap text-sm"></i>
+                <div class="w-9 h-9 rounded-lg bg-white/20 border border-white/40 flex items-center justify-center text-white shadow-sm">
+                  <i class="fas fa-graduation-cap text-base text-amber-300"></i>
                 </div>
               }
               <div>
-                <h3 class="text-xs font-black uppercase tracking-wider leading-none font-serif">{{ resolvedSchoolName() }}</h3>
-                <span class="text-[8px] font-bold text-amber-300 uppercase tracking-widest">Official Academic Credential</span>
+                <h3 class="text-[12px] sm:text-xs font-black uppercase tracking-wider leading-tight font-serif drop-shadow-sm">
+                  {{ resolvedSchoolName() }}
+                </h3>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <span class="text-[8px] font-black text-amber-300 uppercase tracking-widest">OFFICIAL STUDENT PASSPORT</span>
+                  <span class="text-[8px] text-white/70">• {{ resolvedClass() }}</span>
+                </div>
               </div>
             </div>
-            <span class="px-2 py-0.5 bg-amber-400 text-gray-900 rounded text-[9px] font-black uppercase tracking-wider">
-              {{ resolvedClass() }}
-            </span>
+
+            <div class="px-2.5 py-1 bg-amber-400 text-gray-900 rounded-lg text-[9px] font-black uppercase tracking-wider shadow-sm flex flex-col items-center">
+              <span>ACADEMIC</span>
+              <span class="text-[8px] font-mono font-bold leading-none">2026/2027</span>
+            </div>
           </div>
 
-          <!-- Middle Body: Framed Portrait + Clean Grid -->
-          <div class="relative z-10 px-5 py-2 flex items-center gap-4 flex-1">
-            <div class="w-22 h-26 rounded-lg overflow-hidden border-2 border-gray-400 shadow-md bg-gray-100 flex-shrink-0">
-              @if (resolvedPhoto()) {
-                <img [src]="resolvedPhoto()" alt="Portrait" class="w-full h-full object-cover">
-              } @else {
-                <div class="w-full h-full bg-gray-200 flex flex-col items-center justify-center font-black text-gray-600 text-xl">
-                  {{ resolvedInitials() }}
+          <!-- Middle Body: Double-Bordered Portrait & High-Contrast Structured Data -->
+          <div class="relative z-10 px-6 py-1.5 flex items-center gap-5 flex-1">
+            <div class="relative flex-shrink-0">
+              <div class="w-24 h-28 rounded-xl overflow-hidden border-[3px] border-amber-400 p-0.5 shadow-lg bg-white flex items-center justify-center">
+                <div class="w-full h-full rounded-lg overflow-hidden bg-gray-100">
+                  @if (resolvedPhoto()) {
+                    <img [src]="resolvedPhoto()" alt="Portrait" class="w-full h-full object-cover">
+                  } @else {
+                    <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex flex-col items-center justify-center font-serif font-black text-gray-700 text-2xl">
+                      {{ resolvedInitials() }}
+                    </div>
+                  }
                 </div>
+              </div>
+            </div>
+
+            <!-- Labeled Student Biodata Table -->
+            <div class="flex-1 flex flex-col gap-1 text-[11px] text-gray-800">
+              <div class="border-b border-gray-200 pb-1">
+                <span class="text-[8px] font-black uppercase tracking-wider text-gray-500">Student Full Name</span>
+                <div class="font-black text-xs text-gray-900 uppercase font-serif tracking-tight truncate">
+                  {{ resolvedName() }}
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-x-3 gap-y-1 pt-0.5 text-[10px]">
+                <div>
+                  <span class="text-[7.5px] font-black uppercase text-gray-500">Student ID:</span>
+                  <p class="font-mono font-bold text-gray-900">{{ resolvedId() }}</p>
+                </div>
+                <div>
+                  <span class="text-[7.5px] font-black uppercase text-gray-500">Date of Birth:</span>
+                  <p class="font-semibold text-gray-900">{{ resolvedDob() }}</p>
+                </div>
+                <div>
+                  <span class="text-[7.5px] font-black uppercase text-gray-500">Level / Class:</span>
+                  <p class="font-bold text-gray-900">{{ resolvedClass() }}</p>
+                </div>
+                <div>
+                  <span class="text-[7.5px] font-black uppercase text-gray-500">Blood Group:</span>
+                  <p class="font-black text-rose-700">{{ resolvedBloodGroup() }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Footer Bar: Barcode, QR Code & School Stamp Box -->
+          <div class="relative z-10 px-6 py-2 bg-gray-100 border-t border-gray-300 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              @if (showBarcode()) {
+                <svg [attr.width]="barcodeData().totalWidth" height="20" class="max-w-[130px] h-4">
+                  @for (bar of barcodeData().bars; track $index) {
+                    <rect [attr.x]="bar.x" y="0" [attr.width]="bar.width" height="20" fill="#0f172a" />
+                  }
+                </svg>
               }
             </div>
-
-            <div class="flex-1 grid grid-cols-2 gap-x-3 gap-y-1 text-[10.5px]">
-              <div class="col-span-2 flex flex-col">
-                <span class="text-[8px] font-black uppercase text-gray-500">Student Full Name:</span>
-                <span class="font-black text-gray-900 text-xs uppercase tracking-tight truncate">{{ resolvedName() }}</span>
+            @if (showQrCode()) {
+              <div class="flex items-center gap-2">
+                <qrcode [qrdata]="qrPayload()" [width]="38" [errorCorrectionLevel]="'M'" [margin]="0"></qrcode>
+                <div class="flex flex-col text-[7.5px] font-bold text-gray-600 uppercase leading-tight">
+                  <span class="text-amber-700 font-black">Authorized</span>
+                  <span>Credential</span>
+                </div>
               </div>
-              <div class="flex flex-col">
-                <span class="text-[8px] font-black uppercase text-gray-500">Student ID Code:</span>
-                <span class="font-mono font-bold text-gray-900">{{ resolvedId() }}</span>
-              </div>
-              <div class="flex flex-col">
-                <span class="text-[8px] font-black uppercase text-gray-500">Date of Birth:</span>
-                <span class="font-bold text-gray-900">{{ resolvedDob() }}</span>
-              </div>
-              <div class="flex flex-col">
-                <span class="text-[8px] font-black uppercase text-gray-500">Blood Group:</span>
-                <span class="font-bold text-rose-700">{{ resolvedBloodGroup() }}</span>
-              </div>
-              <div class="flex flex-col">
-                <span class="text-[8px] font-black uppercase text-gray-500">Academic Level:</span>
-                <span class="font-bold text-gray-900">{{ resolvedLevel() }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Bottom Footer Bar -->
-          <div class="relative z-10 px-5 py-2 bg-gray-100 border-t border-gray-300 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <svg [attr.width]="barcodeData().totalWidth" height="18" class="max-w-[120px] h-4">
-                @for (bar of barcodeData().bars; track $index) {
-                  <rect [attr.x]="bar.x" y="0" [attr.width]="bar.width" height="18" fill="#0f172a" />
-                }
-              </svg>
-            </div>
-            <div class="flex items-center gap-2">
-              <qrcode [qrdata]="qrPayload()" [width]="36" [errorCorrectionLevel]="'M'" [margin]="0"></qrcode>
-              <span class="text-[8px] font-mono font-black uppercase text-gray-600">ACADEMIC 2026</span>
-            </div>
+            }
           </div>
         </div>
       }
 
       <!-- ========================================================================= -->
-      <!-- TEMPLATE 3: CORPORATE CLEAN (Minimalist Side Accent Layout)               -->
+      <!-- TEMPLATE 3: EXECUTIVE DUAL-TONE (Bold Solid Left Column & Clean Right)    -->
       <!-- ========================================================================= -->
       @else if (selectedTemplate() === 'corporate') {
         <div class="relative w-full h-full flex overflow-hidden bg-white">
-          <!-- Left Color Accent Column -->
-          <div class="w-[32%] h-full p-4 flex flex-col justify-between text-white relative z-10"
+          <!-- Left Color Accent Column (36% Width) -->
+          <div class="w-[36%] h-full p-4 flex flex-col justify-between text-white relative z-10 shadow-lg"
                [style.background]="currentThemeConfig().primary">
+            
             <div class="flex flex-col items-center text-center gap-2">
-              <div class="w-18 h-18 rounded-xl overflow-hidden border-2 border-white shadow-md bg-white">
+              <!-- School Logo -->
+              @if (resolvedSchoolLogo()) {
+                <img [src]="resolvedSchoolLogo()" alt="Logo" class="w-8 h-8 object-contain rounded-md bg-white/20 p-0.5 border border-white/40 shadow-sm">
+              }
+              
+              <!-- Circular Portrait with Thick White Ring -->
+              <div class="w-22 h-22 rounded-full overflow-hidden border-[3px] border-white shadow-md bg-white flex items-center justify-center">
                 @if (resolvedPhoto()) {
                   <img [src]="resolvedPhoto()" alt="Portrait" class="w-full h-full object-cover">
                 } @else {
-                  <div class="w-full h-full bg-gray-200 flex items-center justify-center font-black text-gray-800 text-lg">
+                  <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center font-black text-gray-800 text-xl">
                     {{ resolvedInitials() }}
                   </div>
                 }
               </div>
-              <span class="text-[9px] font-mono font-black text-white/90 uppercase tracking-wider">{{ resolvedId() }}</span>
+
+              <!-- Student ID Tag -->
+              <span class="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-black bg-white/20 text-white border border-white/30 tracking-wider">
+                {{ resolvedId() }}
+              </span>
             </div>
 
+            <!-- Bottom QR Attendance -->
             <div class="flex flex-col items-center text-center">
-              <qrcode [qrdata]="qrPayload()" [width]="42" [errorCorrectionLevel]="'M'" [margin]="1" [colorDark]="'#0f172a'" [colorLight]="'#ffffff'"></qrcode>
-              <span class="text-[7px] font-bold text-white/80 uppercase tracking-widest mt-1">VERIFIED ID</span>
+              <div class="bg-white p-1 rounded-lg shadow-sm">
+                <qrcode [qrdata]="qrPayload()" [width]="40" [errorCorrectionLevel]="'M'" [margin]="0"></qrcode>
+              </div>
+              <span class="text-[7.5px] font-black text-white/90 uppercase tracking-widest mt-1">VERIFIED ID</span>
             </div>
           </div>
 
-          <!-- Right Content Area -->
-          <div class="flex-1 p-5 flex flex-col justify-between bg-white">
-            <div class="flex items-center justify-between border-b border-gray-200 pb-2">
+          <!-- Right Content Area (64% Width) -->
+          <div class="flex-1 p-5 flex flex-col justify-between bg-white text-gray-900">
+            <!-- Header -->
+            <div class="border-b border-gray-200 pb-2 flex items-center justify-between">
               <div>
-                <h3 class="text-[11px] font-black text-gray-900 uppercase tracking-tight">{{ resolvedSchoolName() }}</h3>
+                <h3 class="text-[11px] font-black uppercase tracking-tight text-gray-900 line-clamp-1">
+                  {{ resolvedSchoolName() }}
+                </h3>
                 <span class="text-[8px] font-bold text-gray-500 uppercase tracking-widest">Student Identification Card</span>
               </div>
-              <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase text-white" [style.background]="currentThemeConfig().secondary">
+              <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase text-white shadow-2xs" [style.background]="currentThemeConfig().secondary">
                 {{ resolvedClass() }}
               </span>
             </div>
 
-            <div class="flex flex-col gap-1 text-[11px]">
+            <!-- Particulars -->
+            <div class="flex flex-col gap-1.5 text-[11px]">
               <div>
-                <span class="text-[8px] font-black uppercase text-gray-400">Full Name</span>
-                <h4 class="font-black text-gray-900 text-xs uppercase tracking-tight">{{ resolvedName() }}</h4>
+                <span class="text-[7.5px] font-black uppercase text-gray-400 tracking-wider">Legal Full Name</span>
+                <h4 class="font-black text-xs text-gray-900 uppercase tracking-tight">{{ resolvedName() }}</h4>
               </div>
-              <div class="grid grid-cols-2 gap-2 pt-1">
+
+              <div class="grid grid-cols-2 gap-2 pt-0.5 text-[10px]">
                 <div>
-                  <span class="text-[8px] font-black uppercase text-gray-400">Birth Date</span>
-                  <p class="font-bold text-gray-800 text-[10px]">{{ resolvedDob() }}</p>
+                  <span class="text-[7.5px] font-black uppercase text-gray-400">Date of Birth</span>
+                  <p class="font-bold text-gray-800">{{ resolvedDob() }}</p>
                 </div>
                 <div>
-                  <span class="text-[8px] font-black uppercase text-gray-400">Blood Group</span>
-                  <p class="font-bold text-rose-600 text-[10px]">{{ resolvedBloodGroup() }}</p>
+                  <span class="text-[7.5px] font-black uppercase text-gray-400">Blood Group</span>
+                  <p class="font-bold text-rose-600">{{ resolvedBloodGroup() }}</p>
+                </div>
+                <div class="col-span-2">
+                  <span class="text-[7.5px] font-black uppercase text-gray-400">Campus Address</span>
+                  <p class="font-medium text-gray-700 text-[9.5px] truncate">{{ resolvedAddress() }}</p>
                 </div>
               </div>
             </div>
 
+            <!-- Footer Barcode -->
             <div class="pt-2 border-t border-gray-200 flex items-center justify-between">
-              <svg [attr.width]="barcodeData().totalWidth" height="18" class="max-w-[120px] h-4">
-                @for (bar of barcodeData().bars; track $index) {
-                  <rect [attr.x]="bar.x" y="0" [attr.width]="bar.width" height="18" fill="#0f172a" />
-                }
-              </svg>
-              <span class="text-[8px] font-mono text-gray-400">EXP: 2027</span>
+              @if (showBarcode()) {
+                <svg [attr.width]="barcodeData().totalWidth" height="18" class="max-w-[130px] h-4">
+                  @for (bar of barcodeData().bars; track $index) {
+                    <rect [attr.x]="bar.x" y="0" [attr.width]="bar.width" height="18" fill="#0f172a" />
+                  }
+                </svg>
+              }
+              <span class="text-[8px] font-mono text-gray-400 font-bold">EXP: 2027</span>
             </div>
           </div>
         </div>
       }
 
       <!-- ========================================================================= -->
-      <!-- TEMPLATE 4: TECH GRID (Futuristic Cyber Pattern with Neon Accents)        -->
+      <!-- TEMPLATE 4: ANGULAR POLY (Futuristic Dynamic Angled Geometry)             -->
       <!-- ========================================================================= -->
       @else if (selectedTemplate() === 'cyber') {
-        <div class="relative w-full h-full flex flex-col justify-between overflow-hidden bg-slate-900 text-white p-5 border border-slate-700">
-          <!-- Cyber Grid Pattern Overlay -->
-          <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:16px_16px] opacity-40 pointer-events-none"></div>
-
-          <!-- Top Header -->
-          <div class="relative z-10 flex items-center justify-between border-b border-slate-700 pb-2">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full animate-ping" [style.background]="currentThemeConfig().accent"></span>
-              <span class="text-[10px] font-black uppercase tracking-wider text-slate-200 font-mono">{{ resolvedSchoolName() }}</span>
-            </div>
-            <span class="px-2 py-0.5 rounded text-[8px] font-mono font-bold text-black uppercase" [style.background]="currentThemeConfig().accent">
-              SECURE ID
-            </span>
+        <div class="relative w-full h-full flex flex-col justify-between overflow-hidden bg-white text-gray-900">
+          
+          <!-- Dynamic Top Angular Header Polygon (SVG) -->
+          <div class="absolute top-0 left-0 right-0 h-[45%] overflow-hidden z-0 pointer-events-none">
+            <svg viewBox="0 0 540 160" class="w-full h-full object-cover" preserveAspectRatio="none">
+              <defs>
+                <linearGradient [id]="'polyGradTop_' + selectedTheme()" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" [attr.stop-color]="currentThemeConfig().primary" />
+                  <stop offset="60%" [attr.stop-color]="currentThemeConfig().secondary" />
+                  <stop offset="100%" [attr.stop-color]="currentThemeConfig().accent" />
+                </linearGradient>
+              </defs>
+              <polygon points="0,0 540,0 540,90 280,140 0,110" [attr.fill]="'url(#polyGradTop_' + selectedTheme() + ')'" />
+              <polygon points="0,0 540,0 540,60 320,110 0,80" fill="white" opacity="0.12" />
+            </svg>
           </div>
 
-          <!-- Middle Body -->
-          <div class="relative z-10 flex items-center gap-4 py-1">
-            <div class="w-22 h-22 rounded-xl overflow-hidden border-2 shadow-lg bg-slate-800 flex-shrink-0" [style.border-color]="currentThemeConfig().accent">
-              @if (resolvedPhoto()) {
-                <img [src]="resolvedPhoto()" alt="Portrait" class="w-full h-full object-cover">
+          <!-- Bottom Angular Footer Polygon (SVG) -->
+          <div class="absolute bottom-0 left-0 right-0 h-[28%] overflow-hidden z-0 pointer-events-none">
+            <svg viewBox="0 0 540 100" class="w-full h-full object-cover" preserveAspectRatio="none">
+              <defs>
+                <linearGradient [id]="'polyGradBottom_' + selectedTheme()" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" [attr.stop-color]="currentThemeConfig().secondary" />
+                  <stop offset="100%" [attr.stop-color]="currentThemeConfig().primary" />
+                </linearGradient>
+              </defs>
+              <polygon points="0,45 220,15 540,65 540,100 0,100" [attr.fill]="'url(#polyGradBottom_' + selectedTheme() + ')'" />
+            </svg>
+          </div>
+
+          <!-- Header -->
+          <div class="relative z-10 px-6 pt-3.5 flex items-start justify-between text-white">
+            <div class="flex items-center gap-2.5">
+              @if (resolvedSchoolLogo()) {
+                <img [src]="resolvedSchoolLogo()" alt="Logo" class="w-9 h-9 object-contain rounded-lg bg-white/20 p-0.5 border border-white/40 shadow-sm">
               } @else {
-                <div class="w-full h-full flex items-center justify-center font-mono font-black text-xl text-slate-400">
-                  {{ resolvedInitials() }}
+                <div class="w-8 h-8 rounded-lg bg-white/20 border border-white/40 flex items-center justify-center text-white shadow-sm">
+                  <i class="fas fa-shapes text-sm"></i>
                 </div>
               }
+              <div>
+                <h3 class="text-[11px] font-black uppercase tracking-tight leading-tight line-clamp-1 drop-shadow-sm">
+                  {{ resolvedSchoolName() }}
+                </h3>
+                <span class="text-[7.5px] font-bold text-white/80 uppercase tracking-widest">DIGITAL STUDENT PASS</span>
+              </div>
             </div>
 
-            <div class="flex-1 flex flex-col gap-1 text-[10px] font-mono">
-              <div class="flex flex-col">
-                <span class="text-[7.5px] uppercase text-slate-400">STUDENT_NAME:</span>
-                <span class="font-black text-white text-xs uppercase tracking-tight" [style.color]="currentThemeConfig().accent">{{ resolvedName() }}</span>
+            <div class="text-right">
+              <span class="px-2.5 py-0.5 rounded-full text-[8px] font-black bg-white/20 text-white border border-white/30 uppercase tracking-wider">
+                {{ resolvedClass() }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Middle Body: Squircle Photo Frame + Angled Particulars -->
+          <div class="relative z-10 px-6 py-1 flex items-center gap-5">
+            <div class="relative flex-shrink-0">
+              <div class="w-24 h-24 rounded-2xl overflow-hidden border-[3px] shadow-xl bg-gray-100 flex items-center justify-center"
+                   [style.border-color]="currentThemeConfig().secondary">
+                @if (resolvedPhoto()) {
+                  <img [src]="resolvedPhoto()" alt="Portrait" class="w-full h-full object-cover">
+                } @else {
+                  <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-600 font-black text-2xl">
+                    {{ resolvedInitials() }}
+                  </div>
+                }
               </div>
-              <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <span class="text-[7.5px] uppercase text-slate-400">ID_CODE:</span>
-                  <p class="font-bold text-slate-200">{{ resolvedId() }}</p>
-                </div>
-                <div>
-                  <span class="text-[7.5px] uppercase text-slate-400">STREAM:</span>
-                  <p class="font-bold text-slate-200">{{ resolvedClass() }}</p>
-                </div>
+            </div>
+
+            <div class="flex-1 flex flex-col gap-1 text-[11px] text-gray-800">
+              <div class="flex items-center">
+                <span class="w-18 font-bold text-gray-700">Name</span>
+                <span class="mr-1.5 font-bold text-gray-500">:</span>
+                <span class="font-black text-gray-900 uppercase tracking-tight truncate">{{ resolvedName() }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="w-18 font-bold text-gray-700">Student ID</span>
+                <span class="mr-1.5 font-bold text-gray-500">:</span>
+                <span class="font-mono font-black text-gray-900 tracking-wide">{{ resolvedId() }}</span>
+              </div>
+              <div class="flex items-center">
+                <span class="w-18 font-bold text-gray-700">D.O.B</span>
+                <span class="mr-1.5 font-bold text-gray-500">:</span>
+                <span class="font-semibold text-gray-900">{{ resolvedDob() }}</span>
+              </div>
+              <div class="flex items-start">
+                <span class="w-18 font-bold text-gray-700">Residence</span>
+                <span class="mr-1.5 font-bold text-gray-500">:</span>
+                <span class="font-bold text-gray-800 text-[10px]">{{ student()?.placed_residence_type || 'Day Scholar' }}</span>
               </div>
             </div>
           </div>
 
-          <!-- Bottom Footer -->
-          <div class="relative z-10 flex items-center justify-between border-t border-slate-800 pt-2">
-            <div class="bg-white p-1 rounded">
-              <svg [attr.width]="barcodeData().totalWidth" height="16" class="max-w-[120px] h-3.5">
-                @for (bar of barcodeData().bars; track $index) {
-                  <rect [attr.x]="bar.x" y="0" [attr.width]="bar.width" height="16" fill="#0f172a" />
-                }
-              </svg>
-            </div>
-            <div class="bg-white p-1 rounded">
-              <qrcode [qrdata]="qrPayload()" [width]="32" [errorCorrectionLevel]="'M'" [margin]="0"></qrcode>
-            </div>
+          <!-- Bottom Row: Barcode & QR -->
+          <div class="relative z-10 px-6 pb-2.5 pt-1 flex items-end justify-between">
+            @if (showBarcode()) {
+              <div class="flex flex-col bg-white/95 backdrop-blur-sm p-1.5 rounded-lg border border-gray-200 shadow-sm">
+                <svg [attr.width]="barcodeData().totalWidth" height="20" class="max-w-[130px] h-4">
+                  @for (bar of barcodeData().bars; track $index) {
+                    <rect [attr.x]="bar.x" y="0" [attr.width]="bar.width" height="20" fill="#0f172a" />
+                  }
+                </svg>
+                <span class="text-[7.5px] font-mono text-center text-gray-700 tracking-widest mt-0.5">{{ resolvedId() }}</span>
+              </div>
+            }
+            @if (showQrCode()) {
+              <div class="flex items-center gap-1.5 bg-white/95 backdrop-blur-sm p-1 rounded-xl border border-gray-200 shadow-md">
+                <qrcode [qrdata]="qrPayload()" [width]="42" [errorCorrectionLevel]="'M'" [margin]="1" [colorDark]="'#0f172a'" [colorLight]="'#ffffff'"></qrcode>
+                <div class="flex flex-col pr-1 text-[7.5px] font-bold text-gray-600 uppercase tracking-tighter">
+                  <span>Smart Scan</span>
+                  <span [style.color]="currentThemeConfig().primary" class="font-black">Pass</span>
+                </div>
+              </div>
+            }
           </div>
         </div>
       }
@@ -434,44 +542,58 @@
       @else if (selectedTemplate() === 'vertical') {
         <div class="relative w-full h-full flex flex-col justify-between overflow-hidden bg-white text-gray-900 p-4 border-2 border-gray-300">
           
-          <!-- Top Lanyard Punch Hole Indicator -->
+          <!-- Top Lanyard Punch Slot Indicator -->
           <div class="flex flex-col items-center">
-            <div class="w-10 h-3 rounded-full bg-gray-200 border-2 border-gray-400 shadow-inner mb-2"></div>
-            <div class="text-center">
-              <h3 class="text-[11px] font-black uppercase tracking-tight text-gray-900">{{ resolvedSchoolName() }}</h3>
-              <span class="text-[8px] font-black uppercase tracking-widest text-blue-600">STUDENT IDENTIFICATION</span>
+            <div class="w-12 h-3.5 rounded-full bg-gray-200 border-2 border-gray-400 shadow-inner mb-2 flex items-center justify-center">
+              <span class="w-6 h-1 rounded-full bg-gray-300"></span>
+            </div>
+            
+            <div class="text-center flex flex-col items-center">
+              @if (resolvedSchoolLogo()) {
+                <img [src]="resolvedSchoolLogo()" alt="Logo" class="w-8 h-8 object-contain mb-1">
+              }
+              <h3 class="text-[11px] font-black uppercase tracking-tight text-gray-900 leading-tight">
+                {{ resolvedSchoolName() }}
+              </h3>
+              <span class="text-[8px] font-black uppercase tracking-widest text-blue-600">STUDENT IDENTITY CARD</span>
             </div>
           </div>
 
           <!-- Centered Large Portrait -->
-          <div class="flex flex-col items-center my-2">
-            <div class="w-24 h-28 rounded-2xl overflow-hidden border-[3px] shadow-lg bg-gray-100" [style.border-color]="currentThemeConfig().primary">
+          <div class="flex flex-col items-center my-1.5">
+            <div class="w-24 h-28 rounded-2xl overflow-hidden border-[3px] shadow-lg bg-gray-100 flex items-center justify-center"
+                 [style.border-color]="currentThemeConfig().primary">
               @if (resolvedPhoto()) {
                 <img [src]="resolvedPhoto()" alt="Portrait" class="w-full h-full object-cover">
               } @else {
-                <div class="w-full h-full bg-gray-200 flex items-center justify-center font-black text-gray-600 text-2xl">
+                <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center font-black text-gray-600 text-2xl">
                   {{ resolvedInitials() }}
                 </div>
               }
             </div>
-            <h4 class="font-black text-xs uppercase tracking-tight text-gray-900 mt-2 text-center">{{ resolvedName() }}</h4>
+            <h4 class="font-black text-xs uppercase tracking-tight text-gray-900 mt-2 text-center truncate max-w-[200px]">
+              {{ resolvedName() }}
+            </h4>
             <span class="font-mono text-[10px] font-bold text-gray-500">{{ resolvedId() }}</span>
-            <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase text-white mt-1" [style.background]="currentThemeConfig().primary">
+            <span class="px-3 py-0.5 rounded-full text-[9px] font-black uppercase text-white mt-1 shadow-2xs"
+                  [style.background]="currentThemeConfig().primary">
               {{ resolvedClass() }}
             </span>
           </div>
 
           <!-- Bottom Attendance QR & Barcode -->
           <div class="flex flex-col items-center gap-2 pt-2 border-t border-gray-200">
-            <qrcode [qrdata]="qrPayload()" [width]="52" [errorCorrectionLevel]="'M'" [margin]="1"></qrcode>
-            <div class="flex flex-col items-center">
-              <svg [attr.width]="barcodeData().totalWidth" height="16" class="max-w-[130px] h-3.5">
-                @for (bar of barcodeData().bars; track $index) {
-                  <rect [attr.x]="bar.x" y="0" [attr.width]="bar.width" height="16" fill="#0f172a" />
-                }
-              </svg>
-              <span class="text-[7.5px] font-mono text-gray-500 tracking-widest">VALID FOR 2026/2027</span>
-            </div>
+            <qrcode [qrdata]="qrPayload()" [width]="48" [errorCorrectionLevel]="'M'" [margin]="1"></qrcode>
+            @if (showBarcode()) {
+              <div class="flex flex-col items-center">
+                <svg [attr.width]="barcodeData().totalWidth" height="16" class="max-w-[130px] h-3.5">
+                  @for (bar of barcodeData().bars; track $index) {
+                    <rect [attr.x]="bar.x" y="0" [attr.width]="bar.width" height="16" fill="#0f172a" />
+                  }
+                </svg>
+                <span class="text-[7.5px] font-mono text-gray-500 tracking-widest">VALID 2026/2027</span>
+              </div>
+            }
           </div>
         </div>
       }
