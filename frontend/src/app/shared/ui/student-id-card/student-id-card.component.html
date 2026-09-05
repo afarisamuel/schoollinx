@@ -607,39 +607,48 @@
         <div class="absolute top-0 left-0 right-0 h-3" [style.background]="currentThemeConfig().gradient"></div>
 
         <!-- Terms & Regulations -->
-        <div class="flex flex-col gap-2 pt-2">
-          <div class="flex items-center justify-between border-b border-gray-300 pb-1.5">
-            <span class="text-[11px] font-black uppercase text-gray-800">Card Terms & Regulations</span>
-            <span class="text-[9px] font-mono font-bold text-gray-500">CR80 PVC SPEC</span>
+        <div class="flex flex-col gap-1.5 pt-1">
+          <div class="flex items-center justify-between border-b border-gray-300 pb-1">
+            <span class="text-[10px] font-black uppercase text-gray-800 tracking-wide">Card Terms & Regulations</span>
+            <span class="text-[8px] font-mono font-bold text-gray-500">CR80 PVC SPEC</span>
           </div>
-          <p class="text-[9px] text-gray-600 leading-relaxed">
-            1. This card is the property of <strong class="text-gray-900">{{ resolvedSchoolName() }}</strong> and must be carried at all times on school grounds.
+          <p class="text-[8px] text-gray-600 leading-snug">
+            1. Property of <strong class="text-gray-900">{{ resolvedSchoolName() }}</strong>. Carry at all times on school grounds.
           </p>
-          <p class="text-[9px] text-gray-600 leading-relaxed">
-            2. Present this card for biometric roll call, attendance recording, library lending, and campus infirmary verification.
-          </p>
-          <p class="text-[9px] text-gray-600 leading-relaxed">
-            3. If found, please return to the School Administration Office or call the emergency contact line.
+          <p class="text-[8px] text-gray-600 leading-snug">
+            2. Required for gate attendance, examinations, library checkout & canteen wallet.
           </p>
         </div>
 
-        <!-- Emergency Contact & Authorized Signature -->
-        <div class="grid grid-cols-2 gap-4 pt-2 border-t border-gray-300 text-[10px]">
+        <!-- Emergency & Medical Alert Box -->
+        <div class="bg-white border border-gray-200 rounded-xl p-2.5 flex flex-col gap-1 text-[9px] shadow-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-black text-rose-600 uppercase text-[8px]">⚠️ Emergency & Medical Alert</span>
+            <span class="font-bold text-gray-700 text-[8px]">Blood Group: <strong>{{ student()?.blood_group || 'O+' }}</strong></span>
+          </div>
+          <div class="flex items-center justify-between text-gray-700">
+            <span>Guardian: <strong class="text-gray-900">{{ student()?.guardian_name || student()?.father_name || student()?.emergency_contact_name || 'Primary Guardian' }}</strong></span>
+            <span>Tel: <strong class="text-gray-900 font-mono">{{ student()?.emergency_contact_phone || student()?.guardian_phone || student()?.father_phone || tenantProfile()?.contact_numbers || '+233 24 000 0000' }}</strong></span>
+          </div>
+        </div>
+
+        <!-- School Helpline & Authorized Signature -->
+        <div class="grid grid-cols-2 gap-4 pt-1.5 border-t border-gray-300 text-[9px] items-center">
           <div class="flex flex-col gap-0.5">
-            <span class="font-bold text-gray-600 uppercase text-[8px]">Emergency Hotline:</span>
-            <span class="font-mono font-black text-gray-900">{{ tenantProfile()?.contact_numbers || '+233 24 000 0000' }}</span>
-            <span class="text-[8px] text-gray-500">{{ tenantProfile()?.email || 'admin@school.edu' }}</span>
+            <span class="font-bold text-gray-500 uppercase text-[7.5px]">Campus Helpline & Return:</span>
+            <span class="font-mono font-black text-gray-900 text-[9.5px]">{{ tenantProfile()?.contact_numbers || '+233 24 000 0000' }}</span>
+            <span class="text-[7.5px] text-gray-500">{{ tenantProfile()?.email || 'admin@school.edu' }}</span>
           </div>
           <div class="flex flex-col items-end">
-            <span class="font-bold text-gray-600 uppercase text-[8px]">Authorized Signature:</span>
-            <div class="h-6 flex items-center justify-end">
+            <span class="font-bold text-gray-500 uppercase text-[7.5px]">Principal Signature</span>
+            <div class="h-5 flex items-center justify-end">
               @if (tenantProfile()?.headmaster_signature_url) {
-                <img [src]="tenantProfile()?.headmaster_signature_url" alt="Signature" class="max-h-5 object-contain">
+                <img [src]="tenantProfile()?.headmaster_signature_url" alt="Signature" class="max-h-4.5 object-contain">
               } @else {
-                <span class="font-serif italic text-gray-700 text-xs">Registrar Office</span>
+                <span class="font-serif italic text-gray-700 text-xs">Official Seal</span>
               }
             </div>
-            <div class="w-24 border-b border-gray-800"></div>
+            <div class="w-20 border-b border-gray-700"></div>
           </div>
         </div>
 

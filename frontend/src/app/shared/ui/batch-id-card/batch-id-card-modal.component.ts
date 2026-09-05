@@ -108,13 +108,16 @@ export class BatchIdCardModalComponent {
       const dob = this.getStudentDob(s);
       const className = s.class_name || 'Class Roster';
       const bloodGroup = s.blood_group || 'O+';
-      const address = s.address || 'Campus Avenue, Accra';
+      const residence = s.placed_residence_type || 'Day Scholar';
+      const emergencyContact = s.emergency_contact_name || s.guardian_name || s.father_name || 'Guardian';
+      const emergencyPhone = s.emergency_contact_phone || s.guardian_phone || s.father_phone || hotline;
+      const allergies = s.allergies || 'None';
       const initials = this.getInitials(s);
       const photo = s.photo_url || null;
 
       const barcode = BarcodeGenerator.generateCode128(id, 1.6);
       const barcodeSvg = `
-        <svg viewBox="0 0 ${barcode.totalWidth} 20" width="110" height="16" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+        <svg viewBox="0 0 ${barcode.totalWidth} 20" width="115" height="16" xmlns="http://www.w3.org/2000/svg" style="display:block;">
           ${barcode.bars.map(b => `<rect x="${b.x}" y="0" width="${b.width}" height="20" fill="#0f172a" />`).join('')}
         </svg>
       `;
@@ -123,24 +126,24 @@ export class BatchIdCardModalComponent {
       const front = `
         <div class="card-box cr80-card">
           <div class="card-inner wave-layout" style="position:relative; height:100%; display:flex; flex-direction:column; justify-content:space-between; background:#fff; overflow:hidden;">
-            <!-- SVG Top Wave -->
-            <svg viewBox="0 0 540 160" style="position:absolute; top:0; left:0; width:100%; height:45%; pointer-events:none;" preserveAspectRatio="none">
+            <!-- SVG Top Wave Ribbon -->
+            <svg viewBox="0 0 540 160" style="position:absolute; top:0; left:0; width:100%; height:46%; pointer-events:none;" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="waveTop_${idx}" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stop-color="${theme.primary}" />
-                  <stop offset="60%" stop-color="${theme.secondary}" />
+                  <stop offset="55%" stop-color="${theme.secondary}" />
                   <stop offset="100%" stop-color="${theme.accent}" />
                 </linearGradient>
               </defs>
               <path d="M 0,0 L 540,0 L 540,110 C 440,175 320,135 220,95 C 130,55 50,85 0,140 Z" fill="url(#waveTop_${idx})" />
             </svg>
 
-            <!-- SVG Bottom Wave -->
-            <svg viewBox="0 0 540 100" style="position:absolute; bottom:0; left:0; width:100%; height:26%; pointer-events:none;" preserveAspectRatio="none">
+            <!-- SVG Bottom Wave Ribbon -->
+            <svg viewBox="0 0 540 100" style="position:absolute; bottom:0; left:0; width:100%; height:25%; pointer-events:none;" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="waveBottom_${idx}" x1="0%" y1="100%" x2="100%" y2="0%">
                   <stop offset="0%" stop-color="${theme.accent}" />
-                  <stop offset="60%" stop-color="${theme.secondary}" />
+                  <stop offset="50%" stop-color="${theme.secondary}" />
                   <stop offset="100%" stop-color="${theme.primary}" />
                 </linearGradient>
               </defs>
@@ -148,38 +151,42 @@ export class BatchIdCardModalComponent {
             </svg>
 
             <!-- Header -->
-            <div style="position:relative; z-index:2; padding:8px 12px 2px 12px; display:flex; justify-content:space-between; align-items:flex-start; color:#fff;">
-              <div style="display:flex; align-items:center; gap:6px; max-width:65%;">
+            <div style="position:relative; z-index:2; padding:7px 12px 2px 12px; display:flex; justify-content:space-between; align-items:flex-start; color:#fff;">
+              <div style="display:flex; align-items:center; gap:6px; max-width:68%;">
                 ${schoolLogo ? `<img src="${schoolLogo}" style="width:26px; height:26px; object-fit:contain; background:rgba(255,255,255,0.25); padding:2px; border-radius:4px;">` : `<div style="width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold;">🎓</div>`}
                 <div>
-                  <div style="font-size:8.5px; font-weight:900; text-transform:uppercase; line-height:1.1;">${schoolName}</div>
-                  <div style="font-size:6px; font-weight:700; color:rgba(255,255,255,0.85); text-transform:uppercase;">Official Student Card</div>
+                  <div style="font-size:8.5px; font-weight:900; text-transform:uppercase; line-height:1.1; letter-spacing:-0.2px;">${schoolName}</div>
+                  <div style="font-size:6px; font-weight:700; color:rgba(255,255,255,0.85); text-transform:uppercase; letter-spacing:0.5px;">Official Student Identity</div>
                 </div>
               </div>
-              <div style="font-size:10px; font-weight:900; text-transform:uppercase; line-height:1; font-family:serif; text-align:right;">STUDENT<br>ID CARD</div>
+              <div style="font-size:9.5px; font-weight:900; text-transform:uppercase; line-height:1; font-family:serif; text-align:right;">STUDENT<br>ID CARD</div>
             </div>
 
             <!-- Body -->
-            <div style="position:relative; z-index:2; padding:2px 12px; display:flex; align-items:center; gap:10px;">
-              <div style="width:64px; height:64px; border-radius:50%; border:2.5px solid ${theme.secondary}; overflow:hidden; background:#e5e7eb; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <div style="position:relative; z-index:2; padding:1px 12px; display:flex; align-items:center; gap:10px;">
+              <div style="width:62px; height:62px; border-radius:50%; border:2.5px solid ${theme.secondary}; overflow:hidden; background:#e5e7eb; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
                 ${photo ? `<img src="${photo}" style="width:100%; height:100%; object-fit:cover;">` : `<div style="font-size:18px; font-weight:900; color:#374151;">${initials}</div>`}
               </div>
               <div style="flex:1; display:flex; flex-direction:column; gap:2px; font-size:7.5px; color:#1f2937;">
-                <div style="display:flex;"><span style="width:44px; font-weight:700; color:#4b5563;">Name</span><span style="margin-right:3px;">:</span><strong style="font-size:8.5px; text-transform:uppercase; color:#111827;">${name}</strong></div>
-                <div style="display:flex;"><span style="width:44px; font-weight:700; color:#4b5563;">ID No</span><span style="margin-right:3px;">:</span><strong style="font-family:monospace; font-size:8px; color:#111827;">${id}</strong></div>
-                <div style="display:flex;"><span style="width:44px; font-weight:700; color:#4b5563;">D.O.B</span><span style="margin-right:3px;">:</span><span>${dob}</span></div>
-                <div style="display:flex;"><span style="width:44px; font-weight:700; color:#4b5563;">Class</span><span style="margin-right:3px;">:</span><span>${className}</span></div>
+                <div style="display:flex;"><span style="width:42px; font-weight:700; color:#4b5563;">Name</span><span style="margin-right:3px;">:</span><strong style="font-size:8.5px; text-transform:uppercase; color:#0f172a;">${name}</strong></div>
+                <div style="display:flex;"><span style="width:42px; font-weight:700; color:#4b5563;">ID No</span><span style="margin-right:3px;">:</span><strong style="font-family:monospace; font-size:8px; color:#0f172a;">${id}</strong></div>
+                <div style="display:flex;"><span style="width:42px; font-weight:700; color:#4b5563;">Class</span><span style="margin-right:3px;">:</span><span style="font-weight:700;">${className}</span></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding-right:4px;">
+                  <div style="display:flex;"><span style="width:42px; font-weight:700; color:#4b5563;">D.O.B</span><span style="margin-right:3px;">:</span><span>${dob}</span></div>
+                  <span style="font-size:6px; font-weight:800; color:#e11d48; background:#ffe4e6; padding:1px 4px; border-radius:3px; border:1px solid #fecdd3;">🩸 ${bloodGroup}</span>
+                </div>
               </div>
             </div>
 
-            <!-- Footer Barcode -->
-            <div style="position:relative; z-index:2; padding:2px 12px 6px 12px; display:flex; align-items:flex-end; justify-content:space-between;">
-              <div style="background:rgba(255,255,255,0.92); padding:2px 5px; border-radius:4px; border:1px solid #e5e7eb;">
+            <!-- Footer Barcode & Validity -->
+            <div style="position:relative; z-index:2; padding:1px 12px 5px 12px; display:flex; align-items:flex-end; justify-content:space-between;">
+              <div style="background:rgba(255,255,255,0.95); padding:2px 5px; border-radius:4px; border:1px solid #cbd5e1; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
                 ${barcodeSvg}
-                <div style="font-size:5.5px; font-family:monospace; text-align:center; color:#374151;">${id}</div>
+                <div style="font-size:5.5px; font-family:monospace; text-align:center; color:#334155; letter-spacing:0.5px;">${id}</div>
               </div>
-              <div style="font-size:6.5px; font-weight:800; color:#1f2937; background:rgba(255,255,255,0.9); padding:2px 6px; border-radius:4px; border:1px solid #e5e7eb;">
-                VALID: 2026/27
+              <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+                <span style="font-size:6px; font-weight:800; text-transform:uppercase; color:#475569; background:rgba(255,255,255,0.9); padding:1px 5px; border-radius:3px; border:1px solid #cbd5e1;">${residence}</span>
+                <span style="font-size:6.5px; font-weight:900; color:#0f172a; background:rgba(255,255,255,0.95); padding:1px 5px; border-radius:3px; border:1px solid #cbd5e1;">VALID: 2025/26</span>
               </div>
             </div>
           </div>
@@ -189,40 +196,52 @@ export class BatchIdCardModalComponent {
       // Back Side
       const back = `
         <div class="card-box cr80-card">
-          <div class="card-inner back-layout" style="position:relative; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:10px 12px; background:#f9fafb; color:#111827;">
-            <div style="position:absolute; top:0; left:0; right:0; height:4px; background:${theme.gradient};"></div>
+          <div class="card-inner back-layout" style="position:relative; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:8px 11px; background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;">
+            <div style="position:absolute; top:0; left:0; right:0; height:3.5px; background:${theme.gradient};"></div>
             
-            <div style="display:flex; flex-direction:column; gap:3px; padding-top:2px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #d1d5db; padding-bottom:2px;">
-                <span style="font-size:7.5px; font-weight:900; text-transform:uppercase; color:#1f2937;">Terms & Regulations</span>
-                <span style="font-size:6px; font-family:monospace; color:#6b7280;">CR80 PVC</span>
+            <!-- Terms & Regulation -->
+            <div style="display:flex; flex-direction:column; gap:2.5px; padding-top:2px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #cbd5e1; padding-bottom:1.5px;">
+                <span style="font-size:7px; font-weight:900; text-transform:uppercase; color:#0f172a; letter-spacing:0.3px;">Terms & Regulations</span>
+                <span style="font-size:6px; font-weight:700; color:#64748b;">OFFICIAL CREDENTIAL</span>
               </div>
-              <p style="font-size:6.5px; color:#4b5563; line-height:1.2; margin:0;">
-                1. Property of <strong style="color:#111827;">${schoolName}</strong>. Carry at all times on campus.
+              <p style="font-size:6px; color:#475569; line-height:1.2; margin:0;">
+                1. Property of <strong style="color:#0f172a;">${schoolName}</strong>. Carry at all times on campus.
               </p>
-              <p style="font-size:6.5px; color:#4b5563; line-height:1.2; margin:0;">
-                2. Required for automated attendance, examination access, library checkout & infirmary.
-              </p>
-              <p style="font-size:6.5px; color:#4b5563; line-height:1.2; margin:0;">
-                3. If found, return to School Admin Office or call hotline below.
+              <p style="font-size:6px; color:#475569; line-height:1.2; margin:0;">
+                2. Required for gate attendance, examinations, library checkout & canteen wallet.
               </p>
             </div>
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; border-top:1px solid #d1d5db; padding-top:3px; font-size:7px;">
+            <!-- Emergency & Medical Info Box -->
+            <div style="background:#fff; border:1px solid #e2e8f0; border-radius:4px; padding:3px 6px; display:flex; flex-direction:column; gap:1.5px; font-size:6.5px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:800; color:#dc2626; text-transform:uppercase; font-size:6px;">⚠️ Emergency & Medical Alert:</span>
+                <span style="font-weight:700; color:#334155; font-size:6px;">Blood: <strong>${bloodGroup}</strong></span>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:#64748b;">Guardian: <strong style="color:#0f172a;">${emergencyContact}</strong></span>
+                <span style="color:#64748b;">Tel: <strong style="color:#0f172a; font-family:monospace;">${emergencyPhone}</strong></span>
+              </div>
+            </div>
+
+            <!-- Footer: School Contact, QR & Authorized Signature -->
+            <div style="display:grid; grid-template-columns:1.2fr 0.8fr; gap:6px; border-top:1px solid #cbd5e1; padding-top:2px; font-size:6.5px; align-items:center;">
               <div>
-                <span style="font-size:6px; font-weight:800; color:#6b7280; display:block;">HOTLINE:</span>
-                <strong style="font-family:monospace; font-size:7.5px;">${hotline}</strong>
+                <span style="font-size:5.5px; font-weight:800; color:#64748b; display:block; text-transform:uppercase;">Campus Helpline & Return:</span>
+                <strong style="font-family:monospace; font-size:7px; color:#0f172a;">${hotline}</strong>
+                <div style="font-size:5.5px; color:#64748b; margin-top:0.5px;">${schoolEmail}</div>
               </div>
               <div style="display:flex; flex-direction:column; align-items:flex-end;">
-                <span style="font-size:6px; font-weight:800; color:#6b7280;">REGISTRAR SIGNATURE</span>
-                <div style="height:14px; display:flex; align-items:flex-end;">
-                  ${signatureUrl ? `<img src="${signatureUrl}" style="max-height:12px;">` : `<span style="font-family:serif; font-style:italic; font-size:8px;">Authorized</span>`}
+                <span style="font-size:5.5px; font-weight:800; color:#64748b; text-transform:uppercase;">Principal Signature</span>
+                <div style="height:12px; display:flex; align-items:flex-end;">
+                  ${signatureUrl ? `<img src="${signatureUrl}" style="max-height:11px;">` : `<span style="font-family:serif; font-style:italic; font-size:7.5px; color:#334155;">Authorized Seal</span>`}
                 </div>
-                <div style="width:65px; border-bottom:1px solid #111827; margin-top:1px;"></div>
+                <div style="width:60px; border-bottom:1px solid #334155; margin-top:0.5px;"></div>
               </div>
             </div>
 
-            <div style="position:absolute; bottom:0; left:0; right:0; height:3px; background:${theme.gradient};"></div>
+            <div style="position:absolute; bottom:0; left:0; right:0; height:2.5px; background:${theme.gradient};"></div>
           </div>
         </div>
       `;
