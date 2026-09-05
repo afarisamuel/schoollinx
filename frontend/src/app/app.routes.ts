@@ -113,6 +113,16 @@ export const tenantRoutes: Routes = [
                 title: 'Biometric Command Center'
             },
             {
+                path: 'attendance/scanner',
+                loadComponent: () => import('./features/attendance/barcode-scanner/barcode-attendance-scanner.component').then(c => c.BarcodeAttendanceScannerComponent),
+                title: 'Barcode & QR Attendance Scanner'
+            },
+            {
+                path: 'attendance/mark',
+                loadComponent: () => import('./features/attendance/attendance-mark/attendance-mark.component').then(c => c.AttendanceMarkComponent),
+                title: 'Daily Attendance'
+            },
+            {
                 path: 'notifications',
                 loadComponent: () => import('./features/notifications/notification-center.component').then(c => c.NotificationCenterComponent),
                 title: 'Notification Center'

@@ -1,0 +1,257 @@
+<div class="flex flex-col gap-4 w-full">
+
+  <!-- ========================================== -->
+  <!-- COLOR THEME SELECTOR & CONTROLS (SCREEN)   -->
+  <!-- ========================================== -->
+  @if (showControls && allowColorCustomization) {
+    <div class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl bg-bg-tertiary/40 border border-border-secondary print:hidden">
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">Card Theme:</span>
+        <div class="flex items-center gap-1.5">
+          @for (theme of themes; track theme.id) {
+            <button type="button" (click)="setTheme(theme.id)"
+              [title]="theme.name"
+              class="w-6 h-6 rounded-full border-2 transition-all hover:scale-110 cursor-pointer flex items-center justify-center"
+              [style.background]="theme.primary"
+              [class.border-white]="selectedTheme() === theme.id"
+              [class.scale-110]="selectedTheme() === theme.id"
+              [class.border-transparent]="selectedTheme() !== theme.id">
+              @if (selectedTheme() === theme.id) {
+                <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+              }
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button type="button" (click)="toggleFlip()"
+          class="px-2.5 py-1 rounded-lg bg-bg-secondary hover:bg-bg-primary border border-border-secondary text-text-secondary text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 14 5-5-5-5"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/><path d="m9 10-5 5 5 5"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
+          {{ isBackSide() ? 'Front Side' : 'Back Side' }}
+        </button>
+        <button type="button" (click)="printCard()"
+          class="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-black uppercase tracking-wider transition-all flex items-center gap-1 shadow-sm cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+          Print Badge
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================= -->
+  <!-- CR80 LANDSCAPE STUDENT ID BADGE (85.6mm x 53.98mm ratio)   -->
+  <!-- ========================================================= -->
+  <div id="student-id-card-badge" 
+       class="relative w-full max-w-[540px] aspect-[1.586] rounded-2xl overflow-hidden shadow-2xl border border-white/20 select-none transition-all duration-300 bg-white"
+       [style.box-shadow]="'0 20px 40px -15px ' + currentThemeConfig().primary + '40'">
+
+    @if (!isBackSide()) {
+      <!-- ========================================== -->
+      <!-- FRONT SIDE OF STUDENT ID CARD              -->
+      <!-- ========================================== -->
+      <div class="relative w-full h-full flex flex-col justify-between overflow-hidden bg-white">
+
+        <!-- 1. TOP DYNAMIC WAVE HEADER (Matching Reference Design) -->
+        <div class="absolute top-0 left-0 right-0 h-[48%] overflow-hidden z-0">
+          <svg viewBox="0 0 540 180" class="w-full h-full object-cover" preserveAspectRatio="none">
+            <defs>
+              <linearGradient [id]="'waveGradTop_' + selectedTheme()" x1="0%" y1="0%" x2="100%" y2="80%">
+                <stop offset="0%" [attr.stop-color]="currentThemeConfig().primary" />
+                <stop offset="50%" [attr.stop-color]="currentThemeConfig().secondary" />
+                <stop offset="100%" [attr.stop-color]="currentThemeConfig().accent" />
+              </linearGradient>
+            </defs>
+            <!-- Background Curved Wave Ribbon -->
+            <path d="M 0,0 L 540,0 L 540,110 C 440,175 320,135 220,95 C 130,55 50,85 0,140 Z" 
+                  [attr.fill]="'url(#waveGradTop_' + selectedTheme() + ')'" />
+            <!-- Soft Accent Glow Arc -->
+            <path d="M 0,0 L 540,0 L 540,80 C 420,130 300,105 180,65 C 100,35 40,55 0,100 Z" 
+                  fill="white" opacity="0.1" />
+          </svg>
+        </div>
+
+        <!-- 2. BOTTOM DYNAMIC WAVE FOOTER (Matching Reference Design) -->
+        <div class="absolute bottom-0 left-0 right-0 h-[28%] overflow-hidden z-0 pointer-events-none">
+          <svg viewBox="0 0 540 100" class="w-full h-full object-cover" preserveAspectRatio="none">
+            <defs>
+              <linearGradient [id]="'waveGradBottom_' + selectedTheme()" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" [attr.stop-color]="currentThemeConfig().accent" />
+                <stop offset="50%" [attr.stop-color]="currentThemeConfig().secondary" />
+                <stop offset="100%" [attr.stop-color]="currentThemeConfig().primary" />
+              </linearGradient>
+            </defs>
+            <!-- Wavy contour line ribbons -->
+            <path d="M 0,60 C 150,20 350,90 540,30 L 540,100 L 0,100 Z" 
+                  [attr.fill]="'url(#waveGradBottom_' + selectedTheme() + ')'" />
+            <path d="M 0,80 C 180,45 360,95 540,65" 
+                  fill="none" stroke="white" stroke-width="1.5" opacity="0.3" />
+            <path d="M 0,70 C 180,35 360,85 540,55" 
+                  fill="none" stroke="white" stroke-width="1" opacity="0.2" />
+          </svg>
+        </div>
+
+        <!-- 3. TOP ROW: SCHOOL LOGO & "STUDENT ID CARD" TITLE -->
+        <div class="relative z-10 px-6 pt-4 flex items-start justify-between">
+          <!-- School Logo & Name -->
+          <div class="flex items-center gap-2.5 max-w-[55%]">
+            @if (resolvedSchoolLogo()) {
+              <img [src]="resolvedSchoolLogo()" alt="Logo" class="w-9 h-9 object-contain rounded-lg bg-white/20 p-0.5 border border-white/40 shadow-sm">
+            } @else {
+              <div class="w-8 h-8 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-white shadow-sm flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+              </div>
+            }
+            <div class="flex flex-col">
+              <span class="text-[11px] font-black text-white leading-tight uppercase drop-shadow-sm tracking-tight line-clamp-2">
+                {{ resolvedSchoolName() }}
+              </span>
+              <span class="text-[8px] font-bold text-white/80 uppercase tracking-widest">Official Card</span>
+            </div>
+          </div>
+
+          <!-- Bold Title in Serif / Sans Typeface (Matching Reference) -->
+          <div class="text-right flex flex-col items-end">
+            <h2 class="text-lg sm:text-xl font-black text-white uppercase tracking-tight leading-none drop-shadow-md font-serif">
+              STUDENT<br>ID CARD
+            </h2>
+          </div>
+        </div>
+
+        <!-- 4. MIDDLE ROW: CIRCULAR PORTRAIT & LABELED STUDENT PARTICULARS -->
+        <div class="relative z-10 px-6 py-1 flex items-center gap-5">
+          <!-- Circular Photo Portrait with Thick Themed Border Ring -->
+          <div class="relative flex-shrink-0">
+            <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-[4px] shadow-xl bg-gray-100 flex items-center justify-center"
+                 [style.border-color]="currentThemeConfig().secondary">
+              @if (resolvedPhoto()) {
+                <img [src]="resolvedPhoto()" alt="Portrait" class="w-full h-full object-cover">
+              } @else {
+                <div class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex flex-col items-center justify-center text-gray-600 font-black text-2xl tracking-wider">
+                  {{ resolvedInitials() }}
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Formatted Student Particulars (Exact Reference Layout) -->
+          <div class="flex-1 flex flex-col gap-1 text-[11px] sm:text-xs text-gray-800">
+            <!-- Name Row -->
+            <div class="flex items-center">
+              <span class="w-20 font-bold text-gray-700">Name</span>
+              <span class="mr-1.5 font-bold text-gray-500">:</span>
+              <span class="font-black text-gray-900 uppercase tracking-tight truncate">{{ resolvedName() }}</span>
+            </div>
+
+            <!-- Student ID Row -->
+            <div class="flex items-center">
+              <span class="w-20 font-bold text-gray-700">Student ID</span>
+              <span class="mr-1.5 font-bold text-gray-500">:</span>
+              <span class="font-mono font-black text-gray-900 tracking-wide">{{ resolvedId() }}</span>
+            </div>
+
+            <!-- D.O.B Row -->
+            <div class="flex items-center">
+              <span class="w-20 font-bold text-gray-700">D.O.B</span>
+              <span class="mr-1.5 font-bold text-gray-500">:</span>
+              <span class="font-semibold text-gray-900">{{ resolvedDob() }}</span>
+            </div>
+
+            <!-- Address / Stream Row -->
+            <div class="flex items-start">
+              <span class="w-20 font-bold text-gray-700">Address</span>
+              <span class="mr-1.5 font-bold text-gray-500">:</span>
+              <span class="font-medium text-gray-800 text-[10px] leading-tight line-clamp-1 truncate max-w-[170px]">
+                {{ resolvedAddress() }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. BOTTOM ROW: DYNAMIC CODE 128 BARCODE & QR CODE FOR ATTENDANCE -->
+        <div class="relative z-10 px-6 pb-3 pt-1 flex items-end justify-between">
+          <!-- Real Code 128 SVG Barcode (Bottom Left) -->
+          @if (showBarcode) {
+            <div class="flex flex-col bg-white/90 backdrop-blur-sm p-1.5 rounded-lg border border-gray-200 shadow-sm">
+              <svg [attr.width]="barcodeData().totalWidth" height="24" class="max-w-[140px] h-6">
+                @for (bar of barcodeData().bars; track $index) {
+                  <rect [attr.x]="bar.x" y="0" [attr.width]="bar.width" height="24" fill="#0f172a" />
+                }
+              </svg>
+              <span class="text-[8px] font-mono text-center text-gray-700 tracking-widest mt-0.5">{{ resolvedId() }}</span>
+            </div>
+          }
+
+          <!-- Live QR Code for Fast Teacher Attendance Scanning (Bottom Right) -->
+          @if (showQrCode) {
+            <div class="flex items-center gap-1.5 bg-white/95 backdrop-blur-sm p-1.5 rounded-xl border border-gray-200 shadow-md">
+              <qrcode [qrdata]="qrPayload()" 
+                      [width]="48" 
+                      [errorCorrectionLevel]="'M'" 
+                      [margin]="1"
+                      [colorDark]="'#0f172a'"
+                      [colorLight]="'#ffffff'">
+              </qrcode>
+              <div class="flex flex-col pr-1 text-[8px] font-bold text-gray-600 uppercase tracking-tighter">
+                <span>Scan for</span>
+                <span [style.color]="currentThemeConfig().primary" class="font-black">Attendance</span>
+              </div>
+            </div>
+          }
+        </div>
+
+      </div>
+
+    } @else {
+      <!-- ========================================== -->
+      <!-- BACK SIDE OF STUDENT ID CARD               -->
+      <!-- ========================================== -->
+      <div class="relative w-full h-full flex flex-col justify-between p-6 bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900">
+        <!-- Top Wave Accent -->
+        <div class="absolute top-0 left-0 right-0 h-3" [style.background]="currentThemeConfig().gradient"></div>
+
+        <!-- Terms & Institutional Rules -->
+        <div class="flex flex-col gap-2 pt-2">
+          <div class="flex items-center justify-between border-b border-gray-300 pb-1.5">
+            <span class="text-[11px] font-black uppercase text-gray-800">Card Terms & Regulations</span>
+            <span class="text-[9px] font-mono font-bold text-gray-500">CR80 PVC SPEC</span>
+          </div>
+          <p class="text-[9px] text-gray-600 leading-relaxed">
+            1. This card is the property of <strong class="text-gray-900">{{ resolvedSchoolName() }}</strong> and must be carried at all times on school grounds.
+          </p>
+          <p class="text-[9px] text-gray-600 leading-relaxed">
+            2. Present this card for biometric roll call, attendance recording, library lending, and campus infirmary verification.
+          </p>
+          <p class="text-[9px] text-gray-600 leading-relaxed">
+            3. If found, please return to the School Administration Office or call the emergency contact line.
+          </p>
+        </div>
+
+        <!-- Emergency Contact & Authorized Signature -->
+        <div class="grid grid-cols-2 gap-4 pt-2 border-t border-gray-300 text-[10px]">
+          <div class="flex flex-col gap-0.5">
+            <span class="font-bold text-gray-600 uppercase text-[8px]">Emergency Hotline:</span>
+            <span class="font-mono font-black text-gray-900">{{ tenantProfile()?.contact_numbers || '+233 24 000 0000' }}</span>
+            <span class="text-[8px] text-gray-500">{{ tenantProfile()?.email || 'admin@school.edu' }}</span>
+          </div>
+          <div class="flex flex-col items-end">
+            <span class="font-bold text-gray-600 uppercase text-[8px]">Authorized Signature:</span>
+            <div class="h-6 flex items-center justify-end">
+              @if (tenantProfile()?.headmaster_signature_url) {
+                <img [src]="tenantProfile()?.headmaster_signature_url" alt="Signature" class="max-h-5 object-contain">
+              } @else {
+                <span class="font-serif italic text-gray-700 text-xs">Registrar Office</span>
+              }
+            </div>
+            <div class="w-24 border-b border-gray-800"></div>
+          </div>
+        </div>
+
+        <!-- Bottom Wave Accent -->
+        <div class="absolute bottom-0 left-0 right-0 h-2" [style.background]="currentThemeConfig().gradient"></div>
+      </div>
+    }
+
+  </div>
+
+</div>

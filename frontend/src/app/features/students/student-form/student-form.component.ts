@@ -8,10 +8,11 @@ import { ClassService, Class } from '../../../core/infrastructure/curriculum/cla
 import { ScholasticLevelService } from '../../../core/infrastructure/scholastic-level/scholastic-level.service';
 import { ScholasticLevel } from '../../../core/domain/scholastic-level.model';
 import { CommonModule } from '@angular/common';
+import { StudentIdCardComponent } from '../../../shared/ui/student-id-card/student-id-card.component';
 
 @Component({
     selector: 'app-student-form',
-    imports: [ReactiveFormsModule, FormsModule, RouterLink, CommonModule],
+    imports: [ReactiveFormsModule, FormsModule, RouterLink, CommonModule, StudentIdCardComponent],
     templateUrl: './student-form.component.html',
     styleUrl: './student-form.component.css',
     standalone: true

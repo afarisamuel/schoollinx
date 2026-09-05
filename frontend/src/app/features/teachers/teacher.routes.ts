@@ -44,6 +44,13 @@ export const teacherRoutes: Routes = [
         data: { roles: ['ADMIN', 'TEACHER'] }
     },
     {
+        path: 'scanner',
+        loadComponent: () => import('../attendance/barcode-scanner/barcode-attendance-scanner.component').then(c => c.BarcodeAttendanceScannerComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'TEACHER'] },
+        title: 'Barcode & QR Attendance Scanner'
+    },
+    {
         path: 'grading',
         loadComponent: () => import('../grades/bulk-grading/bulk-grading.component').then(c => c.BulkGradingComponent),
         canActivate: [roleGuard],

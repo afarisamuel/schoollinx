@@ -24,14 +24,37 @@
             </div>
         </div>
 
-        <!-- Completion Indicator Badge -->
-        <div class="flex items-center gap-3 bg-bg-secondary border border-border-primary rounded-2xl px-4 py-2.5 shadow-sm">
-            <div class="flex flex-col items-end">
-                <span class="text-[10px] uppercase font-bold text-text-muted tracking-wider">Admission Readiness</span>
-                <span class="text-sm font-black text-text-primary">{{ completionPercentage() }}% Completed</span>
+        <!-- Actions: Print Admission Form & Completion Indicator -->
+        <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-2">
+                <a [routerLink]="['/students/admission-form']" [queryParams]="{ blank: true }"
+                   target="_blank"
+                   title="Print Blank Admission Form for Manual Filling"
+                   class="px-3 py-2 bg-bg-secondary hover:bg-bg-tertiary border border-border-secondary text-text-secondary hover:text-text-primary text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    <span>Blank Form</span>
+                </a>
+
+                @if (isEditMode && studentId) {
+                    <a [routerLink]="['/students/admission-form', studentId]"
+                       target="_blank"
+                       title="Print Completed Official Admission Form"
+                       class="px-3.5 py-2 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-400 text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                        <span>Print Form</span>
+                    </a>
+                }
             </div>
-            <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-black text-xs">
-                {{ completionPercentage() }}%
+
+            <!-- Completion Indicator Badge -->
+            <div class="flex items-center gap-3 bg-bg-secondary border border-border-primary rounded-2xl px-4 py-2 shadow-sm">
+                <div class="flex flex-col items-end">
+                    <span class="text-[10px] uppercase font-bold text-text-muted tracking-wider">Admission Readiness</span>
+                    <span class="text-xs font-black text-text-primary">{{ completionPercentage() }}% Completed</span>
+                </div>
+                <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-black text-[11px]">
+                    {{ completionPercentage() }}%
+                </div>
             </div>
         </div>
     </div>
@@ -558,117 +581,32 @@
         <!-- RIGHT COLUMN: Sticky Live Student ID Card Preview (4 Columns) -->
         <div class="lg:col-span-5 xl:col-span-4 sticky top-6 flex flex-col gap-6">
 
-            <!-- Dynamic Live Credential ID Card -->
-            <div class="bg-gradient-to-b from-bg-secondary to-bg-tertiary border border-border-primary rounded-3xl p-6 shadow-2xl flex flex-col gap-5 relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none"></div>
-
-                <!-- Card Hologram Header -->
-                <div class="flex items-center justify-between pb-4 border-b border-border-primary/60">
+            <!-- Dynamic Live Student Credential Card (Interactive Landscape CR80 Layout) -->
+            <div class="bg-bg-secondary border border-border-primary rounded-3xl p-5 shadow-2xl flex flex-col gap-4 relative overflow-hidden">
+                <div class="flex items-center justify-between border-b border-border-primary/60 pb-3">
                     <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm font-black text-[11px]">
-                            SL
-                        </div>
-                        <div>
-                            <div class="text-[11px] font-black text-text-primary uppercase tracking-wider">SchoolLinx Core</div>
-                            <div class="text-[9px] text-text-muted uppercase tracking-widest font-bold">Candidate Registry Card</div>
-                        </div>
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <h4 class="text-xs font-black text-text-primary uppercase tracking-wider">Live Credential Badge</h4>
                     </div>
-                    <span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                        Live Preview
-                    </span>
+                    <span class="text-[10px] font-mono text-text-muted">CR80 • PVC FORMAT</span>
                 </div>
 
-                <!-- Card Center Body: Avatar + Name -->
-                <div class="flex flex-col items-center text-center gap-3 py-2">
-                    <div class="relative">
-                        @if (photoPreviewUrl()) {
-                            <img [src]="photoPreviewUrl()" alt="ID Avatar" class="w-24 h-24 rounded-2xl object-cover border-2 border-blue-500/40 shadow-xl">
-                        } @else {
-                            <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-blue-500/20 tracking-wider">
-                                {{ studentInitials() }}
-                            </div>
-                        }
-                        <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-bg-secondary border-2 border-border-primary flex items-center justify-center text-blue-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-col gap-0.5">
-                        <h3 class="text-base font-black text-text-primary tracking-tight">{{ studentFullName() }}</h3>
-                        <p class="text-xs text-text-muted font-medium">Candidate ID: <span class="font-mono text-text-secondary">PROV-{{ isEditMode && studentId ? studentId.substring(0, 8) : 'NEW-2026' }}</span></p>
-                    </div>
-
-                    <!-- Meta Badges Pill Row -->
-                    <div class="flex flex-wrap items-center justify-center gap-1.5 mt-1">
-                        @if (previewGender()) {
-                            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider"
-                                [class.bg-blue-500\/10]="previewGender() === 'male'"
-                                [class.text-blue-400]="previewGender() === 'male'"
-                                [class.border]="true"
-                                [class.border-blue-500\/20]="previewGender() === 'male'"
-                                [class.bg-pink-500\/10]="previewGender() === 'female'"
-                                [class.text-pink-400]="previewGender() === 'female'"
-                                [class.border-pink-500\/20]="previewGender() === 'female'">
-                                {{ previewGender() }}
-                            </span>
-                        }
-                        @if (calculatedAge() !== null) {
-                            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-bg-tertiary text-text-secondary border border-border-secondary">
-                                {{ calculatedAge() }} Years
-                            </span>
-                        }
-                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider"
-                            [class.bg-purple-500\/10]="previewResidenceType() === 'Boarding'"
-                            [class.text-purple-400]="previewResidenceType() === 'Boarding'"
-                            [class.border]="true"
-                            [class.border-purple-500\/20]="previewResidenceType() === 'Boarding'"
-                            [class.bg-blue-500\/10]="previewResidenceType() === 'Day'"
-                            [class.text-blue-400]="previewResidenceType() === 'Day'"
-                            [class.border-blue-500\/20]="previewResidenceType() === 'Day'">
-                            {{ previewResidenceType() }}
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Academic Placement Box -->
-                <div class="p-3.5 rounded-2xl bg-bg-primary/60 border border-border-primary flex flex-col gap-2.5">
-                    <div class="flex items-center justify-between text-[11px]">
-                        <span class="text-text-muted font-bold">Scholastic Level:</span>
-                        <span class="font-black text-amber-400">{{ selectedLevelName() }}</span>
-                    </div>
-                    <div class="flex items-center justify-between text-[11px]">
-                        <span class="text-text-muted font-bold">Assigned Stream:</span>
-                        <span class="font-bold text-text-primary">{{ selectedClassName() }}</span>
-                    </div>
-                    <div class="flex items-center justify-between text-[11px]">
-                        <span class="text-text-muted font-bold">Primary Guardian:</span>
-                        <span class="font-semibold text-text-secondary truncate max-w-[140px]">
-                            {{ previewGuardianName() || previewFatherName() || previewMotherName() || 'Not assigned' }}
-                        </span>
-                    </div>
-                    @if (previewBloodGroup()) {
-                        <div class="flex items-center justify-between text-[11px]">
-                            <span class="text-text-muted font-bold">Blood Group:</span>
-                            <span class="font-black text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">{{ previewBloodGroup() }}</span>
-                        </div>
-                    }
-                </div>
-
-                <!-- Verification Stamp & Mock Barcode -->
-                <div class="pt-3 border-t border-border-primary/60 flex items-center justify-between">
-                    <div class="flex flex-col">
-                        <span class="text-[9px] text-text-muted uppercase tracking-widest font-black">Official Status</span>
-                        <span class="text-[10px] font-bold text-emerald-400">READY FOR REGISTRATION</span>
-                    </div>
-                    <div class="flex items-center gap-1 opacity-60">
-                        <div class="w-1 h-6 bg-text-primary rounded-full"></div>
-                        <div class="w-2 h-6 bg-text-primary rounded-full"></div>
-                        <div class="w-0.5 h-6 bg-text-primary rounded-full"></div>
-                        <div class="w-1.5 h-6 bg-text-primary rounded-full"></div>
-                        <div class="w-1 h-6 bg-text-primary rounded-full"></div>
-                    </div>
-                </div>
+                <!-- Embedded Reusable ID Card with Theme Customization -->
+                <app-student-id-card
+                    [studentName]="studentFullName()"
+                    [studentIdCode]="isEditMode && studentId ? ('STU-' + studentId.substring(0,8).toUpperCase()) : 'STU-2026-0042'"
+                    [studentDob]="previewDob()"
+                    [studentAddress]="previewAddress()"
+                    [studentPhotoUrl]="photoPreviewUrl()"
+                    [studentGender]="previewGender()"
+                    [studentClass]="selectedClassName()"
+                    [studentLevel]="selectedLevelName()"
+                    [studentBloodGroup]="previewBloodGroup()"
+                    [allowColorCustomization]="true"
+                    [showQrCode]="true"
+                    [showBarcode]="true"
+                    [showControls]="true">
+                </app-student-id-card>
             </div>
 
             <!-- Admission Readiness Checklist Card -->
@@ -776,6 +714,12 @@
             </div>
 
             <div class="flex items-center gap-3">
+                <a [routerLink]="['/students/admission-form']" [queryParams]="{ blank: true }"
+                   target="_blank"
+                   class="hidden sm:inline-flex px-4 py-2.5 bg-bg-tertiary hover:bg-bg-secondary border border-border-secondary text-text-secondary hover:text-text-primary text-xs font-bold rounded-xl transition-all shadow-sm items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                    <span>Print Form</span>
+                </a>
                 <a [routerLink]="isEditMode && studentId ? ['/students/details', studentId] : '/students'" 
                    class="px-6 py-2.5 bg-bg-tertiary hover:bg-bg-secondary border border-border-secondary text-text-secondary hover:text-text-primary text-xs font-bold rounded-xl transition-all shadow-sm">
                     Cancel

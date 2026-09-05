@@ -55,5 +55,18 @@ export const studentRoutes: Routes = [
     {
         path: ':studentId/report-card',
         loadComponent: () => import('./report-card/report-card.component').then(c => c.ReportCardComponent)
+    },
+    {
+        path: 'admission-form',
+        loadComponent: () => import('./admission-form/admission-form.component').then(c => c.AdmissionFormComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'TEACHER'] }
+    },
+    {
+        path: 'admission-form/:id',
+        loadComponent: () => import('./admission-form/admission-form.component').then(c => c.AdmissionFormComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'TEACHER'] }
     }
 ];
+

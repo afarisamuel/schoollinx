@@ -1,0 +1,61 @@
+@media print {
+  /* Hide the rest of the app shell (sidebar, topbar, buttons, action bars) */
+  :host {
+    display: block;
+    margin: 0;
+    padding: 0;
+    background: white !important;
+  }
+
+  body, html {
+    background: white !important;
+    color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 11pt !important;
+  }
+
+  /* Force background colors and exact border rendering */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 12mm 15mm 12mm 15mm;
+  }
+
+  #admission-printable-doc {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    background: white !important;
+    color: #111827 !important;
+  }
+
+  /* Prevent awkward page splits inside sections */
+  .grid, .border, .rounded-xl {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
+
+/* Animations for screen preview */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
