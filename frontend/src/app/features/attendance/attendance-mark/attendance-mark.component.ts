@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { AttendanceService } from '../../../core/infrastructure/attendance/attendance.service';
 import { TeacherPortalService } from '../../../core/infrastructure/teacher/teacher-portal.service';
 import { ClassService } from '../../../core/infrastructure/curriculum/class.service';
@@ -13,7 +14,7 @@ import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 @Component({
     selector: 'app-attendance-mark',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, RouterModule],
     templateUrl: './attendance-mark.component.html',
     styleUrl: './attendance-mark.component.css'
 })
@@ -35,8 +36,18 @@ export class AttendanceMarkComponent implements OnInit {
     isSaving = signal(false);
     isLoading = signal(false);
 
+    searchTerm = signal<string>('');
+    filterStatus = signal<'ALL' | AttendanceStatus>('ALL');
+    viewMode = signal<'grid' | 'table'>('grid');
+    studentRemarks = signal<Map<string, string>>(new Map());
+
     isAdmin = computed(() => {
         return this.authService.currentUserValue?.role === 'ADMIN' || this.authService.currentUserValue?.role === 'ECOPOWER_ADMIN';
+    });
+
+    selectedClassName = computed(() => {
+        const cls = this.classes().find(c => c.id === this.selectedClassId());
+        return cls ? cls.name : 'Selected Class';
     });
 
     presentCount = computed(() => {
@@ -52,10 +63,43 @@ export class AttendanceMarkComponent implements OnInit {
         let count = 0;
         const records = this.attendanceRecords();
         this.students().forEach(s => {
-            const st = records.get(s.id!) || 'Present';
-            if (st === 'Absent' || st === 'Tardy') count++;
+            if (records.get(s.id!) === 'Absent') count++;
         });
         return count;
+    });
+
+    tardyCount = computed(() => {
+        let count = 0;
+        const records = this.attendanceRecords();
+        this.students().forEach(s => {
+            if (records.get(s.id!) === 'Tardy') count++;
+        });
+        return count;
+    });
+
+    attendanceRate = computed(() => {
+        const total = this.students().length;
+        if (total === 0) return 100;
+        return Math.round((this.presentCount() / total) * 100);
+    });
+
+    filteredStudents = computed(() => {
+        const query = this.searchTerm().trim().toLowerCase();
+        const statusFilter = this.filterStatus();
+        const records = this.attendanceRecords();
+
+        return this.students().filter(s => {
+            const matchesSearch = !query || 
+                `${s.first_name} ${s.last_name}`.toLowerCase().includes(query) ||
+                (s.id && s.id.toLowerCase().includes(query)) ||
+                (s.enrollment_num && s.enrollment_num.toLowerCase().includes(query));
+
+            if (!matchesSearch) return false;
+
+            if (statusFilter === 'ALL') return true;
+            const currentStatus = records.get(s.id!) || 'Present';
+            return currentStatus === statusFilter;
+        });
     });
 
     ngOnInit() {
@@ -214,6 +258,65 @@ export class AttendanceMarkComponent implements OnInit {
         this.attendanceRecords.set(currentRecords);
     }
 
+    setToday() {
+        this.selectedDate.set(new Date().toISOString().split('T')[0]);
+        if (this.selectedClassId()) {
+            this.loadAttendanceForDate();
+        }
+    }
+
+    shiftDate(days: number) {
+        const current = new Date(this.selectedDate());
+        current.setDate(current.getDate() + days);
+        this.selectedDate.set(current.toISOString().split('T')[0]);
+        if (this.selectedClassId()) {
+            this.loadAttendanceForDate();
+        }
+    }
+
+    setFilter(status: 'ALL' | AttendanceStatus) {
+        this.filterStatus.set(status);
+    }
+
+    setViewMode(mode: 'grid' | 'table') {
+        this.viewMode.set(mode);
+    }
+
+    setRemark(studentId: string, remark: string) {
+        const remarks = new Map(this.studentRemarks());
+        remarks.set(studentId, remark);
+        this.studentRemarks.set(remarks);
+    }
+
+    getRemark(studentId: string): string {
+        return this.studentRemarks().get(studentId) || '';
+    }
+
+    exportCSV() {
+        const className = this.selectedClassName();
+        const date = this.selectedDate();
+        const records = this.attendanceRecords();
+        
+        let csv = `Student ID,Enrollment Number,Full Name,Attendance Status,Remarks\n`;
+        this.students().forEach(s => {
+            const status = records.get(s.id!) || 'Present';
+            const remark = this.getRemark(s.id!);
+            csv += `"${s.id || ''}","${s.enrollment_num || ''}","${s.first_name} ${s.last_name}","${status}","${remark}"\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Attendance_${className.replace(/\s+/g, '_')}_${date}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    printSheet() {
+        window.print();
+    }
+
     saveAttendance() {
         const classId = this.selectedClassId();
         const date = this.selectedDate();
@@ -228,17 +331,18 @@ export class AttendanceMarkComponent implements OnInit {
             student_id: student.id!,
             class_id: classId,
             date: isoDate,
-            status: this.getStatus(student.id!)
+            status: this.getStatus(student.id!),
+            remarks: this.getRemark(student.id!) || undefined
         }));
 
         this.attendanceService.markBulkAttendance(attendances).subscribe({
             next: () => {
                 this.isSaving.set(false);
-                this.dialog.alert('Attendance marked successfully!', 'Attendance Saved', 'success').subscribe();
+                this.dialog.alert('Attendance registry synchronized and saved successfully!', 'Attendance Saved', 'success').subscribe();
             },
             error: () => {
                 this.isSaving.set(false);
-                this.dialog.alert('Failed to mark attendance.', 'Save Failed', 'error').subscribe();
+                this.dialog.alert('Failed to mark attendance. Please check network connection and try again.', 'Save Failed', 'error').subscribe();
             }
         });
     }

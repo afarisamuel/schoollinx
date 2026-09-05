@@ -1,132 +1,408 @@
-<div class="space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-        <div>
-            <h1 class="text-2xl font-bold text-text-primary">Parent Newsletters</h1>
-            <p class="text-text-primary/60 mt-1">Generate and send automated weekly reports to parents.</p>
-        </div>
-        <div class="flex items-center gap-3">
-            <button (click)="showBuilder.set(!showBuilder())"
-                    class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-bg-tertiary border border-border-primary text-text-primary text-sm font-bold hover:bg-bg-secondary transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                Create Custom
-            </button>
-            <button (click)="generateWeekly()" [disabled]="isGenerating()"
-                    class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold shadow-lg shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all disabled:opacity-60 disabled:scale-100">
-                @if (isGenerating()) {
-                    <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Generating...
-                } @else {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                    Auto-Generate Weekly
-                }
-            </button>
+<div class="text-text-primary space-y-6 animate-fade-in pb-12">
+    <!-- Ambient Background Glow Decorators -->
+    <div class="relative">
+        <div class="absolute -top-10 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+        <div class="absolute top-4 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+
+        <!-- Executive Hero Header -->
+        <div class="bg-gradient-to-r from-bg-secondary/90 via-bg-secondary/70 to-bg-tertiary/60 backdrop-blur-xl border border-border-primary rounded-3xl p-6 lg:p-8 shadow-2xl relative overflow-hidden">
+            <!-- Subtle Top Lighting Cone -->
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"></div>
+
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div class="space-y-3">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                            <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+                            Parent Engagement & Weekly Telemetry
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <i class="fas fa-paper-plane text-[10px]"></i>
+                            {{ sentCount() }} Dispatched Digests
+                        </span>
+                    </div>
+
+                    <div>
+                        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white flex items-center gap-3">
+                            Parent <span class="bg-gradient-to-r from-indigo-400 via-blue-300 to-emerald-400 bg-clip-text text-transparent">Newsletters</span>
+                        </h1>
+                        <p class="text-text-muted text-sm sm:text-base max-w-2xl mt-1.5">
+                            Automate weekly student progress digests, publish administrative notices, and broadcast rich multi-media updates to parent portal accounts.
+                        </p>
+                    </div>
+
+                    <!-- Sub-Domain Quick Switcher -->
+                    <div class="flex flex-wrap items-center gap-2 pt-2">
+                        <a routerLink="/communications/newsletter" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 shadow-sm shadow-indigo-500/10">
+                            <i class="fas fa-newspaper text-indigo-400"></i> Parent Newsletters
+                        </a>
+                        <a routerLink="/communications" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-bg-tertiary/70 hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary transition-all">
+                            <i class="fas fa-tower-broadcast text-blue-400"></i> Communications Hub
+                        </a>
+                        <a routerLink="/communications/messages" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-bg-tertiary/70 hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary transition-all">
+                            <i class="fas fa-comments text-emerald-400"></i> Messaging Center
+                        </a>
+                        <a routerLink="/guardians" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-bg-tertiary/70 hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary transition-all">
+                            <i class="fas fa-users text-amber-400"></i> Parent Portal Directory
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Header Actions Cluster -->
+                <div class="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0">
+                    <button (click)="showBuilder.set(!showBuilder())" class="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-bg-tertiary/80 hover:bg-bg-secondary text-text-primary border border-border-primary text-xs font-bold transition-all shadow-sm active:scale-95">
+                        <i class="fas fa-pen-nib text-indigo-400"></i>
+                        <span>{{ showBuilder() ? 'Close Composer' : 'Custom Composer' }}</span>
+                    </button>
+
+                    <button (click)="generateWeekly()" [disabled]="isGenerating()" class="inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-500 hover:from-indigo-500 hover:to-blue-500 text-white text-sm font-bold shadow-lg shadow-indigo-500/25 border border-indigo-400/30 transition-all active:scale-95 disabled:opacity-60">
+                        @if (isGenerating()) {
+                            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            <span>Generating Digest...</span>
+                        } @else {
+                            <i class="fas fa-wand-magic-sparkles text-amber-300"></i>
+                            <span>Auto-Generate Weekly</span>
+                        }
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Custom Builder -->
+    <!-- Telemetry Metric Hub (4 Glassmorphic KPI Cards) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <!-- 1. Total Editions -->
+        <div class="bg-gradient-to-br from-bg-secondary/90 to-bg-tertiary/70 border border-border-primary hover:border-indigo-500/30 rounded-2xl p-5 shadow-lg transition-all relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-all"></div>
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shadow-sm">
+                    <i class="fas fa-newspaper text-lg"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                    Editions
+                </span>
+            </div>
+            <p class="text-xs font-bold text-text-muted uppercase tracking-wider">Total Publications</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <p class="text-2xl sm:text-3xl font-black text-white tracking-tight">{{ newsletters().length }}</p>
+                <span class="text-xs text-text-muted">digests</span>
+            </div>
+            <div class="mt-3 pt-3 border-t border-border-primary/50 flex items-center justify-between text-xs text-text-muted">
+                <span>Digest cadence:</span>
+                <span class="font-bold text-text-primary">Weekly Automated</span>
+            </div>
+        </div>
+
+        <!-- 2. Dispatched & Sent -->
+        <div class="bg-gradient-to-br from-bg-secondary/90 to-bg-tertiary/70 border border-border-primary hover:border-emerald-500/30 rounded-2xl p-5 shadow-lg transition-all relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-all"></div>
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-sm">
+                    <i class="fas fa-paper-plane text-lg"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Delivered
+                </span>
+            </div>
+            <p class="text-xs font-bold text-text-muted uppercase tracking-wider">Dispatched to Parents</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <p class="text-2xl sm:text-3xl font-black text-emerald-400 tracking-tight">{{ sentCount() }}</p>
+                <span class="text-xs text-text-muted">/ {{ newsletters().length }}</span>
+            </div>
+            <div class="w-full bg-bg-tertiary rounded-full h-1.5 mt-3 overflow-hidden border border-border-primary">
+                <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500" [style.width.%]="newsletters().length ? ((sentCount() / newsletters().length) * 100) : 0"></div>
+            </div>
+        </div>
+
+        <!-- 3. Draft Queue -->
+        <div class="bg-gradient-to-br from-bg-secondary/90 to-bg-tertiary/70 border border-border-primary hover:border-amber-500/30 rounded-2xl p-5 shadow-lg transition-all relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/10 transition-all"></div>
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shadow-sm">
+                    <i class="fas fa-file-pen text-lg"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    Queue
+                </span>
+            </div>
+            <p class="text-xs font-bold text-text-muted uppercase tracking-wider">Pending Drafts</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <p class="text-2xl sm:text-3xl font-black text-amber-400 tracking-tight">{{ draftCount() }}</p>
+                <span class="text-xs text-text-muted">awaiting dispatch</span>
+            </div>
+            <div class="mt-3 pt-3 border-t border-border-primary/50 flex items-center justify-between text-xs text-text-muted">
+                <span>Review state:</span>
+                <span class="font-bold text-amber-400">{{ draftCount() > 0 ? 'Drafts Ready' : 'Queue Empty' }}</span>
+            </div>
+        </div>
+
+        <!-- 4. Total Audience Reach -->
+        <div class="bg-gradient-to-br from-bg-secondary/90 to-bg-tertiary/70 border border-border-primary hover:border-blue-500/30 rounded-2xl p-5 shadow-lg transition-all relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-all"></div>
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shadow-sm">
+                    <i class="fas fa-envelope-open-text text-lg"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    Reach
+                </span>
+            </div>
+            <p class="text-xs font-bold text-text-muted uppercase tracking-wider">Total Deliveries</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <p class="text-2xl sm:text-3xl font-black text-blue-400 tracking-tight">{{ totalRecipients() }}</p>
+                <span class="text-xs text-text-muted">parent deliveries</span>
+            </div>
+            <div class="mt-3 pt-3 border-t border-border-primary/50 flex items-center justify-between text-xs text-text-muted">
+                <span>Guardian channels:</span>
+                <span class="font-bold text-text-primary">Email & Portal</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Newsletter Composer (Collapsible Deck) -->
     @if (showBuilder()) {
-    <div class="p-6 rounded-3xl bg-bg-secondary border border-blue-500/30 shadow-xl animate-fade-in flex flex-col gap-4">
-        <h2 class="text-lg font-black text-text-primary">New Custom Newsletter</h2>
-        
-        <div>
-            <label class="block text-xs font-bold uppercase tracking-widest text-text-muted mb-2">Subject Title</label>
-            <input type="text" [value]="newTitle()" (input)="newTitle.set($any($event.target).value)" 
-                   placeholder="e.g. End of Term Updates"
-                   class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 text-sm text-text-primary focus:outline-none focus:border-blue-500 transition-all">
-        </div>
+        <div class="bg-gradient-to-br from-bg-secondary/95 via-bg-secondary to-bg-tertiary/90 border border-indigo-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden animate-fade-in space-y-6">
+            <div class="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div>
-            <label class="block text-xs font-bold uppercase tracking-widest text-text-muted mb-2">Content</label>
-            <!-- Rich Text Toolbar -->
-            <div class="flex items-center gap-1 p-2 bg-bg-tertiary border border-border-primary border-b-0 rounded-t-xl">
-                <button (click)="execCommand('bold')" class="p-1.5 rounded hover:bg-bg-secondary text-text-primary font-bold" title="Bold">B</button>
-                <button (click)="execCommand('italic')" class="p-1.5 rounded hover:bg-bg-secondary text-text-primary italic font-serif" title="Italic">I</button>
-                <button (click)="execCommand('underline')" class="p-1.5 rounded hover:bg-bg-secondary text-text-primary underline" title="Underline">U</button>
-                <div class="w-px h-4 bg-border-primary mx-2"></div>
-                <button (click)="execCommand('insertUnorderedList')" class="p-1.5 rounded hover:bg-bg-secondary text-text-primary" title="Bullet List">•</button>
-                <button (click)="execCommand('insertOrderedList')" class="p-1.5 rounded hover:bg-bg-secondary text-text-primary" title="Numbered List">1.</button>
+            <div class="flex items-center justify-between border-b border-border-primary/60 pb-4">
+                <div>
+                    <h2 class="text-xl font-black text-white flex items-center gap-2.5">
+                        <i class="fas fa-feather-pointed text-indigo-400"></i>
+                        Compose Custom Parent Newsletter
+                    </h2>
+                    <p class="text-xs text-text-muted mt-1">
+                        Author personalized bulletins, term milestones, event notifications, and curricular announcements.
+                    </p>
+                </div>
+                <button (click)="showBuilder.set(false)" class="w-8 h-8 rounded-full bg-bg-tertiary hover:bg-bg-secondary border border-border-primary text-text-muted hover:text-text-primary flex items-center justify-center transition-all">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
             </div>
-            <!-- Editor Area -->
-            <div #editor contenteditable="true" (input)="newContent.set($any($event.target).innerHTML)"
-                 class="w-full min-h-[200px] bg-bg-tertiary border border-border-primary rounded-b-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-blue-500 transition-all prose prose-sm prose-invert max-w-none">
-            </div>
-        </div>
 
-        <div class="flex justify-end gap-3 mt-2">
-            <button (click)="showBuilder.set(false)" class="px-4 py-2 text-sm font-bold text-text-muted hover:text-text-primary">Cancel</button>
-            <button (click)="createCustom()" [disabled]="!newTitle().trim() || !newContent().trim() || isGenerating()"
-                    class="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-500 disabled:opacity-50 transition-all">
-                Save Draft
-            </button>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Subject Title -->
+                <div class="md:col-span-2 space-y-1.5">
+                    <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Newsletter Subject Title</label>
+                    <input type="text" [ngModel]="newTitle()" (ngModelChange)="newTitle.set($event)" 
+                           placeholder="e.g. End of Term Academic Excellence & Holiday Schedules"
+                           class="w-full bg-bg-tertiary/90 border border-border-primary focus:border-indigo-500/50 rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all shadow-inner">
+                </div>
+
+                <!-- Audience Selector -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Target Audience</label>
+                    <div class="relative">
+                        <select [ngModel]="selectedAudience()" (ngModelChange)="selectedAudience.set($event)" class="w-full appearance-none bg-bg-tertiary/90 border border-border-primary focus:border-indigo-500/50 rounded-2xl px-4 py-3 pl-10 text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all cursor-pointer shadow-inner">
+                            <option value="ALL">All Enrolled Guardians</option>
+                            <option value="BOARDING">Boarding Parents Only</option>
+                            <option value="DAY">Day Scholar Parents Only</option>
+                            <option value="PRIMARY">Primary Grade Parents</option>
+                            <option value="SECONDARY">Secondary / SHS Parents</option>
+                        </select>
+                        <i class="fas fa-users-viewfinder absolute left-3.5 top-1/2 -translate-y-1/2 text-indigo-400 text-xs pointer-events-none"></i>
+                        <i class="fas fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted text-[10px] pointer-events-none"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rich Content Editor Area -->
+            <div class="space-y-1.5">
+                <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Newsletter Body & Announcements</label>
+                <div class="border border-border-primary rounded-2xl overflow-hidden shadow-inner bg-bg-tertiary/90">
+                    <!-- Editor Toolbar -->
+                    <div class="flex items-center gap-1 p-2 bg-bg-secondary/90 border-b border-border-primary/80 text-xs flex-wrap">
+                        <button (click)="execCommand('bold')" class="px-2.5 py-1.5 rounded-lg hover:bg-bg-tertiary text-text-primary font-black transition-all" title="Bold">
+                            <i class="fas fa-bold"></i>
+                        </button>
+                        <button (click)="execCommand('italic')" class="px-2.5 py-1.5 rounded-lg hover:bg-bg-tertiary text-text-primary italic transition-all" title="Italic">
+                            <i class="fas fa-italic"></i>
+                        </button>
+                        <button (click)="execCommand('underline')" class="px-2.5 py-1.5 rounded-lg hover:bg-bg-tertiary text-text-primary underline transition-all" title="Underline">
+                            <i class="fas fa-underline"></i>
+                        </button>
+                        <div class="w-px h-4 bg-border-primary mx-1"></div>
+                        <button (click)="execCommand('insertUnorderedList')" class="px-2.5 py-1.5 rounded-lg hover:bg-bg-tertiary text-text-primary transition-all" title="Bullet List">
+                            <i class="fas fa-list-ul"></i>
+                        </button>
+                        <button (click)="execCommand('insertOrderedList')" class="px-2.5 py-1.5 rounded-lg hover:bg-bg-tertiary text-text-primary transition-all" title="Numbered List">
+                            <i class="fas fa-list-ol"></i>
+                        </button>
+                    </div>
+
+                    <!-- Contenteditable Surface -->
+                    <div #editor contenteditable="true" (input)="newContent.set($any($event.target).innerHTML)"
+                         placeholder="Write newsletter announcement text here..."
+                         class="w-full min-h-[220px] p-4 text-xs sm:text-sm text-text-primary focus:outline-none prose prose-invert max-w-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Composer Actions -->
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-border-primary/50">
+                <button (click)="showBuilder.set(false)" class="px-4 py-2.5 text-xs font-bold text-text-muted hover:text-text-primary transition-all">
+                    Cancel
+                </button>
+                <button (click)="createCustom()" [disabled]="!newTitle().trim() || !newContent().trim() || isGenerating()"
+                        class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black shadow-lg shadow-indigo-500/20 disabled:opacity-50 transition-all active:scale-95 flex items-center gap-2">
+                    <i class="fas fa-floppy-disk"></i>
+                    <span>Save Draft Edition</span>
+                </button>
+            </div>
         </div>
-    </div>
     }
 
-    <!-- Stats bar -->
-    <div class="grid grid-cols-3 gap-4">
-        <div class="p-4 rounded-2xl border border-border-primary text-center" style="background: var(--bg-secondary);">
-            <p class="text-2xl font-black text-text-primary">{{ newsletters().length }}</p>
-            <p class="text-xs font-bold uppercase tracking-widest text-text-primary/50 mt-1">Total</p>
-        </div>
-        <div class="p-4 rounded-2xl border border-border-primary text-center" style="background: var(--bg-secondary);">
-            <p class="text-2xl font-black text-emerald-400">{{ sentCount() }}</p>
-            <p class="text-xs font-bold uppercase tracking-widest text-text-primary/50 mt-1">Sent</p>
-        </div>
-        <div class="p-4 rounded-2xl border border-border-primary text-center" style="background: var(--bg-secondary);">
-            <p class="text-2xl font-black text-amber-400">{{ draftCount() }}</p>
-            <p class="text-xs font-bold uppercase tracking-widest text-text-primary/50 mt-1">Drafts</p>
+    <!-- Sticky Filter & Search Toolbar -->
+    <div class="sticky top-2 sm:top-4 z-30">
+        <div class="bg-bg-secondary/95 backdrop-blur-2xl border border-border-primary/80 rounded-3xl p-4 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+            <!-- Search Input -->
+            <div class="relative w-full sm:w-80">
+                <i class="fas fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
+                <input [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" type="text" placeholder="Search newsletters by title..." class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl pl-9 pr-8 py-2 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-inner">
+                @if (searchQuery()) {
+                    <button (click)="searchQuery.set('')" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary text-xs">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                }
+            </div>
+
+            <!-- Status Segment Chips -->
+            <div class="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+                <button (click)="setStatusFilter('ALL')" [class.bg-indigo-500]="statusFilter() === 'ALL'" [class.text-white]="statusFilter() === 'ALL'" [class.bg-bg-tertiary]="statusFilter() !== 'ALL'" [class.text-text-muted]="statusFilter() !== 'ALL'" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border border-border-primary">
+                    All Editions ({{ newsletters().length }})
+                </button>
+                <button (click)="setStatusFilter('SENT')" [class.bg-emerald-500]="statusFilter() === 'SENT'" [class.text-white]="statusFilter() === 'SENT'" [class.bg-bg-tertiary]="statusFilter() !== 'SENT'" [class.text-text-muted]="statusFilter() !== 'SENT'" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border border-border-primary flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    Dispatched ({{ sentCount() }})
+                </button>
+                <button (click)="setStatusFilter('DRAFT')" [class.bg-amber-500]="statusFilter() === 'DRAFT'" [class.text-white]="statusFilter() === 'DRAFT'" [class.bg-bg-tertiary]="statusFilter() !== 'DRAFT'" [class.text-text-muted]="statusFilter() !== 'DRAFT'" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border border-border-primary flex items-center gap-1.5">
+                    Drafts ({{ draftCount() }})
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Newsletter List -->
-    @if (isLoading()) {
-        <div class="h-64 flex items-center justify-center">
-            <div class="w-8 h-8 border-4 border-slate-300 border-t-slate-500 rounded-full animate-spin"></div>
-        </div>
-    } @else if (newsletters().length === 0) {
-        <div class="py-20 text-center">
-            <div class="w-16 h-16 mx-auto rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1"/></svg>
+    <!-- Newsletter Stream Cards Container -->
+    <div class="space-y-4">
+        @if (isLoading()) {
+            <div class="bg-bg-secondary border border-border-primary rounded-3xl p-16 flex flex-col items-center justify-center gap-4">
+                <div class="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
+                <p class="text-sm font-bold text-text-primary">Loading parent newsletters...</p>
+                <p class="text-xs text-text-muted">Synchronizing with communications registry</p>
             </div>
-            <h2 class="text-lg font-bold text-text-primary mb-2">No newsletters yet</h2>
-            <p class="text-text-primary/60">Click "Generate Weekly Report" to create your first newsletter.</p>
-        </div>
-    } @else {
-        <div class="space-y-3">
-            @for (n of newsletters(); track n.id) {
-                <div class="p-5 rounded-2xl border border-border-primary flex flex-col md:flex-row md:items-center gap-4" style="background: var(--bg-secondary);">
-                    <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h9"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/><path d="M19 16v6"/><path d="M16 19h6"/></svg>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex flex-wrap items-center gap-2 mb-1">
-                            <h3 class="text-sm font-bold text-text-primary truncate">{{ n.title }}</h3>
-                            <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border" [ngClass]="getStatusClasses(n.status)">
-                                {{ n.status }}
-                            </span>
+        } @else if (filteredNewsletters().length === 0) {
+            <div class="bg-bg-secondary border border-border-primary rounded-3xl p-16 text-center">
+                <div class="w-16 h-16 mx-auto rounded-3xl bg-bg-tertiary border border-border-primary flex items-center justify-center text-text-muted mb-4 shadow-inner">
+                    <i class="fas fa-envelope-open text-2xl text-indigo-400"></i>
+                </div>
+                <h3 class="text-lg font-bold text-text-primary mb-1">No Newsletters Found</h3>
+                <p class="text-xs sm:text-sm text-text-muted max-w-sm mx-auto">
+                    {{ searchQuery() ? 'No editions match your search query.' : 'Click "Auto-Generate Weekly" or "Custom Composer" to prepare your first newsletter edition.' }}
+                </p>
+            </div>
+        } @else {
+            @for (n of filteredNewsletters(); track n.id; let i = $index) {
+                <div class="group bg-gradient-to-r from-bg-secondary/95 via-bg-secondary/90 to-bg-tertiary/70 border border-border-primary hover:border-indigo-500/40 rounded-3xl p-5 sm:p-6 shadow-xl hover:shadow-2xl hover:shadow-indigo-500/5 transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-5 animate-fade-in" [style.animation-delay]="(i % 10) * 30 + 'ms'">
+                    
+                    <!-- Left: Newsletter Identity -->
+                    <div class="flex items-start gap-4 min-w-0">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 shadow-sm shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                            <i class="fas fa-envelope-open-text text-base"></i>
                         </div>
-                        <div class="flex flex-wrap gap-4 text-xs text-text-primary/50">
-                            <span>Created {{ n.created_at | date:'mediumDate' }}</span>
-                            @if (n.status === 'SENT') {
-                                <span class="text-emerald-400">· Sent to {{ n.sent_count }} parents on {{ n.sent_at | date:'medium' }}</span>
-                            }
+
+                        <div class="min-w-0 space-y-1">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h3 class="text-sm sm:text-base font-extrabold text-text-primary group-hover:text-indigo-300 transition-colors truncate">
+                                    {{ n.title }}
+                                </h3>
+                                
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm" [ngClass]="getStatusClasses(n.status)">
+                                    <span class="w-1.5 h-1.5 rounded-full inline-block mr-1" [ngClass]="n.status === 'SENT' ? 'bg-emerald-400' : 'bg-amber-400'"></span>
+                                    {{ n.status }}
+                                </span>
+
+                                @if (n.audience && n.audience !== 'ALL') {
+                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-bg-tertiary text-text-muted border border-border-primary">
+                                        {{ n.audience }}
+                                    </span>
+                                }
+                            </div>
+
+                            <div class="flex flex-wrap items-center gap-3 text-xs text-text-muted">
+                                <span><i class="far fa-calendar mr-1"></i> Created {{ n.created_at | date:'mediumDate' }}</span>
+                                @if (n.status === 'SENT') {
+                                    <span class="text-emerald-400 font-semibold">
+                                        <i class="fas fa-check-circle mr-1"></i> Sent to {{ n.sent_count || 0 }} parents on {{ n.sent_at | date:'medium' }}
+                                    </span>
+                                }
+                            </div>
                         </div>
                     </div>
-                    @if (n.status !== 'SENT') {
-                        <button (click)="sendNewsletter(n.id)" [disabled]="sendingId() === n.id"
-                                class="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-400 text-sm font-bold border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors disabled:opacity-50">
-                            @if (sendingId() === n.id) {
-                                <div class="w-3.5 h-3.5 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin"></div>
-                                Sending...
-                            } @else {
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m22 2-7 20-4-9-9-4 20-7z"/><path d="M22 2 11 13"/></svg>
-                                Send to Parents
-                            }
+
+                    <!-- Right: Fast Action Buttons -->
+                    <div class="flex items-center justify-end gap-2.5 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-border-primary/50">
+                        <button (click)="openPreview(n)" class="px-3.5 py-2 rounded-xl bg-bg-tertiary hover:bg-bg-secondary border border-border-primary text-text-secondary hover:text-text-primary text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 active:scale-95">
+                            <i class="fas fa-eye text-indigo-400 text-xs"></i>
+                            <span>Preview</span>
+                        </button>
+
+                        @if (n.status !== 'SENT') {
+                            <button (click)="sendNewsletter(n.id)" [disabled]="sendingId() === n.id"
+                                    class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white text-xs font-black shadow-lg shadow-emerald-500/25 border border-emerald-400/30 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-50">
+                                @if (sendingId() === n.id) {
+                                    <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    <span>Sending...</span>
+                                } @else {
+                                    <i class="fas fa-paper-plane text-xs"></i>
+                                    <span>Send to Parents</span>
+                                }
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<!-- Newsletter Preview Modal (Fixed Viewport Centered) -->
+@if (selectedNewsletterForPreview()) {
+    <div class="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in" (click)="closePreview()">
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative my-auto overflow-hidden animate-scale-up" (click)="$event.stopPropagation()">
+            <!-- Ambient Modal Glow -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-3xl rounded-full pointer-events-none"></div>
+
+            <div class="flex items-center justify-between pb-4 border-b border-border-primary">
+                <div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-indigo-400">Newsletter Inspection</span>
+                    <h2 class="text-lg sm:text-xl font-black text-white mt-0.5">
+                        {{ selectedNewsletterForPreview()!.title }}
+                    </h2>
+                </div>
+                <button (click)="closePreview()" class="w-8 h-8 rounded-full bg-bg-tertiary hover:bg-bg-secondary border border-border-primary text-text-muted hover:text-text-primary flex items-center justify-center transition-all">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+
+            <div class="my-5 p-4 rounded-2xl bg-bg-tertiary/60 border border-border-primary text-xs sm:text-sm text-text-primary max-h-[400px] overflow-y-auto custom-scrollbar prose prose-invert max-w-none">
+                <div [innerHTML]="selectedNewsletterForPreview()!.content || 'Weekly summary digest containing class attendance, curricular highlights, and grade telemetry.'"></div>
+            </div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-border-primary">
+                <div class="text-xs text-text-muted">
+                    <span>Status: <strong class="text-text-primary">{{ selectedNewsletterForPreview()!.status }}</strong></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button (click)="closePreview()" class="px-4 py-2 bg-bg-tertiary hover:bg-bg-secondary text-text-primary font-bold text-xs rounded-xl border border-border-primary transition-all">
+                        Close Preview
+                    </button>
+                    @if (selectedNewsletterForPreview()!.status !== 'SENT') {
+                        <button (click)="sendNewsletter(selectedNewsletterForPreview()!.id); closePreview()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition-all">
+                            <i class="fas fa-paper-plane mr-1.5"></i> Send to Parents
                         </button>
                     }
                 </div>
-            }
+            </div>
         </div>
-    }
-</div>
+    </div>
+}

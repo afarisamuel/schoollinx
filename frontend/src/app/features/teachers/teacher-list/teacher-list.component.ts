@@ -26,17 +26,26 @@ export class TeacherListComponent implements OnInit {
     // Search & Filter
     searchQuery = signal<string>('');
     selectedSubject = signal<string>('all');
+    selectedPortalStatus = signal<'all' | 'active' | 'pending' | 'fee_collectors'>('all');
+    viewMode = signal<'table' | 'grid'>('table');
     subjects = signal<Subject[]>([]);
 
     activePortalsCount = computed(() => this.teachers().filter(t => t.user_id).length);
+    portalProvisionRate = computed(() => {
+        const total = this.teachers().length;
+        if (total === 0) return 0;
+        return Math.round((this.activePortalsCount() / total) * 100);
+    });
+    feeCollectorsCount = computed(() => this.teachers().filter(t => t.can_collect_fees).length);
     totalDepartments = computed(() => this.subjects().length);
 
     hasSelection = computed(() => this.selectedIds().size > 0);
     
-    // Filtered list based on search and subject
+    // Filtered list based on search, subject, and portal status
     filteredTeachers = computed(() => {
         const query = this.searchQuery().toLowerCase().trim();
         const subjectId = this.selectedSubject();
+        const portalStatus = this.selectedPortalStatus();
         const list = this.teachers();
         
         let filtered = list;
@@ -44,12 +53,21 @@ export class TeacherListComponent implements OnInit {
         if (subjectId !== 'all') {
             filtered = filtered.filter(t => t.subjects?.some(s => s.id === subjectId));
         }
+
+        if (portalStatus === 'active') {
+            filtered = filtered.filter(t => !!t.user_id);
+        } else if (portalStatus === 'pending') {
+            filtered = filtered.filter(t => !t.user_id);
+        } else if (portalStatus === 'fee_collectors') {
+            filtered = filtered.filter(t => !!t.can_collect_fees);
+        }
         
         if (query) {
             filtered = filtered.filter(t => 
                 (t.first_name + ' ' + t.last_name).toLowerCase().includes(query) ||
                 t.email?.toLowerCase().includes(query) ||
-                t.phone_number?.includes(query)
+                t.phone_number?.includes(query) ||
+                (t.id && t.id.toLowerCase().includes(query))
             );
         }
         
@@ -106,7 +124,7 @@ export class TeacherListComponent implements OnInit {
         this.resetPagination();
     }
 
-    private resetPagination() {
+    resetPagination() {
         const filtered = this.filteredTeachers();
         this.updatePaginationForList(filtered);
     }
@@ -226,6 +244,38 @@ export class TeacherListComponent implements OnInit {
 
     closeDocModal() {
         this.selectedTeacherForDocs.set(null);
+    }
+
+    setPortalFilter(status: 'all' | 'active' | 'pending' | 'fee_collectors') {
+        this.selectedPortalStatus.set(status);
+        this.resetPagination();
+    }
+
+    setViewMode(mode: 'table' | 'grid') {
+        this.viewMode.set(mode);
+    }
+
+    exportCSV() {
+        const teachers = this.filteredTeachers();
+        let csv = `Staff ID,Full Name,Email,Phone,Specialization Subjects,Portal Status,Fee Collection Privileged\n`;
+        teachers.forEach(t => {
+            const subjects = this.formatSubjects(t).replace(/"/g, '""');
+            const portalStatus = t.user_id ? 'Active' : 'Pending';
+            const feeCol = t.can_collect_fees ? 'Yes' : 'No';
+            csv += `"${t.id || ''}","${t.first_name} ${t.last_name}","${t.email || ''}","${t.phone_number || ''}","${subjects}","${portalStatus}","${feeCol}"\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Faculty_Roster_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    printRoster() {
+        window.print();
     }
 
     formatSubjects(teacher: Teacher): string {

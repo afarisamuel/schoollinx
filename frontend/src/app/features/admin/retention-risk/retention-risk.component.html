@@ -1,139 +1,335 @@
-<div class="min-h-screen px-6 py-10 md:px-12 max-w-[1600px] mx-auto">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
-        <div>
-            <a routerLink="/executive-dashboard" class="flex items-center gap-2 text-text-muted hover:text-text-primary text-xs font-bold uppercase tracking-widest mb-4 transition-colors w-fit">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-                Back to Executive Dashboard
-            </a>
-            <div class="flex items-center gap-3 mb-2">
-                <span class="px-3 py-1 bg-red-500/10 text-red-400 border border-red-400/20 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">Action Required</span>
-            </div>
-            <h1 class="text-2xl md:text-4xl font-black text-text-primary tracking-tighter">
-                Retention Risk <span class="text-blue-400">Matrix</span>
-            </h1>
-            <p class="text-text-muted text-sm mt-2 max-w-xl">Predictive analysis of students at risk of disengagement or dropout.</p>
-        </div>
-        <button (click)="loadData()" class="flex items-center gap-2 px-5 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm font-bold text-text-primary hover:bg-bg-secondary transition-all">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
-            Refresh Analysis
+<div class="min-h-screen bg-bg-primary text-text-primary font-sans relative overflow-x-hidden pb-16">
+  
+  <!-- Ambient Gradient Light Cones -->
+  <div class="absolute inset-x-0 top-0 h-[600px] overflow-hidden pointer-events-none z-0">
+    <div class="absolute -top-32 left-1/3 w-[600px] h-[600px] rounded-full blur-[140px] opacity-20 dark:opacity-15 bg-rose-600 pointer-events-none"></div>
+    <div class="absolute top-20 right-1/4 w-[500px] h-[500px] rounded-full blur-[120px] opacity-15 dark:opacity-10 bg-amber-500 pointer-events-none"></div>
+  </div>
+
+  <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 pt-6 sm:pt-8 relative z-10 space-y-6">
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- BREADCRUMBS & TOP ACTIONS                                          -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-2 text-xs font-semibold text-text-muted">
+        <a routerLink="/dashboard" class="hover:text-text-primary transition-colors flex items-center gap-1.5 cursor-pointer">
+          <i class="fas fa-arrow-left text-[11px]"></i>
+          <span>Dashboard</span>
+        </a>
+        <span class="text-slate-300 dark:text-border-primary">/</span>
+        <span class="text-rose-600 dark:text-rose-400 font-bold uppercase tracking-wider text-[11px]">Predictive Analytics</span>
+        <span class="text-slate-300 dark:text-border-primary">/</span>
+        <span class="text-text-primary font-bold">Retention Risk Matrix</span>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2.5">
+        <button (click)="exportCSV()"
+          class="px-4 py-2.5 rounded-xl bg-white dark:bg-bg-secondary border border-slate-200 dark:border-border-primary text-xs font-bold text-slate-800 dark:text-text-primary hover:bg-slate-50 dark:hover:bg-bg-tertiary flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer">
+          <i class="fas fa-file-csv text-emerald-600 text-sm"></i>
+          <span>Export Matrix CSV</span>
         </button>
+
+        <button (click)="dispatchParentInterventions()" [disabled]="isDispatching()"
+          class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white text-xs font-bold shadow-md shadow-rose-600/20 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50">
+          <i class="fas fa-paper-plane text-xs"></i>
+          <span>{{ isDispatching() ? 'Dispatching...' : 'Broadcast Intervention' }}</span>
+        </button>
+
+        <button (click)="loadData()"
+          class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-bg-tertiary dark:hover:bg-bg-tertiary/80 border border-slate-200/80 dark:border-border-primary text-xs font-bold text-slate-800 dark:text-text-primary flex items-center gap-1.5 transition-colors cursor-pointer">
+          <i class="fas fa-arrows-rotate text-xs" [class.animate-spin]="isLoading()"></i>
+          <span>Refresh Analysis</span>
+        </button>
+      </div>
     </div>
 
-    @if (isLoading()) {
-    <div class="flex flex-col items-center justify-center py-32 bg-bg-tertiary border border-border-primary rounded-3xl">
-        <div class="w-12 h-12 border-4 border-red-500/20 border-t-red-500 rounded-full animate-spin mb-4"></div>
-        <p class="text-text-muted font-medium">Running retention analysis...</p>
-    </div>
-    } @else {
-
-    <!-- Summary KPIs -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div class="bg-bg-tertiary border border-border-primary rounded-2xl p-5">
-            <p class="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Total Monitored</p>
-            <p class="text-2xl font-black text-text-primary">{{ risks().length }}</p>
+    <!-- Notification Toast Banner -->
+    @if (actionMessage()) {
+      <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center justify-between gap-3 animate-fade-in">
+        <div class="flex items-center gap-2">
+          <i class="fas fa-circle-check text-sm"></i>
+          <span>{{ actionMessage() }}</span>
         </div>
-        <div class="bg-bg-tertiary border border-red-500/20 rounded-2xl p-5">
-            <p class="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">High Risk</p>
-            <p class="text-2xl font-black text-red-400">{{ highCount() }}</p>
-        </div>
-        <div class="bg-bg-tertiary border border-amber-500/20 rounded-2xl p-5">
-            <p class="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-1">Medium Risk</p>
-            <p class="text-2xl font-black text-amber-400">{{ mediumCount() }}</p>
-        </div>
-        <div class="bg-bg-tertiary border border-emerald-500/20 rounded-2xl p-5">
-            <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Low Risk</p>
-            <p class="text-2xl font-black text-emerald-400">{{ lowCount() }}</p>
-        </div>
-    </div>
-
-    <!-- Filter Tabs -->
-    <div class="flex flex-wrap gap-2 mb-6">
-        <button (click)="setFilter('all')"
-            class="px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
-            [class]="filterLevel() === 'all' ? 'bg-text-primary text-bg-primary' : 'bg-bg-tertiary border border-border-primary text-text-muted hover:text-text-primary'">
-            All ({{ risks().length }})
+        <button (click)="actionMessage.set('')" class="text-emerald-500 hover:text-emerald-700 cursor-pointer">
+          <i class="fas fa-times text-xs"></i>
         </button>
-        <button (click)="setFilter('high')"
-            class="px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
-            [class]="filterLevel() === 'high' ? 'bg-red-500 text-white' : 'bg-bg-tertiary border border-border-primary text-text-muted hover:text-red-400'">
-            High Risk ({{ highCount() }})
-        </button>
-        <button (click)="setFilter('medium')"
-            class="px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
-            [class]="filterLevel() === 'medium' ? 'bg-amber-500 text-white' : 'bg-bg-tertiary border border-border-primary text-text-muted hover:text-amber-400'">
-            Medium Risk ({{ mediumCount() }})
-        </button>
-        <button (click)="setFilter('low')"
-            class="px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
-            [class]="filterLevel() === 'low' ? 'bg-emerald-500 text-white' : 'bg-bg-tertiary border border-border-primary text-text-muted hover:text-emerald-400'">
-            Low Risk ({{ lowCount() }})
-        </button>
-    </div>
-
-    <!-- Risk Matrix Table -->
-    <div class="bg-bg-tertiary border border-border-primary rounded-3xl overflow-hidden">
-        @if (filteredRisks().length > 0) {
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
-                <thead>
-                    <tr class="border-b border-border-primary">
-                        <th class="px-8 py-5 text-[10px] font-black text-text-muted uppercase tracking-widest">Student</th>
-                        <th class="px-8 py-5 text-[10px] font-black text-text-muted uppercase tracking-widest">Risk Level</th>
-                        <th class="px-8 py-5 text-[10px] font-black text-text-muted uppercase tracking-widest">Risk Score</th>
-                        <th class="px-8 py-5 text-[10px] font-black text-text-muted uppercase tracking-widest">Primary Factors</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-border-primary">
-                    @for (risk of filteredRisks(); track risk.student_id) {
-                    <tr class="group hover:bg-bg-secondary transition-colors">
-                        <td class="px-8 py-5">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm text-white"
-                                     [class]="risk.risk_score > 0.7 ? 'bg-red-500' : risk.risk_score > 0.4 ? 'bg-amber-500' : 'bg-emerald-500'">
-                                    {{ risk.student_name.charAt(0) }}
-                                </div>
-                                <span class="font-bold text-text-primary">{{ risk.student_name }}</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5">
-                            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest"
-                                  [class]="risk.risk_score > 0.7 ? 'bg-red-500/10 text-red-400 border border-red-500/20' : risk.risk_score > 0.4 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'">
-                                <span class="w-1.5 h-1.5 rounded-full animate-pulse"
-                                      [class]="risk.risk_score > 0.7 ? 'bg-red-400' : risk.risk_score > 0.4 ? 'bg-amber-400' : 'bg-emerald-400'"></span>
-                                {{ getRiskLabel(risk.risk_score) }}
-                            </span>
-                        </td>
-                        <td class="px-8 py-5">
-                            <div class="flex items-center gap-3">
-                                <div class="w-24 h-2 bg-bg-secondary rounded-full overflow-hidden">
-                                    <div class="h-full rounded-full transition-all duration-1000"
-                                         [style.width.%]="risk.risk_score * 100"
-                                         [class]="risk.risk_score > 0.7 ? 'bg-red-500' : risk.risk_score > 0.4 ? 'bg-amber-500' : 'bg-emerald-500'"></div>
-                                </div>
-                                <span class="text-sm font-bold text-text-secondary">{{ risk.risk_score | percent:'1.0-0' }}</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5">
-                            <div class="flex flex-wrap gap-2">
-                                @for (factor of risk.primary_factors; track factor) {
-                                <span class="px-2 py-0.5 bg-bg-secondary border border-border-primary rounded text-[10px] text-text-secondary font-medium">{{ factor }}</span>
-                                }
-                            </div>
-                        </td>
-                    </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-        } @else {
-        <div class="flex flex-col items-center justify-center py-24 text-text-muted">
-            <svg class="mb-4 opacity-20" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
-            <p class="font-bold text-lg">Strategic Equilibrium</p>
-            <p class="text-sm mt-1">No retention risks detected for the selected filter.</p>
-        </div>
-        }
-    </div>
-
+      </div>
     }
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- HERO EXECUTIVE BANNER                                              -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="relative overflow-hidden rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-white/95 via-slate-50/90 to-rose-50/30 dark:from-bg-secondary/95 dark:via-bg-secondary/80 dark:to-rose-950/20 border border-slate-200/90 dark:border-border-primary shadow-xl backdrop-blur-xl">
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div class="space-y-2 max-w-3xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+            <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+            <span>Early Warning Detection Engine</span>
+          </div>
+
+          <h1 class="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+            Retention Risk <span class="text-rose-600 dark:text-rose-400">Intelligence Matrix</span>
+          </h1>
+
+          <p class="text-xs sm:text-sm font-medium text-slate-600 dark:text-text-muted leading-relaxed">
+            Predictive machine-learning synthesis analyzing chronic absenteeism, assessment drop-offs, conduct flags, and tuition arrears to proactively prevent student disengagement.
+          </p>
+        </div>
+
+        <div class="shrink-0 flex items-center gap-4 bg-white/80 dark:bg-bg-tertiary/60 p-4 rounded-2xl border border-slate-200/80 dark:border-border-primary/80 backdrop-blur-md">
+          <div class="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl font-bold">
+            <i class="fas fa-triangle-exclamation"></i>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-wider text-text-muted">Mean Risk Index</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white">{{ averageRisk() }}%</p>
+            <p class="text-[10px] font-medium text-amber-600 dark:text-amber-400">Target: &lt; 25%</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- TELEMETRY KPI CARDS                                                -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <!-- Total Monitored -->
+      <div class="p-5 rounded-3xl bg-white/90 dark:bg-bg-secondary/80 border border-slate-200/90 dark:border-border-primary shadow-sm hover:shadow-md transition-all">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Monitored</span>
+          <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs">
+            <i class="fas fa-users-viewfinder"></i>
+          </div>
+        </div>
+        <p class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{{ totalCount() }}</p>
+        <p class="text-[10px] font-semibold text-text-muted mt-1">100% Student Roster Tracked</p>
+      </div>
+
+      <!-- Critical High Risk -->
+      <div class="p-5 rounded-3xl bg-white/90 dark:bg-bg-secondary/80 border border-rose-200/80 dark:border-rose-900/40 shadow-sm hover:shadow-md transition-all">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Critical High Risk</span>
+          <div class="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xs">
+            <i class="fas fa-bell"></i>
+          </div>
+        </div>
+        <p class="text-2xl sm:text-3xl font-black text-rose-600 dark:text-rose-400">{{ highCount() }}</p>
+        <p class="text-[10px] font-semibold text-rose-500 mt-1">Immediate Intervention Needed</p>
+      </div>
+
+      <!-- Medium Watchlist -->
+      <div class="p-5 rounded-3xl bg-white/90 dark:bg-bg-secondary/80 border border-amber-200/80 dark:border-amber-900/40 shadow-sm hover:shadow-md transition-all">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Medium Watchlist</span>
+          <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs">
+            <i class="fas fa-eye"></i>
+          </div>
+        </div>
+        <p class="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">{{ mediumCount() }}</p>
+        <p class="text-[10px] font-semibold text-amber-500 mt-1">Monitor Academic Counseling</p>
+      </div>
+
+      <!-- Stable / Low Risk -->
+      <div class="p-5 rounded-3xl bg-white/90 dark:bg-bg-secondary/80 border border-emerald-200/80 dark:border-emerald-900/40 shadow-sm hover:shadow-md transition-all">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Optimal Standing</span>
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs">
+            <i class="fas fa-circle-check"></i>
+          </div>
+        </div>
+        <p class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">{{ lowCount() }}</p>
+        <p class="text-[10px] font-semibold text-emerald-500 mt-1">Healthy Attendance & Progress</p>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- SEARCH, FILTER TABS & SORT CONTROLS                                -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 rounded-3xl bg-white/80 dark:bg-bg-secondary/70 border border-slate-200/80 dark:border-border-primary shadow-sm backdrop-blur-md">
+      
+      <!-- Filter Level Tabs -->
+      <div class="flex flex-wrap items-center gap-1.5">
+        <button (click)="setFilter('all')"
+          class="px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer"
+          [ngClass]="filterLevel() === 'all'
+            ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
+            : 'bg-slate-100 dark:bg-bg-tertiary text-slate-700 dark:text-slate-300 hover:bg-slate-200'">
+          All Scholars ({{ totalCount() }})
+        </button>
+
+        <button (click)="setFilter('high')"
+          class="px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+          [ngClass]="filterLevel() === 'high'
+            ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20'
+            : 'bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/40 hover:bg-rose-100'">
+          <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+          <span>High Risk ({{ highCount() }})</span>
+        </button>
+
+        <button (click)="setFilter('medium')"
+          class="px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+          [ngClass]="filterLevel() === 'medium'
+            ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20'
+            : 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/40 hover:bg-amber-100'">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+          <span>Medium Risk ({{ mediumCount() }})</span>
+        </button>
+
+        <button (click)="setFilter('low')"
+          class="px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+          [ngClass]="filterLevel() === 'low'
+            ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+            : 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/40 hover:bg-emerald-100'">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          <span>Low Risk ({{ lowCount() }})</span>
+        </button>
+      </div>
+
+      <!-- Search Input + Sort Dropdown -->
+      <div class="flex items-center gap-2.5">
+        <div class="relative flex-1 sm:w-64">
+          <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+          <input
+            type="text"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            placeholder="Search scholar or risk factor..."
+            class="w-full pl-9 pr-8 py-2 rounded-2xl bg-white dark:bg-bg-tertiary border border-slate-200 dark:border-border-primary text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500"
+          />
+          @if (searchQuery()) {
+            <button (click)="searchQuery.set('')"
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs">
+              <i class="fas fa-times"></i>
+            </button>
+          }
+        </div>
+
+        <select [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)"
+          class="px-3 py-2 rounded-2xl bg-white dark:bg-bg-tertiary border border-slate-200 dark:border-border-primary text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500 cursor-pointer">
+          <option value="score_desc">Sort: Risk Score (High to Low)</option>
+          <option value="score_asc">Sort: Risk Score (Low to High)</option>
+          <option value="name">Sort: Scholar Name (A-Z)</option>
+        </select>
+      </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- RISK MATRIX DATA STUDIO TABLE                                      -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <div class="rounded-3xl bg-white/95 dark:bg-bg-secondary/85 border border-slate-200/90 dark:border-border-primary shadow-xl overflow-hidden backdrop-blur-xl">
+      
+      @if (isLoading()) {
+        <div class="p-16 text-center space-y-4">
+          <div class="w-12 h-12 border-4 border-rose-500/20 border-t-rose-600 rounded-full animate-spin mx-auto"></div>
+          <p class="text-xs font-bold uppercase tracking-wider text-text-muted">Aggregating predictive risk telemetry...</p>
+        </div>
+      } @else if (filteredRisks().length > 0) {
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-200 dark:border-border-primary/80 bg-slate-50/70 dark:bg-bg-tertiary/40">
+                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted">Scholar</th>
+                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted">Risk Classification</th>
+                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted">Risk Index</th>
+                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted">Primary Risk Drivers</th>
+                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-border-primary/60 text-xs font-medium">
+              @for (risk of filteredRisks(); track risk.student_id) {
+                <tr class="group hover:bg-slate-50/80 dark:hover:bg-bg-tertiary/40 transition-colors">
+                  <!-- Scholar Identity -->
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xs text-white shadow-sm shrink-0"
+                        [ngClass]="risk.risk_score > 0.7 ? 'bg-gradient-to-br from-rose-500 to-red-600 shadow-rose-500/20' : risk.risk_score > 0.4 ? 'bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/20' : 'bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/20'">
+                        {{ getInitials(risk.student_name) }}
+                      </div>
+                      <div>
+                        <a [routerLink]="['/students/details', risk.student_id]"
+                          class="font-bold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                          {{ risk.student_name }}
+                        </a>
+                        <p class="text-[10px] font-mono text-text-muted mt-0.5">
+                          ID: {{ risk.student_id }}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Risk Classification Badge -->
+                  <td class="px-6 py-4">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border"
+                      [ngClass]="risk.risk_score > 0.7
+                        ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+                        : risk.risk_score > 0.4
+                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                        : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'">
+                      <span class="w-1.5 h-1.5 rounded-full"
+                        [ngClass]="risk.risk_score > 0.7 ? 'bg-rose-500 animate-pulse' : risk.risk_score > 0.4 ? 'bg-amber-500' : 'bg-emerald-500'"></span>
+                      <span>{{ getRiskLabel(risk.risk_score) }} Risk</span>
+                    </span>
+                  </td>
+
+                  <!-- Risk Index Progress Bar -->
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-28 sm:w-36 h-2.5 bg-slate-100 dark:bg-bg-tertiary rounded-full overflow-hidden p-0.5 border border-slate-200/60 dark:border-border-primary/40">
+                        <div class="h-full rounded-full transition-all duration-700"
+                          [style.width.%]="risk.risk_score * 100"
+                          [ngClass]="risk.risk_score > 0.7 ? 'bg-rose-500' : risk.risk_score > 0.4 ? 'bg-amber-500' : 'bg-emerald-500'"></div>
+                      </div>
+                      <span class="font-mono font-black text-slate-800 dark:text-slate-200">
+                        {{ risk.risk_score | percent:'1.0-0' }}
+                      </span>
+                    </div>
+                  </td>
+
+                  <!-- Primary Risk Drivers -->
+                  <td class="px-6 py-4">
+                    <div class="flex flex-wrap gap-1.5">
+                      @for (factor of risk.primary_factors; track factor) {
+                        <span class="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-bg-tertiary text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-border-primary/60 text-[10px] font-bold flex items-center gap-1">
+                          <i class="fas fa-triangle-exclamation text-amber-500 text-[9px]"></i>
+                          <span>{{ factor }}</span>
+                        </span>
+                      } @empty {
+                        <span class="text-text-muted text-[11px]">No adverse factors flagged</span>
+                      }
+                    </div>
+                  </td>
+
+                  <!-- Action Buttons -->
+                  <td class="px-6 py-4 text-right">
+                    <a [routerLink]="['/students/details', risk.student_id]"
+                      class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-blue-50 dark:bg-bg-tertiary dark:hover:bg-blue-950/40 text-slate-700 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 font-bold text-xs inline-flex items-center gap-1 transition-colors cursor-pointer">
+                      <span>Dossier</span>
+                      <i class="fas fa-arrow-right text-[10px]"></i>
+                    </a>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <!-- Zero Matching Results -->
+        <div class="p-16 text-center space-y-3">
+          <div class="w-16 h-16 rounded-3xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto text-2xl">
+            <i class="fas fa-shield-check"></i>
+          </div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">Optimal Retention Equilibrium</h3>
+          <p class="text-xs text-text-muted max-w-sm mx-auto">No scholars detected matching the specified filter criteria.</p>
+          <button (click)="setFilter('all'); searchQuery.set('')"
+            class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/20 cursor-pointer transition-colors">
+            Reset Filters
+          </button>
+        </div>
+      }
+
+    </div>
+
+  </div>
 </div>

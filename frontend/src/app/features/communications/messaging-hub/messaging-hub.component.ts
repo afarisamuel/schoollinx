@@ -4,10 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { MessagingService, Conversation, Message } from '../../../core/infrastructure/communications/messaging.service';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 
+import { RouterLink } from '@angular/router';
+
 @Component({
     selector: 'app-messaging-hub',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, RouterLink],
     templateUrl: './messaging-hub.component.html',
     styleUrl: './messaging-hub.component.css'
 })
@@ -25,8 +27,28 @@ export class MessagingHubComponent implements OnInit, AfterViewChecked {
     isLoading = signal(false);
     newRecipientId = signal('');
     showNewConv = signal(false);
+    searchQuery = signal('');
+
+    quickReplies = [
+        'Thank you for reaching out. We are looking into this.',
+        'The attendance records have been verified.',
+        'Please check the student grade report in the portal.',
+        'We have scheduled a meeting regarding this matter.',
+        'Fee receipt has been generated and dispatched.'
+    ];
 
     currentUserId = computed(() => this.authService.currentUserValue?.id ?? '');
+
+    filteredConversations = computed(() => {
+        const query = this.searchQuery().toLowerCase().trim();
+        if (!query) return this.conversations();
+
+        return this.conversations().filter(conv => {
+            const participant = this.getOtherParticipant(conv).toLowerCase();
+            const id = conv.id.toLowerCase();
+            return participant.includes(query) || id.includes(query);
+        });
+    });
 
     ngOnInit() {
         this.loadConversations();
@@ -108,6 +130,10 @@ export class MessagingHubComponent implements OnInit, AfterViewChecked {
 
     getInitial(id: string): string {
         return id ? id.charAt(0).toUpperCase() : '?';
+    }
+
+    useQuickReply(text: string) {
+        this.newMessage.set(text);
     }
 
     formatDate(dateStr: string): string {

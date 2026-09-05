@@ -1,156 +1,443 @@
-<div class="flex flex-col gap-8 animate-fade-in p-4 lg:p-8">
+<div class="text-text-primary space-y-6 animate-fade-in pb-12">
+    <!-- Ambient Background Glow Decorators -->
+    <div class="relative">
+        <div class="absolute -top-10 left-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+        <div class="absolute top-4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
-    <!-- Header Section -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="flex flex-col gap-1">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-400"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/><path d="M4 20h16"/></svg>
-                </div>
-                <h1 class="text-2xl md:text-3xl font-black text-text-primary tracking-tight">Virtual Library</h1>
-            </div>
-            <p class="text-text-secondary font-medium pl-13">Explore institutional knowledge, books and media resources</p>
-        </div>
-        <div class="flex items-center gap-3">
-            @if (isAdmin()) {
-            <a routerLink="/library/admin"
-               class="inline-flex items-center gap-2 px-4 py-2.5 bg-bg-tertiary hover:bg-amber-500/10 border border-border-primary hover:border-amber-500/20 text-text-secondary hover:text-amber-400 text-xs font-bold rounded-xl transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
-                Lending Dashboard
-            </a>
-            <a routerLink="/library/add"
-               class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                Add New Title
-            </a>
-            }
-        </div>
-    </div>
+        <!-- Executive Hero Header -->
+        <div class="bg-gradient-to-r from-bg-secondary/90 via-bg-secondary/70 to-bg-tertiary/60 backdrop-blur-xl border border-border-primary rounded-3xl p-6 lg:p-8 shadow-2xl relative overflow-hidden">
+            <!-- Subtle Top Lighting Cone -->
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500/50 to-transparent"></div>
 
-    <!-- Search & Filter Bar -->
-    <div class="p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-xl flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-        <div class="relative flex-1">
-            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            </div>
-            <input
-                type="text"
-                placeholder="Search by title, author, or ISBN..."
-                (input)="onSearch($event)"
-                class="w-full bg-bg-tertiary border border-border-primary rounded-xl pl-10 pr-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-blue-500/40 focus:bg-bg-secondary transition-all"
-            >
-        </div>
-        <div class="flex items-center gap-2 flex-wrap">
-            <span class="text-[10px] font-bold text-text-muted uppercase tracking-widest hidden sm:block">Filter:</span>
-            <button class="px-3 py-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black rounded-lg uppercase tracking-wide transition-all hover:bg-blue-500/20">All</button>
-            <button class="px-3 py-2 bg-bg-tertiary border border-border-primary text-text-muted text-[10px] font-black rounded-lg uppercase tracking-wide transition-all hover:bg-bg-secondary hover:text-text-primary">Available</button>
-            <button class="px-3 py-2 bg-bg-tertiary border border-border-primary text-text-muted text-[10px] font-black rounded-lg uppercase tracking-wide transition-all hover:bg-bg-secondary hover:text-text-primary">On Loan</button>
-        </div>
-    </div>
-
-    <!-- Stats Strip -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="flex flex-col gap-1 p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-xl">
-            <span class="text-[9px] font-bold text-text-muted uppercase tracking-tighter">Total Titles</span>
-            <span class="text-2xl font-black text-text-primary">{{ books().length }}</span>
-        </div>
-        <div class="flex flex-col gap-1 p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-xl">
-            <span class="text-[9px] font-bold text-text-muted uppercase tracking-tighter">Available Now</span>
-            <span class="text-2xl font-black text-emerald-400">{{ availableCount() }}</span>
-        </div>
-        <div class="flex flex-col gap-1 p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-xl">
-            <span class="text-[9px] font-bold text-text-muted uppercase tracking-tighter">On Loan</span>
-            <span class="text-2xl font-black text-amber-400">{{ loanedCount() }}</span>
-        </div>
-        <div class="flex flex-col gap-1 p-4 bg-bg-secondary border border-border-primary rounded-2xl shadow-xl">
-            <span class="text-[9px] font-bold text-text-muted uppercase tracking-tighter">Categories</span>
-            <span class="text-2xl font-black text-blue-400">{{ categoryCount() }}</span>
-        </div>
-    </div>
-
-    <!-- Book Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        @for (book of books(); track book.id) {
-        <div class="group bg-bg-secondary border border-border-primary rounded-3xl shadow-xl overflow-hidden flex flex-col hover:border-blue-500/30 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/5 transition-all duration-300">
-
-            <!-- Book Cover Area -->
-            <div class="relative h-44 bg-blue-500/10 flex items-center justify-center overflow-hidden">
-
-                <!-- Category Badge -->
-                <span class="absolute top-3 left-3 px-2.5 py-1 bg-bg-secondary/80 border border-border-secondary text-[9px] font-black text-text-muted uppercase tracking-widest rounded-lg">{{ book.category }}</span>
-
-                <!-- Availability Badge -->
-                @if (book.available_copies > 0) {
-                <span class="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black text-emerald-400 uppercase rounded-lg">
-                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-                    {{ book.available_copies }} Free
-                </span>
-                } @else {
-                <span class="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 bg-red-500/10 border border-red-500/20 text-[9px] font-black text-red-400 uppercase rounded-lg">
-                    <span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-                    Loaned
-                </span>
-                }
-
-                <!-- Book Icon -->
-                <div class="flex flex-col items-center gap-2 opacity-20 group-hover:opacity-40 transition-opacity duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6.5 18H20"/></svg>
-                </div>
-            </div>
-
-            <!-- Book Info -->
-            <div class="flex flex-col gap-3 p-5 flex-1">
-                <div class="flex flex-col gap-1">
-                    <h3 class="text-sm font-black text-text-primary leading-snug line-clamp-2">{{ book.title }}</h3>
-                    <p class="text-[11px] text-text-muted font-medium">by {{ book.author }}</p>
-                </div>
-
-                <!-- Copies bar -->
-                <div class="flex flex-col gap-1.5 mt-auto">
-                    <div class="flex items-center justify-between text-[10px] font-bold">
-                        <span class="text-text-muted uppercase tracking-wider">Copies</span>
-                        <span class="text-text-secondary font-mono">{{ book.available_copies }}/{{ book.total_copies }}</span>
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div class="space-y-3">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                            Virtual Library & Media Vault
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <i class="fas fa-book-bookmark text-[10px]"></i>
+                            {{ availableCount() }} Titles Available Now
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                            <i class="fas fa-layer-group text-[10px]"></i>
+                            {{ categoryCount() }} Categories
+                        </span>
                     </div>
-                    <div class="w-full h-1.5 bg-bg-tertiary rounded-full overflow-hidden">
-                        <div class="h-full rounded-full transition-all duration-700"
-                             [class.bg-emerald-500]="book.available_copies > 0"
-                             [class.bg-red-500]="book.available_copies === 0"
-                             [style.width.%]="(book.available_copies / book.total_copies) * 100">
+
+                    <div>
+                        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white flex items-center gap-3">
+                            Digital <span class="bg-gradient-to-r from-amber-400 via-orange-300 to-blue-400 bg-clip-text text-transparent">Library</span>
+                        </h1>
+                        <p class="text-text-muted text-sm sm:text-base max-w-2xl mt-1.5">
+                            Explore institutional knowledge repositories, curriculum textbooks, reference literature, and manage book circulations with barcode tracking.
+                        </p>
+                    </div>
+
+                    <!-- Sub-Domain Quick Switcher -->
+                    <div class="flex flex-wrap items-center gap-2 pt-2">
+                        <a routerLink="/library" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-sm shadow-amber-500/10">
+                            <i class="fas fa-book-open text-amber-400"></i> Digital Library
+                        </a>
+                        @if (isAdmin()) {
+                            <a routerLink="/library/admin" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-bg-tertiary/70 hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary transition-all">
+                                <i class="fas fa-clipboard-check text-blue-400"></i> Lending Dashboard
+                            </a>
+                            <a routerLink="/library/add" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-bg-tertiary/70 hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary transition-all">
+                                <i class="fas fa-plus text-emerald-400"></i> Add New Title
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                <!-- Header Actions Cluster -->
+                <div class="flex flex-wrap lg:flex-col items-stretch sm:items-end gap-3 shrink-0">
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <button (click)="exportCSV()" title="Export CSV" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-bg-tertiary/80 hover:bg-bg-tertiary text-text-secondary hover:text-text-primary border border-border-primary text-xs font-semibold shadow-sm transition-all active:scale-95">
+                            <i class="fas fa-file-csv text-emerald-400"></i>
+                            <span>Export CSV</span>
+                        </button>
+                        <button (click)="printCatalog()" title="Print Catalog" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-bg-tertiary/80 hover:bg-bg-tertiary text-text-secondary hover:text-text-primary border border-border-primary text-xs font-semibold shadow-sm transition-all active:scale-95">
+                            <i class="fas fa-print text-blue-400"></i>
+                            <span>Print</span>
+                        </button>
+                    </div>
+
+                    @if (isAdmin()) {
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <a routerLink="/library/admin" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-bg-tertiary hover:bg-amber-500/15 border border-border-primary hover:border-amber-500/30 text-text-secondary hover:text-amber-300 text-xs font-bold transition-all shadow-sm">
+                                <i class="fas fa-arrow-right-arrow-left text-amber-400"></i>
+                                <span>Circulation Desk</span>
+                            </a>
+                            <a routerLink="/library/add" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-bold shadow-lg shadow-blue-500/25 border border-blue-400/30 transition-all active:scale-95">
+                                <i class="fas fa-plus text-base"></i>
+                                <span>Add New Title</span>
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Telemetry Metric Hub (4 Glassmorphic KPI Cards) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <!-- 1. Total Catalog Titles -->
+        <div class="bg-gradient-to-br from-bg-secondary/90 to-bg-tertiary/70 border border-border-primary hover:border-amber-500/30 rounded-2xl p-5 shadow-lg transition-all relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/10 transition-all"></div>
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shadow-sm">
+                    <i class="fas fa-book-journal-whills text-lg"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    Repository
+                </span>
+            </div>
+            <p class="text-xs font-bold text-text-muted uppercase tracking-wider">Total Unique Titles</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <p class="text-2xl sm:text-3xl font-black text-white tracking-tight">{{ books().length }}</p>
+                <span class="text-xs text-text-muted">registered</span>
+            </div>
+            <div class="mt-3 pt-3 border-t border-border-primary/50 flex items-center justify-between text-xs text-text-muted">
+                <span>Total inventory:</span>
+                <span class="font-bold text-text-primary">{{ totalCopiesCount() }} volumes</span>
+            </div>
+        </div>
+
+        <!-- 2. Available for Checkout -->
+        <div class="bg-gradient-to-br from-bg-secondary/90 to-bg-tertiary/70 border border-border-primary hover:border-emerald-500/30 rounded-2xl p-5 shadow-lg transition-all relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-all"></div>
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-sm">
+                    <i class="fas fa-book-bookmark text-lg"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    Ready
+                </span>
+            </div>
+            <p class="text-xs font-bold text-text-muted uppercase tracking-wider">Available For Loan</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <p class="text-2xl sm:text-3xl font-black text-emerald-400 tracking-tight">{{ availableCount() }}</p>
+                <span class="text-xs text-text-muted">titles on shelf</span>
+            </div>
+            <div class="mt-3 pt-3 border-t border-border-primary/50 flex items-center justify-between text-xs text-text-muted">
+                <span>Instant borrowing:</span>
+                <span class="font-bold text-emerald-400">Open for checkout</span>
+            </div>
+        </div>
+
+        <!-- 3. Active Circulation / On Loan -->
+        <div class="bg-gradient-to-br from-bg-secondary/90 to-bg-tertiary/70 border border-border-primary hover:border-blue-500/30 rounded-2xl p-5 shadow-lg transition-all relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-all"></div>
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shadow-sm">
+                    <i class="fas fa-hand-holding-hand text-lg"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    {{ circulationRate() }}% Active
+                </span>
+            </div>
+            <p class="text-xs font-bold text-text-muted uppercase tracking-wider">Currently On Loan</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <p class="text-2xl sm:text-3xl font-black text-blue-400 tracking-tight">{{ loanedCount() }}</p>
+                <span class="text-xs text-text-muted">volumes issued</span>
+            </div>
+            <div class="w-full bg-bg-tertiary rounded-full h-1.5 mt-3 overflow-hidden border border-border-primary">
+                <div class="bg-gradient-to-r from-blue-500 to-indigo-400 h-full rounded-full transition-all duration-500" [style.width.%]="circulationRate()"></div>
+            </div>
+        </div>
+
+        <!-- 4. Categories & Disciplines -->
+        <div class="bg-gradient-to-br from-bg-secondary/90 to-bg-tertiary/70 border border-border-primary hover:border-purple-500/30 rounded-2xl p-5 shadow-lg transition-all relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full blur-2xl group-hover:bg-purple-500/10 transition-all"></div>
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shadow-sm">
+                    <i class="fas fa-shapes text-lg"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                    Taxonomy
+                </span>
+            </div>
+            <p class="text-xs font-bold text-text-muted uppercase tracking-wider">Knowledge Categories</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <p class="text-2xl sm:text-3xl font-black text-purple-400 tracking-tight">{{ categoryCount() }}</p>
+                <span class="text-xs text-text-muted">genres</span>
+            </div>
+            <div class="mt-3 pt-3 border-t border-border-primary/50 flex items-center justify-between text-xs text-text-muted">
+                <span>Curriculum breadth:</span>
+                <span class="font-bold text-text-primary">Multi-Discipline</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Search, Filter & View Mode Deck -->
+    <div class="sticky top-2 sm:top-4 z-30">
+        <div class="bg-bg-secondary/95 backdrop-blur-2xl border border-border-primary/80 rounded-3xl p-4 shadow-2xl space-y-3">
+            <!-- Top Controls Row -->
+            <div class="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3">
+                <!-- Search & Category Selector -->
+                <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5 flex-1">
+                    <!-- Search Input -->
+                    <div class="relative w-full sm:w-80">
+                        <i class="fas fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
+                        <input type="text" placeholder="Search by title, author, barcode, or ISBN..." 
+                            (input)="onSearch($event)"
+                            [value]="searchQuery()"
+                            class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl pl-9 pr-8 py-2.5 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all shadow-inner">
+                        @if (searchQuery()) {
+                            <button (click)="searchQuery.set(''); loadBooks()" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary text-xs">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        }
+                    </div>
+
+                    <!-- Category Selector Dropdown -->
+                    <div class="relative min-w-[180px] w-full sm:w-auto">
+                        <select [ngModel]="selectedCategory()" (ngModelChange)="setCategory($event)" class="w-full appearance-none bg-bg-tertiary/90 border border-border-primary hover:border-amber-500/40 rounded-2xl px-4 py-2.5 pl-10 text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all cursor-pointer shadow-inner">
+                            <option value="ALL">All Disciplines / Genres</option>
+                            @for (cat of categories(); track cat) {
+                                <option [value]="cat">{{ cat }}</option>
+                            }
+                        </select>
+                        <i class="fas fa-shapes absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-400 text-xs pointer-events-none"></i>
+                        <i class="fas fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted text-[10px] pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <!-- Right Controls: View Mode Switcher -->
+                <div class="flex items-center justify-end gap-2.5">
+                    <div class="flex items-center bg-bg-tertiary/90 border border-border-primary rounded-2xl p-1 shadow-inner">
+                        <button (click)="setViewMode('grid')" [class.bg-amber-500]="viewMode() === 'grid'" [class.text-black]="viewMode() === 'grid'" [class.text-text-muted]="viewMode() !== 'grid'" class="px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5" title="Cards Grid View">
+                            <i class="fas fa-grip"></i>
+                            <span class="hidden sm:inline">Grid</span>
+                        </button>
+                        <button (click)="setViewMode('table')" [class.bg-amber-500]="viewMode() === 'table'" [class.text-black]="viewMode() === 'table'" [class.text-text-muted]="viewMode() !== 'table'" class="px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5" title="Data Table View">
+                            <i class="fas fa-table-list"></i>
+                            <span class="hidden sm:inline">Table</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Availability Filter Chips -->
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 pt-1 border-t border-border-primary/40">
+                <button (click)="setAvailability('ALL')" [class.bg-amber-500]="selectedAvailability() === 'ALL'" [class.text-black]="selectedAvailability() === 'ALL'" [class.bg-bg-tertiary]="selectedAvailability() !== 'ALL'" [class.text-text-muted]="selectedAvailability() !== 'ALL'" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border border-border-primary">
+                    All Titles ({{ books().length }})
+                </button>
+                <button (click)="setAvailability('AVAILABLE')" [class.bg-emerald-500]="selectedAvailability() === 'AVAILABLE'" [class.text-white]="selectedAvailability() === 'AVAILABLE'" [class.bg-bg-tertiary]="selectedAvailability() !== 'AVAILABLE'" [class.text-text-muted]="selectedAvailability() !== 'AVAILABLE'" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border border-border-primary flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    Available Now ({{ availableCount() }})
+                </button>
+                <button (click)="setAvailability('LOANED')" [class.bg-blue-500]="selectedAvailability() === 'LOANED'" [class.text-white]="selectedAvailability() === 'LOANED'" [class.bg-bg-tertiary]="selectedAvailability() !== 'LOANED'" [class.text-text-muted]="selectedAvailability() !== 'LOANED'" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border border-border-primary flex items-center gap-1.5">
+                    <i class="fas fa-hand-holding-hand text-[10px]"></i>
+                    Circulating / On Loan ({{ books().length - availableCount() }})
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Library Catalog Workspace -->
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden shadow-2xl relative min-h-[400px]">
+        
+        <!-- Loading State Overlay -->
+        @if (isLoading()) {
+            <div class="absolute inset-0 z-20 bg-bg-secondary/70 backdrop-blur-md flex items-center justify-center">
+                <div class="flex flex-col items-center gap-4">
+                    <div class="w-12 h-12 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin"></div>
+                    <p class="text-sm font-bold text-text-primary">Loading library repository...</p>
+                    <p class="text-xs text-text-muted">Fetching titles and circulation records</p>
+                </div>
+            </div>
+        }
+
+        <!-- 1. GRID VIEW MODE -->
+        @if (viewMode() === 'grid' && filteredBooks().length > 0) {
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 p-4 sm:p-6">
+                @for (book of filteredBooks(); track book.id; let i = $index) {
+                    <div class="group bg-gradient-to-b from-bg-tertiary/90 to-bg-tertiary/50 border border-border-primary hover:border-amber-500/40 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-amber-500/5 transition-all duration-300 flex flex-col justify-between animate-fade-in" [style.animation-delay]="(i % 12) * 25 + 'ms'">
+                        
+                        <!-- Book Cover Top Area -->
+                        <div class="relative h-44 bg-gradient-to-br from-amber-500/15 via-blue-500/10 to-bg-secondary/80 flex items-center justify-center overflow-hidden border-b border-border-primary/50">
+                            <!-- Category Badge -->
+                            <span class="absolute top-3 left-3 px-2.5 py-1 bg-bg-secondary/90 backdrop-blur-md border border-border-primary text-[10px] font-black text-amber-300 uppercase tracking-wider rounded-xl shadow-sm">
+                                {{ book.category || 'General' }}
+                            </span>
+
+                            <!-- Availability Status Beacon -->
+                            @if (book.available_copies > 0) {
+                                <span class="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/15 backdrop-blur-md border border-emerald-500/30 text-[10px] font-black text-emerald-400 uppercase tracking-wider rounded-xl shadow-sm">
+                                    <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                                    {{ book.available_copies }} Available
+                                </span>
+                            } @else {
+                                <span class="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-red-500/15 backdrop-blur-md border border-red-500/30 text-[10px] font-black text-red-400 uppercase tracking-wider rounded-xl shadow-sm">
+                                    <span class="w-1.5 h-1.5 bg-red-400 rounded-full"></span>
+                                    All Loaned
+                                </span>
+                            }
+
+                            <!-- Ambient Book Graphic -->
+                            <div class="flex flex-col items-center gap-2 opacity-30 group-hover:opacity-60 transition-opacity duration-300 transform group-hover:scale-110">
+                                <i class="fas fa-book-open-reader text-5xl text-amber-400"></i>
+                            </div>
+
+                            <!-- Barcode / Monospace Tag at bottom of cover -->
+                            <div class="absolute bottom-2 left-3 right-3 flex items-center justify-between text-[10px] font-mono text-text-muted bg-bg-secondary/80 backdrop-blur-sm px-2.5 py-1 rounded-lg border border-border-primary/40">
+                                <span>BARCODE: {{ book.barcode }}</span>
+                                @if (book.isbn) {
+                                    <span class="hidden sm:inline">ISBN: {{ book.isbn }}</span>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Book Details Body -->
+                        <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                            <div>
+                                <h3 class="text-sm font-extrabold text-text-primary group-hover:text-amber-300 transition-colors line-clamp-2 leading-snug">
+                                    {{ book.title }}
+                                </h3>
+                                <p class="text-xs text-text-muted font-medium mt-1">by <strong class="text-text-secondary">{{ book.author }}</strong></p>
+                            </div>
+
+                            <!-- Stock Progress & Ratio -->
+                            <div class="space-y-1.5 pt-2 border-t border-border-primary/50">
+                                <div class="flex items-center justify-between text-[11px] font-bold">
+                                    <span class="text-text-muted uppercase tracking-wider text-[10px]">Volume Copies</span>
+                                    <span class="text-text-primary font-mono">{{ book.available_copies }} / {{ book.total_copies }}</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-bg-secondary rounded-full overflow-hidden border border-border-primary/40">
+                                    <div class="h-full rounded-full transition-all duration-700"
+                                         [ngClass]="book.available_copies > 0 ? 'bg-gradient-to-r from-emerald-500 to-teal-400' : 'bg-red-500'"
+                                         [style.width.%]="book.total_copies ? ((book.available_copies / book.total_copies) * 100) : 0">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Footer -->
+                        <div class="px-5 pb-5">
+                            @if (book.available_copies > 0) {
+                                <button (click)="requestLoan(book)" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-600 via-orange-500 to-amber-500 hover:from-amber-500 hover:to-orange-400 text-black text-xs font-extrabold rounded-xl shadow-lg shadow-amber-500/20 transition-all active:scale-95">
+                                    <i class="fas fa-book-bookmark text-xs"></i>
+                                    <span>Request Loan</span>
+                                </button>
+                            } @else {
+                                <button disabled class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-bg-secondary border border-border-primary text-text-muted text-xs font-bold rounded-xl cursor-not-allowed opacity-60">
+                                    <i class="fas fa-clock text-xs"></i>
+                                    <span>All Copies Checked Out</span>
+                                </button>
+                            }
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Action Footer -->
-            <div class="px-5 pb-5">
-                @if (book.available_copies > 0) {
-                <button
-                    (click)="requestLoan(book)"
-                    class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-                    Request Loan
-                </button>
-                } @else {
-                <button
-                    disabled
-                    class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-bg-tertiary border border-border-primary text-text-muted text-xs font-bold rounded-xl cursor-not-allowed opacity-60">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-                    Join Waitlist
-                </button>
                 }
             </div>
-        </div>
-        } @empty {
-        <!-- Empty State -->
-        <div class="col-span-full flex flex-col items-center justify-center gap-4 py-20 bg-bg-secondary border border-dashed border-border-secondary rounded-3xl">
-            <div class="w-16 h-16 rounded-2xl bg-bg-tertiary border border-border-primary flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-text-muted"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/><path d="M4 20h16"/></svg>
+        }
+
+        <!-- 2. DATA TABLE VIEW MODE -->
+        @if (viewMode() === 'table' && filteredBooks().length > 0) {
+            <div class="overflow-x-auto w-full">
+                <table class="w-full text-left text-xs sm:text-sm">
+                    <thead>
+                        <tr class="border-b border-border-primary bg-bg-tertiary/60 text-text-muted text-[11px] font-extrabold uppercase tracking-wider">
+                            <th class="py-4 px-6 w-12 text-center">#</th>
+                            <th class="py-4 px-6">Book Title & Author</th>
+                            <th class="py-4 px-6">Barcode / ISBN</th>
+                            <th class="py-4 px-6">Category</th>
+                            <th class="py-4 px-6 text-center">Circulation Stock</th>
+                            <th class="py-4 px-6 text-right">Loan Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border-primary/50">
+                        @for (book of filteredBooks(); track book.id; let i = $index) {
+                            <tr class="hover:bg-bg-tertiary/40 transition-colors group">
+                                <td class="py-3.5 px-6 text-center font-mono text-text-muted text-xs">
+                                    {{ i + 1 }}
+                                </td>
+                                <td class="py-3.5 px-6">
+                                    <div class="flex items-center gap-3.5">
+                                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30 flex items-center justify-center text-amber-300 font-black text-sm shadow-sm shrink-0">
+                                            <i class="fas fa-book text-xs"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="font-bold text-text-primary group-hover:text-amber-400 transition-colors text-sm">
+                                                {{ book.title }}
+                                            </p>
+                                            <p class="text-[11px] text-text-muted">by {{ book.author }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3.5 px-6 font-mono text-xs">
+                                    <p class="text-text-primary font-bold">{{ book.barcode }}</p>
+                                    <p class="text-[10px] text-text-muted">{{ book.isbn || 'No ISBN' }}</p>
+                                </td>
+                                <td class="py-3.5 px-6">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                        {{ book.category || 'General' }}
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-6 text-center">
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span class="font-mono text-xs font-bold" [ngClass]="book.available_copies > 0 ? 'text-emerald-400' : 'text-red-400'">
+                                            {{ book.available_copies }} / {{ book.total_copies }} available
+                                        </span>
+                                        <div class="w-24 h-1.5 bg-bg-tertiary rounded-full overflow-hidden border border-border-primary/40">
+                                            <div class="h-full rounded-full"
+                                                 [ngClass]="book.available_copies > 0 ? 'bg-emerald-500' : 'bg-red-500'"
+                                                 [style.width.%]="book.total_copies ? ((book.available_copies / book.total_copies) * 100) : 0">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3.5 px-6 text-right">
+                                    @if (book.available_copies > 0) {
+                                        <button (click)="requestLoan(book)" class="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-black transition-all shadow-sm active:scale-95">
+                                            Borrow
+                                        </button>
+                                    } @else {
+                                        <span class="text-xs text-text-muted font-bold">Checked Out</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
-            <div class="flex flex-col items-center gap-1">
-                <p class="text-sm font-bold text-text-primary">No books found</p>
-                <p class="text-xs text-text-muted">Try adjusting your search or filters</p>
+        }
+
+        <!-- Empty Filter Results View -->
+        @if (!isLoading() && books().length > 0 && filteredBooks().length === 0) {
+            <div class="flex flex-col items-center justify-center py-20 text-center px-4">
+                <div class="w-16 h-16 rounded-2xl bg-bg-tertiary border border-border-primary flex items-center justify-center text-text-muted mb-4 shadow-inner">
+                    <i class="fas fa-filter text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-text-primary mb-1">No library titles match criteria</h3>
+                <p class="text-xs sm:text-sm text-text-muted max-w-sm">Try modifying your keyword search or discipline filter.</p>
+                <button (click)="searchQuery.set(''); selectedCategory.set('ALL'); selectedAvailability.set('ALL'); loadBooks()" class="mt-4 px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold transition-all">
+                    Reset All Filters
+                </button>
             </div>
-        </div>
+        }
+
+        <!-- Empty Total Catalog -->
+        @if (!isLoading() && books().length === 0) {
+            <div class="flex flex-col items-center justify-center py-24 sm:py-32 text-center px-4">
+                <div class="w-20 h-20 rounded-3xl bg-bg-tertiary border border-border-primary flex items-center justify-center text-text-muted/40 mb-5 shadow-inner">
+                    <i class="fas fa-book-open text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-text-primary mb-2">Library Repository Empty</h3>
+                <p class="text-xs sm:text-sm text-text-muted max-w-md">
+                    No books or media resources are currently cataloged. Add your first title to populate the institutional digital library.
+                </p>
+                @if (isAdmin()) {
+                    <div class="flex items-center gap-3 mt-6">
+                        <a routerLink="/library/add" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 text-black text-xs font-black shadow-lg shadow-amber-500/20 transition-all">
+                            <i class="fas fa-plus mr-1.5"></i> Add New Title
+                        </a>
+                    </div>
+                }
+            </div>
         }
     </div>
 </div>

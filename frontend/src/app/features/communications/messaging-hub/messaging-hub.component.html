@@ -1,280 +1,351 @@
-<div class="flex flex-col h-[calc(100vh-6.5rem)] animate-fade-in gap-4 min-w-0 overflow-hidden text-text-primary">
+<div class="text-text-primary space-y-6 animate-fade-in pb-8 flex flex-col h-[calc(100vh-6.5rem)] min-w-0">
+    <!-- Ambient Background Glow Decorators -->
+    <div class="relative flex-shrink-0">
+        <div class="absolute -top-10 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+        <div class="absolute top-4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
-    <!-- Header -->
-    <div class="flex items-center justify-between flex-shrink-0 gap-3 flex-wrap">
-        <div class="flex items-center gap-3 min-w-0">
-            <div class="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0 text-blue-600 dark:text-blue-400">
-                <i class="fas fa-comments text-base"></i>
-            </div>
-            <div class="min-w-0">
-                <div class="flex items-center gap-2">
-                    <h1 class="text-xl sm:text-2xl font-black text-text-primary tracking-tight truncate">Messaging Center</h1>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 hidden sm:inline-block">
-                        Direct Channels
-                    </span>
-                </div>
-                <p class="text-xs text-text-muted font-medium truncate">Encrypted direct messaging between educators, administration, and guardians</p>
-            </div>
-        </div>
+        <!-- Executive Hero Header -->
+        <div class="bg-gradient-to-r from-bg-secondary/90 via-bg-secondary/70 to-bg-tertiary/60 backdrop-blur-xl border border-border-primary rounded-3xl p-5 lg:p-6 shadow-2xl relative overflow-hidden">
+            <!-- Subtle Top Lighting Cone -->
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
 
-        <button (click)="showNewConv.set(!showNewConv())"
-            class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all active:scale-95 cursor-pointer shrink-0">
-            <i class="fas fa-plus text-xs"></i>
-            <span>New Message</span>
-        </button>
-    </div>
-
-    <!-- New Conversation Drawer -->
-    @if (showNewConv()) {
-    <div class="flex-shrink-0 flex items-center gap-3 p-4 bg-bg-secondary border border-blue-500/30 rounded-2xl shadow-xl animate-scale-in flex-wrap sm:flex-nowrap">
-        <div class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 hidden sm:flex items-center justify-center flex-shrink-0 text-blue-600 dark:text-blue-400">
-            <i class="fas fa-user-plus text-xs"></i>
-        </div>
-        <input
-            type="text"
-            [value]="newRecipientId()"
-            (input)="newRecipientId.set($any($event.target).value)"
-            (keyup.enter)="startNewConversation()"
-            placeholder="Enter recipient Guardian / Staff ID..."
-            class="flex-1 min-w-[220px] bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-2.5 text-xs sm:text-sm font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all"
-        >
-        <div class="flex items-center gap-2">
-            <button (click)="startNewConversation()" [disabled]="!newRecipientId().trim()"
-                class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-md">
-                <i class="fas fa-paper-plane text-xs"></i>
-                <span>Start Thread</span>
-            </button>
-            <button (click)="showNewConv.set(false)" class="w-9 h-9 flex items-center justify-center rounded-xl bg-bg-tertiary border border-border-secondary text-text-muted hover:text-text-primary transition-all cursor-pointer">
-                <i class="fas fa-times text-xs"></i>
-            </button>
-        </div>
-    </div>
-    }
-
-    <!-- Main Responsive Layout: Master-Detail -->
-    <div class="flex flex-1 gap-4 min-h-0 min-w-0 relative">
-
-        <!-- Left Sidebar: Conversations List -->
-        <aside class="w-full lg:w-80 xl:w-96 flex-shrink-0 flex-col bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl shadow-sm overflow-hidden min-w-0"
-               [ngClass]="activeConversation() ? 'hidden lg:flex' : 'flex'">
-            
-            <!-- Sidebar Header -->
-            <div class="px-5 py-4 border-b border-border-primary flex-shrink-0 flex items-center justify-between bg-bg-tertiary/40">
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-inbox text-blue-500 text-xs"></i>
-                    <p class="text-xs font-bold uppercase tracking-wider text-text-muted">Conversations</p>
-                </div>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                    {{ conversations().length }} {{ conversations().length === 1 ? 'Thread' : 'Threads' }}
-                </span>
-            </div>
-
-            <!-- Conversation List Items -->
-            <div class="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-1.5 p-3">
-                @for (conv of conversations(); track conv.id) {
-                <button
-                    (click)="selectConversation(conv)"
-                    class="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left transition-all duration-200 group cursor-pointer"
-                    [class.bg-blue-500/10]="activeConversation()?.id === conv.id"
-                    [class.border]="activeConversation()?.id === conv.id"
-                    [class.border-blue-500/30]="activeConversation()?.id === conv.id"
-                    [class.shadow-sm]="activeConversation()?.id === conv.id"
-                    [class.hover:bg-bg-tertiary]="activeConversation()?.id !== conv.id">
-
-                    <!-- Avatar -->
-                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-xs font-black flex-shrink-0 transition-all shadow-sm"
-                         [class.bg-gradient-to-tr]="true"
-                         [class.from-blue-600]="activeConversation()?.id === conv.id"
-                         [class.to-indigo-600]="activeConversation()?.id === conv.id"
-                         [class.text-white]="activeConversation()?.id === conv.id"
-                         [class.from-bg-tertiary]="activeConversation()?.id !== conv.id"
-                         [class.to-bg-tertiary]="activeConversation()?.id !== conv.id"
-                         [class.text-text-primary]="activeConversation()?.id !== conv.id"
-                         [class.border]="activeConversation()?.id !== conv.id"
-                         [class.border-border-secondary]="activeConversation()?.id !== conv.id">
-                        {{ getInitial(getOtherParticipant(conv)) }}
-                    </div>
-
-                    <!-- Meta -->
-                    <div class="flex flex-col gap-0.5 min-w-0 flex-1">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs sm:text-sm font-bold truncate"
-                                  [class.text-blue-600]="activeConversation()?.id === conv.id"
-                                  [class.dark:text-blue-400]="activeConversation()?.id === conv.id"
-                                  [class.text-text-primary]="activeConversation()?.id !== conv.id">
-                                Thread #{{ conv.id.slice(0, 8) }}
-                            </span>
-                            <span class="text-[10px] text-text-muted font-medium flex-shrink-0 ml-2">{{ formatDate(conv.updated_at) }}</span>
-                        </div>
-                        <span class="text-[11px] text-text-muted truncate font-mono">
-                            User: {{ getOtherParticipant(conv).slice(0, 16) }}...
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="space-y-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                            <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                            Encrypted Direct Channels
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <i class="fas fa-shield-halved text-[10px]"></i>
+                            End-to-End Privacy
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                            <i class="fas fa-comments text-[10px]"></i>
+                            {{ conversations().length }} Active Threads
                         </span>
                     </div>
-                </button>
-                } @empty {
-                <!-- Empty Threads State -->
-                <div class="flex flex-col items-center justify-center gap-3 py-16 px-4 text-center">
-                    <div class="w-12 h-12 rounded-2xl bg-bg-tertiary border border-border-secondary flex items-center justify-center text-text-muted">
-                        <i class="fas fa-comment-slash text-base"></i>
-                    </div>
+
                     <div>
-                        <p class="text-xs font-bold text-text-primary">No conversations yet</p>
-                        <p class="text-[11px] text-text-muted mt-0.5">Click "New Message" to initiate a thread</p>
+                        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white flex items-center gap-3">
+                            Messaging <span class="bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400 bg-clip-text text-transparent">Center</span>
+                        </h1>
+                        <p class="text-text-muted text-xs sm:text-sm max-w-2xl mt-0.5">
+                            Encrypted direct communication between school administration, educators, and guardians with instant delivery telemetry.
+                        </p>
+                    </div>
+
+                    <!-- Sub-Domain Quick Switcher -->
+                    <div class="flex flex-wrap items-center gap-2 pt-1">
+                        <a routerLink="/communications/messages" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-500/15 text-blue-300 border border-blue-500/30 shadow-sm shadow-blue-500/10">
+                            <i class="fas fa-comments text-blue-400"></i> Messaging Center
+                        </a>
+                        <a routerLink="/communications" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-bg-tertiary/70 hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary transition-all">
+                            <i class="fas fa-tower-broadcast text-purple-400"></i> Communications Hub
+                        </a>
+                        <a routerLink="/communications/newsletter" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-bg-tertiary/70 hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary transition-all">
+                            <i class="fas fa-newspaper text-emerald-400"></i> Parent Newsletters
+                        </a>
+                        <a routerLink="/guardians" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-bg-tertiary/70 hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary transition-all">
+                            <i class="fas fa-users text-amber-400"></i> Parent Directory
+                        </a>
                     </div>
                 </div>
+
+                <!-- Header Action Button -->
+                <div class="flex items-center gap-2 shrink-0">
+                    <button (click)="showNewConv.set(true)"
+                        class="inline-flex items-center gap-2.5 px-5 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold rounded-2xl shadow-lg shadow-blue-500/25 border border-blue-400/30 transition-all active:scale-95 cursor-pointer">
+                        <i class="fas fa-plus text-xs"></i>
+                        <span>New Conversation</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Master-Detail Messaging Workspace -->
+    <div class="flex flex-1 gap-4 min-h-0 min-w-0 relative">
+        
+        <!-- Left Sidebar: Conversations Thread List -->
+        <aside class="w-full lg:w-80 xl:w-96 flex-shrink-0 flex-col bg-bg-secondary border border-border-primary rounded-3xl shadow-xl overflow-hidden min-w-0"
+               [ngClass]="activeConversation() ? 'hidden lg:flex' : 'flex'">
+            
+            <!-- Sidebar Header & Search -->
+            <div class="p-4 border-b border-border-primary/60 flex-shrink-0 bg-bg-tertiary/40 space-y-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-inbox text-blue-400 text-xs"></i>
+                        <p class="text-xs font-extrabold uppercase tracking-wider text-text-muted">Direct Threads</p>
+                    </div>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                        {{ conversations().length }} Channels
+                    </span>
+                </div>
+
+                <!-- Search Input -->
+                <div class="relative">
+                    <i class="fas fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
+                    <input [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+                           type="text" placeholder="Search threads or recipient..."
+                           class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl pl-9 pr-8 py-2 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all shadow-inner">
+                    @if (searchQuery()) {
+                        <button (click)="searchQuery.set('')" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary text-xs">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Conversation Items Stream -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-1.5 p-3">
+                @for (conv of filteredConversations(); track conv.id) {
+                    <button
+                        (click)="selectConversation(conv)"
+                        class="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left transition-all duration-200 group cursor-pointer border"
+                        [ngClass]="{
+                            'bg-gradient-to-r from-blue-500/15 via-blue-500/10 to-indigo-500/10 border-blue-500/40 shadow-md shadow-blue-500/5': activeConversation()?.id === conv.id,
+                            'bg-bg-tertiary/60 hover:bg-bg-tertiary border-border-primary/50': activeConversation()?.id !== conv.id
+                        }">
+                        
+                        <!-- Avatar Container -->
+                        <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-xs font-black flex-shrink-0 transition-transform duration-300 group-hover:scale-105 shadow-sm"
+                             [ngClass]="{
+                                'bg-gradient-to-tr from-blue-600 to-indigo-500 text-white shadow-blue-500/20': activeConversation()?.id === conv.id,
+                                'bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/30 text-blue-300': activeConversation()?.id !== conv.id
+                             }">
+                            {{ getInitial(getOtherParticipant(conv)) }}
+                        </div>
+
+                        <!-- Meta Info -->
+                        <div class="flex flex-col gap-0.5 min-w-0 flex-1">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs sm:text-sm font-extrabold truncate"
+                                      [ngClass]="activeConversation()?.id === conv.id ? 'text-blue-400' : 'text-text-primary group-hover:text-blue-300 transition-colors'">
+                                    Thread #{{ conv.id.slice(0, 8) }}
+                                </span>
+                                <span class="text-[10px] text-text-muted font-medium flex-shrink-0 ml-2">
+                                    {{ formatDate(conv.updated_at) }}
+                                </span>
+                            </div>
+                            <span class="text-[11px] text-text-muted truncate font-mono">
+                                Participant: {{ getOtherParticipant(conv).slice(0, 16) }}...
+                            </span>
+                        </div>
+                    </button>
+                } @empty {
+                    <div class="flex flex-col items-center justify-center gap-3 py-16 px-4 text-center">
+                        <div class="w-14 h-14 rounded-2xl bg-bg-tertiary border border-border-primary flex items-center justify-center text-text-muted shadow-inner">
+                            <i class="fas fa-comment-slash text-xl text-blue-400"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-text-primary">No conversations found</p>
+                            <p class="text-[11px] text-text-muted mt-0.5">Click "New Conversation" to start a direct thread</p>
+                        </div>
+                    </div>
                 }
             </div>
         </aside>
 
-        <!-- Right Main Chat Pane -->
-        <main class="flex-1 flex-col bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl shadow-sm overflow-hidden min-w-0"
+        <!-- Right Main Chat Studio Pane -->
+        <main class="flex-1 flex-col bg-bg-secondary border border-border-primary rounded-3xl shadow-xl overflow-hidden min-w-0"
               [ngClass]="activeConversation() ? 'flex' : 'hidden lg:flex'">
-
+            
             @if (!activeConversation()) {
-            <!-- Empty State (No Active Conversation) -->
-            <div class="flex-1 flex flex-col items-center justify-center gap-4 p-8 text-center relative overflow-hidden">
-                <div class="w-20 h-20 rounded-3xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 text-3xl shadow-inner">
-                    <i class="fas fa-comments"></i>
+                <!-- Empty State (No Active Thread) -->
+                <div class="flex-1 flex flex-col items-center justify-center gap-4 p-8 text-center relative overflow-hidden">
+                    <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-500/10 via-indigo-500/10 to-bg-tertiary border border-blue-500/20 flex items-center justify-center text-blue-400 text-3xl shadow-inner animate-pulse">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="text-center flex flex-col gap-1 max-w-sm">
+                        <h2 class="text-lg font-black text-white">Select a Conversation Thread</h2>
+                        <p class="text-xs text-text-muted leading-relaxed">Choose an active channel from the sidebar or initiate a direct communication session with parents and educators.</p>
+                    </div>
+                    <button (click)="showNewConv.set(true)"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95 cursor-pointer">
+                        <i class="fas fa-plus text-xs"></i>
+                        <span>Start New Conversation</span>
+                    </button>
                 </div>
-                <div class="text-center flex flex-col gap-1 max-w-sm">
-                    <h2 class="text-lg font-black text-text-primary">Select a Conversation</h2>
-                    <p class="text-xs text-text-muted leading-relaxed">Choose an active message thread from the sidebar or initiate a direct chat with guardians and teachers.</p>
-                </div>
-                <button (click)="showNewConv.set(true)"
-                    class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all cursor-pointer">
-                    <i class="fas fa-plus text-xs"></i>
-                    <span>Start New Conversation</span>
-                </button>
-            </div>
             }
 
             @if (activeConversation()) {
-            <!-- Chat Header -->
-            <div class="flex items-center gap-3 px-5 py-4 border-b border-border-primary flex-shrink-0 bg-bg-tertiary/40">
-                <button (click)="activeConversation.set(null)"
-                        class="lg:hidden p-2 -ml-1 rounded-xl bg-bg-tertiary hover:bg-bg-primary text-text-muted hover:text-text-primary border border-border-secondary flex items-center justify-center transition-colors cursor-pointer"
-                        title="Back to Conversations">
-                    <i class="fas fa-arrow-left text-xs"></i>
-                </button>
+                <!-- Chat Studio Header Bar -->
+                <div class="flex items-center gap-3 px-5 py-4 border-b border-border-primary/70 flex-shrink-0 bg-bg-tertiary/50">
+                    <button (click)="activeConversation.set(null)"
+                            class="lg:hidden p-2 -ml-1 rounded-xl bg-bg-tertiary hover:bg-bg-primary text-text-muted hover:text-text-primary border border-border-primary flex items-center justify-center transition-colors cursor-pointer"
+                            title="Back to Conversations">
+                        <i class="fas fa-arrow-left text-xs"></i>
+                    </button>
 
-                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-xs shrink-0 shadow-sm">
-                    {{ getInitial(getOtherParticipant(activeConversation()!)) }}
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-black text-xs shrink-0 shadow-sm">
+                        {{ getInitial(getOtherParticipant(activeConversation()!)) }}
+                    </div>
+                    <div class="flex flex-col gap-0.5 min-w-0 flex-1">
+                        <p class="text-sm font-extrabold text-text-primary truncate">Thread #{{ activeConversation()!.id.slice(0, 8) }}</p>
+                        <p class="text-[11px] text-text-muted font-mono truncate">Recipient ID: {{ getOtherParticipant(activeConversation()!) }}</p>
+                    </div>
+                    <div class="ml-auto flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full shrink-0">
+                        <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                        <span class="text-[10px] font-black text-emerald-400 uppercase tracking-wider">Direct Session</span>
+                    </div>
                 </div>
-                <div class="flex flex-col gap-0.5 min-w-0 flex-1">
-                    <p class="text-sm font-bold text-text-primary truncate">Thread #{{ activeConversation()!.id.slice(0, 8) }}</p>
-                    <p class="text-[11px] text-text-muted font-mono truncate">Recipient: {{ getOtherParticipant(activeConversation()!) }}</p>
-                </div>
-                <div class="ml-auto flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full shrink-0">
-                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                    <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Direct Session</span>
-                </div>
-            </div>
 
-            <!-- Messages Stream -->
-            <div #messagesList class="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 p-4 sm:p-6 scroll-smooth bg-bg-tertiary/20">
-                @if (isLoading()) {
-                <div class="flex items-center justify-center gap-3 py-10">
-                    <i class="fas fa-spinner fa-spin text-blue-500 text-lg"></i>
-                    <span class="text-xs text-text-muted">Loading messages...</span>
+                <!-- Messages Stream List -->
+                <div #messagesList class="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 p-4 sm:p-6 scroll-smooth bg-gradient-to-b from-bg-tertiary/30 to-bg-secondary/80">
+                    @if (isLoading()) {
+                        <div class="flex items-center justify-center gap-3 py-10">
+                            <i class="fas fa-spinner fa-spin text-blue-400 text-lg"></i>
+                            <span class="text-xs text-text-muted font-bold">Synchronizing messages...</span>
+                        </div>
+                    }
+
+                    @for (msg of messages(); track msg.id) {
+                        <div class="flex gap-2.5 sm:gap-3 max-w-[85%] sm:max-w-[75%]"
+                             [class.self-end]="isSentByMe(msg)"
+                             [class.flex-row-reverse]="isSentByMe(msg)"
+                             [class.self-start]="!isSentByMe(msg)">
+
+                            <!-- Avatar -->
+                            <div class="w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-black flex-shrink-0 mt-0.5 shadow-sm"
+                                 [ngClass]="{
+                                    'bg-gradient-to-tr from-blue-600 to-indigo-500 text-white': isSentByMe(msg),
+                                    'bg-gradient-to-br from-bg-tertiary to-bg-secondary border border-border-primary text-text-primary': !isSentByMe(msg)
+                                 }">
+                                {{ isSentByMe(msg) ? 'Me' : getInitial(msg.sender_id) }}
+                            </div>
+
+                            <!-- Bubble Group -->
+                            <div class="flex flex-col gap-1"
+                                 [class.items-end]="isSentByMe(msg)"
+                                 [class.items-start]="!isSentByMe(msg)">
+
+                                <!-- Quoted Reply Header -->
+                                @if (msg.parent_id && getParentMessage(msg.parent_id)) {
+                                    @let parent = getParentMessage(msg.parent_id)!;
+                                    <div class="flex items-center gap-2 px-3 py-1 rounded-xl text-[11px] bg-bg-tertiary border-l-2 border-blue-500 text-text-muted max-w-full truncate shadow-inner">
+                                        <i class="fas fa-reply text-[10px] text-blue-400"></i>
+                                        <span class="truncate">{{ parent.content }}</span>
+                                    </div>
+                                }
+
+                                <!-- Message Text Bubble -->
+                                <div class="group relative px-4 py-3 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-md break-words transition-all"
+                                     [ngClass]="{
+                                        'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-br-sm shadow-blue-500/10': isSentByMe(msg),
+                                        'bg-bg-tertiary/90 border border-border-primary text-text-primary rounded-bl-sm': !isSentByMe(msg)
+                                     }">
+                                    {{ msg.content }}
+
+                                    <!-- Quick Reply Button on Hover -->
+                                    <button (click)="setReplyTo(msg)"
+                                            class="absolute -top-3 right-2 hidden group-hover:flex items-center gap-1 px-2 py-0.5 rounded-md bg-bg-secondary border border-border-primary text-text-muted hover:text-blue-400 text-[10px] font-bold shadow-md transition-all">
+                                        <i class="fas fa-reply text-[9px]"></i> Reply
+                                    </button>
+                                </div>
+
+                                <!-- Timestamp -->
+                                <span class="text-[10px] text-text-muted px-1 font-medium">{{ formatDate(msg.created_at) }}</span>
+                            </div>
+                        </div>
+                    } @empty {
+                        <div class="flex-1 flex flex-col items-center justify-center gap-2 text-center text-text-muted py-16">
+                            <i class="fas fa-paper-plane text-2xl text-text-muted opacity-40 mb-2"></i>
+                            <p class="text-xs font-bold text-text-primary">No messages in this thread yet</p>
+                            <p class="text-[11px]">Send a greeting to start communicating with the guardian.</p>
+                        </div>
+                    }
                 </div>
+
+                <!-- Quick Canned Replies Strip -->
+                <div class="px-4 py-2 bg-bg-secondary/90 border-t border-border-primary/50 flex items-center gap-1.5 overflow-x-auto text-[11px]">
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-text-muted mr-1 shrink-0">Quick:</span>
+                    @for (reply of quickReplies; track reply) {
+                        <button (click)="useQuickReply(reply)" class="px-2.5 py-1 rounded-xl bg-bg-tertiary hover:bg-blue-500/15 text-text-muted hover:text-blue-300 border border-border-primary shrink-0 transition-all">
+                            {{ reply }}
+                        </button>
+                    }
+                </div>
+
+                <!-- Quoted Reply Cancellation Bar -->
+                @if (replyingTo()) {
+                    <div class="px-5 py-2 bg-bg-tertiary/90 border-t border-border-primary flex items-center justify-between text-xs text-text-muted">
+                        <div class="flex items-center gap-2 truncate">
+                            <i class="fas fa-reply text-blue-400"></i>
+                            <span>Replying to: <em class="text-text-primary">"{{ replyingTo()!.content.slice(0, 40) }}..."</em></span>
+                        </div>
+                        <button (click)="cancelReply()" class="p-1 hover:text-text-primary">
+                            <i class="fas fa-times text-xs"></i>
+                        </button>
+                    </div>
                 }
 
-                @for (msg of messages(); track msg.id) {
-                <div class="flex gap-2.5 sm:gap-3 max-w-[85%] sm:max-w-[75%]"
-                     [class.self-end]="isSentByMe(msg)"
-                     [class.flex-row-reverse]="isSentByMe(msg)"
-                     [class.self-start]="!isSentByMe(msg)">
-
-                    <!-- Avatar initial -->
-                    <div class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5 shadow-sm"
-                         [class.bg-blue-600]="isSentByMe(msg)"
-                         [class.text-white]="isSentByMe(msg)"
-                         [class.bg-bg-tertiary]="!isSentByMe(msg)"
-                         [class.text-text-primary]="!isSentByMe(msg)"
-                         [class.border]="!isSentByMe(msg)"
-                         [class.border-border-secondary]="!isSentByMe(msg)">
-                        {{ isSentByMe(msg) ? 'Me' : getInitial(msg.sender_id) }}
-                    </div>
-
-                    <!-- Message Bubble Group -->
-                    <div class="flex flex-col gap-1"
-                         [class.items-end]="isSentByMe(msg)"
-                         [class.items-start]="!isSentByMe(msg)">
-
-                        <!-- Quoted Message (if reply) -->
-                        @if (msg.parent_id && getParentMessage(msg.parent_id)) {
-                        @let parent = getParentMessage(msg.parent_id)!;
-                        <div class="flex items-center gap-2 px-3 py-1 rounded-xl text-[11px] bg-bg-tertiary border-l-2 border-blue-500 text-text-muted max-w-full truncate">
-                            <i class="fas fa-reply text-[10px]"></i>
-                            <span class="truncate">{{ parent.content }}</span>
-                        </div>
-                        }
-
-                        <!-- Message Content Bubble -->
-                        <div class="group relative px-4 py-3 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-sm break-words"
-                             [class.bg-blue-600]="isSentByMe(msg)"
-                             [class.text-white]="isSentByMe(msg)"
-                             [class.rounded-br-sm]="isSentByMe(msg)"
-                             [class.bg-bg-secondary]="!isSentByMe(msg)"
-                             [class.border]="!isSentByMe(msg)"
-                             [class.border-border-primary]="!isSentByMe(msg)"
-                             [class.text-text-primary]="!isSentByMe(msg)">
-                            {{ msg.content }}
-
-                            <!-- Quick Reply Button on Hover -->
-                            <button (click)="setReplyTo(msg)"
-                                    class="absolute -top-3 right-2 hidden group-hover:flex items-center gap-1 px-2 py-0.5 rounded-md bg-bg-secondary border border-border-primary text-text-muted hover:text-blue-500 text-[10px] font-bold shadow-md transition-all">
-                                <i class="fas fa-reply text-[9px]"></i> Reply
-                            </button>
-                        </div>
-
-                        <!-- Timestamp -->
-                        <span class="text-[10px] text-text-muted px-1 font-medium">{{ formatDate(msg.created_at) }}</span>
-                    </div>
-
+                <!-- Message Input Composer -->
+                <div class="p-4 border-t border-border-primary bg-bg-secondary flex items-center gap-3">
+                    <input
+                        type="text"
+                        [(ngModel)]="newMessage"
+                        (keyup.enter)="send()"
+                        placeholder="Type encrypted message (Press Enter to send)..."
+                        class="flex-1 bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-3 text-xs sm:text-sm font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all shadow-inner"
+                    >
+                    <button (click)="send()" 
+                            [disabled]="!newMessage().trim()"
+                            class="px-6 py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold rounded-2xl shadow-lg shadow-blue-500/25 transition-all flex items-center gap-2 active:scale-95 cursor-pointer">
+                        <i class="fas fa-paper-plane text-xs"></i>
+                        <span class="hidden sm:inline">Send</span>
+                    </button>
                 </div>
-                } @empty {
-                <div class="flex-1 flex flex-col items-center justify-center gap-2 text-center text-text-muted py-16">
-                    <i class="fas fa-paper-plane text-2xl text-text-muted opacity-40 mb-2"></i>
-                    <p class="text-xs font-bold text-text-primary">No messages in this thread</p>
-                    <p class="text-[11px]">Send a greeting to start communicating</p>
-                </div>
-                }
-            </div>
+            }
+        </main>
+    </div>
+</div>
 
-            <!-- Reply Bar -->
-            @if (replyingTo()) {
-            <div class="px-5 py-2 bg-bg-tertiary border-t border-border-primary flex items-center justify-between text-xs text-text-muted">
-                <div class="flex items-center gap-2 truncate">
-                    <i class="fas fa-reply text-blue-500"></i>
-                    <span>Replying to: <em>"{{ replyingTo()!.content.slice(0, 40) }}..."</em></span>
+<!-- New Conversation Dialog (Fixed Viewport Centered) -->
+@if (showNewConv()) {
+    <div class="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in" (click)="showNewConv.set(false)">
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative my-auto overflow-hidden animate-scale-up space-y-5" (click)="$event.stopPropagation()">
+            <!-- Ambient Glow -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-3xl rounded-full pointer-events-none"></div>
+
+            <div class="flex items-center justify-between pb-4 border-b border-border-primary">
+                <div>
+                    <h2 class="text-xl font-black text-white flex items-center gap-2.5">
+                        <i class="fas fa-comments text-blue-400"></i>
+                        Initiate Direct Channel
+                    </h2>
+                    <p class="text-xs text-text-muted mt-1">Start a private messaging thread with a guardian or staff member.</p>
                 </div>
-                <button (click)="cancelReply()" class="p-1 hover:text-text-primary">
+                <button (click)="showNewConv.set(false)" class="w-8 h-8 rounded-full bg-bg-tertiary hover:bg-bg-secondary border border-border-primary text-text-muted hover:text-text-primary flex items-center justify-center transition-all">
                     <i class="fas fa-times text-xs"></i>
                 </button>
             </div>
-            }
 
-            <!-- Message Input Composer -->
-            <div class="p-4 border-t border-border-primary bg-bg-secondary flex items-center gap-3">
-                <input
-                    type="text"
-                    [(ngModel)]="newMessage"
-                    (keyup.enter)="send()"
-                    placeholder="Write your message..."
-                    class="flex-1 bg-bg-tertiary border border-border-secondary rounded-xl px-4 py-3 text-xs sm:text-sm font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all"
-                >
-                <button (click)="send()" 
-                        [disabled]="!newMessage().trim()"
-                        class="px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2 active:scale-95">
-                    <i class="fas fa-paper-plane text-xs"></i>
-                    <span class="hidden sm:inline">Send</span>
+            <div class="space-y-2">
+                <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Recipient User ID or Staff / Guardian Identifier</label>
+                <div class="relative">
+                    <i class="fas fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-400 text-xs"></i>
+                    <input
+                        type="text"
+                        [ngModel]="newRecipientId()"
+                        (ngModelChange)="newRecipientId.set($event)"
+                        (keyup.enter)="startNewConversation()"
+                        placeholder="Enter user or guardian ID..."
+                        class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl pl-10 pr-4 py-3 text-xs sm:text-sm font-bold text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all shadow-inner"
+                    >
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-border-primary">
+                <button (click)="showNewConv.set(false)" class="px-4 py-2.5 text-xs font-bold text-text-muted hover:text-text-primary transition-all">
+                    Cancel
+                </button>
+                <button (click)="startNewConversation()" [disabled]="!newRecipientId().trim()"
+                        class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 text-white text-xs font-black shadow-lg shadow-blue-500/20 disabled:opacity-40 transition-all active:scale-95 flex items-center gap-2">
+                    <i class="fas fa-paper-plane"></i>
+                    <span>Start Thread</span>
                 </button>
             </div>
-            }
-
-        </main>
-
+        </div>
     </div>
-
-</div>
+}
