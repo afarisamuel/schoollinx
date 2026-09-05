@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
 import { PerformanceReview, StaffProfile } from '../../../core/domain/hr/hr.model';
+import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 
 type ReviewStatus = 'DRAFT' | 'EMPLOYEE_REVIEW' | 'COMPLETED';
 
@@ -15,6 +16,7 @@ type ReviewStatus = 'DRAFT' | 'EMPLOYEE_REVIEW' | 'COMPLETED';
 })
 export class PerformanceReviews implements OnInit {
     private http = inject(HttpClient);
+    private authService = inject(AuthService);
 
     staffList = signal<StaffProfile[]>([]);
     reviews = signal<PerformanceReview[]>([]);
@@ -61,9 +63,10 @@ export class PerformanceReviews implements OnInit {
     }
 
     submitReview() {
+        const currentUser = this.authService.currentUserValue;
         const review: Partial<PerformanceReview> = {
             staff_id: this.formStaffId,
-            reviewer_id: '00000000-0000-0000-0000-000000000000',
+            reviewer_id: currentUser?.id || '',
             review_date: new Date().toISOString(),
             review_period: this.formReviewPeriod,
             score: this.formScore,

@@ -45,56 +45,7 @@ export class LeaderboardComponent implements OnInit {
     isLoadingStudents = signal(false);
 
     // Point Awards History Log
-    pointLogs = signal<PointAwardLog[]>([
-        {
-            id: 'log-1',
-            house_id: 'sample-1',
-            house_name: 'Volta Lions',
-            house_color: '#EF4444',
-            house_crest: '🦁',
-            points: 50,
-            category: 'Athletics & Sports',
-            reason: 'Inter-House Track & Field 4x100m Relay Gold',
-            awarded_by: 'Coach Mensah',
-            timestamp: new Date(Date.now() - 1000 * 60 * 45)
-        },
-        {
-            id: 'log-2',
-            house_id: 'sample-2',
-            house_name: 'Densu Eagles',
-            house_color: '#3B82F6',
-            house_crest: '🦅',
-            points: 35,
-            category: 'Academic Excellence',
-            reason: 'National Science & Math Quiz Regional Semifinals',
-            awarded_by: 'Dr. Boateng',
-            timestamp: new Date(Date.now() - 1000 * 60 * 180)
-        },
-        {
-            id: 'log-3',
-            house_id: 'sample-3',
-            house_name: 'Ankobra Dragons',
-            house_color: '#10B981',
-            house_crest: '🐉',
-            points: 25,
-            category: 'Civic Conduct',
-            reason: 'Campus Environmental Sustainability Cleanliness Cup',
-            awarded_by: 'Mrs. Addo',
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8)
-        },
-        {
-            id: 'log-4',
-            house_id: 'sample-4',
-            house_name: 'Pra Warriors',
-            house_color: '#F59E0B',
-            house_crest: '⚡',
-            points: 30,
-            category: 'Arts & Culture',
-            reason: 'Inter-House Drama & Poetry Festival 1st Runner Up',
-            awarded_by: 'Mr. Osei',
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24)
-        }
-    ]);
+    pointLogs = signal<PointAwardLog[]>([]);
 
     // Modals Visibility
     isCreateModalOpen = signal(false);

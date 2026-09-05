@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { HrService } from '../../../core/infrastructure/hr/hr.service';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
-import { StaffProfile, LeaveRequest } from '../../../core/domain/hr/hr.model';
+import { StaffProfile, LeaveRequest, PayrollRecord } from '../../../core/domain/hr/hr.model';
 
 @Component({
     selector: 'app-staff-portal',
@@ -18,29 +18,48 @@ export class StaffPortalComponent implements OnInit {
 
     profile = signal<StaffProfile | null>(null);
     myLeaves = signal<LeaveRequest[]>([]);
-    
-    // Quick mock for UI since real timetable/classes endpoints might be teacher specific
-    recentPayslips = [
-        { month: 'August 2026', id: 'ps-001' },
-        { month: 'July 2026', id: 'ps-002' }
-    ];
+    recentPayslips = signal<{ id: string; month: string; raw: PayrollRecord }[]>([]);
 
     ngOnInit(): void {
         const user = this.authService.currentUserValue;
-        // Assume backend allows filtering staff profiles by user ID
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth() + 1;
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
         this.hrService.getStaffProfiles().subscribe(profiles => {
             const me = profiles.find(p => p.user_id === user?.id);
             if (me) {
                 this.profile.set(me);
+                this.loadStaffRecords(me.id, currentMonth, currentYear, monthNames);
             } else if (profiles.length > 0) {
-                // Fallback for testing if no exact match
                 this.profile.set(profiles[0]);
+                this.loadStaffRecords(profiles[0].id, currentMonth, currentYear, monthNames);
             }
         });
 
         this.hrService.getLeaveRequests().subscribe(leaves => {
-            // In a real app, filter by the logged-in staff member ID
-            this.myLeaves.set(leaves.slice(0, 3)); 
+            if (this.profile()) {
+                this.myLeaves.set(leaves.filter(l => l.staff_id === this.profile()?.id).slice(0, 3));
+            } else {
+                this.myLeaves.set(leaves.slice(0, 3)); 
+            }
+        });
+    }
+
+    private loadStaffRecords(staffId: string, currentMonth: number, currentYear: number, monthNames: string[]) {
+        this.hrService.getPayrollHistory(currentMonth, currentYear).subscribe({
+            next: (payrolls) => {
+                const staffPayrolls = payrolls.filter(p => p.staff_id === staffId);
+                const mapped = staffPayrolls.map(p => ({
+                    id: p.id,
+                    month: `${monthNames[p.period_month - 1] || 'Month ' + p.period_month} ${p.period_year}`,
+                    raw: p
+                }));
+                this.recentPayslips.set(mapped);
+            },
+            error: () => {
+                this.recentPayslips.set([]);
+            }
         });
     }
 

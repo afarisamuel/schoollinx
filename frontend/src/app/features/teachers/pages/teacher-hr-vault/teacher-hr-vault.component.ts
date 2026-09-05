@@ -6,9 +6,11 @@ import { TeacherPortalService } from '../../../../core/infrastructure/teacher/te
 import { HrService } from '../../../../core/infrastructure/hr/hr.service';
 import { ToastService } from '../../../../shared/ui/toast/toast.service';
 import { AuthService } from '../../../../core/infrastructure/auth/auth.service';
+import { LeaveBalance, LeaveRequest, PayrollRecord, StaffProfile } from '../../../../core/domain/hr/hr.model';
 
 export interface FacultyPayslip {
   id: string;
+  rawId?: string;
   month: string;
   year: number;
   gross: number;
@@ -28,6 +30,7 @@ export interface FacultyPayslip {
 
 export interface FacultyLeaveRecord {
   id: string;
+  rawId?: string;
   leaveType: string;
   categoryLabel: string;
   startDate: string;
@@ -68,29 +71,24 @@ export class TeacherHrVaultComponent implements OnInit {
   selectedYear = signal(new Date().getFullYear());
 
   teacher = signal<any>(null);
+  currentStaffId = signal<string>('');
   
-  // Faculty Profile Details
+  // Faculty Profile Details - Loaded dynamically from database
   staffProfile = signal({
-    staffId: 'STF-2024-042',
-    designation: 'Senior Faculty Instructor & Head of Discipline',
-    department: 'Science & Technical Education',
-    ssnitNumber: 'E028491823901',
-    tinNumber: 'P002938491',
-    hireDate: '2023-09-01',
-    bankName: 'GCB Bank Ghana Ltd',
-    accountNumber: '•••••••• 4921',
-    employmentType: 'Full-Time Permanent',
-    baseSalary: 4200.00
+    staffId: 'STF-PENDING',
+    designation: 'Faculty Member',
+    department: 'Academic Instruction',
+    ssnitNumber: 'Not on file',
+    tinNumber: 'Not on file',
+    hireDate: 'Not specified',
+    bankName: 'Not on file',
+    accountNumber: '',
+    employmentType: 'Full-Time Faculty',
+    baseSalary: 0
   });
 
-  // Leave Quotas
-  leaveQuotas = signal<LeaveQuota[]>([
-    { type: 'ANNUAL', label: 'Annual Leave', icon: 'fas fa-umbrella-beach', iconBg: 'bg-blue-500/10 text-blue-500', allocated: 21, used: 6, color: 'from-blue-500 to-indigo-500' },
-    { type: 'CASUAL', label: 'Casual / Personal', icon: 'fas fa-calendar-day', iconBg: 'bg-emerald-500/10 text-emerald-500', allocated: 5, used: 2, color: 'from-emerald-500 to-teal-500' },
-    { type: 'SICK', label: 'Medical / Sick Leave', icon: 'fas fa-notes-medical', iconBg: 'bg-rose-500/10 text-rose-500', allocated: 10, used: 2, color: 'from-rose-500 to-pink-500' },
-    { type: 'MATERNITY', label: 'Maternity / Parental', icon: 'fas fa-baby', iconBg: 'bg-purple-500/10 text-purple-500', allocated: 90, used: 0, color: 'from-purple-500 to-indigo-500' },
-    { type: 'STUDY', label: 'Study & Exam Leave', icon: 'fas fa-graduation-cap', iconBg: 'bg-amber-500/10 text-amber-500', allocated: 5, used: 0, color: 'from-amber-500 to-orange-500' }
-  ]);
+  // Leave Quotas - Derived from database LeaveBalances
+  leaveQuotas = signal<LeaveQuota[]>([]);
 
   // Leave Form State
   isLeaveModalOpen = signal(false);
@@ -101,184 +99,17 @@ export class TeacherHrVaultComponent implements OnInit {
   reliefTeacher = signal('');
   isSubmittingLeave = signal(false);
 
-  // Leave History
-  leaveHistory = signal<FacultyLeaveRecord[]>([
-    {
-      id: 'LV-2026-08',
-      leaveType: 'CASUAL',
-      categoryLabel: 'Casual / Urgent Personal',
-      startDate: '2026-07-14',
-      endDate: '2026-07-15',
-      daysCount: 2,
-      reason: 'Urgent family engagement outside Accra regional municipality.',
-      reliefStaff: 'Mr. Emmanuel Mensah',
-      status: 'APPROVED',
-      appliedOn: '2026-07-10',
-      approvedBy: 'Headmaster Office',
-      approverNotes: 'Approved. Classroom substitution arranged on cover board.'
-    },
-    {
-      id: 'LV-2026-04',
-      leaveType: 'SICK',
-      categoryLabel: 'Medical / Sick Leave',
-      startDate: '2026-05-20',
-      endDate: '2026-05-21',
-      daysCount: 2,
-      reason: 'Hospital clinical appointment and routine health assessment.',
-      reliefStaff: 'Mrs. Patience Osei',
-      status: 'APPROVED',
-      appliedOn: '2026-05-18',
-      approvedBy: 'HR Administration',
-      approverNotes: 'Medical receipt filed on record.'
-    },
-    {
-      id: 'LV-2026-02',
-      leaveType: 'ANNUAL',
-      categoryLabel: 'Annual Leave',
-      startDate: '2026-01-05',
-      endDate: '2026-01-10',
-      daysCount: 6,
-      reason: 'Post-Christmas vacation and semester transition period.',
-      reliefStaff: 'Departmental Rotation',
-      status: 'APPROVED',
-      appliedOn: '2025-12-15',
-      approvedBy: 'Board of Governors / HR',
-      approverNotes: 'Approved during academic break.'
-    }
-  ]);
+  // Leave History - Loaded from database LeaveRequests
+  leaveHistory = signal<FacultyLeaveRecord[]>([]);
 
-  // Payslips Archive
-  payslips = signal<FacultyPayslip[]>([
-    {
-      id: 'PAY-2026-08',
-      month: 'August 2026',
-      year: 2026,
-      gross: 4750.00,
-      basicSalary: 4200.00,
-      teachingAllowance: 350.00,
-      transportAllowance: 200.00,
-      ssnitEmployee: 231.00,
-      ssnitEmployer: 546.00,
-      payeTax: 410.00,
-      welfareDues: 50.00,
-      netPay: 4059.00,
-      status: 'PAID',
-      paymentDate: '2026-08-28',
-      paymentMethod: 'Direct Bank Deposit (GCB)',
-      referenceNo: 'TXN-SLX-20260828-9410'
-    },
-    {
-      id: 'PAY-2026-07',
-      month: 'July 2026',
-      year: 2026,
-      gross: 4750.00,
-      basicSalary: 4200.00,
-      teachingAllowance: 350.00,
-      transportAllowance: 200.00,
-      ssnitEmployee: 231.00,
-      ssnitEmployer: 546.00,
-      payeTax: 410.00,
-      welfareDues: 50.00,
-      netPay: 4059.00,
-      status: 'PAID',
-      paymentDate: '2026-07-28',
-      paymentMethod: 'Direct Bank Deposit (GCB)',
-      referenceNo: 'TXN-SLX-20260728-8314'
-    },
-    {
-      id: 'PAY-2026-06',
-      month: 'June 2026',
-      year: 2026,
-      gross: 4750.00,
-      basicSalary: 4200.00,
-      teachingAllowance: 350.00,
-      transportAllowance: 200.00,
-      ssnitEmployee: 231.00,
-      ssnitEmployer: 546.00,
-      payeTax: 410.00,
-      welfareDues: 50.00,
-      netPay: 4059.00,
-      status: 'PAID',
-      paymentDate: '2026-06-27',
-      paymentMethod: 'Direct Bank Deposit (GCB)',
-      referenceNo: 'TXN-SLX-20260627-7219'
-    },
-    {
-      id: 'PAY-2026-05',
-      month: 'May 2026',
-      year: 2026,
-      gross: 4750.00,
-      basicSalary: 4200.00,
-      teachingAllowance: 350.00,
-      transportAllowance: 200.00,
-      ssnitEmployee: 231.00,
-      ssnitEmployer: 546.00,
-      payeTax: 410.00,
-      welfareDues: 50.00,
-      netPay: 4059.00,
-      status: 'PAID',
-      paymentDate: '2026-05-28',
-      paymentMethod: 'Direct Bank Deposit (GCB)',
-      referenceNo: 'TXN-SLX-20260528-6102'
-    },
-    {
-      id: 'PAY-2026-04',
-      month: 'April 2026',
-      year: 2026,
-      gross: 4750.00,
-      basicSalary: 4200.00,
-      teachingAllowance: 350.00,
-      transportAllowance: 200.00,
-      ssnitEmployee: 231.00,
-      ssnitEmployer: 546.00,
-      payeTax: 410.00,
-      welfareDues: 50.00,
-      netPay: 4059.00,
-      status: 'PAID',
-      paymentDate: '2026-04-28',
-      paymentMethod: 'Direct Bank Deposit (GCB)',
-      referenceNo: 'TXN-SLX-20260428-5089'
-    }
-  ]);
+  // Payslips Archive - Loaded from database PayrollRecords
+  payslips = signal<FacultyPayslip[]>([]);
 
   // Selected Payslip for Detail View Modal
   selectedPayslip = signal<FacultyPayslip | null>(null);
 
   // Documents
-  hrDocuments = signal([
-    {
-      title: 'Faculty Appointment Letter & Terms of Engagement',
-      category: 'Contract & Legal',
-      issueDate: '01 Sep 2023',
-      fileSize: '480 KB',
-      icon: 'fas fa-file-contract',
-      color: 'text-blue-500'
-    },
-    {
-      title: 'Institutional Code of Conduct & Pedagogical Ethics',
-      category: 'Compliance & Policies',
-      issueDate: '10 Jan 2026',
-      fileSize: '1.2 MB',
-      icon: 'fas fa-shield-alt',
-      color: 'text-emerald-500'
-    },
-    {
-      title: 'Annual Faculty Performance Appraisal 2025/2026',
-      category: 'Appraisal Report',
-      issueDate: '15 Jul 2026',
-      fileSize: '650 KB',
-      icon: 'fas fa-award',
-      color: 'text-amber-500'
-    },
-    {
-      title: 'Ghana SSNIT Tier 1 & Tier 2 Membership Certificate',
-      category: 'Social Security',
-      issueDate: '15 Sep 2023',
-      fileSize: '320 KB',
-      icon: 'fas fa-landmark',
-      color: 'text-indigo-500'
-    }
-  ]);
+  hrDocuments = signal<any[]>([]);
 
   // Telemetry Computeds
   totalAllocatedLeave = computed(() => {
@@ -290,7 +121,14 @@ export class TeacherHrVaultComponent implements OnInit {
   });
 
   totalAvailableLeave = computed(() => {
-    return this.totalAllocatedLeave() - this.totalUsedLeave();
+    const avail = this.totalAllocatedLeave() - this.totalUsedLeave();
+    return avail > 0 ? avail : 0;
+  });
+
+  leaveProgressPercent = computed(() => {
+    const total = this.totalAllocatedLeave();
+    if (total <= 0) return 0;
+    return Math.min(100, Math.max(0, (this.totalAvailableLeave() / total) * 100));
   });
 
   pendingLeaveCount = computed(() => {
@@ -328,6 +166,13 @@ export class TeacherHrVaultComponent implements OnInit {
   });
 
   ngOnInit() {
+    this.loadData();
+  }
+
+  loadData() {
+    this.isLoading.set(true);
+    const currentUser = this.authService.currentUserValue;
+
     this.portalService.getMyClasses().subscribe({
       next: (res) => {
         this.teacher.set(res.teacher);
@@ -335,16 +180,207 @@ export class TeacherHrVaultComponent implements OnInit {
           const t = res.teacher as any;
           this.staffProfile.update(prev => ({
             ...prev,
-            staffId: t.staff_id || `STF-2024-${String(t.id).padStart(3, '0')}`,
+            staffId: t.staff_id || (t.id ? `STF-${String(t.id).substring(0, 8).toUpperCase()}` : prev.staffId),
             department: t.department || prev.department,
             designation: t.designation || prev.designation,
-            baseSalary: t.base_salary || prev.baseSalary
+            baseSalary: t.base_salary || prev.baseSalary,
+            hireDate: t.created_at ? t.created_at.slice(0, 10) : prev.hireDate
           }));
         }
-        this.isLoading.set(false);
+
+        // Fetch staff profile list from HR to resolve linked staff record
+        this.hrService.getStaffProfiles().subscribe({
+          next: (profiles: StaffProfile[]) => {
+            const matchedStaff = profiles.find(p => 
+              (currentUser && p.user_id === currentUser.id) || 
+              (res.teacher && (p.first_name === res.teacher.first_name && p.last_name === res.teacher.last_name)) ||
+              (res.teacher && p.id === res.teacher.id)
+            ) || (profiles.length > 0 ? profiles[0] : null);
+
+            if (matchedStaff) {
+              this.currentStaffId.set(matchedStaff.id);
+              this.staffProfile.update(prev => ({
+                ...prev,
+                staffId: matchedStaff.id ? `STF-${matchedStaff.id.substring(0, 8).toUpperCase()}` : prev.staffId,
+                department: matchedStaff.department || prev.department,
+                designation: matchedStaff.job_title || prev.designation,
+                baseSalary: matchedStaff.base_salary || prev.baseSalary,
+                bankName: matchedStaff.bank_account || prev.bankName,
+                hireDate: matchedStaff.hire_date ? matchedStaff.hire_date.slice(0, 10) : prev.hireDate
+              }));
+              this.loadStaffHRData(matchedStaff.id);
+            } else {
+              const fallbackId = res.teacher?.id || '';
+              this.currentStaffId.set(fallbackId);
+              this.loadStaffHRData(fallbackId);
+            }
+            this.isLoading.set(false);
+          },
+          error: () => {
+            const fallbackId = res.teacher?.id || '';
+            this.currentStaffId.set(fallbackId);
+            this.loadStaffHRData(fallbackId);
+            this.isLoading.set(false);
+          }
+        });
       },
-      error: () => this.isLoading.set(false)
+      error: () => {
+        this.isLoading.set(false);
+      }
     });
+  }
+
+  loadStaffHRData(staffId: string) {
+    const year = this.selectedYear();
+    const currentMonth = new Date().getMonth() + 1;
+
+    // 1. Fetch Leave Balances from DB
+    if (staffId) {
+      this.hrService.getStaffLeaveBalances(staffId, year).subscribe({
+        next: (balances) => {
+          this.processLeaveBalances(balances);
+        },
+        error: () => {
+          this.leaveQuotas.set([]);
+        }
+      });
+    } else {
+      this.hrService.getAllLeaveBalances(year).subscribe({
+        next: (balances) => {
+          this.processLeaveBalances(balances);
+        },
+        error: () => {
+          this.leaveQuotas.set([]);
+        }
+      });
+    }
+
+    // 2. Fetch Leave Requests from DB
+    this.hrService.getLeaveRequests().subscribe({
+      next: (leaves: LeaveRequest[]) => {
+        const staffLeaves = staffId ? leaves.filter(l => l.staff_id === staffId || !l.staff_id) : leaves;
+        const mapped: FacultyLeaveRecord[] = staffLeaves.map(l => ({
+          id: l.id ? `LV-${l.id.substring(0, 8).toUpperCase()}` : 'LV-N/A',
+          rawId: l.id,
+          leaveType: l.leave_type,
+          categoryLabel: this.getLeaveTypeLabel(l.leave_type),
+          startDate: l.start_date ? l.start_date.slice(0, 10) : '',
+          endDate: l.end_date ? l.end_date.slice(0, 10) : '',
+          daysCount: this.calculateDurationDays(l.start_date, l.end_date),
+          reason: l.reason || 'Not specified',
+          reliefStaff: 'Faculty Subject Rotation',
+          status: l.status || 'PENDING',
+          appliedOn: l.created_at ? l.created_at.slice(0, 10) : (l.start_date ? l.start_date.slice(0, 10) : ''),
+          approvedBy: l.status === 'APPROVED' ? 'HR & Administration' : (l.status === 'PENDING' ? 'Under Review' : 'HR Administration'),
+          approverNotes: l.status === 'APPROVED' ? 'Approved by Administration' : ''
+        }));
+        this.leaveHistory.set(mapped);
+      },
+      error: () => {
+        this.leaveHistory.set([]);
+      }
+    });
+
+    // 3. Fetch Payroll History from DB
+    this.hrService.getPayrollHistory(currentMonth, year).subscribe({
+      next: (payrolls: PayrollRecord[]) => {
+        const staffPayrolls = staffId ? payrolls.filter(p => p.staff_id === staffId || !p.staff_id) : payrolls;
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        
+        const mapped: FacultyPayslip[] = staffPayrolls.map(p => {
+          let allowancesBreakdown: any = {};
+          let deductionsBreakdown: any = {};
+          try {
+            if (p.allowances_breakdown) allowancesBreakdown = JSON.parse(p.allowances_breakdown);
+            if (p.deductions_breakdown) deductionsBreakdown = JSON.parse(p.deductions_breakdown);
+          } catch (e) {}
+
+          const ssnitEmployee = deductionsBreakdown.ssnit || deductionsBreakdown['SSNIT'] || (p.gross_pay * 0.055);
+          const ssnitEmployer = p.gross_pay * 0.13;
+          const payeTax = deductionsBreakdown.tax || deductionsBreakdown['PAYE'] || (p.deductions - ssnitEmployee > 0 ? p.deductions - ssnitEmployee : 0);
+          const welfareDues = deductionsBreakdown.welfare || deductionsBreakdown['Welfare'] || 0;
+          const monthLabel = p.period_month >= 1 && p.period_month <= 12 ? monthNames[p.period_month - 1] : `Month ${p.period_month}`;
+
+          return {
+            id: p.id ? `PAY-${p.id.substring(0, 8).toUpperCase()}` : 'PAY-N/A',
+            rawId: p.id,
+            month: `${monthLabel} ${p.period_year}`,
+            year: p.period_year,
+            gross: p.gross_pay,
+            basicSalary: p.gross_pay,
+            teachingAllowance: allowancesBreakdown.teaching || allowancesBreakdown['Teaching'] || (p.allowances > 0 ? p.allowances : 0),
+            transportAllowance: allowancesBreakdown.transport || allowancesBreakdown['Transport'] || 0,
+            ssnitEmployee: ssnitEmployee,
+            ssnitEmployer: ssnitEmployer,
+            payeTax: payeTax,
+            welfareDues: welfareDues,
+            netPay: p.net_pay,
+            status: p.status === 'PAID' ? 'PAID' : 'PROCESSING',
+            paymentDate: p.payment_date ? p.payment_date.slice(0, 10) : (p.created_at ? p.created_at.slice(0, 10) : 'Pending'),
+            paymentMethod: 'Bank Direct Deposit',
+            referenceNo: p.id ? `TXN-SLX-${p.id.substring(0, 8).toUpperCase()}` : 'TXN-SLX-PENDING'
+          };
+        });
+        this.payslips.set(mapped);
+      },
+      error: () => {
+        this.payslips.set([]);
+      }
+    });
+  }
+
+  private processLeaveBalances(balances: LeaveBalance[]) {
+    if (!balances || balances.length === 0) {
+      this.leaveQuotas.set([]);
+      return;
+    }
+
+    const typeConfig: Record<string, { label: string; icon: string; iconBg: string; color: string }> = {
+      'ANNUAL': { label: 'Annual Leave', icon: 'fas fa-umbrella-beach', iconBg: 'bg-blue-500/10 text-blue-500', color: 'from-blue-500 to-indigo-500' },
+      'CASUAL': { label: 'Casual / Personal', icon: 'fas fa-calendar-day', iconBg: 'bg-emerald-500/10 text-emerald-500', color: 'from-emerald-500 to-teal-500' },
+      'SICK': { label: 'Medical / Sick Leave', icon: 'fas fa-notes-medical', iconBg: 'bg-rose-500/10 text-rose-500', color: 'from-rose-500 to-pink-500' },
+      'MATERNITY': { label: 'Maternity / Parental', icon: 'fas fa-baby', iconBg: 'bg-purple-500/10 text-purple-500', color: 'from-purple-500 to-indigo-500' },
+      'STUDY': { label: 'Study & Exam Leave', icon: 'fas fa-graduation-cap', iconBg: 'bg-amber-500/10 text-amber-500', color: 'from-amber-500 to-orange-500' }
+    };
+
+    const quotas: LeaveQuota[] = balances.map(b => {
+      const cfg = typeConfig[b.leave_type.toUpperCase()] || {
+        label: b.leave_type,
+        icon: 'fas fa-calendar-check',
+        iconBg: 'bg-emerald-500/10 text-emerald-500',
+        color: 'from-emerald-500 to-teal-500'
+      };
+      return {
+        type: b.leave_type,
+        label: cfg.label,
+        icon: cfg.icon,
+        iconBg: cfg.iconBg,
+        allocated: b.allocated_days || 0,
+        used: b.used_days || 0,
+        color: cfg.color
+      };
+    });
+
+    this.leaveQuotas.set(quotas);
+  }
+
+  getLeaveTypeLabel(type: string): string {
+    const map: Record<string, string> = {
+      'ANNUAL': 'Annual Leave',
+      'CASUAL': 'Casual / Personal',
+      'SICK': 'Medical / Sick Leave',
+      'MATERNITY': 'Maternity / Parental',
+      'STUDY': 'Study & Exam Leave'
+    };
+    return map[type.toUpperCase()] || type;
+  }
+
+  calculateDurationDays(startStr?: string, endStr?: string): number {
+    if (!startStr || !endStr) return 1;
+    const s = new Date(startStr);
+    const e = new Date(endStr);
+    const diff = Math.abs(e.getTime() - s.getTime());
+    return Math.ceil(diff / (1000 * 60 * 60 * 24)) + 1;
   }
 
   submitLeave() {
@@ -361,56 +397,31 @@ export class TeacherHrVaultComponent implements OnInit {
 
     this.isSubmittingLeave.set(true);
 
-    const typeMap: Record<string, string> = {
-      'ANNUAL': 'Annual Leave',
-      'CASUAL': 'Casual / Urgent Personal',
-      'SICK': 'Medical / Sick Leave',
-      'MATERNITY': 'Maternity / Parental',
-      'STUDY': 'Study & Exam Leave'
-    };
-
-    const newRecord: FacultyLeaveRecord = {
-      id: `LV-${new Date().getFullYear()}-${String(this.leaveHistory().length + 1).padStart(2, '0')}`,
-      leaveType: this.leaveType(),
-      categoryLabel: typeMap[this.leaveType()] || this.leaveType(),
-      startDate: this.leaveStart(),
-      endDate: this.leaveEnd(),
-      daysCount: days,
-      reason: this.leaveReason(),
-      reliefStaff: this.reliefTeacher() || 'Subject Teacher Rotation',
-      status: 'PENDING',
-      appliedOn: new Date().toISOString().slice(0, 10),
-      approvedBy: 'Under Review',
-      approverNotes: 'Submitted for Headmaster & HR endorsement.'
-    };
-
-    // Try backend submission if available
-    this.hrService.submitLeaveRequest({
+    const payload: Partial<LeaveRequest> = {
+      staff_id: this.currentStaffId() || undefined,
       leave_type: this.leaveType(),
       start_date: this.leaveStart(),
       end_date: this.leaveEnd(),
       reason: this.leaveReason()
-    }).subscribe({
+    };
+
+    this.hrService.submitLeaveRequest(payload).subscribe({
       next: () => {
-        this.finishLeaveSubmission(newRecord);
+        this.isSubmittingLeave.set(false);
+        this.isLeaveModalOpen.set(false);
+        this.leaveReason.set('');
+        this.reliefTeacher.set('');
+        this.toast.success(
+          `Leave application for ${days} days filed successfully. Awaiting administrative review.`,
+          'Application Submitted'
+        );
+        this.loadStaffHRData(this.currentStaffId());
       },
       error: () => {
-        // Fallback gracefully to local persistent state
-        this.finishLeaveSubmission(newRecord);
+        this.isSubmittingLeave.set(false);
+        this.toast.error('Failed to submit leave request to server. Please try again.');
       }
     });
-  }
-
-  private finishLeaveSubmission(record: FacultyLeaveRecord) {
-    this.leaveHistory.update(prev => [record, ...prev]);
-    this.isSubmittingLeave.set(false);
-    this.isLeaveModalOpen.set(false);
-    this.leaveReason.set('');
-    this.reliefTeacher.set('');
-    this.toast.success(
-      `Leave application for ${record.daysCount} days filed successfully. Awaiting administrative review.`,
-      'Application Submitted'
-    );
   }
 
   cancelLeave(leaveId: string) {
@@ -419,6 +430,7 @@ export class TeacherHrVaultComponent implements OnInit {
   }
 
   viewPayslipModal(slip: FacultyPayslip) {
+    if (!slip) return;
     this.selectedPayslip.set(slip);
   }
 
@@ -435,6 +447,10 @@ export class TeacherHrVaultComponent implements OnInit {
   }
 
   copyToClipboard(text: string, label: string) {
+    if (!text || text === 'Not on file') {
+      this.toast.info(`${label} is not available.`);
+      return;
+    }
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text).then(() => {
         this.toast.success(`${label} copied to clipboard!`);
@@ -442,4 +458,3 @@ export class TeacherHrVaultComponent implements OnInit {
     }
   }
 }
-

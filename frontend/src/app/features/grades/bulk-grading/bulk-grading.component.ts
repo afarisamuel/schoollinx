@@ -760,8 +760,8 @@ export class BulkGradingComponent implements OnInit {
     this.isEvalLoading.set(true);
     this.evalData.set({});
 
-    const periodId = this.activePeriodId() || '00000000-0000-0000-0000-000000000000';
-    const termId = this.activeTermId() || '00000000-0000-0000-0000-000000000000';
+    const periodId = this.activePeriodId();
+    const termId = this.activeTermId();
 
     this.teacherPortalService.getStudentEvaluation(this.selectedClassId(), student.id!, periodId, termId).subscribe({
       next: (data) => {
@@ -792,8 +792,8 @@ export class BulkGradingComponent implements OnInit {
     this.isEvalSaving.set(true);
     const payload = {
       ...this.evalData(),
-      academic_period_id: this.activePeriodId() || '00000000-0000-0000-0000-000000000000',
-      term_id: this.activeTermId() || '00000000-0000-0000-0000-000000000000'
+      academic_period_id: this.activePeriodId(),
+      term_id: this.activeTermId()
     };
 
     this.teacherPortalService.updateStudentEvaluation(this.selectedClassId(), this.evalStudent()!.id!, payload).subscribe({

@@ -107,8 +107,8 @@ export class DashboardComponent implements OnInit {
   // Teacher Specific Live Signals
   teacherData = signal<{ id: string; first_name: string; last_name: string; subject: string; can_collect_fees?: boolean } | null>(null);
   teacherAssignments = signal<TeacherAssignment[]>([]);
-  pendingAssessmentsCount = signal<number>(14);
-  teacherAttendanceRate = signal<number>(96.5);
+  pendingAssessmentsCount = signal<number>(0);
+  teacherAttendanceRate = signal<number>(0);
 
   // Interactive Modals & Drawers
   isExportModalOpen = signal<boolean>(false);
@@ -130,10 +130,10 @@ export class DashboardComponent implements OnInit {
 
   // Feature 3: SMS & WhatsApp Broadcast Center
   isBroadcastModalOpen = signal<boolean>(false);
-  smsCreditsRemaining = signal<number>(3420);
+  smsCreditsRemaining = signal<number>(0);
   broadcastChannel = signal<'SMS' | 'WHATSAPP'>('SMS');
   broadcastAudience = signal<string>('ALL_PARENTS');
-  broadcastMessage = signal<string>('Dear Parent/Guardian, please be reminded that mid-term academic evaluations for Term 1 have commenced. Fee arrears should be cleared by Friday.');
+  broadcastMessage = signal<string>('');
   broadcastSuccessMsg = signal<string>('');
   isSendingBroadcast = signal<boolean>(false);
 
@@ -148,13 +148,28 @@ export class DashboardComponent implements OnInit {
   quickActionCategory = signal<'ALL' | 'ADMISSIONS' | 'ACADEMICS' | 'FISCAL' | 'COMMUNICATIONS'>('ALL');
 
   // Feature 4: School-Wide Attendance Ring Metrics
-  todayPresentCount = computed(() => Math.round(this.totalStudents() * 0.94));
-  todayAbsentCount = computed(() => Math.max(0, this.totalStudents() - this.todayPresentCount() - 2));
-  todayTardyCount = signal<number>(2);
+  todayPresentCount = computed(() => {
+    const stats = this.attendanceStats();
+    if (stats && stats.present !== undefined) return stats.present;
+    return 0;
+  });
+  todayAbsentCount = computed(() => {
+    const stats = this.attendanceStats();
+    if (stats && stats.absent !== undefined) return stats.absent;
+    return 0;
+  });
+  todayTardyCount = computed(() => {
+    const stats = this.attendanceStats();
+    if (stats && stats.tardy !== undefined) return stats.tardy;
+    return 0;
+  });
   attendancePercentage = computed(() => {
-    const total = this.totalStudents();
-    if (!total) return 94;
-    return Math.round((this.todayPresentCount() / total) * 1000) / 10;
+    const p = this.todayPresentCount();
+    const a = this.todayAbsentCount();
+    const t = this.todayTardyCount();
+    const total = p + a + t;
+    if (!total) return 0;
+    return Math.round((p / total) * 1000) / 10;
   });
 
   // SVG Circumference calculations for Attendance Ring (r = 42, 2 * pi * r ≈ 263.89)
@@ -224,7 +239,7 @@ export class DashboardComponent implements OnInit {
     if (demo && demo > 0) return demo;
     const risks = this.retentionRisks().length;
     if (risks > 0) return risks;
-    return 200;
+    return 0;
   });
 
   totalTeachers = computed(() => {
@@ -232,13 +247,13 @@ export class DashboardComponent implements OnInit {
     if (kpi && kpi > 0) return kpi;
     const count = this.teachersList().length;
     if (count > 0) return count;
-    return 8;
+    return 0;
   });
 
   totalGuardians = computed(() => {
     const kpi = this.kpis()?.total_guardians;
     if (kpi && kpi > 0) return kpi;
-    return 142;
+    return 0;
   });
 
   averageAttendance = computed(() => {
@@ -248,13 +263,13 @@ export class DashboardComponent implements OnInit {
     if (stats && (stats.present + stats.absent) > 0) {
       return Math.round((stats.present / (stats.present + stats.absent + (stats.tardy || 0))) * 1000) / 10;
     }
-    return 92.4;
+    return 0;
   });
 
   averageGpa = computed(() => {
     const kpi = this.kpis()?.average_gpa;
     if (kpi && kpi > 0) return kpi;
-    return 72.2;
+    return 0;
   });
 
   totalRevenue = computed(() => {
@@ -262,13 +277,13 @@ export class DashboardComponent implements OnInit {
     if (kpi && kpi > 0) return kpi;
     const fromRecords = this.recentFiscalRecords().reduce((acc, r) => acc + (r.amount_paid || (r.status === 'PAID' ? r.amount : 0)), 0);
     if (fromRecords > 0) return fromRecords;
-    return 88150;
+    return 0;
   });
 
   libraryLoans = computed(() => {
     const kpi = this.kpis()?.library_loans;
     if (kpi && kpi > 0) return kpi;
-    return 28;
+    return 0;
   });
 
   // Dynamic Grade Distribution based on selected term

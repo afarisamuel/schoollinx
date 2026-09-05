@@ -3,6 +3,7 @@ import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FiscalService, ExpenseClaim } from '../../../core/infrastructure/fiscal/fiscal.service';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
+import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 
 @Component({
   selector: 'app-expense-claims',
@@ -14,6 +15,7 @@ import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 export class ExpenseClaimsComponent implements OnInit {
   private fiscalService = inject(FiscalService);
   private dialog = inject(DialogService);
+  private authService = inject(AuthService);
 
   claims = signal<ExpenseClaim[]>([]);
   activeTab = signal<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
@@ -37,8 +39,9 @@ export class ExpenseClaimsComponent implements OnInit {
   formData = { amount: 0, description: '' };
   isSubmitting = signal(false);
 
-  // Hardcoded for now. In a real app, this comes from AuthService
-  private currentUserId = '00000000-0000-0000-0000-000000000000';
+  private get currentUserId(): string {
+    return this.authService.currentUserValue?.id || '';
+  }
 
   ngOnInit(): void {
     this.loadClaims();

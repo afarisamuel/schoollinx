@@ -33,6 +33,8 @@ export interface TimelineEvent {
     metadata: any;
 }
 
+import { AcademicPeriodService } from '../../../core/infrastructure/academic-period/academic-period.service';
+
 @Component({
     selector: 'app-student-detail',
     standalone: true,
@@ -52,6 +54,7 @@ export class StudentDetailComponent implements OnInit {
     private welfareService = inject(WelfareService);
     private authService = inject(AuthService);
     private dialog = inject(DialogService);
+    private periodService = inject(AcademicPeriodService);
 
     isAdmin = computed(() => this.authService.currentUserValue?.role === 'ADMIN');
     isTeacher = computed(() => this.authService.currentUserValue?.role === 'TEACHER');
@@ -153,12 +156,25 @@ export class StudentDetailComponent implements OnInit {
         const studentObj = this.student();
         if (!studentObj || !studentObj.id || this.isPrintingReport()) return;
         
+        const sId = studentObj.id;
         this.isPrintingReport.set(true);
-        // Using fake/random period and term UUIDs for now since this isn't integrated with a term selector
-        const dummyPeriodId = '00000000-0000-0000-0000-000000000000';
-        const dummyTermId = '00000000-0000-0000-0000-000000000000';
-        
-        this.studentService.printTerminalReport(studentObj.id, dummyPeriodId, dummyTermId).subscribe({
+        this.periodService.getActive().subscribe({
+            next: (activePeriod) => {
+                const periodId = activePeriod?.id || '';
+                this.periodService.getTerms(periodId).subscribe({
+                    next: (terms) => {
+                        const termId = terms.length > 0 ? terms[0].id : '';
+                        this.executePrintTerminalReport(sId, periodId, termId);
+                    },
+                    error: () => this.executePrintTerminalReport(sId, periodId, '')
+                });
+            },
+            error: () => this.executePrintTerminalReport(sId, '', '')
+        });
+    }
+
+    private executePrintTerminalReport(studentId: string, periodId: string, termId: string) {
+        this.studentService.printTerminalReport(studentId, periodId, termId).subscribe({
             next: (blob) => {
                 this.isPrintingReport.set(false);
                 const url = window.URL.createObjectURL(blob);

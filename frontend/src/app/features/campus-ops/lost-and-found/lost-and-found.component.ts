@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CampusOpsService, LostAndFoundItem } from '../../../core/infrastructure/campus-ops/campus-ops.service';
+import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 
 @Component({
     selector: 'app-lost-and-found',
@@ -11,6 +12,9 @@ import { CampusOpsService, LostAndFoundItem } from '../../../core/infrastructure
     styles: []
 })
 export class LostAndFoundComponent implements OnInit {
+    private opsService = inject(CampusOpsService);
+    private authService = inject(AuthService);
+
     items: LostAndFoundItem[] = [];
     
     newItem: Partial<LostAndFoundItem> = {
@@ -22,15 +26,13 @@ export class LostAndFoundComponent implements OnInit {
 
     categories = ['Electronics', 'Clothing', 'Books', 'Jewelry', 'Other'];
 
-    constructor(private opsService: CampusOpsService) {}
-
     ngOnInit(): void {
         this.loadItems();
     }
 
     loadItems(): void {
         this.opsService.getLostItems().subscribe(data => {
-            this.items = data;
+            this.items = data || [];
         });
     }
 
@@ -43,9 +45,9 @@ export class LostAndFoundComponent implements OnInit {
     }
 
     claimItem(id: string): void {
-        // In a real app, this ID would come from the auth context
-        const dummyUserId = '00000000-0000-0000-0000-000000000001'; 
-        this.opsService.claimLostItem(id, dummyUserId).subscribe(() => {
+        const currentUser = this.authService.currentUserValue;
+        if (!currentUser?.id) return;
+        this.opsService.claimLostItem(id, currentUser.id).subscribe(() => {
             this.loadItems();
         });
     }

@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CampusOpsService, VisitorLog } from '../../../core/infrastructure/campus-ops/campus-ops.service';
+import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 
 @Component({
     selector: 'app-visitor-management',
@@ -11,6 +12,9 @@ import { CampusOpsService, VisitorLog } from '../../../core/infrastructure/campu
     styles: []
 })
 export class VisitorManagementComponent implements OnInit {
+    private opsService = inject(CampusOpsService);
+    private authService = inject(AuthService);
+
     activeVisitors: VisitorLog[] = [];
     
     newVisitor: Partial<VisitorLog> = {
@@ -20,23 +24,21 @@ export class VisitorManagementComponent implements OnInit {
         badge_number: ''
     };
 
-    constructor(private opsService: CampusOpsService) {}
-
     ngOnInit(): void {
         this.loadVisitors();
     }
 
     loadVisitors(): void {
         this.opsService.getActiveVisitors().subscribe(data => {
-            this.activeVisitors = data;
+            this.activeVisitors = data || [];
         });
     }
 
     signIn(): void {
         if (!this.newVisitor.name || !this.newVisitor.purpose) return;
         
-        // Use a dummy host ID for now
-        this.newVisitor.host_id = '00000000-0000-0000-0000-000000000001';
+        const currentUser = this.authService.currentUserValue;
+        this.newVisitor.host_id = currentUser?.id || undefined;
         
         this.opsService.signInVisitor(this.newVisitor).subscribe(() => {
             this.loadVisitors();

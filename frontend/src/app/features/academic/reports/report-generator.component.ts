@@ -1,9 +1,11 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReportCardService, ReportCardTemplate, ReportCard } from '../../../core/infrastructure/report/report-card.service';
 import { StudentService } from '../../../core/infrastructure/student/student.service';
+import { AcademicPeriodService } from '../../../core/infrastructure/academic-period/academic-period.service';
 import { Student } from '../../../core/domain/student.model';
+import { ToastService } from '../../../shared/ui/toast/toast.service';
 
 @Component({
   selector: 'app-report-generator',
@@ -12,26 +14,36 @@ import { Student } from '../../../core/domain/student.model';
   templateUrl: './report-generator.component.html'
 })
 export class ReportGeneratorComponent implements OnInit {
+  private reportSvc = inject(ReportCardService);
+  private studentSvc = inject(StudentService);
+  private apService = inject(AcademicPeriodService);
+  private toast = inject(ToastService);
+
   templates = signal<ReportCardTemplate[]>([]);
   students = signal<Student[]>([]);
   
   selectedTemplateId = signal<string>('');
   selectedStudentId = signal<string>('');
-  
-  // Hardcoded for demo
-  academicPeriodId = '55555555-5555-5555-5555-555555555555';
+  academicPeriodId = signal<string>('');
   
   isGenerating = signal(false);
   generatedReport = signal<ReportCard | null>(null);
 
-  constructor(
-    private reportSvc: ReportCardService,
-    private studentSvc: StudentService
-  ) {}
-
   ngOnInit() {
     this.loadTemplates();
     this.loadStudents();
+    this.loadActivePeriod();
+  }
+
+  loadActivePeriod() {
+    this.apService.getActive().subscribe({
+      next: (period) => {
+        if (period?.id) {
+          this.academicPeriodId.set(period.id);
+        }
+      },
+      error: () => {}
+    });
   }
 
   loadTemplates() {
@@ -49,12 +61,8 @@ export class ReportGeneratorComponent implements OnInit {
     
     const req: ReportCard = {
       student_id: this.selectedStudentId(),
-      academic_period_id: this.academicPeriodId,
-      template_id: this.selectedTemplateId(),
-      rendered_data: { 
-        remarks: "Excellent performance this term.",
-        attendance_percentage: 95
-      } // Dummy data
+      academic_period_id: this.academicPeriodId(),
+      template_id: this.selectedTemplateId()
     };
 
     this.reportSvc.generateReport(req).subscribe({
@@ -64,21 +72,25 @@ export class ReportGeneratorComponent implements OnInit {
       },
       error: () => {
         this.isGenerating.set(false);
-        alert('Failed to generate report');
+        this.toast.error('Failed to generate report card from server.');
       }
     });
   }
 
   publishReport() {
     const report = this.generatedReport();
-    if (!report) return;
+    if (!report?.id) return;
     
-    // In reality, this URL would come from a PDF generator service or S3 upload
-    const dummyPdfUrl = `https://cdn.example.com/reports/${report.id}.pdf`;
+    const pdfUrl = `/api/reports/${report.id}/pdf`;
     
-    this.reportSvc.publishReport(report.id!, dummyPdfUrl).subscribe(() => {
-      alert('Report published successfully! Parents can now view it.');
-      this.generatedReport.set(null);
+    this.reportSvc.publishReport(report.id, pdfUrl).subscribe({
+      next: () => {
+        this.toast.success('Report published successfully! Parents can now view it.', 'Report Published');
+        this.generatedReport.set(null);
+      },
+      error: () => {
+        this.toast.error('Failed to publish report card.');
+      }
     });
   }
 }

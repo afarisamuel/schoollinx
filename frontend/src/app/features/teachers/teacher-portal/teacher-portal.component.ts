@@ -15,6 +15,7 @@ import { CampusOpsService } from '../../../core/infrastructure/campus-ops/campus
 import { RouterModule } from '@angular/router';
 import { ToastService } from '../../../shared/ui/toast/toast.service';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
+import { HrService } from '../../../core/infrastructure/hr/hr.service';
 
 @Component({
     selector: 'app-teacher-portal',
@@ -31,6 +32,7 @@ export class TeacherPortalComponent implements OnInit {
     private campusOps = inject(CampusOpsService);
     public toast = inject(ToastService);
     private authService = inject(AuthService);
+    private hrService = inject(HrService);
 
     isHeadmasterOrAdmin = computed(() => {
         const role = (this.authService.currentUserValue?.role || '') as string;
@@ -830,11 +832,23 @@ export class TeacherPortalComponent implements OnInit {
         const classId = this.selectedAssignment()?.class_id;
         if (!classId) return;
 
-        // Note: Period ID logic assumes fake or real ID fetched elsewhere. We mock it for now like in student profile
-        const dummyPeriodId = '00000000-0000-0000-0000-000000000000';
-        const dummyTermId = '00000000-0000-0000-0000-000000000000';
+        this.periodService.getActive().subscribe({
+            next: (activePeriod) => {
+                const periodId = activePeriod?.id || '';
+                this.periodService.getTerms(periodId).subscribe({
+                    next: (terms) => {
+                        const termId = terms.length > 0 ? terms[0].id : '';
+                        this.fetchStudentEvaluation(classId, student.id, periodId, termId);
+                    },
+                    error: () => this.fetchStudentEvaluation(classId, student.id, periodId, '')
+                });
+            },
+            error: () => this.fetchStudentEvaluation(classId, student.id, '', '')
+        });
+    }
 
-        this.portalService.getStudentEvaluation(classId, student.id, dummyPeriodId, dummyTermId).subscribe({
+    private fetchStudentEvaluation(classId: string, studentId: string, periodId: string, termId: string) {
+        this.portalService.getStudentEvaluation(classId, studentId, periodId, termId).subscribe({
             next: (data) => {
                 this.evalData.set(data);
                 this.isEvalLoading.set(false);
@@ -1164,20 +1178,32 @@ export class TeacherPortalComponent implements OnInit {
         }, 800);
     }
 
-    // HR Self-Service Methods (Feature 40 & 41)
+    // HR Self-Service Methods (Faculty Leave Management)
     submitLeaveRequest() {
         if (!this.leaveStartDate() || !this.leaveEndDate() || !this.leaveReason()) {
             this.toast.error('Please fill in start date, end date, and reason.');
             return;
         }
         this.isSubmittingLeave.set(true);
-        setTimeout(() => {
-            this.isSubmittingLeave.set(false);
-            this.leaveStartDate.set('');
-            this.leaveEndDate.set('');
-            this.leaveReason.set('');
-            this.toast.success('Leave application submitted to HR department for approval.', 'Leave Submitted');
-        }, 800);
+        this.hrService.submitLeaveRequest({
+            staff_id: this.teacher()?.id || undefined,
+            leave_type: this.leaveType(),
+            start_date: this.leaveStartDate(),
+            end_date: this.leaveEndDate(),
+            reason: this.leaveReason()
+        }).subscribe({
+            next: () => {
+                this.isSubmittingLeave.set(false);
+                this.leaveStartDate.set('');
+                this.leaveEndDate.set('');
+                this.leaveReason.set('');
+                this.toast.success('Leave application submitted to HR department for approval.', 'Leave Submitted');
+            },
+            error: () => {
+                this.isSubmittingLeave.set(false);
+                this.toast.error('Failed to submit leave application to server. Please try again.');
+            }
+        });
     }
 
     // Parent Consultations Methods (Feature 20)
