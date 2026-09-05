@@ -1,34 +1,34 @@
-<div class="max-w-[1440px] mx-auto space-y-6 animate-fade-in pb-16">
+<div class="max-w-[1440px] mx-auto space-y-6 animate-fade-in pb-16 px-3 sm:px-4 lg:px-6">
 
   <!-- ========================================== -->
   <!-- TOP STUDIO HEADER                          -->
   <!-- ========================================== -->
-  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-xl relative overflow-hidden">
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-bg-secondary border border-border-primary rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
     <div class="absolute top-0 right-0 w-80 h-80 bg-blue-500/5 blur-[100px] rounded-full pointer-events-none"></div>
 
     <div class="flex items-center gap-4">
-      <div class="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 flex-shrink-0 shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+      <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 flex-shrink-0 shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
       </div>
       <div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
           <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1.5">
             <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping"></span>
             Badging & Identity Engine
           </span>
-          <span class="text-xs text-text-muted">• CR80 PVC Standard</span>
+          <span class="text-xs text-text-muted">• CR80 PVC Standard (85.60 × 53.98 mm)</span>
         </div>
         <h1 class="text-xl lg:text-2xl font-black tracking-tight text-text-primary mt-1">
           Student ID Card Studio & Customizer
         </h1>
         <p class="text-xs text-text-secondary">
-          Design, customize, preview in 3D, and generate high-density printable student identity badges
+          Design, customize, preview in real-time, and generate high-density printable student identity badges
         </p>
       </div>
     </div>
 
     <!-- Quick Action Launchers -->
-    <div class="flex flex-wrap items-center gap-3 z-10">
+    <div class="flex flex-wrap items-center gap-2.5 z-10">
       <a routerLink="/students"
         class="px-3.5 py-2.5 rounded-xl bg-bg-tertiary hover:bg-bg-primary border border-border-secondary text-text-secondary hover:text-text-primary text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
@@ -36,11 +36,39 @@
       </a>
 
       <button type="button" (click)="openBatchModal()"
-        class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-blue-600/25 flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95">
+        class="px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-blue-600/25 flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95">
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
         <span>Batch Print Badges</span>
       </button>
     </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MOBILE VIEW SWITCHER (Small Screens < lg)  -->
+  <!-- ========================================== -->
+  <div class="lg:hidden flex items-center p-1.5 bg-bg-secondary border border-border-primary rounded-2xl shadow-lg gap-1.5">
+    <button type="button" (click)="mobileTab.set('controls')"
+      class="flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+      [class.bg-blue-600]="mobileTab() === 'controls'"
+      [class.text-white]="mobileTab() === 'controls'"
+      [class.shadow-md]="mobileTab() === 'controls'"
+      [class.text-text-secondary]="mobileTab() !== 'controls'"
+      [class.bg-transparent]="mobileTab() !== 'controls'">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Customizer</span>
+    </button>
+
+    <button type="button" (click)="mobileTab.set('preview')"
+      class="flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+      [class.bg-blue-600]="mobileTab() === 'preview'"
+      [class.text-white]="mobileTab() === 'preview'"
+      [class.shadow-md]="mobileTab() === 'preview'"
+      [class.text-text-secondary]="mobileTab() !== 'preview'"
+      [class.bg-transparent]="mobileTab() !== 'preview'">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+      <span>Live Preview</span>
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+    </button>
   </div>
 
   <!-- ========================================================= -->
@@ -49,16 +77,18 @@
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
     <!-- LEFT COLUMN: CUSTOMIZATION CONTROLS (7 Cols) -->
-    <div class="lg:col-span-7 flex flex-col gap-6">
+    <div class="lg:col-span-7 flex flex-col gap-6"
+         [class.hidden]="mobileTab() !== 'controls'"
+         [class.flex]="mobileTab() === 'controls'">
 
       <!-- SECTION 1: CANDIDATE SELECTION -->
-      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-xl flex flex-col gap-4">
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col gap-4">
         <div class="flex items-center justify-between border-b border-border-primary pb-3">
           <div class="flex items-center gap-2.5">
             <span class="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-black">1</span>
             <h2 class="text-sm font-black text-text-primary uppercase tracking-wider">Select Student Candidate</h2>
           </div>
-          <span class="text-xs text-text-muted font-bold">{{ filteredStudents().length }} Students Available</span>
+          <span class="text-xs text-text-muted font-bold">{{ filteredStudents().length }} Candidates</span>
         </div>
 
         <!-- Class Filter & Search Filter -->
@@ -85,7 +115,8 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 pt-1">
+        <!-- Horizontal Scrollable Student List -->
+        <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1.5 pt-1">
           @for (s of filteredStudents().slice(0, 15); track s.id) {
             <button type="button" (click)="selectStudent(s)"
               class="flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shrink-0 cursor-pointer"
@@ -100,7 +131,7 @@
                 @if (s.photo_url) {
                   <img [src]="s.photo_url" class="w-full h-full object-cover">
                 } @else {
-                  <span>{{ (s.first_name[0] || 'S') }}</span>
+                  <span>{{ (s.first_name ? s.first_name[0] : 'S') }}</span>
                 }
               </div>
               <div class="flex flex-col text-left">
@@ -113,7 +144,7 @@
       </div>
 
       <!-- SECTION 2: TEMPLATE DESIGN SELECTOR -->
-      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-xl flex flex-col gap-4">
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col gap-4">
         <div class="flex items-center justify-between border-b border-border-primary pb-3">
           <div class="flex items-center gap-2.5">
             <span class="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-black">2</span>
@@ -140,7 +171,7 @@
               </div>
               <div class="flex flex-col">
                 <span class="text-xs font-black text-text-primary uppercase tracking-tight">{{ tpl.name }}</span>
-                <span class="text-[11px] text-text-muted mt-0.5">{{ tpl.desc }}</span>
+                <span class="text-[11px] text-text-muted mt-0.5 leading-tight">{{ tpl.desc }}</span>
               </div>
               @if (selectedTemplate() === tpl.id) {
                 <div class="absolute top-2 right-2 w-2 h-2 rounded-full bg-blue-500"></div>
@@ -151,13 +182,13 @@
       </div>
 
       <!-- SECTION 3: INSTITUTIONAL COLOR THEMES -->
-      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-xl flex flex-col gap-4">
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col gap-4">
         <div class="flex items-center justify-between border-b border-border-primary pb-3">
           <div class="flex items-center gap-2.5">
             <span class="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-black">3</span>
             <h2 class="text-sm font-black text-text-primary uppercase tracking-wider">Color Palette & Brand Accent</h2>
           </div>
-          <span class="text-xs text-text-muted font-bold">8 Curated Palettes</span>
+          <span class="text-xs text-text-muted font-bold">10 Curated Palettes</span>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -182,7 +213,7 @@
       </div>
 
       <!-- SECTION 4: SMART FEATURE & FIELD TOGGLES -->
-      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-xl flex flex-col gap-4">
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col gap-4">
         <div class="flex items-center justify-between border-b border-border-primary pb-3">
           <div class="flex items-center gap-2.5">
             <span class="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-black">4</span>
@@ -237,12 +268,14 @@
     </div>
 
     <!-- RIGHT COLUMN: STICKY 3D LIVE PREVIEW (5 Cols) -->
-    <div class="lg:col-span-5 sticky top-6 flex flex-col gap-5">
+    <div class="lg:col-span-5 sticky top-6 flex-col gap-5"
+         [class.hidden]="mobileTab() !== 'preview'"
+         [class.flex]="mobileTab() === 'preview' || true">
 
-      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-2xl flex flex-col gap-4">
+      <div class="bg-bg-secondary border border-border-primary rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col gap-4">
         
-        <!-- Live Preview Header with 3D Flip Action -->
-        <div class="flex items-center justify-between pb-3 border-b border-border-primary">
+        <!-- Live Preview Header with 3D Flip Action & Fullscreen Zoom -->
+        <div class="flex items-center justify-between pb-3 border-b border-border-primary flex-wrap gap-2">
           <div class="flex items-center gap-2">
             <span class="relative flex h-2.5 w-2.5">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -251,16 +284,25 @@
             <span class="text-xs font-black text-text-primary uppercase tracking-wider">Live Card Preview</span>
           </div>
 
-          <!-- Flip Card Action -->
-          <button type="button" (click)="toggleFlip()"
-            class="px-3 py-1.5 rounded-xl bg-bg-tertiary hover:bg-bg-primary border border-border-secondary text-text-primary text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 14 5-5-5-5"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/><path d="m9 10-5 5 5 5"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
-            <span>Flip to {{ isFlipped() ? 'Front' : 'Back' }}</span>
-          </button>
+          <div class="flex items-center gap-1.5">
+            <!-- Fullscreen Lightbox Zoom -->
+            <button type="button" (click)="isFullscreenPreviewOpen.set(true)"
+              title="Fullscreen HD Zoom"
+              class="p-1.5 rounded-xl bg-bg-tertiary hover:bg-bg-primary border border-border-secondary text-text-secondary hover:text-text-primary text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
+            </button>
+
+            <!-- Flip Card Action -->
+            <button type="button" (click)="toggleFlip()"
+              class="px-3 py-1.5 rounded-xl bg-bg-tertiary hover:bg-bg-primary border border-border-secondary text-text-primary text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 14 5-5-5-5"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/><path d="m9 10-5 5 5 5"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
+              <span>Flip to {{ isFlipped() ? 'Front' : 'Back' }}</span>
+            </button>
+          </div>
         </div>
 
-        <!-- Render Card Component -->
-        <div class="w-full flex items-center justify-center p-2">
+        <!-- Render Card Component with Viewport Auto-Scale -->
+        <div class="w-full flex items-center justify-center p-1 sm:p-2">
           @if (activeStudent()) {
             <app-student-id-card
               [student]="activeStudent()!"
@@ -283,7 +325,7 @@
           <div class="bg-bg-tertiary/60 border border-border-secondary rounded-2xl p-4 flex flex-col gap-2 text-xs">
             <div class="flex items-center justify-between">
               <span class="text-text-muted font-semibold">Active Candidate:</span>
-              <strong class="text-text-primary uppercase">{{ current.first_name }} {{ current.last_name }}</strong>
+              <strong class="text-text-primary uppercase truncate max-w-[180px]">{{ current.first_name }} {{ current.last_name }}</strong>
             </div>
             <div class="flex items-center justify-between">
               <span class="text-text-muted font-semibold">Assigned ID:</span>
@@ -310,6 +352,61 @@
     </div>
 
   </div>
+
+  <!-- ========================================== -->
+  <!-- FULLSCREEN HD LIGHTBOX ZOOM MODAL          -->
+  <!-- ========================================== -->
+  @if (isFullscreenPreviewOpen() && activeStudent()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in select-none">
+      <div class="bg-bg-secondary border border-border-primary w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+        
+        <!-- Modal Header -->
+        <div class="p-5 border-b border-border-primary flex items-center justify-between bg-bg-tertiary/40">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
+            </div>
+            <div>
+              <h3 class="text-base font-black text-text-primary tracking-tight">HD Card Lightbox Zoom</h3>
+              <p class="text-xs text-text-muted font-mono">CR80 PVC • 300 DPI Vector Simulation</p>
+            </div>
+          </div>
+
+          <button (click)="isFullscreenPreviewOpen.set(false)" class="w-8 h-8 rounded-xl bg-bg-tertiary hover:bg-bg-primary text-text-muted hover:text-text-primary flex items-center justify-center transition-all cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <!-- Modal Body (Full Resolution Card) -->
+        <div class="p-6 overflow-y-auto flex items-center justify-center min-h-[380px] bg-bg-tertiary/20">
+          <app-student-id-card
+            [student]="activeStudent()!"
+            [template]="selectedTemplate()"
+            [theme]="selectedTheme()"
+            [showControls]="false"
+            [showBarcode]="showBarcode()"
+            [showQrCode]="showQrCode()"
+            [isFlipped]="isFlipped()">
+          </app-student-id-card>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="p-4 border-t border-border-primary bg-bg-tertiary/40 flex items-center justify-between">
+          <button type="button" (click)="toggleFlip()"
+            class="px-4 py-2 rounded-xl bg-bg-secondary hover:bg-bg-tertiary border border-border-secondary text-text-primary text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 14 5-5-5-5"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/><path d="m9 10-5 5 5 5"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
+            <span>Flip ({{ isFlipped() ? 'Front' : 'Back' }})</span>
+          </button>
+
+          <button type="button" (click)="isFullscreenPreviewOpen.set(false)"
+            class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all">
+            Done
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
 
   <!-- ========================================== -->
   <!-- BATCH ID PRINTING MODAL                    -->

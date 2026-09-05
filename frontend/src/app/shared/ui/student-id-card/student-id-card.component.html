@@ -69,20 +69,22 @@
   }
 
   <!-- ========================================================= -->
-  <!-- CR80 STUDENT ID BADGE CONTAINER (Standard 85.6 x 53.98mm)  -->
+  <!-- CR80 STUDENT ID BADGE VIEWPORT CONTAINER (Scalable Vector) -->
   <!-- ========================================================= -->
-  <div id="student-id-card-badge" 
-       class="relative w-full mx-auto select-none transition-all duration-300 bg-white"
-       [class.max-w-\[540px\]]="activeTemplate() !== 'vertical'"
-       [class.aspect-\[1\.586\]]="activeTemplate() !== 'vertical'"
-       [class.max-w-\[340px\]]="activeTemplate() === 'vertical'"
-       [class.aspect-\[0\.63\]]="activeTemplate() === 'vertical'"
-       [class.rounded-2xl]="true"
-       [class.overflow-hidden]="true"
-       [class.shadow-2xl]="true"
-       [class.border]="true"
-       [class.border-gray-200]="true"
-       [style.box-shadow]="'0 20px 40px -15px ' + currentThemeConfig().primary + '40'">
+  <div class="id-card-viewport select-none" [style.height]="wrapperHeight()">
+    <div class="id-card-scaler"
+         [style.width.px]="targetWidth()"
+         [style.height.px]="targetHeight()"
+         [style.transform]="'scale(' + scaleRatio() + ')'"
+         [style.transform-origin]="'top center'">
+
+      <div id="student-id-card-badge" 
+           class="relative select-none transition-all duration-300 bg-white rounded-2xl overflow-hidden shadow-2xl border border-gray-200"
+           [style.width.px]="targetWidth()"
+           [style.height.px]="targetHeight()"
+           [style.min-width.px]="targetWidth()"
+           [style.min-height.px]="targetHeight()"
+           [style.box-shadow]="'0 20px 40px -15px ' + currentThemeConfig().primary + '40'">
 
     @if (!activeIsBackSide()) {
       
@@ -646,6 +648,8 @@
       </div>
     }
 
+      </div>
+    </div>
   </div>
 
 </div>

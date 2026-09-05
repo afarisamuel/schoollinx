@@ -38,6 +38,10 @@ export class IdCardStudioComponent implements OnInit {
   showMedicalAlert = signal<boolean>(true);
   isFlipped = signal<boolean>(false);
 
+  // Mobile View Mode & Fullscreen Preview Modal
+  mobileTab = signal<'controls' | 'preview'>('controls');
+  isFullscreenPreviewOpen = signal<boolean>(false);
+
   // Batch Printing Modal
   isBatchModalOpen = signal<boolean>(false);
   isLoading = signal<boolean>(false);

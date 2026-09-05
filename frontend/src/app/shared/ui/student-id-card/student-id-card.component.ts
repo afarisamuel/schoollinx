@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, input } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, HostListener, ElementRef, signal, computed, inject, input, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Student } from '../../../core/domain/student.model';
@@ -134,8 +134,13 @@ export const ID_CARD_TEMPLATES: TemplateOption[] = [
   templateUrl: './student-id-card.component.html',
   styleUrl: './student-id-card.component.css'
 })
-export class StudentIdCardComponent implements OnInit {
+export class StudentIdCardComponent implements OnInit, AfterViewInit, OnDestroy {
   private tenantService = inject(TenantProfileService);
+  private hostEl = inject(ElementRef);
+
+  // Responsive Scaling Signals
+  scaleRatio = signal<number>(1);
+  private resizeObserver: ResizeObserver | null = null;
 
   // Signal Inputs (Fully Reactive to Parent Form Changes)
   student = input<Student | null>(null);
@@ -174,9 +179,22 @@ export class StudentIdCardComponent implements OnInit {
   activeTemplate = computed(() => this.template() || this.selectedTemplate());
   activeIsBackSide = computed(() => this.isFlipped() !== undefined ? (this.isFlipped() || false) : this.isBackSide());
 
+  // Canonical Pixel Dimensions
+  targetWidth = computed(() => this.activeTemplate() === 'vertical' ? 340 : 540);
+  targetHeight = computed(() => this.activeTemplate() === 'vertical' ? 540 : 340);
+  wrapperHeight = computed(() => `${Math.round(this.targetHeight() * this.scaleRatio())}px`);
+
   themes = ID_CARD_THEMES;
   templates = ID_CARD_TEMPLATES;
   tenantProfile = signal<TenantProfile | null>(null);
+
+  constructor() {
+    effect(() => {
+      // Re-trigger scale calculation when template changes
+      this.activeTemplate();
+      this.calculateScale();
+    });
+  }
 
   // Fully Reactive Computed Properties
   resolvedName = computed(() => {
@@ -292,6 +310,45 @@ export class StudentIdCardComponent implements OnInit {
       next: (profile) => this.tenantProfile.set(profile),
       error: () => {}
     });
+  }
+
+  ngAfterViewInit(): void {
+    this.setupResizeObserver();
+  }
+
+  ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.calculateScale();
+  }
+
+  calculateScale(providedWidth?: number): void {
+    if (typeof window === 'undefined') return;
+    const host = this.hostEl?.nativeElement;
+    const width = providedWidth ?? (host?.clientWidth || 540);
+    if (!width || width <= 0) return;
+    const targetW = this.targetWidth();
+    const ratio = Math.min(1, width / targetW);
+    this.scaleRatio.set(ratio > 0 ? ratio : 1);
+  }
+
+  private setupResizeObserver(): void {
+    if (typeof ResizeObserver === 'undefined') return;
+    const host = this.hostEl?.nativeElement;
+    if (!host) return;
+    this.resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const width = entry.contentRect.width;
+        if (width > 0) {
+          this.calculateScale(width);
+        }
+      }
+    });
+    this.resizeObserver.observe(host);
+    this.calculateScale(host.clientWidth);
   }
 
   setTheme(themeId: IdCardTheme) {

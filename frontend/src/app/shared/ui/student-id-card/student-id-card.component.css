@@ -3,8 +3,45 @@
   width: 100%;
 }
 
+.id-card-viewport {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: visible;
+  transition: height 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.id-card-scaler {
+  transform-origin: top center;
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
 /* Ensure clean on-screen and print rendering */
 #student-id-card-badge {
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
+  box-sizing: border-box;
+}
+
+@media print {
+  .id-card-viewport {
+    height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+  .id-card-scaler {
+    transform: none !important;
+    width: auto !important;
+    height: auto !important;
+  }
+  #student-id-card-badge {
+    transform: none !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
 }
