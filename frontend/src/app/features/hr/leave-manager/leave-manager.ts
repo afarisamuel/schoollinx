@@ -17,6 +17,40 @@ export class LeaveManager implements OnInit {
   leaveRequests = signal<LeaveRequest[]>([]);
   viewMode = signal<'LIST' | 'CALENDAR'>('LIST');
 
+  searchTerm = signal<string>('');
+  selectedType = signal<string>('');
+
+  leaveTypes = computed(() => {
+    const types = new Set(this.leaveRequests().map(r => r.leave_type).filter(Boolean));
+    return Array.from(types);
+  });
+
+  filteredLeaveRequests = computed(() => {
+    let result = [...this.leaveRequests()];
+    const type = this.selectedType();
+    if (type) {
+      result = result.filter(r => r.leave_type === type);
+    }
+    const term = this.searchTerm().toLowerCase().trim();
+    if (term) {
+      result = result.filter(r => {
+        const name = `${r.staff?.first_name || ''} ${r.staff?.last_name || ''}`.toLowerCase();
+        const role = `${r.staff?.job_title || ''}`.toLowerCase();
+        const leaveType = `${r.leave_type || ''}`.toLowerCase();
+        return name.includes(term) || role.includes(term) || leaveType.includes(term);
+      });
+    }
+    return result;
+  });
+
+  approvedCount = computed(() => {
+    return this.leaveRequests().filter(l => l.status === 'APPROVED').length;
+  });
+
+  rejectedCount = computed(() => {
+    return this.leaveRequests().filter(l => l.status === 'REJECTED').length;
+  });
+
   // Calendar State
   currentDate = signal(new Date());
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HrService } from '../../../core/infrastructure/hr/hr.service';
@@ -20,6 +20,26 @@ export class PayrollManager implements OnInit {
   taxBrackets = signal<TaxBracket[]>([]);
   
   activeTab: 'DISBURSEMENTS' | 'TAX_BRACKETS' = 'DISBURSEMENTS';
+
+  totalPayrollGross = computed(() => {
+    return this.payrollRecords().reduce((sum, r) => sum + (r.gross_pay || 0), 0);
+  });
+
+  totalPayrollDeductions = computed(() => {
+    return this.payrollRecords().reduce((sum, r) => sum + (r.deductions || 0), 0);
+  });
+
+  totalPayrollNet = computed(() => {
+    return this.payrollRecords().reduce((sum, r) => sum + (r.net_pay || 0), 0);
+  });
+
+  paidCount = computed(() => {
+    return this.payrollRecords().filter(r => r.status === 'PAID').length;
+  });
+
+  pendingCount = computed(() => {
+    return this.payrollRecords().filter(r => r.status === 'PENDING').length;
+  });
 
   selectedMonth: number = new Date().getMonth() + 1;
   selectedYear: number = new Date().getFullYear();

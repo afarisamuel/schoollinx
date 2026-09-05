@@ -26,6 +26,20 @@ export class StaffDirectory implements OnInit {
     return Array.from(deps);
   });
 
+  totalStaffCount = computed(() => this.staffList().length);
+
+  academicCount = computed(() => {
+    const academicKeywords = ['teach', 'faculty', 'science', 'math', 'language', 'social', 'art', 'educat', 'lectur', 'tutor'];
+    return this.staffList().filter(s => {
+      const combined = `${s.department || ''} ${s.job_title || ''}`.toLowerCase();
+      return academicKeywords.some(k => combined.includes(k));
+    }).length;
+  });
+
+  adminSupportCount = computed(() => {
+    return Math.max(0, this.totalStaffCount() - this.academicCount());
+  });
+
   filteredStaff = computed(() => {
     let result = [...this.staffList()];
     

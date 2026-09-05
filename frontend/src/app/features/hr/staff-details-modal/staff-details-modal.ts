@@ -22,9 +22,23 @@ export class StaffDetailsModalComponent implements OnInit {
   attendanceLogs = signal<StaffAttendance[]>([]);
   
   isLoading = signal(true);
+  copiedId = signal(false);
 
   ngOnInit() {
     this.loadDetails();
+  }
+
+  copyStaffId() {
+    if (this.staff?.id) {
+      navigator.clipboard.writeText(this.staff.id);
+      this.copiedId.set(true);
+      setTimeout(() => this.copiedId.set(false), 2000);
+    }
+  }
+
+  isValidDate(dateStr?: string): boolean {
+    if (!dateStr) return false;
+    return !dateStr.startsWith('0001') && !isNaN(Date.parse(dateStr));
   }
 
   loadDetails() {

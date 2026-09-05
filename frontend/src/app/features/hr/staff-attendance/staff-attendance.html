@@ -1,147 +1,180 @@
-<div class="space-y-4 sm:space-y-6 animate-fade-in">
+<div class="space-y-6 sm:space-y-8 animate-fade-in pb-12">
 
     <!-- Page Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
-        <div>
-            <h1 class="text-xl sm:text-2xl font-black text-text-primary tracking-tight">Staff Attendance</h1>
-            <p class="text-xs sm:text-sm text-text-muted mt-0.5">Track portal and biometric clock-ins for all staff</p>
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex h-2 w-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                <span class="text-xs font-bold uppercase tracking-wider text-cyan-400">Time & Punctuality System</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight">Staff Attendance</h1>
+            <p class="text-xs sm:text-sm text-text-muted">Track biometric clock-ins, monitor punctuality, and record manual check-ins</p>
         </div>
     </div>
 
-    <!-- Clock In/Out Card -->
-    <div class="bg-bg-secondary border border-border-primary rounded-2xl sm:rounded-3xl p-3.5 sm:p-6">
-        <h2 class="text-sm font-bold text-text-primary uppercase tracking-widest mb-4">Portal Clock In / Out</h2>
+    <!-- Clock In / Out Terminal Card -->
+    <div class="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-bg-secondary via-bg-tertiary/40 to-bg-secondary p-6 sm:p-7 shadow-2xl backdrop-blur-xl">
+        <div class="pointer-events-none absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 blur-[100px] rounded-full"></div>
+        
+        <div class="flex items-center gap-3 mb-5 pb-3 border-b border-white/10">
+            <div class="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div>
+                <h2 class="text-sm sm:text-base font-black text-text-primary">Direct Check-In Terminal</h2>
+                <p class="text-[10px] text-text-muted uppercase tracking-widest font-bold">Record immediate clock-in or clock-out timestamps</p>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <div class="md:col-span-1">
-                <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Select Staff Member</label>
-                <select [(ngModel)]="clockStaffId" class="w-full bg-bg-tertiary border border-border-primary rounded-2xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500/50">
-                    <option value="">— Choose staff —</option>
-                    @for (s of staffList(); track s.id) {
-                        <option [value]="s.id">{{ s.first_name }} {{ s.last_name }} ({{ s.job_title }})</option>
-                    }
-                </select>
+                <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 block">Staff Member</label>
+                <div class="relative">
+                    <select [(ngModel)]="clockStaffId" class="w-full bg-bg-tertiary border border-white/10 rounded-2xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-blue-500/50 appearance-none pr-10 shadow-sm cursor-pointer">
+                        <option value="">— Choose staff member —</option>
+                        @for (s of staffList(); track s.id) {
+                            <option [value]="s.id">{{ s.first_name }} {{ s.last_name }} ({{ s.job_title || 'Faculty' }})</option>
+                        }
+                    </select>
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
             </div>
+
             <div class="flex gap-3">
-                <button (click)="clockIn()" class="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-2xl text-sm font-bold hover:bg-emerald-500/20 transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14"/></svg>
+                <button (click)="clockIn()" class="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs sm:text-sm font-bold shadow-lg shadow-emerald-600/25 transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 16l-4-4m0 0l4-4m-4 4h14"/></svg>
                     Clock In
                 </button>
-                <button (click)="clockOut()" class="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-2xl text-sm font-bold hover:bg-rose-500/20 transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                <button (click)="clockOut()" class="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 rounded-2xl text-xs sm:text-sm font-bold transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 8l4 4m0 0l-4 4m4-4H3"/></svg>
                     Clock Out
                 </button>
             </div>
+
             <div>
                 @if (clockMessage) {
-                    <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-2xl text-sm font-medium">{{ clockMessage }}</div>
+                    <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl text-xs font-semibold animate-fade-in flex items-center gap-2">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        <span>{{ clockMessage }}</span>
+                    </div>
                 }
                 @if (clockError) {
-                    <div class="p-3 bg-rose-500/10 text-rose-400 rounded-2xl text-sm font-medium">{{ clockError }}</div>
+                    <div class="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl text-xs font-semibold animate-fade-in flex items-center gap-2">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <span>{{ clockError }}</span>
+                    </div>
                 }
             </div>
         </div>
     </div>
 
-    <!-- Summary Stats -->
-    <div class="grid grid-cols-3 gap-4">
-        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-5 flex flex-col items-center">
-            <div class="text-3xl font-black text-emerald-400">{{ totalPresent() }}</div>
-            <div class="text-[10px] font-bold text-text-muted uppercase tracking-widest mt-1">Present</div>
+    <!-- 3 Summary Stat Tiles -->
+    <div class="grid grid-cols-3 gap-3.5 sm:gap-5">
+        <div class="bg-bg-secondary border border-white/10 rounded-2xl sm:rounded-3xl p-5 flex flex-col items-center shadow-lg">
+            <div class="text-3xl sm:text-4xl font-black text-emerald-400 tracking-tight">{{ totalPresent() }}</div>
+            <div class="text-[10px] sm:text-xs font-bold text-text-muted uppercase tracking-widest mt-1">Present</div>
         </div>
-        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-5 flex flex-col items-center">
-            <div class="text-3xl font-black text-amber-400">{{ totalLate() }}</div>
-            <div class="text-[10px] font-bold text-text-muted uppercase tracking-widest mt-1">Late</div>
+        <div class="bg-bg-secondary border border-white/10 rounded-2xl sm:rounded-3xl p-5 flex flex-col items-center shadow-lg">
+            <div class="text-3xl sm:text-4xl font-black text-amber-400 tracking-tight">{{ totalLate() }}</div>
+            <div class="text-[10px] sm:text-xs font-bold text-text-muted uppercase tracking-widest mt-1">Late Arrival</div>
         </div>
-        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-5 flex flex-col items-center">
-            <div class="text-3xl font-black text-rose-400">{{ totalAbsent() }}</div>
-            <div class="text-[10px] font-bold text-text-muted uppercase tracking-widest mt-1">Absent</div>
+        <div class="bg-bg-secondary border border-white/10 rounded-2xl sm:rounded-3xl p-5 flex flex-col items-center shadow-lg">
+            <div class="text-3xl sm:text-4xl font-black text-rose-400 tracking-tight">{{ totalAbsent() }}</div>
+            <div class="text-[10px] sm:text-xs font-bold text-text-muted uppercase tracking-widest mt-1">Absent</div>
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6">
-        <h2 class="text-sm font-bold text-text-primary uppercase tracking-widest mb-4">Filter Attendance Logs</h2>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+    <!-- Filter Bar -->
+    <div class="bg-bg-secondary border border-white/10 rounded-3xl p-5 sm:p-6 shadow-xl">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3.5 sm:gap-4 items-end">
             <div>
-                <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Start Date</label>
-                <input type="date" [(ngModel)]="startDate" class="w-full bg-bg-tertiary border border-border-primary rounded-2xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 block">Start Date</label>
+                <input type="date" [(ngModel)]="startDate" class="w-full bg-bg-tertiary border border-white/10 rounded-2xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-blue-500/50 [color-scheme:dark] shadow-sm" />
             </div>
             <div>
-                <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">End Date</label>
-                <input type="date" [(ngModel)]="endDate" class="w-full bg-bg-tertiary border border-border-primary rounded-2xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 block">End Date</label>
+                <input type="date" [(ngModel)]="endDate" class="w-full bg-bg-tertiary border border-white/10 rounded-2xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-blue-500/50 [color-scheme:dark] shadow-sm" />
             </div>
             <div>
-                <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1 block">Staff Member (optional)</label>
-                <select [(ngModel)]="selectedStaffId" class="w-full bg-bg-tertiary border border-border-primary rounded-2xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500/50">
-                    <option value="">All Staff</option>
-                    @for (s of staffList(); track s.id) {
-                        <option [value]="s.id">{{ s.first_name }} {{ s.last_name }}</option>
-                    }
-                </select>
+                <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 block">Staff Member</label>
+                <div class="relative">
+                    <select [(ngModel)]="selectedStaffId" class="w-full bg-bg-tertiary border border-white/10 rounded-2xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-blue-500/50 appearance-none pr-10 shadow-sm cursor-pointer">
+                        <option value="">All Personnel</option>
+                        @for (s of staffList(); track s.id) {
+                            <option [value]="s.id">{{ s.first_name }} {{ s.last_name }}</option>
+                        }
+                    </select>
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
             </div>
             <div>
-                <button (click)="loadLogs()" class="w-full px-5 py-3 bg-blue-500 text-white rounded-2xl text-sm font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20">
+                <button (click)="loadLogs()" class="w-full px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-xs sm:text-sm font-bold transition-all shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                     Apply Filter
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Attendance Table -->
-    <div class="bg-bg-secondary border border-border-primary rounded-3xl overflow-hidden">
-        <div class="px-6 py-4 border-b border-border-primary flex items-center justify-between">
-            <h2 class="text-sm font-bold text-text-primary uppercase tracking-widest">Attendance Log</h2>
-            <span class="text-xs text-text-muted">{{ logs().length }} records</span>
+    <!-- Attendance Log Table -->
+    <div class="w-full overflow-hidden bg-gradient-to-b from-bg-secondary to-bg-secondary/90 border border-white/10 rounded-3xl shadow-2xl relative">
+        <div class="px-6 py-5 border-b border-white/10 flex items-center justify-between bg-bg-tertiary/70">
+            <h2 class="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider">Attendance Logs</h2>
+            <span class="text-xs font-semibold text-text-muted">{{ logs().length }} Total Records</span>
         </div>
 
         @if (isLoading()) {
-            <div class="flex justify-center py-16">
+            <div class="flex flex-col items-center justify-center py-24 gap-3">
                 <div class="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <span class="text-xs font-bold uppercase tracking-widest text-text-muted">Loading Logs...</span>
             </div>
         } @else if (logs().length === 0) {
-            <div class="flex flex-col items-center justify-center py-20 text-center">
-                <div class="w-16 h-16 bg-bg-tertiary rounded-3xl flex items-center justify-center mb-4">
+            <div class="flex flex-col items-center justify-center py-24 text-center">
+                <div class="w-16 h-16 bg-bg-tertiary rounded-2xl flex items-center justify-center mb-3 border border-dashed border-white/10">
                     <svg class="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
-                <p class="text-text-muted font-medium">No attendance records found for this period.</p>
-                <p class="text-xs text-text-muted/60 mt-1">Adjust the date range or use the clock-in panel above.</p>
+                <p class="text-text-primary font-bold">No Attendance Records Found</p>
+                <p class="text-xs text-text-muted mt-1">Adjust the date filters or use the check-in terminal above.</p>
             </div>
         } @else {
             <div class="overflow-x-auto">
-                <table class="w-full">
+                <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-bg-tertiary/50 border-b border-border-primary">
-                            <th class="text-left px-6 py-4 text-[10px] font-bold text-text-muted uppercase tracking-widest">Staff Member</th>
-                            <th class="text-left px-6 py-4 text-[10px] font-bold text-text-muted uppercase tracking-widest">Date</th>
-                            <th class="text-left px-6 py-4 text-[10px] font-bold text-text-muted uppercase tracking-widest">Status</th>
-                            <th class="text-left px-6 py-4 text-[10px] font-bold text-text-muted uppercase tracking-widest">Clock In</th>
-                            <th class="text-left px-6 py-4 text-[10px] font-bold text-text-muted uppercase tracking-widest">Clock Out</th>
-                            <th class="text-left px-6 py-4 text-[10px] font-bold text-text-muted uppercase tracking-widest">Duration</th>
-                            <th class="text-left px-6 py-4 text-[10px] font-bold text-text-muted uppercase tracking-widest">Source</th>
+                        <tr class="bg-bg-tertiary/50 border-b border-white/10">
+                            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Staff Member</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Date</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Status</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Clock In</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Clock Out</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Duration</th>
+                            <th class="px-6 py-4 text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Source</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-white/5">
                         @for (log of logs(); track log.id) {
-                        <tr class="border-b border-border-primary/50 hover:bg-bg-tertiary/30 transition-colors">
+                        <tr class="hover:bg-white/[0.02] transition-colors">
                             <td class="px-6 py-4">
-                                <div class="font-semibold text-sm text-text-primary">
+                                <div class="font-bold text-sm text-text-primary">
                                     {{ log.staff?.first_name }} {{ log.staff?.last_name }}
                                 </div>
-                                <div class="text-[10px] text-text-muted">{{ log.staff?.job_title }}</div>
+                                <div class="text-[10px] text-text-muted">{{ log.staff?.job_title || 'Faculty' }}</div>
                             </td>
-                            <td class="px-6 py-4 text-sm text-text-primary">{{ log.date | date:'EEE, d MMM y' }}</td>
+                            <td class="px-6 py-4 text-xs font-semibold text-text-primary">{{ log.date | date:'EEE, MMM d, y' }}</td>
                             <td class="px-6 py-4">
-                                <span class="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg border" [ngClass]="getStatusClass(log.status)">
+                                <span class="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border" [ngClass]="getStatusClass(log.status)">
                                     {{ log.status }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-sm text-text-secondary font-mono">{{ formatTime(log.clock_in) }}</td>
-                            <td class="px-6 py-4 text-sm text-text-secondary font-mono">{{ formatTime(log.clock_out) }}</td>
-                            <td class="px-6 py-4 text-sm text-text-muted">{{ getDuration(log.clock_in, log.clock_out) }}</td>
+                            <td class="px-6 py-4 text-xs text-text-secondary font-mono">{{ formatTime(log.clock_in) }}</td>
+                            <td class="px-6 py-4 text-xs text-text-secondary font-mono">{{ formatTime(log.clock_out) }}</td>
+                            <td class="px-6 py-4 text-xs text-text-muted font-medium">{{ getDuration(log.clock_in, log.clock_out) }}</td>
                             <td class="px-6 py-4">
-                                <span class="px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest rounded border"
-                                      [ngClass]="log.is_biometric ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'">
-                                    {{ log.is_biometric ? 'Biometric' : 'Portal' }}
+                                <span class="px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full border bg-blue-500/10 text-blue-400 border-blue-500/20">
+                                    {{ log.is_biometric ? 'Biometric' : 'Web Terminal' }}
                                 </span>
                             </td>
                         </tr>

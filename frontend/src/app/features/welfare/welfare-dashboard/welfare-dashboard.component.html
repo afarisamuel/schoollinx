@@ -1,233 +1,587 @@
-<div class="space-y-6 animate-fade-in">
-  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-    <div>
-      <h2 class="text-2xl font-black text-text-primary tracking-tight">Student Welfare Center</h2>
-      <p class="text-sm text-text-muted mt-1">Manage health records and conduct logs</p>
-    </div>
+<div class="text-text-primary space-y-6 animate-fade-in pb-12">
+    <!-- Ambient Background Glow Decorators -->
+    <div class="relative">
+        <div class="absolute -top-10 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+        <div class="absolute top-4 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
-    <!-- Student Search -->
-    <div class="flex items-center gap-2 w-full md:w-auto relative z-30">
-      <div class="relative flex-1 w-full md:w-80">
-        <app-student-search-dropdown
-          [(studentId)]="searchStudentId"
-          (studentSelected)="searchStudent()"
-          placeholder="Select a student..."
-        ></app-student-search-dropdown>
-      </div>
-      <button (click)="searchStudent()" [disabled]="!searchStudentId()" class="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-lg shadow-blue-500/20 transition duration-200 cursor-pointer">
-        Search
-      </button>
-    </div>
-  </div>
+        <!-- Executive Hero Header -->
+        <div class="bg-gradient-to-r from-bg-secondary/90 via-bg-secondary/70 to-bg-tertiary/60 backdrop-blur-xl border border-border-primary rounded-3xl p-6 lg:p-8 shadow-2xl relative overflow-hidden">
+            <!-- Subtle Top Lighting Cone -->
+            <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
 
-  @if (searchStudentId() && (currentHealthRecord() || isEditingHealth() || behaviorLogs().length > 0)) {
-  
-  <!-- Tabs -->
-  <div class="flex space-x-1 p-1 bg-bg-secondary rounded-xl w-fit">
-    <button (click)="setTab('health')" [class]="activeTab() === 'health' ? 'bg-blue-500/10 text-blue-400 font-semibold' : 'text-text-muted hover:text-white'" class="px-5 py-2 rounded-lg text-sm transition-all duration-200 flex items-center gap-2">
-      <i class="icon-health"></i> Health Profile
-    </button>
-    <button (click)="setTab('behavior')" [class]="activeTab() === 'behavior' ? 'bg-blue-500/10 text-blue-400 font-semibold' : 'text-text-muted hover:text-white'" class="px-5 py-2 rounded-lg text-sm transition-all duration-200 flex items-center gap-2">
-      <i class="icon-conduct"></i> Conduct Logs
-    </button>
-  </div>
-
-  <!-- Content Areas -->
-  <div class="mt-6">
-    <!-- HEALTH TAB -->
-    @if (activeTab() === 'health') {
-      <div class="bg-bg-tertiary border border-border-secondary rounded-2xl p-6 shadow-xl">
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-xl font-bold text-text-primary">Medical Information</h3>
-          @if (!isEditingHealth()) {
-            <button (click)="editHealth()" class="text-blue-400 hover:text-blue-300 text-sm font-medium transition duration-200">
-              <i class="icon-edit"></i> Edit Record
-            </button>
-          }
-        </div>
-
-        @if (isEditingHealth()) {
-          <form (submit)="saveHealth($event)" class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-400 mb-1">Blood Group</label>
-                <input type="text" [(ngModel)]="healthForm().blood_group" name="blood_group" class="w-full bg-bg-secondary border border-border-secondary rounded-lg py-2 px-3 text-text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-400 mb-1">Emergency Contact</label>
-                <input type="text" [(ngModel)]="healthForm().emergency_contact" name="emergency_contact" class="w-full bg-bg-secondary border border-border-secondary rounded-lg py-2 px-3 text-text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
-              </div>
-              <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-400 mb-1">Allergies</label>
-                <input type="text" [(ngModel)]="healthForm().allergies" name="allergies" class="w-full bg-bg-secondary border border-border-secondary rounded-lg py-2 px-3 text-text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
-              </div>
-              <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-400 mb-1">Medical Conditions</label>
-                <textarea [(ngModel)]="healthForm().medical_conditions" name="medical_conditions" rows="2" class="w-full bg-bg-secondary border border-border-secondary rounded-lg py-2 px-3 text-text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"></textarea>
-              </div>
-              <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-400 mb-1">Required Medication</label>
-                <textarea [(ngModel)]="healthForm().required_medication" name="required_medication" rows="2" class="w-full bg-bg-secondary border border-border-secondary rounded-lg py-2 px-3 text-text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"></textarea>
-              </div>
-            </div>
-            <div class="flex justify-end gap-3 pt-4 mt-4 border-t border-border-primary">
-              <button type="button" (click)="cancelEditHealth()" class="px-4 py-2 bg-transparent text-gray-400 hover:text-text-primary rounded-lg transition duration-200">Cancel</button>
-              <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow-lg font-semibold transition duration-200">Save Record</button>
-            </div>
-          </form>
-        } @else {
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-bg-secondary rounded-xl p-4 border border-border-primary">
-              <div class="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Blood Group</div>
-              <div class="text-text-primary font-medium">{{ currentHealthRecord()?.blood_group || 'Not specified' }}</div>
-            </div>
-            <div class="bg-bg-secondary rounded-xl p-4 border border-border-primary">
-              <div class="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Emergency Contact</div>
-              <div class="text-text-primary font-medium">{{ currentHealthRecord()?.emergency_contact || 'Not specified' }}</div>
-            </div>
-            <div class="bg-bg-secondary rounded-xl p-4 border border-border-primary md:col-span-2">
-              <div class="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Allergies</div>
-              <div class="text-text-primary">{{ currentHealthRecord()?.allergies || 'None recorded' }}</div>
-            </div>
-            <div class="bg-bg-secondary rounded-xl p-4 border border-border-primary md:col-span-2">
-              <div class="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Medical Conditions</div>
-              <div class="text-text-primary">{{ currentHealthRecord()?.medical_conditions || 'None recorded' }}</div>
-            </div>
-            <div class="bg-bg-secondary rounded-xl p-4 border border-border-primary md:col-span-2">
-              <div class="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Required Medication</div>
-              <div class="text-text-primary">{{ currentHealthRecord()?.required_medication || 'None recorded' }}</div>
-            </div>
-          </div>
-        }
-      </div>
-    }
-
-    <!-- BEHAVIOR TAB -->
-    @if (activeTab() === 'behavior') {
-      <div class="bg-bg-tertiary border border-border-secondary rounded-2xl p-6 shadow-xl">
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-xl font-bold text-text-primary">Conduct & Disciplinary Logs</h3>
-          <button (click)="openAddBehavior()" class="bg-blue-600 hover:bg-blue-500 text-text-primary px-4 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-emerald-500/20 transition duration-200 flex items-center gap-2">
-            <i class="icon-plus"></i> Record Event
-          </button>
-        </div>
-
-        @if (behaviorLogs().length === 0) {
-          <div class="py-12 text-center border-2 border-dashed border-border-secondary rounded-xl bg-bg-tertiary">
-            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto mb-3">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <h4 class="text-lg font-medium text-text-primary">No Conduct Records</h4>
-            <p class="text-gray-500 text-sm mt-1">This student has a clean conduct sheet.</p>
-          </div>
-        } @else {
-          <div class="space-y-4">
-            @for (log of behaviorLogs(); track log.id) {
-              <div class="bg-bg-secondary border border-border-secondary rounded-xl p-4 flex gap-4 transition duration-200 hover:border-border-primary">
-                <div class="flex-shrink-0 mt-1">
-                  @if (log.type === 'MERIT') {
-                    <div class="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold" title="Merit">M</div>
-                  } @else {
-                    <div class="w-10 h-10 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center font-bold" title="Demerit">D</div>
-                  }
-                </div>
-                <div class="flex-1">
-                  <div class="flex justify-between items-start">
-                    <h4 class="text-text-primary font-semibold">{{ log.category }}</h4>
-                    <span class="text-xs text-gray-500">{{ log.date | date:'mediumDate' }}</span>
-                  </div>
-                  <p class="text-gray-400 text-sm mt-1">{{ log.description }}</p>
-                  @if (log.action_taken) {
-                    <div class="mt-3 text-xs bg-bg-tertiary px-3 py-2 rounded-md border border-border-primary">
-                      <span class="text-gray-500 font-semibold uppercase tracking-wider">Action:</span> <span class="text-gray-300 ml-1">{{ log.action_taken }}</span>
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div class="space-y-3">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                            Student Wellness & Clinical Command
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            <i class="fas fa-heart-pulse text-[10px]"></i>
+                            {{ students().length }} Scholars Enrolled
+                        </span>
                     </div>
-                  }
+
+                    <div>
+                        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-text-primary flex items-center gap-3">
+                            Student Welfare <span class="bg-gradient-to-r from-blue-600 via-indigo-500 to-emerald-600 dark:from-blue-400 dark:via-indigo-300 dark:to-emerald-400 bg-clip-text text-transparent">Center</span>
+                        </h1>
+                        <p class="text-text-muted text-sm sm:text-base max-w-2xl mt-1.5">
+                            Comprehensive health histories, allergy registries, daily medical protocols, and holistic behavioral & conduct telemetry.
+                        </p>
+                    </div>
+
+                    <!-- Sub-Domain Quick Switcher -->
+                    <div class="flex flex-wrap items-center gap-2 pt-2">
+                        <a routerLink="/welfare" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-500/15 text-blue-600 dark:text-blue-300 border border-blue-500/30 shadow-sm shadow-blue-500/10">
+                            <i class="fas fa-heart-pulse text-blue-500 dark:text-blue-400"></i> Welfare & Health
+                        </a>
+                        <a routerLink="/students" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-bg-tertiary/70 hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary transition-all">
+                            <i class="fas fa-user-graduate text-purple-500 dark:text-purple-400"></i> Student Directory
+                        </a>
+                        <a routerLink="/guardians" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-bg-tertiary/70 hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary transition-all">
+                            <i class="fas fa-users text-amber-500 dark:text-amber-400"></i> Parent Registry
+                        </a>
+                        <a routerLink="/house-points" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-bg-tertiary/70 hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary transition-all">
+                            <i class="fas fa-award text-emerald-500 dark:text-emerald-400"></i> House Points
+                        </a>
+                    </div>
                 </div>
-                <div>
-                  <button (click)="deleteBehavior(log.id)" class="text-gray-500 hover:text-red-400 p-2 rounded-lg hover:bg-bg-tertiary transition duration-200" title="Delete Log">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                  </button>
+
+                <!-- Header Actions Cluster -->
+                <div class="flex flex-wrap lg:flex-col items-stretch sm:items-end gap-3 shrink-0">
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <button (click)="exportCSV()" [disabled]="!selectedStudent()" title="Export Student Log" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-bg-tertiary/80 hover:bg-bg-tertiary text-text-secondary hover:text-text-primary border border-border-primary text-xs font-semibold shadow-sm transition-all active:scale-95 disabled:opacity-50 cursor-pointer">
+                            <i class="fas fa-file-csv text-emerald-500 dark:text-emerald-400"></i>
+                            <span>Export CSV</span>
+                        </button>
+                        <button (click)="printReport()" [disabled]="!selectedStudent()" title="Print Summary" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-bg-tertiary/80 hover:bg-bg-tertiary text-text-secondary hover:text-text-primary border border-border-primary text-xs font-semibold shadow-sm transition-all active:scale-95 disabled:opacity-50 cursor-pointer">
+                            <i class="fas fa-print text-blue-500 dark:text-blue-400"></i>
+                            <span>Print</span>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <button (click)="openAddBehavior('MERIT')" [disabled]="!selectedStudent()" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-500/20 border border-emerald-400/30 transition-all active:scale-95 disabled:opacity-50 cursor-pointer">
+                            <i class="fas fa-plus-circle text-xs"></i>
+                            <span>Award Merit</span>
+                        </button>
+                        <button (click)="openAddBehavior('DEMERIT')" [disabled]="!selectedStudent()" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-500/20 border border-rose-400/30 transition-all active:scale-95 disabled:opacity-50 cursor-pointer">
+                            <i class="fas fa-triangle-exclamation text-xs"></i>
+                            <span>Demerit</span>
+                        </button>
+                    </div>
                 </div>
-              </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Telemetry Metric Hub (4 Glassmorphic KPI Cards) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <!-- 1. Active Scholar Under Review -->
+        <div class="bg-gradient-to-br from-bg-secondary/90 to-bg-tertiary/70 border border-border-primary hover:border-blue-500/30 rounded-2xl p-5 shadow-lg transition-all relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-all"></div>
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 dark:text-blue-400 shadow-sm">
+                    <i class="fas fa-user-shield text-lg"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                    Scholar
+                </span>
+            </div>
+            <p class="text-xs font-bold text-text-muted uppercase tracking-wider">Active Subject</p>
+            <div class="mt-1 truncate">
+                <p class="text-xl font-black text-text-primary tracking-tight truncate">
+                    {{ selectedStudent() ? (selectedStudent()!.first_name + ' ' + selectedStudent()!.last_name) : 'No Selection' }}
+                </p>
+            </div>
+            <div class="mt-3 pt-3 border-t border-border-primary/50 flex items-center justify-between text-xs text-text-muted">
+                <span>Class division:</span>
+                <span class="font-bold text-text-primary">{{ selectedStudent()?.class_name || 'Standard Roster' }}</span>
+            </div>
+        </div>
+
+        <!-- 2. Merit Recognition -->
+        <div class="bg-gradient-to-br from-bg-secondary/90 to-bg-tertiary/70 border border-border-primary hover:border-emerald-500/30 rounded-2xl p-5 shadow-lg transition-all relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-all"></div>
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 dark:text-emerald-400 shadow-sm">
+                    <i class="fas fa-medal text-lg"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Merits
+                </span>
+            </div>
+            <p class="text-xs font-bold text-text-muted uppercase tracking-wider">Positive Commendations</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <p class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">{{ meritCount() }}</p>
+                <span class="text-xs text-text-muted">awards</span>
+            </div>
+            <div class="mt-3 pt-3 border-t border-border-primary/50 flex items-center justify-between text-xs text-text-muted">
+                <span>Recognition impact:</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-400">+{{ meritCount() * 10 }} pts</span>
+            </div>
+        </div>
+
+        <!-- 3. Demerits & Sanctions -->
+        <div class="bg-gradient-to-br from-bg-secondary/90 to-bg-tertiary/70 border border-border-primary hover:border-rose-500/30 rounded-2xl p-5 shadow-lg transition-all relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-rose-500/5 rounded-full blur-2xl group-hover:bg-rose-500/10 transition-all"></div>
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 dark:text-rose-400 shadow-sm">
+                    <i class="fas fa-triangle-exclamation text-lg"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                    Demerits
+                </span>
+            </div>
+            <p class="text-xs font-bold text-text-muted uppercase tracking-wider">Disciplinary Incidents</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <p class="text-2xl sm:text-3xl font-black text-rose-600 dark:text-rose-400 tracking-tight">{{ demeritCount() }}</p>
+                <span class="text-xs text-text-muted">infractions</span>
+            </div>
+            <div class="mt-3 pt-3 border-t border-border-primary/50 flex items-center justify-between text-xs text-text-muted">
+                <span>Disciplinary state:</span>
+                <span class="font-bold" [ngClass]="demeritCount() === 0 ? 'text-emerald-500' : 'text-rose-500'">{{ demeritCount() === 0 ? 'Clean Record' : 'Requires Oversight' }}</span>
+            </div>
+        </div>
+
+        <!-- 4. Clinical State & Blood Group -->
+        <div class="bg-gradient-to-br from-bg-secondary/90 to-bg-tertiary/70 border border-border-primary hover:border-amber-500/30 rounded-2xl p-5 shadow-lg transition-all relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/10 transition-all"></div>
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 dark:text-amber-400 shadow-sm">
+                    <i class="fas fa-droplet text-lg"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                    Clinical
+                </span>
+            </div>
+            <p class="text-xs font-bold text-text-muted uppercase tracking-wider">Blood Group & Allergies</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight font-mono">
+                    {{ currentHealthRecord()?.blood_group || 'N/A' }}
+                </p>
+                <span class="text-xs text-text-muted">blood type</span>
+            </div>
+            <div class="mt-3 pt-3 border-t border-border-primary/50 flex items-center justify-between text-xs text-text-muted">
+                <span>Allergies:</span>
+                <span class="font-bold truncate max-w-[120px]" [ngClass]="currentHealthRecord()?.allergies ? 'text-rose-500' : 'text-text-primary'">
+                    {{ currentHealthRecord()?.allergies || 'None logged' }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Workspace (Master-Detail Roster + Clinical/Conduct Studio) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[600px]">
+        
+        <!-- Left Column: Student Quick Roster Directory (4 cols) -->
+        <div class="lg:col-span-4 bg-bg-secondary border border-border-primary rounded-3xl p-5 shadow-xl flex flex-col gap-4">
+            <div class="flex items-center justify-between pb-3 border-b border-border-primary">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-address-book text-blue-500 text-xs"></i>
+                    <h3 class="text-xs font-black uppercase tracking-wider text-text-primary">Scholar Roster</h3>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                    {{ filteredStudents().length }} Found
+                </span>
+            </div>
+
+            <!-- Search & Class Filter -->
+            <div class="space-y-2">
+                <div class="relative">
+                    <i class="fas fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
+                    <input [ngModel]="studentSearchQuery()" (ngModelChange)="studentSearchQuery.set($event)" type="text" placeholder="Search by name or admission #..." class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl pl-9 pr-8 py-2 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner">
+                    @if (studentSearchQuery()) {
+                        <button (click)="studentSearchQuery.set('')" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary text-xs">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    }
+                </div>
+
+                <!-- Class Filter Dropdown -->
+                <div class="relative">
+                    <select [ngModel]="selectedClassFilter()" (ngModelChange)="selectedClassFilter.set($event)" class="w-full appearance-none bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-2 pl-9 pr-8 text-xs font-bold text-text-primary focus:outline-none transition-all cursor-pointer shadow-inner">
+                        <option value="ALL">All Class Divisions</option>
+                        @for (cls of availableClasses(); track cls) {
+                            <option [value]="cls">{{ cls }}</option>
+                        }
+                    </select>
+                    <i class="fas fa-chalkboard absolute left-3 top-1/2 -translate-y-1/2 text-blue-500 text-xs pointer-events-none"></i>
+                    <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-text-muted text-[10px] pointer-events-none"></i>
+                </div>
+            </div>
+
+            <!-- Student Scrollable List -->
+            <div class="flex-1 overflow-y-auto space-y-2 pr-1 max-h-[520px] custom-scrollbar">
+                @if (isLoadingStudents()) {
+                    <div class="p-8 text-center text-xs text-text-muted">
+                        <i class="fas fa-circle-notch fa-spin text-blue-500 text-lg mb-2"></i>
+                        <p>Loading students...</p>
+                    </div>
+                } @else {
+                    @for (s of filteredStudents(); track s.id) {
+                        <button (click)="selectStudent(s)" [class.bg-blue-500/15]="searchStudentId() === s.id" [class.border-blue-500/40]="searchStudentId() === s.id" [class.shadow-md]="searchStudentId() === s.id" class="w-full p-3 rounded-2xl bg-bg-tertiary/70 hover:bg-bg-tertiary border border-border-primary transition-all text-left flex items-center justify-between gap-3 group cursor-pointer">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-black text-xs shrink-0 group-hover:scale-105 transition-transform">
+                                    {{ s.first_name ? s.first_name[0] : 'S' }}{{ s.last_name ? s.last_name[0] : '' }}
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="font-bold text-text-primary group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-colors text-xs truncate">
+                                        {{ s.first_name }} {{ s.last_name }}
+                                    </p>
+                                    <p class="text-[10px] text-text-muted font-mono">{{ s.enrollment_num || ('STD-' + (s.id | slice:0:6)) }} • {{ s.class_name || 'Standard' }}</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right text-[10px] text-text-muted group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all"></i>
+                        </button>
+                    } @empty {
+                        <div class="p-6 text-center text-xs text-text-muted">
+                            <p>No matching scholars found.</p>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Right Column: Clinical & Behavioral Dossier (8 cols) -->
+        <div class="lg:col-span-8 space-y-6">
+            @if (selectedStudent()) {
+                <!-- Active Student Identity Banner -->
+                <div class="bg-gradient-to-r from-bg-secondary via-bg-secondary/95 to-bg-tertiary/80 border border-border-primary rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+                    <div class="flex items-center gap-4 min-w-0">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-500 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-500/25 shrink-0">
+                            {{ selectedStudent()!.first_name ? selectedStudent()!.first_name[0] : '' }}{{ selectedStudent()!.last_name ? selectedStudent()!.last_name[0] : '' }}
+                        </div>
+                        <div class="space-y-1 min-w-0">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h2 class="text-xl font-black text-text-primary tracking-tight truncate">
+                                    {{ selectedStudent()!.first_name }} {{ selectedStudent()!.last_name }}
+                                </h2>
+                                <span class="px-2.5 py-0.5 rounded-lg text-xs font-mono font-bold bg-bg-tertiary text-text-muted border border-border-primary">
+                                    {{ selectedStudent()!.enrollment_num || ('STD-' + (selectedStudent()!.id | slice:0:6)) }}
+                                </span>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-3 text-xs text-text-muted">
+                                <span><i class="fas fa-chalkboard text-blue-500 mr-1"></i> Class: <strong class="text-text-primary">{{ selectedStudent()!.class_name || 'Standard' }}</strong></span>
+                                <span><i class="fas fa-venus-mars text-purple-500 mr-1"></i> Gender: <strong class="text-text-primary">{{ selectedStudent()!.gender || 'Unspecified' }}</strong></span>
+                                @if (currentHealthRecord()?.emergency_contact) {
+                                    <span class="text-emerald-500 font-bold">
+                                        <i class="fas fa-phone mr-1"></i> {{ currentHealthRecord()?.emergency_contact }}
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mode Tab Selector -->
+                    <div class="flex items-center bg-bg-tertiary p-1.5 rounded-2xl border border-border-primary shrink-0">
+                        <button (click)="setTab('health')" [class.bg-blue-600]="activeTab() === 'health'" [class.text-white]="activeTab() === 'health'" [class.text-text-muted]="activeTab() !== 'health'" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
+                            <i class="fas fa-heart-pulse"></i> Medical Profile
+                        </button>
+                        <button (click)="setTab('behavior')" [class.bg-blue-600]="activeTab() === 'behavior'" [class.text-white]="activeTab() === 'behavior'" [class.text-text-muted]="activeTab() !== 'behavior'" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
+                            <i class="fas fa-gavel"></i> Conduct Logs ({{ behaviorLogs().length }})
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TAB 1: MEDICAL & CLINICAL PROFILE -->
+                @if (activeTab() === 'health') {
+                    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+                        <div class="flex items-center justify-between pb-4 border-b border-border-primary">
+                            <div>
+                                <h3 class="text-lg font-black text-text-primary flex items-center gap-2">
+                                    <i class="fas fa-notes-medical text-blue-500"></i>
+                                    Clinical Record & Health Snapshot
+                                </h3>
+                                <p class="text-xs text-text-muted mt-0.5">Physical health assessments, blood taxonomy, and vital medical protocols.</p>
+                            </div>
+                            @if (!isEditingHealth()) {
+                                <button (click)="editHealth()" class="px-4 py-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                                    <i class="fas fa-pen-to-square"></i> Modify Record
+                                </button>
+                            }
+                        </div>
+
+                        @if (isEditingHealth()) {
+                            <div class="space-y-4 animate-fade-in">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted mb-1.5">Blood Group Taxonomy</label>
+                                        <input type="text" [(ngModel)]="healthForm().blood_group" placeholder="e.g. O+, A+, B-, AB+" class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted mb-1.5">Primary Emergency Contact Phone</label>
+                                        <input type="text" [(ngModel)]="healthForm().emergency_contact" placeholder="e.g. +233 24 123 4567 (Dr. Kwame)" class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner">
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted mb-1.5">Severe Allergies & Intolerances</label>
+                                        <input type="text" [(ngModel)]="healthForm().allergies" placeholder="e.g. Peanuts, Penicillin, Shellfish, Dust mites..." class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner">
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted mb-1.5">Chronic Medical Conditions & Special Care Directives</label>
+                                        <textarea [(ngModel)]="healthForm().medical_conditions" rows="3" placeholder="e.g. Mild asthma (inhaler required before sports), seasonal rhinitis..." class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl p-4 text-xs sm:text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none shadow-inner"></textarea>
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted mb-1.5">Required Daily / Emergency Medication</label>
+                                        <textarea [(ngModel)]="healthForm().required_medication" rows="2" placeholder="e.g. Ventolin inhaler 2 puffs as needed, Epipen kept in sickbay..." class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl p-4 text-xs sm:text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none shadow-inner"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-end gap-3 pt-4 border-t border-border-primary">
+                                    <button (click)="cancelEditHealth()" class="px-5 py-2.5 text-xs font-bold text-text-muted hover:text-text-primary transition-all cursor-pointer">
+                                        Cancel
+                                    </button>
+                                    <button (click)="saveHealth()" [disabled]="isSavingHealth()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black shadow-lg shadow-blue-500/25 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 cursor-pointer">
+                                        @if (isSavingHealth()) {
+                                            <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                            <span>Saving Profile...</span>
+                                        } @else {
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>Save Clinical Record</span>
+                                        }
+                                    </button>
+                                </div>
+                            </div>
+                        } @else {
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <!-- Blood Group -->
+                                <div class="bg-bg-tertiary/70 border border-border-primary rounded-2xl p-4 space-y-1">
+                                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+                                        <i class="fas fa-droplet text-rose-500"></i> Blood Group
+                                    </span>
+                                    <p class="text-xl font-black text-text-primary font-mono">{{ currentHealthRecord()?.blood_group || 'Not Specified' }}</p>
+                                </div>
+
+                                <!-- Emergency Contact -->
+                                <div class="bg-bg-tertiary/70 border border-border-primary rounded-2xl p-4 space-y-1">
+                                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+                                        <i class="fas fa-phone-volume text-emerald-500"></i> Emergency Phone Line
+                                    </span>
+                                    <p class="text-base font-bold text-text-primary">{{ currentHealthRecord()?.emergency_contact || 'None Recorded' }}</p>
+                                </div>
+
+                                <!-- Allergies -->
+                                <div class="md:col-span-2 bg-bg-tertiary/70 border border-border-primary rounded-2xl p-4 space-y-2">
+                                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+                                        <i class="fas fa-shield-virus text-amber-500"></i> Allergies & Dietary Restrictions
+                                    </span>
+                                    <div class="flex items-center gap-2">
+                                        @if (currentHealthRecord()?.allergies) {
+                                            <span class="px-3 py-1 bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 rounded-xl text-xs font-bold">
+                                                {{ currentHealthRecord()?.allergies }}
+                                            </span>
+                                        } @else {
+                                            <p class="text-xs text-text-muted italic">No known allergies registered for this scholar.</p>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- Medical Conditions -->
+                                <div class="md:col-span-2 bg-bg-tertiary/70 border border-border-primary rounded-2xl p-4 space-y-1.5">
+                                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+                                        <i class="fas fa-file-medical text-blue-500"></i> Chronic Conditions & Care Notes
+                                    </span>
+                                    <p class="text-xs sm:text-sm text-text-primary leading-relaxed whitespace-pre-line">
+                                        {{ currentHealthRecord()?.medical_conditions || 'No chronic health conditions reported.' }}
+                                    </p>
+                                </div>
+
+                                <!-- Required Medication -->
+                                <div class="md:col-span-2 bg-bg-tertiary/70 border border-border-primary rounded-2xl p-4 space-y-1.5">
+                                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+                                        <i class="fas fa-pills text-purple-500"></i> Prescribed Medication Schedule
+                                    </span>
+                                    <p class="text-xs sm:text-sm text-text-primary leading-relaxed whitespace-pre-line">
+                                        {{ currentHealthRecord()?.required_medication || 'No recurring medications required during school hours.' }}
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- TAB 2: CONDUCT & BEHAVIORAL LOGS -->
+                @if (activeTab() === 'behavior') {
+                    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-primary">
+                            <div>
+                                <h3 class="text-lg font-black text-text-primary flex items-center gap-2">
+                                    <i class="fas fa-scale-balanced text-indigo-500"></i>
+                                    Conduct & Disciplinary Dossier
+                                </h3>
+                                <p class="text-xs text-text-muted mt-0.5">Chronological record of merits, commendations, and behavioral incidents.</p>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <!-- Behavior Filter -->
+                                <div class="flex items-center bg-bg-tertiary p-1 rounded-xl border border-border-primary text-xs font-bold">
+                                    <button (click)="behaviorFilter.set('ALL')" [class.bg-blue-600]="behaviorFilter() === 'ALL'" [class.text-white]="behaviorFilter() === 'ALL'" [class.text-text-muted]="behaviorFilter() !== 'ALL'" class="px-2.5 py-1 rounded-lg transition-all cursor-pointer">All</button>
+                                    <button (click)="behaviorFilter.set('MERIT')" [class.bg-emerald-600]="behaviorFilter() === 'MERIT'" [class.text-white]="behaviorFilter() === 'MERIT'" [class.text-text-muted]="behaviorFilter() !== 'MERIT'" class="px-2.5 py-1 rounded-lg transition-all cursor-pointer">Merits</button>
+                                    <button (click)="behaviorFilter.set('DEMERIT')" [class.bg-rose-600]="behaviorFilter() === 'DEMERIT'" [class.text-white]="behaviorFilter() === 'DEMERIT'" [class.text-text-muted]="behaviorFilter() !== 'DEMERIT'" class="px-2.5 py-1 rounded-lg transition-all cursor-pointer">Demerits</button>
+                                </div>
+
+                                <button (click)="openAddBehavior('MERIT')" class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer">
+                                    <i class="fas fa-plus"></i> Record Event
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Behavioral Event Cards Stream -->
+                        <div class="space-y-3.5">
+                            @for (log of filteredBehaviorLogs(); track log.id) {
+                                <div class="group bg-bg-tertiary/70 hover:bg-bg-tertiary border border-border-primary hover:border-blue-500/30 rounded-2xl p-4 sm:p-5 transition-all flex items-start justify-between gap-4">
+                                    <div class="flex items-start gap-3.5 min-w-0">
+                                        <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black shrink-0 mt-0.5"
+                                             [ngClass]="log.type === 'MERIT' ? 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-500 border border-rose-500/30'">
+                                            <i [class]="log.type === 'MERIT' ? 'fas fa-award' : 'fas fa-triangle-exclamation'"></i>
+                                        </div>
+
+                                        <div class="space-y-1 min-w-0">
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <h4 class="text-sm font-bold text-text-primary">{{ log.category }}</h4>
+                                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider"
+                                                      [ngClass]="log.type === 'MERIT' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'">
+                                                    {{ log.type }}
+                                                </span>
+                                                <span class="text-[10px] text-text-muted font-mono"><i class="far fa-clock mr-1"></i> {{ log.date | date:'mediumDate' }}</span>
+                                            </div>
+
+                                            <p class="text-xs sm:text-sm text-text-secondary leading-relaxed">
+                                                {{ log.description }}
+                                            </p>
+
+                                            @if (log.action_taken) {
+                                                <div class="pt-2">
+                                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-bg-secondary text-[11px] text-text-primary border border-border-primary">
+                                                        <i class="fas fa-clipboard-check text-blue-500 text-[10px]"></i>
+                                                        <strong>Action Taken:</strong> {{ log.action_taken }}
+                                                    </span>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <button (click)="deleteBehavior(log.id)" title="Delete Conduct Entry" class="w-8 h-8 rounded-xl bg-bg-secondary hover:bg-rose-500/20 text-text-muted hover:text-rose-500 border border-border-primary flex items-center justify-center text-xs transition-colors shrink-0 cursor-pointer">
+                                        <i class="fas fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            } @empty {
+                                <div class="p-12 text-center border-2 border-dashed border-border-primary rounded-3xl bg-bg-tertiary/40">
+                                    <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto mb-3 shadow-inner">
+                                        <i class="fas fa-shield-check text-2xl"></i>
+                                    </div>
+                                    <h4 class="text-sm font-bold text-text-primary">Clean Conduct Sheet</h4>
+                                    <p class="text-xs text-text-muted mt-1 max-w-sm mx-auto">No disciplinary infractions or behavioral logs recorded for this student.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            } @else {
+                <!-- Empty Selection State -->
+                <div class="bg-bg-secondary border border-border-primary rounded-3xl p-16 text-center space-y-4 shadow-xl flex flex-col items-center justify-center">
+                    <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 dark:text-blue-400 text-3xl shadow-inner animate-pulse">
+                        <i class="fas fa-heart-pulse"></i>
+                    </div>
+                    <div class="space-y-1 max-w-md">
+                        <h3 class="text-lg font-bold text-text-primary">Select a Scholar from the Roster</h3>
+                        <p class="text-xs text-text-muted">Choose a student from the directory sidebar on the left or use the search bar to inspect health files and conduct events.</p>
+                    </div>
+                </div>
             }
-          </div>
-        }
-      </div>
-    }
-  </div>
-
-  } @else if (searchStudentId() !== '') {
-    <div class="bg-bg-tertiary border border-border-secondary rounded-2xl p-12 text-center mt-6">
-      <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      </div>
-      <h3 class="text-lg font-bold text-text-primary">No Student Found</h3>
-      <p class="text-gray-400 mt-2">Could not load welfare data for this student. Please verify their selection and try again.</p>
+        </div>
     </div>
-  } @else {
-    <div class="bg-bg-tertiary border border-border-secondary rounded-2xl p-12 text-center mt-6">
-      <div class="w-16 h-16 bg-bg-tertiary rounded-2xl flex items-center justify-center mx-auto mb-4 text-emerald-400">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-      </div>
-      <h3 class="text-lg font-bold text-text-primary">Select a Student</h3>
-      <p class="text-gray-400 mt-2">Choose a student from the dropdown above to manage their health records and conduct logs.</p>
-    </div>
-  }
-
 </div>
 
-<!-- Add Behavior Modal -->
+<!-- Modal: Record Conduct Event (Fixed Viewport Centered) -->
 @if (isAddingBehavior()) {
-  <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-fade-in" (click)="closeAddBehavior()">
-    <div class="bg-bg-tertiary border border-border-secondary rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-slide-up sm:animate-fade-in max-h-[90vh] sm:max-h-[85vh] flex flex-col" (click)="$event.stopPropagation()">
-      <!-- Mobile Handle -->
-      <div class="sm:hidden flex justify-center pt-3 pb-1">
-        <div class="bottomsheet-handle"></div>
-      </div>
-      <div class="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-border-primary flex justify-between items-center">
-        <h3 class="text-base sm:text-lg font-bold text-text-primary">Record Conduct Event</h3>
-        <button (click)="closeAddBehavior()" class="p-1 text-gray-400 hover:text-text-primary transition">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        </button>
-      </div>
-      <div class="p-5 sm:p-6 overflow-y-auto">
-        <form (submit)="saveBehavior($event)" class="space-y-4">
-          
-          <div>
-            <label class="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Event Type</label>
-            <div class="flex gap-4">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" [(ngModel)]="behaviorForm().type" name="type" value="MERIT" class="text-emerald-500 focus:ring-emerald-500">
-                <span class="text-sm text-gray-200">Merit</span>
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" [(ngModel)]="behaviorForm().type" name="type" value="DEMERIT" class="text-red-500 focus:ring-red-500">
-                <span class="text-sm text-gray-200">Demerit</span>
-              </label>
-            </div>
-          </div>
-          
-          <div>
-            <label class="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Category</label>
-            <input type="text" [(ngModel)]="behaviorForm().category" name="category" required placeholder="e.g. Outstanding Work, Disruptive Behavior" class="w-full bg-bg-secondary border border-border-secondary rounded-lg py-2.5 px-3 text-sm text-text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
-          </div>
-          
-          <div>
-            <label class="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Description</label>
-            <textarea [(ngModel)]="behaviorForm().description" name="description" required rows="3" class="w-full bg-bg-secondary border border-border-secondary rounded-lg py-2.5 px-3 text-sm text-text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"></textarea>
-          </div>
-          
-          <div>
-            <label class="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Action Taken (Optional)</label>
-            <input type="text" [(ngModel)]="behaviorForm().action_taken" name="action_taken" class="w-full bg-bg-secondary border border-border-secondary rounded-lg py-2.5 px-3 text-sm text-text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
-          </div>
+    <div class="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in" (click)="closeAddBehavior()">
+        <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative my-auto overflow-hidden animate-scale-up space-y-5" (click)="$event.stopPropagation()">
+            <!-- Ambient Glow -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-3xl rounded-full pointer-events-none"></div>
 
-          <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 mt-6 border-t border-border-primary">
-            <button type="button" (click)="closeAddBehavior()" class="w-full sm:w-auto px-4 py-2.5 bg-transparent text-gray-400 hover:text-text-primary rounded-lg transition duration-200 text-sm">Cancel</button>
-            <button type="submit" class="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow-lg font-semibold transition duration-200 text-sm">Save Event</button>
-          </div>
-        </form>
-      </div>
+            <div class="flex items-center justify-between pb-4 border-b border-border-primary">
+                <div>
+                    <h2 class="text-xl font-black text-text-primary flex items-center gap-2.5">
+                        <i class="fas fa-gavel text-blue-500 dark:text-blue-400"></i>
+                        Record Conduct Event
+                    </h2>
+                    <p class="text-xs text-text-muted mt-1">Assign commendation merits or record behavioral disciplinary actions.</p>
+                </div>
+                <button (click)="closeAddBehavior()" class="w-8 h-8 rounded-full bg-bg-tertiary hover:bg-bg-secondary border border-border-primary text-text-muted hover:text-text-primary flex items-center justify-center transition-all cursor-pointer">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Event Type Toggle -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Event Type</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" (click)="behaviorForm.update(f => ({ ...f, type: 'MERIT' }))"
+                                [class.bg-emerald-600]="behaviorForm().type === 'MERIT'" [class.text-white]="behaviorForm().type === 'MERIT'" [class.bg-bg-tertiary]="behaviorForm().type !== 'MERIT'" [class.text-text-muted]="behaviorForm().type !== 'MERIT'" class="py-3 rounded-2xl border border-border-primary text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fas fa-award"></i> Merit Award
+                        </button>
+                        <button type="button" (click)="behaviorForm.update(f => ({ ...f, type: 'DEMERIT' }))"
+                                [class.bg-rose-600]="behaviorForm().type === 'DEMERIT'" [class.text-white]="behaviorForm().type === 'DEMERIT'" [class.bg-bg-tertiary]="behaviorForm().type !== 'DEMERIT'" [class.text-text-muted]="behaviorForm().type !== 'DEMERIT'" class="py-3 rounded-2xl border border-border-primary text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fas fa-triangle-exclamation"></i> Demerit Action
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Category Presets & Input -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Classification Category</label>
+                    <input type="text" [(ngModel)]="behaviorForm().category" placeholder="e.g. Academic Excellence, Classroom Disruption..." class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner">
+                    
+                    <!-- Preset Pills -->
+                    <div class="flex flex-wrap gap-1.5 pt-1">
+                        @if (behaviorForm().type === 'MERIT') {
+                            @for (cat of meritCategories; track cat) {
+                                <button type="button" (click)="behaviorForm.update(f => ({ ...f, category: cat }))" class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-bg-tertiary hover:bg-emerald-500/20 text-text-muted hover:text-emerald-500 border border-border-primary transition-colors cursor-pointer">
+                                    {{ cat }}
+                                </button>
+                            }
+                        } @else {
+                            @for (cat of demeritCategories; track cat) {
+                                <button type="button" (click)="behaviorForm.update(f => ({ ...f, category: cat }))" class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-bg-tertiary hover:bg-rose-500/20 text-text-muted hover:text-rose-500 border border-border-primary transition-colors cursor-pointer">
+                                    {{ cat }}
+                                </button>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Incident or Achievement Details <span class="text-rose-500">*</span></label>
+                    <textarea [(ngModel)]="behaviorForm().description" rows="3" placeholder="Provide detailed context regarding the behavior observed..." class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl p-4 text-xs sm:text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none shadow-inner"></textarea>
+                </div>
+
+                <!-- Action Taken -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-extrabold uppercase tracking-wider text-text-muted">Administrative / Corrective Action (Optional)</label>
+                    <input type="text" [(ngModel)]="behaviorForm().action_taken" placeholder="e.g. Letter to parent, 1 hour detention, verbal commendation in assembly..." class="w-full bg-bg-tertiary/90 border border-border-primary rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner">
+                </div>
+            </div>
+
+            <!-- Modal Actions -->
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-border-primary">
+                <button (click)="closeAddBehavior()" class="px-5 py-2.5 text-xs font-bold text-text-muted hover:text-text-primary transition-all cursor-pointer">
+                    Cancel
+                </button>
+                <button (click)="saveBehavior()" [disabled]="isSavingBehavior() || !behaviorForm().description" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black shadow-lg shadow-blue-500/25 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 cursor-pointer">
+                    @if (isSavingBehavior()) {
+                        <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <span>Saving...</span>
+                    } @else {
+                        <i class="fas fa-check-circle"></i>
+                        <span>Save Conduct Entry</span>
+                    }
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
 }

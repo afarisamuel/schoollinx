@@ -30,6 +30,16 @@ export class HrDashboard implements OnInit {
     return this.leaveRequests().filter(l => l.status === 'PENDING').length;
   });
 
+  approvedLeaves = computed(() => {
+    return this.leaveRequests().filter(l => l.status === 'APPROVED').length;
+  });
+
+  disbursementPct = computed(() => {
+    const total = this.totalPayrollAmount();
+    if (!total) return 0;
+    return Math.round((this.paidPayrollSum() / total) * 100);
+  });
+
   ngOnInit(): void {
     this.hrService.getStaffProfiles().subscribe(res => this.staffList.set(res || []));
     
