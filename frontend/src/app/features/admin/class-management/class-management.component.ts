@@ -10,6 +10,8 @@ import { ScholasticLevelService } from '../../../core/infrastructure/scholastic-
 import { ScholasticLevel } from '../../../core/domain/scholastic-level.model';
 import { SubjectService, Subject } from '../../../core/infrastructure/curriculum/subject.service';
 import { GradeService } from '../../../core/infrastructure/grade/grade.service';
+import { ReportService } from '../../../core/infrastructure/report/report.service';
+import { FiscalService } from '../../../core/infrastructure/fiscal/fiscal.service';
 
 @Component({
   selector: 'app-class-management',
@@ -24,6 +26,8 @@ export class ClassManagementComponent implements OnInit {
   private scholasticLevelService = inject(ScholasticLevelService);
   private subjectService = inject(SubjectService);
   private gradeService = inject(GradeService);
+  private reportService = inject(ReportService);
+  private fiscalService = inject(FiscalService);
 
   classes = signal<Class[]>([]);
   teachers = signal<Teacher[]>([]);
@@ -35,6 +39,10 @@ export class ClassManagementComponent implements OnInit {
   isEditMode = signal(false);
   submitting = signal(false);
   searchQuery = signal('');
+
+  // Batch Report & Bill Download State
+  downloadingReportClassId = signal<string | null>(null);
+  downloadingBillClassId = signal<string | null>(null);
   
   // Advanced Filter & View State
   filterLevelId = signal<string>('all');
@@ -432,4 +440,48 @@ export class ClassManagementComponent implements OnInit {
       });
     }
   }
+
+  // ── Batch Document Operations ──────────────────────────────────────
+  downloadClassReportCards(cls: Class) {
+    if (!cls?.id) return;
+    this.downloadingReportClassId.set(cls.id);
+    this.reportService.downloadBatchClassTerminalReports(cls.id).subscribe({
+      next: (blob) => {
+        this.downloadingReportClassId.set(null);
+        const filename = `${cls.name.replace(/\s+/g, '_')}_Terminal_Reports.pdf`;
+        this.reportService.saveFile(blob, filename);
+      },
+      error: (err) => {
+        this.downloadingReportClassId.set(null);
+        console.error('Failed to download class terminal report cards', err);
+        this.dialog.alert(
+          err?.error?.error || 'Failed to generate class report cards. Please ensure terminal scores or grading records exist for this class.',
+          'Report Generation',
+          'danger'
+        );
+      }
+    });
+  }
+
+  downloadClassBills(cls: Class) {
+    if (!cls?.id) return;
+    this.downloadingBillClassId.set(cls.id);
+    this.fiscalService.printClassBills(cls.id).subscribe({
+      next: (blob) => {
+        this.downloadingBillClassId.set(null);
+        const filename = `${cls.name.replace(/\s+/g, '_')}_Pupil_Bills.pdf`;
+        this.reportService.saveFile(blob, filename);
+      },
+      error: (err) => {
+        this.downloadingBillClassId.set(null);
+        console.error('Failed to download class pupil bills', err);
+        this.dialog.alert(
+          err?.error?.error || 'Failed to generate pupil bills for this class. Please ensure student enrollments and fee schedules exist.',
+          'Bill Generation',
+          'danger'
+        );
+      }
+    });
+  }
 }
+
