@@ -77,9 +77,13 @@ export class TeacherPortalService {
     }
 
     // Phase 19: PDF Export
-    exportGradesPDF(classId: string, term: string): Observable<Blob> {
+    exportGradesPDF(classId: string, term: string, subjectId?: string, subject?: string, periodId?: string): Observable<Blob> {
+        let params: any = { term: term };
+        if (subjectId) params.subject_id = subjectId;
+        if (subject) params.subject = subject;
+        if (periodId) params.period_id = periodId;
         return this.http.get(`${this.api}/my-classes/${classId}/grades/export`, {
-            params: { term: term },
+            params,
             responseType: 'blob'
         });
     }

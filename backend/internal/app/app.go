@@ -125,7 +125,7 @@ func (a *App) setupRoutes() {
 	handler.NewProcurementHandler(api, usecases.Procurement)
 	handler.NewTrackingHandler(api, usecases.Tracking)
 	handler.NewTeacherHandler(api, usecases.Teacher)
-	handler.NewTeacherPortalHandler(api, usecases.TeacherPortal, repos.TerminalEvaluation)
+	handler.NewTeacherPortalHandler(api, usecases.TeacherPortal, repos.TerminalEvaluation, repos.Tenant, repos.AcademicPeriod, repos.Subject, repos.Teacher, repos.Class, repos.Grade)
 	handler.NewTeacherAssignmentHandler(api, repos.Teacher)
 	handler.NewClassHandler(api, usecases.Class, repos.Class)
 	handler.NewAssignmentHandler(api, usecases.Assignment)

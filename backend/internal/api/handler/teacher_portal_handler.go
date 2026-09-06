@@ -2,10 +2,15 @@ package handler
 
 import (
 	"fmt"
+	"math"
 	"net/http"
+	"sort"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/domain"
 	"github.com/user/high-school-management/backend/internal/infrastructure/pdf"
 )
@@ -14,16 +19,34 @@ import (
 type TeacherPortalHandler struct {
 	portalUseCase domain.TeacherPortalUseCase
 	evalRepo      domain.TerminalEvaluationRepository
+	tenantRepo    domain.TenantRepository
+	academicRepo  domain.AcademicPeriodRepository
+	subjectRepo   domain.SubjectRepository
+	teacherRepo   domain.TeacherRepository
+	classRepo     domain.ClassRepository
+	gradeRepo     domain.GradeRepository
 }
 
 func NewTeacherPortalHandler(
 	rg *gin.RouterGroup,
 	portalUseCase domain.TeacherPortalUseCase,
 	evalRepo domain.TerminalEvaluationRepository,
+	tenantRepo domain.TenantRepository,
+	academicRepo domain.AcademicPeriodRepository,
+	subjectRepo domain.SubjectRepository,
+	teacherRepo domain.TeacherRepository,
+	classRepo domain.ClassRepository,
+	gradeRepo domain.GradeRepository,
 ) {
 	h := &TeacherPortalHandler{
 		portalUseCase: portalUseCase,
 		evalRepo:      evalRepo,
+		tenantRepo:    tenantRepo,
+		academicRepo:  academicRepo,
+		subjectRepo:   subjectRepo,
+		teacherRepo:   teacherRepo,
+		classRepo:     classRepo,
+		gradeRepo:     gradeRepo,
 	}
 
 	portal := rg.Group("/teacher-portal")
@@ -278,33 +301,381 @@ func (h *TeacherPortalHandler) ImportGradesCSV(c *gin.Context) {
 	})
 }
 
-// ExportGradesPDF creates a downloadable PDF summary of the entire term's gradebook.
+// ExportGradesPDF creates a downloadable, high-density landscape PDF of the live Speed Gradebook matrix.
 func (h *TeacherPortalHandler) ExportGradesPDF(c *gin.Context) {
+	ctx := c.Request.Context()
 	classID, err := uuid.Parse(c.Param("class_id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID format"})
 		return
 	}
-	term := c.Query("term")
+
+	term := strings.TrimSpace(c.Query("term"))
+	subjectQuery := strings.TrimSpace(c.Query("subject"))
+	subjectIDQuery := strings.TrimSpace(c.Query("subject_id"))
+	periodIDQuery := strings.TrimSpace(c.Query("period_id"))
+
+	// 1. Fetch Class
+	var class *domain.Class
+	if h.classRepo != nil {
+		class, _ = h.classRepo.GetByID(ctx, classID)
+	}
+
+	// 2. Fetch Students
+	students, err := h.portalUseCase.GetClassStudents(ctx, classID)
+	if err != nil || len(students) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "no enrolled scholars found in this class"})
+		return
+	}
+
+	// 3. Fetch Tenant & Branding
+	var tenant *domain.Tenant
+	if h.tenantRepo != nil {
+		if val, exists := ctx.Value(middleware.TenantIDKey).(uuid.UUID); exists && val != uuid.Nil {
+			tenant, _ = h.tenantRepo.GetByID(ctx, val)
+		}
+	}
+
+	// 4. Resolve Academic Year & Term
+	academicYear := ""
+	if h.academicRepo != nil {
+		if periodIDQuery != "" {
+			if pID, err := uuid.Parse(periodIDQuery); err == nil {
+				if p, err := h.academicRepo.GetByID(ctx, pID); err == nil && p != nil {
+					academicYear = p.Name
+				}
+			}
+		}
+		if academicYear == "" {
+			if activeP, err := h.academicRepo.GetActive(ctx); err == nil && activeP != nil {
+				academicYear = activeP.Name
+				if term == "" && len(activeP.Terms) > 0 {
+					term = activeP.Terms[0].Name
+				}
+			}
+		}
+	}
 	if term == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "term query parameter is required"})
-		return
+		term = "Semester 1"
+	}
+	if academicYear == "" {
+		academicYear = fmt.Sprintf("%d/%d", time.Now().Year(), time.Now().Year()+1)
 	}
 
-	class, students, gpas, err := h.portalUseCase.GetClassForExport(c.Request.Context(), classID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+	// 5. Resolve Teacher Name
+	teacherName := "Unassigned Form Master"
+	if h.teacherRepo != nil {
+		if val, exists := c.Get("userID"); exists {
+			if uID, ok := val.(uuid.UUID); ok && uID != uuid.Nil {
+				if t, err := h.teacherRepo.GetByUserID(ctx, uID); err == nil && t != nil {
+					teacherName = fmt.Sprintf("%s %s", string(t.FirstName), string(t.LastName))
+				}
+			}
+		}
+	}
+	if teacherName == "Unassigned Form Master" && class != nil {
+		if class.Teacher != nil {
+			teacherName = fmt.Sprintf("%s %s", string(class.Teacher.FirstName), string(class.Teacher.LastName))
+		} else if class.TeacherID != nil && h.teacherRepo != nil {
+			if t, err := h.teacherRepo.GetByID(ctx, *class.TeacherID); err == nil && t != nil {
+				teacherName = fmt.Sprintf("%s %s", string(t.FirstName), string(t.LastName))
+			}
+		}
 	}
 
-	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=gradebook-%s-%s.pdf", classID.String(), term))
+	// 6. Resolve Subject
+	resolvedSubject := subjectQuery
+	resolvedSubjectCode := ""
+	if resolvedSubject == "" && subjectIDQuery != "" && h.subjectRepo != nil {
+		if sID, err := uuid.Parse(subjectIDQuery); err == nil {
+			if s, err := h.subjectRepo.GetByID(ctx, sID); err == nil && s != nil {
+				resolvedSubject = s.Name
+				resolvedSubjectCode = s.Code
+			}
+		}
+	}
+	if resolvedSubject == "" && class != nil && len(class.Subjects) > 0 {
+		resolvedSubject = class.Subjects[0].Name
+		resolvedSubjectCode = class.Subjects[0].Code
+	}
+	if resolvedSubject == "" {
+		resolvedSubject = "All Core Subjects"
+	}
+
+	// 7. Resolve Assessment Columns & Weights
+	weights, _ := h.portalUseCase.GetClassWeights(ctx, classID)
+	if len(weights) == 0 && h.gradeRepo != nil {
+		weights, _ = h.gradeRepo.GetGeneralWeights(ctx)
+	}
+
+	var pdfColumns []pdf.GradebookColumn
+	if len(weights) > 0 {
+		for _, w := range weights {
+			pdfColumns = append(pdfColumns, pdf.GradebookColumn{
+				Name:   string(w.Category),
+				Weight: w.Weight,
+			})
+		}
+	} else {
+		// Standard Default 4 Columns (25% each)
+		pdfColumns = []pdf.GradebookColumn{
+			{Name: "HOMEWORK & CLASSWORK", Weight: 25},
+			{Name: "MID-TERM EXAM", Weight: 25},
+			{Name: "END OF TERM EXAM", Weight: 25},
+			{Name: "PROJECT / CONTINUOUS", Weight: 25},
+		}
+	}
+
+	// 8. Fetch Class Grades & Resolve Subject Mappings
+	classGrades, _ := h.portalUseCase.GetClassGrades(ctx, classID)
+	if h.subjectRepo != nil {
+		allSubs, _ := h.subjectRepo.GetAll(ctx)
+		subMap := make(map[string]string)
+		for _, s := range allSubs {
+			subMap[s.ID.String()] = s.Name
+			if s.Code != "" {
+				subMap[s.Code] = s.Name
+			}
+		}
+		for i := range classGrades {
+			if realName, ok := subMap[classGrades[i].Subject]; ok && realName != "" {
+				classGrades[i].Subject = realName
+			}
+		}
+	}
+
+	// 9. Build Student Rows & Cumulative Calculations
+	type calcRow struct {
+		row        pdf.GradebookStudentRow
+		cumulative float64
+	}
+
+	var computedRows []calcRow
+	for _, st := range students {
+		var rowScores []float32
+		var studentCumulative float64
+		evalCount := 0
+
+		for _, col := range pdfColumns {
+			var foundScore float32 = 0.0
+			scoreMatched := false
+
+			for _, g := range classGrades {
+				if g.StudentID == st.ID &&
+					matchGradeTerm(g.Term, term) &&
+					matchGradeSubject(g.Subject, resolvedSubject, subjectIDQuery, resolvedSubjectCode) &&
+					matchGradeCategory(col.Name, string(g.Category)) {
+					foundScore = g.Score
+					scoreMatched = true
+					break
+				}
+			}
+
+			rowScores = append(rowScores, foundScore)
+			if scoreMatched && foundScore > 0 {
+				evalCount++
+			}
+
+			wFactor := float64(col.Weight) / 100.0
+			if col.Weight <= 1.0 && col.Weight > 0 {
+				wFactor = float64(col.Weight)
+			}
+			studentCumulative += float64(foundScore) * wFactor
+		}
+
+		cumScore := math.Round(studentCumulative*100) / 100
+		letter, remark := pdf.ComputeGradeLetterAndRemark(cumScore)
+
+		stRow := pdf.GradebookStudentRow{
+			StudentID:      st.ID.String(),
+			EnrollmentNum:  st.EnrollmentNum,
+			FullName:       fmt.Sprintf("%s %s", string(st.FirstName), string(st.LastName)),
+			Scores:         rowScores,
+			Cumulative:     cumScore,
+			GradeLetter:    letter,
+			Remark:         remark,
+			EvaluatedCount: evalCount,
+		}
+
+		computedRows = append(computedRows, calcRow{row: stRow, cumulative: cumScore})
+	}
+
+	// 10. Class Ranking (handle ties)
+	sort.SliceStable(computedRows, func(i, j int) bool {
+		return computedRows[i].cumulative > computedRows[j].cumulative
+	})
+
+	for i := range computedRows {
+		if computedRows[i].cumulative > 0 {
+			if i > 0 && computedRows[i].cumulative == computedRows[i-1].cumulative {
+				computedRows[i].row.Rank = computedRows[i-1].row.Rank
+			} else {
+				computedRows[i].row.Rank = i + 1
+			}
+		}
+	}
+
+	// 11. Telemetry Aggregation
+	var finalRows []pdf.GradebookStudentRow
+	totalEnrolled := len(students)
+	evaluatedCount := 0
+	totalScoreSum := 0.0
+	passCount := 0
+	highestScore := 0.0
+	lowestScore := 100.0
+	colSums := make([]float64, len(pdfColumns))
+	colCounts := make([]int, len(pdfColumns))
+
+	for _, cr := range computedRows {
+		finalRows = append(finalRows, cr.row)
+		if cr.row.EvaluatedCount > 0 || cr.row.Cumulative > 0 {
+			evaluatedCount++
+			totalScoreSum += cr.row.Cumulative
+			if cr.row.Cumulative >= 50.0 {
+				passCount++
+			}
+			if cr.row.Cumulative > highestScore {
+				highestScore = cr.row.Cumulative
+			}
+			if cr.row.Cumulative < lowestScore {
+				lowestScore = cr.row.Cumulative
+			}
+		}
+		for cIdx, sc := range cr.row.Scores {
+			if sc > 0 {
+				colSums[cIdx] += float64(sc)
+				colCounts[cIdx]++
+			}
+		}
+	}
+
+	// Sort final rows by rank, then alphabetically
+	pdf.SortGradebookRows(finalRows)
+
+	classAverage := 0.0
+	if evaluatedCount > 0 {
+		classAverage = totalScoreSum / float64(evaluatedCount)
+	}
+
+	passRate := 0.0
+	if evaluatedCount > 0 {
+		passRate = (float64(passCount) / float64(evaluatedCount)) * 100.0
+	}
+
+	var colAverages []float64
+	for cIdx := range pdfColumns {
+		if colCounts[cIdx] > 0 {
+			colAverages = append(colAverages, colSums[cIdx]/float64(colCounts[cIdx]))
+		} else {
+			colAverages = append(colAverages, 0.0)
+		}
+	}
+
+	// 12. Build GradebookReportData & Render PDF
+	reportData := pdf.GradebookReportData{
+		Tenant:         tenant,
+		Class:          class,
+		TeacherName:    teacherName,
+		Subject:        resolvedSubject,
+		Term:           term,
+		AcademicYear:   academicYear,
+		Columns:        pdfColumns,
+		Rows:           finalRows,
+		TotalEnrolled:  totalEnrolled,
+		TotalEvaluated: evaluatedCount,
+		ClassAverage:   classAverage,
+		HighestScore:   highestScore,
+		LowestScore:    lowestScore,
+		PassRate:       passRate,
+		ColumnAverages: colAverages,
+	}
+
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=gradebook-%s-%s.pdf", classID.String(), strings.ReplaceAll(term, " ", "-")))
 	c.Header("Content-Type", "application/pdf")
 
 	svc := pdf.NewPDFService()
-	if err := svc.GenerateGradebookReport(c.Writer, class, term, students, gpas); err != nil {
-		// Output Stream broken
+	if err := svc.GenerateGradebookReport(c.Writer, reportData); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate gradebook PDF: " + err.Error()})
 		return
 	}
+}
+
+func matchGradeTerm(gTerm, targetTerm string) bool {
+	if targetTerm == "" {
+		return true
+	}
+	if gTerm == "" {
+		return false
+	}
+	cleanG := strings.ToLower(strings.ReplaceAll(gTerm, " ", ""))
+	cleanTarget := strings.ToLower(strings.ReplaceAll(targetTerm, " ", ""))
+	if cleanG == cleanTarget {
+		return true
+	}
+	if (strings.Contains(cleanTarget, "first") || strings.Contains(cleanTarget, "1")) &&
+		(strings.Contains(cleanG, "first") || strings.Contains(cleanG, "1") || cleanG == "term1" || cleanG == "sem1" || cleanG == "semester1") {
+		return true
+	}
+	if (strings.Contains(cleanTarget, "second") || strings.Contains(cleanTarget, "2")) &&
+		(strings.Contains(cleanG, "second") || strings.Contains(cleanG, "2") || cleanG == "term2" || cleanG == "sem2" || cleanG == "semester2") {
+		return true
+	}
+	if (strings.Contains(cleanTarget, "third") || strings.Contains(cleanTarget, "3")) &&
+		(strings.Contains(cleanG, "third") || strings.Contains(cleanG, "3") || cleanG == "term3" || cleanG == "sem3" || cleanG == "semester3") {
+		return true
+	}
+	return false
+}
+
+func matchGradeCategory(colName string, gradeCategory string) bool {
+	if colName == "" || gradeCategory == "" {
+		return false
+	}
+	c1 := strings.ToLower(strings.TrimSpace(colName))
+	c2 := strings.ToLower(strings.TrimSpace(gradeCategory))
+	if c1 == c2 {
+		return true
+	}
+	if (strings.Contains(c1, "home") || strings.Contains(c1, "assign") || strings.Contains(c1, "class")) &&
+		(strings.Contains(c2, "home") || strings.Contains(c2, "assign") || strings.Contains(c2, "class")) {
+		return true
+	}
+	if (strings.Contains(c1, "mid") || strings.Contains(c1, "test") || strings.Contains(c1, "quiz")) &&
+		(strings.Contains(c2, "mid") || strings.Contains(c2, "test") || strings.Contains(c2, "quiz")) {
+		return true
+	}
+	if (strings.Contains(c1, "exam") || strings.Contains(c1, "final") || strings.Contains(c1, "end")) &&
+		(strings.Contains(c2, "exam") || strings.Contains(c2, "final") || strings.Contains(c2, "end")) {
+		return true
+	}
+	if (strings.Contains(c1, "proj") || strings.Contains(c1, "cont") || strings.Contains(c1, "p")) &&
+		(strings.Contains(c2, "proj") || strings.Contains(c2, "cont") || strings.Contains(c2, "p")) {
+		return true
+	}
+	return false
+}
+
+func matchGradeSubject(gSub string, targetSub string, targetSubID string, subCode string) bool {
+	if targetSub == "" && targetSubID == "" {
+		return true
+	}
+	if targetSub == "All Core Subjects" {
+		return true
+	}
+	if gSub == "" {
+		return false
+	}
+	norm := strings.ToLower(strings.TrimSpace(gSub))
+	if targetSub != "" && norm == strings.ToLower(strings.TrimSpace(targetSub)) {
+		return true
+	}
+	if targetSubID != "" && norm == strings.ToLower(strings.TrimSpace(targetSubID)) {
+		return true
+	}
+	if subCode != "" && norm == strings.ToLower(strings.TrimSpace(subCode)) {
+		return true
+	}
+	return false
 }
 
 // Classroom Mastery Suite (Phase 1-3)

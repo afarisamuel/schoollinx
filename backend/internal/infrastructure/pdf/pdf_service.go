@@ -258,61 +258,6 @@ func (s *PDFService) GenerateBatchTerminalReports(w io.Writer, reports []Termina
 	return pdf.Output(w)
 }
 
-// Phase 19: Gradebook Export
-func (s *PDFService) GenerateGradebookReport(w io.Writer, class *domain.Class, term string, students []domain.Student, gpas []domain.GradeWeightedGPA) error {
-	pdf := gofpdf.New("P", "mm", "A4", "")
-	pdf.AddPage()
-
-	s.drawHeader(pdf, fmt.Sprintf("Official Gradebook - %s", class.Name))
-
-	pdf.SetFont("Arial", "", 12)
-
-	// Gracefully handle missing teacher preloads
-	teacherName := "N/A"
-	if class.Teacher != nil {
-		teacherName = fmt.Sprintf("%s %s", string(class.Teacher.FirstName), string(class.Teacher.LastName))
-	}
-
-	pdf.CellFormat(190, 8, fmt.Sprintf("Term: %s | Teacher: %s", term, teacherName), "", 0, "C", false, 0, "")
-	pdf.Ln(12)
-
-	// Grades Table Header
-	pdf.SetFillColor(240, 240, 240)
-	pdf.SetFont("Arial", "B", 10)
-	pdf.CellFormat(90, 10, "Student Name", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(50, 10, "Student ID", "1", 0, "C", true, 0, "")
-	pdf.CellFormat(50, 10, "Weighted GPA", "1", 0, "C", true, 0, "")
-	pdf.Ln(10)
-
-	// Grades Data
-	pdf.SetFont("Arial", "", 11)
-
-	gpaMap := make(map[uuid.UUID]float64)
-	for _, g := range gpas {
-		gpaMap[g.StudentID] = g.GPA
-	}
-
-	for _, st := range students {
-		pdf.CellFormat(90, 10, fmt.Sprintf("%s %s", string(st.FirstName), string(st.LastName)), "1", 0, "L", false, 0, "")
-		pdf.CellFormat(50, 10, fmt.Sprintf("%s", st.EnrollmentNum), "1", 0, "C", false, 0, "")
-
-		gpaStr := "N/A"
-		if gpa, ok := gpaMap[st.ID]; ok {
-			gpaStr = fmt.Sprintf("%.2f%%", gpa)
-		}
-
-		pdf.CellFormat(50, 10, gpaStr, "1", 0, "C", false, 0, "")
-		pdf.Ln(10)
-	}
-
-	// Dynamic Footer
-	pdf.SetY(-30)
-	pdf.SetFont("Arial", "I", 8)
-	pdf.CellFormat(190, 10, fmt.Sprintf("Generated on %s | Academic Records Hub", time.Now().Format("2006-01-02")), "", 0, "C", false, 0, "")
-
-	return pdf.Output(w)
-}
-
 // Student ID Card Generation (Feature 13)
 func (s *PDFService) GenerateStudentIDCard(w io.Writer, student *domain.Student, schoolName string) error {
 	// Card dimensions: CR-80 standard (85.6mm x 53.98mm)

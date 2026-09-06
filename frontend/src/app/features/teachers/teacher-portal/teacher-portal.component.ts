@@ -882,15 +882,20 @@ export class TeacherPortalComponent implements OnInit {
 
     exportGradebook() {
         if (!this.selectedAssignment() || this.exportingPDF()) return;
-        const classId = this.selectedAssignment()!.class_id;
+        const assignment = this.selectedAssignment()!;
+        const classId = assignment.class_id;
+        const className = assignment.class?.name || 'Class';
+        const subjectId = this.selectedSubjectId() || assignment.subject_id || '';
+        const subject = this.getSubjectNameById(subjectId) || assignment.subject?.name || (assignment as any).subject_name || '';
 
         this.exportingPDF.set(true);
-        this.portalService.exportGradesPDF(classId, this.term()).subscribe({
+        this.portalService.exportGradesPDF(classId, this.term(), subjectId, subject, this.activePeriodId()).subscribe({
             next: (blob) => {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `gradebook-${classId}-${this.term().replace(/\s+/g, '-')}.pdf`;
+                const safeName = `${className}_${subject ? subject + '_' : ''}${this.term()}`.replace(/\s+/g, '_');
+                a.download = `gradebook_${safeName}.pdf`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
