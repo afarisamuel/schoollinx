@@ -58,6 +58,7 @@ func CORSMiddleware(db *gorm.DB) gin.HandlerFunc {
 		}
 		c.Writer.Header().Set("Access-Control-Allow-Headers", allowedHeaders)
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")
+		c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Disposition, Content-Length, X-Total-Count, Content-Type")
 
 		// Security Headers (Gap #96)
 		c.Writer.Header().Set("X-Content-Type-Options", "nosniff")
