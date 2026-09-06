@@ -35,7 +35,7 @@ func (r *attendanceRepository) GetByStudent(ctx context.Context, studentID uuid.
 	if r.db == nil {
 		return results, nil
 	}
-	err := r.db.WithContext(ctx).Where("student_id = ?", studentID).Order("date DESC, created_at DESC").Find(&results).Error
+	err := r.db.WithContext(ctx).Where("student_id = ?", studentID).Order("date DESC").Find(&results).Error
 	return results, err
 }
 

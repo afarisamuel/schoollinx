@@ -16,6 +16,8 @@ const (
 )
 
 type Attendance struct {
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	TenantBase
 	ID        uuid.UUID        `json:"id" gorm:"type:uuid;primaryKey"`
 	StudentID uuid.UUID        `json:"student_id" gorm:"type:uuid"`
@@ -60,4 +62,3 @@ type BiometricDevice struct {
 	Status    string    `json:"status" gorm:"not null;default:'OFFLINE'"`
 	LastPing  time.Time `json:"last_ping"`
 }
-
