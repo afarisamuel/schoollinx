@@ -1,6 +1,7 @@
 package pdf
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -48,7 +49,7 @@ func (s *PDFService) drawWatermark(pdf *gofpdf.Fpdf, logoURL string) {
 	}
 
 	// Download the image
-	client := &http.Client{Timeout: 5 * time.Second}
+	client := &http.Client{Timeout: 4 * time.Second}
 	resp, err := client.Get(logoURL)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		if resp != nil {
@@ -58,28 +59,32 @@ func (s *PDFService) drawWatermark(pdf *gofpdf.Fpdf, logoURL string) {
 	}
 	defer resp.Body.Close()
 
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil || len(bodyBytes) == 0 {
+		return
+	}
+
 	// Determine image type from URL extension or Content-Type
-	imgType := ""
-	if strings.HasSuffix(strings.ToLower(logoURL), ".png") || strings.Contains(resp.Header.Get("Content-Type"), "png") {
+	imgType := "JPG"
+	contentType := resp.Header.Get("Content-Type")
+	lowerURL := strings.ToLower(logoURL)
+	if strings.HasSuffix(lowerURL, ".png") || strings.Contains(contentType, "png") {
 		imgType = "PNG"
-	} else if strings.HasSuffix(strings.ToLower(logoURL), ".jpg") || strings.HasSuffix(strings.ToLower(logoURL), ".jpeg") || strings.Contains(resp.Header.Get("Content-Type"), "jpeg") {
-		imgType = "JPG"
-	} else {
-		// Default to JPG if unknown, gofpdf can be picky
-		imgType = "JPG"
+	} else if strings.HasSuffix(lowerURL, ".gif") || strings.Contains(contentType, "gif") {
+		imgType = "GIF"
 	}
 
 	// Register image in memory
 	opt := gofpdf.ImageOptions{ImageType: imgType, ReadDpi: false}
 	imgName := "watermark_logo"
-	pdf.RegisterImageOptionsReader(imgName, opt, resp.Body)
+	pdf.RegisterImageOptionsReader(imgName, opt, bytes.NewReader(bodyBytes))
 
 	// Save state, set transparency, draw image, restore state
-	pdf.SetAlpha(0.1, "Normal")
+	pdf.SetAlpha(0.06, "Normal")
 	
 	// A4 is 210 x 297 mm. We want the logo centered and reasonably large.
-	w := 120.0
-	h := 120.0
+	w := 115.0
+	h := 115.0
 	x := (210.0 - w) / 2.0
 	y := (297.0 - h) / 2.0
 
@@ -89,12 +94,77 @@ func (s *PDFService) drawWatermark(pdf *gofpdf.Fpdf, logoURL string) {
 	pdf.SetAlpha(1.0, "Normal")
 }
 
+// drawImage downloads and renders a photo/badge with optional fallback placeholder and rounded frame
+func (s *PDFService) drawImage(pdf *gofpdf.Fpdf, url string, imgKey string, x, y, w, h float64, fallbackText string, rounded bool) {
+	drawPlaceholder := func() {
+		if fallbackText == "" {
+			return
+		}
+		pdf.SetFillColor(241, 245, 249) // Slate 100
+		pdf.SetDrawColor(203, 213, 225) // Slate 300
+		pdf.SetLineWidth(0.3)
+		if rounded {
+			pdf.RoundedRect(x, y, w, h, 2, "1234", "FD")
+		} else {
+			pdf.Rect(x, y, w, h, "FD")
+		}
+		pdf.SetFont("Arial", "B", 6)
+		pdf.SetTextColor(148, 163, 184) // Slate 400
+		pdf.SetXY(x, y+(h/2)-2.5)
+		pdf.CellFormat(w, 5, fallbackText, "", 0, "C", false, 0, "")
+	}
+
+	if url == "" {
+		drawPlaceholder()
+		return
+	}
+
+	client := &http.Client{Timeout: 4 * time.Second}
+	resp, err := client.Get(url)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		if resp != nil {
+			resp.Body.Close()
+		}
+		drawPlaceholder()
+		return
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil || len(bodyBytes) == 0 {
+		drawPlaceholder()
+		return
+	}
+
+	imgType := "JPG"
+	contentType := resp.Header.Get("Content-Type")
+	lowerURL := strings.ToLower(url)
+	if strings.HasSuffix(lowerURL, ".png") || strings.Contains(contentType, "png") {
+		imgType = "PNG"
+	} else if strings.HasSuffix(lowerURL, ".gif") || strings.Contains(contentType, "gif") {
+		imgType = "GIF"
+	}
+
+	opt := gofpdf.ImageOptions{ImageType: imgType, ReadDpi: false}
+	pdf.RegisterImageOptionsReader(imgKey, opt, bytes.NewReader(bodyBytes))
+	pdf.ImageOptions(imgKey, x, y, w, h, false, opt, 0, "")
+
+	// Draw subtle border around photo
+	pdf.SetDrawColor(203, 213, 225)
+	pdf.SetLineWidth(0.3)
+	if rounded {
+		pdf.RoundedRect(x, y, w, h, 2, "1234", "D")
+	} else {
+		pdf.Rect(x, y, w, h, "D")
+	}
+}
+
 func (s *PDFService) drawSignature(pdf *gofpdf.Fpdf, url string, imgName string, x, y, w float64) {
 	if url == "" {
 		return
 	}
 
-	client := &http.Client{Timeout: 5 * time.Second}
+	client := &http.Client{Timeout: 4 * time.Second}
 	resp, err := client.Get(url)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		if resp != nil {
@@ -104,17 +174,18 @@ func (s *PDFService) drawSignature(pdf *gofpdf.Fpdf, url string, imgName string,
 	}
 	defer resp.Body.Close()
 
-	imgType := ""
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil || len(bodyBytes) == 0 {
+		return
+	}
+
+	imgType := "JPG"
 	if strings.HasSuffix(strings.ToLower(url), ".png") || strings.Contains(resp.Header.Get("Content-Type"), "png") {
 		imgType = "PNG"
-	} else if strings.HasSuffix(strings.ToLower(url), ".jpg") || strings.HasSuffix(strings.ToLower(url), ".jpeg") || strings.Contains(resp.Header.Get("Content-Type"), "jpeg") {
-		imgType = "JPG"
-	} else {
-		imgType = "JPG"
 	}
 
 	opt := gofpdf.ImageOptions{ImageType: imgType, ReadDpi: false}
-	pdf.RegisterImageOptionsReader(imgName, opt, resp.Body)
+	pdf.RegisterImageOptionsReader(imgName, opt, bytes.NewReader(bodyBytes))
 
 	// Keep aspect ratio: set h to 0
 	pdf.ImageOptions(imgName, x, y, w, 0, false, opt, 0, "")

@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"sort"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -10,6 +12,121 @@ import (
 	"github.com/user/high-school-management/backend/internal/domain"
 	"github.com/user/high-school-management/backend/internal/infrastructure/pdf"
 )
+
+func ordinal(n int) string {
+	if n <= 0 {
+		return ""
+	}
+	suffix := "th"
+	switch n % 100 {
+	case 11, 12, 13:
+		suffix = "th"
+	default:
+		switch n % 10 {
+		case 1:
+			suffix = "st"
+		case 2:
+			suffix = "nd"
+		case 3:
+			suffix = "rd"
+		default:
+			suffix = "th"
+		}
+	}
+	return fmt.Sprintf("%d%s", n, suffix)
+}
+
+func (h *ReportHandler) computeClassRankings(ctx context.Context, classStudents []domain.Student, subjectNameMap map[string]string, cw, ew float32) (map[uuid.UUID]string, map[uuid.UUID]map[string]string) {
+	classSize := len(classStudents)
+	overallRankMap := make(map[uuid.UUID]string)
+	subjectRankMap := make(map[uuid.UUID]map[string]string)
+
+	for _, cs := range classStudents {
+		subjectRankMap[cs.ID] = make(map[string]string)
+	}
+
+	if classSize == 0 {
+		return overallRankMap, subjectRankMap
+	}
+
+	type studentAvg struct {
+		id  uuid.UUID
+		avg float64
+	}
+	type subjectScore struct {
+		studentID uuid.UUID
+		total     float32
+	}
+
+	var overallList []studentAvg
+	subjectScoresMap := make(map[string][]subjectScore)
+
+	for _, cs := range classStudents {
+		csGrades, _ := h.gradeRepo.GetByStudentID(ctx, cs.ID)
+		
+		type subGrade struct {
+			class float32
+			exam  float32
+		}
+		subMap := make(map[string]*subGrade)
+
+		for _, g := range csGrades {
+			sName := g.Subject
+			if realName, ok := subjectNameMap[sName]; ok && realName != "" {
+				sName = realName
+			}
+			if _, ok := subMap[sName]; !ok {
+				subMap[sName] = &subGrade{}
+			}
+			if g.Category == domain.CategoryFinal {
+				subMap[sName].exam += g.Value
+			} else {
+				subMap[sName].class += g.Value
+			}
+		}
+
+		var totalOverall float32 = 0
+		subCount := 0
+		for sName, sg := range subMap {
+			total := (sg.class * cw) + (sg.exam * ew)
+			totalOverall += total
+			subCount++
+			subjectScoresMap[sName] = append(subjectScoresMap[sName], subjectScore{
+				studentID: cs.ID,
+				total:     total,
+			})
+		}
+
+		avg := 0.0
+		if subCount > 0 {
+			avg = float64(totalOverall) / float64(subCount)
+		}
+		overallList = append(overallList, studentAvg{id: cs.ID, avg: avg})
+	}
+
+	// 1. Overall Rank
+	sort.Slice(overallList, func(i, j int) bool {
+		return overallList[i].avg > overallList[j].avg
+	})
+	for rIdx, sa := range overallList {
+		overallRankMap[sa.id] = fmt.Sprintf("%s of %d", ordinal(rIdx+1), classSize)
+	}
+
+	// 2. Subject Ranks
+	for sName, scoreList := range subjectScoresMap {
+		sort.Slice(scoreList, func(i, j int) bool {
+			return scoreList[i].total > scoreList[j].total
+		})
+		for rIdx, sc := range scoreList {
+			if subjectRankMap[sc.studentID] == nil {
+				subjectRankMap[sc.studentID] = make(map[string]string)
+			}
+			subjectRankMap[sc.studentID][sName] = ordinal(rIdx + 1)
+		}
+	}
+
+	return overallRankMap, subjectRankMap
+}
 
 func (h *ReportHandler) GenerateTerminalReportHandler(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -81,9 +198,9 @@ func (h *ReportHandler) GenerateTerminalReportHandler(c *gin.Context) {
 	}
 
 	// Resolve subject IDs / UUIDs to real human-readable Subject Names
+	subjectNameMap := make(map[string]string)
 	if h.subjectRepo != nil {
 		allSubjects, _ := h.subjectRepo.GetAll(ctx)
-		subjectNameMap := make(map[string]string)
 		for _, s := range allSubjects {
 			subjectNameMap[s.ID.String()] = s.Name
 			if s.Code != "" {
@@ -107,9 +224,19 @@ func (h *ReportHandler) GenerateTerminalReportHandler(c *gin.Context) {
 
 	eval, _ := h.evalRepo.GetByStudentAndTerm(ctx, studentID, periodID, termID)
 
-	// Look up the class teacher for this student
+	cw := float32(0.5)
+	ew := float32(0.5)
+	if tenant != nil && (tenant.ClassScoreWeight > 0 || tenant.ExamScoreWeight > 0) {
+		cw = tenant.ClassScoreWeight
+		ew = tenant.ExamScoreWeight
+	}
+
+	// Look up the class teacher for this student & compute class + subject rankings
 	var classTeacher *domain.Teacher
 	classSize := 1
+	positionInClass := ""
+	var subjectPositions map[string]string
+
 	if student.ClassID != nil {
 		class, err := h.classRepo.GetByID(ctx, *student.ClassID)
 		if err == nil && class != nil && class.TeacherID != nil {
@@ -117,6 +244,9 @@ func (h *ReportHandler) GenerateTerminalReportHandler(c *gin.Context) {
 		}
 		if classStudents, err := h.studentRepo.GetByClass(ctx, *student.ClassID); err == nil && len(classStudents) > 0 {
 			classSize = len(classStudents)
+			overallMap, subMap := h.computeClassRankings(ctx, classStudents, subjectNameMap, cw, ew)
+			positionInClass = overallMap[student.ID]
+			subjectPositions = subMap[student.ID]
 		}
 	}
 
@@ -179,17 +309,19 @@ func (h *ReportHandler) GenerateTerminalReportHandler(c *gin.Context) {
 	}
 
 	data := pdf.TerminalReportData{
-		Student:        student,
-		Tenant:         tenant,
-		ClassTeacher:   classTeacher,
-		Grades:         grades,
-		Evaluation:     eval,
-		Attendance:     attendance,
-		Term:           termLabel,
-		AcademicYear:   academicYearLabel,
-		ClassSize:      classSize,
-		NextTermBegins: nextTermBegins,
-		PromotedTo:     promotedTo,
+		Student:          student,
+		Tenant:           tenant,
+		ClassTeacher:     classTeacher,
+		Grades:           grades,
+		Evaluation:       eval,
+		Attendance:       attendance,
+		Term:             termLabel,
+		AcademicYear:     academicYearLabel,
+		ClassSize:        classSize,
+		PositionInClass:  positionInClass,
+		SubjectPositions: subjectPositions,
+		NextTermBegins:   nextTermBegins,
+		PromotedTo:       promotedTo,
 	}
 
 	c.Header("Content-Type", "application/pdf")
@@ -386,6 +518,15 @@ func (h *ReportHandler) GenerateBatchTerminalReportHandler(c *gin.Context) {
 		}
 	}
 
+	cw := float32(0.5)
+	ew := float32(0.5)
+	if tenant != nil && (tenant.ClassScoreWeight > 0 || tenant.ExamScoreWeight > 0) {
+		cw = tenant.ClassScoreWeight
+		ew = tenant.ExamScoreWeight
+	}
+
+	overallRankMap, subjectRankMap := h.computeClassRankings(ctx, students, subjectNameMap, cw, ew)
+
 	var reports []pdf.TerminalReportData
 
 	for _, student := range students {
@@ -425,18 +566,27 @@ func (h *ReportHandler) GenerateBatchTerminalReportHandler(c *gin.Context) {
 			promotedTo = fmt.Sprintf("Level %d", st.Level+1)
 		}
 
+		posInClass := overallRankMap[st.ID]
+		if posInClass == "" {
+			posInClass = "-"
+		}
+
+		subPositions := subjectRankMap[st.ID]
+
 		reports = append(reports, pdf.TerminalReportData{
-			Student:        &st,
-			Tenant:         tenant,
-			ClassTeacher:   classTeacher,
-			Grades:         grades,
-			Evaluation:     eval,
-			Attendance:     attendance,
-			Term:           termLabel,
-			AcademicYear:   academicYearLabel,
-			ClassSize:      classSize,
-			NextTermBegins: nextTermBegins,
-			PromotedTo:     promotedTo,
+			Student:          &st,
+			Tenant:           tenant,
+			ClassTeacher:     classTeacher,
+			Grades:           grades,
+			Evaluation:       eval,
+			Attendance:       attendance,
+			Term:             termLabel,
+			AcademicYear:     academicYearLabel,
+			ClassSize:        classSize,
+			PositionInClass:  posInClass,
+			SubjectPositions: subPositions,
+			NextTermBegins:   nextTermBegins,
+			PromotedTo:       promotedTo,
 		})
 	}
 

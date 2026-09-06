@@ -208,7 +208,7 @@ func initUseCases(repos *Repositories, infra *Infrastructure, db *gorm.DB, cfg *
 	campaignManager := usecase.NewCampaignManager(repos.Campaign, repos.Student, repos.User, infra.SMTP)
 	notifUC := usecase.NewNotificationUseCase(infra.Hub, db, repos.PushSubscription, infra.WebPush)
 	feeNotifier := usecase.NewFeeNotifier(infra.SMS, notifUC, repos.Student, repos.Guardian, repos.Tenant)
-	fiscalUC := usecase.NewFiscalUseCase(repos.Fiscal, repos.Student, repos.Donation, repos.AcademicPeriod, repos.Tenant, repos.Communication, feeNotifier)
+	fiscalUC := usecase.NewFiscalUseCase(repos.Fiscal, repos.Student, repos.Donation, repos.AcademicPeriod, repos.Tenant, repos.Communication, repos.Logistics, feeNotifier)
 
 	return &UseCases{
 		Audit:          usecase.NewAuditUseCase(repos.Audit),

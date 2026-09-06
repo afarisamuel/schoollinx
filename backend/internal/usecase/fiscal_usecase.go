@@ -24,13 +24,14 @@ var (
 )
 
 type fiscalUseCase struct {
-	fiscalRepo   domain.FiscalRepository
-	studentRepo  domain.StudentRepository
-	donationRepo domain.DonationRepository
-	academicRepo domain.AcademicPeriodRepository
-	tenantRepo   domain.TenantRepository
-	commRepo     domain.CommunicationRepository
-	feeNotifier  FeeNotifier
+	fiscalRepo    domain.FiscalRepository
+	studentRepo   domain.StudentRepository
+	donationRepo  domain.DonationRepository
+	academicRepo  domain.AcademicPeriodRepository
+	tenantRepo    domain.TenantRepository
+	commRepo      domain.CommunicationRepository
+	logisticsRepo domain.LogisticsRepository
+	feeNotifier   FeeNotifier
 }
 
 func NewFiscalUseCase(
@@ -40,7 +41,7 @@ func NewFiscalUseCase(
 	academicRepo domain.AcademicPeriodRepository,
 	tenantRepo domain.TenantRepository,
 	commRepo domain.CommunicationRepository,
-	fn ...FeeNotifier,
+	opts ...interface{},
 ) domain.FiscalUseCase {
 	uc := &fiscalUseCase{
 		fiscalRepo:   fiscalRepo,
@@ -50,8 +51,13 @@ func NewFiscalUseCase(
 		tenantRepo:   tenantRepo,
 		commRepo:     commRepo,
 	}
-	if len(fn) > 0 && fn[0] != nil {
-		uc.feeNotifier = fn[0]
+	for _, opt := range opts {
+		switch v := opt.(type) {
+		case FeeNotifier:
+			uc.feeNotifier = v
+		case domain.LogisticsRepository:
+			uc.logisticsRepo = v
+		}
 	}
 	return uc
 }
@@ -679,37 +685,49 @@ func (u *fiscalUseCase) ProcessCanteenPurchase(ctx context.Context, studentID uu
 }
 
 // ProcessAttendanceBilling is called when a student is marked Present.
-// It calculates the total DAILY fees for the active period and deducts the amount
-// from the student's PrepaidBalance (allowing overdraft/negative balance), recording audit wallet transactions.
+// It calculates the total DAILY fees for the active period plus any assigned Transport Route fare,
+// and deducts the combined total from the student's PrepaidBalance (allowing overdraft/negative balance),
+// recording detailed audit wallet transactions.
 func (u *fiscalUseCase) ProcessAttendanceBilling(ctx context.Context, studentID uuid.UUID, periodID uuid.UUID) error {
-	// 1. Get all DAILY fee structures for this period
-	dailyFees, err := u.fiscalRepo.GetFeeStructuresByFrequency(ctx, periodID, domain.FrequencyDaily)
-	if err != nil || len(dailyFees) == 0 {
-		return err // No daily fees configured — nothing to bill
+	// 1. Get all standard DAILY fee structures for this period
+	dailyFees, _ := u.fiscalRepo.GetFeeStructuresByFrequency(ctx, periodID, domain.FrequencyDaily)
+
+	// 2. Check if student has an assigned transport route with a daily fee
+	var routeDailyFee float64
+	var routeName string
+	if u.logisticsRepo != nil {
+		if assignment, err := u.logisticsRepo.GetStudentTransport(ctx, studentID); err == nil && assignment != nil {
+			if route, err := u.logisticsRepo.GetRouteByID(ctx, assignment.RouteID); err == nil && route != nil {
+				routeDailyFee = route.DailyFee
+				routeName = route.Name
+			}
+		}
 	}
 
-	// 2. Calculate total daily cost
+	// 3. Calculate total daily cost
 	var totalDailyCost float64
 	for _, fee := range dailyFees {
 		totalDailyCost += fee.Amount
 	}
+	totalDailyCost += routeDailyFee
+
 	if totalDailyCost == 0 {
 		return nil
 	}
 
-	// 3. Get the student
+	// 4. Get the student
 	student, err := u.studentRepo.GetByID(ctx, studentID)
 	if err != nil {
 		return err
 	}
 
-	// 4. Deduct from prepaid balance (allowing overdraft / negative balance)
+	// 5. Deduct from prepaid balance (allowing overdraft / negative balance)
 	student.PrepaidBalance -= totalDailyCost
 	if err := u.studentRepo.Update(ctx, student); err != nil {
 		return err
 	}
 
-	// 5. Record a debit transaction for each fee category
+	// 6. Record a debit transaction for each standard fee category
 	for _, fee := range dailyFees {
 		desc := "Daily " + string(fee.Category) + " fee deduction"
 		if student.PrepaidBalance < 0 {
@@ -719,6 +737,21 @@ func (u *fiscalUseCase) ProcessAttendanceBilling(ctx context.Context, studentID 
 			StudentID:   studentID,
 			Type:        domain.WalletTransactionDebit,
 			Amount:      fee.Amount,
+			Balance:     student.PrepaidBalance,
+			Description: desc,
+		})
+	}
+
+	// 7. Record a debit transaction for transport route if applicable
+	if routeDailyFee > 0 {
+		desc := fmt.Sprintf("Daily Transport fee (%s route)", routeName)
+		if student.PrepaidBalance < 0 {
+			desc = fmt.Sprintf("Daily Transport fee (%s route - Overdraft)", routeName)
+		}
+		_ = u.fiscalRepo.CreateWalletTransaction(ctx, &domain.WalletTransaction{
+			StudentID:   studentID,
+			Type:        domain.WalletTransactionDebit,
+			Amount:      routeDailyFee,
 			Balance:     student.PrepaidBalance,
 			Description: desc,
 		})
