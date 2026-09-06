@@ -88,6 +88,16 @@ export class TeacherPortalService {
         });
     }
 
+    // Class League Table / Ranking PDF Export
+    exportClassRankingPDF(classId: string, term: string, periodId?: string): Observable<Blob> {
+        const params: any = { term };
+        if (periodId) params.period_id = periodId;
+        return this.http.get(`${this.api}/my-classes/${classId}/ranking/export`, {
+            params,
+            responseType: 'blob'
+        });
+    }
+
     getStudentEvaluation(classId: string, studentId: string, periodId: string, termId: string): Observable<any> {
         return this.http.get(`${this.api}/my-classes/${classId}/students/${studentId}/evaluations`, {
             params: { period_id: periodId, term_id: termId }

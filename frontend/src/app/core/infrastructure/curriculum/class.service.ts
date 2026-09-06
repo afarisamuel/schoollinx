@@ -58,4 +58,14 @@ export class ClassService {
     upsertClassLock(classId: string, lock: ClassTermLock): Observable<ClassTermLock> {
         return this.http.post<ClassTermLock>(`${this.apiUrl}/${classId}/locks`, lock);
     }
+
+    exportClassRankingPDF(classId: string, term?: string, periodId?: string): Observable<Blob> {
+        let params = '';
+        const parts: string[] = [];
+        if (term) parts.push(`term=${encodeURIComponent(term)}`);
+        if (periodId) parts.push(`period_id=${encodeURIComponent(periodId)}`);
+        if (parts.length > 0) params = `?${parts.join('&')}`;
+        return this.http.get(`${this.apiUrl}/${classId}/ranking/export${params}`, { responseType: 'blob' });
+    }
 }
+

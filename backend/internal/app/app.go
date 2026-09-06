@@ -127,7 +127,7 @@ func (a *App) setupRoutes() {
 	handler.NewTeacherHandler(api, usecases.Teacher)
 	handler.NewTeacherPortalHandler(api, usecases.TeacherPortal, repos.TerminalEvaluation, repos.Tenant, repos.AcademicPeriod, repos.Subject, repos.Teacher, repos.Class, repos.Grade)
 	handler.NewTeacherAssignmentHandler(api, repos.Teacher)
-	handler.NewClassHandler(api, usecases.Class, repos.Class)
+	handler.NewClassHandler(api, usecases.Class, repos.Class, repos.Grade, repos.Student, repos.Tenant, repos.AcademicPeriod)
 	handler.NewAssignmentHandler(api, usecases.Assignment)
 	handler.NewGradeHandler(api, usecases.Grade)
 	handler.NewAttendanceHandler(api, usecases.Attendance)

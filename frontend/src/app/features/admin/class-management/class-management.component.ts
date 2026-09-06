@@ -43,6 +43,7 @@ export class ClassManagementComponent implements OnInit {
   // Batch Report & Bill Download State
   downloadingReportClassId = signal<string | null>(null);
   downloadingBillClassId = signal<string | null>(null);
+  downloadingRankingClassId = signal<string | null>(null);
   
   // Advanced Filter & View State
   filterLevelId = signal<string>('all');
@@ -483,5 +484,27 @@ export class ClassManagementComponent implements OnInit {
       }
     });
   }
+
+  downloadClassRanking(cls: Class) {
+    if (!cls?.id) return;
+    this.downloadingRankingClassId.set(cls.id);
+    this.classService.exportClassRankingPDF(cls.id).subscribe({
+      next: (blob) => {
+        this.downloadingRankingClassId.set(null);
+        const filename = `${cls.name.replace(/\s+/g, '_')}_Class_Ranking.pdf`;
+        this.reportService.saveFile(blob, filename);
+      },
+      error: (err) => {
+        this.downloadingRankingClassId.set(null);
+        console.error('Failed to download class ranking PDF', err);
+        this.dialog.alert(
+          err?.error?.error || 'Failed to generate class ranking PDF. Please ensure student enrollments and grades exist for this class.',
+          'Ranking Generation',
+          'danger'
+        );
+      }
+    });
+  }
 }
+
 

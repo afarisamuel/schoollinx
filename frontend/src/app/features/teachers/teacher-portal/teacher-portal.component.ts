@@ -242,6 +242,7 @@ export class TeacherPortalComponent implements OnInit {
     // Phase 19: Term Locks & Export
     isTermLocked = signal(false);
     exportingPDF = signal(false);
+    exportingRankingId = signal<string>(''); // tracks which class card is exporting ranking
 
     previewFile = signal<File | null>(null);
     csvImporting = signal(false);
@@ -919,6 +920,32 @@ export class TeacherPortalComponent implements OnInit {
                 this.errorMsg.set('Failed to generate PDF. Make sure grades exist for this term.');
                 this.exportingPDF.set(false);
                 window.scrollTo(0, 0);
+            }
+        });
+    }
+
+    exportClassRanking(assignment: any, event: MouseEvent) {
+        event.stopPropagation();
+        if (this.exportingRankingId() === assignment.id) return;
+        const classId = assignment.class_id;
+        const className = assignment.class?.name || ("Class-" + classId);
+        this.exportingRankingId.set(assignment.id);
+        this.portalService.exportClassRankingPDF(classId, this.term() || "Semester 1", this.activePeriodId()).subscribe({
+            next: (blob: Blob) => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "ranking_" + className.replace(/\s+/g, "_") + "_" + (this.term() || "Term").replace(/\s+/g, "_") + ".pdf";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                this.exportingRankingId.set("");
+                this.toast.success("Ranking PDF for " + className + " downloaded.");
+            },
+            error: () => {
+                this.exportingRankingId.set("");
+                this.toast.error("Failed to generate ranking PDF. Ensure grades exist for this term.");
             }
         });
     }
