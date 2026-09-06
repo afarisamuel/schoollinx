@@ -286,7 +286,7 @@ func (s *PDFService) GenerateGradebookReport(w io.Writer, data GradebookReportDa
 			pdf.SetTextColor(255, 255, 255)
 			pdf.SetFont("Arial", "B", 8)
 			pdf.SetX(16)
-			pdf.CellFormat(180, 6.0, fmt.Sprintf("%s — %s (Official Gradebook Matrix - Continued)", className, subj), "", 0, "L", false, 0, "")
+			pdf.CellFormat(180, 6.0, fmt.Sprintf("%s - %s (Official Gradebook Matrix - Continued)", className, subj), "", 0, "L", false, 0, "")
 
 			pdf.SetTextColor(251, 191, 36)
 			pdf.CellFormat(89, 6.0, fmt.Sprintf("%s | Page %d", strings.ToUpper(data.Term), pdf.PageNo()), "", 1, "R", false, 0, "")
@@ -416,7 +416,7 @@ func (s *PDFService) GenerateGradebookReport(w io.Writer, data GradebookReportDa
 				scoreVal = row.Scores[colIdx]
 			}
 
-			scoreStr := "—"
+			scoreStr := "-"
 			if scoreVal > 0 {
 				scoreStr = fmt.Sprintf("%.1f", scoreVal)
 				if math.Mod(float64(scoreVal), 1.0) == 0 {
@@ -433,14 +433,14 @@ func (s *PDFService) GenerateGradebookReport(w io.Writer, data GradebookReportDa
 		pdf.SetFillColor(238, 242, 255) // Indigo 50
 		pdf.SetTextColor(67, 56, 202)   // Indigo 700
 		pdf.SetFont("Arial", "B", 8.5)
-		cumStr := "—"
+		cumStr := "-"
 		if row.Cumulative > 0 {
 			cumStr = fmt.Sprintf("%.1f%%", row.Cumulative)
 		}
 		pdf.CellFormat(colTotalW, rowHeight, cumStr, "1", 0, "C", true, 0, "")
 
 		// Rank
-		rankStr := "—"
+		rankStr := "-"
 		if row.Rank > 0 {
 			rankStr = fmt.Sprintf("#%d", row.Rank)
 			if row.Rank == 1 {
@@ -466,7 +466,7 @@ func (s *PDFService) GenerateGradebookReport(w io.Writer, data GradebookReportDa
 		// Grade Badge
 		gradeLetter := row.GradeLetter
 		if gradeLetter == "" {
-			gradeLetter = "—"
+			gradeLetter = "-"
 		}
 		switch gradeLetter {
 		case "A+", "A":
@@ -520,7 +520,7 @@ func (s *PDFService) GenerateGradebookReport(w io.Writer, data GradebookReportDa
 			if colIdx < len(data.ColumnAverages) {
 				avgVal = data.ColumnAverages[colIdx]
 			}
-			avgStr := "—"
+			avgStr := "-"
 			if avgVal > 0 {
 				avgStr = fmt.Sprintf("%.1f", avgVal)
 			}
@@ -617,7 +617,7 @@ func ComputeGradeLetterAndRemark(score float64) (string, string) {
 	case score > 0:
 		return "F", "Needs Intervention"
 	default:
-		return "—", "Pending Assessment"
+		return "-", "Pending Assessment"
 	}
 }
 
