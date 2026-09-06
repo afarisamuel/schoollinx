@@ -494,14 +494,20 @@ export class ClassManagementComponent implements OnInit {
         const filename = `${cls.name.replace(/\s+/g, '_')}_Class_Ranking.pdf`;
         this.reportService.saveFile(blob, filename);
       },
-      error: (err) => {
+      error: async (err) => {
         this.downloadingRankingClassId.set(null);
         console.error('Failed to download class ranking PDF', err);
-        this.dialog.alert(
-          err?.error?.error || 'Failed to generate class ranking PDF. Please ensure student enrollments and grades exist for this class.',
-          'Ranking Generation',
-          'danger'
-        );
+        let errorMsg = 'Failed to generate class ranking PDF. Please ensure student enrollments and grades exist for this class.';
+        if (err?.error instanceof Blob) {
+          try {
+            const text = await err.error.text();
+            const json = JSON.parse(text);
+            if (json.error) errorMsg = json.error;
+          } catch {}
+        } else if (err?.error?.error) {
+          errorMsg = err.error.error;
+        }
+        this.dialog.alert(errorMsg, 'Ranking Generation', 'danger');
       }
     });
   }

@@ -1067,7 +1067,18 @@ func (h *TeacherPortalHandler) ExportClassRankingPDF(c *gin.Context) {
 	for _, g := range allGrades {
 		if strings.ToLower(g.Term) == termLower {
 			filteredGrades = append(filteredGrades, g)
-			subjSet[g.Subject] = struct{}{}
+			if strings.TrimSpace(g.Subject) != "" {
+				subjSet[strings.TrimSpace(g.Subject)] = struct{}{}
+			}
+		}
+	}
+
+	// Also include all curriculum subjects configured for this class
+	if class != nil {
+		for _, sub := range class.Subjects {
+			if strings.TrimSpace(sub.Name) != "" {
+				subjSet[strings.TrimSpace(sub.Name)] = struct{}{}
+			}
 		}
 	}
 

@@ -943,9 +943,17 @@ export class TeacherPortalComponent implements OnInit {
                 this.exportingRankingId.set("");
                 this.toast.success("Ranking PDF for " + className + " downloaded.");
             },
-            error: () => {
+            error: async (err: any) => {
                 this.exportingRankingId.set("");
-                this.toast.error("Failed to generate ranking PDF. Ensure grades exist for this term.");
+                let msg = "Failed to generate ranking PDF. Ensure grades exist for this term.";
+                if (err?.error instanceof Blob) {
+                    try {
+                        const text = await err.error.text();
+                        const json = JSON.parse(text);
+                        if (json.error) msg = json.error;
+                    } catch {}
+                }
+                this.toast.error(msg);
             }
         });
     }
