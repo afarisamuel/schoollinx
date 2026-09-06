@@ -295,6 +295,33 @@ export class GradingConfigurationComponent implements OnInit {
     this.newGeneralWeight.set(10);
   }
 
+  updateGeneralCategory(index: number, category: string) {
+    this.generalColumns.update(cols =>
+      cols.map((c, i) => (i === index ? { ...c, category } : c))
+    );
+  }
+
+  updateGeneralWeight(index: number, weightVal: any) {
+    const parsed = typeof weightVal === 'number' ? weightVal : parseFloat(weightVal);
+    const safe = isNaN(parsed) ? 0 : Math.max(0, Math.min(100, Math.round(parsed)));
+    this.generalColumns.update(cols =>
+      cols.map((c, i) => (i === index ? { ...c, weight: safe } : c))
+    );
+  }
+
+  autoBalanceGeneralWeights() {
+    const cols = this.generalColumns();
+    if (cols.length === 0) return;
+    const base = Math.floor(100 / cols.length);
+    const remainder = 100 - base * cols.length;
+    this.generalColumns.set(
+      cols.map((c, i) => ({
+        ...c,
+        weight: i === cols.length - 1 ? base + remainder : base
+      }))
+    );
+  }
+
   removeGeneralColumn(index: number) {
     if (this.generalColumns().length <= 1) {
       this.dialog.alert('At least one assessment category column is required.', 'Cannot Remove', 'warning');
@@ -330,6 +357,32 @@ export class GradingConfigurationComponent implements OnInit {
   }
 
   // --- Class Presets & CRUD ---
+  updateClassCategory(index: number, category: string) {
+    this.classColumns.update(cols =>
+      cols.map((c, i) => (i === index ? { ...c, category } : c))
+    );
+  }
+
+  updateClassWeight(index: number, weightVal: any) {
+    const parsed = typeof weightVal === 'number' ? weightVal : parseFloat(weightVal);
+    const safe = isNaN(parsed) ? 0 : Math.max(0, Math.min(100, Math.round(parsed)));
+    this.classColumns.update(cols =>
+      cols.map((c, i) => (i === index ? { ...c, weight: safe } : c))
+    );
+  }
+
+  autoBalanceClassWeights() {
+    const cols = this.classColumns();
+    if (cols.length === 0) return;
+    const base = Math.floor(100 / cols.length);
+    const remainder = 100 - base * cols.length;
+    this.classColumns.set(
+      cols.map((c, i) => ({
+        ...c,
+        weight: i === cols.length - 1 ? base + remainder : base
+      }))
+    );
+  }
   applyClassPreset(type: 'standard' | 'trimester' | 'continuous' | 'university') {
     switch (type) {
       case 'standard':

@@ -212,6 +212,9 @@
           <button type="button" (click)="applyGeneralPreset('university')" class="px-3 py-1.5 rounded-xl border border-border-primary bg-bg-primary hover:border-purple-500/40 text-xs font-bold text-text-muted hover:text-text-primary transition-all">
             Tertiary (40/60)
           </button>
+          <button type="button" (click)="autoBalanceGeneralWeights()" class="px-3 py-1.5 rounded-xl border border-purple-500/40 bg-purple-500/10 hover:bg-purple-500/20 text-xs font-bold text-purple-300 transition-all flex items-center gap-1.5" title="Distribute weights evenly to equal 100%">
+            <i class="fas fa-magic text-[10px]"></i> Auto-Balance (100%)
+          </button>
         </div>
       </div>
 
@@ -254,7 +257,8 @@
               </div>
               <div class="flex-1">
                 <input type="text" 
-                       [(ngModel)]="col.category" 
+                       [ngModel]="col.category" 
+                       (ngModelChange)="updateGeneralCategory(i, $event)"
                        class="w-full bg-transparent border-b border-transparent hover:border-border-primary focus:border-purple-500 px-1 py-1 text-sm font-black uppercase text-text-primary focus:outline-none transition-all">
               </div>
             </div>
@@ -263,13 +267,15 @@
               <!-- Slider & Numeric Input -->
               <div class="flex items-center gap-2.5">
                 <input type="range" 
-                       [(ngModel)]="col.weight" 
-                       min="1" max="100" 
+                       [ngModel]="col.weight" 
+                       (ngModelChange)="updateGeneralWeight(i, $event)"
+                       min="0" max="100" 
                        class="w-24 sm:w-32 accent-purple-500 cursor-pointer">
                 <div class="relative w-20">
                   <input type="number" 
-                         [(ngModel)]="col.weight" 
-                         min="1" max="100" 
+                         [ngModel]="col.weight" 
+                         (ngModelChange)="updateGeneralWeight(i, $event)"
+                         min="0" max="100" 
                          class="w-full bg-bg-primary border border-border-primary rounded-xl px-2.5 py-1.5 text-xs font-black text-right text-text-primary focus:outline-none focus:border-purple-500">
                   <span class="absolute inset-y-0 right-2 flex items-center text-[11px] font-bold text-text-muted">%</span>
                 </div>
@@ -290,7 +296,7 @@
 
       <!-- Action Footer Strip -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-border-primary/60">
-        <div class="flex items-center gap-3 text-xs">
+        <div class="flex flex-wrap items-center gap-3 text-xs">
           <span class="text-text-muted font-bold">Total Assessment Weight:</span>
           <span class="px-3 py-1 rounded-full font-black text-xs border"
                 [ngClass]="totalGeneralWeight() === 100 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'">
@@ -301,6 +307,9 @@
               <i class="fas fa-exclamation-circle"></i>
               Weights must equal exactly 100% to save
             </span>
+            <button type="button" (click)="autoBalanceGeneralWeights()" class="text-xs font-bold text-purple-400 hover:underline flex items-center gap-1">
+              <i class="fas fa-magic text-[10px]"></i> Auto-Fix to 100%
+            </button>
           }
         </div>
 
@@ -380,6 +389,9 @@
           <button type="button" (click)="applyClassPreset('university')" class="px-3 py-1.5 rounded-xl border border-border-primary bg-bg-primary hover:border-purple-500/40 text-xs font-bold text-text-muted hover:text-text-primary transition-all">
             Tertiary (40/60)
           </button>
+          <button type="button" (click)="autoBalanceClassWeights()" class="px-3 py-1.5 rounded-xl border border-purple-500/40 bg-purple-500/10 hover:bg-purple-500/20 text-xs font-bold text-purple-300 transition-all flex items-center gap-1.5" title="Distribute weights evenly to equal 100%">
+            <i class="fas fa-magic text-[10px]"></i> Auto-Balance (100%)
+          </button>
         </div>
       </div>
 
@@ -422,7 +434,8 @@
               </div>
               <div class="flex-1">
                 <input type="text" 
-                       [(ngModel)]="col.category" 
+                       [ngModel]="col.category" 
+                       (ngModelChange)="updateClassCategory(i, $event)"
                        class="w-full bg-transparent border-b border-transparent hover:border-border-primary focus:border-purple-500 px-1 py-1 text-sm font-black uppercase text-text-primary focus:outline-none transition-all">
               </div>
             </div>
@@ -431,13 +444,15 @@
               <!-- Slider & Numeric Input -->
               <div class="flex items-center gap-2.5">
                 <input type="range" 
-                       [(ngModel)]="col.weight" 
-                       min="1" max="100" 
+                       [ngModel]="col.weight" 
+                       (ngModelChange)="updateClassWeight(i, $event)"
+                       min="0" max="100" 
                        class="w-24 sm:w-32 accent-purple-500 cursor-pointer">
                 <div class="relative w-20">
                   <input type="number" 
-                         [(ngModel)]="col.weight" 
-                         min="1" max="100" 
+                         [ngModel]="col.weight" 
+                         (ngModelChange)="updateClassWeight(i, $event)"
+                         min="0" max="100" 
                          class="w-full bg-bg-primary border border-border-primary rounded-xl px-2.5 py-1.5 text-xs font-black text-right text-text-primary focus:outline-none focus:border-purple-500">
                   <span class="absolute inset-y-0 right-2 flex items-center text-[11px] font-bold text-text-muted">%</span>
                 </div>
@@ -458,7 +473,7 @@
 
       <!-- Action Footer Strip -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-border-primary/60">
-        <div class="flex items-center gap-3 text-xs">
+        <div class="flex flex-wrap items-center gap-3 text-xs">
           <span class="text-text-muted font-bold">Total Weight for {{ selectedClassName() }}:</span>
           <span class="px-3 py-1 rounded-full font-black text-xs border"
                 [ngClass]="totalClassWeight() === 100 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'">
@@ -469,6 +484,9 @@
               <i class="fas fa-exclamation-circle"></i>
               Weights must equal exactly 100%
             </span>
+            <button type="button" (click)="autoBalanceClassWeights()" class="text-xs font-bold text-purple-400 hover:underline flex items-center gap-1">
+              <i class="fas fa-magic text-[10px]"></i> Auto-Fix to 100%
+            </button>
           }
         </div>
 
