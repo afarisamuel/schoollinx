@@ -110,6 +110,17 @@ export class TeacherPortalComponent implements OnInit {
     selectedClassName = computed(() => this.selectedAssignment()?.class?.name || (this.selectedAssignment()?.class_id ? 'Class #' + this.selectedAssignment()?.class_id : ''));
     selectedSubjectName = computed(() => this.selectedAssignment()?.subject?.name || (this.selectedSubjectId() ? this.getSubjectNameById(this.selectedSubjectId()) : 'All Subjects'));
 
+    // Student search / filter
+    studentSearch = signal('');
+    filteredStudents = computed(() => {
+        const q = this.studentSearch().toLowerCase().trim();
+        if (!q) return this.students();
+        return this.students().filter(s =>
+            `${s.first_name} ${s.last_name}`.toLowerCase().includes(q) ||
+            (s.admission_number || '').toLowerCase().includes(q)
+        );
+    });
+
     cumulativeThreshold = computed(() => {
         const cols = this.gradeColumns();
         const total = cols.reduce((sum, c) => sum + (c.weight > 1 ? c.weight : c.weight * 100), 0);
