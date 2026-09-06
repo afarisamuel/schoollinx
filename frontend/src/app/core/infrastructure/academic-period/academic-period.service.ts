@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AcademicPeriod, AcademicTerm } from '../../domain/academic-period.model';
+export type { AcademicPeriod, AcademicTerm } from '../../domain/academic-period.model';
 
 @Injectable({
     providedIn: 'root'

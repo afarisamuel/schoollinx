@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { GradeService } from '../../../core/infrastructure/grade/grade.service';
 import { ClassService, Class } from '../../../core/infrastructure/curriculum/class.service';
+import { AcademicPeriodService } from '../../../core/infrastructure/academic-period/academic-period.service';
+import { AcademicPeriod, AcademicTerm } from '../../../core/domain/academic-period.model';
 import { GradeWeight } from '../../../core/domain/grade.model';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
@@ -46,11 +48,18 @@ export class GradingConfigurationComponent implements OnInit {
   readonly Math = Math;
   private gradeService = inject(GradeService);
   private classService = inject(ClassService);
+  private apService = inject(AcademicPeriodService);
   private dialog = inject(DialogService);
   private authService = inject(AuthService);
 
   // Active Tab
-  activeTab = signal<'general' | 'classes' | 'scales'>('general');
+  activeTab = signal<'general' | 'classes' | 'scales' | 'terms'>('general');
+
+  // Academic Terms & Global Locking State
+  activePeriod = signal<AcademicPeriod | null>(null);
+  terms = signal<AcademicTerm[]>([]);
+  isLoadingTerms = signal<boolean>(false);
+  isTogglingLock = signal<string | null>(null);
 
   // Classes
   classes = signal<Class[]>([]);
@@ -162,6 +171,7 @@ export class GradingConfigurationComponent implements OnInit {
     this.loadSavedScale();
     this.loadGeneralWeights();
     this.loadClasses();
+    this.loadAcademicTerms();
   }
 
   loadSavedScale() {
@@ -497,6 +507,58 @@ export class GradingConfigurationComponent implements OnInit {
           }
         });
       }
+    });
+  }
+
+  // --- Academic Term Finalization & Global Locking ---
+  loadAcademicTerms() {
+    this.isLoadingTerms.set(true);
+    this.apService.getActive().subscribe({
+      next: (period) => {
+        this.activePeriod.set(period);
+        if (period && period.terms) {
+          this.terms.set(period.terms);
+        } else {
+          this.terms.set([]);
+        }
+        this.isLoadingTerms.set(false);
+      },
+      error: () => {
+        this.isLoadingTerms.set(false);
+      }
+    });
+  }
+
+  onToggleTermLock(term: AcademicTerm) {
+    if (!term || !term.id) return;
+
+    const action = term.is_locked ? 'UNLOCK' : 'LOCK';
+    const message = term.is_locked
+      ? `Are you sure you want to UNLOCK ${term.name}? All teachers will regain permission to enter and edit grades.`
+      : `Are you sure you want to LOCK ${term.name}? All teachers across the entire school will be blocked from modifying or saving scores for this term. Grades will remain viewable in read-only mode for reports.`;
+
+    this.dialog.confirm(message, `${action === 'LOCK' ? 'Lock' : 'Unlock'} Term across School`, action === 'LOCK' ? 'warning' : 'info').subscribe((confirmed) => {
+      if (!confirmed) return;
+
+      this.isTogglingLock.set(term.id);
+      this.apService.toggleTermLock(term.id).subscribe({
+        next: () => {
+          this.isTogglingLock.set(null);
+          this.terms.update(list => list.map(t => t.id === term.id ? { ...t, is_locked: !t.is_locked } : t));
+          const isNowLocked = !term.is_locked;
+          this.dialog.alert(
+            isNowLocked
+              ? `${term.name} is now LOCKED across the entire school. Teacher score entries are disabled.`
+              : `${term.name} is now UNLOCKED. Teachers can record grades.`,
+            isNowLocked ? 'Term Finalized & Locked' : 'Term Unlocked',
+            isNowLocked ? 'warning' : 'success'
+          );
+        },
+        error: (err) => {
+          this.isTogglingLock.set(null);
+          this.dialog.alert(err.error?.error || 'Failed to update term lock status.', 'Error', 'danger');
+        }
+      });
     });
   }
 }

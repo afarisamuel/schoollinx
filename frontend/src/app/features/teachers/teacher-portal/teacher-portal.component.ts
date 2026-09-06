@@ -387,9 +387,34 @@ export class TeacherPortalComponent implements OnInit {
     }
 
     checkTermLock(classId: string, term: string) {
-        this.classService.getClassLocks(classId).subscribe(locks => {
-            const lock = locks.find((l: { term: string; }) => l.term === term);
-            this.isTermLocked.set(lock ? lock.is_locked : false);
+        // 1. Check Global Institutional Academic Term Lock
+        this.periodService.getActive().subscribe({
+            next: (activePeriod) => {
+                if (activePeriod && activePeriod.terms) {
+                    const foundTerm = activePeriod.terms.find(t => t.name === term || t.id === term);
+                    if (foundTerm && foundTerm.is_locked) {
+                        this.isTermLocked.set(true);
+                        return;
+                    }
+                }
+                // 2. Check class-specific legacy lock as fallback
+                this.classService.getClassLocks(classId).subscribe({
+                    next: (locks) => {
+                        const lock = locks.find((l: { term: string; }) => l.term === term);
+                        this.isTermLocked.set(lock ? lock.is_locked : false);
+                    },
+                    error: () => this.isTermLocked.set(false)
+                });
+            },
+            error: () => {
+                this.classService.getClassLocks(classId).subscribe({
+                    next: (locks) => {
+                        const lock = locks.find((l: { term: string; }) => l.term === term);
+                        this.isTermLocked.set(lock ? lock.is_locked : false);
+                    },
+                    error: () => this.isTermLocked.set(false)
+                });
+            }
         });
     }
 

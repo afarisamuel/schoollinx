@@ -247,8 +247,18 @@ export class BulkGradingComponent implements OnInit {
   hasRecoverableDraft = signal(false);
   draftSavedTime = signal<string>('');
 
-  // Lock State
-  isLocked = signal(false);
+  // Lock State - Dynamically resolved from Academic Term status
+  currentTermObj = computed(() => {
+    const sel = this.selectedTerm();
+    if (!sel) return null;
+    return this.terms().find(t => t.name === sel || t.id === sel) || null;
+  });
+
+  isLocked = computed(() => {
+    const term = this.currentTermObj();
+    return term ? !!term.is_locked : false;
+  });
+
   gradeStatus = signal<'DRAFT' | 'SUBMITTED' | 'LOCKED'>('DRAFT');
 
   // Terminal Evaluation & Remarks Modal State
@@ -1030,19 +1040,45 @@ export class BulkGradingComponent implements OnInit {
     return bands;
   }
 
-  // Lock Toggle
+  // Lock Toggle - Toggles and persists Global Institutional Term Lock
   toggleLock() {
     if (!this.isHeadmasterOrAdmin()) {
-      this.dialog.alert('Only Administrators or Headmasters can lock or unlock grade submissions.', 'Permission Denied', 'warning');
+      this.dialog.alert('Only Administrators or Headmasters can lock or unlock academic term grades.', 'Permission Denied', 'warning').subscribe();
       return;
     }
-    this.isLocked.update(v => !v);
-    this.gradeStatus.set(this.isLocked() ? 'LOCKED' : 'DRAFT');
-    this.dialog.alert(
-      this.isLocked() ? 'Grades for this class & subject have been LOCKED. Score inputs are now protected.' : 'Grades have been UNLOCKED for editing.',
-      this.isLocked() ? 'Grades Locked' : 'Grades Unlocked',
-      this.isLocked() ? 'warning' : 'info'
-    );
+
+    const term = this.currentTermObj();
+    if (!term || !term.id) {
+      this.dialog.alert('Please select a valid academic term first.', 'No Term Selected', 'info').subscribe();
+      return;
+    }
+
+    const action = term.is_locked ? 'UNLOCK' : 'LOCK';
+    const confirmMsg = term.is_locked
+      ? `Are you sure you want to UNLOCK ${term.name}? All teachers across the entire school will regain permission to enter and edit grades.`
+      : `Are you sure you want to LOCK & FINALIZE ${term.name}? All teachers across the entire school will be blocked from modifying scores. Grades will remain in read-only mode for reports and audits.`;
+
+    this.dialog.confirm(confirmMsg, `${action === 'LOCK' ? 'Lock' : 'Unlock'} Academic Term across School`).subscribe(confirmed => {
+      if (!confirmed) return;
+
+      this.academicPeriodService.toggleTermLock(term.id).subscribe({
+        next: () => {
+          this.terms.update(list => list.map(t => t.id === term.id ? { ...t, is_locked: !t.is_locked } : t));
+          const updatedLocked = !term.is_locked;
+          this.gradeStatus.set(updatedLocked ? 'LOCKED' : 'DRAFT');
+          this.dialog.alert(
+            updatedLocked
+              ? `${term.name} is now LOCKED across the entire school. Teachers cannot edit or save scores.`
+              : `${term.name} is now UNLOCKED. Teachers can record grades.`,
+            updatedLocked ? 'Term Finalized & Locked' : 'Term Unlocked',
+            updatedLocked ? 'warning' : 'success'
+          ).subscribe();
+        },
+        error: (err) => {
+          this.dialog.alert(err.error?.error || 'Failed to update term lock status.', 'Error', 'error').subscribe();
+        }
+      });
+    });
   }
 
   // Batch Tool (Fill / Curve)

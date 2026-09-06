@@ -27,6 +27,32 @@
     </div>
   }
 
+  <!-- ── GLOBAL ACADEMIC TERM LOCKED BANNER ────────────────────── -->
+  @if (isLocked()) {
+    <div class="p-5 rounded-3xl bg-gradient-to-r from-rose-500/15 via-rose-500/10 to-bg-secondary border border-rose-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl backdrop-blur-md animate-fade-in">
+      <div class="flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 border border-rose-500/30 text-lg shadow-inner">
+          <i class="fas fa-lock"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h4 class="text-sm font-black text-rose-400">Academic Term ({{ selectedTerm() }}) is Locked &amp; Finalized</h4>
+            <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-rose-500/20 text-rose-300 border border-rose-500/30">Read-Only Archive</span>
+          </div>
+          <p class="text-xs text-text-secondary mt-0.5">
+            Grade scoring is currently locked across the institution. Teachers cannot enter or modify scores. Grades remain accessible for reports and transcripts.
+          </p>
+        </div>
+      </div>
+      @if (isHeadmasterOrAdmin()) {
+        <button (click)="toggleLock()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition-all shadow-md shadow-emerald-600/20 shrink-0 flex items-center gap-2 cursor-pointer">
+          <i class="fas fa-lock-open text-xs"></i>
+          Unlock Academic Term
+        </button>
+      }
+    </div>
+  }
+
   <!-- 1. Executive Hero Header & Sub-Domain Quick Bar -->
   <div class="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-bg-secondary via-bg-secondary/95 to-bg-tertiary border border-border-primary p-8 md:p-10 shadow-2xl backdrop-blur-xl">
     <div class="absolute -right-20 -top-20 w-96 h-96 bg-gradient-to-br from-blue-500/20 via-indigo-500/15 to-transparent rounded-full blur-3xl pointer-events-none"></div>

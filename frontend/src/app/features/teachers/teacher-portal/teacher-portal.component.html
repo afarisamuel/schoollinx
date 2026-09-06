@@ -500,20 +500,12 @@
                         <!-- Assessment Columns -->
                         <div class="flex flex-col">
                             <label class="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Assessment Columns</label>
-                            @if (isColumnsAdminConfigured()) {
-                                <div class="flex items-center gap-2">
-                                    <span class="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-black flex items-center gap-2 shadow-sm">
-                                        <i class="fas fa-lock text-[10px]"></i>
-                                        {{ isClassSpecificWeights() ? 'Class Specific (' + gradeColumns().length + ' Cols)' : 'School Default (' + gradeColumns().length + ' Cols)' }}
-                                    </span>
-                                </div>
-                            } @else {
-                                <div class="flex items-center gap-2">
-                                    <button class="w-8 h-8 rounded-lg bg-bg-tertiary border border-border-primary text-text-primary font-black hover:bg-bg-primary hover:text-blue-400 transition-colors cursor-pointer" (click)="setupGrid(columnCount() - 1)" [disabled]="columnCount() <= 1">-</button>
-                                    <input type="number" [ngModel]="columnCount()" (ngModelChange)="setupGrid($event)" class="w-14 h-8 bg-bg-tertiary border border-border-primary rounded-lg text-center text-xs font-black text-blue-400 font-mono" readonly>
-                                    <button class="w-8 h-8 rounded-lg bg-bg-tertiary border border-border-primary text-text-primary font-black hover:bg-bg-primary hover:text-blue-400 transition-colors cursor-pointer" (click)="setupGrid(columnCount() + 1)">+</button>
-                                </div>
-                            }
+                            <div class="flex items-center gap-2">
+                                <span class="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-black flex items-center gap-2 shadow-sm">
+                                    <i class="fas fa-columns text-[10px]"></i>
+                                    {{ isClassSpecificWeights() ? 'Class Specific (' + gradeColumns().length + ' Cols)' : 'School Default (' + gradeColumns().length + ' Cols)' }}
+                                </span>
+                            </div>
                         </div>
 
                         <div class="hidden sm:block w-px h-10 bg-border-primary"></div>
@@ -551,13 +543,36 @@
                             }
                         </div>
 
-                        <button class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black uppercase tracking-wider rounded-2xl shadow-lg shadow-blue-600/25 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                        <button class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-wider rounded-2xl shadow-lg shadow-blue-600/25 transition-all flex items-center gap-2 cursor-pointer"
                                 (click)="submitGrades()" [disabled]="autoSaveStatus() === 'saving' || isTermLocked() || !canGrade()">
-                            <i class="fas fa-save"></i>
-                            {{ autoSaveStatus() === 'saving' ? 'Saving...' : !canGrade() ? 'Select a Subject' : 'Commit to Database' }}
+                            @if (isTermLocked()) {
+                                <i class="fas fa-lock"></i>
+                                <span>Term Locked (Read-Only)</span>
+                            } @else {
+                                <i class="fas fa-save"></i>
+                                <span>{{ autoSaveStatus() === 'saving' ? 'Saving...' : !canGrade() ? 'Select a Subject' : 'Commit to Database' }}</span>
+                            }
                         </button>
                     </div>
                 </div>
+
+                <!-- 🔒 Term Locked Warning Banner in Teacher Portal -->
+                @if (isTermLocked()) {
+                    <div class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between gap-4 shadow-md backdrop-blur-md animate-fade-in">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 border border-rose-500/30">
+                                <i class="fas fa-lock text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-black text-rose-400 uppercase tracking-wider">Academic Term ({{ term() }}) is Finalized &amp; Locked</h4>
+                                <p class="text-[11px] text-text-secondary">All grade entries are protected in read-only archive mode. Scores cannot be modified.</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase bg-rose-500/20 text-rose-300 border border-rose-500/30 shrink-0">
+                            Read-Only Archive
+                        </span>
+                    </div>
+                }
 
                 <!-- The Excel-Style Spreadsheet Grid -->
                 <div class="bg-bg-secondary/80 backdrop-blur-md border border-border-primary rounded-3xl overflow-hidden shadow-2xl relative">
@@ -571,27 +586,12 @@
                                     @for (col of gradeColumns(); track $index; let i = $index) {
                                         <th class="px-4 py-5 border-l border-border-primary min-w-[150px]">
                                             <div class="flex flex-col gap-1.5">
-                                                @if (isColumnsAdminConfigured()) {
-                                                    <span class="text-[11px] font-black text-blue-400 uppercase tracking-wider truncate" [title]="col.name">
-                                                        {{ col.name }}
-                                                    </span>
-                                                } @else {
-                                                    <input type="text" [ngModel]="col.name" (ngModelChange)="updateColumnName(i, $event)" 
-                                                           class="bg-transparent border-none text-[10px] font-black text-blue-400 uppercase tracking-widest focus:ring-0 w-full"
-                                                           placeholder="Component Name">
-                                                }
+                                                <span class="text-[11px] font-black text-blue-400 uppercase tracking-wider truncate" [title]="col.name">
+                                                    {{ col.name }}
+                                                </span>
                                                 <div class="flex items-center justify-between px-2.5 py-1 bg-bg-secondary border border-border-primary rounded-lg overflow-hidden">
                                                     <span class="text-[9px] font-black text-blue-400">WEIGHT</span>
-                                                    @if (isColumnsAdminConfigured()) {
-                                                        <span class="text-xs font-black text-text-primary font-mono">{{ col.weight }}%</span>
-                                                    } @else {
-                                                        <div class="flex items-center gap-0.5">
-                                                            <input type="number" [ngModel]="col.weight" (ngModelChange)="updateColumnWeight(i, $event)" 
-                                                                   class="bg-transparent border-none text-xs font-black text-text-primary p-0 text-right w-10 focus:ring-0 font-mono"
-                                                                   step="1" min="1" max="100">
-                                                            <span class="text-[10px] font-black text-text-muted">%</span>
-                                                        </div>
-                                                    }
+                                                    <span class="text-xs font-black text-text-primary font-mono">{{ col.weight }}%</span>
                                                 </div>
                                             </div>
                                         </th>
