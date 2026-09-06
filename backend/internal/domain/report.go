@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -35,6 +36,8 @@ type TerminalEvaluation struct {
 	Interest           string    `json:"interest"`
 	ClassTeacherRemark string    `json:"class_teacher_remark"`
 	HeadTeacherRemark  string    `json:"head_teacher_remark"`
+	CreatedAt          time.Time `json:"created_at"`
+	UpdatedAt          time.Time `json:"updated_at"`
 }
 
 func (te *TerminalEvaluation) BeforeCreate(tx *gorm.DB) (err error) {
