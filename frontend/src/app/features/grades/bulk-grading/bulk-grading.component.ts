@@ -73,7 +73,7 @@ export class BulkGradingComponent implements OnInit {
   // Role permissions
   isHeadmasterOrAdmin = computed(() => {
     const role = (this.authService.currentUserValue?.role || '') as string;
-    return role === 'ADMIN' || role === 'HEADMASTER' || role === 'ECOPOWER_ADMIN' || role === 'IT_ADMIN';
+    return role === 'ADMIN' || role === 'HEADMASTER' || role === 'ECOPOWER_ADMIN' || role === 'IT_ADMIN' || role === 'SUPER_ADMIN';
   });
 
   // Determines if logged-in teacher is the Form Master / Class Teacher for the selected class
@@ -1293,10 +1293,12 @@ export class BulkGradingComponent implements OnInit {
 
   // --- Configuration Methods ---
   toggleConfigMode() {
+    if (!this.isHeadmasterOrAdmin()) return;
     this.isConfigMode.update(v => !v);
   }
 
   addColumn() {
+    if (!this.isHeadmasterOrAdmin()) return;
     if (!this.newColumnCategory() || this.newColumnWeight() <= 0) {
       this.dialog.alert('Please enter a valid category name and weight percentage (e.g., 30 for 30%).', 'Validation', 'warning').subscribe();
       return;
@@ -1326,6 +1328,7 @@ export class BulkGradingComponent implements OnInit {
   }
 
   removeColumn(index: number) {
+    if (!this.isHeadmasterOrAdmin()) return;
     this.configuredColumns.update(cols => {
       const updated = [...cols];
       updated.splice(index, 1);

@@ -36,7 +36,7 @@ export class TeacherPortalComponent implements OnInit {
 
     isHeadmasterOrAdmin = computed(() => {
         const role = (this.authService.currentUserValue?.role || '') as string;
-        return role === 'ADMIN' || role === 'HEADMASTER' || role === 'ECOPOWER_ADMIN' || role === 'IT_ADMIN';
+        return role === 'ADMIN' || role === 'HEADMASTER' || role === 'ECOPOWER_ADMIN' || role === 'IT_ADMIN' || role === 'SUPER_ADMIN';
     });
 
     teacher = signal<any>(null);
