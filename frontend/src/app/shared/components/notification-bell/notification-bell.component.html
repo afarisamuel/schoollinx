@@ -75,15 +75,34 @@
             </div>
         </div>
 
-        <!-- Connection status -->
-        <div class="flex items-center gap-1.5 px-5 py-2 text-[10px] font-bold"
-            [class.text-emerald-400]="isConnected()"
-            [class.text-amber-400]="!isConnected()">
-            <span class="w-1.5 h-1.5 rounded-full"
-                [class.bg-emerald-400]="isConnected()"
-                [class.bg-amber-400]="!isConnected()">
-            </span>
-            {{ isConnected() ? 'Live — Connected' : 'Reconnecting...' }}
+        <!-- Connection & Push status -->
+        <div class="flex items-center justify-between px-5 py-2.5 bg-bg-tertiary/40 border-b border-border-primary/50 text-[10px]">
+            <div class="flex items-center gap-1.5 font-bold"
+                [class.text-emerald-400]="isConnected()"
+                [class.text-amber-400]="!isConnected()">
+                <span class="w-1.5 h-1.5 rounded-full"
+                    [class.bg-emerald-400]="isConnected()"
+                    [class.bg-amber-400]="!isConnected()">
+                </span>
+                {{ isConnected() ? 'Live WebSocket' : 'Reconnecting...' }}
+            </div>
+
+            @if (pushService.isSupported()) {
+                <div class="flex items-center gap-2">
+                    @if (pushService.isSubscribed()) {
+                        <button (click)="testPush($event)" class="text-[9px] font-bold text-blue-400 hover:text-blue-300 hover:underline transition-colors" title="Send a test push to your browser">
+                            Test Push
+                        </button>
+                        <button (click)="togglePush($event)" [disabled]="pushService.isLoading()" class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-black hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/20 transition-all flex items-center gap-1">
+                            <span class="w-1 h-1 rounded-full bg-emerald-400"></span> Push Active
+                        </button>
+                    } @else {
+                        <button (click)="togglePush($event)" [disabled]="pushService.isLoading()" class="px-2 py-0.5 rounded-md bg-blue-500 text-white font-black hover:bg-blue-600 transition-all shadow-sm">
+                            {{ pushService.isLoading() ? 'Enabling...' : 'Enable Push' }}
+                        </button>
+                    }
+                </div>
+            }
         </div>
 
         <!-- Notification List -->

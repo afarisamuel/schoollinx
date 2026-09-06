@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { NotificationService, Notification } from '../../../core/infrastructure/notifications/notification.service';
+import { PushNotificationService } from '../../../core/infrastructure/push/push-notification.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 
@@ -15,6 +16,7 @@ import { RouterModule } from '@angular/router';
 })
 export class NotificationBellComponent implements OnInit, OnDestroy {
     private notificationService = inject(NotificationService);
+    readonly pushService = inject(PushNotificationService);
 
     isOpen = signal(false);
     notifications = toSignal(this.notificationService.notifications$, { initialValue: [] as Notification[] });
@@ -26,6 +28,20 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
     unreadCount = computed(() =>
         this.notifications().filter((n: Notification) => !n.read).length
     );
+
+    async togglePush(event: Event) {
+        event.stopPropagation();
+        if (this.pushService.isSubscribed()) {
+            await this.pushService.unsubscribeFromPush();
+        } else {
+            await this.pushService.subscribeToPush();
+        }
+    }
+
+    async testPush(event: Event) {
+        event.stopPropagation();
+        await this.pushService.sendTestNotification();
+    }
 
     private newNotifSub?: Subscription;
 

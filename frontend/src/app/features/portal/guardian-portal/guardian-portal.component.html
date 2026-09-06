@@ -1,4 +1,4 @@
-<!-- ===== Payment Modal ===== -->
+<!-- ===== Invoice Payment Modal ===== -->
 @if (showPaymentModal()) {
     <div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm animate-fade-in" (click)="closePaymentModal()">
         <div class="relative w-full max-w-md bg-slate-900 border border-slate-700/60 rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-8 max-h-[90vh] sm:max-h-[85vh] overflow-y-auto animate-slide-up sm:animate-fade-in flex flex-col" (click)="$event.stopPropagation()">
@@ -7,10 +7,8 @@
                 <div class="bottomsheet-handle"></div>
             </div>
 
-            <!-- Glow -->
             <div class="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] pointer-events-none"></div>
 
-            <!-- Header -->
             <div class="flex items-start justify-between mb-5 sm:mb-6 relative z-10">
                 <div>
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-400 text-[10px] font-black uppercase tracking-widest mb-2 sm:mb-3">
@@ -25,7 +23,6 @@
                 </button>
             </div>
 
-            <!-- Invoice Details -->
             <div class="bg-slate-900/60 rounded-2xl p-4 border border-slate-700/50 mb-5 sm:mb-6 relative z-10">
                 <div class="flex justify-between items-center mb-2">
                     <span class="text-xs text-slate-400 font-bold uppercase tracking-widest">Fee Category</span>
@@ -45,13 +42,10 @@
                 </div>
             </div>
 
-            <!-- Amount Input -->
             <div class="mb-5 sm:mb-6 relative z-10">
                 <label for="payment-amount" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 sm:mb-2">Amount to Pay (GH₵)</label>
                 <div class="relative">
-                    <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-black">
-                        ₵
-                    </div>
+                    <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-black">₵</div>
                     <input
                         id="payment-amount"
                         type="number"
@@ -62,10 +56,8 @@
                         class="w-full bg-slate-900/80 border border-slate-700 hover:border-slate-500 focus:border-blue-500 rounded-xl pl-11 pr-4 py-3 sm:py-3.5 text-sm text-white placeholder:text-slate-600 outline-none transition-all font-mono"
                     />
                 </div>
-                <p class="text-[11px] text-slate-500 mt-1.5">You can modify the amount for a partial payment.</p>
             </div>
 
-            <!-- Actions -->
             <div class="flex flex-col-reverse sm:flex-row items-center gap-3 relative z-10">
                 <button
                     (click)="closePaymentModal()"
@@ -89,13 +81,138 @@
         </div>
     </div>
 }
-<!-- ===== / Payment Modal ===== -->
+<!-- ===== / Invoice Payment Modal ===== -->
+
+<!-- ===== Wallet Top-Up Modal ===== -->
+@if (showTopUpModal()) {
+    <div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 backdrop-blur-md animate-fade-in" (click)="closeTopUpModal()">
+        <div class="relative w-full max-w-md bg-slate-900 border border-emerald-500/30 rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-8 max-h-[90vh] overflow-y-auto animate-slide-up sm:animate-fade-in flex flex-col" (click)="$event.stopPropagation()">
+            <!-- Mobile Handle -->
+            <div class="sm:hidden flex justify-center pb-2">
+                <div class="bottomsheet-handle"></div>
+            </div>
+
+            <div class="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-[60px] pointer-events-none"></div>
+
+            <div class="flex items-start justify-between mb-5 sm:mb-6 relative z-10">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-2 sm:mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                        Prepaid Smart Wallet
+                    </div>
+                    <h2 class="text-lg sm:text-xl font-black text-white">Top Up Student Wallet</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Funds for daily feeding, canteen & transportation</p>
+                </div>
+                <button (click)="closeTopUpModal()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Current Wallet Status Card -->
+            <div class="rounded-2xl p-4 border mb-5 relative z-10"
+                [ngClass]="{
+                    'bg-rose-500/10 border-rose-500/30': walletBalance() < 0,
+                    'bg-slate-800/80 border-slate-700/50': walletBalance() >= 0
+                }">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Current Wallet Balance</span>
+                        <div class="text-lg font-black mt-0.5"
+                            [ngClass]="{
+                                'text-rose-400': walletBalance() < 0,
+                                'text-emerald-400': walletBalance() > 0,
+                                'text-slate-300': walletBalance() === 0
+                            }">
+                            GH₵{{ walletBalance() | number:'1.2-2' }}
+                        </div>
+                    </div>
+                    @if (walletBalance() < 0) {
+                        <span class="px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                            Overdrawn (Negative)
+                        </span>
+                    }
+                </div>
+                @if (walletBalance() < 0) {
+                    <p class="text-xs text-rose-300/80 mt-2">
+                        Your top-up will immediately clear the overdraft arrears and credit the remainder to {{ selectedChild()?.first_name }}'s balance.
+                    </p>
+                }
+            </div>
+
+            <!-- Quick Preset Amount Buttons -->
+            <div class="mb-4 relative z-10">
+                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Quick Select Amount</label>
+                <div class="grid grid-cols-4 gap-2">
+                    @for (preset of [20, 50, 100, 200]; track preset) {
+                        <button
+                            type="button"
+                            (click)="setTopUpAmount(preset)"
+                            class="py-2.5 rounded-xl font-bold text-xs border transition-all"
+                            [ngClass]="{
+                                'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-500/20': topUpAmount() === preset,
+                                'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700': topUpAmount() !== preset
+                            }">
+                            GH₵{{ preset }}
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Custom Top-up Input -->
+            <div class="mb-5 relative z-10">
+                <label for="topup-amount" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Custom Amount (GH₵)</label>
+                <div class="relative">
+                    <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-black">₵</div>
+                    <input
+                        id="topup-amount"
+                        type="number"
+                        min="5"
+                        [value]="topUpAmount()"
+                        (input)="topUpAmount.set($any($event.target).valueAsNumber)"
+                        class="w-full bg-slate-900/80 border border-slate-700 hover:border-slate-500 focus:border-emerald-500 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-slate-600 outline-none transition-all font-mono"
+                    />
+                </div>
+            </div>
+
+            <!-- Projected Balance Preview -->
+            <div class="bg-slate-900/40 rounded-xl p-3 border border-slate-800 mb-6 flex justify-between items-center relative z-10 text-xs">
+                <span class="text-slate-400">Projected Balance:</span>
+                <span class="font-black text-emerald-400 font-mono">
+                    GH₵{{ (walletBalance() + (topUpAmount() || 0)) | number:'1.2-2' }}
+                </span>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col-reverse sm:flex-row items-center gap-3 relative z-10">
+                <button
+                    (click)="closeTopUpModal()"
+                    class="w-full sm:flex-1 py-3 rounded-xl font-bold text-xs sm:text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700"
+                >
+                    Cancel
+                </button>
+                <button
+                    (click)="confirmTopUp()"
+                    [disabled]="isTopUpLoading() || !topUpAmount() || topUpAmount() <= 0"
+                    class="w-full sm:flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    @if (isTopUpLoading()) {
+                        <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    }
+                    Proceed to MoMo / Paystack
+                </button>
+            </div>
+        </div>
+    </div>
+}
+<!-- ===== / Wallet Top-Up Modal ===== -->
 
 <div class="page-container animate-fade-in">
     <div class="page-header">
         <div>
             <h1>Family Portal</h1>
-            <p class="subtitle">Secure overview of your children's academic journey</p>
+            <p class="subtitle">Secure overview of your children's attendance, daily fee wallet, and academic journey</p>
         </div>
     </div>
 
@@ -114,7 +231,7 @@
             </div>
             <div class="child-info">
                 <h3>{{ child.first_name }} {{ child.last_name }}</h3>
-                <span class="badge badge-outline">Grade Level/Class Info</span>
+                <span class="badge badge-outline">Grade Level / Class Info</span>
                 <a [routerLink]="['/students', child.id, 'report-card']" class="mt-2 text-xs font-bold text-blue-400 hover:text-blue-300 inline-flex items-center gap-1" (click)="$event.stopPropagation()">
                     View Report Card
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
@@ -127,6 +244,221 @@
     @if (selectedChild()) {
     <hr class="separator">
 
+    <!-- Section 1: Smart Wallet & Daily Fee Management -->
+    <div class="wallet-section animate-slide-up mb-10">
+        <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-slate-900 via-slate-900/90 to-emerald-950/20 shadow-xl relative overflow-hidden">
+            <div class="absolute -top-12 -right-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none"></div>
+
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 relative z-10">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                        Smart Daily Wallet
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">Daily Canteen & Services: {{ selectedChild()?.first_name }}</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Automated daily deduction upon gate check-in & roll call</p>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button
+                        (click)="openTopUpModal()"
+                        class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm transition-all shadow-lg shadow-emerald-500/20 hover:scale-[1.02]">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                        Top Up Wallet
+                    </button>
+                </div>
+            </div>
+
+            <!-- Wallet Balance Highlights -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 relative z-10">
+                <div class="p-4 rounded-2xl border"
+                    [ngClass]="{
+                        'bg-emerald-500/10 border-emerald-500/30 text-emerald-400': walletBalance() > 0,
+                        'bg-slate-800/60 border-slate-700 text-slate-300': walletBalance() === 0,
+                        'bg-rose-500/10 border-rose-500/30 text-rose-400': walletBalance() < 0
+                    }">
+                    <span class="text-[10px] font-black uppercase tracking-widest block opacity-70">Current Available Balance</span>
+                    <div class="text-2xl sm:text-3xl font-black mt-1">
+                        GH₵{{ walletBalance() | number:'1.2-2' }}
+                    </div>
+                    <div class="text-[11px] mt-1 font-semibold">
+                        @if (walletBalance() > 0) {
+                            Active & Ready for Auto-Deduction
+                        } @else if (walletBalance() === 0) {
+                            Refill recommended
+                        } @else {
+                            Overdrawn (Negative Balance)
+                        }
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/60">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Daily Fee Billing Model</span>
+                    <div class="text-sm font-bold text-white mt-1">Auto-debited on Attendance</div>
+                    <p class="text-[11px] text-slate-400 mt-1">Charges only when present / tardy on campus</p>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/60">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Payment Methods</span>
+                    <div class="text-sm font-bold text-white mt-1">MoMo, Card & School Cash</div>
+                    <p class="text-[11px] text-slate-400 mt-1">Direct online top-ups or physical cash to cashier</p>
+                </div>
+            </div>
+
+            <!-- Wallet Transactions History -->
+            @if (walletTransactions().length > 0) {
+                <div class="mt-4 pt-4 border-t border-slate-700/40 relative z-10">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-black uppercase tracking-wider text-slate-300">Recent Wallet Transactions</span>
+                        <span class="text-[11px] text-slate-400">Audit trail</span>
+                    </div>
+                    <div class="overflow-x-auto w-full">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-700/50 text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                                    <th class="py-2.5 px-3">Date</th>
+                                    <th class="py-2.5 px-3">Type</th>
+                                    <th class="py-2.5 px-3">Description</th>
+                                    <th class="py-2.5 px-3 text-right">Amount</th>
+                                    <th class="py-2.5 px-3 text-right">Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800">
+                                @for (tx of walletTransactions().slice(0, 5); track tx.id) {
+                                    <tr class="hover:bg-slate-800/40">
+                                        <td class="py-2.5 px-3 text-slate-400">{{ tx.created_at | date:'mediumDate' }}</td>
+                                        <td class="py-2.5 px-3">
+                                            <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider"
+                                                [ngClass]="{
+                                                    'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30': tx.type === 'CREDIT',
+                                                    'bg-amber-500/20 text-amber-400 border border-amber-500/30': tx.type === 'DEBIT'
+                                                }">
+                                                {{ tx.type }}
+                                            </span>
+                                        </td>
+                                        <td class="py-2.5 px-3 text-white font-medium">{{ tx.description }}</td>
+                                        <td class="py-2.5 px-3 text-right font-mono font-bold"
+                                            [ngClass]="{'text-emerald-400': tx.type === 'CREDIT', 'text-amber-400': tx.type === 'DEBIT'}">
+                                            {{ tx.type === 'CREDIT' ? '+' : '-' }}GH₵{{ tx.amount | number:'1.2-2' }}
+                                        </td>
+                                        <td class="py-2.5 px-3 text-right font-mono text-slate-300">
+                                            GH₵{{ tx.balance | number:'1.2-2' }}
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Section 2: Campus Attendance & Gate Ingress Section -->
+    <div class="attendance-section animate-slide-up mb-10">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Live Campus Ingress & Safety
+                </div>
+                <h2 class="text-xl font-black text-white tracking-tight">Attendance & Gate Check-in: {{ selectedChild()?.first_name }}</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Real-time gate scans, classroom roll-call, and arrival timestamps</p>
+            </div>
+            @if (todayAttendance()) {
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold shadow-lg shadow-emerald-500/10">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <span>On Campus Today ({{ todayAttendance()?.status }})</span>
+                </div>
+            } @else {
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-800/80 border border-slate-700/60 text-slate-400 text-xs font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                    <span>Awaiting Today's Gate Check-in</span>
+                </div>
+            }
+        </div>
+
+        @if (attendanceLoading()) {
+            <p class="text-muted text-xs">Loading attendance timeline...</p>
+        } @else {
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                <div class="glass-panel p-4 rounded-2xl border border-border-primary bg-bg-tertiary">
+                    <div class="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Attendance Rate</div>
+                    <div class="text-2xl font-black text-blue-400">{{ attendanceStats().rate }}%</div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                        <div class="bg-blue-500 h-full rounded-full" [style.width.%]="attendanceStats().rate"></div>
+                    </div>
+                </div>
+                <div class="glass-panel p-4 rounded-2xl border border-border-primary bg-bg-tertiary">
+                    <div class="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Present Days</div>
+                    <div class="text-2xl font-black text-emerald-400">{{ attendanceStats().present }}</div>
+                    <p class="text-[11px] text-slate-500 mt-1">Verified on campus</p>
+                </div>
+                <div class="glass-panel p-4 rounded-2xl border border-border-primary bg-bg-tertiary">
+                    <div class="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Tardy / Late</div>
+                    <div class="text-2xl font-black text-amber-400">{{ attendanceStats().tardy }}</div>
+                    <p class="text-[11px] text-slate-500 mt-1">Late arrivals</p>
+                </div>
+                <div class="glass-panel p-4 rounded-2xl border border-border-primary bg-bg-tertiary">
+                    <div class="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Absent Days</div>
+                    <div class="text-2xl font-black text-rose-400">{{ attendanceStats().absent }}</div>
+                    <p class="text-[11px] text-slate-500 mt-1">Recorded absences</p>
+                </div>
+            </div>
+
+            @if (attendanceRecords().length === 0) {
+                <div class="glass-panel empty-state">
+                    <p>No attendance or gate check-in records logged yet for this student.</p>
+                </div>
+            } @else {
+                <div class="glass-panel overflow-hidden border border-border-primary rounded-2xl bg-bg-tertiary">
+                    <div class="overflow-x-auto w-full">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-bg-tertiary border-b border-border-primary">
+                                    <th class="px-6 py-3.5 text-[10px] font-black uppercase tracking-widest text-text-muted">Date & Time</th>
+                                    <th class="px-6 py-3.5 text-[10px] font-black uppercase tracking-widest text-text-muted">Status</th>
+                                    <th class="px-6 py-3.5 text-[10px] font-black uppercase tracking-widest text-text-muted">Method / Remarks</th>
+                                    <th class="px-6 py-3.5 text-[10px] font-black uppercase tracking-widest text-text-muted text-right">Guardian Alerts</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5">
+                                @for (att of attendanceRecords().slice(0, 10); track att.id) {
+                                    <tr class="hover:bg-slate-800/30 transition-all">
+                                        <td class="px-6 py-3.5">
+                                            <div class="text-xs font-bold text-white">{{ att.date | date:'mediumDate' }}</div>
+                                            <div class="text-[11px] text-slate-400">{{ att.date | date:'shortTime' }}</div>
+                                        </td>
+                                        <td class="px-6 py-3.5">
+                                            <span class="px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider"
+                                                [ngClass]="{
+                                                    'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20': att.status === 'Present',
+                                                    'bg-amber-500/10 text-amber-400 border border-amber-500/20': att.status === 'Tardy',
+                                                    'bg-rose-500/10 text-rose-400 border border-rose-500/20': att.status === 'Absent'
+                                                }">
+                                                {{ att.status }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-3.5 text-xs text-text-secondary">
+                                            {{ att.remarks || 'Standard Roll Call / Biometric Ingress' }}
+                                        </td>
+                                        <td class="px-6 py-3.5 text-right">
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                                SMS & Push Sent
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Section 3: Academic Insights -->
     <div class="academics-section animate-slide-up">
         <h2>Academic Insights: {{ selectedChild()?.first_name }}</h2>
 
@@ -151,14 +483,15 @@
         }
     </div>
 
+    <!-- Section 4: Term Invoices & Financial Account -->
     <div class="billing-section animate-slide-up mt-12 pt-8 border-t border-border-primary">
         <div class="flex justify-between items-center mb-6">
             <div>
-                <h2 class="text-xl font-black text-text-primary uppercase tracking-tight italic">Financial Account: {{ selectedChild()?.first_name }}</h2>
-                <p class="text-xs text-text-muted mt-1">Outstanding statement and online payment gateway</p>
+                <h2 class="text-xl font-black text-text-primary uppercase tracking-tight italic">Financial Invoices: {{ selectedChild()?.first_name }}</h2>
+                <p class="text-xs text-text-muted mt-1">Outstanding term statement and online payment gateway</p>
             </div>
             <div class="text-right">
-                <span class="text-[10px] font-black text-text-muted uppercase tracking-widest block">Outstanding Balance</span>
+                <span class="text-[10px] font-black text-text-muted uppercase tracking-widest block">Term Outstanding Balance</span>
                 <span class="text-2xl font-black text-text-primary" [class.text-red-400]="fiscalBalance() > 0" [class.text-emerald-400]="fiscalBalance() === 0">
                     GH₵{{ fiscalBalance() | number:'1.2-2' }}
                 </span>
@@ -174,7 +507,7 @@
         } @else {
             <div class="glass-panel overflow-hidden border border-border-primary rounded-[2rem] bg-bg-tertiary">
                 <div class="overflow-x-auto w-full">
-<table class="w-full text-left border-collapse">
+                    <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-bg-tertiary border-b border-border-primary">
                             <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted">Category</th>
@@ -225,7 +558,7 @@
                         }
                     </tbody>
                 </table>
-</div>
+                </div>
             </div>
         }
     </div>

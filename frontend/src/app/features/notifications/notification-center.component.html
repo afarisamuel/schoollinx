@@ -46,6 +46,15 @@
                               [class.bg-amber-500]="!isConnected()"></span>
                         <span>{{ isConnected() ? 'WebSocket Connected' : 'Reconnecting Feed...' }}</span>
                     </div>
+
+                    <!-- Web Push Notification Channel Badge & Control -->
+                    @if (pushService.isSupported()) {
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-wider"
+                             [ngClass]="pushService.isSubscribed() ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30' : 'bg-bg-tertiary text-text-muted border-border-primary'">
+                            <i class="fas fa-satellite-dish text-[9px]"></i>
+                            <span>{{ pushService.isSubscribed() ? 'Browser Push Active' : 'Push Inactive' }}</span>
+                        </div>
+                    }
                 </div>
 
                 <div class="flex items-center gap-3">
@@ -65,6 +74,24 @@
 
             <!-- Action Controls Cluster -->
             <div class="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
+                @if (pushService.isSupported()) {
+                    @if (pushService.isSubscribed()) {
+                        <button (click)="testPush()" class="px-3.5 py-2.5 rounded-2xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 text-xs font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-sm" title="Dispatch test push notification">
+                            <i class="fas fa-paper-plane text-[10px]"></i>
+                            <span>Test Push</span>
+                        </button>
+                        <button (click)="togglePush()" [disabled]="pushService.isLoading()" class="px-3.5 py-2.5 rounded-2xl bg-emerald-500/10 hover:bg-rose-500/10 text-emerald-600 hover:text-rose-500 dark:text-emerald-400 dark:hover:text-rose-400 border border-emerald-500/30 hover:border-rose-500/30 text-xs font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-sm">
+                            <i class="fas fa-bell-slash text-[10px]"></i>
+                            <span>Disable Push</span>
+                        </button>
+                    } @else {
+                        <button (click)="togglePush()" [disabled]="pushService.isLoading()" class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white text-xs font-black shadow-lg shadow-indigo-500/25 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer">
+                            <i class="fas fa-satellite-dish text-[10px]"></i>
+                            <span>{{ pushService.isLoading() ? 'Enabling...' : 'Enable Web Push' }}</span>
+                        </button>
+                    }
+                }
+
                 <button (click)="refreshFeed()" class="px-4 py-2.5 rounded-2xl bg-bg-tertiary hover:bg-bg-tertiary/80 text-text-primary border border-border-primary text-xs font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer shadow-sm">
                     <i class="fas fa-rotate text-blue-500"></i>
                     <span>Refresh</span>

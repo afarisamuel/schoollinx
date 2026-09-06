@@ -76,4 +76,25 @@ export class ReportService {
     }): Observable<{ remarks: string }> {
         return this.http.post<{ remarks: string }>(`${this.apiUrl}/ai-remarks`, payload);
     }
+
+    // Terminal Report Card Operations
+    downloadStudentTerminalReport(studentId: string, periodId?: string, termId?: string): Observable<Blob> {
+        let params: any = {};
+        if (periodId) params.period_id = periodId;
+        if (termId) params.term_id = termId;
+        return this.http.get(`${this.apiUrl}/students/${studentId}/terminal`, {
+            params,
+            responseType: 'blob'
+        });
+    }
+
+    downloadBatchClassTerminalReports(classId: string, periodId?: string, termId?: string): Observable<Blob> {
+        let params: any = {};
+        if (periodId) params.period_id = periodId;
+        if (termId) params.term_id = termId;
+        return this.http.get(`${this.apiUrl}/classes/${classId}/terminal/batch`, {
+            params,
+            responseType: 'blob'
+        });
+    }
 }

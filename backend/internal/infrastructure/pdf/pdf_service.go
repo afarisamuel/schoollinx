@@ -174,6 +174,19 @@ func (s *PDFService) GenerateTerminalReport(w io.Writer, data TerminalReportData
 	return pdf.Output(w)
 }
 
+func (s *PDFService) GenerateBatchTerminalReports(w io.Writer, reports []TerminalReportData) error {
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	for _, data := range reports {
+		pdf.AddPage()
+		s.drawTerminalReport(pdf, data)
+		pdf.SetY(-30)
+		pdf.SetFont("Arial", "I", 8)
+		pdf.CellFormat(190, 10, fmt.Sprintf("SOFTWARE BY: THINKCE | Generated on %s | Document Ref: TR-%s",
+			time.Now().Format("2006-01-02"), data.Student.ID.String()), "", 0, "C", false, 0, "")
+	}
+	return pdf.Output(w)
+}
+
 // Phase 19: Gradebook Export
 func (s *PDFService) GenerateGradebookReport(w io.Writer, class *domain.Class, term string, students []domain.Student, gpas []domain.GradeWeightedGPA) error {
 	pdf := gofpdf.New("P", "mm", "A4", "")

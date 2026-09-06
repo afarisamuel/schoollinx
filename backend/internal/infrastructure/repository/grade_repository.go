@@ -10,16 +10,27 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/domain"
+	"github.com/user/high-school-management/backend/internal/infrastructure/cache"
 	"gorm.io/gorm"
 )
 
 type gradeRepository struct {
-	db *gorm.DB
+	db    *gorm.DB
+	cache cache.CacheService
 }
 
-func NewGradeRepository(db *gorm.DB) domain.GradeRepository {
-	return &gradeRepository{db: db}
+func NewGradeRepository(db *gorm.DB, cacheService cache.CacheService) domain.GradeRepository {
+	return &gradeRepository{db: db, cache: cacheService}
+}
+
+func (r *gradeRepository) invalidateWeightsCache(ctx context.Context) {
+	if r.cache == nil {
+		return
+	}
+	schema, _ := middleware.GetTenantSchemaFromContext(ctx)
+	_ = r.cache.DeletePattern(ctx, schema, "grade_weights")
 }
 
 func (r *gradeRepository) Create(ctx context.Context, grade *domain.Grade) error {
@@ -61,26 +72,54 @@ func (r *gradeRepository) Delete(ctx context.Context, id uuid.UUID) error {
 // --- Phase 18: Grade Weight Methods ---
 
 func (r *gradeRepository) GetWeightsByClassID(ctx context.Context, classID uuid.UUID) ([]domain.GradeWeight, error) {
+	schema, _ := middleware.GetTenantSchemaFromContext(ctx)
+	cacheKey := fmt.Sprintf("grade_weights:class:%s", classID.String())
+	if r.cache != nil {
+		var cached []domain.GradeWeight
+		if r.cache.Get(ctx, schema, cacheKey, &cached) {
+			return cached, nil
+		}
+	}
+
 	var weights []domain.GradeWeight
 	if classID != uuid.Nil {
 		err := r.db.WithContext(ctx).Where("class_id = ?", classID).Find(&weights).Error
 		if err == nil && len(weights) > 0 {
+			if r.cache != nil {
+				_ = r.cache.Set(ctx, schema, cacheKey, weights, 30*time.Minute)
+			}
 			return weights, nil
 		}
 	}
 
 	// Fallback to General / School-Wide Default weights (class_id IS NULL or class_id = '00000000-0000-0000-0000-000000000000')
 	err := r.db.WithContext(ctx).Where("class_id IS NULL OR class_id = ?", uuid.Nil).Find(&weights).Error
+	if err == nil && r.cache != nil {
+		_ = r.cache.Set(ctx, schema, cacheKey, weights, 30*time.Minute)
+	}
 	return weights, err
 }
 
 func (r *gradeRepository) GetGeneralWeights(ctx context.Context) ([]domain.GradeWeight, error) {
+	schema, _ := middleware.GetTenantSchemaFromContext(ctx)
+	cacheKey := "grade_weights:general"
+	if r.cache != nil {
+		var cached []domain.GradeWeight
+		if r.cache.Get(ctx, schema, cacheKey, &cached) {
+			return cached, nil
+		}
+	}
+
 	var weights []domain.GradeWeight
 	err := r.db.WithContext(ctx).Where("class_id IS NULL OR class_id = ?", uuid.Nil).Find(&weights).Error
+	if err == nil && r.cache != nil {
+		_ = r.cache.Set(ctx, schema, cacheKey, weights, 30*time.Minute)
+	}
 	return weights, err
 }
 
 func (r *gradeRepository) UpsertWeight(ctx context.Context, w *domain.GradeWeight) error {
+	defer r.invalidateWeightsCache(ctx)
 	if w.ClassID == nil || *w.ClassID == uuid.Nil {
 		return r.db.WithContext(ctx).
 			Where("(class_id IS NULL OR class_id = ?) AND category = ?", uuid.Nil, w.Category).
@@ -94,6 +133,7 @@ func (r *gradeRepository) UpsertWeight(ctx context.Context, w *domain.GradeWeigh
 }
 
 func (r *gradeRepository) ReplaceWeights(ctx context.Context, classID *uuid.UUID, weights []domain.GradeWeight) error {
+	defer r.invalidateWeightsCache(ctx)
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if classID == nil || *classID == uuid.Nil {
 			// Replacing General School Default weights
@@ -123,6 +163,7 @@ func (r *gradeRepository) ReplaceWeights(ctx context.Context, classID *uuid.UUID
 }
 
 func (r *gradeRepository) DeleteWeightsByClassID(ctx context.Context, classID uuid.UUID) error {
+	defer r.invalidateWeightsCache(ctx)
 	if classID == uuid.Nil {
 		return r.db.WithContext(ctx).Where("class_id IS NULL OR class_id = ?", uuid.Nil).Delete(&domain.GradeWeight{}).Error
 	}

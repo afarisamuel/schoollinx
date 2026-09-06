@@ -119,5 +119,12 @@ export const adminRoutes: Routes = [
         path: 'grading-setup',
         redirectTo: 'grading-configuration',
         pathMatch: 'full'
+    },
+    {
+        path: 'daily-fees',
+        loadComponent: () => import('../fiscal/daily-fee-config/daily-fee-config.component').then(c => c.DailyFeeConfigComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'ECOPOWER_ADMIN'] },
+        title: 'Daily Fee & Route Fare Configuration'
     }
 ];

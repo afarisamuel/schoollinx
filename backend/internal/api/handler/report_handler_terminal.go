@@ -46,18 +46,18 @@ func (h *ReportHandler) GenerateTerminalReportHandler(c *gin.Context) {
 		periodID = activePeriod.ID
 		// Just pick the active term from the period if possible
 		if len(activePeriod.Terms) > 0 {
-		    for _, t := range activePeriod.Terms {
-		        if t.TermNumber == activePeriod.CurrentTerm {
-		            termID = t.ID
-		            break
-		        }
-		    }
-		    if termID == uuid.Nil {
-		        termID = activePeriod.Terms[0].ID
-		    }
+			for _, t := range activePeriod.Terms {
+				if t.TermNumber == activePeriod.CurrentTerm {
+					termID = t.ID
+					break
+				}
+			}
+			if termID == uuid.Nil {
+				termID = activePeriod.Terms[0].ID
+			}
 		} else {
-		    c.JSON(http.StatusBadRequest, gin.H{"error": "active period has no terms"})
-		    return
+			c.JSON(http.StatusBadRequest, gin.H{"error": "active period has no terms"})
+			return
 		}
 	}
 
@@ -125,11 +125,12 @@ func (h *ReportHandler) GenerateTerminalReportHandler(c *gin.Context) {
 	if h.attendanceRepo != nil {
 		if records, err := h.attendanceRepo.GetByStudent(ctx, studentID); err == nil && len(records) > 0 {
 			for _, rec := range records {
-				if rec.Status == domain.StatusPresent {
+				switch rec.Status {
+				case domain.StatusPresent:
 					attendance["present"]++
-				} else if rec.Status == domain.StatusAbsent {
+				case domain.StatusAbsent:
 					attendance["absent"]++
-				} else if rec.Status == domain.StatusTardy {
+				case domain.StatusTardy:
 					attendance["tardy"]++
 				}
 			}
@@ -262,4 +263,189 @@ func (h *ReportHandler) GenerateReportRemarks(c *gin.Context) {
 		"principal_remark":   principalRemark,
 		"conduct_summary":    conductSummary,
 	})
+}
+
+// GenerateBatchTerminalReportHandler aggregates and compiles an entire class's terminal reports into a single PDF booklet.
+func (h *ReportHandler) GenerateBatchTerminalReportHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+	classID, err := uuid.Parse(c.Param("class_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID"})
+		return
+	}
+
+	periodIDStr := c.Query("period_id")
+	termIDStr := c.Query("term_id")
+	var periodID uuid.UUID
+	var termID uuid.UUID
+	var activePeriod *domain.AcademicPeriod
+
+	if periodIDStr != "" && termIDStr != "" {
+		periodID, err = uuid.Parse(periodIDStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid period_id"})
+			return
+		}
+		termID, err = uuid.Parse(termIDStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid term_id"})
+			return
+		}
+	} else {
+		activePeriod, err = h.academicRepo.GetActive(ctx)
+		if err != nil || activePeriod == nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "period_id and term_id required or active period missing"})
+			return
+		}
+		periodID = activePeriod.ID
+		if len(activePeriod.Terms) > 0 {
+			for _, t := range activePeriod.Terms {
+				if t.TermNumber == activePeriod.CurrentTerm {
+					termID = t.ID
+					break
+				}
+			}
+			if termID == uuid.Nil {
+				termID = activePeriod.Terms[0].ID
+			}
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "active period has no terms"})
+			return
+		}
+	}
+
+	tenantID := ctx.Value(middleware.TenantIDKey).(uuid.UUID)
+	tenant, err := h.tenantRepo.GetByID(ctx, tenantID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load tenant info"})
+		return
+	}
+
+	class, err := h.classRepo.GetByID(ctx, classID)
+	if err != nil || class == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "class not found"})
+		return
+	}
+
+	var classTeacher *domain.Teacher
+	if class.TeacherID != nil {
+		classTeacher, _ = h.teacherRepo.GetByID(ctx, *class.TeacherID)
+	}
+
+	students, err := h.studentRepo.GetByClass(ctx, classID)
+	if err != nil || len(students) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "no students enrolled in this class"})
+		return
+	}
+
+	classSize := len(students)
+
+	// Subject name lookup
+	subjectNameMap := make(map[string]string)
+	if h.subjectRepo != nil {
+		if allSubjects, err := h.subjectRepo.GetAll(ctx); err == nil {
+			for _, s := range allSubjects {
+				subjectNameMap[s.ID.String()] = s.Name
+				if s.Code != "" {
+					subjectNameMap[s.Code] = s.Name
+				}
+				subjectNameMap[s.Name] = s.Name
+			}
+		}
+	}
+
+	if activePeriod == nil && periodID != uuid.Nil {
+		activePeriod, _ = h.academicRepo.GetByID(ctx, periodID)
+	}
+
+	termLabel := "Term 1"
+	academicYearLabel := ""
+	nextTermBegins := "To be communicated"
+	totalTermsInPeriod := 3
+
+	if activePeriod != nil {
+		academicYearLabel = activePeriod.Name
+		if activePeriod.TermCount > 0 {
+			totalTermsInPeriod = activePeriod.TermCount
+		}
+		if len(activePeriod.Terms) > 0 {
+			for _, t := range activePeriod.Terms {
+				if t.ID == termID || (termID == uuid.Nil && t.TermNumber == activePeriod.CurrentTerm) {
+					termLabel = t.Name
+					if termLabel == "" {
+						termLabel = fmt.Sprintf("Term %d", t.TermNumber)
+					}
+					if !t.EndDate.IsZero() {
+						nextTermBegins = t.EndDate.AddDate(0, 0, 14).Format("02 Jan 2006")
+					}
+					break
+				}
+			}
+		} else if activePeriod.CurrentTerm > 0 {
+			termLabel = fmt.Sprintf("Term %d", activePeriod.CurrentTerm)
+		}
+	}
+
+	var reports []pdf.TerminalReportData
+
+	for _, student := range students {
+		st := student // copy
+		grades, _ := h.gradeRepo.GetByStudentID(ctx, st.ID)
+		for i := range grades {
+			subjKey := grades[i].Subject
+			if realName, ok := subjectNameMap[subjKey]; ok && realName != "" {
+				grades[i].Subject = realName
+			} else if u, err := uuid.Parse(subjKey); err == nil {
+				if sub, err := h.subjectRepo.GetByID(ctx, u); err == nil && sub != nil && sub.Name != "" {
+					grades[i].Subject = sub.Name
+					subjectNameMap[subjKey] = sub.Name
+				}
+			}
+		}
+
+		eval, _ := h.evalRepo.GetByStudentAndTerm(ctx, st.ID, periodID, termID)
+
+		attendance := map[string]int{"present": 0, "absent": 0, "tardy": 0}
+		if h.attendanceRepo != nil {
+			if records, err := h.attendanceRepo.GetByStudent(ctx, st.ID); err == nil {
+				for _, rec := range records {
+					if rec.Status == domain.StatusPresent {
+						attendance["present"]++
+					} else if rec.Status == domain.StatusAbsent {
+						attendance["absent"]++
+					} else if rec.Status == domain.StatusTardy {
+						attendance["tardy"]++
+					}
+				}
+			}
+		}
+
+		promotedTo := "N/A (Term Ongoing)"
+		if activePeriod != nil && activePeriod.CurrentTerm >= totalTermsInPeriod {
+			promotedTo = fmt.Sprintf("Level %d", st.Level+1)
+		}
+
+		reports = append(reports, pdf.TerminalReportData{
+			Student:        &st,
+			Tenant:         tenant,
+			ClassTeacher:   classTeacher,
+			Grades:         grades,
+			Evaluation:     eval,
+			Attendance:     attendance,
+			Term:           termLabel,
+			AcademicYear:   academicYearLabel,
+			ClassSize:      classSize,
+			NextTermBegins: nextTermBegins,
+			PromotedTo:     promotedTo,
+		})
+	}
+
+	c.Header("Content-Type", "application/pdf")
+	filename := fmt.Sprintf("Batch_Terminal_Reports_%s_%s.pdf", class.Name, termLabel)
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+
+	if err := h.pdfService.GenerateBatchTerminalReports(c.Writer, reports); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to compile batch terminal reports"})
+		return
+	}
 }

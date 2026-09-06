@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"log"
 	"sort"
 	"time"
 
@@ -10,19 +11,23 @@ import (
 	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/api/ws"
 	"github.com/user/high-school-management/backend/internal/domain"
+	"github.com/user/high-school-management/backend/internal/infrastructure/push"
 )
 
 type notificationUseCase struct {
-	hub *ws.Hub
-	db  *gorm.DB
+	hub      *ws.Hub
+	db       *gorm.DB
+	pushRepo domain.PushSubscriptionRepository
+	webPush  push.WebPushService
 }
 
-func NewNotificationUseCase(hub *ws.Hub, db ...*gorm.DB) domain.NotificationUseCase {
-	uc := &notificationUseCase{hub: hub}
-	if len(db) > 0 && db[0] != nil {
-		uc.db = db[0]
+func NewNotificationUseCase(hub *ws.Hub, db *gorm.DB, pushRepo domain.PushSubscriptionRepository, webPush push.WebPushService) domain.NotificationUseCase {
+	return &notificationUseCase{
+		hub:      hub,
+		db:       db,
+		pushRepo: pushRepo,
+		webPush:  webPush,
 	}
-	return uc
 }
 
 func (u *notificationUseCase) getTenantSchemas() []string {
@@ -32,6 +37,42 @@ func (u *notificationUseCase) getTenantSchemas() []string {
 	var schemas []string
 	_ = u.db.Raw("SELECT schema_name FROM public.tenants WHERE schema_name IS NOT NULL AND schema_name != ''").Pluck("schema_name", &schemas).Error
 	return schemas
+}
+
+func (u *notificationUseCase) dispatchWebPush(userID uuid.UUID, title, message string, data map[string]interface{}) {
+	if u.webPush == nil || u.pushRepo == nil || userID == uuid.Nil {
+		return
+	}
+
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		subs, err := u.pushRepo.GetByUserID(ctx, userID)
+		if err != nil || len(subs) == 0 {
+			return
+		}
+
+		payload := map[string]interface{}{
+			"title":   title,
+			"body":    message,
+			"icon":    "/favicon.ico",
+			"badge":   "/favicon.ico",
+			"data":    data,
+			"vibrate": []int{100, 50, 100},
+		}
+
+		for _, sub := range subs {
+			err := u.webPush.SendNotification(ctx, &sub, payload)
+			if err != nil {
+				if err.Error() == "subscription_expired" {
+					_ = u.pushRepo.DeleteByEndpoint(ctx, sub.Endpoint)
+				} else {
+					log.Printf("WARN: Web push notification failed for user %s: %v", userID, err)
+				}
+			}
+		}
+	}()
 }
 
 func (u *notificationUseCase) SendToUser(userID uuid.UUID, n domain.Notification) error {
@@ -60,6 +101,12 @@ func (u *notificationUseCase) SendToUser(userID uuid.UUID, n domain.Notification
 	if u.hub != nil {
 		u.hub.Broadcast(n)
 	}
+
+	u.dispatchWebPush(userID, n.Title, n.Message, map[string]interface{}{
+		"id":   n.ID.String(),
+		"type": string(n.Type),
+	})
+
 	return nil
 }
 
@@ -238,5 +285,53 @@ func (u *notificationUseCase) MarkAllAsRead(ctx context.Context, userID uuid.UUI
 			Where("user_id = ? OR user_id = ?", userID, uuid.Nil).
 			Update("read", true).Error
 	}
+	return nil
+}
+
+func (u *notificationUseCase) SubscribePush(ctx context.Context, sub *domain.PushSubscription) error {
+	if u.pushRepo == nil {
+		return nil
+	}
+	return u.pushRepo.Upsert(ctx, sub)
+}
+
+func (u *notificationUseCase) UnsubscribePush(ctx context.Context, endpoint string) error {
+	if u.pushRepo == nil {
+		return nil
+	}
+	return u.pushRepo.DeleteByEndpoint(ctx, endpoint)
+}
+
+func (u *notificationUseCase) SendPushNotification(ctx context.Context, userID uuid.UUID, title, body, icon, url string) error {
+	if u.pushRepo == nil || u.webPush == nil {
+		return nil
+	}
+
+	subs, err := u.pushRepo.GetByUserID(ctx, userID)
+	if err != nil || len(subs) == 0 {
+		return nil
+	}
+
+	if icon == "" {
+		icon = "/favicon.ico"
+	}
+
+	payload := map[string]interface{}{
+		"title":   title,
+		"body":    body,
+		"icon":    icon,
+		"badge":   icon,
+		"data":    map[string]string{"url": url},
+		"vibrate": []int{100, 50, 100},
+	}
+
+	for _, sub := range subs {
+		if err := u.webPush.SendNotification(ctx, &sub, payload); err != nil {
+			if err.Error() == "subscription_expired" {
+				_ = u.pushRepo.DeleteByEndpoint(ctx, sub.Endpoint)
+			}
+		}
+	}
+
 	return nil
 }

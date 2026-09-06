@@ -679,8 +679,8 @@ func (u *fiscalUseCase) ProcessCanteenPurchase(ctx context.Context, studentID uu
 }
 
 // ProcessAttendanceBilling is called when a student is marked Present.
-// It calculates the total DAILY fees for the active period, then either
-// deducts from PrepaidBalance or creates a PENDING invoice.
+// It calculates the total DAILY fees for the active period and deducts the amount
+// from the student's PrepaidBalance (allowing overdraft/negative balance), recording audit wallet transactions.
 func (u *fiscalUseCase) ProcessAttendanceBilling(ctx context.Context, studentID uuid.UUID, periodID uuid.UUID) error {
 	// 1. Get all DAILY fee structures for this period
 	dailyFees, err := u.fiscalRepo.GetFeeStructuresByFrequency(ctx, periodID, domain.FrequencyDaily)
@@ -703,37 +703,25 @@ func (u *fiscalUseCase) ProcessAttendanceBilling(ctx context.Context, studentID 
 		return err
 	}
 
-	// 4. Try to deduct from prepaid balance
-	if student.PrepaidBalance >= totalDailyCost {
-		student.PrepaidBalance -= totalDailyCost
-		if err := u.studentRepo.Update(ctx, student); err != nil {
-			return err
-		}
-
-		// Record a debit transaction for each fee category
-		for _, fee := range dailyFees {
-			_ = u.fiscalRepo.CreateWalletTransaction(ctx, &domain.WalletTransaction{
-				StudentID:   studentID,
-				Type:        domain.WalletTransactionDebit,
-				Amount:      fee.Amount,
-				Balance:     student.PrepaidBalance,
-				Description: "Daily " + string(fee.Category) + " fee deduction",
-			})
-		}
-		return nil
+	// 4. Deduct from prepaid balance (allowing overdraft / negative balance)
+	student.PrepaidBalance -= totalDailyCost
+	if err := u.studentRepo.Update(ctx, student); err != nil {
+		return err
 	}
 
-	// 5. Insufficient balance — generate invoices for each daily fee
+	// 5. Record a debit transaction for each fee category
 	for _, fee := range dailyFees {
-		record := &domain.FiscalRecord{
-			StudentID:   studentID,
-			Category:    fee.Category,
-			Amount:      fee.Amount,
-			Description: "Daily " + string(fee.Category) + " fee (attendance-based)",
-			Status:      domain.PaymentStatusPending,
-			DueDate:     time.Now().AddDate(0, 0, 7), // Due in 7 days
+		desc := "Daily " + string(fee.Category) + " fee deduction"
+		if student.PrepaidBalance < 0 {
+			desc = "Daily " + string(fee.Category) + " fee deduction (Overdraft)"
 		}
-		_ = u.fiscalRepo.Create(ctx, record)
+		_ = u.fiscalRepo.CreateWalletTransaction(ctx, &domain.WalletTransaction{
+			StudentID:   studentID,
+			Type:        domain.WalletTransactionDebit,
+			Amount:      fee.Amount,
+			Balance:     student.PrepaidBalance,
+			Description: desc,
+		})
 	}
 
 	return nil

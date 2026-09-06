@@ -27,6 +27,14 @@ export class GuardianService {
         return this.http.get<AcademicInsight[]>(`${this.parentApiUrl}/child/${studentId}/academics`);
     }
 
+    getChildAttendance(studentId: string): Observable<any[]> {
+        return this.http.get<any[]>(`/api/attendance/student/${studentId}`);
+    }
+
+    getStudentWallet(studentId: string): Observable<{ balance: number; transactions: any[] }> {
+        return this.http.get<{ balance: number; transactions: any[] }>(`/api/fiscal/wallet/${studentId}`);
+    }
+
     getMyFamilyLedger(): Observable<FamilyLedgerSummary> {
         return this.http.get<FamilyLedgerSummary>(`${this.parentApiUrl}/family-ledger`);
     }

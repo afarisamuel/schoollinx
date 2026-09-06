@@ -3,10 +3,12 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 	"github.com/user/high-school-management/backend/internal/domain"
 )
 
@@ -19,10 +21,142 @@ type AttendanceUseCase struct {
 	fiscalUC     domain.FiscalUseCase
 	academicRepo domain.AcademicPeriodRepository
 	notifUC      domain.NotificationUseCase
+	sms          domain.SMSProvider
+	guardianRepo domain.GuardianRepository
+	tenantRepo   domain.TenantRepository
 }
 
-func NewAttendanceUseCase(repo domain.AttendanceRepository, campaignMgr CampaignManager, studentRepo domain.StudentRepository, fiscalUC domain.FiscalUseCase, academicRepo domain.AcademicPeriodRepository, notifUC domain.NotificationUseCase) domain.AttendanceUseCase {
-	return &AttendanceUseCase{repo: repo, campaignMgr: campaignMgr, studentRepo: studentRepo, fiscalUC: fiscalUC, academicRepo: academicRepo, notifUC: notifUC}
+func NewAttendanceUseCase(
+	repo domain.AttendanceRepository,
+	campaignMgr CampaignManager,
+	studentRepo domain.StudentRepository,
+	fiscalUC domain.FiscalUseCase,
+	academicRepo domain.AcademicPeriodRepository,
+	notifUC domain.NotificationUseCase,
+	sms domain.SMSProvider,
+	guardianRepo domain.GuardianRepository,
+	tenantRepo domain.TenantRepository,
+) domain.AttendanceUseCase {
+	return &AttendanceUseCase{
+		repo:         repo,
+		campaignMgr:  campaignMgr,
+		studentRepo:  studentRepo,
+		fiscalUC:     fiscalUC,
+		academicRepo: academicRepo,
+		notifUC:      notifUC,
+		sms:          sms,
+		guardianRepo: guardianRepo,
+		tenantRepo:   tenantRepo,
+	}
+}
+
+func (u *AttendanceUseCase) notifyAttendanceToGuardian(studentID uuid.UUID, status domain.AttendanceStatus, remarks string, timestamp time.Time) {
+	if studentID == uuid.Nil || u.studentRepo == nil {
+		return
+	}
+
+	go func() {
+		bgCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
+
+		student, err := u.studentRepo.GetByID(bgCtx, studentID)
+		if err != nil || student == nil {
+			return
+		}
+
+		studentName := strings.TrimSpace(fmt.Sprintf("%s %s", string(student.FirstName), string(student.LastName)))
+		if studentName == "" {
+			studentName = "Student"
+		}
+
+		timeStr := timestamp.Format("3:04 PM")
+		dateStr := timestamp.Format("02 Jan 2006")
+
+		statusLabel := string(status)
+		if status == domain.StatusPresent {
+			statusLabel = "PRESENT (Checked-In)"
+		} else if status == domain.StatusAbsent {
+			statusLabel = "ABSENT"
+		} else if status == domain.StatusTardy {
+			statusLabel = "LATE / TARDY"
+		}
+
+		// Collect phone numbers & guardian user IDs
+		phoneSet := make(map[string]bool)
+		var phones []string
+		var guardianUserIDs []uuid.UUID
+
+		if u.guardianRepo != nil {
+			guardians, _ := u.guardianRepo.GetForStudent(bgCtx, student.ID)
+			for _, g := range guardians {
+				if g == nil {
+					continue
+				}
+				phone := cleanPhoneNumber(string(g.PhoneNumber))
+				if phone != "" && !phoneSet[phone] {
+					phoneSet[phone] = true
+					phones = append(phones, phone)
+				}
+				if g.UserID != uuid.Nil {
+					guardianUserIDs = append(guardianUserIDs, g.UserID)
+				}
+			}
+		}
+
+		// Fallback contacts from student profile
+		for _, fp := range []string{
+			cleanPhoneNumber(string(student.GuardianPhone)),
+			cleanPhoneNumber(string(student.FatherPhone)),
+			cleanPhoneNumber(string(student.MotherPhone)),
+		} {
+			if fp != "" && !phoneSet[fp] {
+				phoneSet[fp] = true
+				phones = append(phones, fp)
+			}
+		}
+
+		smsText := fmt.Sprintf("Attendance: %s recorded as %s at SchoolLinx on %s (%s). %s",
+			studentName, statusLabel, dateStr, timeStr, remarks)
+		if student.PrepaidBalance < 0 {
+			smsText += fmt.Sprintf(" Daily fee charged. Wallet Overdraft: -GH₵%.2f. Please top up at your Parent Portal.", -student.PrepaidBalance)
+		} else if student.PrepaidBalance > 0 {
+			smsText += fmt.Sprintf(" Remaining Wallet Balance: GH₵%.2f.", student.PrepaidBalance)
+		}
+
+		// 1. Send SMS to Guardian(s)
+		if u.sms != nil && len(phones) > 0 {
+			_ = u.sms.SendSMS(bgCtx, "ATTENDANCE", phones, smsText)
+		}
+
+		// 2. Send In-System & Web Push Notification to Guardian(s) and Student
+		if u.notifUC != nil {
+			notifTitle := fmt.Sprintf("Attendance: %s (%s)", studentName, statusLabel)
+			notifMsg := fmt.Sprintf("%s was recorded as %s on %s at %s. %s", studentName, statusLabel, dateStr, timeStr, remarks)
+
+			notifData := datatypes.JSON([]byte(fmt.Sprintf(
+				`{"student_id":"%s","student_name":"%s","status":"%s","time":"%s","date":"%s"}`,
+				student.ID.String(), studentName, status, timeStr, dateStr,
+			)))
+
+			for _, uid := range guardianUserIDs {
+				_ = u.notifUC.SendToUser(uid, domain.Notification{
+					Type:    domain.NotificationAttendance,
+					Title:   notifTitle,
+					Message: notifMsg,
+					Data:    notifData,
+				})
+			}
+
+			if student.UserID != nil && *student.UserID != uuid.Nil {
+				_ = u.notifUC.SendToUser(*student.UserID, domain.Notification{
+					Type:    domain.NotificationAttendance,
+					Title:   notifTitle,
+					Message: notifMsg,
+					Data:    notifData,
+				})
+			}
+		}
+	}()
 }
 
 func (u *AttendanceUseCase) MarkAttendance(ctx context.Context, attendance *domain.Attendance) error {
@@ -33,16 +167,13 @@ func (u *AttendanceUseCase) MarkAttendance(ctx context.Context, attendance *doma
 	}
 
 	err := u.repo.Create(ctx, attendance)
-	if err == nil && attendance.Status == domain.StatusPresent {
-		if activePeriod, pErr := u.academicRepo.GetActive(ctx); pErr == nil && activePeriod != nil {
-			_ = u.fiscalUC.ProcessAttendanceBilling(ctx, attendance.StudentID, activePeriod.ID)
+	if err == nil {
+		if attendance.Status == domain.StatusPresent {
+			if activePeriod, pErr := u.academicRepo.GetActive(ctx); pErr == nil && activePeriod != nil {
+				_ = u.fiscalUC.ProcessAttendanceBilling(ctx, attendance.StudentID, activePeriod.ID)
+			}
 		}
-	} else if err == nil && attendance.Status == domain.StatusAbsent && u.notifUC != nil {
-		_ = u.notifUC.SendToUser(attendance.StudentID, domain.Notification{
-			Type:    domain.NotificationAttendance,
-			Title:   "Absence Recorded",
-			Message: "An absence has been recorded for today.",
-		})
+		u.notifyAttendanceToGuardian(attendance.StudentID, attendance.Status, attendance.Remarks, attendance.Date)
 	}
 	return err
 }
@@ -50,18 +181,12 @@ func (u *AttendanceUseCase) MarkAttendance(ctx context.Context, attendance *doma
 func (u *AttendanceUseCase) MarkBulkAttendance(ctx context.Context, attendances []domain.Attendance) error {
 	err := u.repo.BulkCreate(ctx, attendances)
 	if err == nil {
-		if activePeriod, pErr := u.academicRepo.GetActive(ctx); pErr == nil && activePeriod != nil {
-			for _, attendance := range attendances {
-				if attendance.Status == domain.StatusPresent {
-					_ = u.fiscalUC.ProcessAttendanceBilling(ctx, attendance.StudentID, activePeriod.ID)
-				} else if attendance.Status == domain.StatusAbsent && u.notifUC != nil {
-					_ = u.notifUC.SendToUser(attendance.StudentID, domain.Notification{
-						Type:    domain.NotificationAttendance,
-						Title:   "Absence Recorded",
-						Message: "An absence has been recorded for today.",
-					})
-				}
+		activePeriod, _ := u.academicRepo.GetActive(ctx)
+		for _, attendance := range attendances {
+			if attendance.Status == domain.StatusPresent && activePeriod != nil {
+				_ = u.fiscalUC.ProcessAttendanceBilling(ctx, attendance.StudentID, activePeriod.ID)
 			}
+			u.notifyAttendanceToGuardian(attendance.StudentID, attendance.Status, attendance.Remarks, attendance.Date)
 		}
 	}
 	return err
@@ -185,13 +310,7 @@ func (u *AttendanceUseCase) ProcessHardwareScan(ctx context.Context, deviceID, r
 	}
 
 	// 3c. Send real-time Gate Ingress / Egress notification
-	if u.notifUC != nil {
-		_ = u.notifUC.SendToUser(matchedStudent.ID, domain.Notification{
-			Type:    domain.NotificationAttendance,
-			Title:   "Gate Check-In Verified",
-			Message: "Campus gate entry scanned at " + time.Now().Format("3:04 PM") + " via " + deviceID,
-		})
-	}
+	u.notifyAttendanceToGuardian(matchedStudent.ID, domain.StatusPresent, "Campus gate entry scanned via "+deviceID, now)
 
 	// 4. Mark scan as processed
 	scan.Processed = true

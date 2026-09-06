@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NotificationService, Notification } from '../../core/infrastructure/notifications/notification.service';
+import { PushNotificationService } from '../../core/infrastructure/push/push-notification.service';
 import { ToastService } from '../../shared/ui/toast/toast.service';
 
 @Component({
@@ -14,6 +15,7 @@ import { ToastService } from '../../shared/ui/toast/toast.service';
 })
 export class NotificationCenterComponent {
   private notificationService = inject(NotificationService);
+  readonly pushService = inject(PushNotificationService);
   private toast = inject(ToastService);
 
   notifications = toSignal(this.notificationService.notifications$, { initialValue: [] as Notification[] });
@@ -21,6 +23,35 @@ export class NotificationCenterComponent {
 
   activeFilter = signal<'ALL' | 'UNREAD' | 'PAYMENT' | 'GRADE' | 'ATTENDANCE' | 'HOMEWORK' | 'MESSAGE' | 'SYSTEM'>('ALL');
   searchQuery = signal('');
+
+  async togglePush() {
+    try {
+      if (this.pushService.isSubscribed()) {
+        const success = await this.pushService.unsubscribeFromPush();
+        if (success) {
+          this.toast.info('Browser push notifications disabled.');
+        }
+      } else {
+        const success = await this.pushService.subscribeToPush();
+        if (success) {
+          this.toast.success('Browser push notifications enabled!');
+        } else {
+          this.toast.warning('Push notification permission was denied.');
+        }
+      }
+    } catch (err: any) {
+      this.toast.error(err?.message || 'Failed to update push notification settings.');
+    }
+  }
+
+  async testPush() {
+    try {
+      await this.pushService.sendTestNotification();
+      this.toast.success('Test push notification dispatched to your browser.');
+    } catch (err: any) {
+      this.toast.error('Failed to dispatch test notification: ' + (err?.message || ''));
+    }
+  }
 
   unreadCount = computed(() => this.notifications().filter(n => !n.read).length);
   paymentCount = computed(() => this.notifications().filter(n => n.type === 'PAYMENT').length);

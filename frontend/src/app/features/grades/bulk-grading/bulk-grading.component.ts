@@ -13,6 +13,7 @@ import { AcademicTerm } from '../../../core/domain/academic-period.model';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 import { TeacherPortalService } from '../../../core/infrastructure/teacher/teacher-portal.service';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
+import { ReportService } from '../../../core/infrastructure/report/report.service';
 
 export type GradingScaleType = 'STANDARD' | 'WAEC' | 'CAMBRIDGE' | 'GPA';
 export type SpecialGradeFlag = 'ABS' | 'EX' | 'INC';
@@ -50,9 +51,12 @@ export class BulkGradingComponent implements OnInit {
   private academicPeriodService = inject(AcademicPeriodService);
   private teacherPortalService = inject(TeacherPortalService);
   private authService = inject(AuthService);
+  private reportService = inject(ReportService);
   private dialog = inject(DialogService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+
+  isCompilingReports = signal<boolean>(false);
 
   classes = signal<Class[]>([]);
   subjects = signal<Subject[]>([]);
@@ -1378,5 +1382,29 @@ export class BulkGradingComponent implements OnInit {
       const pct = col.weight > 1 ? col.weight : col.weight * 100;
       return sum + pct;
     }, 0));
+  }
+
+  compileClassTerminalReports() {
+    const classId = this.selectedClassId();
+    if (!classId) {
+      this.dialog.alert('Please select a class cohort to compile terminal report cards.', 'Selection Required', 'warning').subscribe();
+      return;
+    }
+
+    const currentClass = this.classes().find(c => c.id === classId);
+    const className = currentClass ? currentClass.name.replace(/\s+/g, '_') : 'Class';
+    const termName = this.selectedTerm().replace(/\s+/g, '_') || 'Term';
+
+    this.isCompilingReports.set(true);
+    this.reportService.downloadBatchClassTerminalReports(classId, this.activePeriodId() || undefined, this.activeTermId() || undefined).subscribe({
+      next: (blob) => {
+        this.reportService.saveFile(blob, `Batch_Terminal_Reports_${className}_${termName}.pdf`);
+        this.isCompilingReports.set(false);
+      },
+      error: (err) => {
+        this.isCompilingReports.set(false);
+        this.dialog.alert('Could not compile batch terminal reports. ' + (err?.error?.error || err?.message || ''), 'Compilation Failed', 'error').subscribe();
+      }
+    });
   }
 }

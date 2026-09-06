@@ -16,6 +16,7 @@ import { RouterModule } from '@angular/router';
 import { ToastService } from '../../../shared/ui/toast/toast.service';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 import { HrService } from '../../../core/infrastructure/hr/hr.service';
+import { ReportService } from '../../../core/infrastructure/report/report.service';
 
 @Component({
     selector: 'app-teacher-portal',
@@ -33,6 +34,9 @@ export class TeacherPortalComponent implements OnInit {
     public toast = inject(ToastService);
     private authService = inject(AuthService);
     private hrService = inject(HrService);
+    private reportService = inject(ReportService);
+
+    isCompilingReports = signal<boolean>(false);
 
     isHeadmasterOrAdmin = computed(() => {
         const role = (this.authService.currentUserValue?.role || '') as string;
@@ -60,6 +64,8 @@ export class TeacherPortalComponent implements OnInit {
     term = signal('');
     terms = signal<string[]>([]);
     activePeriodName = signal('');
+    activePeriodId = signal<string>('');
+    activeTermId = signal<string>('');
 
     // Phase 18 State
     categories = ['ASSIGNMENT', 'QUIZ', 'MIDTERM', 'FINAL'];
@@ -390,11 +396,17 @@ export class TeacherPortalComponent implements OnInit {
         // 1. Check Global Institutional Academic Term Lock
         this.periodService.getActive().subscribe({
             next: (activePeriod) => {
-                if (activePeriod && activePeriod.terms) {
-                    const foundTerm = activePeriod.terms.find(t => t.name === term || t.id === term);
-                    if (foundTerm && foundTerm.is_locked) {
-                        this.isTermLocked.set(true);
-                        return;
+                if (activePeriod) {
+                    this.activePeriodId.set(activePeriod.id || '');
+                    if (activePeriod.terms) {
+                        const foundTerm = activePeriod.terms.find(t => t.name === term || t.id === term);
+                        if (foundTerm) {
+                            this.activeTermId.set(foundTerm.id || '');
+                        }
+                        if (foundTerm && foundTerm.is_locked) {
+                            this.isTermLocked.set(true);
+                            return;
+                        }
                     }
                 }
                 // 2. Check class-specific legacy lock as fallback
@@ -891,6 +903,31 @@ export class TeacherPortalComponent implements OnInit {
                 this.errorMsg.set('Failed to generate PDF. Make sure grades exist for this term.');
                 this.exportingPDF.set(false);
                 window.scrollTo(0, 0);
+            }
+        });
+    }
+
+    compileClassTerminalReports(assignment?: TeacherAssignment) {
+        const target = assignment || this.selectedAssignment();
+        if (!target) {
+            this.toast.warning('Please select a class to compile report cards.');
+            return;
+        }
+
+        const classId = target.class_id;
+        const className = target.class?.name ? target.class.name.replace(/\s+/g, '_') : 'Class';
+        const termName = this.term().replace(/\s+/g, '_') || 'Term';
+
+        this.isCompilingReports.set(true);
+        this.reportService.downloadBatchClassTerminalReports(classId, this.activePeriodId() || undefined, this.activeTermId() || undefined).subscribe({
+            next: (blob) => {
+                this.reportService.saveFile(blob, `Batch_Terminal_Reports_${className}_${termName}.pdf`);
+                this.isCompilingReports.set(false);
+                this.toast.success(`Batch report cards compiled for ${target.class?.name || 'class'}.`);
+            },
+            error: (err) => {
+                this.isCompilingReports.set(false);
+                this.toast.error('Failed to compile batch report cards: ' + (err?.error?.error || err?.message || ''));
             }
         });
     }

@@ -4,9 +4,11 @@ import (
 	"github.com/user/high-school-management/backend/config"
 	"github.com/user/high-school-management/backend/internal/api/ws"
 	"github.com/user/high-school-management/backend/internal/domain"
+	"github.com/user/high-school-management/backend/internal/infrastructure/cache"
 	"github.com/user/high-school-management/backend/internal/infrastructure/mailer"
 	"github.com/user/high-school-management/backend/internal/infrastructure/payment"
 	"github.com/user/high-school-management/backend/internal/infrastructure/pdf"
+	"github.com/user/high-school-management/backend/internal/infrastructure/push"
 	"github.com/user/high-school-management/backend/internal/infrastructure/repository"
 	"github.com/user/high-school-management/backend/internal/infrastructure/sms"
 	"github.com/user/high-school-management/backend/internal/usecase"
@@ -14,6 +16,8 @@ import (
 )
 
 type Infrastructure struct {
+	Cache    cache.CacheService
+	WebPush  push.WebPushService
 	SMTP     mailer.MailService
 	PDF      *pdf.PDFService
 	Paystack domain.PaystackService
@@ -72,6 +76,7 @@ type Repositories struct {
 	CampusOps      domain.CampusOpsRepository
 	Hostel         domain.HostelRepository
 	TeacherPortal  domain.TeacherPortalRepository
+	PushSubscription domain.PushSubscriptionRepository
 }
 
 type UseCases struct {
@@ -129,7 +134,12 @@ func initInfrastructure(cfg *config.Config) *Infrastructure {
 	hub := ws.NewHub(cfg.RedisURL)
 	go hub.Run()
 
+	cacheService := cache.NewCacheService(cfg.RedisURL)
+	webPushService := push.NewWebPushService(cfg.VAPIDPublicKey, cfg.VAPIDPrivateKey, cfg.VAPIDSubject)
+
 	return &Infrastructure{
+		Cache:    cacheService,
+		WebPush:  webPushService,
 		SMTP:     mailer.NewSMTPService(cfg),
 		PDF:      pdf.NewPDFService(),
 		Paystack: payment.NewPaystackService(cfg),
@@ -139,7 +149,7 @@ func initInfrastructure(cfg *config.Config) *Infrastructure {
 	}
 }
 
-func initRepositories(db *gorm.DB) *Repositories {
+func initRepositories(db *gorm.DB, cacheService cache.CacheService) *Repositories {
 	return &Repositories{
 		Tenant:         repository.NewTenantRepository(db),
 		User:           repository.NewUserRepository(db),
@@ -150,7 +160,7 @@ func initRepositories(db *gorm.DB) *Repositories {
 		Teacher:        repository.NewTeacherRepository(db),
 		Class:          repository.NewClassRepository(db),
 		Assignment:     repository.NewAssignmentRepository(db),
-		Grade:          repository.NewGradeRepository(db),
+		Grade:          repository.NewGradeRepository(db, cacheService),
 		Attendance:     repository.NewAttendanceRepository(db),
 		Subject:        repository.NewSubjectRepository(db),
 		Timetable:      repository.NewTimetableRepository(db),
@@ -162,7 +172,7 @@ func initRepositories(db *gorm.DB) *Repositories {
 		Library:        repository.NewLibraryRepository(db),
 		Extra:          repository.NewExtracurricularRepository(db),
 		Intelligence:   repository.NewIntelligenceRepository(db),
-		AcademicPeriod: repository.NewAcademicPeriodRepository(db),
+		AcademicPeriod: repository.NewAcademicPeriodRepository(db, cacheService),
 		Scholastic:     repository.NewScholasticLevelRepository(db),
 		Welfare:        repository.NewWelfareRepository(db),
 		Logistics:      repository.NewLogisticsRepository(db),
@@ -190,12 +200,13 @@ func initRepositories(db *gorm.DB) *Repositories {
 		CampusOps:      repository.NewCampusOpsRepository(db),
 		Hostel:         repository.NewHostelRepository(db),
 		TeacherPortal:  repository.NewTeacherPortalRepository(db),
+		PushSubscription: repository.NewPushSubscriptionRepository(db),
 	}
 }
 
 func initUseCases(repos *Repositories, infra *Infrastructure, db *gorm.DB, cfg *config.Config) *UseCases {
 	campaignManager := usecase.NewCampaignManager(repos.Campaign, repos.Student, repos.User, infra.SMTP)
-	notifUC := usecase.NewNotificationUseCase(infra.Hub, db)
+	notifUC := usecase.NewNotificationUseCase(infra.Hub, db, repos.PushSubscription, infra.WebPush)
 	feeNotifier := usecase.NewFeeNotifier(infra.SMS, notifUC, repos.Student, repos.Guardian, repos.Tenant)
 	fiscalUC := usecase.NewFiscalUseCase(repos.Fiscal, repos.Student, repos.Donation, repos.AcademicPeriod, repos.Tenant, repos.Communication, feeNotifier)
 
@@ -220,7 +231,7 @@ func initUseCases(repos *Repositories, infra *Infrastructure, db *gorm.DB, cfg *
 		Intelligence:   usecase.NewIntelligenceUseCase(repos.Intelligence, repos.Intervention, campaignManager),
 		Message:        usecase.NewMessageUseCase(repos.Message),
 		Fiscal:         fiscalUC,
-		Attendance:     usecase.NewAttendanceUseCase(repos.Attendance, campaignManager, repos.Student, fiscalUC, repos.AcademicPeriod, notifUC),
+		Attendance:     usecase.NewAttendanceUseCase(repos.Attendance, campaignManager, repos.Student, fiscalUC, repos.AcademicPeriod, notifUC, infra.SMS, repos.Guardian, repos.Tenant),
 		Resource:       usecase.NewResourceUseCase(repos.Resource),
 		Library:        usecase.NewLibraryUseCase(repos.Library, repos.Fiscal),
 		Extra:          usecase.NewExtracurricularUseCase(repos.Extra, repos.Timetable),

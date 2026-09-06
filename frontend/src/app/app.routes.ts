@@ -170,6 +170,11 @@ export const tenantRoutes: Routes = [
                         title: 'Configure Fees'
                     },
                     {
+                        path: 'daily-fees',
+                        loadComponent: () => import('./features/fiscal/daily-fee-config/daily-fee-config.component').then(c => c.DailyFeeConfigComponent),
+                        title: 'Daily Fee & Route Fare Configuration'
+                    },
+                    {
                         path: 'billing',
                         loadComponent: () => import('./features/fiscal/subscription-billing/subscription-billing.component').then(c => c.SubscriptionBillingComponent),
                         title: 'Subscription & Billing'

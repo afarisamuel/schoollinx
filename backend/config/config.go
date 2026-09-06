@@ -24,6 +24,9 @@ type Config struct {
 	WhatsAppSenderNumber string // ARKASEL_WHATSAPP_SENDER  (WhatsApp Business phone number ID)
 	AutoMigrate          bool
 	RedisURL             string
+	VAPIDPublicKey       string
+	VAPIDPrivateKey      string
+	VAPIDSubject         string
 }
 
 func LoadConfig() *Config {
@@ -35,6 +38,13 @@ func LoadConfig() *Config {
 	redisURL := os.Getenv("REDIS_URL")
 	if redisURL == "" {
 		redisURL = "redis://localhost:6379" // Default to local redis
+	}
+
+	vapidPublic := os.Getenv("VAPID_PUBLIC_KEY")
+	vapidPrivate := os.Getenv("VAPID_PRIVATE_KEY")
+	vapidSubject := os.Getenv("VAPID_SUBJECT")
+	if vapidSubject == "" {
+		vapidSubject = "mailto:admin@schoollinx.com"
 	}
 
 	return &Config{
@@ -53,6 +63,9 @@ func LoadConfig() *Config {
 		WhatsAppAPIKey:       os.Getenv("ARKASEL_WHATSAPP_API_KEY"),
 		WhatsAppSenderNumber: os.Getenv("ARKASEL_WHATSAPP_SENDER"),
 		RedisURL:             redisURL,
+		VAPIDPublicKey:       vapidPublic,
+		VAPIDPrivateKey:      vapidPrivate,
+		VAPIDSubject:         vapidSubject,
 	}
 }
 

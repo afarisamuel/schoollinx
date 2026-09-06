@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
+	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/domain"
 	"github.com/user/high-school-management/backend/pkg/encryption"
 )
@@ -141,6 +142,22 @@ func (n *feeNotifier) NotifyPayment(ctx context.Context, p FeePaymentNotificatio
 		go func(recipients []string, msg string) {
 			_ = n.sms.SendSMS(context.Background(), "FINANCE", recipients, msg)
 		}(phones, smsMessage)
+	}
+
+	// 3b. Dispatch SMS Notification to Admin / Headmaster
+	if n.sms != nil && n.tenantRepo != nil {
+		if tID, ok := ctx.Value(middleware.TenantIDKey).(uuid.UUID); ok && tID != uuid.Nil {
+			if tenant, err := n.tenantRepo.GetByID(ctx, tID); err == nil && tenant != nil {
+				adminPhone := cleanPhoneNumber(tenant.ContactNumbers)
+				if adminPhone != "" {
+					adminSMSText := fmt.Sprintf("Admin Alert: GHS %.2f received for %s%s (%s). Ref: %s. Bal: %s.",
+						p.Amount, studentName, displayClass, categoryDisplay, refDisplay, balDisplay)
+					go func(phone, msg string) {
+						_ = n.sms.SendSMS(context.Background(), "FINANCE", []string{phone}, msg)
+					}(adminPhone, adminSMSText)
+				}
+			}
+		}
 	}
 
 	// 4. In-System Notifications

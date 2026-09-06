@@ -213,6 +213,7 @@ var TenantModels = []interface{}{
 	&domain.Notice{},
 	&domain.Reminder{},
 	&domain.Notification{},
+	&domain.PushSubscription{},
 	&domain.Conversation{},
 	&domain.Message{},
 	&domain.WhatsAppMessage{},

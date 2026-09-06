@@ -26,10 +26,23 @@ export class GuardianPortalComponent implements OnInit {
     insights = signal<AcademicInsight[]>([]);
     fiscalRecords = signal<FiscalRecord[]>([]);
     fiscalBalance = signal<number>(0);
+    walletBalance = signal<number>(0);
+    walletTransactions = signal<any[]>([]);
+    walletLoading = signal(false);
+    attendanceRecords = signal<any[]>([]);
+    todayAttendance = signal<any | null>(null);
+    attendanceStats = signal<{ present: number; absent: number; tardy: number; total: number; rate: number }>({
+        present: 0,
+        absent: 0,
+        tardy: 0,
+        total: 0,
+        rate: 100
+    });
 
     isLoading = signal(true);
     insightsLoading = signal(false);
     fiscalLoading = signal(false);
+    attendanceLoading = signal(false);
 
     ngOnInit() {
         this.guardianService.getChildren().subscribe({
@@ -48,6 +61,61 @@ export class GuardianPortalComponent implements OnInit {
         this.selectedChild.set(child);
         this.loadInsights(child.id!);
         this.loadFiscalStatus(child.id!);
+        this.loadAttendance(child.id!);
+        this.loadWallet(child.id!);
+    }
+
+    loadWallet(studentId: string) {
+        this.walletLoading.set(true);
+        this.guardianService.getStudentWallet(studentId).subscribe({
+            next: (data) => {
+                this.walletBalance.set(data?.balance ?? 0);
+                this.walletTransactions.set(data?.transactions ?? []);
+                this.walletLoading.set(false);
+            },
+            error: () => {
+                this.walletBalance.set(0);
+                this.walletTransactions.set([]);
+                this.walletLoading.set(false);
+            }
+        });
+    }
+
+    loadAttendance(studentId: string) {
+        this.attendanceLoading.set(true);
+        this.guardianService.getChildAttendance(studentId).subscribe({
+            next: (data) => {
+                const records = data || [];
+                this.attendanceRecords.set(records);
+
+                // Check today's record
+                const todayStr = new Date().toISOString().split('T')[0];
+                const todayRec = records.find(r => {
+                    const rDate = r.date ? new Date(r.date).toISOString().split('T')[0] : '';
+                    return rDate === todayStr;
+                });
+                this.todayAttendance.set(todayRec || null);
+
+                // Calculate stats
+                let present = 0, absent = 0, tardy = 0;
+                records.forEach(r => {
+                    const st = (r.status || '').toLowerCase();
+                    if (st === 'present') present++;
+                    else if (st === 'absent') absent++;
+                    else if (st === 'tardy') tardy++;
+                });
+                const total = records.length;
+                const rate = total > 0 ? Math.round((present / total) * 100) : 100;
+                this.attendanceStats.set({ present, absent, tardy, total, rate });
+                this.attendanceLoading.set(false);
+            },
+            error: () => {
+                this.attendanceRecords.set([]);
+                this.todayAttendance.set(null);
+                this.attendanceStats.set({ present: 0, absent: 0, tardy: 0, total: 0, rate: 100 });
+                this.attendanceLoading.set(false);
+            }
+        });
     }
 
     loadInsights(studentId: string) {
@@ -117,6 +185,56 @@ export class GuardianPortalComponent implements OnInit {
                 this.isPaymentLoading.set(false);
                 const errorMsg = err.error?.error || 'Failed to initialize Paystack payment checkout.';
                 this.dialog.alert(errorMsg, 'Payment Initialization Failed', 'danger');
+            }
+        });
+    }
+
+    // Smart Wallet Top-up Modal
+    showTopUpModal = signal(false);
+    topUpAmount = signal<number>(50);
+    isTopUpLoading = signal(false);
+
+    openTopUpModal() {
+        const child = this.selectedChild();
+        if (!child) return;
+        const currentBal = this.walletBalance();
+        if (currentBal < 0) {
+            // Suggest an amount that clears the overdraft plus GH₵50
+            this.topUpAmount.set(Math.ceil((-currentBal + 50) / 10) * 10);
+        } else {
+            this.topUpAmount.set(50);
+        }
+        this.showTopUpModal.set(true);
+    }
+
+    closeTopUpModal() {
+        this.showTopUpModal.set(false);
+    }
+
+    setTopUpAmount(amount: number) {
+        this.topUpAmount.set(amount);
+    }
+
+    confirmTopUp() {
+        const child = this.selectedChild();
+        if (!child?.id) return;
+
+        const amount = this.topUpAmount();
+        if (amount <= 0) {
+            this.dialog.alert('Please specify a positive top-up amount.', 'Invalid Amount', 'warning');
+            return;
+        }
+
+        this.isTopUpLoading.set(true);
+        this.paymentService.initializeWalletTopUp(child.id, amount).subscribe({
+            next: (res) => {
+                this.isTopUpLoading.set(false);
+                window.location.href = res.authorization_url;
+            },
+            error: (err) => {
+                this.isTopUpLoading.set(false);
+                const errorMsg = err.error?.error || 'Failed to initialize Paystack wallet top-up.';
+                this.dialog.alert(errorMsg, 'Top-Up Initialization Failed', 'danger');
             }
         });
     }

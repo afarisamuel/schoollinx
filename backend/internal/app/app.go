@@ -76,7 +76,7 @@ func (a *App) Bootstrap() {
 func (a *App) setupRoutes() {
 	// Initialize Providers
 	infra := initInfrastructure(a.Config)
-	repos := initRepositories(a.DB)
+	repos := initRepositories(a.DB, infra.Cache)
 	usecases := initUseCases(repos, infra, a.DB, a.Config)
 
 	// Auth Handlers (Tenant-scoped, for school frontends)
@@ -152,7 +152,7 @@ func (a *App) setupRoutes() {
 	handler.NewWelfareHandler(api, usecases.Welfare)
 	handler.NewLogisticsHandler(api, usecases.Logistics)
 	handler.NewFacilityHandler(api, usecases.Facility)
-	handler.NewNotificationHandler(api, infra.Hub, repos.Message, usecases.Notification)
+	handler.NewNotificationHandler(api, infra.Hub, repos.Message, usecases.Notification, infra.WebPush)
 	handler.NewDocumentHandler(api, usecases.Document)
 	handler.NewHRHandler(api, usecases.HR)
 	handler.NewRolesHandler(api, repos.User)
