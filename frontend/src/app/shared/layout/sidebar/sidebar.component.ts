@@ -537,6 +537,12 @@ export class SidebarComponent implements OnInit {
             icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
           },
           {
+            label: 'Assessment & Grading Setup',
+            route: '/grading-configuration',
+            roles: ['ADMIN'],
+            icon: 'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4'
+          },
+          {
             label: 'Attendance Tracker',
             route: '/teachers/attendance',
             roles: ['ADMIN', 'TEACHER'],

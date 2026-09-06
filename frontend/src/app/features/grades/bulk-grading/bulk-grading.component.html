@@ -277,15 +277,27 @@
       <div class="space-y-1.5">
         <label class="block text-[11px] font-black text-text-muted uppercase tracking-wider">Academic Term *</label>
         <div class="relative">
-          <select [ngModel]="selectedTerm()" (ngModelChange)="selectedTerm.set($event); onFilterChange()" 
-                  class="w-full bg-bg-primary border border-border-primary rounded-2xl px-4 py-3 text-text-primary text-sm font-bold focus:outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer">
-            @for (term of terms(); track term.id) {
-              <option [value]="term.name">📅 {{ term.name }}</option>
-            }
-          </select>
-          <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-text-muted">
-            <i class="fas fa-chevron-down text-xs"></i>
-          </div>
+          @if (isHeadmasterOrAdmin()) {
+            <select [ngModel]="selectedTerm()" (ngModelChange)="selectedTerm.set($event); onFilterChange()" 
+                    class="w-full bg-bg-primary border border-border-primary rounded-2xl px-4 py-3 text-text-primary text-sm font-bold focus:outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer">
+              @for (term of terms(); track term.id) {
+                <option [value]="term.name">📅 {{ term.name }}</option>
+              }
+            </select>
+            <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-text-muted">
+              <i class="fas fa-chevron-down text-xs"></i>
+            </div>
+          } @else {
+            <div class="w-full bg-bg-primary/60 border border-border-primary rounded-2xl px-4 py-3 text-text-primary text-sm font-bold flex items-center justify-between opacity-90 cursor-not-allowed">
+              <span class="flex items-center gap-2 text-blue-400 font-bold">
+                <i class="fas fa-calendar-check text-xs"></i>
+                {{ selectedTerm() || 'Active Academic Term' }}
+              </span>
+              <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 flex items-center gap-1">
+                <i class="fas fa-lock text-[9px]"></i> Active Term
+              </span>
+            </div>
+          }
         </div>
       </div>
 

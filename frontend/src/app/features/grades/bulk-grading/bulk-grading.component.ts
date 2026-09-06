@@ -419,18 +419,26 @@ export class BulkGradingComponent implements OnInit {
           this.activePeriodId.set(period.id || '');
           this.terms.set(period.terms);
           
-          if (savedTerm && period.terms.some(t => t.name === savedTerm || t.id === savedTerm)) {
-            this.selectedTerm.set(savedTerm);
-            const foundTerm = period.terms.find(t => t.name === savedTerm || t.id === savedTerm);
-            if (foundTerm?.id) this.activeTermId.set(foundTerm.id);
-          } else if (!this.selectedTerm()) {
-            const currentTerm = period.terms.find(t => t.term_number === period.current_term);
-            if (currentTerm) {
-              this.selectedTerm.set(currentTerm.name);
-              this.activeTermId.set(currentTerm.id || '');
-            } else if (period.terms.length > 0) {
-              this.selectedTerm.set(period.terms[0].name);
-              this.activeTermId.set(period.terms[0].id || '');
+          const activeTermObj = period.terms.find(t => (t as any).is_active) || 
+                                period.terms.find(t => t.term_number === period.current_term) || 
+                                period.terms[0];
+
+          // If user is a Teacher (not Admin/Headmaster), enforce locking strictly to the active academic term
+          if (!this.isHeadmasterOrAdmin()) {
+            if (activeTermObj) {
+              this.selectedTerm.set(activeTermObj.name);
+              this.activeTermId.set(activeTermObj.id || '');
+            }
+          } else {
+            if (savedTerm && period.terms.some(t => t.name === savedTerm || t.id === savedTerm)) {
+              this.selectedTerm.set(savedTerm);
+              const foundTerm = period.terms.find(t => t.name === savedTerm || t.id === savedTerm);
+              if (foundTerm?.id) this.activeTermId.set(foundTerm.id);
+            } else if (!this.selectedTerm()) {
+              if (activeTermObj) {
+                this.selectedTerm.set(activeTermObj.name);
+                this.activeTermId.set(activeTermObj.id || '');
+              }
             }
           }
           this.syncUrlAndSession();

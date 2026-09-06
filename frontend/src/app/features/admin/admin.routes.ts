@@ -107,5 +107,17 @@ export const adminRoutes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN', 'ECOPOWER_ADMIN'] },
         title: 'Role & Permission Matrix'
+    },
+    {
+        path: 'grading-configuration',
+        loadComponent: () => import('./grading-configuration/grading-configuration.component').then(c => c.GradingConfigurationComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'ECOPOWER_ADMIN'] },
+        title: 'Grading & Assessment Configuration'
+    },
+    {
+        path: 'grading-setup',
+        redirectTo: 'grading-configuration',
+        pathMatch: 'full'
     }
 ];
