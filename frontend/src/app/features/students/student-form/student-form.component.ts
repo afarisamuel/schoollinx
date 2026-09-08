@@ -363,6 +363,25 @@ export class StudentFormComponent implements OnInit {
         this.successMessage.set('');
         const formData = { ...this.studentForm.value };
 
+        // Ensure level is a valid integer number
+        if (formData.level !== null && formData.level !== undefined && formData.level !== '') {
+            const parsedLevel = parseInt(String(formData.level), 10);
+            formData.level = !isNaN(parsedLevel) ? parsedLevel : 1;
+        } else {
+            formData.level = 1;
+        }
+
+        // Clean up empty class_id
+        if (!formData.class_id || formData.class_id === 'null' || formData.class_id === '') {
+            delete formData.class_id;
+        }
+
+        // Convert exam_year to academic_year if needed
+        if (formData.exam_year && !formData.academic_year) {
+            formData.academic_year = `${formData.exam_year}/${Number(formData.exam_year) + 1}`;
+        }
+        delete formData.exam_year;
+
         // Map flat guardian fields to nested guardians array
         const guardianPhone = formData.guardian_phone;
         const guardianEmail = formData.guardian_email;
