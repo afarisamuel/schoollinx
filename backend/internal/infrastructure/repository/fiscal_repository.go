@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -425,16 +426,18 @@ func (r *fiscalRepository) SaveBillTemplateConfig(ctx context.Context, config *d
 		config.RequiredItems = []domain.BillSupplyItem{}
 	}
 
+	itemsJSON, err := json.Marshal(config.RequiredItems)
+	if err != nil {
+		itemsJSON = []byte("[]")
+	}
+
 	var existing domain.BillTemplateConfig
-	err := r.db.WithContext(ctx).Order("updated_at DESC").First(&existing).Error
+	err = r.db.WithContext(ctx).Order("updated_at DESC").First(&existing).Error
 	if err == nil {
-		// Use targeted Updates — never use Save() here because the incoming config
-		// has been deserialized from JSON and may have zeroed TenantBase fields
-		// (e.g. DeletedAt), which Save() would blindly write back, soft-deleting the row.
+		// Use targeted Updates with marshaled JSON for serializer fields to prevent driver conversion errors
 		updateErr := r.db.WithContext(ctx).
-			Model(&existing).
-			Select("title", "subtitle", "footer_notes", "bank_details", "payment_instructions",
-				"show_supplies_table", "supplies_title", "required_items", "updated_at").
+			Model(&domain.BillTemplateConfig{}).
+			Where("id = ?", existing.ID).
 			Updates(map[string]interface{}{
 				"title":                config.Title,
 				"subtitle":             config.Subtitle,
@@ -443,7 +446,8 @@ func (r *fiscalRepository) SaveBillTemplateConfig(ctx context.Context, config *d
 				"payment_instructions": config.PaymentInstructions,
 				"show_supplies_table":  config.ShowSuppliesTable,
 				"supplies_title":       config.SuppliesTitle,
-				"required_items":       config.RequiredItems,
+				"required_items":       string(itemsJSON),
+				"updated_at":           time.Now(),
 			}).Error
 		if updateErr != nil {
 			return updateErr
