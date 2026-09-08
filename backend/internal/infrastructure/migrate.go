@@ -77,6 +77,31 @@ func RunTenantMigrations(db *gorm.DB, schemaName string) error {
 		_ = tx.Exec("ALTER TABLE fee_structures DROP CONSTRAINT IF EXISTS fee_structures_academic_period_id_category_key").Error
 		_ = tx.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_fee_structures_period_cat_active ON fee_structures (academic_period_id, category) WHERE deleted_at IS NULL").Error
 
+		// Student columns (family, health, placement)
+		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS father_name TEXT").Error
+		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS father_phone TEXT").Error
+		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS father_email TEXT").Error
+		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS father_occupation TEXT").Error
+		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS mother_name TEXT").Error
+		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS mother_phone TEXT").Error
+		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS mother_email TEXT").Error
+		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS mother_occupation TEXT").Error
+		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS guardian_name TEXT").Error
+		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS guardian_phone TEXT").Error
+		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS guardian_email TEXT").Error
+		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS guardian_relation TEXT").Error
+		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS emergency_contact_name TEXT").Error
+		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS emergency_contact_phone TEXT").Error
+		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS health_conditions TEXT").Error
+		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS allergies TEXT").Error
+		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS blood_group TEXT").Error
+
+		// Guardians enhancements
+		_ = tx.Exec("ALTER TABLE guardians ALTER COLUMN user_id DROP NOT NULL").Error
+		_ = tx.Exec("ALTER TABLE guardians ADD COLUMN IF NOT EXISTS is_primary BOOLEAN DEFAULT TRUE").Error
+		_ = tx.Exec("ALTER TABLE guardians ADD COLUMN IF NOT EXISTS can_pickup BOOLEAN DEFAULT TRUE").Error
+		_ = tx.Exec("ALTER TABLE guardians ADD COLUMN IF NOT EXISTS pickup_code VARCHAR(20)").Error
+
 		return nil
 	})
 }
