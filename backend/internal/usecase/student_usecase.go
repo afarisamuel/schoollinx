@@ -179,6 +179,12 @@ func (u *studentUseCase) applyTermFeesIfGenerated(ctx context.Context, student *
 			break
 		}
 	}
+	if activeTerm == "" && len(period.Terms) > 0 {
+		activeTerm = period.Terms[0].Name
+	}
+	if activeTerm == "" {
+		activeTerm = fmt.Sprintf("Term %d", period.CurrentTerm)
+	}
 
 	// 3. Look up fee structures for this period
 	structures, err := u.fiscalRepo.GetFeeStructuresByPeriod(ctx, period.ID)
@@ -186,11 +192,20 @@ func (u *studentUseCase) applyTermFeesIfGenerated(ctx context.Context, student *
 		return
 	}
 
-	// 4. Prevent duplicates: Check if a TERM_FEE for this specific term already exists for the student
+	// 4. Prevent duplicates: Check if a fee for this specific term already exists for the student
 	existingRecords, err := u.fiscalRepo.GetByStudent(ctx, student.ID)
 	if err == nil {
 		for _, rec := range existingRecords {
-			if rec.Category == domain.CategoryTermFee && rec.TermName == activeTerm {
+			isFeeCategory := rec.Category == domain.CategoryTermFee || rec.Category == domain.CategoryTuition
+			termMatches := false
+			if rec.TermName != "" && activeTerm != "" {
+				termMatches = strings.EqualFold(strings.TrimSpace(rec.TermName), strings.TrimSpace(activeTerm))
+			}
+			if !termMatches && activeTerm != "" && rec.Description != "" {
+				termMatches = strings.Contains(strings.ToLower(rec.Description), strings.ToLower(activeTerm))
+			}
+
+			if isFeeCategory && termMatches {
 				return // Fee already exists for this term
 			}
 		}

@@ -496,6 +496,12 @@ func (u *fiscalUseCase) GenerateTermFees(ctx context.Context, periodID uuid.UUID
 				break
 			}
 		}
+		if activeTerm == "" && len(period.Terms) > 0 {
+			activeTerm = period.Terms[0].Name
+		}
+		if activeTerm == "" {
+			activeTerm = fmt.Sprintf("Term %d", period.CurrentTerm)
+		}
 	}
 
 	structures, err := u.GetFeeStructuresByPeriod(ctx, periodID)
@@ -515,7 +521,16 @@ func (u *fiscalUseCase) GenerateTermFees(ctx context.Context, periodID uuid.UUID
 		alreadyGenerated := false
 		if err == nil {
 			for _, rec := range existingRecords {
-				if rec.Category == domain.CategoryTermFee && rec.TermName == activeTerm {
+				isFeeCategory := rec.Category == domain.CategoryTermFee || rec.Category == domain.CategoryTuition
+				termMatches := false
+				if rec.TermName != "" && activeTerm != "" {
+					termMatches = strings.EqualFold(strings.TrimSpace(rec.TermName), strings.TrimSpace(activeTerm))
+				}
+				if !termMatches && activeTerm != "" && rec.Description != "" {
+					termMatches = strings.Contains(strings.ToLower(rec.Description), strings.ToLower(activeTerm))
+				}
+
+				if isFeeCategory && termMatches {
 					alreadyGenerated = true
 					break
 				}
@@ -523,7 +538,8 @@ func (u *fiscalUseCase) GenerateTermFees(ctx context.Context, periodID uuid.UUID
 		}
 
 		if alreadyGenerated {
-			continue // Skip this student
+			// Skip this student who already has fees for this term
+			continue
 		}
 
 		var studentTotalFee float64
