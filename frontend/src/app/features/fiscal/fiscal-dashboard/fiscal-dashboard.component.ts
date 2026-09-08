@@ -287,6 +287,60 @@ export class FiscalDashboardComponent implements OnInit {
         });
     }
 
+    bulkDeleteSelected() {
+        const ids = Array.from(this.selectedRecordIds());
+        if (ids.length === 0) return;
+        this.dialog.confirm(
+            `Are you sure you want to permanently delete all ${ids.length} selected fee records? This action cannot be undone.`,
+            'Delete Selected Fee Records',
+            'danger',
+            `Delete ${ids.length} Records`
+        ).subscribe(confirmed => {
+            if (!confirmed) return;
+            this.fiscalService.bulkDeleteFeeRecords(ids).subscribe({
+                next: (res) => {
+                    this.dialog.alert(`Successfully deleted ${res.count || ids.length} fee records.`, 'Deleted', 'success');
+                    this.clearSelection();
+                    this.loadData();
+                },
+                error: (err) => {
+                    this.dialog.alert(err?.error?.error || 'Failed to delete selected fee records.', 'Error', 'danger');
+                }
+            });
+        });
+    }
+
+    deleteRecord(record: FiscalRecord) {
+        if (!record || !record.id) return;
+        const scholarName = record.student 
+            ? `${record.student.first_name} ${record.student.last_name || ''}` 
+            : `Scholar ID #${record.student_id.slice(0, 8)}`;
+        const amountStr = `GH₵${record.amount.toFixed(2)}`;
+
+        this.dialog.confirm(
+            `Are you sure you want to delete the ${record.category.replace('_', ' ')} fee record of ${amountStr} for ${scholarName}? This will permanently remove this fee assessment.`,
+            'Delete Fee Record',
+            'danger',
+            'Delete Permanently'
+        ).subscribe(confirmed => {
+            if (!confirmed) return;
+            this.fiscalService.deleteFeeRecord(record.id!).subscribe({
+                next: () => {
+                    this.dialog.alert('Fee record deleted successfully.', 'Deleted', 'success');
+                    this.selectedRecordIds.update(set => {
+                        const next = new Set(set);
+                        next.delete(record.id!);
+                        return next;
+                    });
+                    this.loadData();
+                },
+                error: (err) => {
+                    this.dialog.alert(err?.error?.error || 'Failed to delete fee record.', 'Error', 'danger');
+                }
+            });
+        });
+    }
+
     bulkSendReminderSelected() {
         const ids = Array.from(this.selectedRecordIds());
         if (ids.length === 0) return;

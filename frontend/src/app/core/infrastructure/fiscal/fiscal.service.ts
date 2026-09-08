@@ -150,6 +150,18 @@ export class FiscalService {
         return this.http.post<FiscalRecord>(`${this.apiUrl}/records`, record);
     }
 
+    deleteFeeRecord(recordId: string): Observable<{ status: string; message?: string }> {
+        return this.http.delete<{ status: string; message?: string }>(`${this.apiUrl}/records/${recordId}`);
+    }
+
+    bulkDeleteFeeRecords(recordIds: string[]): Observable<{ status: string; count: number; message?: string }> {
+        return this.http.post<{ status: string; count: number; message?: string }>(`${this.apiUrl}/records/bulk-delete`, { ids: recordIds });
+    }
+
+    deleteTermFees(periodId: string): Observable<{ status: string; count: number; message?: string }> {
+        return this.http.delete<{ status: string; count: number; message?: string }>(`${this.apiUrl}/generate-term-fees/${periodId}`);
+    }
+
     processPayment(recordId: string): Observable<{ status: string }> {
         return this.http.post<{ status: string }>(`${this.apiUrl}/records/${recordId}/pay`, {});
     }

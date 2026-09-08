@@ -139,6 +139,8 @@ type FiscalRepository interface {
 	GetAll(ctx context.Context) ([]FiscalRecord, error)
 	Update(ctx context.Context, record *FiscalRecord) error
 	Delete(ctx context.Context, id uuid.UUID) error
+	BulkDelete(ctx context.Context, ids []uuid.UUID) (int64, error)
+	DeleteTermFees(ctx context.Context, termName string) (int64, error)
 	GetPendingByStudent(ctx context.Context, studentID uuid.UUID) ([]FiscalRecord, error)
 	MarkOverdueRecords(ctx context.Context, asOf time.Time) error
 	GetFiscalSummaryStats(ctx context.Context, currentMonth, currentYear int) (*FiscalSummary, error)
@@ -214,7 +216,10 @@ type FiscalUseCase interface {
 	SetFeeStructure(ctx context.Context, structure *FeeStructure) error
 	GetFeeStructuresByPeriod(ctx context.Context, periodID uuid.UUID) ([]FeeStructure, error)
 	GenerateTermFees(ctx context.Context, periodID uuid.UUID) (int, error)
+	DeleteTermFeesByPeriod(ctx context.Context, periodID uuid.UUID) (int, error)
 	DeleteFeeStructure(ctx context.Context, id uuid.UUID) error
+	DeleteFeeRecord(ctx context.Context, id uuid.UUID) error
+	BulkDeleteFeeRecords(ctx context.Context, ids []uuid.UUID) (int, error)
 
 	// Scholarships
 	ApplyScholarship(ctx context.Context, scholarship *Scholarship) error

@@ -580,6 +580,33 @@ func (u *fiscalUseCase) GenerateTermFees(ctx context.Context, periodID uuid.UUID
 	return generatedCount, nil
 }
 
+func (u *fiscalUseCase) DeleteTermFeesByPeriod(ctx context.Context, periodID uuid.UUID) (int, error) {
+	period, err := u.academicRepo.GetByID(ctx, periodID)
+	if err != nil {
+		return 0, err
+	}
+	activeTerm := ""
+	if period != nil {
+		for _, t := range period.Terms {
+			if t.TermNumber == period.CurrentTerm {
+				activeTerm = t.Name
+				break
+			}
+		}
+	}
+	count, err := u.fiscalRepo.DeleteTermFees(ctx, activeTerm)
+	return int(count), err
+}
+
+func (u *fiscalUseCase) DeleteFeeRecord(ctx context.Context, id uuid.UUID) error {
+	return u.fiscalRepo.Delete(ctx, id)
+}
+
+func (u *fiscalUseCase) BulkDeleteFeeRecords(ctx context.Context, ids []uuid.UUID) (int, error) {
+	count, err := u.fiscalRepo.BulkDelete(ctx, ids)
+	return int(count), err
+}
+
 func (u *fiscalUseCase) ProcessDonation(ctx context.Context, donation *domain.Donation) error {
 	return u.donationRepo.Create(ctx, donation)
 }

@@ -22,6 +22,8 @@ func NewFiscalHandler(r *gin.RouterGroup, fuc domain.FiscalUseCase) {
 		g.GET("/records", h.ListAllRecords)
 		g.GET("/students/:id", h.GetStudentFiscalStatus)
 		g.POST("/records", h.CreateFee)
+		g.DELETE("/records/:id", h.DeleteFeeRecord)
+		g.POST("/records/bulk-delete", h.BulkDeleteFeeRecords)
 		g.POST("/records/:id/pay", h.ProcessPayment)
 		g.POST("/records/:id/partial-pay", h.PartialPayment)
 		g.GET("/records/:id/receipt", h.PrintReceipt)
@@ -32,6 +34,7 @@ func NewFiscalHandler(r *gin.RouterGroup, fuc domain.FiscalUseCase) {
 		g.GET("/structures/:period_id", h.GetFeeStructures)
 		g.DELETE("/structures/:id", h.DeleteFeeStructure)
 		g.POST("/generate-term-fees/:period_id", h.GenerateTermFees)
+		g.DELETE("/generate-term-fees/:period_id", h.DeleteTermFeesByPeriod)
 		g.GET("/defaulters", h.GetDefaulters)
 		g.GET("/records/:id/invoice", h.GenerateInvoice)
 		g.GET("/students/:id/bill/print", h.PrintBill)
@@ -856,4 +859,47 @@ func (h *FiscalHandler) SyncOfflinePOSBatches(c *gin.Context) {
 		"status":       "SYNCHRONIZED",
 		"message":      fmt.Sprintf("Successfully ingested %d offline POS transactions", syncedCount),
 	})
+}
+
+func (h *FiscalHandler) DeleteFeeRecord(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid record ID"})
+		return
+	}
+	if err := h.fiscalUseCase.DeleteFeeRecord(c.Request.Context(), id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "deleted", "message": "Fee record deleted successfully"})
+}
+
+func (h *FiscalHandler) BulkDeleteFeeRecords(c *gin.Context) {
+	var req struct {
+		IDs []uuid.UUID `json:"ids" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	deleted, err := h.fiscalUseCase.BulkDeleteFeeRecords(c.Request.Context(), req.IDs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "deleted", "count": deleted, "message": fmt.Sprintf("Successfully deleted %d fee records", deleted)})
+}
+
+func (h *FiscalHandler) DeleteTermFeesByPeriod(c *gin.Context) {
+	periodID, err := uuid.Parse(c.Param("period_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid period ID"})
+		return
+	}
+	deleted, err := h.fiscalUseCase.DeleteTermFeesByPeriod(c.Request.Context(), periodID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "deleted", "count": deleted, "message": fmt.Sprintf("Successfully removed %d term fee records", deleted)})
 }

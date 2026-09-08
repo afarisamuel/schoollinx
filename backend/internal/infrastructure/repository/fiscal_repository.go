@@ -108,6 +108,23 @@ func (r *fiscalRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.db.WithContext(ctx).Delete(&domain.FiscalRecord{}, "id = ?", id).Error
 }
 
+func (r *fiscalRepository) BulkDelete(ctx context.Context, ids []uuid.UUID) (int64, error) {
+	if len(ids) == 0 {
+		return 0, nil
+	}
+	res := r.db.WithContext(ctx).Where("id IN ?", ids).Delete(&domain.FiscalRecord{})
+	return res.RowsAffected, res.Error
+}
+
+func (r *fiscalRepository) DeleteTermFees(ctx context.Context, termName string) (int64, error) {
+	query := r.db.WithContext(ctx).Where("category = ?", domain.CategoryTermFee)
+	if termName != "" {
+		query = query.Where("term_name = ?", termName)
+	}
+	res := query.Delete(&domain.FiscalRecord{})
+	return res.RowsAffected, res.Error
+}
+
 func (r *fiscalRepository) SaveFeeStructure(ctx context.Context, structure *domain.FeeStructure) error {
 	if structure.ID != uuid.Nil {
 		var existing domain.FeeStructure

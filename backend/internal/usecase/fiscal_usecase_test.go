@@ -33,6 +33,12 @@ func (m *mockFiscalRepo) Update(ctx context.Context, r *domain.FiscalRecord) err
 func (m *mockFiscalRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	return m.Called(ctx, id).Error(0)
 }
+func (m *mockFiscalRepo) BulkDelete(ctx context.Context, ids []uuid.UUID) (int64, error) {
+	return int64(len(ids)), nil
+}
+func (m *mockFiscalRepo) DeleteTermFees(ctx context.Context, termName string) (int64, error) {
+	return 0, nil
+}
 func (m *mockFiscalRepo) GetPendingByStudent(ctx context.Context, id uuid.UUID) ([]domain.FiscalRecord, error) {
 	args := m.Called(ctx, id); return args.Get(0).([]domain.FiscalRecord), args.Error(1)
 }

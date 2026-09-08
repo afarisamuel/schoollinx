@@ -34,6 +34,7 @@ export class ConfigureFeesComponent implements OnInit {
   classes = signal<Class[]>([]);
   generatingFees = signal(false);
   generatingDailyFees = signal(false);
+  deletingTermFees = signal(false);
 
   // Class selection state for new fee structure
   allClasses = true;
@@ -278,6 +279,35 @@ export class ConfigureFeesComponent implements OnInit {
           error: (err: any) => {
             this.generatingFees.set(false);
             this.dialog.alert(err?.error?.error || 'Failed to generate term fees.', 'Error', 'danger');
+          }
+        });
+      }
+    });
+  }
+
+  onDeleteTermFees() {
+    const period = this.activePeriod();
+    if (!period) return;
+
+    const activeTerm = period.terms?.find(t => t.term_number === period.current_term);
+    const termLabel = activeTerm ? `"${activeTerm.name}"` : `Term ${period.current_term}`;
+
+    this.dialog.confirm(
+      `Are you sure you want to delete all generated term fees for ${termLabel}? This will remove all student fee records with category "TERM_FEE" for this term.`,
+      `Delete Term Fees — ${termLabel}`,
+      'danger',
+      'Delete All Term Fees'
+    ).subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.deletingTermFees.set(true);
+        this.fiscalService.deleteTermFees(period.id).subscribe({
+          next: (res: { message?: string; count: number }) => {
+            this.deletingTermFees.set(false);
+            this.dialog.alert(res.message || `Successfully removed ${res.count} term fee records.`, 'Deleted', 'success');
+          },
+          error: (err: any) => {
+            this.deletingTermFees.set(false);
+            this.dialog.alert(err?.error?.error || 'Failed to delete term fees.', 'Error', 'danger');
           }
         });
       }
