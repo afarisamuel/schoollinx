@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,6 +22,13 @@ func NewStudentRepository(db *gorm.DB) domain.StudentRepository {
 }
 
 func (r *studentRepository) Create(ctx context.Context, student *domain.Student) error {
+	if student.ID == uuid.Nil {
+		student.ID = uuid.New()
+	}
+	if student.EnrollmentNum == "" {
+		year := time.Now().Year()
+		student.EnrollmentNum = fmt.Sprintf("STU-%d-%s", year, strings.ToUpper(student.ID.String()[:6]))
+	}
 	return r.db.WithContext(ctx).Create(student).Error
 }
 
@@ -28,6 +36,15 @@ func (r *studentRepository) Create(ctx context.Context, student *domain.Student)
 func (r *studentRepository) BulkUpsert(ctx context.Context, students []domain.Student, batchSize int) error {
 	if len(students) == 0 {
 		return nil
+	}
+	for i := range students {
+		if students[i].ID == uuid.Nil {
+			students[i].ID = uuid.New()
+		}
+		if students[i].EnrollmentNum == "" {
+			year := time.Now().Year()
+			students[i].EnrollmentNum = fmt.Sprintf("STU-%d-%s", year, strings.ToUpper(students[i].ID.String()[:6]))
+		}
 	}
 	return r.db.WithContext(ctx).
 		Clauses(clause.OnConflict{

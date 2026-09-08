@@ -99,6 +99,7 @@ func RunTenantMigrations(db *gorm.DB, schemaName string) error {
 		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS health_conditions TEXT").Error
 		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS allergies TEXT").Error
 		_ = tx.Exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS blood_group TEXT").Error
+		_ = tx.Exec("UPDATE students SET enrollment_num = 'STU-' || EXTRACT(YEAR FROM created_at)::text || '-' || UPPER(SUBSTRING(id::text, 1, 6)) WHERE enrollment_num IS NULL OR enrollment_num = ''").Error
 
 		// Guardians enhancements
 		_ = tx.Exec("ALTER TABLE guardians ALTER COLUMN user_id DROP NOT NULL").Error

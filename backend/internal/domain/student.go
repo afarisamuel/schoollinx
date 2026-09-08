@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -69,6 +71,10 @@ type Student struct {
 func (s *Student) BeforeCreate(tx *gorm.DB) (err error) {
 	if s.ID == uuid.Nil {
 		s.ID = uuid.New()
+	}
+	if s.EnrollmentNum == "" {
+		year := time.Now().Year()
+		s.EnrollmentNum = fmt.Sprintf("STU-%d-%s", year, strings.ToUpper(s.ID.String()[:6]))
 	}
 	return
 }
