@@ -386,30 +386,45 @@ func (r *fiscalRepository) GetBillTemplateConfig(ctx context.Context) (*domain.B
 	err := r.db.WithContext(ctx).Order("updated_at DESC").First(&config).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// Return intelligent default template config
+			// No record exists yet — create and persist a clean default so subsequent
+			// reads always return the stored row (not an ephemeral in-memory struct).
 			defaultCfg := &domain.BillTemplateConfig{
+				ID:                uuid.New(),
 				Title:             "PUPIL BILL FOR TERM",
 				Subtitle:          "Official School Billing & Academic Expense Statement",
 				FooterNotes:       "Toiletries, stationery, and books must be presented on the first day of resumption.\n\nAll fee payments must be made using your child's student ID via official school payment channels.\n\nSTRICTLY NO PHYSICAL CASH PAYMENT TO SCHOOL STAFF.\n\nPayment can be made in advance to enhance flexible installments.",
 				ShowSuppliesTable: true,
 				SuppliesTitle:     "REQUIRED BOOKS & MATERIALS TO BE BROUGHT / PURCHASED",
-				RequiredItems: []domain.BillSupplyItem{
-					{Category: "BOOKS", Description: "Core Mathematics Course Book", Quantity: "1 copy", Note: "Compulsory for all terms"},
-					{Category: "BOOKS", Description: "English Language & Grammar Workbook", Quantity: "1 copy", Note: "Compulsory"},
-					{Category: "STATIONERY", Description: "Ruled Exercise Books (Pack of 10)", Quantity: "1 pack", Note: "Available at school store"},
-					{Category: "TOILETRIES", Description: "Antiseptic Liquid / Disinfectant (250ml)", Quantity: "2 bottles", Note: "To be handed to Housemaster"},
-					{Category: "TOILETRIES", Description: "Washing Powder (1kg)", Quantity: "1 pack", Note: "Term requirement"},
-					{Category: "TOILETRIES", Description: "Toilet Paper Rolls", Quantity: "3 rolls", Note: "Standard pack"},
-				},
+				RequiredItems:     []domain.BillSupplyItem{},
 			}
+			// Persist the default so the next GET hits the stored row.
+			if createErr := r.db.WithContext(ctx).Create(defaultCfg).Error; createErr == nil {
+				return defaultCfg, nil
+			}
+			// If creation fails (e.g. race condition where another request just created it),
+			// try fetching the now-existing record.
+			if retryErr := r.db.WithContext(ctx).Order("updated_at DESC").First(&config).Error; retryErr == nil {
+				if config.RequiredItems == nil {
+					config.RequiredItems = []domain.BillSupplyItem{}
+				}
+				return &config, nil
+			}
+			// Last resort: return the in-memory default without persisting.
 			return defaultCfg, nil
 		}
 		return nil, err
+	}
+	if config.RequiredItems == nil {
+		config.RequiredItems = []domain.BillSupplyItem{}
 	}
 	return &config, nil
 }
 
 func (r *fiscalRepository) SaveBillTemplateConfig(ctx context.Context, config *domain.BillTemplateConfig) error {
+	if config.RequiredItems == nil {
+		config.RequiredItems = []domain.BillSupplyItem{}
+	}
+
 	var existing domain.BillTemplateConfig
 	err := r.db.WithContext(ctx).Order("updated_at DESC").First(&existing).Error
 	if err == nil {
@@ -424,7 +439,11 @@ func (r *fiscalRepository) SaveBillTemplateConfig(ctx context.Context, config *d
 	if config.ID == uuid.Nil {
 		config.ID = uuid.New()
 	}
-	return r.db.WithContext(ctx).Create(config).Error
+	if err := r.db.WithContext(ctx).Create(config).Error; err != nil {
+		return err
+	}
+	_ = r.db.WithContext(ctx).Where("id != ?", config.ID).Delete(&domain.BillTemplateConfig{}).Error
+	return nil
 }
 
 
