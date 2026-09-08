@@ -506,9 +506,21 @@ export class ConfigureFeesComponent implements OnInit {
 
     const current = this.billConfig();
     const updatedItems = [...(current.required_items || []), itemToAdd];
-    this.billConfig.set({ ...current, required_items: updatedItems });
-    this.newSupplyItem = { category: 'BOOKS', description: '', quantity: '1', note: '', price: null };
-    this.toast.success('Item added to Table 2. Click "Save Bill Template" on the right to persist changes.');
+    const payload: BillTemplateConfig = { ...current, required_items: updatedItems };
+
+    this.savingBillConfig.set(true);
+    this.fiscalService.saveBillConfig(payload).subscribe({
+      next: (saved) => {
+        this.savingBillConfig.set(false);
+        this.billConfig.set(saved);
+        this.newSupplyItem = { category: 'BOOKS', description: '', quantity: '1', note: '', price: null };
+        this.toast.success('Supply item added and saved successfully.');
+      },
+      error: (err) => {
+        this.savingBillConfig.set(false);
+        this.toast.error('Failed to save supply item: ' + (err.error?.error || err.message));
+      }
+    });
   }
 
   startEditSupplyItem(index: number) {
@@ -540,9 +552,21 @@ export class ConfigureFeesComponent implements OnInit {
       note: this.editingSupplyItem.note || '',
       price: priceVal
     };
-    this.billConfig.set({ ...current, required_items: updatedItems });
-    this.editingSupplyIndex.set(null);
-    this.toast.success('Item updated. Click "Save Bill Template" on the right to persist changes.');
+    const payload: BillTemplateConfig = { ...current, required_items: updatedItems };
+
+    this.savingBillConfig.set(true);
+    this.fiscalService.saveBillConfig(payload).subscribe({
+      next: (saved) => {
+        this.savingBillConfig.set(false);
+        this.billConfig.set(saved);
+        this.editingSupplyIndex.set(null);
+        this.toast.success('Supply item updated and saved.');
+      },
+      error: (err) => {
+        this.savingBillConfig.set(false);
+        this.toast.error('Failed to update supply item: ' + (err.error?.error || err.message));
+      }
+    });
   }
 
   cancelEditSupplyItem() {
@@ -555,6 +579,19 @@ export class ConfigureFeesComponent implements OnInit {
     }
     const current = this.billConfig();
     const updatedItems = (current.required_items || []).filter((_, i) => i !== index);
-    this.billConfig.set({ ...current, required_items: updatedItems });
+    const payload: BillTemplateConfig = { ...current, required_items: updatedItems };
+
+    this.savingBillConfig.set(true);
+    this.fiscalService.saveBillConfig(payload).subscribe({
+      next: (saved) => {
+        this.savingBillConfig.set(false);
+        this.billConfig.set(saved);
+        this.toast.success('Supply item removed.');
+      },
+      error: (err) => {
+        this.savingBillConfig.set(false);
+        this.toast.error('Failed to remove supply item: ' + (err.error?.error || err.message));
+      }
+    });
   }
 }
