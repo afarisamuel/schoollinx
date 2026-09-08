@@ -101,9 +101,21 @@ func (u *guardianUseCase) CreateGuardian(ctx context.Context, guardian *domain.G
 		}
 
 		if err := u.userRepo.Create(ctx, newUser); err != nil {
-			return "", fmt.Errorf("failed to create user account: %w", err)
+			// Duplicate phone/email — link the existing user account instead of failing.
+			if strings.Contains(err.Error(), "23505") || strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "unique constraint") {
+				existing, lookupErr := u.userRepo.GetByIdentifier(ctx, identifier)
+				if lookupErr == nil && existing != nil {
+					guardian.UserID = existing.ID
+					tempPassword = "" // no new password issued
+				} else {
+					return "", fmt.Errorf("failed to create user account: %w", err)
+				}
+			} else {
+				return "", fmt.Errorf("failed to create user account: %w", err)
+			}
+		} else {
+			guardian.UserID = newUser.ID
 		}
-		guardian.UserID = newUser.ID
 
 		if hasEmail {
 			subject := "Welcome to School Linx Parent Portal"

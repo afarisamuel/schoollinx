@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -103,6 +104,16 @@ func (u *studentUseCase) provisionGuardianUser(ctx context.Context, g *domain.Gu
 	}
 
 	if err := u.userRepo.Create(ctx, newUser); err != nil {
+		// If the failure is a duplicate key constraint (phone or email already exists),
+		// fall back to linking the existing user account instead of failing the admission.
+		if strings.Contains(err.Error(), "23505") || strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "unique constraint") {
+			existing, lookupErr := u.userRepo.GetByIdentifier(ctx, identifier)
+			if lookupErr == nil && existing != nil {
+				log.Printf("[GUARDIAN] Phone/email '%s' already has an account — linking existing user %s\n", identifier, existing.ID)
+				g.UserID = existing.ID
+				return "", nil
+			}
+		}
 		return "", fmt.Errorf("failed to create guardian user account: %w", err)
 	}
 	g.UserID = newUser.ID
