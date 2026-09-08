@@ -49,14 +49,7 @@ export class ConfigureFeesComponent implements OnInit {
     footer_notes: 'Toiletries, stationery, and books must be presented on the first day of resumption.\nAll fee payments must be made using your child\'s student ID via official school payment channels.\nSTRICTLY NO PHYSICAL CASH PAYMENT TO SCHOOL STAFF.\nPayment can be made in advance to enhance flexible installments.',
     show_supplies_table: true,
     supplies_title: 'REQUIRED BOOKS & MATERIALS TO BE BROUGHT / PURCHASED',
-    required_items: [
-      { category: 'BOOKS', description: 'Core Mathematics Course Book', quantity: '1 copy', note: 'Compulsory for all terms' },
-      { category: 'BOOKS', description: 'English Language & Grammar Workbook', quantity: '1 copy', note: 'Compulsory' },
-      { category: 'STATIONERY', description: 'Ruled Exercise Books (Pack of 10)', quantity: '1 pack', note: 'Available at school store' },
-      { category: 'TOILETRIES', description: 'Antiseptic Liquid / Disinfectant (250ml)', quantity: '2 bottles', note: 'Hand to Housemaster' },
-      { category: 'TOILETRIES', description: 'Washing Powder (1kg)', quantity: '1 pack', note: 'Term requirement' },
-      { category: 'TOILETRIES', description: 'Toilet Paper Rolls', quantity: '3 rolls', note: 'Standard pack' }
-    ]
+    required_items: []
   });
   savingBillConfig = signal(false);
   newSupplyItem: BillSupplyItem = { category: 'BOOKS', description: '', quantity: '1', note: '', price: null };
