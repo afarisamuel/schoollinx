@@ -116,6 +116,20 @@ func (r *fiscalRepository) SaveFeeStructure(ctx context.Context, structure *doma
 			return r.db.WithContext(ctx).Save(structure).Error
 		}
 	}
+
+	// Check if a fee structure already exists for this period and category (including soft-deleted)
+	var existing domain.FeeStructure
+	err := r.db.WithContext(ctx).Unscoped().Where("academic_period_id = ? AND category = ?", structure.AcademicPeriodID, structure.Category).First(&existing).Error
+	if err == nil {
+		structure.ID = existing.ID
+		structure.CreatedAt = existing.CreatedAt
+		structure.DeletedAt = gorm.DeletedAt{}
+		return r.db.WithContext(ctx).Unscoped().Save(structure).Error
+	}
+
+	if structure.ID == uuid.Nil {
+		structure.ID = uuid.New()
+	}
 	return r.db.WithContext(ctx).Create(structure).Error
 }
 

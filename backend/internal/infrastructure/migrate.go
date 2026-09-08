@@ -69,6 +69,14 @@ func RunTenantMigrations(db *gorm.DB, schemaName string) error {
 		_ = tx.Exec("ALTER TABLE grade_weights DROP CONSTRAINT IF EXISTS grade_weights_class_id_fkey").Error
 		_ = tx.Exec("ALTER TABLE grades ALTER COLUMN category TYPE VARCHAR(100)").Error
 
+		// Fee structures column and index enhancements
+		_ = tx.Exec("ALTER TABLE fee_structures ADD COLUMN IF NOT EXISTS all_classes BOOLEAN DEFAULT TRUE").Error
+		_ = tx.Exec("ALTER TABLE fee_structures ADD COLUMN IF NOT EXISTS class_ids TEXT[]").Error
+		_ = tx.Exec("ALTER TABLE fee_structures ADD COLUMN IF NOT EXISTS frequency VARCHAR(50) DEFAULT 'TERMLY'").Error
+		_ = tx.Exec("ALTER TABLE fee_structures ADD COLUMN IF NOT EXISTS is_term_fee BOOLEAN DEFAULT TRUE").Error
+		_ = tx.Exec("ALTER TABLE fee_structures DROP CONSTRAINT IF EXISTS fee_structures_academic_period_id_category_key").Error
+		_ = tx.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_fee_structures_period_cat_active ON fee_structures (academic_period_id, category) WHERE deleted_at IS NULL").Error
+
 		return nil
 	})
 }

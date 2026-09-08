@@ -560,11 +560,13 @@ CREATE TABLE IF NOT EXISTS fee_structures (
     amount             NUMERIC(12,4) NOT NULL,
     frequency          VARCHAR(50) NOT NULL DEFAULT 'TERMLY',
     is_term_fee        BOOLEAN NOT NULL DEFAULT TRUE,
+    all_classes        BOOLEAN NOT NULL DEFAULT TRUE,
+    class_ids          TEXT[],
     deleted_at         TIMESTAMPTZ,
     created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (academic_period_id, category)
+    updated_at         TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_fee_structures_period_cat_active ON fee_structures (academic_period_id, category) WHERE deleted_at IS NULL;
 
 CREATE TABLE IF NOT EXISTS wallet_transactions (
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
