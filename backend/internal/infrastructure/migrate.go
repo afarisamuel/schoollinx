@@ -21,6 +21,10 @@ func RunMigrations(db *gorm.DB) error {
 	_ = db.Exec(`ALTER TABLE public.payment_transactions DROP CONSTRAINT IF EXISTS fk_public_payment_transactions_payer CASCADE`).Error
 	_ = db.Exec(`ALTER TABLE public.payment_transactions ADD COLUMN IF NOT EXISTS student_id uuid`).Error
 
+	// Drop unique constraint on users.phone_number — multiple guardians can share a phone number
+	_ = db.Exec(`ALTER TABLE public.users DROP CONSTRAINT IF EXISTS uni_users_phone_number`).Error
+	_ = db.Exec(`DROP INDEX IF EXISTS public.uni_users_phone_number`).Error
+
 	// 1. Run migrations for the public schema (global tables)
 	log.Println("Running migrations for public schema")
 	if err := db.AutoMigrate(GlobalModels...); err != nil {

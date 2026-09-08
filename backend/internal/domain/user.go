@@ -35,7 +35,7 @@ type User struct {
 	ID                  uuid.UUID                                `json:"id" gorm:"type:uuid;primaryKey"`
 	Email               encryption.DeterministicEncryptedString  `json:"email" gorm:"unique;not null"`
 	Username            *encryption.DeterministicEncryptedString `json:"username" gorm:"unique"`
-	PhoneNumber         *encryption.DeterministicEncryptedString `json:"phone_number" gorm:"unique"`
+	PhoneNumber         *encryption.DeterministicEncryptedString `json:"phone_number"`
 	Password            string                                   `json:"-" gorm:"not null"` // Hashed password
 	Role                Role                                     `json:"role" gorm:"not null"`
 	MustChangePassword  bool                                     `json:"must_change_password" gorm:"default:false"`
