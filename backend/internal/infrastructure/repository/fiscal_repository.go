@@ -428,12 +428,29 @@ func (r *fiscalRepository) SaveBillTemplateConfig(ctx context.Context, config *d
 	var existing domain.BillTemplateConfig
 	err := r.db.WithContext(ctx).Order("updated_at DESC").First(&existing).Error
 	if err == nil {
-		config.ID = existing.ID
-		if err := r.db.WithContext(ctx).Save(config).Error; err != nil {
-			return err
+		// Use targeted Updates — never use Save() here because the incoming config
+		// has been deserialized from JSON and may have zeroed TenantBase fields
+		// (e.g. DeletedAt), which Save() would blindly write back, soft-deleting the row.
+		updateErr := r.db.WithContext(ctx).
+			Model(&existing).
+			Select("title", "subtitle", "footer_notes", "bank_details", "payment_instructions",
+				"show_supplies_table", "supplies_title", "required_items", "updated_at").
+			Updates(map[string]interface{}{
+				"title":                config.Title,
+				"subtitle":             config.Subtitle,
+				"footer_notes":         config.FooterNotes,
+				"bank_details":         config.BankDetails,
+				"payment_instructions": config.PaymentInstructions,
+				"show_supplies_table":  config.ShowSuppliesTable,
+				"supplies_title":       config.SuppliesTitle,
+				"required_items":       config.RequiredItems,
+			}).Error
+		if updateErr != nil {
+			return updateErr
 		}
-		// Clean up any extraneous duplicate rows if they exist
-		_ = r.db.WithContext(ctx).Where("id != ?", config.ID).Delete(&domain.BillTemplateConfig{}).Error
+		config.ID = existing.ID
+		// Clean up any extraneous duplicate rows
+		_ = r.db.WithContext(ctx).Where("id != ?", existing.ID).Delete(&domain.BillTemplateConfig{}).Error
 		return nil
 	}
 	if config.ID == uuid.Nil {
@@ -445,6 +462,7 @@ func (r *fiscalRepository) SaveBillTemplateConfig(ctx context.Context, config *d
 	_ = r.db.WithContext(ctx).Where("id != ?", config.ID).Delete(&domain.BillTemplateConfig{}).Error
 	return nil
 }
+
 
 
 
