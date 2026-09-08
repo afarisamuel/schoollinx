@@ -599,33 +599,80 @@
                 </thead>
                 <tbody class="divide-y divide-border-primary/50">
                   @for (item of billConfig().required_items; track $index) {
-                    <tr class="hover:bg-bg-tertiary/40 transition-colors group">
-                      <td class="px-4 py-3">
-                        <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase"
-                              [ngClass]="{
-                                'bg-blue-500/10 text-blue-400 border border-blue-500/20': ['BOOKS', 'STATIONERY', 'UNIFORM'].includes(item.category),
-                                'bg-amber-500/10 text-amber-400 border border-amber-500/20': item.category === 'TOILETRIES',
-                                'bg-slate-500/10 text-slate-400 border border-slate-500/20': !['BOOKS', 'STATIONERY', 'TOILETRIES', 'UNIFORM'].includes(item.category)
-                              }">
-                          {{ item.category }}
-                        </span>
-                      </td>
-                      <td class="px-4 py-3 font-bold text-text-primary">{{ item.description }}</td>
-                      <td class="px-4 py-3 text-text-secondary font-mono">{{ item.quantity }}</td>
-                      <td class="px-4 py-3 text-right">
-                        @if (item.price && item.price > 0) {
-                          <span class="font-bold text-emerald-400 font-mono">{{ item.price | currency:'GHS':'symbol':'1.2-2' }}</span>
-                        } @else {
-                          <span class="text-text-muted text-[11px]">—</span>
-                        }
-                      </td>
-                      <td class="px-4 py-3 text-text-muted text-[11px]">{{ item.note || '-' }}</td>
-                      <td class="px-3 py-3 text-right">
-                        <button (click)="removeSupplyItem($index)" class="p-1.5 rounded-lg text-text-muted hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer" title="Remove item">
-                          <i class="fas fa-times"></i>
-                        </button>
-                      </td>
-                    </tr>
+                    @if (editingSupplyIndex() === $index) {
+                      <!-- Inline Edit Row -->
+                      <tr class="bg-blue-500/10 border-2 border-blue-500/30 transition-colors">
+                        <td class="px-3 py-2">
+                          <select [(ngModel)]="editingSupplyItem.category" class="w-full bg-bg-secondary border border-border-primary rounded-lg px-2 py-1 text-[11px] text-text-primary font-bold focus:border-blue-500 outline-none">
+                            <option value="BOOKS">BOOKS</option>
+                            <option value="STATIONERY">STATIONERY</option>
+                            <option value="TOILETRIES">TOILETRIES</option>
+                            <option value="UNIFORM">UNIFORM</option>
+                            <option value="OTHER">OTHER</option>
+                          </select>
+                        </td>
+                        <td class="px-3 py-2">
+                          <input type="text" [(ngModel)]="editingSupplyItem.description" placeholder="Description / Title"
+                                 class="w-full bg-bg-secondary border border-border-primary rounded-lg px-2 py-1 text-[11px] text-text-primary font-bold focus:border-blue-500 outline-none">
+                        </td>
+                        <td class="px-3 py-2">
+                          <input type="text" [(ngModel)]="editingSupplyItem.quantity" placeholder="Qty"
+                                 class="w-full bg-bg-secondary border border-border-primary rounded-lg px-2 py-1 text-[11px] text-text-primary font-mono focus:border-blue-500 outline-none">
+                        </td>
+                        <td class="px-3 py-2">
+                          <input type="number" step="0.01" min="0" [(ngModel)]="editingSupplyItem.price" placeholder="Price"
+                                 class="w-full bg-bg-secondary border border-border-primary rounded-lg px-2 py-1 text-[11px] text-text-primary font-mono text-right focus:border-blue-500 outline-none">
+                        </td>
+                        <td class="px-3 py-2">
+                          <input type="text" [(ngModel)]="editingSupplyItem.note" placeholder="Remarks"
+                                 class="w-full bg-bg-secondary border border-border-primary rounded-lg px-2 py-1 text-[11px] text-text-primary focus:border-blue-500 outline-none">
+                        </td>
+                        <td class="px-3 py-2 text-right whitespace-nowrap">
+                          <div class="flex items-center justify-end gap-1">
+                            <button (click)="saveEditSupplyItem()" class="p-1.5 rounded-lg text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors cursor-pointer" title="Save changes">
+                              <i class="fas fa-check text-xs"></i>
+                            </button>
+                            <button (click)="cancelEditSupplyItem()" class="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-colors cursor-pointer" title="Cancel edit">
+                              <i class="fas fa-times text-xs"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    } @else {
+                      <!-- Display Row -->
+                      <tr class="hover:bg-bg-tertiary/40 transition-colors group">
+                        <td class="px-4 py-3">
+                          <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase"
+                                [ngClass]="{
+                                  'bg-blue-500/10 text-blue-400 border border-blue-500/20': ['BOOKS', 'STATIONERY', 'UNIFORM'].includes(item.category),
+                                  'bg-amber-500/10 text-amber-400 border border-amber-500/20': item.category === 'TOILETRIES',
+                                  'bg-slate-500/10 text-slate-400 border border-slate-500/20': !['BOOKS', 'STATIONERY', 'TOILETRIES', 'UNIFORM'].includes(item.category)
+                                }">
+                            {{ item.category }}
+                          </span>
+                        </td>
+                        <td class="px-4 py-3 font-bold text-text-primary">{{ item.description }}</td>
+                        <td class="px-4 py-3 text-text-secondary font-mono">{{ item.quantity }}</td>
+                        <td class="px-4 py-3 text-right">
+                          @if (item.price && item.price > 0) {
+                            <span class="font-bold text-emerald-400 font-mono">{{ item.price | currency:'GHS':'symbol':'1.2-2' }}</span>
+                          } @else {
+                            <span class="text-text-muted text-[11px]">—</span>
+                          }
+                        </td>
+                        <td class="px-4 py-3 text-text-muted text-[11px]">{{ item.note || '-' }}</td>
+                        <td class="px-3 py-3 text-right whitespace-nowrap">
+                          <div class="flex items-center justify-end gap-1">
+                            <button (click)="startEditSupplyItem($index)" class="p-1.5 rounded-lg text-text-muted hover:text-blue-400 hover:bg-blue-500/10 transition-colors cursor-pointer" title="Edit item">
+                              <i class="fas fa-pen text-xs"></i>
+                            </button>
+                            <button (click)="removeSupplyItem($index)" class="p-1.5 rounded-lg text-text-muted hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer" title="Remove item">
+                              <i class="fas fa-trash text-xs"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    }
                   }
                   @if (billConfig().required_items.length === 0) {
                     <tr>
@@ -651,7 +698,7 @@
                 </select>
               </div>
 
-              <div class="sm:col-span-4">
+              <div class="sm:col-span-3">
                 <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1">Description / Title *</span>
                 <input type="text" [(ngModel)]="newSupplyItem.description" placeholder="e.g. Core Mathematics Textbook SHS 1"
                        class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-medium focus:border-blue-500 outline-none">
@@ -670,7 +717,13 @@
               </div>
 
               <div class="sm:col-span-2">
-                <button type="button" (click)="addSupplyItem()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1">Remarks / Note</span>
+                <input type="text" [(ngModel)]="newSupplyItem.note" placeholder="e.g. Compulsory"
+                       class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-medium focus:border-blue-500 outline-none">
+              </div>
+
+              <div class="sm:col-span-1">
+                <button type="button" (click)="addSupplyItem()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-1">
                   <i class="fas fa-plus text-[10px]"></i>
                   <span>Add</span>
                 </button>

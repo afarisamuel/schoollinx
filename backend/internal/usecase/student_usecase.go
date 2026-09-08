@@ -22,9 +22,21 @@ type studentUseCase struct {
 	userRepo       domain.UserRepository
 	guardianRepo   domain.GuardianRepository
 	mailer         mailer.MailService
+	fiscalRepo     domain.FiscalRepository
+	academicRepo   domain.AcademicPeriodRepository
 }
 
-func NewStudentUseCase(repo domain.StudentRepository, gradeRepo domain.GradeRepository, attendanceRepo domain.AttendanceRepository, welfareRepo domain.WelfareRepository, userRepo domain.UserRepository, guardianRepo domain.GuardianRepository, mailService mailer.MailService) domain.StudentUseCase {
+func NewStudentUseCase(
+	repo domain.StudentRepository,
+	gradeRepo domain.GradeRepository,
+	attendanceRepo domain.AttendanceRepository,
+	welfareRepo domain.WelfareRepository,
+	userRepo domain.UserRepository,
+	guardianRepo domain.GuardianRepository,
+	mailService mailer.MailService,
+	fiscalRepo domain.FiscalRepository,
+	academicRepo domain.AcademicPeriodRepository,
+) domain.StudentUseCase {
 	return &studentUseCase{
 		studentRepo:    repo,
 		gradeRepo:      gradeRepo,
@@ -33,6 +45,8 @@ func NewStudentUseCase(repo domain.StudentRepository, gradeRepo domain.GradeRepo
 		userRepo:       userRepo,
 		guardianRepo:   guardianRepo,
 		mailer:         mailService,
+		fiscalRepo:     fiscalRepo,
+		academicRepo:   academicRepo,
 	}
 }
 
@@ -121,7 +135,107 @@ func (u *studentUseCase) CreateStudent(ctx context.Context, student *domain.Stud
 		}
 		student.Guardians[i] = g
 	}
-	return u.studentRepo.Create(ctx, student)
+	if err := u.studentRepo.Create(ctx, student); err != nil {
+		return err
+	}
+
+	// Automatically apply term fees if fee structures exist for the current active period
+	u.applyTermFeesIfGenerated(ctx, student)
+
+	return nil
+}
+
+func (u *studentUseCase) applyTermFeesIfGenerated(ctx context.Context, student *domain.Student) {
+	if u.academicRepo == nil || u.fiscalRepo == nil || student == nil {
+		return
+	}
+
+	// 1. Look up the active academic period
+	period, err := u.academicRepo.GetActive(ctx)
+	if err != nil || period == nil {
+		return
+	}
+
+	// 2. Find the activated term by current_term number
+	activeTerm := ""
+	dueDate := time.Now().AddDate(0, 1, 0) // default: 30 days
+	for _, t := range period.Terms {
+		if t.TermNumber == period.CurrentTerm {
+			activeTerm = t.Name
+			if !t.EndDate.IsZero() {
+				dueDate = t.EndDate
+			}
+			break
+		}
+	}
+
+	// 3. Look up fee structures for this period
+	structures, err := u.fiscalRepo.GetFeeStructuresByPeriod(ctx, period.ID)
+	if err != nil || len(structures) == 0 {
+		return
+	}
+
+	// 4. Prevent duplicates: Check if a TERM_FEE for this specific term already exists for the student
+	existingRecords, err := u.fiscalRepo.GetByStudent(ctx, student.ID)
+	if err == nil {
+		for _, rec := range existingRecords {
+			if rec.Category == domain.CategoryTermFee && rec.TermName == activeTerm {
+				return // Fee already exists for this term
+			}
+		}
+	}
+
+	// 5. Calculate applicable fees
+	var studentTotalFee float64
+	var studentBreakdown []domain.FeeBreakdownItem
+
+	for _, structure := range structures {
+		if structure.IsTermFee == nil || !*structure.IsTermFee {
+			continue
+		}
+
+		// Check if this fee structure applies to this student's class
+		applies := false
+		if structure.AllClasses || len(structure.ClassIDs) == 0 {
+			applies = true
+		} else if student.ClassID != nil {
+			studentClassIDStr := student.ClassID.String()
+			for _, cid := range structure.ClassIDs {
+				if cid == studentClassIDStr {
+					applies = true
+					break
+				}
+			}
+		}
+
+		if applies {
+			studentTotalFee += structure.Amount
+			studentBreakdown = append(studentBreakdown, domain.FeeBreakdownItem{
+				Category: structure.Category,
+				Amount:   structure.Amount,
+			})
+		}
+	}
+
+	if len(studentBreakdown) == 0 || studentTotalFee <= 0 {
+		return
+	}
+
+	// 6. Create fiscal record (best-effort)
+	record := &domain.FiscalRecord{
+		StudentID:   student.ID,
+		Category:    domain.CategoryTermFee,
+		Amount:      studentTotalFee,
+		Description: "Term Fees — " + activeTerm,
+		TermName:    activeTerm,
+		Breakdown:   studentBreakdown,
+		Status:      domain.PaymentStatusPending,
+		DueDate:     dueDate,
+	}
+
+	if errCreate := u.fiscalRepo.Create(ctx, record); errCreate != nil {
+		log.Printf("[StudentUseCase] Failed to auto-generate term fees for student %s: %v", student.ID, errCreate)
+	}
 }
 
 func (u *studentUseCase) BulkUpsertStudents(ctx context.Context, students []domain.Student, batchSize int) error {

@@ -394,10 +394,15 @@ func (r *fiscalRepository) GetBillTemplateConfig(ctx context.Context) (*domain.B
 
 func (r *fiscalRepository) SaveBillTemplateConfig(ctx context.Context, config *domain.BillTemplateConfig) error {
 	var existing domain.BillTemplateConfig
-	err := r.db.WithContext(ctx).First(&existing).Error
+	err := r.db.WithContext(ctx).Order("updated_at DESC").First(&existing).Error
 	if err == nil {
 		config.ID = existing.ID
-		return r.db.WithContext(ctx).Save(config).Error
+		if err := r.db.WithContext(ctx).Save(config).Error; err != nil {
+			return err
+		}
+		// Clean up any extraneous duplicate rows if they exist
+		_ = r.db.WithContext(ctx).Where("id != ?", config.ID).Delete(&domain.BillTemplateConfig{}).Error
+		return nil
 	}
 	if config.ID == uuid.Nil {
 		config.ID = uuid.New()

@@ -59,6 +59,8 @@ export class ConfigureFeesComponent implements OnInit {
   });
   savingBillConfig = signal(false);
   newSupplyItem: BillSupplyItem = { category: 'BOOKS', description: '', quantity: '1', note: '', price: null };
+  editingSupplyIndex = signal<number | null>(null);
+  editingSupplyItem: BillSupplyItem = { category: 'BOOKS', description: '', quantity: '1', note: '', price: null };
   suppliesTotal = computed(() =>
     (this.billConfig().required_items || []).reduce((sum, item) => sum + (Number(item.price) || 0), 0)
   );
@@ -483,10 +485,51 @@ export class ConfigureFeesComponent implements OnInit {
     const updatedItems = [...(current.required_items || []), itemToAdd];
     this.billConfig.set({ ...current, required_items: updatedItems });
     this.newSupplyItem = { category: 'BOOKS', description: '', quantity: '1', note: '', price: null };
-    this.toast.success('Item added to supplies table. Click Save to persist changes.');
+    this.toast.success('Item added to Table 2. Click "Save Bill Template" on the right to persist changes.');
+  }
+
+  startEditSupplyItem(index: number) {
+    const item = (this.billConfig().required_items || [])[index];
+    if (item) {
+      this.editingSupplyIndex.set(index);
+      this.editingSupplyItem = { ...item };
+    }
+  }
+
+  saveEditSupplyItem() {
+    const idx = this.editingSupplyIndex();
+    if (idx === null) return;
+    if (!this.editingSupplyItem.description.trim()) {
+      this.toast.error('Please enter an item description');
+      return;
+    }
+    const rawPrice = this.editingSupplyItem.price;
+    const priceVal = rawPrice !== null && rawPrice !== undefined && !isNaN(Number(rawPrice)) && Number(rawPrice) > 0
+      ? Number(rawPrice)
+      : undefined;
+
+    const current = this.billConfig();
+    const updatedItems = [...(current.required_items || [])];
+    updatedItems[idx] = {
+      category: this.editingSupplyItem.category,
+      description: this.editingSupplyItem.description.trim(),
+      quantity: this.editingSupplyItem.quantity || '1',
+      note: this.editingSupplyItem.note || '',
+      price: priceVal
+    };
+    this.billConfig.set({ ...current, required_items: updatedItems });
+    this.editingSupplyIndex.set(null);
+    this.toast.success('Item updated. Click "Save Bill Template" on the right to persist changes.');
+  }
+
+  cancelEditSupplyItem() {
+    this.editingSupplyIndex.set(null);
   }
 
   removeSupplyItem(index: number) {
+    if (this.editingSupplyIndex() === index) {
+      this.editingSupplyIndex.set(null);
+    }
     const current = this.billConfig();
     const updatedItems = (current.required_items || []).filter((_, i) => i !== index);
     this.billConfig.set({ ...current, required_items: updatedItems });
