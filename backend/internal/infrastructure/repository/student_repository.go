@@ -51,10 +51,15 @@ func (r *studentRepository) BulkUpsert(ctx context.Context, students []domain.St
 			Columns: []clause.Column{{Name: "id"}},
 			DoUpdates: clause.AssignmentColumns([]string{
 				"first_name", "last_name", "other_name", "gender", "dob",
-				"phone_number",
+				"phone_number", "address",
 				"placed_residence_type",
 				"enrollment_num", "status",
 				"level", "academic_year",
+				"father_name", "father_phone", "father_email", "father_occupation",
+				"mother_name", "mother_phone", "mother_email", "mother_occupation",
+				"guardian_name", "guardian_phone", "guardian_email", "guardian_relation",
+				"emergency_contact_name", "emergency_contact_phone",
+				"blood_group", "allergies", "health_conditions",
 			}),
 		}).
 		CreateInBatches(&students, batchSize).Error

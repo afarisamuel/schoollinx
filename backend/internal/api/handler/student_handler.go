@@ -22,9 +22,14 @@ import (
 // studentExportHeaders defines the column order for CSV/Excel exports.
 var studentExportHeaders = []string{
 	"first_name", "last_name", "other_name",
-	"gender", "dob", "phone_number",
+	"gender", "dob", "phone_number", "address",
 	"placed_residence_type",
 	"enrollment_num", "status", "level", "academic_year",
+	"father_name", "father_phone", "father_email", "father_occupation",
+	"mother_name", "mother_phone", "mother_email", "mother_occupation",
+	"guardian_name", "guardian_phone", "guardian_email", "guardian_relation",
+	"emergency_contact_name", "emergency_contact_phone",
+	"blood_group", "allergies", "health_conditions",
 }
 
 type StudentHandler struct {
@@ -308,18 +313,35 @@ func (h *StudentHandler) GetByClass(c *gin.Context) {
 
 func studentToRow(s domain.Student) []string {
 	return []string{
-
 		string(s.FirstName),
 		string(s.LastName),
 		string(s.OtherName),
 		s.Gender,
 		string(s.DOB),
 		string(s.PhoneNumber),
+		string(s.Address),
 		s.PlacedResidenceType,
 		s.EnrollmentNum,
 		string(s.Status),
 		strconv.Itoa(s.Level),
 		s.AcademicYear,
+		string(s.FatherName),
+		string(s.FatherPhone),
+		string(s.FatherEmail),
+		string(s.FatherOccupation),
+		string(s.MotherName),
+		string(s.MotherPhone),
+		string(s.MotherEmail),
+		string(s.MotherOccupation),
+		string(s.GuardianName),
+		string(s.GuardianPhone),
+		string(s.GuardianEmail),
+		string(s.GuardianRelation),
+		string(s.EmergencyContactName),
+		string(s.EmergencyContactPhone),
+		s.BloodGroup,
+		string(s.Allergies),
+		string(s.HealthConditions),
 	}
 }
 
@@ -399,13 +421,28 @@ func (h *StudentHandler) GetImportTemplate(c *gin.Context) {
 		format = "csv"
 	}
 
-	// Use export headers but optionally filter if needed. For now, matching export is best for consistency.
-	// We'll provide 3 rows of high-quality sample data.
-	// Sample rows aligned to studentExportHeaders (13 columns): index_number, first_name, last_name, other_name, gender, dob, phone_number, email, placed_residence_type, enrollment_num, status, level, academic_year
+	// Sample rows aligned to comprehensive studentExportHeaders
 	sampleRows := [][]string{
-		{"001010101", "John", "Doe", "Kwame", "Male", "2005-05-14", "0541234567", "john.doe@example.com", "Boarding", "ENR001", "ACTIVE", "1", "2023/2024"},
-		{"001010102", "Jane", "Smith", "Ama", "Female", "2006-02-20", "0209876543", "jane.smith@example.com", "Day", "ENR002", "ACTIVE", "1", "2023/2024"},
-		{"001010103", "Peter", "Osei", "", "Male", "2005-11-05", "0245678901", "peter.o@example.com", "Boarding", "ENR003", "ACTIVE", "2", "2023/2024"},
+		{
+			"John", "Doe", "Kwame",
+			"Male", "2008-05-14", "0541234567", "123 High St, Accra",
+			"Boarding", "STU-2026-0001", "ACTIVE", "1", "2025/2026",
+			"Robert Doe", "0541112233", "robert.doe@example.com", "Engineer",
+			"Mary Doe", "0541112234", "mary.doe@example.com", "Doctor",
+			"Robert Doe", "0541112233", "robert.doe@example.com", "Father",
+			"Robert Doe", "0541112233",
+			"O+", "Peanuts", "None",
+		},
+		{
+			"Jane", "Smith", "Ama",
+			"Female", "2009-02-20", "0209876543", "45 Ring Road, Kumasi",
+			"Day", "STU-2026-0002", "ACTIVE", "1", "2025/2026",
+			"George Smith", "0201112233", "george.smith@example.com", "Teacher",
+			"Grace Smith", "0201112234", "grace.smith@example.com", "Accountant",
+			"Grace Smith", "0201112234", "grace.smith@example.com", "Mother",
+			"Grace Smith", "0201112234",
+			"A+", "Dust & Pollen", "Asthma",
+		},
 	}
 
 	if format == "csv" {
@@ -554,18 +591,36 @@ func (h *StudentHandler) Import(c *gin.Context) {
 				}
 
 				s := domain.Student{
-					ID:                  uuid.New(),
-					FirstName:           encryption.EncryptedString(firstName),
-					LastName:            encryption.EncryptedString(lastName),
-					OtherName:           encryption.EncryptedString(getField(row, "other_name")),
-					Gender:              getField(row, "gender"),
-					DOB:                 encryption.EncryptedString(getField(row, "dob")),
-					PhoneNumber:         encryption.EncryptedString(getField(row, "phone_number")),
-					PlacedResidenceType: getField(row, "placed_residence_type"),
-					EnrollmentNum:       getField(row, "enrollment_num"),
-					Status:              domain.StatusActive,
-					Level:               level,
-					AcademicYear:        getField(row, "academic_year"),
+					ID:                    uuid.New(),
+					FirstName:             encryption.EncryptedString(firstName),
+					LastName:              encryption.EncryptedString(lastName),
+					OtherName:             encryption.EncryptedString(getField(row, "other_name")),
+					Gender:                getField(row, "gender"),
+					DOB:                   encryption.EncryptedString(getField(row, "dob")),
+					PhoneNumber:           encryption.EncryptedString(getField(row, "phone_number")),
+					Address:               encryption.EncryptedString(getField(row, "address")),
+					PlacedResidenceType:   getField(row, "placed_residence_type"),
+					EnrollmentNum:         getField(row, "enrollment_num"),
+					Status:                domain.StatusActive,
+					Level:                 level,
+					AcademicYear:          getField(row, "academic_year"),
+					FatherName:            encryption.EncryptedString(getField(row, "father_name")),
+					FatherPhone:           encryption.EncryptedString(getField(row, "father_phone")),
+					FatherEmail:           encryption.EncryptedString(getField(row, "father_email")),
+					FatherOccupation:      encryption.EncryptedString(getField(row, "father_occupation")),
+					MotherName:            encryption.EncryptedString(getField(row, "mother_name")),
+					MotherPhone:           encryption.EncryptedString(getField(row, "mother_phone")),
+					MotherEmail:           encryption.EncryptedString(getField(row, "mother_email")),
+					MotherOccupation:      encryption.EncryptedString(getField(row, "mother_occupation")),
+					GuardianName:          encryption.EncryptedString(getField(row, "guardian_name")),
+					GuardianPhone:         encryption.EncryptedString(getField(row, "guardian_phone")),
+					GuardianEmail:         encryption.EncryptedString(getField(row, "guardian_email")),
+					GuardianRelation:      encryption.EncryptedString(getField(row, "guardian_relation")),
+					EmergencyContactName:  encryption.EncryptedString(getField(row, "emergency_contact_name")),
+					EmergencyContactPhone: encryption.EncryptedString(getField(row, "emergency_contact_phone")),
+					BloodGroup:            getField(row, "blood_group"),
+					Allergies:             encryption.EncryptedString(getField(row, "allergies")),
+					HealthConditions:      encryption.EncryptedString(getField(row, "health_conditions")),
 				}
 				resultsCh <- rowResult{rowNum: rowNum, student: &s}
 			}
