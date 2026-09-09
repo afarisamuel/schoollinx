@@ -4,7 +4,7 @@ import "time"
 
 // CompanyContactInfo stores dynamic public contact details and social handles.
 type CompanyContactInfo struct {
-	ID                   uint      `json:"id" gorm:"primaryKey;default:1"`
+	ID                   uint      `json:"id" gorm:"primaryKey"`
 	SalesEmail           string    `json:"sales_email" gorm:"type:varchar(255);default:'sales@schoollinx.com'"`
 	SalesTitle           string    `json:"sales_title" gorm:"type:varchar(255);default:'Institutional Sales'"`
 	SalesDesc            string    `json:"sales_desc" gorm:"type:text;default:'Discuss school migration, pricing tiers & demos.'"`
