@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
+import { PageHeroComponent, PageHeroConfig } from '../../../shared/components/page-hero/page-hero.component';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 @Component({
     selector: 'app-features',
     standalone: true,
-    imports: [CommonModule, RouterModule],
+    imports: [CommonModule, RouterModule, PageHeroComponent],
     templateUrl: './features.component.html',
     styleUrl: './features.component.css'
 })
@@ -44,4 +45,14 @@ export class FeaturesComponent {
             items: ['Mass SMS & Email', 'Parent Portal', 'Teacher-Student Chat', 'Announcements']
         }
     ];
+
+  heroConfig: PageHeroConfig = {
+    badge: { icon: 'fa-layer-group', label: 'Platform Capabilities' },
+    heading: `Every Tool Needed to Run a <span class="ph-accent">World-Class School</span>.`,
+    subtitle: `Explore our complete suite of institutional modules engineered to eliminate administrative bottlenecks, improve learning outcomes, and automate fiscal recovery.`,
+    image: 'assets/hero-features.jpg',
+    overlayColor: 'rgba(5,10,30,0.82)',
+    ctaPrimary: { label: 'Start Free Trial', route: '/signup' },
+    ctaSecondary: { label: 'See Pricing', route: '/pricing' },
+  };
 }

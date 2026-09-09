@@ -1,0 +1,139 @@
+@if (status() === 'pending') {
+  <!-- ══ Main Cookie Banner ════════════════════════════════════ -->
+  <div class="cc-backdrop" role="dialog" aria-modal="true" aria-label="Cookie consent">
+    <div class="cc-banner" [class.cc-banner--details]="showDetails()">
+
+      @if (!showDetails()) {
+        <!-- ── Compact Banner ── -->
+        <div class="cc-compact">
+          <div class="cc-icon-wrap">
+            <i class="fas fa-cookie-bite"></i>
+          </div>
+
+          <div class="cc-text-block">
+            <p class="cc-title">We use cookies</p>
+            <p class="cc-desc">
+              We use cookies and similar technologies to improve your experience, analyse site traffic,
+              and personalise content. You can choose which cookies to allow. Read our
+              <a href="/legal/cookie-policy" class="cc-link">Cookie Policy</a> &amp;
+              <a href="/legal/privacy-policy" class="cc-link">Privacy Policy</a>.
+            </p>
+          </div>
+
+          <div class="cc-actions">
+            <button id="cc-btn-accept-all" class="cc-btn cc-btn--accept" (click)="acceptAll()">
+              <i class="fas fa-check"></i>
+              Accept All
+            </button>
+            <button id="cc-btn-manage" class="cc-btn cc-btn--manage" (click)="openDetails()">
+              <i class="fas fa-sliders"></i>
+              Manage
+            </button>
+            <button id="cc-btn-decline" class="cc-btn cc-btn--decline" (click)="declineAll()">
+              Decline
+            </button>
+          </div>
+        </div>
+
+      } @else {
+        <!-- ── Detailed Preferences Panel ── -->
+        <div class="cc-details">
+          <div class="cc-details-header">
+            <div class="cc-details-title-row">
+              <i class="fas fa-cookie-bite cc-details-icon"></i>
+              <span class="cc-details-title">Cookie Preferences</span>
+            </div>
+            <button class="cc-close-btn" (click)="closeDetails()" aria-label="Close">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <p class="cc-details-desc">
+            Choose which cookies you allow. Necessary cookies cannot be disabled as they are
+            required for the platform to function correctly.
+          </p>
+
+          <!-- Categories -->
+          <div class="cc-categories">
+
+            <!-- Necessary -->
+            <div class="cc-category cc-category--locked">
+              <div class="cc-category-info">
+                <div class="cc-category-name">
+                  <i class="fas fa-shield-halved"></i>
+                  Strictly Necessary
+                </div>
+                <p class="cc-category-desc">Session management, authentication, and security functions. Cannot be disabled.</p>
+              </div>
+              <div class="cc-toggle cc-toggle--always-on">
+                <span>Always On</span>
+              </div>
+            </div>
+
+            <!-- Analytics -->
+            <div class="cc-category">
+              <div class="cc-category-info">
+                <div class="cc-category-name">
+                  <i class="fas fa-chart-bar"></i>
+                  Analytics & Performance
+                </div>
+                <p class="cc-category-desc">Help us understand how visitors interact with the platform to improve speed and usability.</p>
+              </div>
+              <label class="cc-toggle-switch" [class.active]="analytics()">
+                <input type="checkbox" [checked]="analytics()" (change)="analytics.set(!analytics())" id="cc-analytics">
+                <span class="cc-slider"></span>
+              </label>
+            </div>
+
+            <!-- Marketing -->
+            <div class="cc-category">
+              <div class="cc-category-info">
+                <div class="cc-category-name">
+                  <i class="fas fa-bullhorn"></i>
+                  Marketing & Retargeting
+                </div>
+                <p class="cc-category-desc">Used to deliver relevant promotions and measure campaign effectiveness across channels.</p>
+              </div>
+              <label class="cc-toggle-switch" [class.active]="marketing()">
+                <input type="checkbox" [checked]="marketing()" (change)="marketing.set(!marketing())" id="cc-marketing">
+                <span class="cc-slider"></span>
+              </label>
+            </div>
+
+            <!-- Preferences -->
+            <div class="cc-category">
+              <div class="cc-category-info">
+                <div class="cc-category-name">
+                  <i class="fas fa-palette"></i>
+                  Personalisation
+                </div>
+                <p class="cc-category-desc">Remember your language, theme, and layout preferences across visits.</p>
+              </div>
+              <label class="cc-toggle-switch" [class.active]="preferences()">
+                <input type="checkbox" [checked]="preferences()" (change)="preferences.set(!preferences())" id="cc-preferences">
+                <span class="cc-slider"></span>
+              </label>
+            </div>
+
+          </div>
+
+          <!-- Detail Actions -->
+          <div class="cc-detail-actions">
+            <button id="cc-btn-save-custom" class="cc-btn cc-btn--accept" (click)="saveCustom()">
+              <i class="fas fa-save"></i>
+              Save My Preferences
+            </button>
+            <button id="cc-btn-accept-all-detail" class="cc-btn cc-btn--manage" (click)="acceptAll()">
+              <i class="fas fa-check-double"></i>
+              Accept All
+            </button>
+            <button id="cc-btn-decline-all-detail" class="cc-btn cc-btn--decline" (click)="declineAll()">
+              Decline All
+            </button>
+          </div>
+        </div>
+      }
+
+    </div>
+  </div>
+}

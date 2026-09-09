@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ScrollReveal } from '../../shared/directives/scroll-reveal';
@@ -11,9 +11,40 @@ import { SeoService } from '../../shared/services/seo';
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.css'
 })
-export class LandingComponent implements OnInit {
+export class LandingComponent implements OnInit, OnDestroy {
   currentYear = new Date().getFullYear();
   openFaqIndex = signal<number | null>(0);
+
+  // ── Hero Carousel ────────────────────────────────────────────
+  heroSlides = [
+    {
+      id: 1,
+      image: 'assets/hero-slide-1.jpg',
+      label: 'Empowering Students Across Africa',
+      subtitle: 'Unify admissions, faculty gradebooks, biometric roll-call, conflict-free timetables, and fee collection in one secure cloud platform.'
+    },
+    {
+      id: 2,
+      image: 'assets/hero-slide-2.jpg',
+      label: 'Smart Dashboards for School Leaders',
+      subtitle: 'Give headmasters real-time analytics, automated grade computation, and complete institutional visibility — all from any device.'
+    },
+    {
+      id: 3,
+      image: 'assets/hero-slide-3.jpg',
+      label: 'Connected Parents & Engaged Families',
+      subtitle: 'Automated parent SMS alerts, secure report card delivery, and real-time fee tracking keep every family informed and engaged.'
+    }
+  ];
+
+  activeSlide = 0;
+  prevSlide = -1;
+  slideProgress = 0;
+
+  private carouselInterval: ReturnType<typeof setInterval> | null = null;
+  private progressInterval: ReturnType<typeof setInterval> | null = null;
+  private readonly SLIDE_DURATION = 6000; // ms
+  private readonly PROGRESS_STEP = 100 / (this.SLIDE_DURATION / 50); // update every 50ms
 
   constructor(private seo: SeoService) {}
 
@@ -23,6 +54,52 @@ export class LandingComponent implements OnInit {
       'Unified institutional platform for African schools. Real-time academics, biometric attendance, speed gradebooks, parent SMS, and automated fee collections.',
       '/'
     );
+    this.startCarousel();
+  }
+
+  ngOnDestroy() {
+    this.stopCarousel();
+  }
+
+  // ── Carousel Methods ─────────────────────────────────────────
+  private startCarousel() {
+    this.slideProgress = 0;
+    this.progressInterval = setInterval(() => {
+      this.slideProgress = Math.min(this.slideProgress + this.PROGRESS_STEP, 100);
+    }, 50);
+    this.carouselInterval = setInterval(() => {
+      this.nextCarouselSlide();
+    }, this.SLIDE_DURATION);
+  }
+
+  private stopCarousel() {
+    if (this.carouselInterval) { clearInterval(this.carouselInterval); }
+    if (this.progressInterval) { clearInterval(this.progressInterval); }
+  }
+
+  private resetCarousel() {
+    this.stopCarousel();
+    this.slideProgress = 0;
+    this.startCarousel();
+  }
+
+  nextCarouselSlide() {
+    this.prevSlide = this.activeSlide;
+    this.activeSlide = (this.activeSlide + 1) % this.heroSlides.length;
+    this.resetCarousel();
+  }
+
+  prevCarouselSlide() {
+    this.prevSlide = this.activeSlide;
+    this.activeSlide = (this.activeSlide - 1 + this.heroSlides.length) % this.heroSlides.length;
+    this.resetCarousel();
+  }
+
+  goToSlide(index: number) {
+    if (index === this.activeSlide) return;
+    this.prevSlide = this.activeSlide;
+    this.activeSlide = index;
+    this.resetCarousel();
   }
 
   toggleFaq(index: number) {

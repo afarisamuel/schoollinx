@@ -1,0 +1,184 @@
+<!-- ── PAGE HERO SECTION ───────────────────────────── -->
+<app-page-hero [config]="heroConfig()"></app-page-hero>
+
+<!-- ── LEGAL PAGE BODY SECTION ────────────────────── -->
+<section class="legal-section">
+  <div class="legal-container">
+
+    <!-- ── 2-COLUMN MAIN LAYOUT ───────────────────────── -->
+    <div class="legal-layout-grid">
+
+      <!-- ── LEFT STICKY DIRECTORY SIDEBAR ─────────────── -->
+      <aside class="legal-sidebar">
+        <div class="sidebar-card">
+          <div class="sidebar-header">
+            <i class="fas fa-folder-open sidebar-icon"></i>
+            <h3 class="sidebar-title">Legal &amp; Policy Registry</h3>
+          </div>
+
+          <nav class="sidebar-nav">
+            @for (item of allPolicies(); track item.slug) {
+              <a [routerLink]="['/legal', item.slug]"
+                 [class.active-policy]="item.slug === currentSlug() || (currentSlug() === 'privacy' && item.slug === 'privacy-policy') || (currentSlug() === 'terms' && item.slug === 'terms-of-service')"
+                 class="sidebar-nav-item">
+                <div class="nav-item-content">
+                  <span class="nav-item-title">{{ item.title }}</span>
+                  <span class="nav-item-meta">{{ item.category }} &bull; {{ item.version || 'v1.0' }}</span>
+                </div>
+                <i class="fas fa-chevron-right nav-chevron"></i>
+              </a>
+            }
+          </nav>
+
+          <!-- Quick Assistance Box -->
+          <div class="sidebar-assist-box">
+            <div class="assist-badge">
+              <i class="fas fa-envelope-shield"></i>
+              <span>Legal Concierge</span>
+            </div>
+            <h4 class="assist-title">Institutional DPA or Custom SLA?</h4>
+            <p class="assist-desc">
+              Request a countersigned Data Processing Addendum (DPA) or enterprise compliance pack.
+            </p>
+            <a routerLink="/contact" class="assist-btn">
+              <span>Contact Legal Desk</span>
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ── RIGHT MAIN DOCUMENT VIEW ──────────────────── -->
+      <main class="legal-main-content">
+        @if (isLoading()) {
+          <div class="loading-state-card">
+            <div class="spinner-circle"></div>
+            <p class="loading-text">Retrieving authenticated policy document...</p>
+          </div>
+        } @else if (page()) {
+          <article class="document-paper">
+
+            <!-- Document Meta Header -->
+            <header class="doc-header">
+              <div class="doc-badges-row">
+                <span class="category-pill">{{ page()?.category || 'Governance' }}</span>
+                <span class="version-pill">Version {{ page()?.version || '1.0' }}</span>
+                <span class="status-live-pill">
+                  <span class="live-dot"></span>
+                  <span>Active &amp; Enforceable</span>
+                </span>
+              </div>
+
+              <h1 class="doc-main-title">{{ page()?.title }}</h1>
+
+              <div class="doc-info-bar">
+                <div class="info-item">
+                  <i class="fas fa-calendar-check"></i>
+                  <span>Effective: <strong>{{ page()?.effective_date ? (page()?.effective_date | date:'longDate') : (page()?.updated_at | date:'longDate') }}</strong></span>
+                </div>
+                <div class="info-item">
+                  <i class="fas fa-clock-rotate-left"></i>
+                  <span>Last Revised: <strong>{{ page()?.updated_at | date:'mediumDate' }}</strong></span>
+                </div>
+
+                <!-- Action Tools -->
+                <div class="doc-actions-group">
+                  <button (click)="copyLink()" class="doc-action-btn" title="Copy link to this policy">
+                    <i class="fas" [class.fa-check]="copied()" [class.fa-link]="!copied()"></i>
+                    <span>{{ copied() ? 'Link Copied!' : 'Share' }}</span>
+                  </button>
+
+                  <button (click)="printPolicy()" class="doc-action-btn" title="Print or save as PDF">
+                    <i class="fas fa-print"></i>
+                    <span>Print PDF</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Summary Callout -->
+              @if (page()?.summary) {
+                <div class="doc-summary-card">
+                  <div class="summary-icon">
+                    <i class="fas fa-circle-info"></i>
+                  </div>
+                  <div class="summary-text">
+                    <strong>Executive Summary:</strong> {{ page()?.summary }}
+                  </div>
+                </div>
+              }
+            </header>
+
+            <hr class="doc-divider" />
+
+            <!-- Parsed Markdown / HTML Content -->
+            <div class="doc-body" [innerHTML]="renderedContent()"></div>
+
+            <hr class="doc-divider" />
+
+            <!-- Trust & Assurance Badges Grid -->
+            <div class="trust-grid">
+              <div class="trust-badge-card">
+                <div class="trust-icon-box">
+                  <i class="fas fa-database"></i>
+                </div>
+                <div>
+                  <h4 class="trust-title">Dedicated Schema Isolation</h4>
+                  <p class="trust-desc">Each institution operates in an independent database namespace.</p>
+                </div>
+              </div>
+
+              <div class="trust-badge-card">
+                <div class="trust-icon-box">
+                  <i class="fas fa-lock"></i>
+                </div>
+                <div>
+                  <h4 class="trust-title">AES-256 Encryption</h4>
+                  <p class="trust-desc">End-to-end cloud encryption for all student and financial ledgers.</p>
+                </div>
+              </div>
+
+              <div class="trust-badge-card">
+                <div class="trust-icon-box">
+                  <i class="fas fa-certificate"></i>
+                </div>
+                <div>
+                  <h4 class="trust-title">GDPR &amp; DPA Ready</h4>
+                  <p class="trust-desc">Strict compliance with European and national privacy mandates.</p>
+                </div>
+              </div>
+
+              <div class="trust-badge-card">
+                <div class="trust-icon-box">
+                  <i class="fas fa-bolt"></i>
+                </div>
+                <div>
+                  <h4 class="trust-title">99.99% Availability SLA</h4>
+                  <p class="trust-desc">High-availability architecture with sub-minute disaster failover.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer Contact Box -->
+            <div class="doc-footer-cta">
+              <div class="footer-cta-text">
+                <h3 class="footer-cta-title">Questions regarding this policy?</h3>
+                <p class="footer-cta-desc">
+                  Our Data Protection Officer and Legal Compliance counsel are available for audit inquiries.
+                </p>
+              </div>
+              <div class="footer-cta-actions">
+                <a routerLink="/contact" class="footer-cta-btn">
+                  <span>Contact Data Protection Officer</span>
+                  <i class="fas fa-shield-halved"></i>
+                </a>
+              </div>
+            </div>
+
+          </article>
+        }
+      </main>
+
+    </div>
+
+  </div>
+</section>

@@ -1,138 +1,127 @@
 <div class="landing-page-wrapper">
 
   <!-- ══════════════════════════════════════════════════════════════ -->
-  <!-- 1. HERO & LIVE PLATFORM PREVIEW                                -->
+  <!-- 1. HERO FULLSCREEN CAROUSEL                                    -->
   <!-- ══════════════════════════════════════════════════════════════ -->
-  <section class="section-block hero-block">
-    <div class="site-container">
-      <div class="hero-grid">
-        <div class="hero-text-col">
-          <div class="badge-pill">
-            <i class="fas fa-shield-halved badge-icon"></i>
-            <span>Institutional School Operating System</span>
+  <section class="hero-carousel-section" id="hero">
+
+    <!-- Carousel Slides -->
+    <div class="carousel-track">
+      @for (slide of heroSlides; track slide.id; let i = $index) {
+        <div
+          class="carousel-slide"
+          [class.active]="i === activeSlide"
+          [class.prev]="i === prevSlide"
+          [style.background-image]="'url(' + slide.image + ')'">
+          <div class="slide-overlay"></div>
+        </div>
+      }
+    </div>
+
+    <!-- Hero Content Overlay -->
+    <div class="hero-carousel-content">
+      <div class="hero-content-inner">
+
+        <!-- Animated Slide Label -->
+        <div class="hero-slide-label">
+          <span class="slide-label-dot"></span>
+          <span class="slide-label-text">{{ heroSlides[activeSlide].label }}</span>
+        </div>
+
+        <!-- Main Headline -->
+        <h1 class="hero-carousel-heading">
+          The Complete Operating System for
+          <span class="hero-accent">Modern African Schools</span>.
+        </h1>
+
+        <!-- Slide Subtitle -->
+        <p class="hero-carousel-subtitle">{{ heroSlides[activeSlide].subtitle }}</p>
+
+        <!-- CTA Buttons -->
+        <div class="hero-carousel-actions">
+          <a routerLink="/signup" id="hero-cta-signup" class="hero-btn-primary">
+            <span>Start Free School Trial</span>
+            <i class="fas fa-arrow-right"></i>
+          </a>
+          <a routerLink="/features" id="hero-cta-features" class="hero-btn-ghost">
+            <i class="fas fa-play-circle"></i>
+            <span>Explore All Modules</span>
+          </a>
+        </div>
+
+        <!-- Trust Badges -->
+        <div class="hero-trust-row">
+          <div class="hero-trust-item">
+            <i class="fas fa-check-circle"></i>
+            <span>Zero setup fees</span>
           </div>
-
-          <h1 class="hero-heading">
-            The Complete Operating System for <span class="text-teal-solid">Modern African Schools</span>.
-          </h1>
-
-          <p class="hero-description">
-            Unify admissions, faculty gradebooks, biometric roll-call, conflict-free timetables, automated parent SMS, and fee collection in one secure, multi-tenant cloud platform.
-          </p>
-
-          <div class="hero-actions-row">
-            <a routerLink="/signup" id="hero-cta-signup" class="solid-btn primary-btn">
-              <span>Start Free School Trial</span>
-              <i class="fas fa-arrow-right"></i>
-            </a>
-            <a routerLink="/features" id="hero-cta-features" class="solid-btn outline-btn">
-              <i class="fas fa-layer-group"></i>
-              <span>Explore All Modules</span>
-            </a>
+          <div class="hero-trust-item">
+            <i class="fas fa-check-circle"></i>
+            <span>Free data migration</span>
           </div>
-
-          <div class="hero-guarantees-row">
-            <div class="guarantee-item">
-              <i class="fas fa-check-circle guarantee-icon"></i>
-              <span>Zero setup fees</span>
-            </div>
-            <div class="guarantee-item">
-              <i class="fas fa-check-circle guarantee-icon"></i>
-              <span>Free data migration</span>
-            </div>
-            <div class="guarantee-item">
-              <i class="fas fa-check-circle guarantee-icon"></i>
-              <span>Dedicated onboarding</span>
-            </div>
+          <div class="hero-trust-item">
+            <i class="fas fa-check-circle"></i>
+            <span>Dedicated onboarding</span>
           </div>
         </div>
 
-        <div class="hero-preview-col">
-          <div class="interface-mockup-frame">
-            <div class="mockup-header-bar">
-              <div class="mockup-window-controls">
-                <span class="control-dot red"></span>
-                <span class="control-dot yellow"></span>
-                <span class="control-dot green"></span>
-              </div>
-              <div class="mockup-address-pill">
-                <i class="fas fa-lock text-teal-solid text-xs"></i>
-                <span>portal.schoollinx.com/admin/dashboard</span>
-              </div>
-              <div class="mockup-status-indicator">
-                <span class="pulse-indicator"></span>
-                <span>System Active</span>
-              </div>
-            </div>
-
-            <div class="mockup-body-content">
-              <!-- Top Mini KPI Row -->
-              <div class="mockup-kpi-grid">
-                <div class="mini-kpi-card">
-                  <span class="mini-kpi-label">ENROLLED STUDENTS</span>
-                  <span class="mini-kpi-val">1,248</span>
-                  <span class="mini-kpi-sub positive">+12% this term</span>
-                </div>
-                <div class="mini-kpi-card">
-                  <span class="mini-kpi-label">FEE RECOVERY</span>
-                  <span class="mini-kpi-val">96.8%</span>
-                  <span class="mini-kpi-sub positive">Auto-Reconciled</span>
-                </div>
-                <div class="mini-kpi-card">
-                  <span class="mini-kpi-label">TODAY'S ATTENDANCE</span>
-                  <span class="mini-kpi-val">98.2%</span>
-                  <span class="mini-kpi-sub">Biometric Synced</span>
-                </div>
-              </div>
-
-              <!-- Mini Table Area -->
-              <div class="mockup-table-card">
-                <div class="mockup-table-header">
-                  <span class="mockup-table-title">Live Academic Trajectory &amp; Speed Gradebook</span>
-                  <span class="mockup-badge">Term 1 Active</span>
-                </div>
-                <div class="mockup-row header-row">
-                  <span>Student</span>
-                  <span>Class</span>
-                  <span>CW (20%)</span>
-                  <span>Mid (30%)</span>
-                  <span>Exam (50%)</span>
-                  <span>Total</span>
-                  <span>Grade</span>
-                </div>
-                <div class="mockup-row">
-                  <span class="student-cell"><span class="avatar-circle">AA</span> Akosua Adjei</span>
-                  <span>Basic 6A</span>
-                  <span>95</span>
-                  <span>90</span>
-                  <span>92</span>
-                  <span class="font-bold text-teal-solid">92.0%</span>
-                  <span class="grade-badge a">A</span>
-                </div>
-                <div class="mockup-row">
-                  <span class="student-cell"><span class="avatar-circle">KO</span> Kwame Owusu</span>
-                  <span>Basic 6A</span>
-                  <span>88</span>
-                  <span>85</span>
-                  <span>86</span>
-                  <span class="font-bold text-teal-solid">86.1%</span>
-                  <span class="grade-badge a">A</span>
-                </div>
-                <div class="mockup-row">
-                  <span class="student-cell"><span class="avatar-circle">KM</span> Kofi Mensah</span>
-                  <span>Basic 6A</span>
-                  <span>78</span>
-                  <span>80</span>
-                  <span>74</span>
-                  <span class="font-bold text-teal-solid">76.6%</span>
-                  <span class="grade-badge b">B</span>
-                </div>
-              </div>
-            </div>
+        <!-- Stats Strip -->
+        <div class="hero-stats-strip">
+          <div class="hero-stat-item">
+            <span class="hero-stat-value">150K+</span>
+            <span class="hero-stat-label">Active Students</span>
+          </div>
+          <div class="hero-stat-divider"></div>
+          <div class="hero-stat-item">
+            <span class="hero-stat-value">500+</span>
+            <span class="hero-stat-label">Schools Onboarded</span>
+          </div>
+          <div class="hero-stat-divider"></div>
+          <div class="hero-stat-item">
+            <span class="hero-stat-value">99.4%</span>
+            <span class="hero-stat-label">Fee Recovery Rate</span>
+          </div>
+          <div class="hero-stat-divider"></div>
+          <div class="hero-stat-item">
+            <span class="hero-stat-value">18 hrs</span>
+            <span class="hero-stat-label">Saved Weekly/Faculty</span>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Carousel Controls -->
+    <button class="carousel-arrow carousel-arrow-prev" id="hero-carousel-prev" (click)="prevCarouselSlide()" aria-label="Previous slide">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    <button class="carousel-arrow carousel-arrow-next" id="hero-carousel-next" (click)="nextCarouselSlide()" aria-label="Next slide">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+
+    <!-- Dot Navigation -->
+    <div class="carousel-dots" role="tablist">
+      @for (slide of heroSlides; track slide.id; let i = $index) {
+        <button
+          class="carousel-dot"
+          [class.active]="i === activeSlide"
+          (click)="goToSlide(i)"
+          [attr.aria-label]="'Go to slide ' + (i + 1)"
+          role="tab">
+        </button>
+      }
+    </div>
+
+    <!-- Slide Progress Bar -->
+    <div class="carousel-progress">
+      <div class="carousel-progress-bar" [style.width]="slideProgress + '%'"></div>
+    </div>
+
+    <!-- Scroll Hint -->
+    <div class="hero-scroll-hint">
+      <div class="scroll-hint-line"></div>
+      <span>Scroll to explore</span>
+    </div>
+
   </section>
 
   <!-- ══════════════════════════════════════════════════════════════ -->

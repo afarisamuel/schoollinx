@@ -30,6 +30,7 @@ func RunMigrations(db *gorm.DB) error {
 	if err := db.AutoMigrate(GlobalModels...); err != nil {
 		return fmt.Errorf("failed to migrate public schema: %w", err)
 	}
+	SeedDefaultLegalPages(db)
 
 	// 2. Fetch all known tenant schemas
 	schemas, err := getTenantSchemas(db)

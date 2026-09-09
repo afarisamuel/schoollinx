@@ -1,0 +1,185 @@
+/* ══ Page Hero Component ════════════════════════════════════════ */
+:host { display: block; }
+
+.ph-section {
+  position: relative;
+  width: 100%;
+  height: 62vh;
+  min-height: 480px;
+  max-height: 720px;
+  background-size: cover;
+  background-position: center 30%;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.ph-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.ph-content {
+  position: relative;
+  z-index: 10;
+  max-width: 760px;
+  padding: 0 2.5rem;
+  margin-left: clamp(1.5rem, 7vw, 160px);
+}
+
+/* Badge */
+.ph-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 9999px;
+  padding: 0.4rem 1.1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.92);
+  margin-bottom: 1.35rem;
+  animation: phFadeUp 0.6s ease 0.05s both;
+}
+
+.ph-badge i { font-size: 0.78rem; color: #60a5fa; }
+
+/* Heading */
+.ph-heading {
+  font-size: clamp(1.9rem, 4.5vw, 3.5rem);
+  font-weight: 900;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  color: #ffffff;
+  margin: 0 0 1.1rem 0;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.35);
+  animation: phFadeUp 0.7s ease 0.15s both;
+}
+
+/* Heading accent span — set by each page via [innerHTML] */
+:host ::ng-deep .ph-heading .ph-accent {
+  background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Subtitle */
+.ph-subtitle {
+  font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+  color: rgba(255,255,255,0.76);
+  line-height: 1.65;
+  margin-bottom: 2rem;
+  max-width: 580px;
+  animation: phFadeUp 0.7s ease 0.28s both;
+}
+
+/* CTA Row */
+.ph-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  animation: phFadeUp 0.7s ease 0.4s both;
+}
+
+.ph-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.85rem 1.85rem;
+  background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 700;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  box-shadow: 0 4px 18px rgba(59,130,246,0.45);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ph-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(59,130,246,0.60);
+}
+
+.ph-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.85rem 1.6rem;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(8px);
+  color: rgba(255,255,255,0.9);
+  font-size: 0.92rem;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.2);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.ph-btn-ghost:hover {
+  background: rgba(255,255,255,0.18);
+  border-color: rgba(255,255,255,0.4);
+}
+
+/* Scroll Hint */
+.ph-scroll-hint {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.38);
+  animation: scrollBounce 2.2s ease infinite;
+}
+
+.ph-scroll-line {
+  width: 1px;
+  height: 2rem;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.38), transparent);
+}
+
+/* Keyframes */
+@keyframes phFadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes scrollBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0);   }
+  50%       { transform: translateX(-50%) translateY(6px); }
+}
+
+/* ── Responsive ──────────────────────────────── */
+@media (max-width: 768px) {
+  .ph-section {
+    height: auto;
+    min-height: 420px;
+    padding: 5.5rem 0 4rem;
+    max-height: none;
+    align-items: flex-end;
+  }
+
+  .ph-content {
+    padding: 0 1.25rem;
+    margin-left: 0;
+  }
+
+  .ph-scroll-hint { display: none; }
+}

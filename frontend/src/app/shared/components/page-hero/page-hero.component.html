@@ -1,0 +1,38 @@
+<section class="ph-section" [style.background-image]="'url(' + config.image + ')'">
+  <!-- Cinematic Overlay -->
+  <div class="ph-overlay" [style.background]="overlayStyle"></div>
+
+  <!-- Content -->
+  <div class="ph-content">
+    <div class="ph-badge">
+      <i [class]="'fas ' + config.badge.icon"></i>
+      <span>{{ config.badge.label }}</span>
+    </div>
+
+    <h1 class="ph-heading" [innerHTML]="config.heading"></h1>
+
+    <p class="ph-subtitle">{{ config.subtitle }}</p>
+
+    @if (config.ctaPrimary || config.ctaSecondary) {
+      <div class="ph-actions">
+        @if (config.ctaPrimary) {
+          <a [routerLink]="config.ctaPrimary.route" class="ph-btn-primary">
+            <span>{{ config.ctaPrimary.label }}</span>
+            <i class="fas fa-arrow-right"></i>
+          </a>
+        }
+        @if (config.ctaSecondary) {
+          <a [routerLink]="config.ctaSecondary.route" class="ph-btn-ghost">
+            <span>{{ config.ctaSecondary.label }}</span>
+          </a>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Scroll Hint -->
+  <div class="ph-scroll-hint">
+    <div class="ph-scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>

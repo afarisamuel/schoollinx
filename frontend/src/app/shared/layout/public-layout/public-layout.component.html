@@ -146,62 +146,86 @@
             <span class="footer-brand-title">{{ tenantProfile()?.name || 'School Linx' }}</span>
           </a>
           <p class="footer-brand-summary">
-            The unified institutional operating system for modern primary, secondary, and tertiary schools. Built for speed, security, and automated fiscal recovery.
+            The unified institutional operating system for modern primary, secondary, and tertiary schools. Built for speed, dedicated data isolation, and automated administration.
           </p>
           <div class="system-status-badge">
             <span class="status-indicator-dot"></span>
             <span>All Systems Operational &bull; 99.99% Uptime</span>
           </div>
+
+          <div class="footer-social-links">
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" class="social-btn" aria-label="Twitter">
+              <i class="fab fa-x-twitter"></i>
+            </a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="social-btn" aria-label="LinkedIn">
+              <i class="fab fa-linkedin-in"></i>
+            </a>
+            <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="social-btn" aria-label="GitHub">
+              <i class="fab fa-github"></i>
+            </a>
+            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" class="social-btn" aria-label="YouTube">
+              <i class="fab fa-youtube"></i>
+            </a>
+          </div>
         </div>
 
-        <!-- Column 2: Platform Modules -->
+        <!-- Column 2: Platform & Features -->
         <div class="footer-col">
-          <h4 class="footer-col-title">Core Modules</h4>
+          <h4 class="footer-col-title">Platform</h4>
           <ul class="footer-nav-list">
-            <li><a routerLink="/features">Student 360° Registry</a></li>
-            <li><a routerLink="/features">Speed Gradebook</a></li>
-            <li><a routerLink="/features">Conflict-Free Timetables</a></li>
-            <li><a routerLink="/features">Biometric Attendance</a></li>
-            <li><a routerLink="/features">Fiscal Billing &amp; POS</a></li>
-            <li><a routerLink="/features">Multi-Carrier SMS</a></li>
+            <li><a routerLink="/features">Modules &amp; Features</a></li>
+            <li><a routerLink="/how-it-works">How It Works</a></li>
+            <li><a routerLink="/pricing">Pricing Plans</a></li>
+            <li><a routerLink="/case-studies">Customer Stories</a></li>
+            <li><a routerLink="/updates">Product Changelog</a></li>
           </ul>
         </div>
 
-        <!-- Column 3: Portals & Roles -->
+        <!-- Column 3: Role Portals -->
         <div class="footer-col">
-          <h4 class="footer-col-title">Role Portals</h4>
+          <h4 class="footer-col-title">Role Solutions</h4>
           <ul class="footer-nav-list">
-            <li><a routerLink="/for-principals">School Owners &amp; Principals</a></li>
-            <li><a routerLink="/for-teachers">Faculty &amp; Form Teachers</a></li>
-            <li><a routerLink="/for-parents">Parents &amp; Guardians</a></li>
-            <li><a routerLink="/features">Accountants &amp; Bursars</a></li>
-            <li><a routerLink="/features">ICT Administrators</a></li>
-            <li><a routerLink="/how-it-works">White-Glove Onboarding</a></li>
+            <li><a routerLink="/for-principals">For School Owners</a></li>
+            <li><a routerLink="/for-teachers">For Faculty &amp; Staff</a></li>
+            <li><a routerLink="/for-parents">For Parents &amp; Guardians</a></li>
+            <li><a routerLink="/signup">Start Free School Trial</a></li>
+            <li><a routerLink="/login">Institutional Sign In</a></li>
           </ul>
         </div>
 
-        <!-- Column 4: Security & Compliance -->
+        <!-- Column 4: Resources & Company -->
         <div class="footer-col">
-          <h4 class="footer-col-title">Security &amp; Trust</h4>
+          <h4 class="footer-col-title">Company</h4>
           <ul class="footer-nav-list">
-            <li><a routerLink="/contact">Tenant Schema Isolation</a></li>
-            <li><a routerLink="/contact">AES-256 Cloud Encryption</a></li>
-            <li><a routerLink="/contact">Daily Geo-Redundant Backups</a></li>
-            <li><a routerLink="/contact">WAEC &amp; GES Compliance</a></li>
-            <li><a routerLink="/contact">Cambridge &amp; IB Ready</a></li>
-            <li><a routerLink="/contact">Privacy Policy &amp; GDPR</a></li>
+            <li><a routerLink="/blog">Educational Blog</a></li>
+            <li><a routerLink="/press">Press Kit &amp; Media</a></li>
+            <li><a routerLink="/contact">Support &amp; Concierge</a></li>
+            <li><a routerLink="/legal/security-whitepaper">Security Whitepaper</a></li>
+            <li><a routerLink="/verify/transcript/demo">Document Registry</a></li>
           </ul>
         </div>
 
-        <!-- Column 5: Newsletter & Concierge -->
+        <!-- Column 5: Newsletter & Governance -->
         <div class="footer-col newsletter-col">
-          <h4 class="footer-col-title">Institutional Concierge</h4>
-          <p class="footer-newsletter-desc">Get the monthly SchoolLinx bulletin on curriculum trends and school administration best practices.</p>
+          <h4 class="footer-col-title">Stay Informed</h4>
+          <p class="footer-newsletter-desc">Get the monthly SchoolLinx bulletin on curriculum technology and school administration.</p>
 
-          <form class="footer-subscribe-form" (submit)="$event.preventDefault()">
-            <input type="email" placeholder="official@school.edu" class="subscribe-input" required>
-            <button type="submit" class="subscribe-btn">Subscribe</button>
-          </form>
+          @if (!newsletterSubscribed()) {
+            <form class="footer-subscribe-form" (submit)="onNewsletterSubmit($event)">
+              <input type="email"
+                     [(ngModel)]="newsletterEmail"
+                     name="email"
+                     placeholder="official@school.edu"
+                     class="subscribe-input"
+                     required>
+              <button type="submit" class="subscribe-btn">Subscribe</button>
+            </form>
+          } @else {
+            <div class="newsletter-success-box">
+              <i class="fas fa-check-circle text-teal-solid"></i>
+              <span>Thank you! You are subscribed to the SchoolLinx bulletin.</span>
+            </div>
+          }
 
           <div class="direct-contact-links">
             <a href="mailto:support@schoollinx.com" class="direct-link">
@@ -215,14 +239,16 @@
       <!-- Bottom Sub-Footer Bar -->
       <div class="footer-bottom-bar">
         <p class="copyright-text">
-          &copy; {{ currentYear }} School Linx Inc. All rights reserved. Operating with dedicated data isolation.
+          &copy; {{ currentYear }} School Linx Inc. All rights reserved. Built with dedicated schema isolation.
         </p>
         <div class="bottom-legal-links">
-          <a routerLink="/contact">Terms of Service</a>
+          <a routerLink="/legal/privacy-policy">Privacy Policy</a>
           <span class="divider">&bull;</span>
-          <a routerLink="/contact">Privacy Policy</a>
+          <a routerLink="/legal/terms-of-service">Terms of Service</a>
           <span class="divider">&bull;</span>
-          <a routerLink="/contact">Security Whitepaper</a>
+          <a routerLink="/legal/cookie-policy">Cookie Policy</a>
+          <span class="divider">&bull;</span>
+          <a routerLink="/legal/security-whitepaper">Security &amp; SLA</a>
           <span class="divider">&bull;</span>
           <a routerLink="/contact">Contact Support</a>
         </div>
@@ -232,4 +258,5 @@
   </footer>
 
   <app-exit-intent-popup></app-exit-intent-popup>
+  <app-cookie-consent></app-cookie-consent>
 </div>

@@ -1,13 +1,15 @@
 import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { ExitIntentPopup } from '../../components/exit-intent-popup/exit-intent-popup';
+import { CookieConsentComponent } from '../../components/cookie-consent/cookie-consent.component';
 import { TenantProfileService } from '../../../core/infrastructure/tenant-profile.service';
 
 @Component({
     selector: 'app-public-layout',
     standalone: true,
-    imports: [CommonModule, RouterModule, ExitIntentPopup],
+    imports: [CommonModule, RouterModule, FormsModule, ExitIntentPopup, CookieConsentComponent],
     templateUrl: './public-layout.component.html',
     styleUrl: './public-layout.component.css'
 })
@@ -19,6 +21,16 @@ export class PublicLayoutComponent implements OnInit {
     isScrolled = false;
     isDark = false;
     isMobileMenuOpen = false;
+
+    newsletterEmail = signal<string>('');
+    newsletterSubscribed = signal<boolean>(false);
+
+    onNewsletterSubmit(event: Event) {
+        event.preventDefault();
+        if (this.newsletterEmail().trim()) {
+            this.newsletterSubscribed.set(true);
+        }
+    }
 
     ngOnInit() {
         // Respect user's saved preference; public site defaults to light

@@ -19,7 +19,12 @@ export const publicRoutes: Routes = [
             { path: 'press', loadComponent: () => import('./features/public/press/press').then(m => m.Press) },
             { path: 'for-principals', loadComponent: () => import('./features/public/for-principals/for-principals').then(m => m.ForPrincipals) },
             { path: 'for-teachers', loadComponent: () => import('./features/public/for-teachers/for-teachers').then(m => m.ForTeachers) },
-            { path: 'for-parents', loadComponent: () => import('./features/public/for-parents/for-parents').then(m => m.ForParents) }
+            { path: 'for-parents', loadComponent: () => import('./features/public/for-parents/for-parents').then(m => m.ForParents) },
+            { path: 'legal/:slug', loadComponent: () => import('./features/public/legal-page/legal-page.component').then(m => m.LegalPageComponent) },
+            { path: 'privacy', redirectTo: 'legal/privacy-policy', pathMatch: 'full' },
+            { path: 'terms', redirectTo: 'legal/terms-of-service', pathMatch: 'full' },
+            { path: 'cookie-policy', redirectTo: 'legal/cookie-policy', pathMatch: 'full' },
+            { path: 'security', redirectTo: 'legal/security-whitepaper', pathMatch: 'full' }
         ]
     },
     {

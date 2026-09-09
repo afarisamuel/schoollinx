@@ -11,11 +11,12 @@ import { TenantProfileService, TenantProfile, SystemAnnouncement } from '../../.
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { CommandPaletteComponent } from '../../components/command-palette/command-palette.component';
+import { CookieConsentComponent } from '../../components/cookie-consent/cookie-consent.component';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, CommonModule, AiChatbotComponent, SidebarComponent, NavbarComponent, CommandPaletteComponent],
+  imports: [RouterOutlet, RouterLink, CommonModule, AiChatbotComponent, SidebarComponent, NavbarComponent, CommandPaletteComponent, CookieConsentComponent],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.css',
 })
