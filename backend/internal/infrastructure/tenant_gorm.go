@@ -41,6 +41,10 @@ var globalTables = map[string]bool{
 	"sms_ledgers":                  true,
 	"sms_top_up_payments":          true,
 	"sender_id_requests":           true,
+	"tenant_notes":                 true,
+	"notifications":                true,
+	"legal_pages":                  true,
+	"company_contact_infos":        true,
 }
 
 // setupTenantSchema automatically prepends the schema name to the table name
