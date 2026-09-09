@@ -23,3 +23,7 @@ type LegalPage struct {
 	UpdatedAt     time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
 	DeletedAt     gorm.DeletedAt `json:"-" gorm:"index"`
 }
+
+func (LegalPage) TableName() string {
+	return "public.legal_pages"
+}

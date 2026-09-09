@@ -29,3 +29,7 @@ type CompanyContactInfo struct {
 	FacebookUrl          string    `json:"facebook_url" gorm:"type:varchar(255);default:'https://facebook.com'"`
 	UpdatedAt            time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 }
+
+func (CompanyContactInfo) TableName() string {
+	return "public.company_contact_infos"
+}
