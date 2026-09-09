@@ -31,6 +31,7 @@ func RunMigrations(db *gorm.DB) error {
 		return fmt.Errorf("failed to migrate public schema: %w", err)
 	}
 	SeedDefaultLegalPages(db)
+	SeedDefaultContactInfo(db)
 
 	// 2. Fetch all known tenant schemas
 	schemas, err := getTenantSchemas(db)

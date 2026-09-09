@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Snippet: Terms of Service</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 30px; }
+    .container { max-width: 900px; margin: 0 auto; background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 30px; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 20px; margin-bottom: 20px; }
+    .badge { background: rgba(13,148,136,0.2); color: #2dd4bf; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+    .meta-box { background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; }
+    .meta-box span { color: #94a3b8; margin-right: 20px; }
+    .meta-box strong { color: #f8fafc; }
+    .copy-btn { background: #0d9488; color: white; border: none; padding: 10px 20px; font-weight: 700; border-radius: 6px; cursor: pointer; }
+    .copy-btn:hover { background: #0f766e; }
+    textarea { width: 100%; height: 350px; background: #090e1a; color: #38bdf8; font-family: monospace; font-size: 13px; padding: 15px; border: 1px solid #334155; border-radius: 8px; box-sizing: border-box; resize: vertical; }
+    .preview-box { background: #ffffff; color: #1e293b; padding: 25px; border-radius: 8px; margin-top: 25px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div>
+      <span class="badge">Terms &amp; Conditions</span>
+      <h2 style="margin: 8px 0 0; color: #fff;">Institutional Terms of Service</h2>
+    </div>
+    <button class="copy-btn" onclick="copySnippet()">Copy HTML Snippet</button>
+  </div>
+
+  <div class="meta-box">
+    <span><strong>Title:</strong> Institutional Terms of Service</span>
+    <span><strong>Slug:</strong> <code>terms-of-service</code></span>
+    <span><strong>Category:</strong> Terms &amp; Conditions</span>
+    <span><strong>Version:</strong> <code>2.1</code></span>
+  </div>
+
+  <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #94a3b8;">Clean HTML for Admin Editor:</label>
+  <textarea id="snippetArea" readonly>
+<h2>1. Acceptance of Institutional Agreement</h2>
+<p>By provisioning a school node, accessing the SchoolLinx administrative dashboard, or utilizing our mobile and web applications, you agree to be bound by these Institutional Terms of Service on behalf of your school or educational organization.</p>
+
+<hr />
+
+<h2>2. Platform Availability &amp; 99.99% Uptime SLA</h2>
+<ul>
+  <li><strong>Service Level Commitment:</strong> SchoolLinx provides a guaranteed <strong>99.99% monthly service uptime</strong> across all core academic, attendance, and billing modules.</li>
+  <li><strong>Maintenance Windows:</strong> Scheduled maintenance occurs exclusively during designated off-peak windows (11:00 PM – 3:00 AM) with at least 72 hours prior notification to school administrators.</li>
+  <li><strong>Failover &amp; Redundancy:</strong> Multi-region database replication ensures sub-minute automated failover in the event of upstream cloud infrastructure disruption.</li>
+</ul>
+
+<hr />
+
+<h2>3. Account Responsibilities &amp; Credential Governance</h2>
+<ul>
+  <li><strong>Administrative Authority:</strong> The designated Primary SuperAdmin holds authority over staff role delegation, module permissions, and data export authorizations.</li>
+  <li><strong>Multi-Factor Authentication (2FA):</strong> Institutions handling sensitive fiscal operations are strongly advised to enforce 2FA across all bursar and administrative accounts.</li>
+  <li><strong>Compromise Notification:</strong> Institutions must notify SchoolLinx Security Operations immediately upon discovering unauthorized account activity or credential leaks.</li>
+</ul>
+
+<hr />
+
+<h2>4. SMS Gateway, Delivery Rates &amp; Compliance</h2>
+<ul>
+  <li><strong>Permissible Content:</strong> The SMS gateway must be used solely for legitimate institutional communications including fee reminders, emergency alerts, attendance summaries, and student notices.</li>
+  <li><strong>Sender ID Verification:</strong> Custom alphanumeric Sender IDs are subject to regulatory telecommunications vetting before activation.</li>
+  <li><strong>Carrier Failover:</strong> The engine dynamically routes traffic across multiple carrier gateways to maintain high deliverability rates.</li>
+</ul>
+
+<hr />
+
+<h2>5. Subscription Fees, Invoicing &amp; Billing Cycle</h2>
+<ul>
+  <li><strong>Billing Models:</strong> Subscriptions are billed on a Per-Student Per-Term or Annual Enterprise tier as selected in the institutional agreement.</li>
+  <li><strong>Grace Periods:</strong> In the event of subscription renewal delays, schools receive a 14-day grace period during which full academic operations remain uninterrupted.</li>
+  <li><strong>Payment Processing:</strong> Settled securely via Paystack PCI-DSS Level 1 gateway.</li>
+</ul>
+
+<hr />
+
+<h2>6. Limitation of Liability</h2>
+<p>To the maximum extent permitted by applicable law, SchoolLinx shall not be liable for indirect, incidental, special, or consequential damages resulting from upstream carrier network delays or internet provider outages outside our direct control.</p>
+</textarea>
+
+  <h3 style="margin-top: 30px; font-size: 15px; color: #94a3b8;">Rendered Preview:</h3>
+  <div class="preview-box" id="previewBox"></div>
+</div>
+
+<script>
+  const snippet = document.getElementById('snippetArea').value;
+  document.getElementById('previewBox').innerHTML = snippet;
+
+  function copySnippet() {
+    navigator.clipboard.writeText(snippet);
+    alert('Terms of Service HTML snippet copied to clipboard!');
+  }
+</script>
+
+</body>
+</html>

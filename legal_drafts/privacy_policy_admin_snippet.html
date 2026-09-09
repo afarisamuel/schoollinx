@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Snippet: Privacy Policy</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 30px; }
+    .container { max-width: 900px; margin: 0 auto; background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 30px; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 20px; margin-bottom: 20px; }
+    .badge { background: rgba(13,148,136,0.2); color: #2dd4bf; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+    .meta-box { background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; }
+    .meta-box span { color: #94a3b8; margin-right: 20px; }
+    .meta-box strong { color: #f8fafc; }
+    .copy-btn { background: #0d9488; color: white; border: none; padding: 10px 20px; font-weight: 700; border-radius: 6px; cursor: pointer; }
+    .copy-btn:hover { background: #0f766e; }
+    textarea { width: 100%; height: 350px; background: #090e1a; color: #38bdf8; font-family: monospace; font-size: 13px; padding: 15px; border: 1px solid #334155; border-radius: 8px; box-sizing: border-box; resize: vertical; }
+    .preview-box { background: #ffffff; color: #1e293b; padding: 25px; border-radius: 8px; margin-top: 25px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div>
+      <span class="badge">Privacy &amp; Compliance</span>
+      <h2 style="margin: 8px 0 0; color: #fff;">Privacy Policy &amp; Data Protection</h2>
+    </div>
+    <button class="copy-btn" onclick="copySnippet()">Copy HTML Snippet</button>
+  </div>
+
+  <div class="meta-box">
+    <span><strong>Title:</strong> Privacy Policy &amp; Data Protection</span>
+    <span><strong>Slug:</strong> <code>privacy-policy</code></span>
+    <span><strong>Category:</strong> Privacy &amp; Compliance</span>
+    <span><strong>Version:</strong> <code>2.4</code></span>
+  </div>
+
+  <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #94a3b8;">Clean HTML for Admin Editor:</label>
+  <textarea id="snippetArea" readonly>
+<h2>1. Executive Summary &amp; Commitment to Data Isolation</h2>
+<p>SchoolLinx operates on a <strong>dedicated tenant schema isolation architecture</strong>. Unlike traditional single-database platforms, your institution's records (including biometric data, student grades, fee ledgers, and guardian contact details) are cryptographically and logically segregated in independent database namespaces.</p>
+<p>We do <strong>not</strong> sell, rent, monetize, or harvest student or institutional data under any circumstance.</p>
+
+<hr />
+
+<h2>2. Information We Collect and Process</h2>
+<ul>
+  <li><strong>Institutional Identity &amp; Credentials:</strong> School administrative contact details, authorized domain names, accreditation identifiers, and billing credentials.</li>
+  <li><strong>Academic &amp; Operational Records:</strong> Student enrollments, class rosters, attendance timestamps, continuous assessments, examination marks, and report cards.</li>
+  <li><strong>Financial &amp; Payment Metadata:</strong> Paystack transaction references, fee structure schedules, and receipt records. (Credit card and banking PINs are processed directly by PCI-DSS Level 1 certified gateways and never stored on our servers).</li>
+  <li><strong>Communication Logs:</strong> Multi-carrier SMS transmission payloads, delivery receipts, emergency broadcast logs, and in-app notices.</li>
+  <li><strong>Technical &amp; Security Telemetry:</strong> Session tokens, IP access logs, device fingerprints, and rate-limit audit records for unauthorized access detection.</li>
+</ul>
+
+<hr />
+
+<h2>3. Biometric &amp; Guardian Pickup Verification</h2>
+<p>For institutions utilizing biometric time-clocks or QR pickup verification:</p>
+<ul>
+  <li>Biometric templates are converted on-device to unidirectional irreversible cryptographic hashes. Raw fingerprint or facial imagery is never retained in cloud storage.</li>
+  <li>Pickup codes generated for guardians expire automatically upon verification and are permanently recorded in immutable audit logs.</li>
+</ul>
+
+<hr />
+
+<h2>4. Dedicated Tenant Isolation &amp; Database Security</h2>
+<p>Every school onboarded to SchoolLinx receives an isolated PostgreSQL schema:</p>
+<ul>
+  <li><strong>AES-256 Cloud Encryption:</strong> All data at rest is encrypted using customer-managed encryption keys (CMEK).</li>
+  <li><strong>TLS 1.3 in Transit:</strong> All data in flight across web sockets, public APIs, and administrative dashboards enforces TLS 1.3 with HSTS.</li>
+  <li><strong>Row-Level &amp; Schema-Level Access Controls:</strong> Cross-tenant queries are prevented by architectural barriers at the database engine level.</li>
+</ul>
+
+<hr />
+
+<h2>5. Data Retention, Portability &amp; Right to Erasure</h2>
+<ul>
+  <li><strong>Data Ownership:</strong> The school retains full, unrestricted ownership of all student, parent, and institutional data.</li>
+  <li><strong>One-Click Export:</strong> SuperAdmins and School Principals can generate standardized JSON/CSV/PDF database archives at any time.</li>
+  <li><strong>Right to Erasure:</strong> Upon contract termination or verified GDPR/DPA request, tenant schemas are securely purged in accordance with DoD 5220.22-M sanitization standards within 30 days.</li>
+</ul>
+
+<hr />
+
+<h2>6. Contact Our Data Protection Officer</h2>
+<p>For privacy inquiries, audit verification, or data subject access requests:</p>
+<ul>
+  <li><strong>Email:</strong> privacy@schoollinx.com | dpo@schoollinx.com</li>
+  <li><strong>Legal Desk:</strong> Data Governance Team, SchoolLinx Inc.</li>
+</ul>
+</textarea>
+
+  <h3 style="margin-top: 30px; font-size: 15px; color: #94a3b8;">Rendered Preview:</h3>
+  <div class="preview-box" id="previewBox"></div>
+</div>
+
+<script>
+  const snippet = document.getElementById('snippetArea').value;
+  document.getElementById('previewBox').innerHTML = snippet;
+
+  function copySnippet() {
+    navigator.clipboard.writeText(snippet);
+    alert('Privacy Policy HTML snippet copied to clipboard!');
+  }
+</script>
+
+</body>
+</html>

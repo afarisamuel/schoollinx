@@ -87,6 +87,7 @@ export class ShellComponent implements OnInit, OnDestroy {
       '/tenants/notes': 'Institutional CRM Timeline',
       '/support/tickets': 'Support Desk & Inquiries',
       '/contact-submissions': 'Public Contact Form Submissions',
+      '/contact-info': 'Public Contact Channels & Company Info',
       '/legal-pages': 'Legal Policies & Regulatory Hub',
       '/affiliates': 'Partner Affiliate Network',
       '/security': 'Security Ops & Global Whitelists',

@@ -42,6 +42,7 @@ export const routes: Routes = [
       { path: 'health', loadComponent: () => import('./features/health/health').then(m => m.HealthComponent) },
       { path: 'system/jobs', loadComponent: () => import('./features/jobs/jobs').then(m => m.JobsComponent) },
       { path: 'contact-submissions', loadComponent: () => import('./features/contact-submissions/contact-submissions').then(m => m.ContactSubmissionsComponent) },
+      { path: 'contact-info', loadComponent: () => import('./features/contact-info/contact-info').then(m => m.ContactInfoComponent) },
       { path: 'legal-pages', loadComponent: () => import('./features/legal-pages/legal-pages').then(m => m.LegalPagesComponent) },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]

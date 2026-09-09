@@ -193,6 +193,7 @@ func (a *App) setupRoutes() {
 
 	handler.NewSMSHandler(api, superAdmin, a.DB, infra.Paystack)
 	handler.NewLegalPageHandler(superAdmin, public, a.DB)
+	handler.NewContactInfoHandler(superAdmin, public, a.DB)
 
 	telemetryUseCase := usecase.NewTelemetryUseCase(a.DB)
 	telemetryGroup := a.Router.Group("/api/telemetry")

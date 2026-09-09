@@ -66,6 +66,7 @@ export class SidebarComponent {
         { name: 'CRM Notes Log', route: '/tenants/notes', icon: 'notes' },
         { name: 'Support Desk', route: '/support/tickets', icon: 'ticket' },
         { name: 'Contact Submissions', route: '/contact-submissions', icon: 'inbox' },
+        { name: 'Contact Channels', route: '/contact-info', icon: 'phone' },
         { name: 'Legal Policies', route: '/legal-pages', icon: 'legal' },
         { name: 'Partner Affiliates', route: '/affiliates', icon: 'users' }
       ]

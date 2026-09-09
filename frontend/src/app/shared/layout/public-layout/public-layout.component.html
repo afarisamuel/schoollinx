@@ -83,41 +83,174 @@
   @if (isMobileMenuOpen) {
     <div class="mobile-drawer-overlay" (click)="toggleMobileMenu()">
       <div class="mobile-drawer-content" (click)="$event.stopPropagation()">
+        
+        <!-- Drawer Header -->
         <div class="mobile-drawer-header">
-          <span class="mobile-drawer-title">Navigation</span>
-          <button (click)="toggleMobileMenu()" class="mobile-close-btn" aria-label="Close Menu">
-            <i class="fas fa-xmark"></i>
-          </button>
+          <div class="drawer-brand-group">
+            <div class="drawer-logo-icon">
+              @if (tenantProfile()?.logo_url) {
+                <img [src]="tenantProfile()!.logo_url" class="logo-img" [alt]="tenantProfile()!.name" (error)="$event.target.src='assets/images/app-icon.png'">
+              } @else {
+                <img src="assets/images/app-icon.png" class="logo-img" alt="School Linx Logo">
+              }
+            </div>
+            <div class="drawer-brand-text">
+              <span class="drawer-brand-title">{{ tenantProfile()?.name || 'School Linx' }}</span>
+              <span class="drawer-brand-badge">Institutional OS</span>
+            </div>
+          </div>
+
+          <div class="drawer-header-actions">
+            <button (click)="toggleDarkMode()" class="drawer-theme-btn" [attr.aria-label]="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+              <i class="fas" [class.fa-sun]="isDark" [class.fa-moon]="!isDark"></i>
+            </button>
+            <button (click)="toggleMobileMenu()" class="mobile-close-btn" aria-label="Close Menu">
+              <i class="fas fa-xmark"></i>
+            </button>
+          </div>
         </div>
 
-        <div class="mobile-links-stack">
-          <a routerLink="/features" class="mobile-nav-link" (click)="toggleMobileMenu()">
-            <i class="fas fa-layer-group text-teal-solid"></i> Modules &amp; Features
-          </a>
-          <a routerLink="/how-it-works" class="mobile-nav-link" (click)="toggleMobileMenu()">
-            <i class="fas fa-route text-teal-solid"></i> How It Works
-          </a>
-          <a routerLink="/pricing" class="mobile-nav-link" (click)="toggleMobileMenu()">
-            <i class="fas fa-tags text-teal-solid"></i> Pricing Plans
-          </a>
-          <a routerLink="/for-principals" class="mobile-nav-link" (click)="toggleMobileMenu()">
-            <i class="fas fa-user-tie text-teal-solid"></i> For Principals &amp; Owners
-          </a>
-          <a routerLink="/for-teachers" class="mobile-nav-link" (click)="toggleMobileMenu()">
-            <i class="fas fa-chalkboard-teacher text-teal-solid"></i> For Teachers &amp; Faculty
-          </a>
-          <a routerLink="/for-parents" class="mobile-nav-link" (click)="toggleMobileMenu()">
-            <i class="fas fa-users text-teal-solid"></i> For Parents &amp; Guardians
-          </a>
-          <a routerLink="/contact" class="mobile-nav-link" (click)="toggleMobileMenu()">
-            <i class="fas fa-headset text-teal-solid"></i> Support &amp; Concierge
-          </a>
+        <!-- Drawer Scrollable Body -->
+        <div class="mobile-drawer-body">
+          
+          <!-- Section 1: Core Platform -->
+          <div class="drawer-section">
+            <span class="drawer-section-label">Core Platform</span>
+            <div class="drawer-links-group">
+              <a routerLink="/features" class="drawer-nav-tile" (click)="toggleMobileMenu()">
+                <div class="tile-icon-box teal-glow">
+                  <i class="fas fa-layer-group"></i>
+                </div>
+                <div class="tile-text">
+                  <span class="tile-title">Modules &amp; Features</span>
+                  <span class="tile-desc">Student 360°, Gradebook &amp; SMS</span>
+                </div>
+                <i class="fas fa-chevron-right tile-arrow"></i>
+              </a>
+
+              <a routerLink="/how-it-works" class="drawer-nav-tile" (click)="toggleMobileMenu()">
+                <div class="tile-icon-box indigo-glow">
+                  <i class="fas fa-route"></i>
+                </div>
+                <div class="tile-text">
+                  <span class="tile-title">How It Works</span>
+                  <span class="tile-desc">4-Step Institutional Workflow</span>
+                </div>
+                <i class="fas fa-chevron-right tile-arrow"></i>
+              </a>
+
+              <a routerLink="/pricing" class="drawer-nav-tile" (click)="toggleMobileMenu()">
+                <div class="tile-icon-box amber-glow">
+                  <i class="fas fa-tags"></i>
+                </div>
+                <div class="tile-text">
+                  <span class="tile-title">Pricing Plans</span>
+                  <span class="tile-desc">Transparent Per-Student Tiers</span>
+                </div>
+                <i class="fas fa-chevron-right tile-arrow"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Section 2: Role Solutions -->
+          <div class="drawer-section">
+            <span class="drawer-section-label">Role Portals</span>
+            <div class="drawer-links-group">
+              <a routerLink="/for-principals" class="drawer-nav-tile" (click)="toggleMobileMenu()">
+                <div class="tile-icon-box blue-glow">
+                  <i class="fas fa-user-tie"></i>
+                </div>
+                <div class="tile-text">
+                  <span class="tile-title">Principals &amp; Owners</span>
+                  <span class="tile-desc">Executive Oversight &amp; Audit</span>
+                </div>
+                <i class="fas fa-chevron-right tile-arrow"></i>
+              </a>
+
+              <a routerLink="/for-teachers" class="drawer-nav-tile" (click)="toggleMobileMenu()">
+                <div class="tile-icon-box emerald-glow">
+                  <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="tile-text">
+                  <span class="tile-title">Faculty &amp; Teachers</span>
+                  <span class="tile-desc">Roll Call, Marks &amp; Homework</span>
+                </div>
+                <i class="fas fa-chevron-right tile-arrow"></i>
+              </a>
+
+              <a routerLink="/for-parents" class="drawer-nav-tile" (click)="toggleMobileMenu()">
+                <div class="tile-icon-box purple-glow">
+                  <i class="fas fa-users"></i>
+                </div>
+                <div class="tile-text">
+                  <span class="tile-title">Parents &amp; Guardians</span>
+                  <span class="tile-desc">Live SMS, Scores &amp; Fee Pay</span>
+                </div>
+                <i class="fas fa-chevron-right tile-arrow"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Section 3: Company & Support -->
+          <div class="drawer-section">
+            <span class="drawer-section-label">Resources &amp; Support</span>
+            <div class="drawer-links-group">
+              <a routerLink="/case-studies" class="drawer-nav-tile" (click)="toggleMobileMenu()">
+                <div class="tile-icon-box rose-glow">
+                  <i class="fas fa-trophy"></i>
+                </div>
+                <div class="tile-text">
+                  <span class="tile-title">Customer Stories</span>
+                  <span class="tile-desc">Real Impact &amp; Case Studies</span>
+                </div>
+                <i class="fas fa-chevron-right tile-arrow"></i>
+              </a>
+
+              <a routerLink="/blog" class="drawer-nav-tile" (click)="toggleMobileMenu()">
+                <div class="tile-icon-box cyan-glow">
+                  <i class="fas fa-newspaper"></i>
+                </div>
+                <div class="tile-text">
+                  <span class="tile-title">Educational Blog</span>
+                  <span class="tile-desc">EdTech Trends &amp; Best Practices</span>
+                </div>
+                <i class="fas fa-chevron-right tile-arrow"></i>
+              </a>
+
+              <a routerLink="/contact" class="drawer-nav-tile" (click)="toggleMobileMenu()">
+                <div class="tile-icon-box teal-glow">
+                  <i class="fas fa-headset"></i>
+                </div>
+                <div class="tile-text">
+                  <span class="tile-title">Support &amp; Concierge</span>
+                  <span class="tile-desc">24/7 Dedicated Assistance</span>
+                </div>
+                <i class="fas fa-chevron-right tile-arrow"></i>
+              </a>
+            </div>
+          </div>
+
         </div>
 
-        <div class="mobile-drawer-actions">
-          <a routerLink="/login" class="mobile-btn outline-btn w-full" (click)="toggleMobileMenu()">Log In</a>
-          <a routerLink="/signup" class="mobile-btn primary-btn w-full" (click)="toggleMobileMenu()">Start Free School Trial</a>
+        <!-- Drawer Footer Actions -->
+        <div class="mobile-drawer-footer">
+          <div class="drawer-action-buttons">
+            <a routerLink="/signup" class="drawer-btn primary-drawer-btn" (click)="toggleMobileMenu()">
+              <span>Start Free School Trial</span>
+              <i class="fas fa-arrow-right"></i>
+            </a>
+            <a routerLink="/login" class="drawer-btn secondary-drawer-btn" (click)="toggleMobileMenu()">
+              <i class="fas fa-arrow-right-to-bracket"></i>
+              <span>Sign In to Portal</span>
+            </a>
+          </div>
+
+          <div class="drawer-status-bar">
+            <span class="status-indicator-dot"></span>
+            <span>All Systems Operational &bull; 99.99% Uptime</span>
+          </div>
         </div>
+
       </div>
     </div>
   }
