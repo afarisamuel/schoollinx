@@ -857,3 +857,44 @@ select option {
     break-inside: avoid;
   }
 }
+
+/* ========================================================= */
+/* MOBILE OVERFLOW & HORIZONTAL SCROLL PREVENTION             */
+/* ========================================================= */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
+  -webkit-text-size-adjust: 100%;
+}
+
+app-root, app-main-layout {
+  display: block;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Ensure all pages inside router-outlet don't exceed container width */
+main {
+  max-width: 100%;
+  overflow-x: hidden !important;
+}
+
+main > * {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Ensure ambient blur decorative elements never expand scroll bounds */
+.blur-3xl, .blur-2xl, .blur-xl, .blur-lg {
+  max-width: 100%;
+  pointer-events: none;
+}
+
+/* Touch friendly responsive table container */
+.overflow-x-auto {
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}

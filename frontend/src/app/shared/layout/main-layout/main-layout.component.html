@@ -1,5 +1,5 @@
 <div
-    class="flex h-screen bg-[#F4F6FB] dark:bg-bg-primary font-sans leading-relaxed text-slate-900 dark:text-text-primary overflow-hidden p-1.5 sm:p-2.5 md:p-3.5 gap-0 lg:gap-3.5">
+    class="flex h-screen w-full max-w-full bg-[#F4F6FB] dark:bg-bg-primary font-sans leading-relaxed text-slate-900 dark:text-text-primary overflow-hidden p-1 sm:p-2.5 md:p-3.5 gap-0 lg:gap-3.5">
 
     <!-- 1. Modular Sidebar Panel (Floating Card) -->
     <app-sidebar class="contents lg:flex lg:h-full lg:shrink-0" [isCollapsed]="isSidebarCollapsed()"
@@ -7,7 +7,7 @@
         (closeMobile)="closeMobileSidebar()"></app-sidebar>
 
     <!-- 2. Main Column (Navbar + Main Canvas) -->
-    <div class="flex-1 flex flex-col min-w-0 h-full gap-1.5 sm:gap-2.5 md:gap-3.5 overflow-hidden"
+    <div class="flex-1 flex flex-col min-w-0 w-full max-w-full h-full gap-1.5 sm:gap-2.5 md:gap-3.5 overflow-hidden"
         [class.blur-sm]="isBillingLocked()">
 
         <!-- Offline Mode Floating Status Banner -->
@@ -40,13 +40,13 @@
         }
 
         <!-- 3. Modular Floating Navbar Component -->
-        <app-navbar class="shrink-0" [currentRouteTitle]="currentRouteTitle()" [unreadCount]="unreadCount()"
+        <app-navbar class="shrink-0 w-full max-w-full" [currentRouteTitle]="currentRouteTitle()" [unreadCount]="unreadCount()"
             [notifications]="notifications()" [canGoBack]="canGoBack()" (toggleSidebar)="onNavbarHamburgerToggle()"
             (toggleMobile)="onNavbarHamburgerToggle()" (goBack)="goBack()" (markRead)="markAllAsRead()"></app-navbar>
 
         <!-- 4. Modular Main Page Canvas (Floating Card) -->
         <main
-            class="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-[#F8FAFC] dark:bg-bg-secondary/40 rounded-xl sm:rounded-2xl md:rounded-3xl border border-slate-200/90 dark:border-border-primary/80 shadow-xs relative p-2 sm:p-4 md:p-6 lg:p-7">
+            class="flex-1 min-h-0 w-full max-w-full overflow-y-auto overflow-x-hidden custom-scrollbar bg-[#F8FAFC] dark:bg-bg-secondary/40 rounded-xl sm:rounded-2xl md:rounded-3xl border border-slate-200/90 dark:border-border-primary/80 shadow-xs relative p-2 sm:p-4 md:p-6 lg:p-7">
             <router-outlet />
         </main>
     </div>
