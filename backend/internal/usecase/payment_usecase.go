@@ -368,6 +368,13 @@ func (u *paymentUseCase) HandlePaystackWebhook(ctx context.Context, payload []by
 
 	reference := eventData.Data.Reference
 
+	// Log the raw incoming webhook immediately for observability and idempotency tracking
+	_ = u.paymentRepo.LogWebhook(&domain.PaymentWebhookLog{
+		Provider: "PAYSTACK",
+		Event:    eventData.Event + ":" + reference,
+		Payload:  string(payload),
+	})
+
 	// Handle platform subscription payments
 	if len(reference) >= 4 && reference[:4] == "SUB-" {
 		// Platform subscriptions ALWAYS use the platform's Paystack key

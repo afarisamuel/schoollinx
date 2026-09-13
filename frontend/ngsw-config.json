@@ -1,75 +1,105 @@
 {
-    "$schema": "./node_modules/@angular/service-worker/config/schema.json",
-    "index": "/index.html",
-    "assetGroups": [
-        {
-            "name": "app",
-            "installMode": "prefetch",
-            "resources": {
-                "files": [
-                    "/favicon.ico",
-                    "/index.html",
-                    "/manifest.webmanifest",
-                    "/*.css",
-                    "/*.js"
-                ]
-            }
-        },
-        {
-            "name": "assets",
-            "installMode": "lazy",
-            "updateMode": "prefetch",
-            "resources": {
-                "files": [
-                    "/assets/**",
-                    "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|apple-touch-icon|png|otf|ttf|woff|woff2)"
-                ],
-                "urls": [
-                    "https://fonts.googleapis.com/**",
-                    "https://fonts.gstatic.com/**"
-                ]
-            }
-        }
-    ],
-    "dataGroups": [
-        {
-            "name": "api-freshness",
-            "urls": [
-                "/api/students/**",
-                "/api/grades/**",
-                "/api/attendance/**",
-                "/api/insights/**",
-                "/api/library/**",
-                "/api/fiscal/**",
-                "/api/hr/**",
-                "/api/messages/**",
-                "/api/notifications/**",
-                "/api/campaigns/**"
-            ],
-            "cacheConfig": {
-                "maxSize": 100,
-                "maxAge": "1h",
-                "timeout": "5s",
-                "strategy": "freshness"
-            }
-        },
-        {
-            "name": "api-performance",
-            "urls": [
-                "/api/campuses/**",
-                "/api/subjects/**",
-                "/api/timetables/**",
-                "/api/programs/**",
-                "/api/classes/**",
-                "/api/resources/**",
-                "/api/clubs/**"
-            ],
-            "cacheConfig": {
-                "maxSize": 50,
-                "maxAge": "1d",
-                "timeout": "10s",
-                "strategy": "performance"
-            }
-        }
-    ]
+  "$schema": "./node_modules/@angular/service-worker/config/schema.json",
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "resources": {
+        "files": [
+          "/favicon.ico",
+          "/index.html",
+          "/manifest.webmanifest",
+          "/*.css",
+          "/*.js"
+        ]
+      }
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/assets/**",
+          "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|apple-touch-icon|png|otf|ttf|woff|woff2)"
+        ],
+        "urls": [
+          "https://fonts.googleapis.com/**",
+          "https://fonts.gstatic.com/**",
+          "https://cdnjs.cloudflare.com/**"
+        ]
+      }
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "api-freshness",
+      "urls": [
+        "/api/dashboard/**",
+        "/api/students/**",
+        "/api/teachers/**",
+        "/api/guardians/**",
+        "/api/classes/**",
+        "/api/attendance/**",
+        "/api/grades/**",
+        "/api/exams/**",
+        "/api/timetables/**",
+        "/api/timetable/**",
+        "/api/fiscal/**",
+        "/api/daily-bills/**",
+        "/api/library/**",
+        "/api/facility/**",
+        "/api/hr/**",
+        "/api/welfare/**",
+        "/api/hostel/**",
+        "/api/logistics/**",
+        "/api/analytics/**",
+        "/api/academic-periods/**",
+        "/api/scholastic-levels/**",
+        "/api/subjects/**",
+        "/api/messages/**",
+        "/api/notifications/**",
+        "/api/campaigns/**",
+        "/api/campus-ops/**",
+        "/api/cbt/**",
+        "/api/reports/**",
+        "/api/report-cards/**",
+        "/api/tenant/**",
+        "/api/tenant-profile/**",
+        "/api/insights/**",
+        "/api/inventory/**",
+        "/api/procurement/**",
+        "/api/homework/**"
+      ],
+      "cacheConfig": {
+        "maxSize": 300,
+        "maxAge": "3d",
+        "timeout": "4s",
+        "strategy": "freshness"
+      }
+    },
+    {
+      "name": "api-performance",
+      "urls": [
+        "/api/public/**",
+        "/api/resources/**",
+        "/api/clubs/**",
+        "/api/house/**"
+      ],
+      "cacheConfig": {
+        "maxSize": 100,
+        "maxAge": "7d",
+        "timeout": "8s",
+        "strategy": "performance"
+      }
+    }
+  ],
+  "navigationUrls": [
+    "/**",
+    "!/**/*.*",
+    "!/api/**",
+    "!/uploads/**",
+    "!/ws/**"
+  ]
 }

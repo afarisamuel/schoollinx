@@ -54,23 +54,53 @@ func (a *App) Bootstrap() {
 	a.Router.Use(middleware.ErrorRecoveryMiddleware())
 	a.Router.Use(middleware.CORSMiddleware(a.DB))
 
-	a.Router.GET("/health", func(c *gin.Context) {
-		sqlDB, err := a.DB.DB()
-		if err != nil {
-			c.JSON(503, gin.H{"status": "down", "error": "failed to get db instance"})
-			return
-		}
-		if err := sqlDB.Ping(); err != nil {
-			c.JSON(503, gin.H{"status": "down", "error": "db ping failed"})
-			return
-		}
-		c.JSON(200, gin.H{"status": "up"})
-	})
+	// Health & Telemetry Probes
+	a.Router.GET("/health", a.healthCheckHandler)
+	a.Router.GET("/healthz", a.healthCheckHandler)
+	a.Router.GET("/readyz", a.readinessCheckHandler)
+
 	if os.Getenv("ENV") != "production" {
 		a.Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
 	a.setupRoutes()
+}
+
+func (a *App) healthCheckHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"status":    "healthy",
+		"timestamp": time.Now().UTC().Format(time.RFC3339),
+		"version":   "1.0.0",
+	})
+}
+
+func (a *App) readinessCheckHandler(c *gin.Context) {
+	sqlDB, err := a.DB.DB()
+	if err != nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"status": "down",
+			"error":  "failed to access database connection pool",
+		})
+		return
+	}
+	if err := sqlDB.Ping(); err != nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"status": "down",
+			"error":  "database ping failed",
+		})
+		return
+	}
+
+	stats := sqlDB.Stats()
+	c.JSON(http.StatusOK, gin.H{
+		"status":    "ready",
+		"timestamp": time.Now().UTC().Format(time.RFC3339),
+		"db": gin.H{
+			"open_connections": stats.OpenConnections,
+			"in_use":           stats.InUse,
+			"idle":             stats.Idle,
+		},
+	})
 }
 
 func (a *App) setupRoutes() {
@@ -79,13 +109,16 @@ func (a *App) setupRoutes() {
 	repos := initRepositories(a.DB, infra.Cache)
 	usecases := initUseCases(repos, infra, a.DB, a.Config)
 
-	// Auth Handlers (Tenant-scoped, for school frontends)
+	// Auth Handlers (Tenant-scoped, with brute-force rate limiter: 30 req/min per IP)
+	authLimiter := middleware.NewIPRateLimiter(30, time.Minute).Middleware()
 	authGroup := a.Router.Group("/api/auth")
+	authGroup.Use(authLimiter)
 	authGroup.Use(middleware.TenantMiddleware(a.DB))
 	handler.NewAuthHandler(authGroup, repos.User, repos.Tenant, repos.Blacklist, usecases.Audit, infra.SMTP, infra.SMS, a.DB, a.Config)
 
 	// System Auth (No tenant middleware — for the super admin portal)
 	sysAuthGroup := a.Router.Group("/api/system/auth")
+	sysAuthGroup.Use(authLimiter)
 	handler.NewAuthHandler(sysAuthGroup, repos.User, repos.Tenant, repos.Blacklist, usecases.Audit, infra.SMTP, infra.SMS, a.DB, a.Config)
 
 	// Webhooks (Public/Signature Verified)

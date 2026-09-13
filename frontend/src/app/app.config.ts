@@ -1,5 +1,5 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withPreloading, PreloadAllModules } from '@angular/router';
 
 import { publicRoutes, tenantRoutes } from './app.routes';
 import { isTenantDomain } from './core/utils/tenant.util';
@@ -18,7 +18,7 @@ const activeRoutes = isTenantDomain() ? tenantRoutes : publicRoutes;
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(activeRoutes),
+    provideRouter(activeRoutes, withPreloading(PreloadAllModules)),
     provideAnimations(),
     provideHttpClient(withFetch(), withInterceptors([tenantInterceptor, authInterceptor, loadingInterceptor, errorToastInterceptor])),
     provideServiceWorker('ngsw-worker.js', {

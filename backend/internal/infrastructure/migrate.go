@@ -30,6 +30,10 @@ func RunMigrations(db *gorm.DB) error {
 	if err := db.AutoMigrate(GlobalModels...); err != nil {
 		return fmt.Errorf("failed to migrate public schema: %w", err)
 	}
+	_ = db.Exec(`CREATE INDEX IF NOT EXISTS idx_payment_txns_ref ON public.payment_transactions (reference)`).Error
+	_ = db.Exec(`CREATE INDEX IF NOT EXISTS idx_payment_txns_tenant_status ON public.payment_transactions (tenant_id, status)`).Error
+	_ = db.Exec(`CREATE INDEX IF NOT EXISTS idx_webhook_logs_event ON public.payment_webhook_logs (event, created_at DESC)`).Error
+
 	SeedDefaultLegalPages(db)
 	SeedDefaultContactInfo(db)
 
@@ -108,6 +112,15 @@ func RunTenantMigrations(db *gorm.DB, schemaName string) error {
 		_ = tx.Exec("ALTER TABLE guardians ADD COLUMN IF NOT EXISTS is_primary BOOLEAN DEFAULT TRUE").Error
 		_ = tx.Exec("ALTER TABLE guardians ADD COLUMN IF NOT EXISTS can_pickup BOOLEAN DEFAULT TRUE").Error
 		_ = tx.Exec("ALTER TABLE guardians ADD COLUMN IF NOT EXISTS pickup_code VARCHAR(20)").Error
+
+		// High-performance composite indexes across core tables
+		_ = tx.Exec("CREATE INDEX IF NOT EXISTS idx_students_class_status ON students (class_id, status) WHERE deleted_at IS NULL").Error
+		_ = tx.Exec("CREATE INDEX IF NOT EXISTS idx_students_enrollment_num ON students (enrollment_num) WHERE deleted_at IS NULL").Error
+		_ = tx.Exec("CREATE INDEX IF NOT EXISTS idx_attendances_date_class ON attendances (date, class_id, status) WHERE deleted_at IS NULL").Error
+		_ = tx.Exec("CREATE INDEX IF NOT EXISTS idx_grades_class_subj_student ON grades (class_id, subject, student_id) WHERE deleted_at IS NULL").Error
+		_ = tx.Exec("CREATE INDEX IF NOT EXISTS idx_wallet_txns_student_created ON wallet_transactions (student_id, created_at DESC) WHERE deleted_at IS NULL").Error
+		_ = tx.Exec("CREATE INDEX IF NOT EXISTS idx_fiscal_records_student_status ON fiscal_records (student_id, status) WHERE deleted_at IS NULL").Error
+		_ = tx.Exec("CREATE INDEX IF NOT EXISTS idx_daily_bills_student_date ON daily_bills (student_id, date) WHERE deleted_at IS NULL").Error
 
 		return nil
 	})

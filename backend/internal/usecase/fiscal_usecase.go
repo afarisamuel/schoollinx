@@ -702,28 +702,30 @@ func (u *fiscalUseCase) GetWalletInfo(ctx context.Context, studentID uuid.UUID) 
 	return student.PrepaidBalance, txns, nil
 }
 
-// ProcessCanteenPurchase handles a digital wallet transaction for a canteen item
+// ProcessCanteenPurchase handles a digital wallet transaction for a canteen item atomically
 func (u *fiscalUseCase) ProcessCanteenPurchase(ctx context.Context, studentID uuid.UUID, amount float64, item string) error {
-	student, err := u.studentRepo.GetByID(ctx, studentID)
-	if err != nil {
-		return err
-	}
+	return u.fiscalRepo.Transaction(ctx, func(txRepo domain.FiscalRepository) error {
+		student, err := u.studentRepo.GetByID(ctx, studentID)
+		if err != nil {
+			return err
+		}
 
-	if student.PrepaidBalance < amount {
-		return fmt.Errorf("insufficient wallet balance (balance: %.2f, required: %.2f)", student.PrepaidBalance, amount)
-	}
+		if student.PrepaidBalance < amount {
+			return fmt.Errorf("insufficient wallet balance (balance: %.2f, required: %.2f)", student.PrepaidBalance, amount)
+		}
 
-	student.PrepaidBalance -= amount
-	if err := u.studentRepo.Update(ctx, student); err != nil {
-		return err
-	}
+		student.PrepaidBalance -= amount
+		if err := u.studentRepo.Update(ctx, student); err != nil {
+			return err
+		}
 
-	return u.fiscalRepo.CreateWalletTransaction(ctx, &domain.WalletTransaction{
-		StudentID:   studentID,
-		Type:        domain.WalletTransactionDebit,
-		Amount:      amount,
-		Balance:     student.PrepaidBalance,
-		Description: "Canteen purchase: " + item,
+		return txRepo.CreateWalletTransaction(ctx, &domain.WalletTransaction{
+			StudentID:   studentID,
+			Type:        domain.WalletTransactionDebit,
+			Amount:      amount,
+			Balance:     student.PrepaidBalance,
+			Description: "Canteen purchase: " + item,
+		})
 	})
 }
 
