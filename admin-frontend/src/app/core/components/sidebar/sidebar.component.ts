@@ -52,6 +52,7 @@ export class SidebarComponent {
       name: 'Billing & Finance',
       items: [
         { name: 'MRR / Financials', route: '/finance', icon: 'chart' },
+        { name: 'Payments & Settlements', route: '/finance/transactions', icon: 'ledger' },
         { name: 'Billing Alerts', route: '/billing/alerts', icon: 'bell', badge: 'LIVE', badgeClass: 'bg-rose-500/15 text-rose-400 border-rose-500/30' },
         { name: 'Invoice Generator', route: '/billing/invoices', icon: 'receipt' },
         { name: 'Plan Tiers & Pricing', route: '/billing/plans', icon: 'plans' },

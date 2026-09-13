@@ -40,18 +40,26 @@ echo ""
 
 echo -e "${YELLOW}Phase 1: System Setup${NC}"
 
-# Ensure Go is installed (if not installed)
-if ! command -v go &> /dev/null
-then
-    echo -e "${YELLOW}Go is not installed. Installing Go 1.24.5...${NC}"
-    wget -q https://go.dev/dl/go1.24.5.linux-amd64.tar.gz
+# Ensure Go and common bin dirs are in PATH when running under sudo
+export PATH=$PATH:/usr/local/go/bin:/usr/bin:/usr/local/bin:/snap/bin
+
+# Find Go executable or install if missing
+GO_BIN=$(command -v go || true)
+if [ -z "$GO_BIN" ]; then
+    echo -e "${YELLOW}Go is not installed. Installing Go...${NC}"
+    LATEST_GO=$(curl -s "https://go.dev/VERSION?m=text" | head -1)
+    [ -z "$LATEST_GO" ] && LATEST_GO="go1.24.1"
+    wget -q "https://go.dev/dl/${LATEST_GO}.linux-amd64.tar.gz"
     rm -rf /usr/local/go
-    tar -C /usr/local -xzf go1.24.5.linux-amd64.tar.gz
-    rm go1.24.5.linux-amd64.tar.gz
+    tar -C /usr/local -xzf "${LATEST_GO}.linux-amd64.tar.gz"
+    rm "${LATEST_GO}.linux-amd64.tar.gz"
     export PATH=$PATH:/usr/local/go/bin
     echo "export PATH=\$PATH:/usr/local/go/bin" >> /etc/profile
-    echo -e "${GREEN}Go installed successfully.${NC}"
+    GO_BIN="/usr/local/go/bin/go"
+    echo -e "${GREEN}Go (${LATEST_GO}) installed successfully.${NC}"
 fi
+
+echo -e "${GREEN}✓ Go $($GO_BIN version) found at $GO_BIN${NC}"
 
 # Ensure system dependencies
 echo -e "${YELLOW}Installing system dependencies (git, curl, make, postgresql, nginx)...${NC}"
@@ -159,11 +167,13 @@ fi
 
 echo -e "${YELLOW}Phase 4: Build and Deploy${NC}"
 
+RESOLVED_PATH="$PATH"
+
 echo -e "${YELLOW}Downloading Go modules...${NC}"
-sudo -u $USER /usr/local/go/bin/go mod tidy
+sudo -u $USER env PATH="$RESOLVED_PATH" "$GO_BIN" mod tidy
 
 echo -e "${YELLOW}Building the Go application...${NC}"
-sudo -u $USER /usr/local/go/bin/go build -o bin/server main.go
+sudo -u $USER env PATH="$RESOLVED_PATH" "$GO_BIN" build -o bin/server main.go
 
 echo ""
 # echo -e "${YELLOW}Do you want to run database migrations?${NC}"

@@ -1,0 +1,901 @@
+<div class="space-y-6 animate-fade-in text-slate-800 dark:text-text-primary pb-16">
+  
+  <!-- Breadcrumb & Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-border-primary pb-5">
+    <div>
+      <div class="flex items-center gap-2 text-xs font-semibold text-slate-400 dark:text-text-muted mb-1">
+        <a routerLink="/dashboard" class="hover:text-accent-primary transition-colors">SuperAdmin</a>
+        <span>/</span>
+        <a routerLink="/finance" class="hover:text-accent-primary transition-colors">Billing & Finance</a>
+        <span>/</span>
+        <span class="text-accent-primary">Payments Ledger & Settlements</span>
+      </div>
+      <h1 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+        <span>Platform Payments & Settlements Ledger</span>
+        <span class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-accent-primary/10 text-accent-primary border border-accent-primary/20">
+          SuperAdmin View
+        </span>
+      </h1>
+      <p class="text-xs text-slate-500 dark:text-text-muted mt-1 max-w-3xl">
+        Complete multi-tenant financial audit trail. Tracks school fees, student wallet top-ups, SaaS subscriptions, and SMS credits. Monitor Paystack subaccount routing vs main account collections, and reconcile or remit misrouted funds.
+      </p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="flex items-center gap-2.5 shrink-0">
+      <button 
+        (click)="exportCSV()" 
+        class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-white dark:bg-bg-secondary border border-slate-200 dark:border-border-primary text-slate-700 dark:text-text-primary hover:bg-slate-50 dark:hover:bg-bg-tertiary transition-all shadow-xs cursor-pointer">
+        <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span>Export CSV</span>
+      </button>
+
+      <button 
+        (click)="loadTransactions()" 
+        [disabled]="isLoading()"
+        class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-accent-primary text-white hover:bg-accent-primary/90 transition-all shadow-md shadow-accent-primary/20 cursor-pointer disabled:opacity-50">
+        <svg class="w-4 h-4" [class.animate-spin]="isLoading()" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        <span>{{ isLoading() ? 'Syncing...' : 'Refresh Ledger' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Flash Notification Banners -->
+  @if (successMessage()) {
+    <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center justify-between animate-fade-in shadow-xs">
+      <div class="flex items-center gap-2.5">
+        <svg class="w-4 h-4 shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>{{ successMessage() }}</span>
+      </div>
+      <button (click)="successMessage.set('')" class="text-emerald-500 hover:text-emerald-700 font-bold text-sm">×</button>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-semibold flex items-center justify-between animate-fade-in shadow-xs">
+      <div class="flex items-center gap-2.5">
+        <svg class="w-4 h-4 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+      <button (click)="errorMessage.set('')" class="text-rose-500 hover:text-rose-700 font-bold text-sm">×</button>
+    </div>
+  }
+
+  <!-- KPI Overview Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Total Volume -->
+    <div class="p-5 rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200/80 dark:border-border-primary shadow-xs relative overflow-hidden group">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-500 dark:text-text-muted uppercase tracking-wider">Total Platform Volume</span>
+        <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+      </div>
+      <div class="mt-3">
+        <div class="text-2xl font-black text-slate-900 dark:text-white">
+          GHS {{ summary().total_volume | number:'1.2-2' }}
+        </div>
+        <div class="text-[11px] text-slate-400 dark:text-text-muted mt-1 font-medium">
+          {{ summary().total_transactions }} total transactions recorded
+        </div>
+      </div>
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 opacity-60"></div>
+    </div>
+
+    <!-- School Subaccounts Routed -->
+    <div class="p-5 rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200/80 dark:border-border-primary shadow-xs relative overflow-hidden group">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-500 dark:text-text-muted uppercase tracking-wider">School Subaccounts</span>
+        <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+        </div>
+      </div>
+      <div class="mt-3">
+        <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+          GHS {{ summary().subaccount_volume | number:'1.2-2' }}
+        </div>
+        <div class="text-[11px] text-slate-400 dark:text-text-muted mt-1 font-medium">
+          {{ summary().subaccount_transactions }} payments directly in school accounts
+        </div>
+      </div>
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 opacity-60"></div>
+    </div>
+
+    <!-- Platform Main Account (SaaS & SMS) -->
+    <div class="p-5 rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200/80 dark:border-border-primary shadow-xs relative overflow-hidden group">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-500 dark:text-text-muted uppercase tracking-wider">Main Platform Revenue</span>
+        <div class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+      </div>
+      <div class="mt-3">
+        <div class="text-2xl font-black text-purple-600 dark:text-purple-400">
+          GHS {{ summary().main_account_volume | number:'1.2-2' }}
+        </div>
+        <div class="text-[11px] text-slate-400 dark:text-text-muted mt-1 font-medium">
+          {{ summary().main_account_transactions }} SaaS & SMS platform fees
+        </div>
+      </div>
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 opacity-60"></div>
+    </div>
+
+    <!-- Misrouted / Action Required Queue -->
+    <div 
+      (click)="toggleMisroutedOnly()"
+      class="p-5 rounded-2xl bg-white dark:bg-bg-secondary border transition-all cursor-pointer shadow-xs relative overflow-hidden group"
+      [ngClass]="summary().unreconciled_misrouted_count > 0 
+        ? 'border-amber-500/80 dark:border-amber-500/60 bg-amber-500/5 dark:bg-amber-500/5 hover:border-amber-500 ring-2 ring-amber-500/20' 
+        : 'border-slate-200/80 dark:border-border-primary'">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-1.5">
+          <span class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Misrouted / Attention</span>
+          @if (summary().unreconciled_misrouted_count > 0) {
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+          }
+        </div>
+        <div class="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+      </div>
+      <div class="mt-3">
+        <div class="text-2xl font-black text-amber-600 dark:text-amber-400 flex items-baseline gap-2">
+          <span>GHS {{ summary().misrouted_volume | number:'1.2-2' }}</span>
+          @if (summary().unreconciled_misrouted_count > 0) {
+            <span class="text-xs px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300">
+              {{ summary().unreconciled_misrouted_count }} pending
+            </span>
+          }
+        </div>
+        <div class="text-[11px] text-slate-500 dark:text-text-muted mt-1 font-medium flex items-center justify-between">
+          <span>Fees paid into Main Platform</span>
+          <span class="text-accent-primary font-bold text-[10px] uppercase underline">Click to Filter</span>
+        </div>
+      </div>
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-amber-500 to-rose-500 opacity-80"></div>
+    </div>
+  </div>
+
+  <!-- Filter & Search Panel -->
+  <div class="p-4 rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200/80 dark:border-border-primary shadow-xs space-y-3">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+      
+      <!-- Search Input -->
+      <div class="lg:col-span-2 relative">
+        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-text-muted mb-1">Search Reference / Payer / Subdomain</label>
+        <div class="relative">
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            (keyup.enter)="onFilterChange()"
+            placeholder="e.g. REF-1234, parent@email.com, demo-school..."
+            class="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-100/80 dark:bg-bg-primary border border-slate-200 dark:border-border-primary text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-text-muted focus:outline-none focus:border-accent-primary" />
+          <svg class="w-4 h-4 absolute left-3 top-2.5 text-slate-400 dark:text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- School / Tenant Filter -->
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-text-muted mb-1">Filter by School</label>
+        <select 
+          [(ngModel)]="selectedTenantId" 
+          (change)="onFilterChange()"
+          class="w-full px-3 py-2 text-xs rounded-xl bg-slate-100/80 dark:bg-bg-primary border border-slate-200 dark:border-border-primary text-slate-900 dark:text-white focus:outline-none focus:border-accent-primary">
+          <option value="">All Schools (All Tenants)</option>
+          @for (t of tenants(); track t.id) {
+            <option [value]="t.id">{{ t.name }} ({{ t.subdomain }})</option>
+          }
+        </select>
+      </div>
+
+      <!-- Category Filter -->
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-text-muted mb-1">Payment Category</label>
+        <select 
+          [(ngModel)]="selectedCategory" 
+          (change)="onFilterChange()"
+          class="w-full px-3 py-2 text-xs rounded-xl bg-slate-100/80 dark:bg-bg-primary border border-slate-200 dark:border-border-primary text-slate-900 dark:text-white focus:outline-none focus:border-accent-primary">
+          <option value="">All Categories</option>
+          <option value="SCHOOL_FEES">School Fees</option>
+          <option value="WALLET_TOPUP">Student Wallet Top-Up</option>
+          <option value="SUBSCRIPTION">SaaS Term Subscription</option>
+          <option value="SMS_TOPUP">Bulk SMS Credits</option>
+        </select>
+      </div>
+
+      <!-- Routing Type -->
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-text-muted mb-1">Fund Routing Account</label>
+        <select 
+          [(ngModel)]="selectedRoutingType" 
+          (change)="onFilterChange()"
+          class="w-full px-3 py-2 text-xs rounded-xl bg-slate-100/80 dark:bg-bg-primary border border-slate-200 dark:border-border-primary text-slate-900 dark:text-white focus:outline-none focus:border-accent-primary">
+          <option value="">All Routing Types</option>
+          <option value="SUBACCOUNT">School Bank Subaccount</option>
+          <option value="MAIN_ACCOUNT">Platform Main Account</option>
+          <option value="CUSTOM_KEYS">School Custom Keys</option>
+        </select>
+      </div>
+
+      <!-- Status & Actions -->
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-text-muted mb-1">Payment Status</label>
+        <select 
+          [(ngModel)]="selectedStatus" 
+          (change)="onFilterChange()"
+          class="w-full px-3 py-2 text-xs rounded-xl bg-slate-100/80 dark:bg-bg-primary border border-slate-200 dark:border-border-primary text-slate-900 dark:text-white focus:outline-none focus:border-accent-primary">
+          <option value="">All Statuses</option>
+          <option value="PAID">PAID / SETTLED</option>
+          <option value="PENDING">PENDING</option>
+          <option value="FAILED">FAILED</option>
+          <option value="REFUNDED">REFUNDED</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Quick filter tags -->
+    <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-border-primary/50 text-xs">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-slate-400 font-semibold text-[11px]">Quick View:</span>
+        <button 
+          (click)="toggleMisroutedOnly()"
+          class="px-2.5 py-1 rounded-lg font-bold transition-all text-xs flex items-center gap-1.5 cursor-pointer"
+          [ngClass]="misroutedOnly() 
+            ? 'bg-amber-500 text-white shadow-xs' 
+            : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25'">
+          <span>⚠️ Misrouted Only</span>
+          @if (summary().unreconciled_misrouted_count > 0) {
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-white text-amber-700 font-black">
+              {{ summary().unreconciled_misrouted_count }}
+            </span>
+          }
+        </button>
+
+        <button 
+          (click)="selectedCategory.set('SCHOOL_FEES'); onFilterChange()"
+          class="px-2.5 py-1 rounded-lg font-bold text-xs bg-slate-100 dark:bg-bg-tertiary hover:text-accent-primary transition-colors cursor-pointer"
+          [class.text-accent-primary]="selectedCategory() === 'SCHOOL_FEES'">
+          School Fees
+        </button>
+
+        <button 
+          (click)="selectedCategory.set('SUBSCRIPTION'); onFilterChange()"
+          class="px-2.5 py-1 rounded-lg font-bold text-xs bg-slate-100 dark:bg-bg-tertiary hover:text-accent-primary transition-colors cursor-pointer"
+          [class.text-accent-primary]="selectedCategory() === 'SUBSCRIPTION'">
+          SaaS Subscriptions
+        </button>
+
+        <button 
+          (click)="selectedCategory.set('SMS_TOPUP'); onFilterChange()"
+          class="px-2.5 py-1 rounded-lg font-bold text-xs bg-slate-100 dark:bg-bg-tertiary hover:text-accent-primary transition-colors cursor-pointer"
+          [class.text-accent-primary]="selectedCategory() === 'SMS_TOPUP'">
+          SMS Top-Ups
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button 
+          (click)="resetFilters()" 
+          class="text-slate-400 hover:text-slate-700 dark:hover:text-text-primary text-[11px] font-bold uppercase transition-colors cursor-pointer">
+          Clear Filters
+        </button>
+        <span class="text-slate-400 dark:text-text-muted font-medium text-[11px]">
+          Showing <strong>{{ transactions().length }}</strong> of <strong>{{ totalCount() }}</strong> records
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transactions Table Panel -->
+  <div class="rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200/80 dark:border-border-primary shadow-xs overflow-hidden">
+    
+    @if (isLoading()) {
+      <div class="p-16 flex flex-col items-center justify-center gap-3 text-slate-400 dark:text-text-muted">
+        <svg class="w-8 h-8 animate-spin text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        <span class="text-xs font-semibold">Aggregating real-time platform transactions across all schools...</span>
+      </div>
+    } @else if (transactions().length === 0) {
+      <div class="p-16 text-center space-y-3">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-slate-100 dark:bg-bg-tertiary flex items-center justify-center text-slate-400">
+          <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <h3 class="text-sm font-bold text-slate-800 dark:text-text-primary">No transactions found</h3>
+        <p class="text-xs text-slate-400 dark:text-text-muted max-w-sm mx-auto">
+          No records match the current filter criteria or no payments have been processed yet.
+        </p>
+        <button (click)="resetFilters()" class="text-xs font-bold text-accent-primary hover:underline cursor-pointer">
+          Reset all filters
+        </button>
+      </div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b border-slate-200 dark:border-border-primary bg-slate-50/75 dark:bg-bg-tertiary/40 text-[10px] font-black text-slate-400 dark:text-text-muted uppercase tracking-wider">
+              <th class="py-3.5 px-4">Transaction / Date</th>
+              <th class="py-3.5 px-4">School Institution</th>
+              <th class="py-3.5 px-4">Payer / Student</th>
+              <th class="py-3.5 px-4">Category</th>
+              <th class="py-3.5 px-4 text-right">Amount (GHS)</th>
+              <th class="py-3.5 px-4">Fund Routing & Account</th>
+              <th class="py-3.5 px-4">Status & Settlement</th>
+              <th class="py-3.5 px-4 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-border-primary/50">
+            @for (tx of transactions(); track tx.id + tx.reference) {
+              <tr 
+                (click)="openDetails(tx)"
+                class="hover:bg-slate-50/90 dark:hover:bg-bg-tertiary/30 transition-colors cursor-pointer group"
+                [ngClass]="tx.is_misrouted && !tx.reconciled ? 'bg-amber-500/5 dark:bg-amber-500/5' : ''">
+                
+                <!-- Transaction Ref & Date -->
+                <td class="py-3.5 px-4">
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-mono font-bold text-slate-900 dark:text-white group-hover:text-accent-primary transition-colors">
+                      {{ tx.reference }}
+                    </span>
+                    <button 
+                      (click)="$event.stopPropagation(); copyToClipboard(tx.reference)"
+                      title="Copy Reference"
+                      class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                    @if (copiedRef() === tx.reference) {
+                      <span class="text-[9px] font-bold text-emerald-500 animate-fade-in">Copied!</span>
+                    }
+                  </div>
+                  <div class="text-[11px] text-slate-400 dark:text-text-muted mt-0.5 flex items-center gap-1.5">
+                    <span>{{ tx.created_at | date:'medium' }}</span>
+                    @if (tx.channel) {
+                      <span class="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-slate-100 dark:bg-bg-tertiary text-slate-600 dark:text-slate-300 uppercase">
+                        {{ tx.channel }}
+                      </span>
+                    }
+                  </div>
+                </td>
+
+                <!-- School / Subdomain -->
+                <td class="py-3.5 px-4">
+                  <div class="font-bold text-slate-900 dark:text-white truncate max-w-[180px]">
+                    {{ tx.tenant_name || 'Platform Level' }}
+                  </div>
+                  <div class="text-[10px] text-accent-primary font-mono font-semibold">
+                    {{ tx.tenant_subdomain ? '@' + tx.tenant_subdomain : 'system' }}
+                  </div>
+                </td>
+
+                <!-- Payer Info -->
+                <td class="py-3.5 px-4">
+                  <div class="font-semibold text-slate-800 dark:text-text-primary truncate max-w-[170px]">
+                    {{ tx.payer_name || tx.payer_email || 'Direct Payer' }}
+                  </div>
+                  <div class="text-[10px] text-slate-400 dark:text-text-muted truncate max-w-[170px]">
+                    {{ tx.payer_phone || tx.payer_email || 'No contact provided' }}
+                  </div>
+                </td>
+
+                <!-- Category -->
+                <td class="py-3.5 px-4">
+                  <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold border inline-block" [ngClass]="getCategoryBadge(tx.category).class">
+                    {{ getCategoryBadge(tx.category).label }}
+                  </span>
+                </td>
+
+                <!-- Amount -->
+                <td class="py-3.5 px-4 text-right">
+                  <div class="font-mono font-black text-slate-900 dark:text-white text-sm" [class.line-through]="tx.refunded">
+                    GHS {{ tx.amount | number:'1.2-2' }}
+                  </div>
+                  @if (tx.refunded) {
+                    <span class="text-[9px] font-bold text-rose-500 uppercase">Refunded</span>
+                  }
+                </td>
+
+                <!-- Routing & Account Detection -->
+                <td class="py-3.5 px-4">
+                  @if (tx.routing_type === 'SUBACCOUNT') {
+                    <div class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold text-[11px]">
+                      <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>School Bank Subaccount</span>
+                    </div>
+                    <div class="text-[10px] font-mono text-slate-400 dark:text-text-muted mt-0.5">
+                      {{ tx.subaccount_code || 'Direct Subaccount Split' }}
+                    </div>
+                  } @else if (tx.is_misrouted && !tx.reconciled) {
+                    <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-600 dark:text-amber-400 font-black text-[10px] uppercase animate-pulse">
+                      <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <span>MISROUTED TO PLATFORM</span>
+                    </div>
+                    <div class="text-[10px] text-amber-600 dark:text-amber-400/80 mt-0.5 font-medium">
+                      School fee landed in SuperAdmin account
+                    </div>
+                  } @else if (tx.is_misrouted && tx.reconciled) {
+                    <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-blue-500/15 border border-blue-500/30 text-blue-600 dark:text-blue-400 font-bold text-[10px]">
+                      <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>RECONCILED & REMITTED</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 dark:text-text-muted mt-0.5">
+                      Ref: {{ tx.reconciliation_ref }}
+                    </div>
+                  } @else {
+                    <div class="flex items-center gap-1.5 text-purple-600 dark:text-purple-400 font-bold text-[11px]">
+                      <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      <span>Main Platform Account</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 dark:text-text-muted mt-0.5">
+                      SchoolLinx Master Paystack
+                    </div>
+                  }
+                </td>
+
+                <!-- Status & Reconciliation -->
+                <td class="py-3.5 px-4">
+                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black border inline-block" [ngClass]="getStatusBadge(tx.status).class">
+                    {{ getStatusBadge(tx.status).label }}
+                  </span>
+                  @if (tx.refunded) {
+                    <div class="text-[10px] text-rose-500 font-medium mt-0.5">
+                      Reason: {{ tx.refund_reason }}
+                    </div>
+                  }
+                </td>
+
+                <!-- Action Buttons -->
+                <td class="py-3.5 px-4 text-center">
+                  <div class="flex items-center justify-center gap-1.5" (click)="$event.stopPropagation()">
+                    
+                    <!-- Remit / Reconcile Button (For misrouted fees) -->
+                    @if (tx.is_misrouted && !tx.reconciled) {
+                      <button 
+                        (click)="openReconcile(tx, $event)"
+                        title="Remit funds offline and record reconciliation"
+                        class="px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-500 text-white hover:bg-amber-600 transition-colors shadow-xs cursor-pointer flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Remit</span>
+                      </button>
+                    }
+
+                    <!-- Verify Live Button -->
+                    <button 
+                      (click)="verifyTransaction(tx, $event)"
+                      title="Re-verify settlement with Paystack"
+                      class="p-1.5 rounded-lg text-slate-500 hover:text-accent-primary hover:bg-slate-100 dark:hover:bg-bg-tertiary transition-colors cursor-pointer">
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                    </button>
+
+                    <!-- Refund Button -->
+                    @if (tx.status === 'PAID' && !tx.refunded) {
+                      <button 
+                        (click)="openRefund(tx, $event)"
+                        title="Record Refund to Payer"
+                        class="p-1.5 rounded-lg text-slate-500 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
+                        </svg>
+                      </button>
+                    }
+
+                    <!-- Details Eye -->
+                    <button 
+                      (click)="openDetails(tx)"
+                      title="View Complete Transaction Audit"
+                      class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-bg-tertiary transition-colors cursor-pointer">
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </button>
+
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Footer -->
+      <div class="px-4 py-3 border-t border-slate-200 dark:border-border-primary bg-slate-50/50 dark:bg-bg-tertiary/20 flex items-center justify-between text-xs">
+        <div class="text-slate-500 dark:text-text-muted">
+          Page <strong>{{ page() }}</strong> ({{ transactions().length }} records loaded)
+        </div>
+        <div class="flex items-center gap-2">
+          <button 
+            [disabled]="page() <= 1 || isLoading()"
+            (click)="page.set(page() - 1); loadTransactions()"
+            class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-border-primary bg-white dark:bg-bg-secondary text-slate-700 dark:text-text-primary hover:bg-slate-50 disabled:opacity-40 cursor-pointer font-semibold">
+            Previous
+          </button>
+          <button 
+            [disabled]="transactions().length < pageSize() || isLoading()"
+            (click)="page.set(page() + 1); loadTransactions()"
+            class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-border-primary bg-white dark:bg-bg-secondary text-slate-700 dark:text-text-primary hover:bg-slate-50 disabled:opacity-40 cursor-pointer font-semibold">
+            Next
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- MODAL 1: RECONCILE / REMIT MODAL -->
+  @if (reconcileModalTx(); as tx) {
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+      <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200 dark:border-border-primary shadow-2xl p-6 space-y-5 animate-scale-in text-slate-800 dark:text-text-primary">
+        
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-600 flex items-center justify-center">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-base font-black text-slate-900 dark:text-white">Remit & Reconcile Funds</h3>
+              <p class="text-xs text-slate-400 dark:text-text-muted">Transfer misrouted school fee to school's bank account</p>
+            </div>
+          </div>
+          <button (click)="closeReconcile()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">×</button>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-50 dark:bg-bg-tertiary/50 border border-slate-200/80 dark:border-border-primary/50 text-xs space-y-2">
+          <div class="flex justify-between">
+            <span class="text-slate-400 font-medium">Payment Reference:</span>
+            <span class="font-mono font-bold">{{ tx.reference }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400 font-medium">Beneficiary School:</span>
+            <span class="font-bold text-accent-primary">{{ tx.tenant_name }} ({{ tx.tenant_subdomain }})</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400 font-medium">Payer:</span>
+            <span class="font-semibold">{{ tx.payer_name || tx.payer_email || 'Student/Parent' }}</span>
+          </div>
+          <div class="flex justify-between border-t border-slate-200 dark:border-border-primary pt-2">
+            <span class="text-slate-700 dark:text-white font-bold">Amount to Remit:</span>
+            <span class="font-mono font-black text-emerald-600 dark:text-emerald-400 text-sm">GHS {{ tx.amount | number:'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-text-secondary mb-1">
+              Bank / MoMo Remittance Reference <span class="text-rose-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              [(ngModel)]="reconciliationRef" 
+              placeholder="e.g. GCB-TRANSFER-948194 or MOMO-TX-4819"
+              class="w-full px-3 py-2 text-xs rounded-xl bg-slate-100/80 dark:bg-bg-primary border border-slate-200 dark:border-border-primary text-slate-900 dark:text-white focus:outline-none focus:border-accent-primary font-mono" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-text-secondary mb-1">
+              Reconciliation & Settlement Notes
+            </label>
+            <textarea 
+              [(ngModel)]="reconciliationNotes" 
+              rows="3"
+              placeholder="Optional details regarding remittance method, recipient confirmation, or date..."
+              class="w-full px-3 py-2 text-xs rounded-xl bg-slate-100/80 dark:bg-bg-primary border border-slate-200 dark:border-border-primary text-slate-900 dark:text-white focus:outline-none focus:border-accent-primary resize-none"></textarea>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button 
+            (click)="closeReconcile()"
+            class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-bg-tertiary text-slate-700 dark:text-text-primary hover:bg-slate-200 cursor-pointer">
+            Cancel
+          </button>
+          <button 
+            (click)="confirmReconciliation()"
+            [disabled]="isActionLoading()"
+            class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 shadow-md shadow-emerald-600/20 cursor-pointer disabled:opacity-50 flex items-center gap-2">
+            @if (isActionLoading()) {
+              <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            }
+            <span>Confirm Remittance & Reconcile</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL 2: REFUND MODAL -->
+  @if (refundModalTx(); as tx) {
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+      <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-bg-secondary border border-slate-200 dark:border-border-primary shadow-2xl p-6 space-y-5 animate-scale-in text-slate-800 dark:text-text-primary">
+        
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-rose-500/15 text-rose-600 flex items-center justify-center">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-base font-black text-slate-900 dark:text-white">Record Transaction Refund</h3>
+              <p class="text-xs text-slate-400 dark:text-text-muted">Issue or log refund to student/payer</p>
+            </div>
+          </div>
+          <button (click)="closeRefund()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">×</button>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-50 dark:bg-bg-tertiary/50 border border-slate-200/80 dark:border-border-primary/50 text-xs space-y-2">
+          <div class="flex justify-between">
+            <span class="text-slate-400 font-medium">Transaction:</span>
+            <span class="font-mono font-bold">{{ tx.reference }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400 font-medium">Original Paid Amount:</span>
+            <span class="font-mono font-black text-slate-900 dark:text-white">GHS {{ tx.amount | number:'1.2-2' }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400 font-medium">Payer:</span>
+            <span class="font-semibold">{{ tx.payer_name || tx.payer_email }}</span>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-text-secondary mb-1">
+              Refund Amount (GHS) <span class="text-rose-500">*</span>
+            </label>
+            <input 
+              type="number" 
+              [(ngModel)]="refundAmount" 
+              class="w-full px-3 py-2 text-xs rounded-xl bg-slate-100/80 dark:bg-bg-primary border border-slate-200 dark:border-border-primary text-slate-900 dark:text-white focus:outline-none focus:border-accent-primary font-mono font-bold" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-text-secondary mb-1">
+              Reason for Refund <span class="text-rose-500">*</span>
+            </label>
+            <textarea 
+              [(ngModel)]="refundReason" 
+              rows="3"
+              placeholder="e.g. Duplicate payment, fee adjustment, student withdrawal..."
+              class="w-full px-3 py-2 text-xs rounded-xl bg-slate-100/80 dark:bg-bg-primary border border-slate-200 dark:border-border-primary text-slate-900 dark:text-white focus:outline-none focus:border-accent-primary resize-none"></textarea>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button 
+            (click)="closeRefund()"
+            class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-bg-tertiary text-slate-700 dark:text-text-primary hover:bg-slate-200 cursor-pointer">
+            Cancel
+          </button>
+          <button 
+            (click)="confirmRefund()"
+            [disabled]="isActionLoading()"
+            class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 text-white hover:bg-rose-700 shadow-md shadow-rose-600/20 cursor-pointer disabled:opacity-50 flex items-center gap-2">
+            @if (isActionLoading()) {
+              <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            }
+            <span>Process Refund Record</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL 3: FULL AUDIT & DETAILS DRAWER/MODAL -->
+  @if (showDetailModal() && selectedTx(); as tx) {
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+      <div class="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-bg-secondary border border-slate-200 dark:border-border-primary shadow-2xl p-6 space-y-6 animate-scale-in text-slate-800 dark:text-text-primary">
+        
+        <!-- Header -->
+        <div class="flex items-start justify-between border-b border-slate-200 dark:border-border-primary pb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs px-2.5 py-0.5 rounded-full font-bold uppercase" [ngClass]="getCategoryBadge(tx.category).class">
+                {{ getCategoryBadge(tx.category).label }}
+              </span>
+              <span class="text-xs px-2.5 py-0.5 rounded-full font-bold uppercase" [ngClass]="getStatusBadge(tx.status).class">
+                {{ getStatusBadge(tx.status).label }}
+              </span>
+            </div>
+            <h2 class="text-xl font-black text-slate-900 dark:text-white font-mono mt-2 flex items-center gap-2">
+              {{ tx.reference }}
+              <button (click)="copyToClipboard(tx.reference)" class="text-slate-400 hover:text-slate-200">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+            </h2>
+          </div>
+          <button (click)="closeDetails()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold">×</button>
+        </div>
+
+        <!-- Misrouted Alert Callout -->
+        @if (tx.is_misrouted && !tx.reconciled) {
+          <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2">
+            <div class="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-xs">
+              <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>ACTION REQUIRED: Payment Misrouted into Platform Account</span>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-text-muted">
+              {{ tx.misrouted_reason || 'This school fee payment was processed into the Platform Main Account because the school had not configured a Paystack Subaccount at checkout time.' }}
+            </p>
+            <div class="pt-1">
+              <button 
+                (click)="closeDetails(); openReconcile(tx)"
+                class="px-3 py-1.5 rounded-xl bg-amber-500 text-white font-bold text-xs hover:bg-amber-600 shadow-xs cursor-pointer">
+                Remit & Reconcile to School Now
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- Details Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          
+          <!-- Financial Details -->
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-bg-tertiary/40 border border-slate-200/80 dark:border-border-primary/50 space-y-3">
+            <h4 class="font-bold uppercase tracking-wider text-slate-400 text-[10px]">Financial Summary</h4>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Total Amount:</span>
+              <span class="font-mono font-black text-slate-900 dark:text-white text-base">GHS {{ tx.amount | number:'1.2-2' }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Payment Gateway:</span>
+              <span class="font-semibold">{{ tx.provider }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Channel / Method:</span>
+              <span class="font-semibold uppercase">{{ tx.channel || 'Paystack Checkout' }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Timestamp:</span>
+              <span class="font-medium">{{ tx.created_at | date:'medium' }}</span>
+            </div>
+          </div>
+
+          <!-- School / Tenant Details -->
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-bg-tertiary/40 border border-slate-200/80 dark:border-border-primary/50 space-y-3">
+            <h4 class="font-bold uppercase tracking-wider text-slate-400 text-[10px]">Beneficiary School</h4>
+            <div class="flex justify-between">
+              <span class="text-slate-400">School Name:</span>
+              <span class="font-bold text-slate-900 dark:text-white">{{ tx.tenant_name || 'System / Platform' }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Subdomain:</span>
+              <span class="font-mono text-accent-primary font-bold">{{ tx.tenant_subdomain || 'N/A' }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Routing Mode:</span>
+              <span class="font-bold" [ngClass]="tx.routing_type === 'SUBACCOUNT' ? 'text-emerald-500' : 'text-purple-400'">
+                {{ tx.routing_type }}
+              </span>
+            </div>
+            @if (tx.subaccount_code) {
+              <div class="flex justify-between">
+                <span class="text-slate-400">Subaccount Code:</span>
+                <span class="font-mono text-[11px]">{{ tx.subaccount_code }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Payer Info -->
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-bg-tertiary/40 border border-slate-200/80 dark:border-border-primary/50 space-y-3 sm:col-span-2">
+            <h4 class="font-bold uppercase tracking-wider text-slate-400 text-[10px]">Payer & Student Context</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <span class="block text-slate-400 text-[11px]">Payer Name</span>
+                <span class="font-bold text-slate-900 dark:text-white">{{ tx.payer_name || 'Direct Payer' }}</span>
+              </div>
+              <div>
+                <span class="block text-slate-400 text-[11px]">Payer Email</span>
+                <span class="font-medium text-slate-700 dark:text-text-secondary">{{ tx.payer_email || 'Not recorded' }}</span>
+              </div>
+              <div>
+                <span class="block text-slate-400 text-[11px]">Payer Phone / Mobile</span>
+                <span class="font-mono font-medium text-slate-700 dark:text-text-secondary">{{ tx.payer_phone || 'Not recorded' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reconciliation Record (If Any) -->
+          @if (tx.reconciled) {
+            <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-2 sm:col-span-2">
+              <h4 class="font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 text-[10px]">Remittance & Reconciliation Record</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div>
+                  <span class="block text-slate-400 text-[11px]">Remittance Ref</span>
+                  <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">{{ tx.reconciliation_ref }}</span>
+                </div>
+                <div>
+                  <span class="block text-slate-400 text-[11px]">Reconciled By</span>
+                  <span class="font-bold">{{ tx.reconciled_by }}</span>
+                </div>
+                <div>
+                  <span class="block text-slate-400 text-[11px]">Reconciled Date</span>
+                  <span>{{ tx.reconciled_at | date:'medium' }}</span>
+                </div>
+              </div>
+              @if (tx.reconciliation_notes) {
+                <div class="pt-2 text-xs text-slate-600 dark:text-text-muted border-t border-emerald-500/20">
+                  <span class="font-semibold text-slate-700 dark:text-white">Admin Notes: </span>{{ tx.reconciliation_notes }}
+                </div>
+              }
+            </div>
+          }
+
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="flex items-center justify-between border-t border-slate-200 dark:border-border-primary pt-4">
+          <div class="flex items-center gap-2">
+            <button 
+              (click)="verifyTransaction(tx)"
+              class="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-border-primary bg-white dark:bg-bg-tertiary text-slate-700 dark:text-text-primary hover:bg-slate-50 cursor-pointer flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              <span>Verify with Paystack API</span>
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            @if (tx.status === 'PAID' && !tx.refunded) {
+              <button 
+                (click)="closeDetails(); openRefund(tx)"
+                class="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 cursor-pointer">
+                Record Refund
+              </button>
+            }
+            <button 
+              (click)="closeDetails()"
+              class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 cursor-pointer">
+              Close
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>

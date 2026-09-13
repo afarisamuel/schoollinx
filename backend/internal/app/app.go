@@ -186,7 +186,7 @@ func (a *App) setupRoutes() {
 	handler.NewAuditHandler(superAdmin, usecases.Audit)
 
 	financeGroup := superAdmin.Group("/finance")
-	handler.NewFinanceHandler(financeGroup, a.DB)
+	handler.NewFinanceHandler(financeGroup, a.DB, infra.Paystack)
 
 	affiliateGroup := superAdmin.Group("/affiliates")
 	handler.NewAffiliateHandler(affiliateGroup, a.DB)

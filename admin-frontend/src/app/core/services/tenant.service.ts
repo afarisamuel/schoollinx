@@ -268,4 +268,109 @@ export class TenantService {
   bulkImportTenants(manifest: any[]): Observable<any> {
     return this.http.post<any>(`${this.systemUrl}/tenants/bulk-import`, manifest);
   }
+
+  // Super Admin Platform Transactions & Reconciliation Ledger
+  getPlatformTransactions(params?: {
+    tenant_id?: string;
+    category?: string;
+    routing_type?: string;
+    status?: string;
+    misrouted_only?: boolean;
+    search?: string;
+    start_date?: string;
+    end_date?: string;
+    page?: number;
+    limit?: number;
+  }): Observable<PlatformTransactionsResponse> {
+    const queryParams: any = {};
+    if (params) {
+      Object.keys(params).forEach(k => {
+        const val = (params as any)[k];
+        if (val !== undefined && val !== null && val !== '') {
+          queryParams[k] = val;
+        }
+      });
+    }
+    return this.http.get<PlatformTransactionsResponse>(`${this.systemUrl}/finance/transactions`, { params: queryParams });
+  }
+
+  reconcilePayment(reference: string, req: ReconcilePaymentRequest): Observable<any> {
+    return this.http.post<any>(`${this.systemUrl}/finance/transactions/${reference}/reconcile`, req);
+  }
+
+  refundPayment(reference: string, req: RefundPaymentRequest): Observable<any> {
+    return this.http.post<any>(`${this.systemUrl}/finance/transactions/${reference}/refund`, req);
+  }
+
+  verifyPlatformPayment(reference: string): Observable<any> {
+    return this.http.post<any>(`${this.systemUrl}/finance/transactions/${reference}/verify`, {});
+  }
+}
+
+export interface PlatformPaymentRecord {
+  id: string;
+  source: string;
+  tenant_id: string;
+  tenant_name: string;
+  tenant_subdomain: string;
+  student_id?: string;
+  payer_id?: string;
+  payer_name?: string;
+  payer_email?: string;
+  payer_phone?: string;
+  amount: number;
+  reference: string;
+  channel?: string;
+  category: 'SCHOOL_FEES' | 'WALLET_TOPUP' | 'SUBSCRIPTION' | 'SMS_TOPUP' | 'OTHER';
+  routing_type: 'SUBACCOUNT' | 'MAIN_ACCOUNT' | 'CUSTOM_KEYS';
+  subaccount_code?: string;
+  subaccount_name?: string;
+  status: 'PAID' | 'PENDING' | 'FAILED' | 'REFUNDED';
+  provider: string;
+  is_misrouted: boolean;
+  misrouted_reason?: string;
+  reconciled: boolean;
+  reconciled_at?: string;
+  reconciled_by?: string;
+  reconciliation_ref?: string;
+  reconciliation_notes?: string;
+  refunded: boolean;
+  refund_reason?: string;
+  refund_amount?: number;
+  refunded_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlatformFinanceLedgerSummary {
+  total_volume: number;
+  total_transactions: number;
+  subaccount_volume: number;
+  subaccount_transactions: number;
+  main_account_volume: number;
+  main_account_transactions: number;
+  misrouted_volume: number;
+  misrouted_count: number;
+  unreconciled_misrouted_count: number;
+  total_refunded_volume: number;
+}
+
+export interface PlatformTransactionsResponse {
+  transactions: PlatformPaymentRecord[];
+  total: number;
+  page: number;
+  limit: number;
+  summary: PlatformFinanceLedgerSummary;
+}
+
+export interface ReconcilePaymentRequest {
+  reconciliation_ref?: string;
+  reconciliation_notes?: string;
+  reconciled_by?: string;
+}
+
+export interface RefundPaymentRequest {
+  refund_amount?: number;
+  refund_reason: string;
+  refunded_by?: string;
 }

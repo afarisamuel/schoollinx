@@ -1,12 +1,13 @@
 import { Component, inject, signal, ChangeDetectionStrategy, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
+import { RouterLink } from '@angular/router';
 import { TenantService } from '../../core/services/tenant.service';
 
 @Component({
   selector: 'app-finance',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './finance.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })

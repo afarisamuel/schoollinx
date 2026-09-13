@@ -58,9 +58,11 @@ func (fs *FeeStructure) BeforeCreate(tx *gorm.DB) (err error) {
 type PaymentStatus string
 
 const (
-	PaymentStatusPending PaymentStatus = "PENDING"
-	PaymentStatusPaid    PaymentStatus = "PAID"
-	PaymentStatusOverdue PaymentStatus = "OVERDUE"
+	PaymentStatusPending  PaymentStatus = "PENDING"
+	PaymentStatusPaid     PaymentStatus = "PAID"
+	PaymentStatusOverdue  PaymentStatus = "OVERDUE"
+	PaymentStatusRefunded PaymentStatus = "REFUNDED"
+	PaymentStatusFailed   PaymentStatus = "FAILED"
 )
 
 type FeeBreakdownItem struct {
