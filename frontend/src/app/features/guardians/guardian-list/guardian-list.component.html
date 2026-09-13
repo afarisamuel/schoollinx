@@ -64,94 +64,94 @@
   </div>
 
   <!-- Telemetry KPI Metric Cards Grid -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-5">
     
     <!-- 1. Total Registered Guardians -->
-    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 shadow-sm hover:border-blue-500/30 transition-all relative overflow-hidden group">
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-3.5 sm:p-5 shadow-sm hover:border-blue-500/30 transition-all relative overflow-hidden group">
       <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl group-hover:bg-blue-500/10 transition-colors"></div>
-      <div class="flex items-center justify-between mb-3 relative z-10">
-        <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">Total Guardians</span>
-        <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center text-base group-hover:scale-110 transition-transform">
+      <div class="flex items-center justify-between mb-2 sm:mb-3 relative z-10">
+        <span class="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-text-muted">Total Guardians</span>
+        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center text-xs sm:text-base group-hover:scale-110 transition-transform">
           <i class="fas fa-users-viewfinder"></i>
         </div>
       </div>
-      <div class="flex items-baseline gap-2 relative z-10">
-        <span class="text-3xl font-black text-text-primary tracking-tight">{{ totalGuardians() }}</span>
-        <span class="text-[11px] font-bold text-text-muted">registered</span>
+      <div class="flex items-baseline gap-1.5 sm:gap-2 relative z-10">
+        <span class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight">{{ totalGuardians() }}</span>
+        <span class="text-[10px] sm:text-[11px] font-bold text-text-muted">registered</span>
       </div>
-      <div class="flex items-center justify-between mt-3 pt-3 border-t border-border-primary/50 text-[11px] text-text-muted relative z-10">
-        <span class="flex items-center gap-1.5">
-          <i class="fas fa-eye text-blue-400"></i>
-          <span>{{ filteredGuardians().length }} in view</span>
+      <div class="flex items-center justify-between mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-border-primary/50 text-[10px] sm:text-[11px] text-text-muted relative z-10">
+        <span class="flex items-center gap-1.5 truncate">
+          <i class="fas fa-eye text-blue-400 shrink-0"></i>
+          <span class="truncate">{{ filteredGuardians().length }} in view</span>
         </span>
-        <span class="font-bold text-text-primary">Institutional Core</span>
+        <span class="font-bold text-text-primary hidden sm:inline">Institutional Core</span>
       </div>
     </div>
 
     <!-- 2. Portal Provisioned Accounts -->
-    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 shadow-sm hover:border-emerald-500/30 transition-all relative overflow-hidden group">
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-3.5 sm:p-5 shadow-sm hover:border-emerald-500/30 transition-all relative overflow-hidden group">
       <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition-colors"></div>
-      <div class="flex items-center justify-between mb-3 relative z-10">
-        <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">Portal Accounts</span>
-        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-base group-hover:scale-110 transition-transform">
+      <div class="flex items-center justify-between mb-2 sm:mb-3 relative z-10">
+        <span class="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-text-muted">Portal Access</span>
+        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-xs sm:text-base group-hover:scale-110 transition-transform">
           <i class="fas fa-shield-halved"></i>
         </div>
       </div>
-      <div class="flex items-baseline gap-2 relative z-10">
-        <span class="text-3xl font-black text-emerald-400 tracking-tight">{{ activePortals() }}</span>
-        <span class="text-xs font-bold text-emerald-400/80">({{ portalCoveragePct() }}%)</span>
+      <div class="flex items-baseline gap-1.5 sm:gap-2 relative z-10">
+        <span class="text-2xl sm:text-3xl font-black text-emerald-400 tracking-tight">{{ activePortals() }}</span>
+        <span class="text-[10px] sm:text-xs font-bold text-emerald-400/80">({{ portalCoveragePct() }}%)</span>
       </div>
       <!-- Mini Progress Bar -->
-      <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3 relative z-10">
+      <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-2 sm:mt-3 relative z-10">
         <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500" [style.width.%]="portalCoveragePct()"></div>
       </div>
-      <div class="flex items-center justify-between mt-2 text-[11px] text-text-muted relative z-10">
+      <div class="flex items-center justify-between mt-2 text-[10px] sm:text-[11px] text-text-muted relative z-10">
         <span>Active logins</span>
         <span class="font-bold text-emerald-400">{{ totalGuardians() - activePortals() }} pending</span>
       </div>
     </div>
 
     <!-- 3. Linked Student Wards -->
-    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 shadow-sm hover:border-indigo-500/30 transition-all relative overflow-hidden group">
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-3.5 sm:p-5 shadow-sm hover:border-indigo-500/30 transition-all relative overflow-hidden group">
       <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-xl group-hover:bg-indigo-500/10 transition-colors"></div>
-      <div class="flex items-center justify-between mb-3 relative z-10">
-        <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">Linked Student Wards</span>
-        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center text-base group-hover:scale-110 transition-transform">
+      <div class="flex items-center justify-between mb-2 sm:mb-3 relative z-10">
+        <span class="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-text-muted">Linked Wards</span>
+        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center text-xs sm:text-base group-hover:scale-110 transition-transform">
           <i class="fas fa-graduation-cap"></i>
         </div>
       </div>
-      <div class="flex items-baseline gap-2 relative z-10">
-        <span class="text-3xl font-black text-indigo-400 tracking-tight">{{ totalLinkedWards() }}</span>
-        <span class="text-[11px] font-bold text-text-muted">connected</span>
+      <div class="flex items-baseline gap-1.5 sm:gap-2 relative z-10">
+        <span class="text-2xl sm:text-3xl font-black text-indigo-400 tracking-tight">{{ totalLinkedWards() }}</span>
+        <span class="text-[10px] sm:text-[11px] font-bold text-text-muted">connected</span>
       </div>
-      <div class="flex items-center justify-between mt-3 pt-3 border-t border-border-primary/50 text-[11px] text-text-muted relative z-10">
-        <span class="flex items-center gap-1.5">
-          <i class="fas fa-link text-indigo-400"></i>
-          <span>Avg {{ totalGuardians() ? ((totalLinkedWards() / totalGuardians()) | number:'1.1-1') : '0' }} / guardian</span>
+      <div class="flex items-center justify-between mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-border-primary/50 text-[10px] sm:text-[11px] text-text-muted relative z-10">
+        <span class="flex items-center gap-1.5 truncate">
+          <i class="fas fa-link text-indigo-400 shrink-0"></i>
+          <span class="truncate">Avg {{ totalGuardians() ? ((totalLinkedWards() / totalGuardians()) | number:'1.1-1') : '0' }}/gdn</span>
         </span>
-        <span class="font-bold text-text-primary">Family Ties</span>
+        <span class="font-bold text-text-primary hidden sm:inline">Family Ties</span>
       </div>
     </div>
 
     <!-- 4. Verified Contact Reach -->
-    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 shadow-sm hover:border-amber-500/30 transition-all relative overflow-hidden group">
+    <div class="bg-bg-secondary border border-border-primary rounded-2xl p-3.5 sm:p-5 shadow-sm hover:border-amber-500/30 transition-all relative overflow-hidden group">
       <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-xl group-hover:bg-amber-500/10 transition-colors"></div>
-      <div class="flex items-center justify-between mb-3 relative z-10">
-        <span class="text-[11px] font-black uppercase tracking-wider text-text-muted">Contact Coverage</span>
-        <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center text-base group-hover:scale-110 transition-transform">
+      <div class="flex items-center justify-between mb-2 sm:mb-3 relative z-10">
+        <span class="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-text-muted">Reach</span>
+        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center text-xs sm:text-base group-hover:scale-110 transition-transform">
           <i class="fas fa-envelope-open-text"></i>
         </div>
       </div>
-      <div class="flex items-baseline gap-2 relative z-10">
-        <span class="text-3xl font-black text-amber-400 tracking-tight">{{ verifiedContactsPct() }}%</span>
-        <span class="text-[11px] font-bold text-text-muted">verified reach</span>
+      <div class="flex items-baseline gap-1.5 sm:gap-2 relative z-10">
+        <span class="text-2xl sm:text-3xl font-black text-amber-400 tracking-tight">{{ verifiedContactsPct() }}%</span>
+        <span class="text-[10px] sm:text-[11px] font-bold text-text-muted">verified</span>
       </div>
-      <div class="flex items-center justify-between mt-3 pt-3 border-t border-border-primary/50 text-[11px] text-text-muted relative z-10">
-        <span class="flex items-center gap-1.5">
-          <i class="fas fa-check-double text-amber-400"></i>
-          <span>{{ verifiedContactsCount() }} phone + email</span>
+      <div class="flex items-center justify-between mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-border-primary/50 text-[10px] sm:text-[11px] text-text-muted relative z-10">
+        <span class="flex items-center gap-1.5 truncate">
+          <i class="fas fa-check-double text-amber-400 shrink-0"></i>
+          <span class="truncate">{{ verifiedContactsCount() }} verified</span>
         </span>
-        <span class="font-bold text-text-primary">Reachable</span>
+        <span class="font-bold text-text-primary hidden sm:inline">Reachable</span>
       </div>
     </div>
 
