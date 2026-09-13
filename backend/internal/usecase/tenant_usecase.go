@@ -28,6 +28,7 @@ type TenantUseCase interface {
 	CreateTenantAdmin(ctx context.Context, id string, req CreateTenantAdminReq) error
 	UpdateBilling(ctx context.Context, id string, req BillingUpdateReq) error
 	InitializeSubscriptionPayment(ctx context.Context, tenantID string, payerEmail string, studentCount int, callbackURL ...string) (string, string, error)
+	GetSubscriptionSummary(ctx context.Context, tenantID string) (*domain.TenantSubscriptionSummary, error)
 	GetSubscriptionHistory(ctx context.Context, tenantID string) ([]domain.TenantSubscriptionPayment, error)
 	VerifySubscriptionPayment(ctx context.Context, tenantID string, reference string) error
 	ImpersonateTenant(ctx context.Context, id string) (string, error)
@@ -524,22 +525,109 @@ func (u *tenantUseCase) creditSubscriptionPayment(ctx context.Context, tenantID 
 		return fmt.Errorf("failed to update payment status: %w", err)
 	}
 
-	// Extend the tenant's billing due date by 4 months (approx 1 term)
 	var tenant domain.Tenant
 	if err := u.db.First(&tenant, "id = ?", tenantID).Error; err == nil {
 		now := time.Now()
-		if tenant.BillingDueDate != nil && tenant.BillingDueDate.After(now) {
-			newDate := tenant.BillingDueDate.AddDate(0, 4, 0)
-			tenant.BillingDueDate = &newDate
-		} else {
+		// If no due date or due date is expired, extend for a new 4-month term
+		if tenant.BillingDueDate == nil || tenant.BillingDueDate.Before(now) {
 			newDate := now.AddDate(0, 4, 0)
 			tenant.BillingDueDate = &newDate
-		}
-		if err := u.db.Save(&tenant).Error; err != nil {
-			logger.Error("Failed to update tenant billing due date", err, zap.String("tenant_id", tenantID.String()))
+			if err := u.db.Save(&tenant).Error; err != nil {
+				logger.Error("Failed to update tenant billing due date", err, zap.String("tenant_id", tenantID.String()))
+			}
 		}
 	}
 	return nil
+}
+
+func (u *tenantUseCase) GetSubscriptionSummary(ctx context.Context, tenantID string) (*domain.TenantSubscriptionSummary, error) {
+	uid, err := uuid.Parse(tenantID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid tenant ID: %w", err)
+	}
+
+	tenant, err := u.repo.GetByID(ctx, uid)
+	if err != nil {
+		return nil, fmt.Errorf("tenant not found: %w", err)
+	}
+
+	// 1. Count active enrolled students in this tenant's schema
+	var totalStudents int64 = 0
+	if tenant.SchemaName != "" {
+		_ = u.db.Table(tenant.SchemaName+".students").
+			Where("deleted_at IS NULL").
+			Count(&totalStudents).Error
+	}
+
+	summary := &domain.TenantSubscriptionSummary{
+		TotalStudents:      int(totalStudents),
+		PerStudentRate:     tenant.PerStudentPerTermRate,
+		TotalTermCost:      float64(totalStudents) * tenant.PerStudentPerTermRate,
+		BillingDueDate:     tenant.BillingDueDate,
+		Status:             "OVERDUE",
+		IsFullyCovered:     false,
+		PaidStudentCount:   0,
+		UnpaidStudentCount: int(totalStudents),
+		TotalDue:           float64(totalStudents) * tenant.PerStudentPerTermRate,
+	}
+
+	// 2. Fetch latest successful payment
+	var latestPayment domain.TenantSubscriptionPayment
+	if err := u.db.Where("tenant_id = ? AND status IN ('SUCCESS', 'PAID')", uid).
+		Order("created_at DESC").
+		First(&latestPayment).Error; err == nil {
+		summary.LatestPayment = &latestPayment
+	}
+
+	now := time.Now()
+	isTermActive := tenant.BillingDueDate != nil && tenant.BillingDueDate.After(now)
+
+	if isTermActive {
+		// Calculate covered students within the active billing cycle window (within 130 days prior to due date)
+		cycleStart := tenant.BillingDueDate.AddDate(0, -4, -10)
+		var paidCount int64 = 0
+		var payments []domain.TenantSubscriptionPayment
+		if err := u.db.Where("tenant_id = ? AND status IN ('SUCCESS', 'PAID') AND created_at >= ?", uid, cycleStart).
+			Find(&payments).Error; err == nil {
+			for _, p := range payments {
+				paidCount += int64(p.StudentCount)
+			}
+		}
+
+		summary.PaidStudentCount = int(paidCount)
+		unpaid := int(totalStudents) - int(paidCount)
+		if unpaid < 0 {
+			unpaid = 0
+		}
+		summary.UnpaidStudentCount = unpaid
+		summary.TotalDue = float64(unpaid) * tenant.PerStudentPerTermRate
+
+		if totalStudents == 0 || unpaid == 0 {
+			summary.Status = "ACTIVE"
+			summary.IsFullyCovered = true
+		} else {
+			summary.Status = "PARTIAL"
+			summary.IsFullyCovered = false
+		}
+	} else {
+		// Term is expired / overdue / not started
+		summary.PaidStudentCount = 0
+		summary.UnpaidStudentCount = int(totalStudents)
+		summary.TotalDue = float64(totalStudents) * tenant.PerStudentPerTermRate
+		summary.Status = "OVERDUE"
+		summary.IsFullyCovered = false
+	}
+
+	// Check if there is any pending payment in the last 24 hours
+	var pendingCount int64
+	u.db.Model(&domain.TenantSubscriptionPayment{}).
+		Where("tenant_id = ? AND status = 'PENDING' AND created_at >= ?", uid, now.Add(-24*time.Hour)).
+		Count(&pendingCount)
+	if pendingCount > 0 && summary.Status != "ACTIVE" {
+		summary.Status = "PENDING"
+	}
+
+	return summary, nil
 }
 
 func (u *tenantUseCase) GetSubscriptionHistory(ctx context.Context, tenantID string) ([]domain.TenantSubscriptionPayment, error) {

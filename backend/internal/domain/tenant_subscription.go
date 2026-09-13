@@ -22,3 +22,18 @@ type TenantSubscriptionPayment struct {
 	// Relationships
 	Tenant *Tenant `json:"tenant,omitempty" gorm:"foreignKey:TenantID"`
 }
+
+// TenantSubscriptionSummary represents the real-time billing and student delta subscription status of a school.
+type TenantSubscriptionSummary struct {
+	TotalStudents      int        `json:"total_students"`
+	PaidStudentCount   int        `json:"paid_student_count"`
+	UnpaidStudentCount int        `json:"unpaid_student_count"`
+	PerStudentRate     float64    `json:"per_student_rate"`
+	TotalDue           float64    `json:"total_due"`
+	TotalTermCost      float64    `json:"total_term_cost"`
+	BillingDueDate     *time.Time `json:"billing_due_date"`
+	Status             string     `json:"status"` // 'ACTIVE', 'PARTIAL', 'OVERDUE', 'PENDING'
+	IsFullyCovered     bool       `json:"is_fully_covered"`
+	LatestPayment      *TenantSubscriptionPayment `json:"latest_payment,omitempty"`
+}
+

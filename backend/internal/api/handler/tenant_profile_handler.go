@@ -35,6 +35,7 @@ func NewTenantProfileHandler(r *gin.RouterGroup, db *gorm.DB, uc usecase.TenantU
 	r.POST("/tenant/subscription/pay", h.InitializeSubscriptionPayment)
 	r.POST("/tenant/subscription/verify/:reference", h.VerifySubscriptionPayment)
 	r.GET("/tenant/subscription/history", h.GetSubscriptionHistory)
+	r.GET("/tenant/subscription/summary", h.GetSubscriptionSummary)
 }
 
 // NewPublicTenantHandler registers routes that do NOT require authentication.
@@ -468,5 +469,22 @@ func (h *TenantProfileHandler) VerifySubscriptionPayment(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Payment verified"})
 }
+
+func (h *TenantProfileHandler) GetSubscriptionSummary(c *gin.Context) {
+	tenantID, exists := middleware.GetTenantIDFromContext(c.Request.Context())
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tenant context not found"})
+		return
+	}
+
+	summary, err := h.uc.GetSubscriptionSummary(c.Request.Context(), tenantID.String())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, summary)
+}
+
 
 

@@ -7,6 +7,7 @@ import {
   TenantProfile, 
   TenantProfileService, 
   TenantSubscriptionPayment,
+  TenantSubscriptionSummary,
   PaystackCountry,
   PaystackBank,
   PaystackResolvedAccount,
@@ -41,9 +42,35 @@ export class SubscriptionBillingComponent implements OnInit {
   loading = signal(true);
   isPaymentLoading = signal(false);
 
-  // Student count
+  // Subscription Summary & Student Delta Headcount
+  subscriptionSummary = signal<TenantSubscriptionSummary | null>(null);
+  loadingSummary = signal(true);
   activeStudentCount = signal(0);
   loadingStudents = signal(true);
+
+  paidStudentCount = computed(() => this.subscriptionSummary()?.paid_student_count ?? 0);
+  unpaidStudentCount = computed(() => this.subscriptionSummary()?.unpaid_student_count ?? 0);
+  isFullyCovered = computed(() => this.subscriptionSummary()?.is_fully_covered ?? false);
+
+  totalDue = computed(() => {
+    const summary = this.subscriptionSummary();
+    if (summary) return summary.total_due;
+    const profile = this.tenantProfile();
+    return this.activeStudentCount() * (profile?.per_student_per_term_rate || 0);
+  });
+
+  totalTermCost = computed(() => {
+    const summary = this.subscriptionSummary();
+    if (summary) return summary.total_term_cost;
+    const profile = this.tenantProfile();
+    return this.activeStudentCount() * (profile?.per_student_per_term_rate || 0);
+  });
+
+  studentsToPay = computed(() => {
+    const summary = this.subscriptionSummary();
+    if (summary) return summary.unpaid_student_count;
+    return this.activeStudentCount();
+  });
 
   // Payment history
   history = signal<TenantSubscriptionPayment[]>([]);
@@ -53,13 +80,18 @@ export class SubscriptionBillingComponent implements OnInit {
   showPayModal = signal(false);
   payerEmail = signal('');
 
-  // Term payment status (derived from history + billing_due_date)
-  termPaymentStatus = computed<'PAID' | 'PENDING' | 'OVERDUE'>(() => {
+  // Term payment status (derived from subscriptionSummary / history + billing_due_date)
+  termPaymentStatus = computed<'PAID' | 'PARTIAL' | 'PENDING' | 'OVERDUE'>(() => {
+    const summary = this.subscriptionSummary();
+    if (summary) {
+      if (summary.status === 'ACTIVE') return 'PAID';
+      if (summary.status === 'PARTIAL') return 'PARTIAL';
+      if (summary.status === 'PENDING') return 'PENDING';
+      return 'OVERDUE';
+    }
     const profile = this.tenantProfile();
     const entries = this.history();
-    // If there's a PENDING payment, show pending
     if (entries.some(e => e.status === 'PENDING')) return 'PENDING';
-    // If billing_due_date exists and is in the future, we're paid
     if (profile?.billing_due_date) {
       const due = new Date(profile.billing_due_date);
       if (due > new Date()) return 'PAID';
@@ -68,6 +100,8 @@ export class SubscriptionBillingComponent implements OnInit {
   });
 
   latestPayment = computed(() => {
+    const summary = this.subscriptionSummary();
+    if (summary?.latest_payment) return summary.latest_payment;
     const entries = this.history();
     return entries.find(e => e.status === 'SUCCESS' || e.status === 'PAID') ?? null;
   });
@@ -119,6 +153,7 @@ export class SubscriptionBillingComponent implements OnInit {
 
   ngOnInit() {
     this.loadTenantProfile();
+    this.loadSubscriptionSummary();
     this.loadStudentCount();
     this.loadHistory();
     this.loadSubaccountConfig();
@@ -131,6 +166,22 @@ export class SubscriptionBillingComponent implements OnInit {
       if (ref && typeof ref === 'string' && ref.startsWith('SUB-')) {
         this.verifyPayment(ref);
         this.router.navigate([], { queryParams: {}, replaceUrl: true });
+      }
+    });
+  }
+
+  loadSubscriptionSummary() {
+    this.loadingSummary.set(true);
+    this.tenantProfileService.getSubscriptionSummary().subscribe({
+      next: (summary) => {
+        this.subscriptionSummary.set(summary);
+        this.activeStudentCount.set(summary.total_students);
+        this.loadingStudents.set(false);
+        this.loadingSummary.set(false);
+      },
+      error: (err) => {
+        console.warn('Could not load subscription summary', err);
+        this.loadingSummary.set(false);
       }
     });
   }
@@ -359,7 +410,16 @@ export class SubscriptionBillingComponent implements OnInit {
       return;
     }
 
-    if (this.activeStudentCount() <= 0) {
+    if (this.isFullyCovered()) {
+      this.dialog.alert(
+        'All enrolled scholars are currently paid and fully covered for this academic term.',
+        'Current Term Fully Paid',
+        'success'
+      );
+      return;
+    }
+
+    if (this.studentsToPay() <= 0 && this.activeStudentCount() <= 0) {
       this.dialog.alert(
         'No active students found in the system. Enroll students before paying your subscription.',
         'No Students Found',
@@ -387,8 +447,14 @@ export class SubscriptionBillingComponent implements OnInit {
       return;
     }
 
+    const countToPay = this.studentsToPay();
+    if (countToPay <= 0) {
+      this.dialog.alert('All enrolled scholars are already paid for.', 'No Balance Due', 'info');
+      return;
+    }
+
     this.showPayModal.set(false);
-    this.initiatePayment(profile.id, email, this.activeStudentCount());
+    this.initiatePayment(profile.id, email, countToPay);
   }
 
   initiatePayment(tenantId: string, payerEmail: string, studentCount: number) {
@@ -403,6 +469,7 @@ export class SubscriptionBillingComponent implements OnInit {
         window.open(res.authorization_url, '_blank');
         this.dialog.alert('We are waiting for you to complete the payment in the new tab. Please do not close this window.', 'Payment Started', 'info');
         this.loadHistory(); // Reload to show the pending payment
+        this.loadSubscriptionSummary();
         this.pollVerification(res.reference);
       },
       error: (err) => {
@@ -426,6 +493,7 @@ export class SubscriptionBillingComponent implements OnInit {
           this.toast.success('Subscription payment verified successfully!', 'Payment Verified');
           this.loadHistory();
           this.loadTenantProfile(); // update billing due date
+          this.loadSubscriptionSummary();
         },
         error: (err) => {
           const msg = (err.error?.error || '').toLowerCase();
@@ -436,6 +504,7 @@ export class SubscriptionBillingComponent implements OnInit {
             // Unrecoverable error
             this.dialog.alert(err.error?.error || 'Verification not completed yet. You can try verifying manually from the table once paid.', 'Verification', 'info');
             this.loadHistory();
+            this.loadSubscriptionSummary();
           }
         }
       });
@@ -448,18 +517,13 @@ export class SubscriptionBillingComponent implements OnInit {
         this.toast.success('Payment verified successfully!', 'Success');
         this.loadHistory();
         this.loadTenantProfile();
+        this.loadSubscriptionSummary();
       },
       error: (err) => {
         const msg = err.error?.error || 'Failed to verify payment.';
         this.dialog.alert(msg, 'Verification Status', 'warning');
       }
     });
-  }
-
-  get totalDue(): number {
-    const profile = this.tenantProfile();
-    if (!profile) return 0;
-    return this.activeStudentCount() * (profile.per_student_per_term_rate || 0);
   }
 
   handleBuyCredits() {

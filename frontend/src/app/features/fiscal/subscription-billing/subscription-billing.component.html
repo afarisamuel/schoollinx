@@ -27,10 +27,14 @@
         <div>
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-widest mb-2">
             <i class="fas fa-file-invoice text-[10px]"></i>
-            Term Subscription
+            {{ termPaymentStatus() === 'PARTIAL' ? 'Incremental Top-Up' : 'Term Subscription' }}
           </div>
-          <h2 class="text-xl font-black text-text-primary">Pay Platform Subscription</h2>
-          <p class="text-xs text-text-muted mt-1">Activate institutional services for the upcoming academic term.</p>
+          <h2 class="text-xl font-black text-text-primary">
+            {{ termPaymentStatus() === 'PARTIAL' ? 'Pay Additional Scholars Balance' : 'Pay Platform Subscription' }}
+          </h2>
+          <p class="text-xs text-text-muted mt-1">
+            {{ termPaymentStatus() === 'PARTIAL' ? 'Cover newly added students for the remainder of the current academic term.' : 'Activate institutional SaaS services for the academic term.' }}
+          </p>
         </div>
         <button (click)="closePayModal()" class="w-8 h-8 rounded-xl bg-bg-tertiary hover:bg-bg-primary text-text-muted hover:text-text-primary transition-all flex items-center justify-center cursor-pointer">
           <i class="fas fa-times text-xs"></i>
@@ -38,20 +42,41 @@
       </div>
 
       <!-- Summary row -->
-      <div class="grid grid-cols-3 gap-2.5 mb-6 relative z-10">
-        <div class="text-center p-3 rounded-2xl bg-bg-tertiary border border-border-primary">
-          <p class="text-[9px] font-black uppercase tracking-wider text-text-muted mb-1">Scholars</p>
-          <p class="text-lg font-black text-text-primary">{{ activeStudentCount() | number }}</p>
+      @if (termPaymentStatus() === 'PARTIAL') {
+        <div class="grid grid-cols-4 gap-2 mb-6 relative z-10">
+          <div class="text-center p-2.5 rounded-2xl bg-bg-tertiary border border-border-primary">
+            <p class="text-[8px] font-black uppercase tracking-wider text-text-muted mb-0.5">Total</p>
+            <p class="text-base font-black text-text-primary">{{ activeStudentCount() | number }}</p>
+          </div>
+          <div class="text-center p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+            <p class="text-[8px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-0.5">Paid</p>
+            <p class="text-base font-black text-emerald-600 dark:text-emerald-400">{{ paidStudentCount() | number }}</p>
+          </div>
+          <div class="text-center p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+            <p class="text-[8px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-0.5">To Pay</p>
+            <p class="text-base font-black text-amber-600 dark:text-amber-400">+{{ studentsToPay() | number }}</p>
+          </div>
+          <div class="text-center p-2.5 rounded-2xl bg-blue-500/10 border border-blue-500/20">
+            <p class="text-[8px] font-black uppercase tracking-wider text-blue-500 mb-0.5">Due</p>
+            <p class="text-base font-black text-blue-600 dark:text-blue-400">₵{{ totalDue() | number:'1.2-2' }}</p>
+          </div>
         </div>
-        <div class="text-center p-3 rounded-2xl bg-bg-tertiary border border-border-primary">
-          <p class="text-[9px] font-black uppercase tracking-wider text-text-muted mb-1">Rate/Student</p>
-          <p class="text-lg font-black text-text-primary">₵{{ tenantProfile()?.per_student_per_term_rate || 0 | number:'1.2-2' }}</p>
+      } @else {
+        <div class="grid grid-cols-3 gap-2.5 mb-6 relative z-10">
+          <div class="text-center p-3 rounded-2xl bg-bg-tertiary border border-border-primary">
+            <p class="text-[9px] font-black uppercase tracking-wider text-text-muted mb-1">Scholars</p>
+            <p class="text-lg font-black text-text-primary">{{ studentsToPay() | number }}</p>
+          </div>
+          <div class="text-center p-3 rounded-2xl bg-bg-tertiary border border-border-primary">
+            <p class="text-[9px] font-black uppercase tracking-wider text-text-muted mb-1">Rate/Student</p>
+            <p class="text-lg font-black text-text-primary">₵{{ tenantProfile()?.per_student_per_term_rate || 0 | number:'1.2-2' }}</p>
+          </div>
+          <div class="text-center p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20">
+            <p class="text-[9px] font-black uppercase tracking-wider text-blue-500 mb-1">Total Due</p>
+            <p class="text-lg font-black text-blue-600 dark:text-blue-400">₵{{ totalDue() | number:'1.2-2' }}</p>
+          </div>
         </div>
-        <div class="text-center p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20">
-          <p class="text-[9px] font-black uppercase tracking-wider text-blue-500 mb-1">Total Due</p>
-          <p class="text-lg font-black text-blue-600 dark:text-blue-400">₵{{ totalDue | number:'1.2-2' }}</p>
-        </div>
-      </div>
+      }
 
       <!-- Email input -->
       <div class="mb-6 relative z-10">
@@ -86,7 +111,7 @@
           class="w-full sm:flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-blue-500/25 cursor-pointer active:scale-95"
         >
           <i class="fas fa-shield-alt text-xs"></i>
-          <span>Pay with Paystack</span>
+          <span>Pay ₵{{ totalDue() | number:'1.2-2' }} with Paystack</span>
         </button>
       </div>
     </div>
@@ -118,9 +143,9 @@
 
     <!-- Quick Top Actions -->
     <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-      <button (click)="loadTenantProfile(); loadHistory(); loadSubaccountConfig()"
+      <button (click)="loadTenantProfile(); loadSubscriptionSummary(); loadHistory(); loadSubaccountConfig()"
         class="px-3.5 py-2 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-xl transition-all flex items-center gap-2 shadow-xs cursor-pointer active:scale-95">
-        <i class="fas fa-rotate text-xs text-text-muted" [class.animate-spin]="loading() || loadingHistory()"></i>
+        <i class="fas fa-rotate text-xs text-text-muted" [class.animate-spin]="loading() || loadingHistory() || loadingSummary()"></i>
         <span>Refresh</span>
       </button>
 
@@ -175,32 +200,73 @@
               </p>
             </div>
 
-            <!-- Right Column: Rate Card & Instant Pay Trigger -->
-            <div class="flex flex-col sm:flex-row lg:flex-col sm:items-center lg:items-end justify-between gap-4 p-4 rounded-2xl bg-bg-tertiary/60 border border-border-primary shrink-0 lg:w-80">
-              <div class="text-left sm:text-left lg:text-right">
+            <!-- Right Column: Rate Card & Dynamic Pay Trigger -->
+            <div class="flex flex-col sm:flex-row lg:flex-col sm:items-center lg:items-end justify-between gap-4 p-4 rounded-2xl bg-bg-tertiary/60 border border-border-primary shrink-0 lg:w-84">
+              <div class="text-left sm:text-left lg:text-right w-full">
                 <p class="text-[10px] font-black uppercase tracking-widest text-text-muted">Per-Scholar Tariff</p>
                 <div class="text-2xl sm:text-3xl font-black text-blue-600 dark:text-blue-400 mt-0.5">
                   ₵{{ tenantProfile()?.per_student_per_term_rate || 0 | number:'1.2-2' }}
                   <span class="text-xs font-bold text-text-muted tracking-normal">/ scholar / term</span>
                 </div>
-                <p class="text-[11px] font-bold text-text-muted mt-1">
-                  {{ activeStudentCount() }} scholars enrolled &bull; Total: <span class="text-text-primary font-black">₵{{ totalDue | number:'1.2-2' }}</span>
-                </p>
+                
+                @if (isFullyCovered()) {
+                  <p class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 mt-1 flex items-center lg:justify-end gap-1">
+                    <i class="fas fa-shield-check text-xs"></i>
+                    <span>All {{ activeStudentCount() }} scholars fully covered &bull; ₵{{ totalTermCost() | number:'1.2-2' }}</span>
+                  </p>
+                } @else if (termPaymentStatus() === 'PARTIAL') {
+                  <p class="text-[11px] font-bold text-text-muted mt-1">
+                    {{ activeStudentCount() }} scholars ({{ paidStudentCount() }} paid, <strong class="text-amber-600 dark:text-amber-400">{{ unpaidStudentCount() }} unpaid</strong>)
+                  </p>
+                  <p class="text-[11px] font-black text-amber-600 dark:text-amber-400 mt-0.5">
+                    Balance Due: ₵{{ totalDue() | number:'1.2-2' }}
+                  </p>
+                } @else {
+                  <p class="text-[11px] font-bold text-text-muted mt-1">
+                    {{ activeStudentCount() }} scholars enrolled &bull; Total: <span class="text-text-primary font-black">₵{{ totalDue() | number:'1.2-2' }}</span>
+                  </p>
+                }
               </div>
 
-              <button
-                (click)="handleUpgrade()"
-                [disabled]="isPaymentLoading()"
-                class="w-full sm:w-auto lg:w-full px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50"
-              >
-                @if (isPaymentLoading()) {
-                  <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  <span>Processing...</span>
-                } @else {
-                  <i class="fas fa-credit-card text-xs"></i>
-                  <span>Pay / Renew Subscription</span>
-                }
-              </button>
+              <!-- Button States -->
+              @if (isFullyCovered()) {
+                <button
+                  type="button"
+                  disabled
+                  class="w-full sm:w-auto lg:w-full px-5 py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed opacity-90 shadow-xs"
+                >
+                  <i class="fas fa-circle-check text-emerald-500 text-xs"></i>
+                  <span>Current Term Fully Paid</span>
+                </button>
+              } @else if (termPaymentStatus() === 'PARTIAL') {
+                <button
+                  (click)="handleUpgrade()"
+                  [disabled]="isPaymentLoading()"
+                  class="w-full sm:w-auto lg:w-full px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-blue-600 hover:from-amber-500 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-md shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50"
+                >
+                  @if (isPaymentLoading()) {
+                    <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>Processing...</span>
+                  } @else {
+                    <i class="fas fa-user-plus text-xs"></i>
+                    <span>Pay Balance for {{ unpaidStudentCount() }} Scholars</span>
+                  }
+                </button>
+              } @else {
+                <button
+                  (click)="handleUpgrade()"
+                  [disabled]="isPaymentLoading()"
+                  class="w-full sm:w-auto lg:w-full px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50"
+                >
+                  @if (isPaymentLoading()) {
+                    <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>Processing...</span>
+                  } @else {
+                    <i class="fas fa-credit-card text-xs"></i>
+                    <span>Pay / Renew Subscription</span>
+                  }
+                </button>
+              }
             </div>
           </div>
 
@@ -220,6 +286,7 @@
                     </div>
                     <p class="text-xs text-emerald-700 dark:text-emerald-300/80 font-medium mt-0.5">
                       Platform access authorized until <strong class="text-emerald-800 dark:text-emerald-200 font-black">{{ tenantProfile()?.billing_due_date | date:'longDate' }}</strong>
+                      &bull; All <strong class="text-emerald-800 dark:text-emerald-200 font-bold">{{ activeStudentCount() }} enrolled scholars</strong> fully covered for the term.
                       @if (latestPayment()) {
                         &bull; Last payment: <strong class="text-emerald-800 dark:text-emerald-200 font-bold">₵{{ latestPayment()!.amount | number:'1.2-2' }}</strong> on {{ latestPayment()!.created_at | date:'mediumDate' }}
                       }
@@ -229,8 +296,33 @@
 
                 <div class="shrink-0">
                   <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[10px] font-black uppercase tracking-widest border border-emerald-500/30">
-                    <i class="fas fa-check-circle text-[10px]"></i> Current Term Paid
+                    <i class="fas fa-check-circle text-[10px]"></i> Current Term Fully Paid
                   </span>
+                </div>
+              </div>
+            } @else if (termPaymentStatus() === 'PARTIAL') {
+              <!-- PARTIAL (Incremental Delta) Banner -->
+              <div class="relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 sm:p-5">
+                <div class="flex items-start sm:items-center gap-3.5">
+                  <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-base shrink-0 border border-amber-500/30 shadow-xs">
+                    <i class="fas fa-user-plus"></i>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <h3 class="text-sm sm:text-base font-black text-amber-600 dark:text-amber-400">Action Required: {{ unpaidStudentCount() }} Additional Scholars Unpaid</h3>
+                      <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                    </div>
+                    <p class="text-xs text-amber-700 dark:text-amber-300/80 font-medium mt-0.5">
+                      You have <strong>{{ paidStudentCount() }}</strong> scholars covered, but <strong>{{ unpaidStudentCount() }} newly enrolled scholars</strong> require subscription. Please settle the remaining balance of <strong class="text-amber-900 dark:text-amber-200 font-bold">₵{{ totalDue() | number:'1.2-2' }}</strong>.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="shrink-0 flex items-center gap-2.5">
+                  <button (click)="handleUpgrade()" [disabled]="isPaymentLoading()"
+                    class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-amber-500/25 cursor-pointer active:scale-95 disabled:opacity-50">
+                    Pay ₵{{ totalDue() | number:'1.2-2' }} Balance
+                  </button>
                 </div>
               </div>
             } @else if (termPaymentStatus() === 'PENDING') {
@@ -294,20 +386,41 @@
                   </div>
                   <span class="text-xs font-bold text-text-primary">Enrolled Scholars</span>
                 </div>
-                <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20">
-                  Active
+                <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full"
+                  [class.bg-emerald-500-10]="isFullyCovered()"
+                  [class.text-emerald-500]="isFullyCovered()"
+                  [class.border-emerald-500-20]="isFullyCovered()"
+                  [class.bg-amber-500-10]="unpaidStudentCount() > 0"
+                  [class.text-amber-500]="unpaidStudentCount() > 0"
+                  [class.border-amber-500-20]="unpaidStudentCount() > 0"
+                  [class.bg-blue-500-10]="!isFullyCovered() && unpaidStudentCount() === 0"
+                  [class.text-blue-500]="!isFullyCovered() && unpaidStudentCount() === 0"
+                  class="bg-blue-500/10 text-blue-500 border border-blue-500/20">
+                  {{ isFullyCovered() ? 'Fully Covered' : (unpaidStudentCount() > 0 ? (unpaidStudentCount() + ' Unpaid') : 'Active') }}
                 </span>
               </div>
 
               <div>
                 <p class="text-[10px] font-black uppercase tracking-wider text-text-muted">Total Student Registry</p>
-                @if (loadingStudents()) {
+                @if (loadingStudents() || loadingSummary()) {
                   <div class="flex items-center gap-2 mt-1">
                     <div class="w-3.5 h-3.5 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
                     <span class="text-xs text-text-muted">Counting...</span>
                   </div>
                 } @else {
                   <p class="text-2xl sm:text-3xl font-black text-text-primary mt-0.5">{{ activeStudentCount() | number }}</p>
+                  
+                  <div class="flex items-center gap-2 mt-2 pt-2 border-t border-border-primary/50 text-[11px]">
+                    <span class="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                      <i class="fas fa-check text-[10px]"></i> {{ paidStudentCount() }} Paid
+                    </span>
+                    @if (unpaidStudentCount() > 0) {
+                      <span class="text-text-muted">&bull;</span>
+                      <span class="text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
+                        <i class="fas fa-circle-exclamation text-[10px]"></i> {{ unpaidStudentCount() }} Unpaid Delta
+                      </span>
+                    }
+                  </div>
                 }
               </div>
             </div>

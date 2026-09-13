@@ -101,9 +101,26 @@ export class TenantProfileService {
     return this.http.get<TenantSubscriptionPayment[]>('/api/tenant/subscription/history');
   }
 
+  getSubscriptionSummary(): Observable<TenantSubscriptionSummary> {
+    return this.http.get<TenantSubscriptionSummary>('/api/tenant/subscription/summary');
+  }
+
   getActiveAnnouncements(): Observable<SystemAnnouncement[]> {
     return this.http.get<SystemAnnouncement[]>('/api/public/announcements');
   }
+}
+
+export interface TenantSubscriptionSummary {
+  total_students: number;
+  paid_student_count: number;
+  unpaid_student_count: number;
+  per_student_rate: number;
+  total_due: number;
+  total_term_cost: number;
+  billing_due_date?: string;
+  status: 'ACTIVE' | 'PARTIAL' | 'OVERDUE' | 'PENDING';
+  is_fully_covered: boolean;
+  latest_payment?: TenantSubscriptionPayment;
 }
 
 export interface PaystackCountry {
