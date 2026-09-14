@@ -183,6 +183,39 @@ func (u *hrUseCase) GeneratePayslip(ctx context.Context, payrollID uuid.UUID) (*
 	return pr, buf.Bytes(), nil
 }
 
+func (u *hrUseCase) ExportPayrollBankCSV(ctx context.Context, month, year int) ([]byte, string, error) {
+	records, err := u.repo.GetPayrollByPeriod(ctx, month, year)
+	if err != nil {
+		return nil, "", err
+	}
+
+	var buf bytes.Buffer
+	buf.WriteString("Staff ID,Staff Name,Job Title,Bank Account,Gross Pay (GHS),Total Deductions (GHS),Net Pay (GHS),Payment Status\n")
+	for _, r := range records {
+		name := "Staff"
+		jobTitle := ""
+		bankAcc := ""
+		if r.Staff != nil {
+			name = fmt.Sprintf("%s %s", r.Staff.FirstName, r.Staff.LastName)
+			jobTitle = r.Staff.JobTitle
+			bankAcc = string(r.Staff.BankAccount)
+		}
+		buf.WriteString(fmt.Sprintf("%s,\"%s\",\"%s\",\"%s\",%.2f,%.2f,%.2f,%s\n",
+			r.StaffID.String(),
+			name,
+			jobTitle,
+			bankAcc,
+			r.GrossPay,
+			r.Deductions,
+			r.NetPay,
+			r.Status,
+		))
+	}
+
+	filename := fmt.Sprintf("payroll_bank_schedule_%02d_%d.csv", month, year)
+	return buf.Bytes(), filename, nil
+}
+
 // Leave
 func (u *hrUseCase) SubmitLeaveRequest(ctx context.Context, req *domain.LeaveRequest) error {
 	req.Status = domain.LeavePending

@@ -289,6 +289,7 @@ type HRUseCase interface {
 	GetPayrollHistory(ctx context.Context, month, year int) ([]PayrollRecord, error)
 	MarkPayrollPaid(ctx context.Context, payrollID uuid.UUID) error
 	GeneratePayslip(ctx context.Context, payrollID uuid.UUID) (*PayrollRecord, []byte, error)
+	ExportPayrollBankCSV(ctx context.Context, month, year int) ([]byte, string, error)
 
 	SubmitLeaveRequest(ctx context.Context, req *LeaveRequest) error
 	GetLeaveRequests(ctx context.Context) ([]LeaveRequest, error)

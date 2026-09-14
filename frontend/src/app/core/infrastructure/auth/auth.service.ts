@@ -160,7 +160,8 @@ export class AuthService {
                     id: payload.user_id,
                     username: payload.username || '',
                     email: payload.email || '',
-                    role: payload.role as Role
+                    role: payload.role as Role,
+                    permissions: payload.permissions || []
                 };
                 this.currentUserSubject.next(user);
             } catch (e) {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-
+	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/domain"
 )
 
@@ -14,10 +14,35 @@ type welfareUseCase struct {
 	sms       domain.SMSProvider
 	students  domain.StudentRepository
 	guardians domain.GuardianRepository
+	tenants   domain.TenantRepository
 }
 
-func NewWelfareUseCase(repo domain.WelfareRepository, sms domain.SMSProvider, students domain.StudentRepository, guardians domain.GuardianRepository) domain.WelfareUseCase {
-	return &welfareUseCase{repo: repo, sms: sms, students: students, guardians: guardians}
+func NewWelfareUseCase(
+	repo domain.WelfareRepository,
+	sms domain.SMSProvider,
+	students domain.StudentRepository,
+	guardians domain.GuardianRepository,
+	tenants ...domain.TenantRepository,
+) domain.WelfareUseCase {
+	uc := &welfareUseCase{repo: repo, sms: sms, students: students, guardians: guardians}
+	if len(tenants) > 0 && tenants[0] != nil {
+		uc.tenants = tenants[0]
+	}
+	return uc
+}
+
+func (u *welfareUseCase) getTenantSenderID(ctx context.Context) string {
+	tenantID, hasTenant := middleware.GetTenantIDFromContext(ctx)
+	if hasTenant && tenantID != uuid.Nil && u.tenants != nil {
+		if tenant, err := u.tenants.GetByID(ctx, tenantID); err == nil && tenant != nil {
+			if tenant.SMSSenderID != "" && (tenant.SMSSenderIDStatus == string(domain.SenderIDStatusApproved) || tenant.SMSSenderIDStatus == "APPROVED") {
+				return tenant.SMSSenderID
+			} else if tenant.SMSSenderID != "" {
+				return tenant.SMSSenderID
+			}
+		}
+	}
+	return domain.DefaultSMSSenderID
 }
 
 // Health Records
@@ -69,7 +94,7 @@ func (u *welfareUseCase) LogBehaviorEvent(ctx context.Context, log *domain.Behav
 						}
 
 						if len(phones) > 0 {
-							_ = u.sms.SendSMS(ctx, "DISCIPLINE", phones, msg)
+							_ = u.sms.SendSMS(ctx, u.getTenantSenderID(ctx), phones, msg)
 						}
 					}
 				}
@@ -109,7 +134,7 @@ func (u *welfareUseCase) RecordSickbayVisit(ctx context.Context, visit *domain.S
 				if len(phones) > 0 {
 					alertMsg := fmt.Sprintf("SICKBAY NOTICE: %s attended the campus clinic (Temp: %.1f°C). Symptoms: %s. Care provided by %s.",
 						string(student.FirstName), visit.TemperatureCelsius, visit.Symptoms, visit.AttendingNurse)
-					_ = u.sms.SendSMS(ctx, "SICKBAY", phones, alertMsg)
+					_ = u.sms.SendSMS(ctx, u.getTenantSenderID(ctx), phones, alertMsg)
 				}
 			}
 		}

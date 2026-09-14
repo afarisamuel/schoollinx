@@ -379,4 +379,8 @@ export class PayrollManager implements OnInit {
     const period = `${this.selectedYear}-${String(this.selectedMonth).padStart(2, '0')}`;
     this.hrService.downloadGRASchedule(period);
   }
+
+  downloadBankDisbursementCSV(): void {
+    this.hrService.downloadBankDisbursementCSV(this.selectedMonth, this.selectedYear);
+  }
 }

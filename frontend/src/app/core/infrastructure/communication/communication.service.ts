@@ -32,6 +32,9 @@ export interface MeetingSlot {
     date: string;
     start_time: string;
     end_time: string;
+    location?: string;
+    max_bookings?: number;
+    slot_duration_minutes?: number;
     is_booked?: boolean;
 }
 

@@ -32,61 +32,87 @@
 
     <!-- TAB 1: Book Meeting Form -->
     @if (activeTab() === 'book') {
-        <div class="max-w-2xl mx-auto bg-bg-secondary border border-border-primary rounded-2xl p-6 animate-fade-in">
-            <h3 class="text-base font-black text-text-primary mb-1">Book a Conference</h3>
-            <p class="text-xs text-text-muted mb-5">Schedule 1-on-1 consultation time with your child's teachers.</p>
+        <div class="max-w-2xl mx-auto bg-bg-secondary border border-border-primary rounded-2xl p-6 animate-fade-in shadow-xl">
+            <h3 class="text-base font-black text-text-primary mb-1 flex items-center gap-2">
+                <i class="fas fa-calendar-plus text-blue-500"></i>
+                <span>Schedule a 1-on-1 Conference</span>
+            </h3>
+            <p class="text-xs text-text-muted mb-5">Select your scholar and educator to reserve an available consultation window.</p>
 
             <div class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">For Student</label>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">1. Select Scholar</label>
                     <select [ngModel]="studentId()" (ngModelChange)="studentId.set($event)"
-                            class="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500">
+                            class="w-full px-3.5 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 font-medium">
                         @for (s of state.profile()?.students || []; track s.id) {
-                            <option [value]="s.id">{{ s.first_name }} {{ s.last_name }}</option>
+                            <option [value]="s.id">{{ s.first_name }} {{ s.last_name }} (#{{ s.id ? s.id.slice(-6) : '' }})</option>
                         }
                     </select>
                 </div>
+
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Teacher ID</label>
-                    <div class="flex gap-2">
-                        <input type="text" [ngModel]="teacherId()" (ngModelChange)="teacherId.set($event)"
-                               placeholder="Enter Teacher ID..."
-                               class="flex-1 px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500" />
-                        <button (click)="findSlots()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl cursor-pointer">
-                            <i class="fas fa-search"></i> Find Slots
-                        </button>
-                    </div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">2. Select Faculty Member / Teacher</label>
+                    <select [ngModel]="teacherId()" (ngModelChange)="onTeacherChange($event)"
+                            class="w-full px-3.5 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 font-medium">
+                        <option value="">-- Choose an Educator --</option>
+                        @for (t of teachers(); track t.id) {
+                            <option [value]="t.id">
+                                {{ t.title || 'Teacher' }} {{ t.first_name }} {{ t.last_name }} &bull; {{ t.department?.name || t.specialization || 'Academic Staff' }}
+                            </option>
+                        }
+                    </select>
                 </div>
+
+                @if (isLoadingSlots()) {
+                    <div class="py-6 text-center text-text-muted text-xs flex items-center justify-center gap-2">
+                        <i class="fas fa-circle-notch animate-spin text-blue-500"></i>
+                        <span>Loading available consultation slots...</span>
+                    </div>
+                }
 
                 @if (slots().length > 0) {
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Available Slots</label>
-                        <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">3. Available Time Slots</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-56 overflow-y-auto custom-scrollbar p-1">
                             @for (slot of slots(); track slot.id) {
-                                <div class="p-3 bg-bg-tertiary border border-border-primary rounded-xl flex items-center justify-between">
+                                <div class="p-3 bg-bg-tertiary hover:bg-bg-tertiary/80 border border-border-primary rounded-xl flex items-center justify-between gap-2 transition-all">
                                     <div>
-                                        <div class="text-xs font-bold text-text-primary">{{ slot.date | date:'mediumDate' }}</div>
-                                        <div class="text-[10px] text-text-muted">{{ slot.start_time }} – {{ slot.end_time }}</div>
+                                        <div class="text-xs font-black text-text-primary flex items-center gap-1.5">
+                                            <i class="fas fa-calendar-day text-blue-400 text-[10px]"></i>
+                                            <span>{{ slot.date | date:'mediumDate' }}</span>
+                                        </div>
+                                        <div class="text-[11px] font-semibold text-emerald-400 mt-0.5">
+                                            {{ slot.start_time }} – {{ slot.end_time }}
+                                        </div>
+                                        @if (slot.location) {
+                                            <div class="text-[10px] text-text-muted truncate max-w-[150px]">
+                                                <i class="fas fa-location-dot text-[9px] mr-1"></i>{{ slot.location }}
+                                            </div>
+                                        }
                                     </div>
-                                    <button (click)="bookSlot(slot.id!)" class="px-3 py-1.5 bg-blue-600 text-white font-bold text-xs rounded-lg hover:bg-blue-500 cursor-pointer">Book</button>
+                                    <button (click)="bookSlot(slot.id!)" 
+                                            class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer shrink-0">
+                                        Reserve
+                                    </button>
                                 </div>
                             }
                         </div>
                     </div>
                 }
 
-                @if (noSlots()) {
-                    <div class="py-5 text-center text-amber-400 border border-amber-500/20 bg-amber-500/5 rounded-xl text-xs font-bold">
-                        <i class="fas fa-calendar-times mb-1 block text-lg"></i>
-                        No available slots for this teacher.
+                @if (noSlots() && teacherId() && !isLoadingSlots()) {
+                    <div class="py-6 text-center text-amber-400 border border-amber-500/20 bg-amber-500/5 rounded-2xl text-xs font-medium p-4">
+                        <i class="fas fa-calendar-xmark mb-1.5 block text-xl opacity-80"></i>
+                        <span class="font-bold">No open slots currently published.</span>
+                        <p class="text-[11px] text-text-muted mt-1">This educator has not scheduled open consultation windows for this week. You can reach out via Direct Messaging.</p>
                     </div>
                 }
 
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">Discussion Topic</label>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">4. Discussion Topic / Note for Teacher</label>
                     <textarea [ngModel]="reason()" (ngModelChange)="reason.set($event)" rows="3"
-                              placeholder="e.g., Mathematics progress, homework habits, behavioral consultation..."
-                              class="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 resize-none"></textarea>
+                              placeholder="e.g., Mathematics progress, term test review, behavioral consultation..."
+                              class="w-full px-3.5 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 resize-none font-medium"></textarea>
                 </div>
             </div>
         </div>

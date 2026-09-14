@@ -37,6 +37,7 @@ func NewHRHandler(rg *gin.RouterGroup, useCase domain.HRUseCase) *HRHandler {
 		hrGroup.GET("/payroll/:id/payslip", h.DownloadPayslip)
 		hrGroup.GET("/payroll/ssnit-schedule", h.DownloadSSNITSchedule)
 		hrGroup.GET("/payroll/gra-schedule", h.DownloadGRASchedule)
+		hrGroup.GET("/payroll/export-csv", h.ExportPayrollBankCSV)
 		hrGroup.GET("/substitutes/available", h.GetAvailableSubstitutes)
 		hrGroup.POST("/payroll/calculate-overtime", h.CalculateStaffOvertime)
 		hrGroup.POST("/loans/amortize", h.AmortizeStaffLoan)
@@ -216,6 +217,20 @@ func (h *HRHandler) DownloadPayslip(c *gin.Context) {
 	
 	c.Header("Content-Disposition", "attachment; filename="+filename)
 	c.Data(http.StatusOK, "application/pdf", pdfBytes)
+}
+
+func (h *HRHandler) ExportPayrollBankCSV(c *gin.Context) {
+	month, _ := strconv.Atoi(c.DefaultQuery("month", strconv.Itoa(int(time.Now().Month()))))
+	year, _ := strconv.Atoi(c.DefaultQuery("year", strconv.Itoa(time.Now().Year())))
+
+	csvBytes, filename, err := h.useCase.ExportPayrollBankCSV(c.Request.Context(), month, year)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Header("Content-Disposition", "attachment; filename="+filename)
+	c.Data(http.StatusOK, "text/csv", csvBytes)
 }
 
 // Leave

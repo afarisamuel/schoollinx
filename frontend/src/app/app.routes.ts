@@ -40,6 +40,16 @@ export const publicRoutes: Routes = [
         loadComponent: () => import('./features/public/transcript-verify/transcript-verify.component').then(m => m.TranscriptVerifyComponent),
         title: 'Verifiable Document Registry'
     },
+    {
+        path: 'pay/:id',
+        loadComponent: () => import('./features/public/checkout/one-click-checkout.component').then(m => m.OneClickCheckoutComponent),
+        title: 'Online School Fee Payment'
+    },
+    {
+        path: 'checkout/:id',
+        redirectTo: 'pay/:id',
+        pathMatch: 'full'
+    },
     { path: '**', redirectTo: '' }
 ];
 
@@ -281,6 +291,16 @@ export const tenantRoutes: Routes = [
     {
         path: 'reset-password',
         loadComponent: () => import('./features/auth/reset-password/reset-password').then(m => m.ResetPasswordComponent)
+    },
+    {
+        path: 'pay/:id',
+        loadComponent: () => import('./features/public/checkout/one-click-checkout.component').then(m => m.OneClickCheckoutComponent),
+        title: 'Online School Fee Payment'
+    },
+    {
+        path: 'checkout/:id',
+        redirectTo: 'pay/:id',
+        pathMatch: 'full'
     },
     { path: '**', redirectTo: '' }
 ];

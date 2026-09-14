@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -117,9 +118,11 @@ func TenantMiddleware(db *gorm.DB) gin.HandlerFunc {
 			err = db.Table("public.tenants").Where("subdomain = ?", subdomain).First(&t).Error
 		}
 
-		// 3. Fallback for localhost development: default to first active tenant
+		// 3. Fallback for localhost development: default to first active tenant (only in development/non-production)
 		if err != nil && (strings.HasPrefix(host, "localhost") || strings.HasPrefix(host, "127.0.0.1")) {
-			err = db.Table("public.tenants").Where("is_active = true").First(&t).Error
+			if os.Getenv("ENV") != "production" && gin.Mode() != gin.ReleaseMode {
+				err = db.Table("public.tenants").Where("is_active = true").First(&t).Error
+			}
 		}
 
 		if err == nil {

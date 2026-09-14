@@ -72,6 +72,17 @@ const (
 	// Exams / CBT
 	PermExamsRead  = "exams:read"
 	PermExamsWrite = "exams:write"
+
+	// Conferences & PTC
+	PermConferencesRead  = "conferences:read"
+	PermConferencesWrite = "conferences:write"
+
+	// Canteen & Wallet Ops
+	PermCanteenRead  = "canteen:read"
+	PermCanteenWrite = "canteen:write"
+
+	// Transit & Bus Tracking
+	PermLogisticsTrack = "logistics:track"
 )
 
 // GetPermissionsForRole returns the default permission set for a given role.

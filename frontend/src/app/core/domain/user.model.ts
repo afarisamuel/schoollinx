@@ -7,6 +7,13 @@ export enum Role {
     STUDENT = 'STUDENT',
     GUARDIAN = 'GUARDIAN',
     LIBRARIAN = 'LIBRARIAN',
+    ACCOUNTANT = 'ACCOUNTANT',
+    BURSAR = 'BURSAR',
+    HR_MANAGER = 'HR_MANAGER',
+    LOGISTICS_MANAGER = 'LOGISTICS_MANAGER',
+    OPERATIONS_MANAGER = 'OPERATIONS_MANAGER',
+    CLERK = 'CLERK',
+    NURSE = 'NURSE'
 }
 
 export interface User {
@@ -14,4 +21,5 @@ export interface User {
     username: string;
     email: string;
     role: Role;
+    permissions?: string[];
 }

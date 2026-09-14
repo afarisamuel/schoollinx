@@ -20,6 +20,7 @@ type communicationUseCase struct {
 	students  domain.StudentRepository
 	teachers  domain.TeacherRepository
 	tenants   domain.TenantRepository
+	fiscal    domain.FiscalRepository
 	db        *gorm.DB
 }
 
@@ -32,8 +33,9 @@ func NewCommunicationUseCase(
 	teachers domain.TeacherRepository,
 	tenants domain.TenantRepository,
 	db *gorm.DB,
+	fiscal ...domain.FiscalRepository,
 ) domain.CommunicationUseCase {
-	return &communicationUseCase{
+	uc := &communicationUseCase{
 		repo:      repo,
 		sms:       sms,
 		whatsapp:  whatsapp,
@@ -43,6 +45,24 @@ func NewCommunicationUseCase(
 		tenants:   tenants,
 		db:        db,
 	}
+	if len(fiscal) > 0 && fiscal[0] != nil {
+		uc.fiscal = fiscal[0]
+	}
+	return uc
+}
+
+func (u *communicationUseCase) getTenantSenderID(ctx context.Context) string {
+	tenantID, hasTenant := middleware.GetTenantIDFromContext(ctx)
+	if hasTenant && tenantID != uuid.Nil && u.tenants != nil {
+		if tenant, err := u.tenants.GetByID(ctx, tenantID); err == nil && tenant != nil {
+			if tenant.SMSSenderID != "" && (tenant.SMSSenderIDStatus == string(domain.SenderIDStatusApproved) || tenant.SMSSenderIDStatus == "APPROVED") {
+				return tenant.SMSSenderID
+			} else if tenant.SMSSenderID != "" {
+				return tenant.SMSSenderID
+			}
+		}
+	}
+	return domain.DefaultSMSSenderID
 }
 
 func (u *communicationUseCase) CreateNotice(ctx context.Context, notice *domain.Notice) error {
@@ -86,13 +106,54 @@ func (u *communicationUseCase) SendUrgentSMS(ctx context.Context, targetAudience
 			}
 		}
 	} else if targetAudience == "FEE_DEFAULTERS" {
-		// Query guardians of students with outstanding fee arrears
-		parents, err := u.guardians.GetAll(ctx)
-		if err == nil {
-			for _, p := range parents {
-				phone := strings.TrimSpace(string(p.PhoneNumber))
-				if phone != "" {
-					recipients = append(recipients, phone)
+		// Query students with outstanding fee arrears
+		if u.fiscal != nil {
+			records, err := u.fiscal.GetAll(ctx)
+			if err == nil {
+				defaulterStudentIDs := make(map[uuid.UUID]bool)
+				for _, r := range records {
+					if r.Status != domain.PaymentStatusPaid && (r.Amount-r.AmountPaid) > 0 {
+						defaulterStudentIDs[r.StudentID] = true
+					}
+				}
+				phoneSet := make(map[string]bool)
+				for studentID := range defaulterStudentIDs {
+					guardians, gErr := u.guardians.GetForStudent(ctx, studentID)
+					if gErr == nil {
+						for _, g := range guardians {
+							if g == nil {
+								continue
+							}
+							phone := strings.TrimSpace(string(g.PhoneNumber))
+							if phone != "" && !phoneSet[phone] {
+								phoneSet[phone] = true
+								recipients = append(recipients, phone)
+							}
+						}
+					}
+					// Also fallback to student contact profile if no guardian linked
+					if u.students != nil {
+						if stu, sErr := u.students.GetByID(ctx, studentID); sErr == nil && stu != nil {
+							for _, p := range []string{string(stu.GuardianPhone), string(stu.FatherPhone), string(stu.MotherPhone)} {
+								pTrim := strings.TrimSpace(p)
+								if pTrim != "" && !phoneSet[pTrim] {
+									phoneSet[pTrim] = true
+									recipients = append(recipients, pTrim)
+								}
+							}
+						}
+					}
+				}
+			}
+		} else {
+			// Fallback to all guardians if fiscal repo is not configured
+			parents, err := u.guardians.GetAll(ctx)
+			if err == nil {
+				for _, p := range parents {
+					phone := strings.TrimSpace(string(p.PhoneNumber))
+					if phone != "" {
+						recipients = append(recipients, phone)
+					}
 				}
 			}
 		}
@@ -123,8 +184,10 @@ func (u *communicationUseCase) SendUrgentSMS(ctx context.Context, targetAudience
 	}
 
 	// Determine custom sender ID and verify SMS credits balance
-	senderID := "SchoolLinx"
+	senderID := domain.DefaultSMSSenderID
 	tenantID, hasTenant := middleware.GetTenantIDFromContext(ctx)
+	creditsDeducted := false
+
 	if hasTenant && tenantID != uuid.Nil && u.tenants != nil {
 		tenant, err := u.tenants.GetByID(ctx, tenantID)
 		if err == nil && tenant != nil {
@@ -132,15 +195,18 @@ func (u *communicationUseCase) SendUrgentSMS(ctx context.Context, targetAudience
 				senderID = tenant.SMSSenderID
 			}
 
-			// Credit balance verification
-			if tenant.SMSCredits < len(recipients) {
-				return fmt.Errorf("insufficient SMS credits (Balance: %d, Required: %d). Please top up your SMS credits", tenant.SMSCredits, len(recipients))
-			}
-
-			// Deduct credits and record in SmsLedger
+			// Atomic credit deduction and ledger recording
 			if u.db != nil {
-				_ = u.db.Transaction(func(tx *gorm.DB) error {
-					if err := tx.Model(&domain.Tenant{}).Where("id = ?", tenantID).UpdateColumn("sms_credits", gorm.Expr("GREATEST(sms_credits - ?, 0)", len(recipients))).Error; err != nil {
+				err := u.db.Transaction(func(tx *gorm.DB) error {
+					var currentTenant domain.Tenant
+					if err := tx.Where("id = ?", tenantID).First(&currentTenant).Error; err != nil {
+						return err
+					}
+					if currentTenant.SMSCredits < len(recipients) {
+						return fmt.Errorf("insufficient SMS credits (Balance: %d, Required: %d). Please top up your SMS credits", currentTenant.SMSCredits, len(recipients))
+					}
+					if err := tx.Model(&domain.Tenant{}).Where("id = ? AND sms_credits >= ?", tenantID, len(recipients)).
+						UpdateColumn("sms_credits", gorm.Expr("sms_credits - ?", len(recipients))).Error; err != nil {
 						return err
 					}
 					ledger := domain.SmsLedger{
@@ -151,13 +217,35 @@ func (u *communicationUseCase) SendUrgentSMS(ctx context.Context, targetAudience
 					}
 					return tx.Create(&ledger).Error
 				})
+				if err != nil {
+					return err
+				}
+				creditsDeducted = true
 			}
 		}
 	}
 
-	return u.sms.SendSMS(ctx, senderID, recipients, message)
-}
+	sendErr := u.sms.SendSMS(ctx, senderID, recipients, message)
+	if sendErr != nil && creditsDeducted && u.db != nil && hasTenant && tenantID != uuid.Nil {
+		// Refund credits upon provider dispatch failure
+		_ = u.db.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Model(&domain.Tenant{}).Where("id = ?", tenantID).
+				UpdateColumn("sms_credits", gorm.Expr("sms_credits + ?", len(recipients))).Error; err != nil {
+				return err
+			}
+			ledger := domain.SmsLedger{
+				TenantID:    tenantID,
+				Direction:   domain.SmsLedgerDirectionCredit,
+				Amount:      len(recipients),
+				Description: fmt.Sprintf("Refund: Failed SMS Broadcast [%s] - %v", targetAudience, sendErr),
+			}
+			return tx.Create(&ledger).Error
+		})
+		return fmt.Errorf("failed to send SMS: %w (credits refunded)", sendErr)
+	}
 
+	return sendErr
+}
 func (u *communicationUseCase) CreateMeetingSlot(ctx context.Context, slot *domain.MeetingSlot) error {
 	return u.repo.CreateMeetingSlot(ctx, slot)
 }
@@ -279,7 +367,7 @@ func (u *communicationUseCase) SendBirthdayGreetings(ctx context.Context) (int, 
 				phone := string(s.PhoneNumber)
 				if phone != "" {
 					msg := "Happy Birthday, " + string(s.FirstName) + "! 🎂 Wishing you a fantastic day and a wonderful year ahead from all of us!"
-					_ = u.sms.SendSMS(ctx, "SCHOOL", []string{phone}, msg)
+					_ = u.sms.SendSMS(ctx, u.getTenantSenderID(ctx), []string{phone}, msg)
 					sentCount++
 				}
 			}
@@ -302,7 +390,7 @@ func (u *communicationUseCase) SendBirthdayGreetings(ctx context.Context) (int, 
 				phone := string(t.PhoneNumber)
 				if phone != "" {
 					msg := "Happy Birthday, " + string(t.FirstName) + "! 🎂 Thank you for your dedication. Have a wonderful day!"
-					_ = u.sms.SendSMS(ctx, "SCHOOL", []string{phone}, msg)
+					_ = u.sms.SendSMS(ctx, u.getTenantSenderID(ctx), []string{phone}, msg)
 					sentCount++
 				}
 			}
@@ -361,7 +449,7 @@ func (u *communicationUseCase) DispatchEmergencyBroadcast(ctx context.Context, b
 	// 3. Dispatch multi-channel SMS blast
 	if len(phones) > 0 {
 		smsMsg := fmt.Sprintf("[%s ALERT] %s: %s", broadcast.Severity, broadcast.Title, broadcast.Message)
-		_ = u.sms.SendSMS(ctx, "EMERGENCY", phones, smsMsg)
+		_ = u.sms.SendSMS(ctx, u.getTenantSenderID(ctx), phones, smsMsg)
 	}
 
 	return nil

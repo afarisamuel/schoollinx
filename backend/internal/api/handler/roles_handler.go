@@ -43,9 +43,13 @@ var AllPermissions = []map[string]string{
 	{"key": domain.PermProcurementRead, "label": "Read Procurement", "group": "Procurement"},
 	{"key": domain.PermProcurementWrite, "label": "Write Procurement", "group": "Procurement"},
 	{"key": domain.PermFacilityRead, "label": "Read Facility", "group": "Facility"},
-	{"key": domain.PermFacilityWrite, "label": "Write Facility", "group": "Facility"},
 	{"key": domain.PermExamsRead, "label": "Read Exams", "group": "Exams"},
 	{"key": domain.PermExamsWrite, "label": "Write Exams", "group": "Exams"},
+	{"key": domain.PermConferencesRead, "label": "View Conferences", "group": "Conferences"},
+	{"key": domain.PermConferencesWrite, "label": "Manage Conferences", "group": "Conferences"},
+	{"key": domain.PermCanteenRead, "label": "View Canteen & Wallet", "group": "Canteen"},
+	{"key": domain.PermCanteenWrite, "label": "Operate Canteen POS", "group": "Canteen"},
+	{"key": domain.PermLogisticsTrack, "label": "Live Transit GPS Tracking", "group": "Logistics"},
 }
 
 // AllRoles is the list of configurable roles (excludes super admin).

@@ -17,6 +17,7 @@ type PaymentUseCase interface {
 	InitializeWalletTopUp(ctx context.Context, tenantID string, studentID uuid.UUID, payerEmail string, amount float64, callbackURL string) (string, error)
 	VerifyPayment(ctx context.Context, tenantID string, reference string) (*domain.PaymentTransaction, error)
 	HandlePaystackWebhook(ctx context.Context, payload []byte, signature string) error
+	GetPublicInvoice(ctx context.Context, invoiceID uuid.UUID) (*domain.FiscalRecord, *domain.Student, *domain.Tenant, error)
 }
 
 type paymentUseCase struct {
@@ -244,18 +245,8 @@ func (u *paymentUseCase) VerifyPayment(ctx context.Context, tenantID string, ref
 	tenantCtx = context.WithValue(tenantCtx, middleware.TenantSchemaKey, tenant.SchemaName)
 	tenantCtx = context.WithValue(tenantCtx, middleware.TenantNameKey, tenant.Name)
 
-	// Idempotent: If already marked paid, reconcile invoice if needed and return immediately
+	// Idempotent: If already marked paid, return immediately
 	if tx.Status == domain.PaymentStatusPaid {
-		if tx.FiscalRecordID != nil && *tx.FiscalRecordID != uuid.Nil {
-			invoice, err := u.fiscalRepo.GetByID(tenantCtx, *tx.FiscalRecordID)
-			if err == nil && invoice != nil && invoice.AmountPaid < tx.Amount {
-				invoice.AmountPaid += tx.Amount
-				if invoice.AmountPaid >= invoice.Amount {
-					invoice.Status = domain.PaymentStatusPaid
-				}
-				_ = u.fiscalRepo.Update(tenantCtx, invoice)
-			}
-		}
 		return tx, nil
 	}
 
@@ -281,22 +272,27 @@ func (u *paymentUseCase) VerifyPayment(ctx context.Context, tenantID string, ref
 	}
 	tx.Status = domain.PaymentStatusPaid
 
-	// 2. If regular fee payment (has FiscalRecordID) -> Credit Invoice
+	// 2. If regular fee payment (has FiscalRecordID) -> Credit Invoice atomically
 	if tx.FiscalRecordID != nil && *tx.FiscalRecordID != uuid.Nil {
-		invoice, err := u.fiscalRepo.GetByID(tenantCtx, *tx.FiscalRecordID)
-		if err == nil && invoice != nil {
-			invoice.AmountPaid += tx.Amount
-			if invoice.AmountPaid >= invoice.Amount {
-				invoice.Status = domain.PaymentStatusPaid
-			}
-			_ = u.fiscalRepo.Update(tenantCtx, invoice)
-
-			if u.feeNotifier != nil {
+		var notifReq *FeePaymentNotification
+		if u.db != nil {
+			_ = u.db.WithContext(tenantCtx).Transaction(func(dbTx *gorm.DB) error {
+				invoice, err := u.fiscalRepo.GetByID(tenantCtx, *tx.FiscalRecordID)
+				if err != nil || invoice == nil {
+					return err
+				}
+				invoice.AmountPaid += tx.Amount
+				if invoice.AmountPaid >= invoice.Amount {
+					invoice.Status = domain.PaymentStatusPaid
+				}
+				if err := u.fiscalRepo.Update(tenantCtx, invoice); err != nil {
+					return err
+				}
 				rem := invoice.Amount - invoice.AmountPaid
 				if rem < 0 {
 					rem = 0
 				}
-				_ = u.feeNotifier.NotifyPayment(tenantCtx, FeePaymentNotification{
+				notifReq = &FeePaymentNotification{
 					StudentID:        invoice.StudentID,
 					Amount:           tx.Amount,
 					Category:         string(invoice.Category),
@@ -304,8 +300,35 @@ func (u *paymentUseCase) VerifyPayment(ctx context.Context, tenantID string, ref
 					ReceiptReference: reference,
 					RemainingBalance: rem,
 					Note:             "Online Payment Verified",
-				})
+				}
+				return nil
+			})
+		} else {
+			invoice, err := u.fiscalRepo.GetByID(tenantCtx, *tx.FiscalRecordID)
+			if err == nil && invoice != nil {
+				invoice.AmountPaid += tx.Amount
+				if invoice.AmountPaid >= invoice.Amount {
+					invoice.Status = domain.PaymentStatusPaid
+				}
+				_ = u.fiscalRepo.Update(tenantCtx, invoice)
+				rem := invoice.Amount - invoice.AmountPaid
+				if rem < 0 {
+					rem = 0
+				}
+				notifReq = &FeePaymentNotification{
+					StudentID:        invoice.StudentID,
+					Amount:           tx.Amount,
+					Category:         string(invoice.Category),
+					PaymentMethod:    "PAYSTACK",
+					ReceiptReference: reference,
+					RemainingBalance: rem,
+					Note:             "Online Payment Verified",
+				}
 			}
+		}
+
+		if notifReq != nil && u.feeNotifier != nil {
+			_ = u.feeNotifier.NotifyPayment(tenantCtx, *notifReq)
 		}
 		return tx, nil
 	}
@@ -320,20 +343,27 @@ func (u *paymentUseCase) VerifyPayment(ctx context.Context, tenantID string, ref
 		}
 
 		if u.studentRepo != nil && targetStudentID != uuid.Nil {
-			student, err := u.studentRepo.GetByID(tenantCtx, targetStudentID)
-			if err == nil && student != nil {
-				student.PrepaidBalance += tx.Amount
-				_ = u.studentRepo.Update(tenantCtx, student)
-				_ = u.fiscalRepo.CreateWalletTransaction(tenantCtx, &domain.WalletTransaction{
-					StudentID:   student.ID,
-					Type:        domain.WalletTransactionCredit,
-					Amount:      tx.Amount,
-					Balance:     student.PrepaidBalance,
-					Description: fmt.Sprintf("Online Paystack Top-Up (%s)", reference),
-				})
-
-				if u.feeNotifier != nil {
-					_ = u.feeNotifier.NotifyPayment(tenantCtx, FeePaymentNotification{
+			var notifReq *FeePaymentNotification
+			if u.db != nil {
+				_ = u.db.WithContext(tenantCtx).Transaction(func(dbTx *gorm.DB) error {
+					student, err := u.studentRepo.GetByID(tenantCtx, targetStudentID)
+					if err != nil || student == nil {
+						return err
+					}
+					student.PrepaidBalance += tx.Amount
+					if err := u.studentRepo.Update(tenantCtx, student); err != nil {
+						return err
+					}
+					if err := u.fiscalRepo.CreateWalletTransaction(tenantCtx, &domain.WalletTransaction{
+						StudentID:   student.ID,
+						Type:        domain.WalletTransactionCredit,
+						Amount:      tx.Amount,
+						Balance:     student.PrepaidBalance,
+						Description: fmt.Sprintf("Online Paystack Top-Up (%s)", reference),
+					}); err != nil {
+						return err
+					}
+					notifReq = &FeePaymentNotification{
 						StudentID:        student.ID,
 						Amount:           tx.Amount,
 						Category:         "WALLET_TOPUP",
@@ -341,8 +371,35 @@ func (u *paymentUseCase) VerifyPayment(ctx context.Context, tenantID string, ref
 						ReceiptReference: reference,
 						RemainingBalance: student.PrepaidBalance,
 						Note:             "Online Wallet Top-Up",
+					}
+					return nil
+				})
+			} else {
+				student, err := u.studentRepo.GetByID(tenantCtx, targetStudentID)
+				if err == nil && student != nil {
+					student.PrepaidBalance += tx.Amount
+					_ = u.studentRepo.Update(tenantCtx, student)
+					_ = u.fiscalRepo.CreateWalletTransaction(tenantCtx, &domain.WalletTransaction{
+						StudentID:   student.ID,
+						Type:        domain.WalletTransactionCredit,
+						Amount:      tx.Amount,
+						Balance:     student.PrepaidBalance,
+						Description: fmt.Sprintf("Online Paystack Top-Up (%s)", reference),
 					})
+					notifReq = &FeePaymentNotification{
+						StudentID:        student.ID,
+						Amount:           tx.Amount,
+						Category:         "WALLET_TOPUP",
+						PaymentMethod:    "PAYSTACK",
+						ReceiptReference: reference,
+						RemainingBalance: student.PrepaidBalance,
+						Note:             "Online Wallet Top-Up",
+					}
 				}
+			}
+
+			if notifReq != nil && u.feeNotifier != nil {
+				_ = u.feeNotifier.NotifyPayment(tenantCtx, *notifReq)
 			}
 		}
 		return tx, nil
@@ -588,4 +645,34 @@ func (u *paymentUseCase) HandlePaystackWebhook(ctx context.Context, payload []by
 	}
 
 	return nil
+}
+
+func (u *paymentUseCase) GetPublicInvoice(ctx context.Context, invoiceID uuid.UUID) (*domain.FiscalRecord, *domain.Student, *domain.Tenant, error) {
+	if invoiceID == uuid.Nil {
+		return nil, nil, nil, fmt.Errorf("invalid invoice id")
+	}
+
+	invoice, err := u.fiscalRepo.GetByID(ctx, invoiceID)
+	if err != nil || invoice == nil {
+		return nil, nil, nil, fmt.Errorf("invoice record not found: %w", err)
+	}
+
+	var student *domain.Student
+	if invoice.StudentID != uuid.Nil && u.studentRepo != nil {
+		stu, err := u.studentRepo.GetByID(ctx, invoice.StudentID)
+		if err == nil {
+			student = stu
+		}
+	}
+
+	var tenant *domain.Tenant
+	tenantID, hasTenant := middleware.GetTenantIDFromContext(ctx)
+	if hasTenant && tenantID != uuid.Nil && u.tenantRepo != nil {
+		t, err := u.tenantRepo.GetByID(ctx, tenantID)
+		if err == nil {
+			tenant = t
+		}
+	}
+
+	return invoice, student, tenant, nil
 }

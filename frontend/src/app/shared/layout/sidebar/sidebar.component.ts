@@ -14,6 +14,8 @@ export interface NavItem {
   icon: string;
   badge?: () => number | string | null;
   roles?: string[];
+  permission?: string;
+  permissions?: string[];
   exact?: boolean;
   subtitle?: string;
 }
@@ -108,9 +110,20 @@ export class SidebarComponent implements OnInit {
   });
 
   private isItemVisible(item: NavItem): boolean {
-    if (!item.roles || item.roles.length === 0) return true;
     const role = this.userRole();
-    if (role === Role.ECOPOWER_ADMIN) return true;
+    if (role === Role.ECOPOWER_ADMIN || role === Role.ADMIN) return true;
+
+    // 1. Check custom permissions assigned to user
+    const userPerms = this.currentUser()?.permissions || [];
+    if (item.permission && userPerms.includes(item.permission)) {
+      return true;
+    }
+    if (item.permissions && item.permissions.some(p => userPerms.includes(p))) {
+      return true;
+    }
+
+    // 2. Fallback to role-based check
+    if (!item.roles || item.roles.length === 0) return true;
     return item.roles.some(r => r === role || (r === 'PARENT' && this.isGuardian()));
   }
 

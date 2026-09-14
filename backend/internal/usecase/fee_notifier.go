@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/datatypes"
 	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/domain"
 	"github.com/user/high-school-management/backend/pkg/encryption"
+	"gorm.io/datatypes"
 )
 
 type FeePaymentNotification struct {
@@ -134,37 +134,47 @@ func (n *feeNotifier) NotifyPayment(ctx context.Context, p FeePaymentNotificatio
 		}
 	}
 
+	// Resolve tenant custom SMS sender ID (or fallback to SCHOOLLINX)
+	senderID := domain.DefaultSMSSenderID
+	var tenant *domain.Tenant
+	if tID, ok := ctx.Value(middleware.TenantIDKey).(uuid.UUID); ok && tID != uuid.Nil && n.tenantRepo != nil {
+		if t, err := n.tenantRepo.GetByID(ctx, tID); err == nil && t != nil {
+			tenant = t
+			if t.SMSSenderID != "" && (t.SMSSenderIDStatus == string(domain.SenderIDStatusApproved) || t.SMSSenderIDStatus == "APPROVED") {
+				senderID = t.SMSSenderID
+			} else if t.SMSSenderID != "" {
+				senderID = t.SMSSenderID
+			}
+		}
+	}
+
 	// 3. Dispatch SMS Notification to Parent(s)
 	smsMessage := fmt.Sprintf("Receipt: Payment of GHS %.2f received for %s%s. Category: %s. Ref: %s. Bal: %s. Date: %s. Thank you.",
 		p.Amount, studentName, displayClass, categoryDisplay, refDisplay, balDisplay, today)
 
 	if n.sms != nil && len(phones) > 0 {
-		go func(recipients []string, msg string) {
-			_ = n.sms.SendSMS(context.Background(), "FINANCE", recipients, msg)
-		}(phones, smsMessage)
+		go func(sID string, recipients []string, msg string) {
+			_ = n.sms.SendSMS(context.Background(), sID, recipients, msg)
+		}(senderID, phones, smsMessage)
 	}
 
 	// 3b. Dispatch SMS Notification to Admin / Headmaster
-	if n.sms != nil && n.tenantRepo != nil {
-		if tID, ok := ctx.Value(middleware.TenantIDKey).(uuid.UUID); ok && tID != uuid.Nil {
-			if tenant, err := n.tenantRepo.GetByID(ctx, tID); err == nil && tenant != nil {
-				adminPhone := cleanPhoneNumber(tenant.ContactNumbers)
-				if adminPhone != "" {
-					adminSMSText := fmt.Sprintf("Admin Alert: GHS %.2f received for %s%s (%s). Ref: %s. Bal: %s.",
-						p.Amount, studentName, displayClass, categoryDisplay, refDisplay, balDisplay)
-					go func(phone, msg string) {
-						_ = n.sms.SendSMS(context.Background(), "FINANCE", []string{phone}, msg)
-					}(adminPhone, adminSMSText)
-				}
-			}
+	if n.sms != nil && tenant != nil {
+		adminPhone := cleanPhoneNumber(tenant.ContactNumbers)
+		if adminPhone != "" {
+			adminSMSText := fmt.Sprintf("Admin Alert: GHS %.2f received for %s%s (%s). Ref: %s. Bal: %s.",
+				p.Amount, studentName, displayClass, categoryDisplay, refDisplay, balDisplay)
+			go func(sID, phone, msg string) {
+				_ = n.sms.SendSMS(context.Background(), sID, []string{phone}, msg)
+			}(senderID, adminPhone, adminSMSText)
 		}
 	}
 
 	// 4. In-System Notifications
-	dataJSON := datatypes.JSON([]byte(fmt.Sprintf(
+	dataJSON := datatypes.JSON(fmt.Appendf(nil,
 		`{"student_id":"%s","student_name":"%s","amount":%.2f,"reference":"%s","category":"%s","balance":%.2f,"method":"%s"}`,
 		p.StudentID.String(), studentName, p.Amount, refDisplay, categoryDisplay, p.RemainingBalance, methodDisplay,
-	)))
+	))
 
 	if n.notifUC != nil {
 		// A. In-system notification for Parent(s)

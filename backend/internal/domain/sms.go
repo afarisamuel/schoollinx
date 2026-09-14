@@ -9,6 +9,7 @@ import (
 type SenderIDRequestStatus string
 
 const (
+	DefaultSMSSenderID                           = "SCHOOLLINX"
 	SenderIDStatusPending  SenderIDRequestStatus = "PENDING"
 	SenderIDStatusApproved SenderIDRequestStatus = "APPROVED"
 	SenderIDStatusRejected SenderIDRequestStatus = "REJECTED"

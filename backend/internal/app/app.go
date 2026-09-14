@@ -204,6 +204,8 @@ func (a *App) setupRoutes() {
 	// Public Routes
 	public := a.Router.Group("/api/public")
 	public.GET("/payments/verify/:reference", paymentHandler.VerifyPayment)
+	public.GET("/checkout/invoice/:id", paymentHandler.GetPublicInvoiceDetails)
+	public.POST("/checkout/initialize", paymentHandler.InitializePublicInvoicePayment)
 	// 300 requests per minute per IP for public endpoints like tenant search
 	publicRateLimiter := middleware.NewIPRateLimiter(300, time.Minute)
 	public.Use(publicRateLimiter.Middleware())

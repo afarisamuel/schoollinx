@@ -183,6 +183,8 @@ var TenantModels = []interface{}{
 	&domain.InstallmentMilestone{},
 	&domain.InstallmentPlanTemplate{},
 	&domain.BillTemplateConfig{},
+	&domain.LedgerAccount{},
+	&domain.LedgerEntry{},
 	// Inventory & procurement
 	&domain.InventoryItem{},
 	&domain.AssetCheckout{},

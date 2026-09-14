@@ -118,9 +118,7 @@ func (u *studentUseCase) provisionGuardianUser(ctx context.Context, g *domain.Gu
 	}
 	g.UserID = newUser.ID
 
-	// Always log the credentials to the server console so admins can see it,
-	// especially useful if the guardian only provided a phone number.
-	log.Printf("[GUARDIAN CREATED] Email/Phone: %s | Temporary Password: %s\n", identifier, tempPassword)
+	log.Printf("[GUARDIAN CREATED] Account provisioned for %s\n", identifier)
 
 	// Email credentials only if we have a real email address.
 	if hasEmail {
@@ -265,7 +263,23 @@ func (u *studentUseCase) applyTermFeesIfGenerated(ctx context.Context, student *
 }
 
 func (u *studentUseCase) BulkUpsertStudents(ctx context.Context, students []domain.Student, batchSize int) error {
-	return u.studentRepo.BulkUpsert(ctx, students, batchSize)
+	for i := range students {
+		for j, g := range students[i].Guardians {
+			if _, err := u.provisionGuardianUser(ctx, g); err == nil {
+				students[i].Guardians[j] = g
+			}
+		}
+	}
+
+	if err := u.studentRepo.BulkUpsert(ctx, students, batchSize); err != nil {
+		return err
+	}
+
+	for i := range students {
+		u.applyTermFeesIfGenerated(ctx, &students[i])
+	}
+
+	return nil
 }
 
 func (u *studentUseCase) GetStudentByID(ctx context.Context, id uuid.UUID) (*domain.Student, error) {

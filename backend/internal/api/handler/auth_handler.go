@@ -910,13 +910,18 @@ func (h *AuthHandler) RequestOTP(c *gin.Context) {
 		return
 	}
 
-	// Dispatch SMS
-	senderID := "SchoolLinx"
-	tenantSubdomain, exists := c.Get("tenantSubdomain")
-	if exists && tenantSubdomain != "" {
-		sub := tenantSubdomain.(string)
-		if len(sub) > 0 && len(sub) <= 11 {
-			senderID = sub
+	// Dispatch SMS using tenant custom approved sender ID (or default SCHOOLLINX)
+	senderID := domain.DefaultSMSSenderID
+	if tenantID, exists := c.Get("tenantID"); exists {
+		if tUUID, ok := tenantID.(uuid.UUID); ok && tUUID != uuid.Nil {
+			var t domain.Tenant
+			if err := h.db.Table("public.tenants").Where("id = ?", tUUID).First(&t).Error; err == nil {
+				if t.SMSSenderID != "" && (t.SMSSenderIDStatus == string(domain.SenderIDStatusApproved) || t.SMSSenderIDStatus == "APPROVED") {
+					senderID = t.SMSSenderID
+				} else if t.SMSSenderID != "" {
+					senderID = t.SMSSenderID
+				}
+			}
 		}
 	}
 

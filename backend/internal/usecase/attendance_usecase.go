@@ -8,8 +8,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/datatypes"
+	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/domain"
+	"gorm.io/datatypes"
 )
 
 var scanDebounceMap sync.Map // Map[string]time.Time (Gap #12)
@@ -50,14 +51,28 @@ func NewAttendanceUseCase(
 	}
 }
 
-func (u *AttendanceUseCase) notifyAttendanceToGuardian(studentID uuid.UUID, status domain.AttendanceStatus, remarks string, timestamp time.Time) {
+func (u *AttendanceUseCase) notifyAttendanceToGuardian(ctx context.Context, studentID uuid.UUID, status domain.AttendanceStatus, remarks string, timestamp time.Time) {
 	if studentID == uuid.Nil || u.studentRepo == nil {
 		return
 	}
 
+	tenantID, _ := middleware.GetTenantIDFromContext(ctx)
+	tenantSchema, _ := middleware.GetTenantSchemaFromContext(ctx)
+	tenantName, _ := middleware.GetTenantNameFromContext(ctx)
+
 	go func() {
 		bgCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()
+
+		if tenantID != uuid.Nil {
+			bgCtx = context.WithValue(bgCtx, middleware.TenantIDKey, tenantID)
+		}
+		if tenantSchema != "" {
+			bgCtx = context.WithValue(bgCtx, middleware.TenantSchemaKey, tenantSchema)
+		}
+		if tenantName != "" {
+			bgCtx = context.WithValue(bgCtx, middleware.TenantNameKey, tenantName)
+		}
 
 		student, err := u.studentRepo.GetByID(bgCtx, studentID)
 		if err != nil || student == nil {
@@ -73,11 +88,12 @@ func (u *AttendanceUseCase) notifyAttendanceToGuardian(studentID uuid.UUID, stat
 		dateStr := timestamp.Format("02 Jan 2006")
 
 		statusLabel := string(status)
-		if status == domain.StatusPresent {
+		switch status {
+		case domain.StatusPresent:
 			statusLabel = "PRESENT (Checked-In)"
-		} else if status == domain.StatusAbsent {
+		case domain.StatusAbsent:
 			statusLabel = "ABSENT"
-		} else if status == domain.StatusTardy {
+		case domain.StatusTardy:
 			statusLabel = "LATE / TARDY"
 		}
 
@@ -123,9 +139,19 @@ func (u *AttendanceUseCase) notifyAttendanceToGuardian(studentID uuid.UUID, stat
 			smsText += fmt.Sprintf(" Remaining Wallet Balance: GH₵%.2f.", student.PrepaidBalance)
 		}
 
-		// 1. Send SMS to Guardian(s)
+		// 1. Send SMS to Guardian(s) using tenant custom sender ID (or default SCHOOLLINX)
 		if u.sms != nil && len(phones) > 0 {
-			_ = u.sms.SendSMS(bgCtx, "ATTENDANCE", phones, smsText)
+			senderID := domain.DefaultSMSSenderID
+			if tenantID != uuid.Nil && u.tenantRepo != nil {
+				if tenant, err := u.tenantRepo.GetByID(bgCtx, tenantID); err == nil && tenant != nil {
+					if tenant.SMSSenderID != "" && (tenant.SMSSenderIDStatus == string(domain.SenderIDStatusApproved) || tenant.SMSSenderIDStatus == "APPROVED") {
+						senderID = tenant.SMSSenderID
+					} else if tenant.SMSSenderID != "" {
+						senderID = tenant.SMSSenderID
+					}
+				}
+			}
+			_ = u.sms.SendSMS(bgCtx, senderID, phones, smsText)
 		}
 
 		// 2. Send In-System & Web Push Notification to Guardian(s) and Student
@@ -133,10 +159,10 @@ func (u *AttendanceUseCase) notifyAttendanceToGuardian(studentID uuid.UUID, stat
 			notifTitle := fmt.Sprintf("Attendance: %s (%s)", studentName, statusLabel)
 			notifMsg := fmt.Sprintf("%s was recorded as %s on %s at %s. %s", studentName, statusLabel, dateStr, timeStr, remarks)
 
-			notifData := datatypes.JSON([]byte(fmt.Sprintf(
+			notifData := datatypes.JSON(fmt.Appendf(nil,
 				`{"student_id":"%s","student_name":"%s","status":"%s","time":"%s","date":"%s"}`,
 				student.ID.String(), studentName, status, timeStr, dateStr,
-			)))
+			))
 
 			for _, uid := range guardianUserIDs {
 				_ = u.notifUC.SendToUser(uid, domain.Notification{
@@ -173,7 +199,7 @@ func (u *AttendanceUseCase) MarkAttendance(ctx context.Context, attendance *doma
 				_ = u.fiscalUC.ProcessAttendanceBilling(ctx, attendance.StudentID, activePeriod.ID)
 			}
 		}
-		u.notifyAttendanceToGuardian(attendance.StudentID, attendance.Status, attendance.Remarks, attendance.Date)
+		u.notifyAttendanceToGuardian(ctx, attendance.StudentID, attendance.Status, attendance.Remarks, attendance.Date)
 	}
 	return err
 }
@@ -186,7 +212,7 @@ func (u *AttendanceUseCase) MarkBulkAttendance(ctx context.Context, attendances 
 			if attendance.Status == domain.StatusPresent && activePeriod != nil {
 				_ = u.fiscalUC.ProcessAttendanceBilling(ctx, attendance.StudentID, activePeriod.ID)
 			}
-			u.notifyAttendanceToGuardian(attendance.StudentID, attendance.Status, attendance.Remarks, attendance.Date)
+			u.notifyAttendanceToGuardian(ctx, attendance.StudentID, attendance.Status, attendance.Remarks, attendance.Date)
 		}
 	}
 	return err
@@ -212,7 +238,7 @@ func (u *AttendanceUseCase) AnalyzeAbsences(ctx context.Context, threshold int) 
 			continue
 		}
 
-		// Sort or assume they are ordered by date (usually handled in repo). 
+		// Sort or assume they are ordered by date (usually handled in repo).
 		// For simplicity, we just count recent consecutive absences based on threshold.
 		consecutive := 0
 		for i := len(attendances) - 1; i >= 0; i-- {
@@ -226,9 +252,9 @@ func (u *AttendanceUseCase) AnalyzeAbsences(ctx context.Context, threshold int) 
 		if consecutive >= threshold {
 			// Trigger campaign alert to guardians
 			campaign := &domain.Campaign{
-				Subject:   "Welfare Alert: Excessive Absences",
-				BodyHTML:  "Student has missed " + string(rune(consecutive+'0')) + " consecutive days.",
-				Target:    "ALL_PARENTS", // Ideally we'd target just the student's guardian
+				Subject:  "Welfare Alert: Excessive Absences",
+				BodyHTML: "Student has missed " + string(rune(consecutive+'0')) + " consecutive days.",
+				Target:   "ALL_PARENTS", // Ideally we'd target just the student's guardian
 			}
 			err = u.campaignMgr.DraftCampaign(ctx, campaign)
 			if err == nil {
@@ -310,7 +336,7 @@ func (u *AttendanceUseCase) ProcessHardwareScan(ctx context.Context, deviceID, r
 	}
 
 	// 3c. Send real-time Gate Ingress / Egress notification
-	u.notifyAttendanceToGuardian(matchedStudent.ID, domain.StatusPresent, "Campus gate entry scanned via "+deviceID, now)
+	u.notifyAttendanceToGuardian(ctx, matchedStudent.ID, domain.StatusPresent, "Campus gate entry scanned via "+deviceID, now)
 
 	// 4. Mark scan as processed
 	scan.Processed = true

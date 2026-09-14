@@ -54,6 +54,10 @@ export class HrService {
         window.open(`${this.apiUrl}/payroll/gra-schedule${query}`, '_blank');
     }
 
+    downloadBankDisbursementCSV(month: number, year: number): void {
+        window.open(`${this.apiUrl}/payroll/export-csv?month=${month}&year=${year}`, '_blank');
+    }
+
     // Leave
     getLeaveRequests(): Observable<LeaveRequest[]> {
         return this.http.get<LeaveRequest[]>(`${this.apiUrl}/leave`);
