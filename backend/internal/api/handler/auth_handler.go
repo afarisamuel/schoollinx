@@ -926,16 +926,34 @@ func (h *AuthHandler) RequestOTP(c *gin.Context) {
 	}
 
 	smsMessage := fmt.Sprintf("Your School Linx verification code is: %s. Valid for 10 minutes. Do not share this code.", otp)
-	recipient := matchedPhone
-	if !strings.HasPrefix(recipient, "+") && strings.HasPrefix(recipient, "0") {
-		recipient = "233" + recipient[1:]
-	} else if strings.HasPrefix(recipient, "+") {
+	recipient := strings.TrimSpace(matchedPhone)
+	recipient = strings.ReplaceAll(recipient, " ", "")
+	recipient = strings.ReplaceAll(recipient, "-", "")
+	recipient = strings.ReplaceAll(recipient, "(", "")
+	recipient = strings.ReplaceAll(recipient, ")", "")
+	if strings.HasPrefix(recipient, "+") {
 		recipient = strings.TrimPrefix(recipient, "+")
+	} else if strings.HasPrefix(recipient, "0") && len(recipient) == 10 {
+		recipient = "233" + recipient[1:]
+	} else if len(recipient) == 9 && !strings.HasPrefix(recipient, "0") && !strings.HasPrefix(recipient, "233") {
+		recipient = "233" + recipient
 	}
 
 	go func() {
 		if h.smsProvider != nil {
-			_ = h.smsProvider.SendSMS(context.Background(), senderID, []string{recipient}, smsMessage)
+			err := h.smsProvider.SendSMS(context.Background(), senderID, []string{recipient}, smsMessage)
+			if err != nil {
+				logger.Error("Failed to send OTP SMS via sender ID, attempting fallback to default sender ID",
+					err,
+					zap.String("senderID", senderID),
+					zap.String("recipient", recipient),
+				)
+				if senderID != domain.DefaultSMSSenderID {
+					_ = h.smsProvider.SendSMS(context.Background(), domain.DefaultSMSSenderID, []string{recipient}, smsMessage)
+				}
+			} else {
+				logger.Info("OTP SMS dispatched successfully", zap.String("recipient", recipient), zap.String("senderID", senderID))
+			}
 		} else {
 			logger.Info("Sandbox SMS OTP Dispatch", zap.String("recipient", recipient), zap.String("otp", otp))
 		}

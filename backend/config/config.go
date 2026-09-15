@@ -59,7 +59,18 @@ func LoadConfig() *Config {
 		SMTPFrom:             os.Getenv("SMTP_FROM"),
 		AutoMigrate:          os.Getenv("AUTO_MIGRATE") == "true",
 		PaystackSecretKey:    os.Getenv("PAYSTACK_SECRET_KEY"),
-		SMSAPIKey:            os.Getenv("ARKASEL_SMS_API_KEY"),
+		SMSAPIKey: func() string {
+			if k := os.Getenv("ARKASEL_SMS_API_KEY"); k != "" {
+				return k
+			}
+			if k := os.Getenv("ARKESEL_SMS_API_KEY"); k != "" {
+				return k
+			}
+			if k := os.Getenv("ARKESEL_API_KEY"); k != "" {
+				return k
+			}
+			return os.Getenv("SMS_API_KEY")
+		}(),
 		WhatsAppAPIKey:       os.Getenv("ARKASEL_WHATSAPP_API_KEY"),
 		WhatsAppSenderNumber: os.Getenv("ARKASEL_WHATSAPP_SENDER"),
 		RedisURL:             redisURL,
