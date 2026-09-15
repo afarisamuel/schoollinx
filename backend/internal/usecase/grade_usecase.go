@@ -19,7 +19,7 @@ func NewGradeUseCase(repo domain.GradeRepository, notifUC domain.NotificationUse
 func (u *gradeUseCase) AddGrade(ctx context.Context, grade *domain.Grade) error {
 	err := u.gradeRepo.Create(ctx, grade)
 	if err == nil && u.notifUC != nil && grade.StudentID != uuid.Nil {
-		_ = u.notifUC.SendToUser(grade.StudentID, domain.Notification{
+		_ = u.notifUC.SendToUser(ctx, grade.StudentID, domain.Notification{
 			Type:    domain.NotificationGrade,
 			Title:   "New Grade Posted",
 			Message: "A new grade has been posted for your subject.",

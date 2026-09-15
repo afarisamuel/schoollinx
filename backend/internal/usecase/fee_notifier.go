@@ -182,7 +182,7 @@ func (n *feeNotifier) NotifyPayment(ctx context.Context, p FeePaymentNotificatio
 			p.Amount, studentName, displayClass, categoryDisplay, refDisplay, balDisplay)
 
 		for _, uid := range guardianUserIDs {
-			_ = n.notifUC.SendToUser(uid, domain.Notification{
+			_ = n.notifUC.SendToUser(ctx, uid, domain.Notification{
 				Type:    domain.NotificationPayment,
 				Title:   "Fee Payment Confirmed",
 				Message: parentNotifMsg,
@@ -194,27 +194,25 @@ func (n *feeNotifier) NotifyPayment(ctx context.Context, p FeePaymentNotificatio
 		adminNotifMsg := fmt.Sprintf("GHS %.2f received for %s%s via %s. Category: %s. Ref: %s. Remaining: %s.",
 			p.Amount, studentName, displayClass, methodDisplay, categoryDisplay, refDisplay, balDisplay)
 
-		_ = n.notifUC.SendToRole(domain.RoleAdmin, domain.Notification{
+		_ = n.notifUC.SendToRole(ctx, domain.RoleAdmin, domain.Notification{
+			Type:    domain.NotificationPayment,
+			Title:   "New Fee Payment Received",
+			Message: adminNotifMsg,
+			Data:    dataJSON,
+		})
+		_ = n.notifUC.SendToRole(ctx, domain.RoleAccountant, domain.Notification{
 			Type:    domain.NotificationPayment,
 			Title:   "New Fee Payment Received",
 			Message: adminNotifMsg,
 			Data:    dataJSON,
 		})
 
-		// C. Real-time broadcast so any active admin portal or parent portal immediately updates
-		_ = n.notifUC.Broadcast(domain.Notification{
-			Type:    domain.NotificationPayment,
-			Title:   "Fee Payment Received",
-			Message: adminNotifMsg,
-			Data:    dataJSON,
-		})
-
-		// D. In-system notification for Student (if student has an account)
+		// C. In-system notification for Student (if student has an account)
 		if student.UserID != nil && *student.UserID != uuid.Nil {
 			studentNotifMsg := fmt.Sprintf("A fee payment of GHS %.2f has been credited to your account (%s). Ref: %s.",
 				p.Amount, categoryDisplay, refDisplay)
 
-			_ = n.notifUC.SendToUser(*student.UserID, domain.Notification{
+			_ = n.notifUC.SendToUser(ctx, *student.UserID, domain.Notification{
 				Type:    domain.NotificationPayment,
 				Title:   "Fee Payment Credited",
 				Message: studentNotifMsg,

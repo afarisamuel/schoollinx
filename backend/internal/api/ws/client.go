@@ -156,7 +156,7 @@ func (c *Client) handleDirectMessage(data json.RawMessage) {
 	}
 
 	// Route to recipient via the hub
-	c.Hub.SendDirectMessage(recipientID, msg)
+	c.Hub.SendDirectMessage(recipientID, msg, c.TenantSchema)
 
 	// Echo back to sender so they see their own message in real-time
 	echo := WSMessage{Type: "direct_message", Payload: msg}

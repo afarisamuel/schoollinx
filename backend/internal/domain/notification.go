@@ -49,9 +49,9 @@ type PushSubscriptionRepository interface {
 }
 
 type NotificationUseCase interface {
-	SendToUser(userID uuid.UUID, notification Notification) error
-	SendToRole(role Role, notification Notification) error
-	Broadcast(notification Notification) error
+	SendToUser(ctx context.Context, userID uuid.UUID, notification Notification) error
+	SendToRole(ctx context.Context, role Role, notification Notification) error
+	Broadcast(ctx context.Context, notification Notification) error
 	GetNotificationsForUser(ctx context.Context, userID uuid.UUID, limit int) ([]Notification, error)
 	MarkAsRead(ctx context.Context, id uuid.UUID, userID uuid.UUID) error
 	MarkAllAsRead(ctx context.Context, userID uuid.UUID) error

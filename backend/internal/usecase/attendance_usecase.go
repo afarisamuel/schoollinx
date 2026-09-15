@@ -165,7 +165,7 @@ func (u *AttendanceUseCase) notifyAttendanceToGuardian(ctx context.Context, stud
 			))
 
 			for _, uid := range guardianUserIDs {
-				_ = u.notifUC.SendToUser(uid, domain.Notification{
+				_ = u.notifUC.SendToUser(bgCtx, uid, domain.Notification{
 					Type:    domain.NotificationAttendance,
 					Title:   notifTitle,
 					Message: notifMsg,
@@ -174,7 +174,7 @@ func (u *AttendanceUseCase) notifyAttendanceToGuardian(ctx context.Context, stud
 			}
 
 			if student.UserID != nil && *student.UserID != uuid.Nil {
-				_ = u.notifUC.SendToUser(*student.UserID, domain.Notification{
+				_ = u.notifUC.SendToUser(bgCtx, *student.UserID, domain.Notification{
 					Type:    domain.NotificationAttendance,
 					Title:   notifTitle,
 					Message: notifMsg,
@@ -307,7 +307,7 @@ func (u *AttendanceUseCase) ProcessHardwareScan(ctx context.Context, deviceID, r
 	// Gap #13: Security alert on unregistered badge scanned at physical gate turnstile
 	if matchedStudent == nil {
 		if u.notifUC != nil {
-			_ = u.notifUC.Broadcast(domain.Notification{
+			_ = u.notifUC.Broadcast(ctx, domain.Notification{
 				Type:    domain.NotificationSystem,
 				Title:   "Security Alert: Unregistered Token Scanned",
 				Message: fmt.Sprintf("Unrecognized RFID token [%s] presented at hardware terminal [%s]", rfidToken, deviceID),

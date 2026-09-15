@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"log"
-	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,25 +29,24 @@ func NewNotificationUseCase(hub *ws.Hub, db *gorm.DB, pushRepo domain.PushSubscr
 	}
 }
 
-func (u *notificationUseCase) getTenantSchemas() []string {
-	if u.db == nil {
-		return nil
-	}
-	var schemas []string
-	_ = u.db.Raw("SELECT schema_name FROM public.tenants WHERE schema_name IS NOT NULL AND schema_name != ''").Pluck("schema_name", &schemas).Error
-	return schemas
-}
-
-func (u *notificationUseCase) dispatchWebPush(userID uuid.UUID, title, message string, data map[string]interface{}) {
+func (u *notificationUseCase) dispatchWebPush(ctx context.Context, userID uuid.UUID, title, message string, data map[string]interface{}) {
 	if u.webPush == nil || u.pushRepo == nil || userID == uuid.Nil {
 		return
 	}
 
+	// Create detached context preserving tenant schema & ID for background push dispatch
+	bgCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	if schema, ok := middleware.GetTenantSchemaFromContext(ctx); ok && schema != "" {
+		bgCtx = context.WithValue(bgCtx, middleware.TenantSchemaKey, schema)
+	}
+	if tID, ok := middleware.GetTenantIDFromContext(ctx); ok && tID != uuid.Nil {
+		bgCtx = context.WithValue(bgCtx, middleware.TenantIDKey, tID)
+	}
+
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		subs, err := u.pushRepo.GetByUserID(ctx, userID)
+		subs, err := u.pushRepo.GetByUserID(bgCtx, userID)
 		if err != nil || len(subs) == 0 {
 			return
 		}
@@ -63,10 +61,10 @@ func (u *notificationUseCase) dispatchWebPush(userID uuid.UUID, title, message s
 		}
 
 		for _, sub := range subs {
-			err := u.webPush.SendNotification(ctx, &sub, payload)
+			err := u.webPush.SendNotification(bgCtx, &sub, payload)
 			if err != nil {
 				if err.Error() == "subscription_expired" {
-					_ = u.pushRepo.DeleteByEndpoint(ctx, sub.Endpoint)
+					_ = u.pushRepo.DeleteByEndpoint(bgCtx, sub.Endpoint)
 				} else {
 					log.Printf("WARN: Web push notification failed for user %s: %v", userID, err)
 				}
@@ -75,7 +73,7 @@ func (u *notificationUseCase) dispatchWebPush(userID uuid.UUID, title, message s
 	}()
 }
 
-func (u *notificationUseCase) SendToUser(userID uuid.UUID, n domain.Notification) error {
+func (u *notificationUseCase) SendToUser(ctx context.Context, userID uuid.UUID, n domain.Notification) error {
 	if n.ID == uuid.Nil {
 		n.ID = uuid.New()
 	}
@@ -85,24 +83,15 @@ func (u *notificationUseCase) SendToUser(userID uuid.UUID, n domain.Notification
 	n.UserID = userID
 
 	if u.db != nil && userID != uuid.Nil {
-		// 1. Save into public.notifications
-		_ = u.db.Table("public.notifications").Create(&n).Error
-
-		// 2. Also save into tenant schemas where this user exists
-		schemas := u.getTenantSchemas()
-		for _, schema := range schemas {
-			var count int64
-			if err := u.db.Table(schema+".users").Where("id = ?", userID).Count(&count).Error; err == nil && count > 0 {
-				_ = u.db.Table(schema+".notifications").Create(&n).Error
-			}
-		}
+		_ = u.db.WithContext(ctx).Create(&n).Error
 	}
 
+	schema, _ := middleware.GetTenantSchemaFromContext(ctx)
 	if u.hub != nil {
-		u.hub.Broadcast(n)
+		u.hub.SendToUserWithTenant(schema, userID, n)
 	}
 
-	u.dispatchWebPush(userID, n.Title, n.Message, map[string]interface{}{
+	u.dispatchWebPush(ctx, userID, n.Title, n.Message, map[string]interface{}{
 		"id":   n.ID.String(),
 		"type": string(n.Type),
 	})
@@ -110,7 +99,7 @@ func (u *notificationUseCase) SendToUser(userID uuid.UUID, n domain.Notification
 	return nil
 }
 
-func (u *notificationUseCase) SendToRole(role domain.Role, n domain.Notification) error {
+func (u *notificationUseCase) SendToRole(ctx context.Context, role domain.Role, n domain.Notification) error {
 	if n.ID == uuid.Nil {
 		n.ID = uuid.New()
 	}
@@ -119,46 +108,25 @@ func (u *notificationUseCase) SendToRole(role domain.Role, n domain.Notification
 	}
 
 	if u.db != nil {
-		// 1. Check public users
-		var publicUserIDs []uuid.UUID
-		_ = u.db.Table("public.users").Where("role = ?", role).Pluck("id", &publicUserIDs).Error
-		for _, uid := range publicUserIDs {
-			userNotif := n
-			userNotif.ID = uuid.New()
-			userNotif.UserID = uid
-			_ = u.db.Table("public.notifications").Create(&userNotif).Error
-			if u.hub != nil {
-				u.hub.Broadcast(userNotif)
-			}
-		}
-
-		// 2. Check all tenant schemas
-		schemas := u.getTenantSchemas()
-		for _, schema := range schemas {
-			var tenantUserIDs []uuid.UUID
-			if err := u.db.Table(schema+".users").Where("role = ?", role).Pluck("id", &tenantUserIDs).Error; err == nil {
-				for _, uid := range tenantUserIDs {
-					userNotif := n
-					userNotif.ID = uuid.New()
-					userNotif.UserID = uid
-					_ = u.db.Table(schema+".notifications").Create(&userNotif).Error
-					if u.hub != nil {
-						u.hub.Broadcast(userNotif)
-					}
+		var userIDs []uuid.UUID
+		if err := u.db.WithContext(ctx).Model(&domain.User{}).Where("role = ?", role).Pluck("id", &userIDs).Error; err == nil {
+			schema, _ := middleware.GetTenantSchemaFromContext(ctx)
+			for _, uid := range userIDs {
+				userNotif := n
+				userNotif.ID = uuid.New()
+				userNotif.UserID = uid
+				_ = u.db.WithContext(ctx).Create(&userNotif).Error
+				if u.hub != nil {
+					u.hub.SendToUserWithTenant(schema, uid, userNotif)
 				}
 			}
 		}
 	}
 
-	// Broadcast globally on WebSocket
-	n.UserID = uuid.Nil
-	if u.hub != nil {
-		u.hub.Broadcast(n)
-	}
 	return nil
 }
 
-func (u *notificationUseCase) Broadcast(n domain.Notification) error {
+func (u *notificationUseCase) Broadcast(ctx context.Context, n domain.Notification) error {
 	if n.ID == uuid.Nil {
 		n.ID = uuid.New()
 	}
@@ -168,18 +136,12 @@ func (u *notificationUseCase) Broadcast(n domain.Notification) error {
 	n.UserID = uuid.Nil
 
 	if u.db != nil {
-		// 1. Save into public.notifications
-		_ = u.db.Table("public.notifications").Create(&n).Error
-
-		// 2. Save into all tenant schemas
-		schemas := u.getTenantSchemas()
-		for _, schema := range schemas {
-			_ = u.db.Table(schema+".notifications").Create(&n).Error
-		}
+		_ = u.db.WithContext(ctx).Create(&n).Error
 	}
 
+	schema, _ := middleware.GetTenantSchemaFromContext(ctx)
 	if u.hub != nil {
-		u.hub.Broadcast(n)
+		u.hub.BroadcastWithTenant(schema, n)
 	}
 	return nil
 }
@@ -193,99 +155,37 @@ func (u *notificationUseCase) GetNotificationsForUser(ctx context.Context, userI
 	}
 
 	var notifications []domain.Notification
-	_ = u.db.WithContext(ctx).
+	err := u.db.WithContext(ctx).
 		Where("user_id = ? OR user_id = ?", userID, uuid.Nil).
 		Order("created_at DESC").
 		Limit(limit).
 		Find(&notifications).Error
 
-	// Also check public.notifications
-	var publicNotifs []domain.Notification
-	_ = u.db.Table("public.notifications").
-		Where("user_id = ? OR user_id = ?", userID, uuid.Nil).
-		Order("created_at DESC").
-		Limit(limit).
-		Find(&publicNotifs).Error
-
-	// Also check if context has specific tenant schema
-	if schema, ok := middleware.GetTenantSchemaFromContext(ctx); ok && schema != "" && schema != "public" {
-		var schemaNotifs []domain.Notification
-		_ = u.db.Table(schema+".notifications").
-			Where("user_id = ? OR user_id = ?", userID, uuid.Nil).
-			Order("created_at DESC").
-			Limit(limit).
-			Find(&schemaNotifs).Error
-		notifications = append(notifications, schemaNotifs...)
+	if err != nil {
+		return []domain.Notification{}, err
 	}
 
-	// Merge & deduplicate by ID
-	seen := make(map[uuid.UUID]bool)
-	merged := make([]domain.Notification, 0, len(notifications)+len(publicNotifs))
-	for _, n := range notifications {
-		if !seen[n.ID] {
-			seen[n.ID] = true
-			merged = append(merged, n)
-		}
-	}
-	for _, n := range publicNotifs {
-		if !seen[n.ID] {
-			seen[n.ID] = true
-			merged = append(merged, n)
-		}
-	}
-
-	// Sort merged by created_at DESC
-	sort.Slice(merged, func(i, j int) bool {
-		return merged[i].CreatedAt.After(merged[j].CreatedAt)
-	})
-
-	if len(merged) > limit {
-		merged = merged[:limit]
-	}
-
-	return merged, nil
+	return notifications, nil
 }
 
 func (u *notificationUseCase) MarkAsRead(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
 	if u.db == nil {
 		return nil
 	}
-	_ = u.db.WithContext(ctx).
+	return u.db.WithContext(ctx).
 		Model(&domain.Notification{}).
 		Where("id = ? AND (user_id = ? OR user_id = ?)", id, userID, uuid.Nil).
 		Update("read", true).Error
-
-	_ = u.db.Table("public.notifications").
-		Where("id = ? AND (user_id = ? OR user_id = ?)", id, userID, uuid.Nil).
-		Update("read", true).Error
-
-	if schema, ok := middleware.GetTenantSchemaFromContext(ctx); ok && schema != "" && schema != "public" {
-		_ = u.db.Table(schema+".notifications").
-			Where("id = ? AND (user_id = ? OR user_id = ?)", id, userID, uuid.Nil).
-			Update("read", true).Error
-	}
-	return nil
 }
 
 func (u *notificationUseCase) MarkAllAsRead(ctx context.Context, userID uuid.UUID) error {
 	if u.db == nil {
 		return nil
 	}
-	_ = u.db.WithContext(ctx).
+	return u.db.WithContext(ctx).
 		Model(&domain.Notification{}).
 		Where("user_id = ? OR user_id = ?", userID, uuid.Nil).
 		Update("read", true).Error
-
-	_ = u.db.Table("public.notifications").
-		Where("user_id = ? OR user_id = ?", userID, uuid.Nil).
-		Update("read", true).Error
-
-	if schema, ok := middleware.GetTenantSchemaFromContext(ctx); ok && schema != "" && schema != "public" {
-		_ = u.db.Table(schema+".notifications").
-			Where("user_id = ? OR user_id = ?", userID, uuid.Nil).
-			Update("read", true).Error
-	}
-	return nil
 }
 
 func (u *notificationUseCase) SubscribePush(ctx context.Context, sub *domain.PushSubscription) error {

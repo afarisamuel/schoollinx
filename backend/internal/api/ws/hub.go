@@ -17,28 +17,35 @@ type WSMessage struct {
 	Payload interface{} `json:"payload"`
 }
 
+// NotificationEvent wraps a notification with tenant isolation metadata.
+type NotificationEvent struct {
+	Notification domain.Notification `json:"notification"`
+	TenantSchema string              `json:"tenant_schema,omitempty"`
+}
+
 // Hub maintains the set of active clients and broadcasts messages to the clients.
 type Hub struct {
 	clients       map[uuid.UUID][]*Client // Map userID to list of active clients (sessions)
-	broadcast     chan domain.Notification
+	broadcast     chan *NotificationEvent
 	directMessage chan *DirectMessage
 	register      chan *Client
 	unregister    chan *Client
 	mu            sync.RWMutex
-	
-	redisClient   *redis.Client
-	ctx           context.Context
+
+	redisClient *redis.Client
+	ctx         context.Context
 }
 
-// DirectMessage wraps a domain.Message with a target user for routing
+// DirectMessage wraps a domain.Message with a target user and tenant schema for routing
 type DirectMessage struct {
-	Message     domain.Message `json:"message"`
-	RecipientID uuid.UUID      `json:"recipient_id"`
+	Message      domain.Message `json:"message"`
+	RecipientID  uuid.UUID      `json:"recipient_id"`
+	TenantSchema string         `json:"tenant_schema,omitempty"`
 }
 
 func NewHub(redisURL string) *Hub {
 	h := &Hub{
-		broadcast:     make(chan domain.Notification),
+		broadcast:     make(chan *NotificationEvent, 256),
 		directMessage: make(chan *DirectMessage, 256),
 		register:      make(chan *Client),
 		unregister:    make(chan *Client),
@@ -66,9 +73,9 @@ func (h *Hub) listenRedis() {
 	ch := pubsub.Channel()
 	for msg := range ch {
 		if msg.Channel == "ws_notifications" {
-			var n domain.Notification
-			if err := json.Unmarshal([]byte(msg.Payload), &n); err == nil {
-				h.broadcast <- n
+			var event NotificationEvent
+			if err := json.Unmarshal([]byte(msg.Payload), &event); err == nil {
+				h.broadcast <- &event
 			}
 		} else if msg.Channel == "ws_direct_messages" {
 			var dm DirectMessage
@@ -101,41 +108,57 @@ func (h *Hub) Run() {
 				close(client.send)
 			}
 			h.mu.Unlock()
-		case notification := <-h.broadcast:
+		case event := <-h.broadcast:
+			if event == nil {
+				continue
+			}
+			n := event.Notification
+			schema := event.TenantSchema
+
 			h.mu.RLock()
 			// Handle user-specific notifications
-			if notification.UserID != uuid.Nil {
-				if sessions, ok := h.clients[notification.UserID]; ok {
-					msg := WSMessage{Type: "notification", Payload: notification}
+			if n.UserID != uuid.Nil {
+				if sessions, ok := h.clients[n.UserID]; ok {
+					msg := WSMessage{Type: "notification", Payload: n}
 					for _, client := range sessions {
-						select {
-						case client.send <- msg:
-						default:
-							// Handle full buffer if necessary
+						// Ensure the client belongs to the matching tenant schema (or global if schema is empty/public)
+						if schema == "" || schema == "public" || client.TenantSchema == schema {
+							select {
+							case client.send <- msg:
+							default:
+								// Handle full buffer
+							}
 						}
 					}
 				}
 			} else {
-				// Broadcast to all
-				msg := WSMessage{Type: "notification", Payload: notification}
+				// Broadcast notification: ONLY deliver to clients within the matching tenant schema
+				msg := WSMessage{Type: "notification", Payload: n}
 				for _, sessions := range h.clients {
 					for _, client := range sessions {
-						select {
-						case client.send <- msg:
-						default:
+						if schema == "" || schema == "public" || client.TenantSchema == schema {
+							select {
+							case client.send <- msg:
+							default:
+							}
 						}
 					}
 				}
 			}
 			h.mu.RUnlock()
 		case dm := <-h.directMessage:
+			if dm == nil {
+				continue
+			}
 			h.mu.RLock()
 			if sessions, ok := h.clients[dm.RecipientID]; ok {
 				msg := WSMessage{Type: "direct_message", Payload: dm.Message}
 				for _, client := range sessions {
-					select {
-					case client.send <- msg:
-					default:
+					if dm.TenantSchema == "" || client.TenantSchema == dm.TenantSchema {
+						select {
+						case client.send <- msg:
+						default:
+						}
 					}
 				}
 			}
@@ -144,21 +167,52 @@ func (h *Hub) Run() {
 	}
 }
 
+// Broadcast sends a global or untargeted notification (backward compatible)
 func (h *Hub) Broadcast(n domain.Notification) {
+	h.BroadcastWithTenant("", n)
+}
+
+// BroadcastWithTenant sends a broadcast notification scoped to a specific tenant schema
+func (h *Hub) BroadcastWithTenant(schema string, n domain.Notification) {
+	event := &NotificationEvent{
+		Notification: n,
+		TenantSchema: schema,
+	}
 	if h.redisClient != nil {
-		if data, err := json.Marshal(n); err == nil {
+		if data, err := json.Marshal(event); err == nil {
 			h.redisClient.Publish(h.ctx, "ws_notifications", string(data))
 		}
 	} else {
-		h.broadcast <- n
+		h.broadcast <- event
 	}
 }
 
-// SendDirectMessage routes a chat message to a specific user's active sessions
-func (h *Hub) SendDirectMessage(recipientID uuid.UUID, msg domain.Message) {
+// SendToUserWithTenant delivers a notification to a specific user within a tenant schema
+func (h *Hub) SendToUserWithTenant(schema string, userID uuid.UUID, n domain.Notification) {
+	n.UserID = userID
+	event := &NotificationEvent{
+		Notification: n,
+		TenantSchema: schema,
+	}
+	if h.redisClient != nil {
+		if data, err := json.Marshal(event); err == nil {
+			h.redisClient.Publish(h.ctx, "ws_notifications", string(data))
+		}
+	} else {
+		h.broadcast <- event
+	}
+}
+
+// SendDirectMessage routes a chat message to a specific user's active sessions within the tenant
+func (h *Hub) SendDirectMessage(recipientID uuid.UUID, msg domain.Message, schema ...string) {
+	tenantSchema := ""
+	if len(schema) > 0 {
+		tenantSchema = schema[0]
+	}
 	dm := DirectMessage{
-		RecipientID: recipientID,
-		Message:     msg,
+		RecipientID:  recipientID,
+		Message:      msg,
+		TenantSchema: tenantSchema,
 	}
 	if h.redisClient != nil {
 		if data, err := json.Marshal(dm); err == nil {
