@@ -1,214 +1,389 @@
-<div class="max-w-[1400px] mx-auto p-4 md:p-8 animate-fade-in pb-24">
-    <div class="mb-7">
-        <h1 class="text-3xl font-black text-blue-400 mb-1">Homework & Assignments</h1>
-        <p class="text-text-muted text-sm">Track pending, upcoming, and overdue assignments for all wards.</p>
+<div class="max-w-[1600px] w-full mx-auto animate-fade-in pb-16 px-4 sm:px-6 md:px-8 space-y-6 sm:space-y-8 relative overflow-hidden">
+
+    <!-- ── 0. AMBIENT BACKDROP LIGHTING ────────────────────────────── -->
+    <div class="absolute -top-10 left-1/4 w-96 h-96 max-w-full bg-sky-500/10 dark:bg-sky-600/15 rounded-full blur-3xl pointer-events-none -z-10"></div>
+    <div class="absolute top-72 right-10 w-96 h-96 max-w-full bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+
+    <!-- ── 1. Page Header (Homework & Assignments Hub) ─────────────── -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2">
+        <div class="min-w-0">
+            <div class="flex items-center gap-2 text-xs font-bold text-text-muted mb-1.5 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
+                    Learning Tasks &amp; Submissions
+                </span>
+                <span class="text-text-muted/40">/</span>
+                <span class="text-text-muted">Parent Portal</span>
+                <span class="text-text-muted/40">/</span>
+                <span class="text-text-primary font-black">Homework Tracker</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                <span>Homework</span>
+                <span class="bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600 dark:from-sky-400 dark:via-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+                    &amp; Assignment Tracker
+                </span>
+            </h1>
+            <p class="text-xs sm:text-sm font-medium text-text-muted mt-1 max-w-3xl">
+                Upcoming deadlines, teacher feedback, lesson task instructions, and submission tracking for each enrolled scholar.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-wrap">
+            <a routerLink="/parents"
+               class="px-3.5 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shadow-xs cursor-pointer active:scale-95">
+                <i class="fas fa-arrow-left text-xs text-blue-500"></i>
+                <span>Overview</span>
+            </a>
+            <a routerLink="/parents/academics"
+               class="px-3.5 py-2.5 rounded-2xl bg-blue-500/10 hover:bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-xs font-bold shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                <i class="fas fa-book-open text-xs"></i>
+                <span>View Grades</span>
+            </a>
+        </div>
     </div>
 
     @if (state.loading()) {
-        <div class="flex items-center gap-3 text-text-muted py-12">
-            <div class="w-6 h-6 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
-            <span class="font-bold">Loading homework...</span>
+        <div class="flex flex-col items-center justify-center py-20 text-text-muted gap-3">
+            <div class="w-8 h-8 border-3 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-xs font-bold">Synchronizing homework assignments...</span>
         </div>
     } @else if (selectedStudent(); as student) {
         @let hw = state.homeworkMap()[student.id || ''] || [];
         @let pending = hw.filter(h => h.due_date >= today());
         @let overdue = hw.filter(h => h.due_date < today());
 
-        <!-- Ward Switcher (if multiple students) -->
+        <!-- ── Ward Switcher Pills ──────────────────────────────────── -->
         @if ((state.profile()?.students || []).length > 1) {
-            <div class="flex items-center gap-2 mb-5 overflow-x-auto pb-1">
-                <span class="text-xs font-bold text-text-muted uppercase tracking-wider mr-1">Select Ward:</span>
+            <div class="flex items-center gap-2 overflow-x-auto pb-1">
+                <span class="text-xs font-bold text-text-muted uppercase tracking-wider mr-1 shrink-0">Select Ward:</span>
                 @for (s of state.profile()?.students || []; track s.id) {
                     <button (click)="selectedStudentId.set(s.id || '')"
-                            [ngClass]="selectedStudent()?.id === s.id ? 'bg-amber-500 text-black font-black shadow-md shadow-amber-500/20' : 'bg-bg-secondary text-text-muted hover:text-text-primary border border-border-primary'"
-                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
-                        <span class="w-2 h-2 rounded-full" [ngClass]="selectedStudent()?.id === s.id ? 'bg-black' : 'bg-amber-400'"></span>
+                            [ngClass]="selectedStudent()?.id === s.id ? 'bg-sky-600 text-white font-black shadow-md shadow-sky-600/20 border-sky-600' : 'bg-bg-secondary text-text-muted hover:text-text-primary border-border-primary hover:bg-bg-tertiary'"
+                            class="px-4 py-2 rounded-2xl text-xs font-bold border transition-all flex items-center gap-2.5 cursor-pointer shrink-0">
+                        <div class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black"
+                             [ngClass]="selectedStudent()?.id === s.id ? 'bg-white text-sky-600' : 'bg-sky-500/20 text-sky-400'">
+                            {{ s.first_name[0] }}
+                        </div>
                         <span>{{ s.first_name }} {{ s.last_name }}</span>
-                        <span class="text-[10px] opacity-70">({{ s.class_name }})</span>
+                        <span class="text-[10px] opacity-75 font-mono">({{ s.class_name }})</span>
                     </button>
                 }
             </div>
         }
 
-        <div class="border border-border-primary rounded-2xl overflow-hidden mb-6 bg-bg-secondary/40 backdrop-blur-sm">
-            <!-- Student Header & Summary -->
-            <div class="px-5 py-4 border-b border-border-primary flex items-center justify-between gap-3 flex-wrap">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-black text-lg">{{ student.first_name[0] }}</div>
-                    <div>
-                        <h2 class="font-black text-text-primary text-lg">{{ student.first_name }} {{ student.last_name }}</h2>
-                        <p class="text-[10px] text-text-muted">{{ student.class_name }}</p>
+        <!-- ── Top 4 Metric KPI Cards ──────────────────────────────── -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+
+            <!-- Card 1: Pending & Upcoming Tasks -->
+            <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-amber-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
+                <div class="flex items-center justify-between">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 shadow-2xs">
+                        Action Required
+                    </span>
+                </div>
+                <div class="mt-4 space-y-1">
+                    <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Pending Submissions</p>
+                    <div class="flex items-baseline gap-2">
+                        <p class="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400 tracking-tight font-mono">
+                            {{ pending.length }}
+                        </p>
+                        <span class="text-xs font-bold text-text-muted">Tasks</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                        <span>Due this week</span>
+                        <span class="font-bold text-amber-600 dark:text-amber-400">Active</span>
                     </div>
                 </div>
-                <div class="flex items-center gap-3">
-                    <div class="text-center">
-                        <div class="text-lg font-black text-amber-400">{{ pending.length }}</div>
-                        <div class="text-[9px] text-text-muted uppercase">Pending</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-lg font-black text-rose-400">{{ overdue.length }}</div>
-                        <div class="text-[9px] text-text-muted uppercase">Overdue</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-lg font-black text-blue-400">{{ hw.length }}</div>
-                        <div class="text-[9px] text-text-muted uppercase">Total</div>
-                    </div>
+                <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                    <div class="bg-gradient-to-r from-amber-500 to-rose-400 h-full rounded-full transition-all duration-1000" [style.width.%]="pending.length > 0 ? 60 : 100"></div>
                 </div>
             </div>
 
-            <!-- Tab Navigation Bar -->
-            <div class="px-5 pt-4 border-b border-border-primary bg-bg-tertiary/20">
-                <div class="flex items-center gap-2 overflow-x-auto pb-3">
+            <!-- Card 2: Overdue Tasks -->
+            <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-rose-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
+                <div class="flex items-center justify-between">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                        <i class="fas fa-triangle-exclamation"></i>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black border shadow-2xs"
+                          [ngClass]="overdue.length > 0 ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'">
+                        {{ overdue.length > 0 ? 'Attention Needed' : 'Zero Overdue' }}
+                    </span>
+                </div>
+                <div class="mt-4 space-y-1">
+                    <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Overdue Assignments</p>
+                    <div class="flex items-baseline gap-2">
+                        <p class="text-2xl sm:text-3xl font-black font-mono tracking-tight"
+                           [ngClass]="overdue.length > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'">
+                            {{ overdue.length }}
+                        </p>
+                        <span class="text-xs font-bold text-text-muted">Assignments</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                        <span>Past submission deadline</span>
+                        <span class="font-bold text-rose-500">{{ overdue.length > 0 ? 'Immediate Follow-up' : 'All Clear' }}</span>
+                    </div>
+                </div>
+                <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                    <div class="bg-gradient-to-r from-rose-500 to-amber-500 h-full rounded-full transition-all duration-1000" [style.width.%]="overdue.length > 0 ? 100 : 0"></div>
+                </div>
+            </div>
+
+            <!-- Card 3: Total Recorded Homework -->
+            <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-sky-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
+                <div class="flex items-center justify-between">
+                    <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30 shadow-2xs">
+                        Current Term
+                    </span>
+                </div>
+                <div class="mt-4 space-y-1">
+                    <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Total Assigned Tasks</p>
+                    <div class="flex items-baseline gap-2">
+                        <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight font-mono">
+                            {{ hw.length }}
+                        </p>
+                        <span class="text-xs font-bold text-text-muted">Assignments</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                        <span>Across active curriculum subjects</span>
+                        <span class="font-bold text-sky-600 dark:text-sky-400">Tracked</span>
+                    </div>
+                </div>
+                <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                    <div class="bg-gradient-to-r from-sky-500 to-blue-500 h-full rounded-full transition-all duration-1000" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <!-- Card 4: Scholar Class Placement -->
+            <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-blue-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
+                <div class="flex items-center justify-between">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 shadow-2xs">
+                        Scholar Profile
+                    </span>
+                </div>
+                <div class="mt-4 space-y-1">
+                    <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Student &amp; Cohort</p>
+                    <p class="text-xl sm:text-2xl font-black text-text-primary tracking-tight truncate">
+                        {{ student.first_name }} {{ student.last_name }}
+                    </p>
+                    <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                        <span>Class: <strong class="text-text-primary">{{ student.class_name }}</strong></span>
+                        <a routerLink="/parents/schedule" class="font-bold text-blue-600 dark:text-blue-400 hover:underline">
+                            Timetable &rarr;
+                        </a>
+                    </div>
+                </div>
+                <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                    <div class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full transition-all duration-1000" style="width: 100%"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── Main Tabs & Assignment List Container ───────────────── -->
+        <div class="rounded-3xl bg-bg-secondary border border-border-primary shadow-xs overflow-hidden">
+
+            <!-- Tab Pills Header Bar -->
+            <div class="p-4 sm:p-5 border-b border-border-primary bg-bg-tertiary/30">
+                <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar">
                     <button (click)="activeTab.set('pending')"
-                            [ngClass]="activeTab() === 'pending' ? 'bg-amber-500 text-black font-black shadow-md shadow-amber-500/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
-                            class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
-                        <i class="fas fa-clock"></i>
-                        <span>Pending & Upcoming</span>
-                        <span class="px-1.5 py-0.2 text-[9px] rounded-full" [ngClass]="activeTab() === 'pending' ? 'bg-black/20 text-black font-black' : 'bg-bg-tertiary text-text-muted'">
+                            [ngClass]="activeTab() === 'pending' ? 'bg-sky-600 text-white font-black shadow-sm shadow-sky-600/25' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
+                            class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-clock text-xs"></i>
+                        <span>Pending &amp; Upcoming</span>
+                        <span class="px-2 py-0.5 text-[9px] font-black rounded-full" [ngClass]="activeTab() === 'pending' ? 'bg-white/20 text-white' : 'bg-bg-tertiary text-text-muted'">
                             {{ pending.length }}
                         </span>
                     </button>
                     <button (click)="activeTab.set('overdue')"
-                            [ngClass]="activeTab() === 'overdue' ? 'bg-rose-600 text-white font-black shadow-md shadow-rose-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
-                            class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
-                        <i class="fas fa-exclamation-triangle"></i>
+                            [ngClass]="activeTab() === 'overdue' ? 'bg-rose-600 text-white font-black shadow-sm shadow-rose-600/25' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
+                            class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-triangle-exclamation text-xs"></i>
                         <span>Overdue Tasks</span>
                         @if (overdue.length > 0) {
-                            <span class="px-1.5 py-0.2 text-[9px] rounded-full" [ngClass]="activeTab() === 'overdue' ? 'bg-white/20 text-white' : 'bg-rose-500/20 text-rose-400'">
+                            <span class="px-2 py-0.5 text-[9px] font-black rounded-full bg-white/20 text-white">
                                 {{ overdue.length }}
                             </span>
                         }
                     </button>
                     <button (click)="activeTab.set('all')"
-                            [ngClass]="activeTab() === 'all' ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
-                            class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
-                        <i class="fas fa-tasks"></i>
+                            [ngClass]="activeTab() === 'all' ? 'bg-blue-600 text-white font-black shadow-sm shadow-blue-600/25' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
+                            class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-tasks text-xs"></i>
                         <span>All Assignments</span>
-                        <span class="px-1.5 py-0.2 text-[9px] rounded-full" [ngClass]="activeTab() === 'all' ? 'bg-white/20 text-white' : 'bg-bg-tertiary text-text-muted'">
+                        <span class="px-2 py-0.5 text-[9px] font-black rounded-full" [ngClass]="activeTab() === 'all' ? 'bg-white/20 text-white' : 'bg-bg-tertiary text-text-muted'">
                             {{ hw.length }}
                         </span>
                     </button>
                 </div>
             </div>
 
-            <!-- Tab Content -->
-            <div class="p-5">
+            <!-- Tab Body Content -->
+            <div class="p-5 sm:p-7">
 
-                <!-- TAB 1: Pending & Upcoming -->
+                <!-- 1. Pending & Upcoming List -->
                 @if (activeTab() === 'pending') {
-                    <div class="animate-fade-in space-y-3">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-sm font-black text-text-primary flex items-center gap-2">
-                                <i class="fas fa-clock text-amber-400"></i> Upcoming & Due Soon
-                            </h3>
-                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">{{ pending.length }} Task{{ pending.length !== 1 ? 's' : '' }}</span>
+                    <div class="animate-fade-in space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                                    <i class="fas fa-clock text-amber-500"></i>
+                                    <span>Pending Homework Tasks</span>
+                                </h3>
+                                <p class="text-xs text-text-muted mt-0.5">Tasks due for submission within the current academic cycle</p>
+                            </div>
+                            <span class="text-xs font-bold text-text-muted px-3 py-1 rounded-xl bg-bg-tertiary border border-border-primary">
+                                {{ pending.length }} Task{{ pending.length !== 1 ? 's' : '' }} Pending
+                            </span>
                         </div>
+
                         @if (pending.length > 0) {
-                            <div class="space-y-2">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 @for (item of pending; track item.id) {
-                                    @let soon = dueSoon(item.due_date);
-                                    <div class="p-3.5 bg-bg-tertiary border border-border-primary rounded-xl flex items-center justify-between gap-3"
-                                         [ngClass]="{'border-amber-500/30 bg-amber-500/5': soon}">
-                                        <div class="flex items-center gap-3 min-w-0">
-                                            <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-black shrink-0">{{ item.subject[0] }}</div>
-                                            <div class="min-w-0">
-                                                <div class="text-xs font-bold text-text-primary truncate">{{ item.title }}</div>
-                                                <div class="text-[10px] text-text-muted flex items-center gap-2 flex-wrap">
-                                                    <span>{{ item.subject }} &bull; Due {{ item.due_date }}</span>
-                                                    <span class="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20">
-                                                        <i class="fas fa-shield-alt text-[8px]"></i> Originality Verified
-                                                    </span>
-                                                </div>
-                                                @if (item.description) {
-                                                    <div class="text-[10px] text-text-muted/70 mt-0.5 truncate">{{ item.description }}</div>
-                                                }
+                                    <div class="p-5 bg-bg-tertiary/40 border border-border-primary/80 rounded-2xl hover:border-sky-500/40 hover:bg-bg-tertiary/70 transition-all flex flex-col justify-between space-y-3"
+                                         [ngClass]="{'border-amber-500/40 bg-amber-500/5': dueSoon(item.due_date)}">
+                                        <div>
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span class="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                                    {{ item.subject || 'General' }}
+                                                </span>
+                                                <span class="px-2.5 py-1 text-[10px] font-black rounded-full border font-mono"
+                                                      [ngClass]="dueSoon(item.due_date) ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30' : 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30'">
+                                                    {{ dueSoon(item.due_date) ? 'DUE SOON' : 'UPCOMING' }}
+                                                </span>
                                             </div>
+                                            <h4 class="text-sm font-black text-text-primary mb-1">{{ item.title }}</h4>
+                                            <p class="text-xs text-text-muted leading-relaxed line-clamp-2">{{ item.description || 'Complete the exercises assigned in class and submit before the deadline.' }}</p>
                                         </div>
-                                        <span class="text-[9px] font-black px-2 py-1 rounded-lg border shrink-0"
-                                              [ngClass]="soon ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'">
-                                            {{ soon ? 'DUE SOON' : 'UPCOMING' }}
-                                        </span>
+
+                                        <div class="pt-3 border-t border-border-primary/50 flex items-center justify-between text-xs text-text-muted">
+                                            <span>Deadline: <strong class="text-text-primary font-mono font-bold">{{ item.due_date | date:'mediumDate' }}</strong></span>
+                                            <span class="font-bold text-sky-600 dark:text-sky-400">Action Required</span>
+                                        </div>
                                     </div>
                                 }
                             </div>
                         } @else {
-                            <div class="py-12 text-center text-text-muted border border-dashed border-border-primary rounded-xl">
-                                <i class="fas fa-check-double text-emerald-400 text-3xl mb-2 block opacity-80"></i>
-                                <p class="font-bold text-sm text-text-primary">No pending homework assignments</p>
-                                <p class="text-xs text-text-muted mt-0.5">{{ student.first_name }} has completed all active assignments.</p>
+                            <div class="p-12 text-center bg-bg-tertiary/20 border border-dashed border-border-primary rounded-3xl">
+                                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 mx-auto flex items-center justify-center mb-3">
+                                    <i class="fas fa-check-double text-lg"></i>
+                                </div>
+                                <h4 class="text-xs font-bold text-text-primary mb-1">All Homework Up-To-Date</h4>
+                                <p class="text-xs text-text-muted">No pending homework assignments recorded for {{ student.first_name }}.</p>
                             </div>
                         }
                     </div>
                 }
 
-                <!-- TAB 2: Overdue Tasks -->
+                <!-- 2. Overdue Tasks List -->
                 @if (activeTab() === 'overdue') {
-                    <div class="animate-fade-in space-y-3">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-sm font-black text-text-primary flex items-center gap-2">
-                                <i class="fas fa-exclamation-triangle text-rose-400"></i> Overdue Tasks
-                            </h3>
-                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">{{ overdue.length }} Overdue</span>
+                    <div class="animate-fade-in space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                                    <i class="fas fa-triangle-exclamation text-rose-500"></i>
+                                    <span>Overdue Homework Tasks</span>
+                                </h3>
+                                <p class="text-xs text-text-muted mt-0.5">Tasks past their official submission deadline</p>
+                            </div>
+                            <span class="text-xs font-bold text-rose-500 px-3 py-1 rounded-xl bg-rose-500/10 border border-rose-500/20">
+                                {{ overdue.length }} Overdue
+                            </span>
                         </div>
+
                         @if (overdue.length > 0) {
-                            <div class="space-y-2">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 @for (item of overdue; track item.id) {
-                                    <div class="p-3.5 bg-rose-500/5 border border-rose-500/20 rounded-xl flex items-center justify-between gap-3">
-                                        <div class="flex items-center gap-3 min-w-0">
-                                            <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs font-black shrink-0">{{ item.subject[0] }}</div>
-                                            <div class="min-w-0">
-                                                <div class="text-xs font-bold text-text-primary truncate">{{ item.title }}</div>
-                                                <div class="text-[10px] text-text-muted">{{ item.subject }} &bull; Was due {{ item.due_date }}</div>
+                                    <div class="p-5 bg-rose-500/5 border border-rose-500/30 rounded-2xl flex flex-col justify-between space-y-3">
+                                        <div>
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span class="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25">
+                                                    {{ item.subject || 'General' }}
+                                                </span>
+                                                <span class="px-2.5 py-1 text-[10px] font-black rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/30 font-mono">
+                                                    OVERDUE
+                                                </span>
                                             </div>
+                                            <h4 class="text-sm font-black text-text-primary mb-1">{{ item.title }}</h4>
+                                            <p class="text-xs text-text-muted leading-relaxed line-clamp-2">{{ item.description || 'Complete the exercises assigned in class and submit before the deadline.' }}</p>
                                         </div>
-                                        <span class="text-[9px] font-black px-2 py-1 rounded-lg border bg-rose-500/10 text-rose-400 border-rose-500/20 shrink-0">OVERDUE</span>
+
+                                        <div class="pt-3 border-t border-rose-500/20 flex items-center justify-between text-xs text-text-muted">
+                                            <span>Was Due: <strong class="text-rose-500 font-mono font-bold">{{ item.due_date | date:'mediumDate' }}</strong></span>
+                                            <span class="font-bold text-rose-500">Contact Teacher</span>
+                                        </div>
                                     </div>
                                 }
                             </div>
                         } @else {
-                            <div class="py-12 text-center text-text-muted border border-dashed border-border-primary rounded-xl">
-                                <i class="fas fa-smile text-emerald-400 text-3xl mb-2 block opacity-80"></i>
-                                <p class="font-bold text-sm text-text-primary">Great news! No overdue assignments</p>
-                                <p class="text-xs text-text-muted mt-0.5">{{ student.first_name }} has no late or missing submissions.</p>
+                            <div class="p-12 text-center bg-bg-tertiary/20 border border-dashed border-border-primary rounded-3xl">
+                                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 mx-auto flex items-center justify-center mb-3">
+                                    <i class="fas fa-shield-check text-lg"></i>
+                                </div>
+                                <h4 class="text-xs font-bold text-text-primary mb-1">Zero Overdue Tasks</h4>
+                                <p class="text-xs text-text-muted">{{ student.first_name }} has no overdue homework submissions.</p>
                             </div>
                         }
                     </div>
                 }
 
-                <!-- TAB 3: All Assignments -->
+                <!-- 3. All Assignments List -->
                 @if (activeTab() === 'all') {
-                    <div class="animate-fade-in space-y-3">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-sm font-black text-text-primary flex items-center gap-2">
-                                <i class="fas fa-tasks text-blue-400"></i> All Course Assignments
-                            </h3>
-                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">{{ hw.length }} Total</span>
+                    <div class="animate-fade-in space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                                    <i class="fas fa-tasks text-blue-500"></i>
+                                    <span>All Term Homework &amp; Projects</span>
+                                </h3>
+                                <p class="text-xs text-text-muted mt-0.5">Complete record of assigned learning activities</p>
+                            </div>
+                            <span class="text-xs font-bold text-text-muted px-3 py-1 rounded-xl bg-bg-tertiary border border-border-primary">
+                                {{ hw.length }} Total Recorded
+                            </span>
                         </div>
+
                         @if (hw.length > 0) {
-                            <div class="space-y-2">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 @for (item of hw; track item.id) {
-                                    @let isOverdue = item.due_date < today();
-                                    @let soon = dueSoon(item.due_date);
-                                    <div class="p-3.5 bg-bg-tertiary border border-border-primary rounded-xl flex items-center justify-between gap-3">
-                                        <div class="flex items-center gap-3 min-w-0">
-                                            <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-black shrink-0">{{ item.subject[0] }}</div>
-                                            <div class="min-w-0">
-                                                <div class="text-xs font-bold text-text-primary truncate">{{ item.title }}</div>
-                                                <div class="text-[10px] text-text-muted">{{ item.subject }} &bull; Due {{ item.due_date }}</div>
+                                    <div class="p-5 bg-bg-tertiary/40 border border-border-primary/80 rounded-2xl flex flex-col justify-between space-y-3">
+                                        <div>
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span class="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                                    {{ item.subject || 'General' }}
+                                                </span>
+                                                <span class="px-2.5 py-1 text-[10px] font-black rounded-full border font-mono"
+                                                      [ngClass]="item.due_date < today() ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'">
+                                                    {{ item.due_date < today() ? 'PAST' : 'ACTIVE' }}
+                                                </span>
                                             </div>
+                                            <h4 class="text-sm font-black text-text-primary mb-1">{{ item.title }}</h4>
+                                            <p class="text-xs text-text-muted leading-relaxed line-clamp-2">{{ item.description || 'Complete the exercises assigned in class.' }}</p>
                                         </div>
-                                        <span class="text-[9px] font-black px-2 py-1 rounded-lg border shrink-0"
-                                              [ngClass]="isOverdue ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : soon ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'">
-                                            {{ isOverdue ? 'OVERDUE' : soon ? 'DUE SOON' : 'UPCOMING' }}
-                                        </span>
+
+                                        <div class="pt-3 border-t border-border-primary/50 flex items-center justify-between text-xs text-text-muted">
+                                            <span>Deadline: <strong class="text-text-primary font-mono font-bold">{{ item.due_date | date:'mediumDate' }}</strong></span>
+                                            <span class="font-mono text-[11px]">{{ student.class_name }}</span>
+                                        </div>
                                     </div>
                                 }
                             </div>
                         } @else {
-                            <div class="py-12 text-center text-text-muted border border-dashed border-border-primary rounded-xl">
-                                <i class="fas fa-folder-open text-3xl opacity-30 mb-2 block"></i>
-                                <p class="font-bold text-sm text-text-primary">No assignments on record</p>
-                                <p class="text-xs text-text-muted mt-0.5">Tasks will appear here once teachers assign them in class.</p>
+                            <div class="p-12 text-center bg-bg-tertiary/20 border border-dashed border-border-primary rounded-3xl">
+                                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 border border-blue-500/20 mx-auto flex items-center justify-center mb-3">
+                                    <i class="fas fa-tasks text-lg"></i>
+                                </div>
+                                <h4 class="text-xs font-bold text-text-primary mb-1">No Homework Assignments Found</h4>
+                                <p class="text-xs text-text-muted">No homework or tasks have been assigned to {{ student.first_name }}'s class yet.</p>
                             </div>
                         }
                     </div>

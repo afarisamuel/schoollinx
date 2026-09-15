@@ -1,161 +1,362 @@
-<div class="max-w-[1400px] mx-auto p-4 md:p-8 animate-fade-in pb-24">
-    <div class="mb-7">
-        <h1 class="text-3xl font-black text-blue-400 mb-1">Teacher Meetings</h1>
-        <p class="text-text-muted text-sm">Book a consultation with your child's teachers and view upcoming meetings.</p>
-    </div>
+<div class="max-w-[1600px] w-full mx-auto animate-fade-in pb-16 px-4 sm:px-6 md:px-8 space-y-6 sm:space-y-8 relative overflow-hidden">
 
-    @if (bookingSuccess()) {
-        <div class="mb-5 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl flex items-center gap-3">
-            <i class="fas fa-check-circle text-lg"></i>
-            <span class="font-bold text-sm">Meeting booked successfully! The teacher has been notified.</span>
+    <!-- ── 0. AMBIENT BACKDROP LIGHTING ────────────────────────────── -->
+    <div class="absolute -top-10 left-1/4 w-96 h-96 max-w-full bg-cyan-500/10 dark:bg-cyan-600/15 rounded-full blur-3xl pointer-events-none -z-10"></div>
+    <div class="absolute top-72 right-10 w-96 h-96 max-w-full bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+
+    <!-- ── 1. Page Header (Teacher Consultations Hub) ──────────────── -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2">
+        <div class="min-w-0">
+            <div class="flex items-center gap-2 text-xs font-bold text-text-muted mb-1.5 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span>
+                    Faculty Collaboration
+                </span>
+                <span class="text-text-muted/40">/</span>
+                <span class="text-text-muted">Parent Portal</span>
+                <span class="text-text-muted/40">/</span>
+                <span class="text-text-primary font-black">Teacher Consultations</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                <span>Teacher</span>
+                <span class="bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 dark:from-cyan-400 dark:via-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+                    Meetings &amp; Consultations
+                </span>
+            </h1>
+            <p class="text-xs sm:text-sm font-medium text-text-muted mt-1 max-w-3xl">
+                Book 1-on-1 parent-teacher consultations, academic progress reviews, and virtual meeting rooms with faculty educators.
+            </p>
         </div>
-    }
 
-    <!-- Tab Navigation -->
-    <div class="flex items-center gap-2 p-1.5 bg-bg-secondary border border-border-primary rounded-2xl mb-6 overflow-x-auto">
-        <button (click)="activeTab.set('book')"
-                [ngClass]="activeTab() === 'book' ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
-                class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer">
-            <i class="fas fa-calendar-plus"></i>
-            <span>Book a Conference</span>
-        </button>
-        <button (click)="activeTab.set('meetings')"
-                [ngClass]="activeTab() === 'meetings' ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
-                class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer">
-            <i class="fas fa-handshake"></i>
-            <span>Scheduled Meetings</span>
-            <span class="px-1.5 py-0.2 text-[9px] rounded-full" [ngClass]="activeTab() === 'meetings' ? 'bg-white/20 text-white font-black' : 'bg-bg-tertiary text-text-muted'">
-                {{ state.bookings().length }}
-            </span>
-        </button>
+        <div class="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-wrap">
+            <a routerLink="/parents"
+               class="px-3.5 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shadow-xs cursor-pointer active:scale-95">
+                <i class="fas fa-arrow-left text-xs text-blue-500"></i>
+                <span>Overview</span>
+            </a>
+            <button (click)="activeTab.set('book')"
+                    class="px-4.5 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-black shadow-md shadow-cyan-500/25 active:scale-95 transition-all flex items-center gap-2 cursor-pointer">
+                <i class="fas fa-calendar-plus text-xs"></i>
+                <span>Book Meeting</span>
+            </button>
+        </div>
     </div>
 
-    <!-- TAB 1: Book Meeting Form -->
-    @if (activeTab() === 'book') {
-        <div class="max-w-2xl mx-auto bg-bg-secondary border border-border-primary rounded-2xl p-6 animate-fade-in shadow-xl">
-            <h3 class="text-base font-black text-text-primary mb-1 flex items-center gap-2">
-                <i class="fas fa-calendar-plus text-blue-500"></i>
-                <span>Schedule a 1-on-1 Conference</span>
-            </h3>
-            <p class="text-xs text-text-muted mb-5">Select your scholar and educator to reserve an available consultation window.</p>
+    <!-- ── 2. Top 4 Metric KPI Cards ──────────────────────────────── -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
 
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">1. Select Scholar</label>
-                    <select [ngModel]="studentId()" (ngModelChange)="studentId.set($event)"
-                            class="w-full px-3.5 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 font-medium">
-                        @for (s of state.profile()?.students || []; track s.id) {
-                            <option [value]="s.id">{{ s.first_name }} {{ s.last_name }} (#{{ s.id ? s.id.slice(-6) : '' }})</option>
-                        }
-                    </select>
+        <!-- Card 1: Scheduled Meetings -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-blue-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
+            <div class="flex items-center justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                    <i class="fas fa-handshake"></i>
                 </div>
-
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">2. Select Faculty Member / Teacher</label>
-                    <select [ngModel]="teacherId()" (ngModelChange)="onTeacherChange($event)"
-                            class="w-full px-3.5 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 font-medium">
-                        <option value="">-- Choose an Educator --</option>
-                        @for (t of teachers(); track t.id) {
-                            <option [value]="t.id">
-                                {{ t.title || 'Teacher' }} {{ t.first_name }} {{ t.last_name }} &bull; {{ t.department?.name || t.specialization || 'Academic Staff' }}
-                            </option>
-                        }
-                    </select>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 shadow-2xs">
+                    Confirmed
+                </span>
+            </div>
+            <div class="mt-4 space-y-1">
+                <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Booked Consultations</p>
+                <div class="flex items-baseline gap-2">
+                    <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight font-mono">
+                        {{ state.bookings().length }}
+                    </p>
+                    <span class="text-xs font-bold text-text-muted">Meetings</span>
                 </div>
+                <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                    <span>Active consultation schedule</span>
+                    <button (click)="activeTab.set('meetings')" class="font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
+                        View &rarr;
+                    </button>
+                </div>
+            </div>
+            <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                <div class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full transition-all duration-1000" style="width: 100%"></div>
+            </div>
+        </div>
 
-                @if (isLoadingSlots()) {
-                    <div class="py-6 text-center text-text-muted text-xs flex items-center justify-center gap-2">
-                        <i class="fas fa-circle-notch animate-spin text-blue-500"></i>
-                        <span>Loading available consultation slots...</span>
-                    </div>
-                }
+        <!-- Card 2: Faculty Staff Directory -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-cyan-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
+            <div class="flex items-center justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                    <i class="fas fa-chalkboard-user"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 shadow-2xs">
+                    Staff
+                </span>
+            </div>
+            <div class="mt-4 space-y-1">
+                <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Faculty Educators</p>
+                <div class="flex items-baseline gap-2">
+                    <p class="text-2xl sm:text-3xl font-black text-cyan-600 dark:text-cyan-400 tracking-tight font-mono">
+                        {{ teachers().length }}
+                    </p>
+                    <span class="text-xs font-bold text-text-muted">Teachers</span>
+                </div>
+                <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                    <span>Available for 1-on-1 booking</span>
+                    <span class="font-bold text-cyan-600 dark:text-cyan-400">Online</span>
+                </div>
+            </div>
+            <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                <div class="bg-gradient-to-r from-cyan-500 to-teal-400 h-full rounded-full transition-all duration-1000" style="width: 90%"></div>
+            </div>
+        </div>
 
-                @if (slots().length > 0) {
+        <!-- Card 3: Open Slots Available -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-emerald-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
+            <div class="flex items-center justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shadow-2xs">
+                    Live Slots
+                </span>
+            </div>
+            <div class="mt-4 space-y-1">
+                <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Open Windows</p>
+                <div class="flex items-baseline gap-2">
+                    <p class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight font-mono">
+                        {{ slots().length }}
+                    </p>
+                    <span class="text-xs font-bold text-text-muted">Available</span>
+                </div>
+                <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                    <span>For selected educator</span>
+                    <span class="font-bold text-emerald-600 dark:text-emerald-400">Reserve Now</span>
+                </div>
+            </div>
+            <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-1000" style="width: 70%"></div>
+            </div>
+        </div>
+
+        <!-- Card 4: Meeting Channels -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-purple-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
+            <div class="flex items-center justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                    <i class="fas fa-video"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 shadow-2xs">
+                    Hybrid
+                </span>
+            </div>
+            <div class="mt-4 space-y-1">
+                <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Meeting Formats</p>
+                <p class="text-xl sm:text-2xl font-black text-text-primary tracking-tight font-mono">
+                    Virtual &amp; In-Person
+                </p>
+                <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                    <span>Campus room or Google Meet</span>
+                    <span class="font-bold text-purple-600 dark:text-purple-400">Supported</span>
+                </div>
+            </div>
+            <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                <div class="bg-gradient-to-r from-purple-500 to-indigo-500 h-full rounded-full transition-all duration-1000" style="width: 100%"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── 3. Main Tabs & Meeting Panels Container ─────────────────── -->
+    <div class="rounded-3xl bg-bg-secondary border border-border-primary shadow-xs overflow-hidden">
+
+        <!-- Tab Pills Header Bar -->
+        <div class="p-4 sm:p-5 border-b border-border-primary bg-bg-tertiary/30">
+            <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar">
+                <button (click)="activeTab.set('book')"
+                        [ngClass]="activeTab() === 'book' ? 'bg-cyan-600 text-white font-black shadow-sm shadow-cyan-600/25' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
+                        class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                    <i class="fas fa-calendar-plus text-xs"></i>
+                    <span>Schedule a 1-on-1 Conference</span>
+                </button>
+                <button (click)="activeTab.set('meetings')"
+                        [ngClass]="activeTab() === 'meetings' ? 'bg-cyan-600 text-white font-black shadow-sm shadow-cyan-600/25' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
+                        class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                    <i class="fas fa-handshake text-xs"></i>
+                    <span>Confirmed Meetings</span>
+                    <span class="px-2 py-0.5 text-[9px] font-black rounded-full" [ngClass]="activeTab() === 'meetings' ? 'bg-white/20 text-white' : 'bg-bg-tertiary text-text-muted'">
+                        {{ state.bookings().length }}
+                    </span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab Body Content -->
+        <div class="p-5 sm:p-7">
+
+            <!-- TAB 1: Book Meeting Form -->
+            @if (activeTab() === 'book') {
+                <div class="max-w-2xl mx-auto space-y-6 animate-fade-in">
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">3. Available Time Slots</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-56 overflow-y-auto custom-scrollbar p-1">
-                            @for (slot of slots(); track slot.id) {
-                                <div class="p-3 bg-bg-tertiary hover:bg-bg-tertiary/80 border border-border-primary rounded-xl flex items-center justify-between gap-2 transition-all">
-                                    <div>
-                                        <div class="text-xs font-black text-text-primary flex items-center gap-1.5">
-                                            <i class="fas fa-calendar-day text-blue-400 text-[10px]"></i>
-                                            <span>{{ slot.date | date:'mediumDate' }}</span>
-                                        </div>
-                                        <div class="text-[11px] font-semibold text-emerald-400 mt-0.5">
-                                            {{ slot.start_time }} – {{ slot.end_time }}
-                                        </div>
-                                        @if (slot.location) {
-                                            <div class="text-[10px] text-text-muted truncate max-w-[150px]">
-                                                <i class="fas fa-location-dot text-[9px] mr-1"></i>{{ slot.location }}
-                                            </div>
-                                        }
-                                    </div>
-                                    <button (click)="bookSlot(slot.id!)" 
-                                            class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer shrink-0">
-                                        Reserve
-                                    </button>
-                                </div>
-                            }
-                        </div>
+                        <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                            <i class="fas fa-calendar-plus text-cyan-500"></i>
+                            <span>Schedule a Consultation Slot</span>
+                        </h3>
+                        <p class="text-xs text-text-muted mt-0.5">Select your enrolled scholar and educator to reserve an open consultation window</p>
                     </div>
-                }
 
-                @if (noSlots() && teacherId() && !isLoadingSlots()) {
-                    <div class="py-6 text-center text-amber-400 border border-amber-500/20 bg-amber-500/5 rounded-2xl text-xs font-medium p-4">
-                        <i class="fas fa-calendar-xmark mb-1.5 block text-xl opacity-80"></i>
-                        <span class="font-bold">No open slots currently published.</span>
-                        <p class="text-[11px] text-text-muted mt-1">This educator has not scheduled open consultation windows for this week. You can reach out via Direct Messaging.</p>
-                    </div>
-                }
-
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1.5">4. Discussion Topic / Note for Teacher</label>
-                    <textarea [ngModel]="reason()" (ngModelChange)="reason.set($event)" rows="3"
-                              placeholder="e.g., Mathematics progress, term test review, behavioral consultation..."
-                              class="w-full px-3.5 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500 resize-none font-medium"></textarea>
-                </div>
-            </div>
-        </div>
-    }
-
-    <!-- TAB 2: My Meetings -->
-    @if (activeTab() === 'meetings') {
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-6 animate-fade-in">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h3 class="text-base font-black text-text-primary mb-0.5">My Scheduled Meetings</h3>
-                    <p class="text-xs text-text-muted">Upcoming and past conference bookings with educators.</p>
-                </div>
-                <span class="text-xs font-bold text-text-muted">{{ state.bookings().length }} Meeting{{ state.bookings().length !== 1 ? 's' : '' }}</span>
-            </div>
-
-            <div class="space-y-3">
-                @for (b of state.bookings(); track b.id) {
-                    <div class="p-4 bg-bg-tertiary border border-border-primary rounded-xl">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="px-2.5 py-0.5 text-[9px] font-black uppercase rounded-md border"
-                                  [ngClass]="b.status === 'CONFIRMED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'">
-                                {{ b.status || 'PENDING' }}
-                            </span>
-                            <span class="text-[10px] text-text-muted">{{ b.created_at | date:'mediumDate' }}</span>
+                    @if (bookingSuccess()) {
+                        <div class="p-4 bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 rounded-2xl text-xs font-bold flex items-center gap-2.5 animate-fade-in">
+                            <i class="fas fa-check-circle text-base"></i>
+                            <span>Meeting successfully booked! The educator has been notified.</span>
                         </div>
-                        <p class="text-xs font-bold text-text-primary">{{ b.reason || 'General Academic Consultation' }}</p>
-                        @if (b.slot) {
-                            <div class="text-[10px] text-text-muted mt-1">
-                                <i class="fas fa-calendar text-blue-400 mr-1"></i>
-                                {{ b.slot.date | date:'mediumDate' }} at {{ b.slot.start_time }}
+                    }
+
+                    <div class="space-y-4">
+                        <!-- Scholar Select -->
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">1. Select Scholar *</label>
+                            <select [ngModel]="studentId()" (ngModelChange)="studentId.set($event)"
+                                    class="w-full px-4 py-3 bg-bg-tertiary border border-border-primary rounded-2xl text-sm font-bold text-text-primary focus:outline-none focus:border-cyan-500">
+                                @for (s of state.profile()?.students || []; track s.id) {
+                                    <option [value]="s.id">{{ s.first_name }} {{ s.last_name }} ({{ s.class_name }})</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Educator Select -->
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">2. Select Faculty Educator *</label>
+                            <select [ngModel]="teacherId()" (ngModelChange)="onTeacherChange($event)"
+                                    class="w-full px-4 py-3 bg-bg-tertiary border border-border-primary rounded-2xl text-sm font-bold text-text-primary focus:outline-none focus:border-cyan-500">
+                                <option value="">-- Choose a Faculty Member --</option>
+                                @for (t of teachers(); track t.id) {
+                                    <option [value]="t.id">
+                                        {{ t.title || 'Teacher' }} {{ t.first_name }} {{ t.last_name }} &bull; {{ t.department?.name || t.specialization || 'Academic Staff' }}
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        @if (isLoadingSlots()) {
+                            <div class="py-8 text-center text-text-muted text-xs flex items-center justify-center gap-2">
+                                <i class="fas fa-circle-notch animate-spin text-cyan-500"></i>
+                                <span>Loading available educator consultation slots...</span>
                             </div>
                         }
+
+                        <!-- Available Time Slots -->
+                        @if (slots().length > 0) {
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">3. Available Time Slots</label>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto custom-scrollbar p-1">
+                                    @for (slot of slots(); track slot.id) {
+                                        <div class="p-4 bg-bg-tertiary/50 hover:bg-bg-tertiary border border-border-primary rounded-2xl flex items-center justify-between gap-3 transition-all">
+                                            <div>
+                                                <div class="text-xs font-black text-text-primary flex items-center gap-1.5">
+                                                    <i class="fas fa-calendar-day text-cyan-500 text-xs"></i>
+                                                    <span>{{ slot.date | date:'mediumDate' }}</span>
+                                                </div>
+                                                <div class="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">
+                                                    {{ slot.start_time }} – {{ slot.end_time }}
+                                                </div>
+                                                @if (slot.location) {
+                                                    <div class="text-[10px] text-text-muted mt-0.5 truncate max-w-[160px]">
+                                                        <i class="fas fa-location-dot text-[9px] mr-1 text-text-muted"></i>{{ slot.location }}
+                                                    </div>
+                                                }
+                                            </div>
+                                            <button (click)="bookSlot(slot.id!)"
+                                                    class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-black text-xs rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer shrink-0">
+                                                Reserve
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        } @else if (noSlots() && teacherId()) {
+                            <div class="p-6 text-center bg-bg-tertiary/20 border border-dashed border-border-primary rounded-2xl">
+                                <i class="fas fa-calendar-xmark text-xl text-amber-500 mb-1 block"></i>
+                                <p class="text-xs font-bold text-text-primary">No Open Slots Available</p>
+                                <p class="text-xs text-text-muted mt-0.5">This educator has no available consultation slots posted at the moment.</p>
+                            </div>
+                        }
+
+                        <!-- Agenda / Topic Notes -->
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">4. Discussion Topic / Agenda *</label>
+                            <textarea [ngModel]="reason()" (ngModelChange)="reason.set($event)" rows="3"
+                                      placeholder="Briefly state the purpose of the meeting (e.g., term progress, behavior, math support)..."
+                                      class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs text-text-primary focus:outline-none focus:border-cyan-500"></textarea>
+                        </div>
                     </div>
-                }
-                @empty {
-                    <div class="py-16 text-center text-text-muted border border-dashed border-border-primary rounded-2xl">
-                        <i class="fas fa-calendar text-3xl opacity-30 mb-2 block"></i>
-                        <p class="font-bold text-xs">No meeting bookings yet.</p>
-                        <p class="text-[11px] text-text-muted mt-0.5">Use the "Book a Conference" tab to schedule consultations with teachers.</p>
+                </div>
+            }
+
+            <!-- TAB 2: Confirmed Meetings -->
+            @if (activeTab() === 'meetings') {
+                <div class="animate-fade-in space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                                <i class="fas fa-handshake text-cyan-500"></i>
+                                <span>Confirmed Consultation Schedule</span>
+                            </h3>
+                            <p class="text-xs text-text-muted mt-0.5">Upcoming conferences with teachers and meeting join links</p>
+                        </div>
+                        <span class="text-xs font-bold text-text-muted px-3 py-1 rounded-xl bg-bg-tertiary border border-border-primary">
+                            {{ state.bookings().length }} Scheduled
+                        </span>
                     </div>
-                }
-            </div>
+
+                    <div class="border border-border-primary rounded-2xl overflow-hidden bg-bg-secondary">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-bg-tertiary/60 border-b border-border-primary text-xs font-black uppercase tracking-wider text-text-muted">
+                                    <tr>
+                                        <th class="py-3.5 px-4">Educator</th>
+                                        <th class="py-3.5 px-4">Scholar</th>
+                                        <th class="py-3.5 px-4">Date &amp; Time</th>
+                                        <th class="py-3.5 px-4">Discussion Topic</th>
+                                        <th class="py-3.5 px-4">Location</th>
+                                        <th class="py-3.5 px-4 text-right">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-border-primary/60">
+                                    @for (b of state.bookings(); track b.id) {
+                                        <tr class="hover:bg-bg-tertiary/30 transition-colors">
+                                            <td class="py-4 px-4 font-black text-text-primary">
+                                                {{ getTeacherName(b.slot?.teacher_id) }}
+                                            </td>
+                                            <td class="py-4 px-4 text-xs font-bold text-text-primary">
+                                                {{ getStudentName(b.student_id) }}
+                                            </td>
+                                            <td class="py-4 px-4 text-xs font-mono font-bold text-cyan-600 dark:text-cyan-400">
+                                                {{ b.slot?.date | date:'mediumDate' }} &bull; {{ b.slot?.start_time }} – {{ b.slot?.end_time }}
+                                            </td>
+                                            <td class="py-4 px-4 text-xs text-text-muted max-w-xs truncate">{{ b.reason }}</td>
+                                            <td class="py-4 px-4 text-xs">
+                                                @if (b.slot?.location) {
+                                                    <span class="px-2.5 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[10px] font-bold">
+                                                        {{ b.slot?.location }}
+                                                    </span>
+                                                } @else {
+                                                    <span class="text-text-muted text-xs">School Office</span>
+                                                }
+                                            </td>
+                                            <td class="py-4 px-4 text-right">
+                                                <span class="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                                                    CONFIRMED
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    } @empty {
+                                        <tr>
+                                            <td colspan="6" class="py-12 text-center text-text-muted">
+                                                <i class="fas fa-calendar-day text-3xl text-cyan-500 mb-2 block"></i>
+                                                <p class="text-xs font-bold text-text-primary">No scheduled teacher meetings</p>
+                                                <p class="text-xs text-text-muted mt-0.5">Use the "Book a Conference" tab to reserve consultation slots.</p>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+
         </div>
-    }
+    </div>
 </div>

@@ -25,6 +25,7 @@ type studentUseCase struct {
 	mailer         mailer.MailService
 	fiscalRepo     domain.FiscalRepository
 	academicRepo   domain.AcademicPeriodRepository
+	sms            domain.SMSProvider
 }
 
 func NewStudentUseCase(
@@ -37,7 +38,12 @@ func NewStudentUseCase(
 	mailService mailer.MailService,
 	fiscalRepo domain.FiscalRepository,
 	academicRepo domain.AcademicPeriodRepository,
+	sms ...domain.SMSProvider,
 ) domain.StudentUseCase {
+	var smsProvider domain.SMSProvider
+	if len(sms) > 0 {
+		smsProvider = sms[0]
+	}
 	return &studentUseCase{
 		studentRepo:    repo,
 		gradeRepo:      gradeRepo,
@@ -48,6 +54,7 @@ func NewStudentUseCase(
 		mailer:         mailService,
 		fiscalRepo:     fiscalRepo,
 		academicRepo:   academicRepo,
+		sms:            smsProvider,
 	}
 }
 
@@ -132,6 +139,14 @@ func (u *studentUseCase) provisionGuardianUser(ctx context.Context, g *domain.Gu
 			<p>Please log in and change your password as soon as possible.</p>
 		`, decryptedEmail, tempPassword)
 		_ = u.mailer.SendBulkHTML(ctx, subject, body, []string{decryptedEmail}) // best-effort
+	}
+
+	if u.sms != nil && hasPhone && tempPassword != "" {
+		phone := encryption.DeterministicDecryptedString(string(g.PhoneNumber))
+		smsMsg := fmt.Sprintf("Welcome to SchoolLinx! Your Parent Portal account is active. Login: %s, Temp Password: %s. Please log in and change your password.", identifier, tempPassword)
+		go func(p string, msg string) {
+			_ = u.sms.SendSMS(context.Background(), domain.DefaultSMSSenderID, []string{p}, msg)
+		}(phone, smsMsg)
 	}
 
 	return tempPassword, nil

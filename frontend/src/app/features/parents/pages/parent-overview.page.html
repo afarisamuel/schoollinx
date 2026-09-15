@@ -1,329 +1,616 @@
-<!-- Header Section (Matching Administrator Dashboard) -->
-<header class="px-4 md:px-8 pt-8 md:pt-12 pb-6 md:pb-8 flex flex-col md:flex-row items-start md:items-end justify-between gap-6 md:gap-0 relative z-10">
-    <div class="animate-bento-in">
-        <h1 class="text-3xl md:text-6xl font-extralight tracking-tight text-text-primary mb-3">
-            <span class="font-black text-blue-400">Hello,</span> {{ state.profile()?.first_name || 'Guardian' }}
-        </h1>
-        <div class="flex items-center gap-3">
-            <span class="w-3 h-3 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.8)] animate-pulse"></span>
-            <p class="text-text-secondary font-bold tracking-[0.2em] text-xs uppercase">
-                {{ state.profile()?.relationship || 'GUARDIAN' }} &bull; ACTIVE PORTAL
+<div class="max-w-[1600px] w-full mx-auto animate-fade-in pb-16 px-4 sm:px-6 md:px-8 space-y-6 sm:space-y-8 relative overflow-hidden">
+
+    <!-- ── 0. AMBIENT BACKDROP LIGHTING ────────────────────────────── -->
+    <div class="absolute -top-10 left-1/4 w-96 h-96 max-w-full bg-blue-500/10 dark:bg-blue-600/15 rounded-full blur-3xl pointer-events-none -z-10"></div>
+    <div class="absolute top-72 right-10 w-96 h-96 max-w-full bg-indigo-500/10 dark:bg-purple-600/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+    <div class="absolute top-1/3 left-10 w-80 h-80 max-w-full bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
+
+    <!-- ── 1. Page Header (Family Command Center) ──────────────────── -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2">
+        <div class="min-w-0">
+            <div class="flex items-center gap-2 text-xs font-bold text-text-muted mb-1.5 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Parent &amp; Guardian Portal
+                </span>
+                <span class="text-text-muted/40">/</span>
+                <span class="text-text-muted">Family Command Center</span>
+                <span class="text-text-muted/40">/</span>
+                <span class="text-text-primary font-black">{{ state.profile()?.relationship || 'Guardian' }} Access</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                <span>Hello,</span>
+                <span class="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600 dark:from-blue-400 dark:via-indigo-400 dark:to-emerald-400 bg-clip-text text-transparent">
+                    {{ state.profile()?.first_name || 'Guardian' }}
+                </span>
+            </h1>
+            <p class="text-xs sm:text-sm font-medium text-text-muted mt-1 max-w-3xl">
+                Real-time academic performance, daily classroom attendance, tuition statements, and live bus telemetry for your enrolled scholars.
             </p>
         </div>
+
+        <!-- Executive Action Bar -->
+        <div class="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-wrap">
+            <button (click)="syncData()" [disabled]="isSyncing() || state.loading()"
+                class="px-3.5 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shadow-xs cursor-pointer active:scale-95 hover:border-blue-500/40">
+                <i class="fas fa-rotate text-xs text-blue-500" [class.animate-spin]="isSyncing() || state.loading()"></i>
+                <span>Sync</span>
+            </button>
+
+            <a routerLink="/parents/pickup"
+                class="px-3.5 py-2.5 rounded-2xl bg-purple-500/10 hover:bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/20 text-xs font-bold shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                <i class="fas fa-qrcode text-xs"></i>
+                <span>Pickup Pass</span>
+            </a>
+
+            <a routerLink="/parents/meetings"
+                class="px-3.5 py-2.5 rounded-2xl bg-blue-500/10 hover:bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-xs font-bold shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                <i class="fas fa-calendar-check text-xs"></i>
+                <span>Book Teacher</span>
+            </a>
+
+            <a routerLink="/parents/finance"
+                class="px-4.5 py-2.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black shadow-md shadow-blue-500/25 active:scale-95 transition-all flex items-center gap-2 cursor-pointer">
+                <i class="fas fa-wallet text-xs"></i>
+                <span>Wallet &amp; Fees</span>
+            </a>
+        </div>
     </div>
 
-    <!-- Top KPIs -->
-    <div class="flex flex-wrap items-center gap-3 md:gap-4 animate-bento-in delay-2">
-        <div class="kpi-pill">
-            <span class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Wards</span>
-            <span class="text-2xl font-black text-blue-400">
-                {{ state.profile()?.students?.length || 0 }}
-            </span>
-        </div>
-        <div class="kpi-pill">
-            <span class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Attendance</span>
-            <span class="text-2xl font-black text-blue-400">
-                {{ avgAttendance() }}%
-            </span>
-        </div>
-        <div class="kpi-pill">
-            <span class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Avg Score</span>
-            <span class="text-2xl font-black text-blue-400">
-                {{ overallGpa() | number:'1.1-1' }}
-            </span>
-        </div>
-        <div class="kpi-pill">
-            <span class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Wallet</span>
-            <span class="text-2xl font-black text-blue-400">
-                ₵{{ state.totalWalletBalance() | number:'1.0-0' }}
-            </span>
-        </div>
-        <div class="kpi-pill" [ngClass]="(state.familyLedger()?.total_family_balance || 0) > 0 ? 'border-rose-500/30 bg-rose-500/10' : ''">
-            <span class="text-[10px] font-bold uppercase tracking-widest" [ngClass]="(state.familyLedger()?.total_family_balance || 0) > 0 ? 'text-rose-400' : 'text-text-muted'">
-                Fees Due
-            </span>
-            <span class="text-2xl font-black" [ngClass]="(state.familyLedger()?.total_family_balance || 0) > 0 ? 'text-rose-500' : 'text-emerald-400'">
-                ₵{{ (state.familyLedger()?.total_family_balance || 0) | number:'1.0-0' }}
-            </span>
-        </div>
-    </div>
-</header>
-
-<!-- Dashboard Controls -->
-<div class="px-4 md:px-8 pb-4 flex justify-between items-center z-10 relative animate-bento-in delay-3">
-    <div class="flex items-center gap-3">
-        <h2 class="text-xs font-bold tracking-widest text-text-primary/40 uppercase">Overview</h2>
-    </div>
-    <div class="flex items-center gap-3">
-        <a routerLink="/parents/pickup" class="px-4 py-2 text-[10px] font-bold tracking-widest uppercase rounded-full border border-blue-500/30 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 hover:scale-105 transition-all flex items-center gap-2 cursor-pointer">
-            <i class="fas fa-qrcode"></i> Pickup Pass
-        </a>
-        <a routerLink="/parents/finance" class="px-4 py-2 text-[10px] font-bold tracking-widest uppercase rounded-full border border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 hover:scale-105 transition-all flex items-center gap-2 cursor-pointer">
-            <i class="fas fa-wallet"></i> Wallet / Fees
-        </a>
-    </div>
-</div>
-
-<!-- Bento Grid Container -->
-<div class="px-4 md:px-8 pb-16">
-    <div class="bento-grid animate-bento-in delay-4">
-
-        <!-- 1. Strategic Core: Wards & Attendance (Large 2x2 Bento) -->
-        <a routerLink="/parents/academics" class="bento-card bento-large theme-blue">
-            <div class="bento-content">
-                <div class="flex justify-between items-start">
-                    <div class="bento-icon">
-                        <i class="fas fa-user-graduate text-xl"></i>
+    <!-- ── 1.5. Smart Family Alerts Banner ────────────────────────── -->
+    @if (state.smartAlerts().length > 0) {
+        <div class="space-y-2">
+            @for (alert of state.smartAlerts(); track alert.message) {
+                <div class="p-4 rounded-2xl border flex items-center justify-between gap-4 backdrop-blur-sm shadow-xs"
+                     [ngClass]="alert.type === 'danger' ? 'bg-rose-500/10 border-rose-500/25 text-rose-700 dark:text-rose-300' : 'bg-blue-500/10 border-blue-500/25 text-blue-700 dark:text-blue-300'">
+                    <div class="flex items-center gap-3">
+                        <i class="fas text-sm" [ngClass]="alert.type === 'danger' ? 'fa-triangle-exclamation text-rose-500' : 'fa-bell text-blue-500'"></i>
+                        <span class="text-xs font-bold">{{ alert.message }}</span>
                     </div>
-                    <div class="text-right">
-                        <span class="block text-4xl md:text-5xl font-light text-text-primary tracking-tight">
-                            {{ state.profile()?.students?.length || 0 }}
-                        </span>
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-text-primary/50">Wards Enrolled</span>
+                    @if (alert.type === 'danger') {
+                        <a routerLink="/parents/finance" class="px-3 py-1 rounded-xl bg-rose-600 text-white text-[11px] font-black uppercase tracking-wider hover:bg-rose-500 transition-colors shrink-0">
+                            Pay Now &rarr;
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    <!-- ── 2. Top 4 Metric KPI Cards Row ──────────────────────────── -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+
+        <!-- Card 1: Enrolled Scholars -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-blue-500/40 hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 shadow-2xs">
+                    Enrolled Wards
+                </span>
+            </div>
+
+            <div class="mt-4 space-y-1">
+                <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Family Roster</p>
+                <div class="flex items-baseline gap-2">
+                    <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight font-mono">
+                        {{ state.profile()?.students?.length || 0 }}
+                    </p>
+                    <span class="text-xs font-bold text-text-muted">Scholars</span>
+                </div>
+                <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                    <span class="truncate">
+                        @for (s of (state.profile()?.students || []).slice(0, 2); track s.id) {
+                            <strong class="text-text-primary font-bold">{{ s.first_name }}</strong>{{ !$last ? ', ' : '' }}
+                        }
+                    </span>
+                    <a routerLink="/parents/academics" class="font-bold text-blue-600 dark:text-blue-400 hover:underline shrink-0">
+                        View &rarr;
+                    </a>
+                </div>
+            </div>
+
+            <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                <div class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full transition-all duration-1000" style="width: 100%"></div>
+            </div>
+        </div>
+
+        <!-- Card 2: Average Ward Attendance -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-emerald-500/40 hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                    <i class="fas fa-clipboard-user"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1 shadow-2xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Live Presence</span>
+                </span>
+            </div>
+
+            <div class="mt-4 space-y-1">
+                <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Campus Attendance</p>
+                <div class="flex items-baseline gap-2">
+                    <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight font-mono">
+                        {{ avgAttendance() }}%
+                    </p>
+                    <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono">Average</span>
+                </div>
+                <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                    <span>Daily classroom attendance</span>
+                    <a routerLink="/parents/absence" class="font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
+                        Absence &rarr;
+                    </a>
+                </div>
+            </div>
+
+            <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-1000" [style.width.%]="avgAttendance()"></div>
+            </div>
+        </div>
+
+        <!-- Card 3: Academic Average & Performance -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-indigo-500/40 hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 shadow-2xs">
+                    Academic Index
+                </span>
+            </div>
+
+            <div class="mt-4 space-y-1">
+                <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Average Score / GPA</p>
+                <div class="flex items-baseline gap-2">
+                    <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight font-mono">
+                        {{ overallGpa() | number:'1.1-1' }}
+                    </p>
+                    <span class="text-xs font-bold text-text-muted">/ 100</span>
+                </div>
+                <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                    <span>{{ totalPendingHomework() }} Pending homework task(s)</span>
+                    <a routerLink="/parents/homework" class="font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
+                        Tasks &rarr;
+                    </a>
+                </div>
+            </div>
+
+            <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full transition-all duration-1000" [style.width.%]="overallGpa() > 0 ? overallGpa() : 35"></div>
+            </div>
+        </div>
+
+        <!-- Card 4: Family Tuition & Daily Wallets -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-emerald-500/40 hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-black border shadow-2xs"
+                      [ngClass]="(state.familyLedger()?.total_family_balance || 0) > 0 ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'">
+                    {{ (state.familyLedger()?.total_family_balance || 0) > 0 ? 'Balance Due' : 'All Clear' }}
+                </span>
+            </div>
+
+            <div class="mt-4 space-y-1">
+                <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Tuition &amp; Fees Due</p>
+                <p class="text-2xl sm:text-3xl font-black tracking-tight font-mono"
+                   [ngClass]="(state.familyLedger()?.total_family_balance || 0) > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'">
+                    GH₵{{ (state.familyLedger()?.total_family_balance || 0) | number:'1.2-2' }}
+                </p>
+                <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                    <span>Wallet: <strong class="text-emerald-600 dark:text-emerald-400 font-mono">GH₵{{ state.totalWalletBalance() | number:'1.2-2' }}</strong></span>
+                    <a routerLink="/parents/finance" class="font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
+                        Pay &rarr;
+                    </a>
+                </div>
+            </div>
+
+            <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-1000" style="width: 85%"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── 3. Quick Operational Actions Command Deck ───────────────── -->
+    <div class="space-y-4">
+        <div>
+            <h2 class="text-base sm:text-lg font-black text-text-primary tracking-tight flex items-center gap-2.5">
+                <i class="fas fa-bolt text-blue-500 text-sm"></i>
+                <span>Quick Operational Actions</span>
+            </h2>
+            <p class="text-xs text-text-muted mt-0.5">Direct shortcuts to all parent services and ward management modules</p>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5">
+
+            <!-- 1. Academics & Grades -->
+            <a routerLink="/parents/academics"
+               class="p-4.5 rounded-2xl bg-bg-secondary border border-border-primary hover:border-blue-400 dark:hover:border-blue-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
+                <div class="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-lg shadow-sm shadow-blue-600/30 group-hover:scale-105 transition-transform">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <span class="text-xs font-bold text-text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    Academics &amp; Grades
+                </span>
+            </a>
+
+            <!-- 2. Finance & Fees -->
+            <a routerLink="/parents/finance"
+               class="p-4.5 rounded-2xl bg-bg-secondary border border-border-primary hover:border-emerald-400 dark:hover:border-emerald-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
+                <div class="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-lg shadow-sm shadow-emerald-600/30 group-hover:scale-105 transition-transform">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+                <span class="text-xs font-bold text-text-primary group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    Finance &amp; Fees
+                </span>
+            </a>
+
+            <!-- 3. Class Timetable -->
+            <a routerLink="/parents/schedule"
+               class="p-4.5 rounded-2xl bg-bg-secondary border border-border-primary hover:border-purple-400 dark:hover:border-purple-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
+                <div class="w-11 h-11 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-lg shadow-sm shadow-purple-600/30 group-hover:scale-105 transition-transform">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <span class="text-xs font-bold text-text-primary group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                    Class Timetable
+                </span>
+            </a>
+
+            <!-- 4. Homework Tracker -->
+            <a routerLink="/parents/homework"
+               class="p-4.5 rounded-2xl bg-bg-secondary border border-border-primary hover:border-sky-400 dark:hover:border-sky-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
+                <div class="w-11 h-11 rounded-2xl bg-sky-500 text-white flex items-center justify-center text-lg shadow-sm shadow-sky-500/30 group-hover:scale-105 transition-transform">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <span class="text-xs font-bold text-text-primary group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                    Homework Tracker
+                </span>
+            </a>
+
+            <!-- 5. Live Bus GPS -->
+            <a routerLink="/parents/transport"
+               class="p-4.5 rounded-2xl bg-bg-secondary border border-border-primary hover:border-amber-400 dark:hover:border-amber-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
+                <div class="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-lg shadow-sm shadow-amber-500/30 group-hover:scale-105 transition-transform">
+                    <i class="fas fa-bus-alt"></i>
+                </div>
+                <span class="text-xs font-bold text-text-primary group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                    Live Bus GPS
+                </span>
+            </a>
+
+            <!-- 6. Security Pickup Pass -->
+            <a routerLink="/parents/pickup"
+               class="p-4.5 rounded-2xl bg-bg-secondary border border-border-primary hover:border-indigo-400 dark:hover:border-indigo-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
+                <div class="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-lg shadow-sm shadow-indigo-600/30 group-hover:scale-105 transition-transform">
+                    <i class="fas fa-qrcode"></i>
+                </div>
+                <span class="text-xs font-bold text-text-primary group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    Security Pickup Pass
+                </span>
+            </a>
+
+            <!-- 7. Leave & Absence -->
+            <a routerLink="/parents/absence"
+               class="p-4.5 rounded-2xl bg-bg-secondary border border-border-primary hover:border-rose-400 dark:hover:border-rose-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
+                <div class="w-11 h-11 rounded-2xl bg-rose-500 text-white flex items-center justify-center text-lg shadow-sm shadow-rose-500/30 group-hover:scale-105 transition-transform">
+                    <i class="fas fa-calendar-times"></i>
+                </div>
+                <span class="text-xs font-bold text-text-primary group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
+                    Leave &amp; Absence
+                </span>
+            </a>
+
+            <!-- 8. Teacher Consultations -->
+            <a routerLink="/parents/meetings"
+               class="p-4.5 rounded-2xl bg-bg-secondary border border-border-primary hover:border-cyan-400 dark:hover:border-cyan-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
+                <div class="w-11 h-11 rounded-2xl bg-cyan-600 text-white flex items-center justify-center text-lg shadow-sm shadow-cyan-600/30 group-hover:scale-105 transition-transform">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <span class="text-xs font-bold text-text-primary group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                    Teacher Meetings
+                </span>
+            </a>
+
+            <!-- 9. Health & Wellness -->
+            <a routerLink="/parents/health"
+               class="p-4.5 rounded-2xl bg-bg-secondary border border-border-primary hover:border-rose-400 dark:hover:border-rose-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
+                <div class="w-11 h-11 rounded-2xl bg-rose-600 text-white flex items-center justify-center text-lg shadow-sm shadow-rose-600/30 group-hover:scale-105 transition-transform">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <span class="text-xs font-bold text-text-primary group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
+                    Health &amp; Wellness
+                </span>
+            </a>
+
+            <!-- 10. Activities & Merits -->
+            <a routerLink="/parents/activities"
+               class="p-4.5 rounded-2xl bg-bg-secondary border border-border-primary hover:border-amber-400 dark:hover:border-amber-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
+                <div class="w-11 h-11 rounded-2xl bg-amber-600 text-white flex items-center justify-center text-lg shadow-sm shadow-amber-600/30 group-hover:scale-105 transition-transform">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <span class="text-xs font-bold text-text-primary group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                    Activities &amp; Merits
+                </span>
+            </a>
+
+            <!-- 11. School Notices -->
+            <a routerLink="/parents/notices"
+               class="p-4.5 rounded-2xl bg-bg-secondary border border-border-primary hover:border-blue-400 dark:hover:border-blue-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
+                <div class="w-11 h-11 rounded-2xl bg-blue-500 text-white flex items-center justify-center text-lg shadow-sm shadow-blue-500/30 group-hover:scale-105 transition-transform">
+                    <i class="fas fa-bullhorn"></i>
+                </div>
+                <span class="text-xs font-bold text-text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    School Notices
+                </span>
+            </a>
+
+            <!-- 12. Account Settings -->
+            <a routerLink="/parents/settings"
+               class="p-4.5 rounded-2xl bg-bg-secondary border border-border-primary hover:border-slate-400 dark:hover:border-slate-600 flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group shadow-2xs">
+                <div class="w-11 h-11 rounded-2xl bg-slate-600 text-white flex items-center justify-center text-lg shadow-sm shadow-slate-600/30 group-hover:scale-105 transition-transform">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <span class="text-xs font-bold text-text-primary group-hover:text-slate-600 dark:group-hover:text-slate-400 transition-colors">
+                    Portal Settings
+                </span>
+            </a>
+
+        </div>
+    </div>
+
+    <!-- ── 4. Main 2-Column Split Operational Section ──────────────── -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- ── Left Column (8 cols): Wards Roster & Academic Trajectory ── -->
+        <div class="lg:col-span-8 space-y-6">
+
+            <!-- Section 1: My Wards Overview -->
+            <div class="p-6 md:p-7 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs space-y-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base md:text-lg font-black text-text-primary tracking-tight flex items-center gap-2">
+                            <i class="fas fa-users-viewfinder text-blue-500 text-sm"></i>
+                            <span>My Enrolled Wards</span>
+                        </h2>
+                        <p class="text-xs text-text-muted mt-0.5">Individual scholar academic status, attendance record, and profile shortcuts</p>
                     </div>
+                    <a routerLink="/parents/academics" class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer">
+                        <span>Gradebook</span>
+                        <i class="fas fa-arrow-right text-[10px]"></i>
+                    </a>
                 </div>
 
-                <!-- Wards List Mini Chips -->
-                <div class="space-y-2 my-auto">
+                <!-- Wards List Grid -->
+                <div class="space-y-3.5">
                     @for (student of state.profile()?.students || []; track student.id) {
-                        @let att = state.attendanceMap()[student.id || ''] || {percentage: 0};
-                        <div class="flex items-center justify-between p-2.5 bg-bg-primary/40 rounded-xl border border-white/5 backdrop-blur-sm">
-                            <div class="flex items-center gap-2.5 min-w-0">
-                                <div class="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-300 flex items-center justify-center font-bold text-xs shrink-0">
+                        @let att = getWardAttendance(student.id);
+                        @let gpa = getWardGpa(student.id);
+                        @let hwCount = getWardHomeworkCount(student.id);
+
+                        <div class="p-4 sm:p-5 rounded-2xl bg-bg-tertiary/40 border border-border-primary/70 hover:border-blue-500/40 hover:bg-bg-tertiary/70 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="flex items-center gap-3.5 min-w-0">
+                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-black text-lg shadow-sm shadow-blue-500/30 shrink-0">
                                     {{ student.first_name[0] }}
                                 </div>
                                 <div class="min-w-0">
-                                    <div class="text-xs font-bold text-text-primary truncate">{{ student.first_name }} {{ student.last_name }}</div>
-                                    <div class="text-[9px] text-text-muted">{{ student.class_name }}</div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h3 class="text-sm font-black text-text-primary truncate">
+                                            {{ student.first_name }} {{ student.last_name }}
+                                        </h3>
+                                        <span class="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[10px] font-black uppercase">
+                                            {{ student.class_name || (student.level ? 'Grade ' + student.level : 'Scholar') }}
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-text-muted mt-0.5 flex items-center gap-2 flex-wrap">
+                                        <span>ID: <strong class="text-text-primary">{{ student.enrollment_num || 'Scholar' }}</strong></span>
+                                        <span>&bull;</span>
+                                        <span>{{ hwCount }} Active task(s)</span>
+                                    </p>
                                 </div>
                             </div>
-                            <span class="text-xs font-black shrink-0" [ngClass]="att.percentage >= 80 ? 'text-emerald-400' : 'text-amber-400'">
-                                {{ att.percentage }}% Att.
-                            </span>
+
+                            <!-- Ward Stats & Quick Actions -->
+                            <div class="flex items-center gap-3 sm:gap-4 shrink-0 flex-wrap sm:flex-nowrap">
+                                <div class="text-right">
+                                    <div class="text-xs font-black uppercase tracking-wider text-text-muted">Attendance</div>
+                                    <div class="text-sm font-black font-mono" [ngClass]="att.percentage >= 80 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'">
+                                        {{ att.percentage }}%
+                                    </div>
+                                </div>
+
+                                <div class="text-right">
+                                    <div class="text-xs font-black uppercase tracking-wider text-text-muted">GPA / Score</div>
+                                    <div class="text-sm font-black font-mono text-indigo-600 dark:text-indigo-400">
+                                        {{ gpa > 0 ? (gpa | number:'1.1-1') : 'N/A' }}
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-1.5 shrink-0 pl-1 border-l border-border-primary">
+                                    <a routerLink="/parents/academics"
+                                       class="px-2.5 py-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[10px] font-black transition-colors cursor-pointer"
+                                       title="View Grades">
+                                        Grades
+                                    </a>
+                                    <a routerLink="/parents/schedule"
+                                       class="px-2.5 py-1.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary text-text-muted hover:text-text-primary border border-border-primary text-[10px] font-black transition-colors cursor-pointer"
+                                       title="View Timetable">
+                                        Schedule
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    } @empty {
+                        <div class="text-center py-8 text-text-muted text-xs">
+                            <i class="fas fa-user-graduate text-2xl mb-2 opacity-50"></i>
+                            <p>No enrolled wards linked to this guardian profile.</p>
                         </div>
                     }
                 </div>
+            </div>
 
-                <div class="mt-auto">
-                    <h3 class="text-xl font-bold text-text-primary mb-1">My Wards</h3>
-                    <p class="text-xs text-text-primary/60 font-medium">Daily presence, profile & academic records</p>
+            <!-- Section 2: Active Homework & Learning Tasks -->
+            <div class="p-6 md:p-7 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs space-y-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base md:text-lg font-black text-text-primary tracking-tight flex items-center gap-2">
+                            <i class="fas fa-list-check text-sky-500 text-sm"></i>
+                            <span>Homework &amp; Assignments</span>
+                        </h2>
+                        <p class="text-xs text-text-muted mt-0.5">Upcoming deadlines, teacher instructions, and submission tracking</p>
+                    </div>
+                    <a routerLink="/parents/homework" class="text-xs font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1 cursor-pointer">
+                        <span>All Tasks ({{ totalPendingHomework() }})</span>
+                        <i class="fas fa-arrow-right text-[10px]"></i>
+                    </a>
+                </div>
+
+                <div class="space-y-3">
+                    @for (item of pendingHomeworkList(); track item.id) {
+                        <div class="p-3.5 sm:p-4 rounded-2xl bg-bg-tertiary/40 border border-border-primary/60 hover:border-sky-500/40 transition-colors flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-9 h-9 rounded-xl bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center text-sm font-black shrink-0">
+                                    <i class="fas fa-pencil"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <p class="text-xs font-black text-text-primary truncate">{{ item.title }}</p>
+                                        <span class="px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-[9px] font-black uppercase">
+                                            {{ item.subject || 'General' }}
+                                        </span>
+                                    </div>
+                                    <p class="text-[11px] text-text-muted mt-0.5 truncate">
+                                        Ward: <strong class="text-text-primary font-bold">{{ item.studentName }}</strong> &bull; Due: {{ item.due_date | date:'mediumDate' }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="shrink-0">
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30">
+                                    Pending
+                                </span>
+                            </div>
+                        </div>
+                    } @empty {
+                        <div class="text-center py-6 text-text-muted text-xs">
+                            <i class="fas fa-check-circle text-emerald-500 text-xl mb-1.5"></i>
+                            <p class="font-bold text-text-primary">All homework assignments up to date!</p>
+                            <p class="text-[11px]">No pending tasks across any enrolled scholars.</p>
+                        </div>
+                    }
                 </div>
             </div>
-        </a>
 
-        <!-- 2. Academic Hub (Regular Bento) -->
-        <a routerLink="/parents/academics" class="bento-card theme-emerald">
-            <div class="bento-content">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="bento-icon">
-                        <i class="fas fa-book-open text-lg"></i>
-                    </div>
-                </div>
-                <div>
-                    <span class="block text-2xl font-bold text-text-primary">{{ overallGpa() | number:'1.1-1' }}</span>
-                    <h3 class="text-xs font-bold text-text-primary/60 uppercase tracking-widest mt-1">Academic Hub</h3>
-                    <p class="text-[10px] text-text-muted mt-0.5">Grades & reports</p>
-                </div>
-            </div>
-        </a>
+        </div>
 
-        <!-- 3. Tuition & Fees (Regular Bento) -->
-        <a routerLink="/parents/finance" class="bento-card theme-purple">
-            <div class="bento-content">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="bento-icon">
-                        <i class="fas fa-receipt text-lg"></i>
+        <!-- ── Right Column (4 cols): Bus Telemetry, Pickup Pass & Notices ── -->
+        <div class="lg:col-span-4 space-y-6">
+
+            <!-- Widget 1: Digital Pickup Pass & Gate Security -->
+            <div class="p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-sm md:text-base font-black text-text-primary tracking-tight flex items-center gap-2">
+                            <i class="fas fa-qrcode text-purple-500 text-xs"></i>
+                            <span>Security Pickup Pass</span>
+                        </h2>
+                        <p class="text-[11px] text-text-muted">Gate clearance for dismissal</p>
                     </div>
-                </div>
-                <div>
-                    <span class="block text-2xl font-bold" [ngClass]="(state.familyLedger()?.total_family_balance || 0) > 0 ? 'text-rose-400' : 'text-emerald-400'">
-                        ₵{{ (state.familyLedger()?.total_family_balance || 0) | number:'1.0-0' }}
+                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30">
+                        ACTIVE
                     </span>
-                    <h3 class="text-xs font-bold text-text-primary/60 uppercase tracking-widest mt-1">Finance & Fees</h3>
-                    <p class="text-[10px] text-text-muted mt-0.5">Tuition ledger & pay</p>
                 </div>
-            </div>
-        </a>
 
-        <!-- 4. Daily Wallets (Regular Bento) -->
-        <a routerLink="/parents/finance" class="bento-card theme-cyan">
-            <div class="bento-content">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="bento-icon">
-                        <i class="fas fa-wallet text-lg"></i>
-                    </div>
+                <div class="p-4 rounded-2xl bg-purple-500/5 border border-purple-500/20 text-center space-y-2">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-text-muted">Security Verification Code</p>
+                    <p class="text-2xl sm:text-3xl font-black font-mono text-purple-600 dark:text-purple-400 tracking-wider">
+                        {{ state.profile()?.pickup_code || 'GATE-PASS' }}
+                    </p>
+                    <p class="text-[10px] text-text-muted">Authorized: {{ state.profile()?.first_name }} {{ state.profile()?.last_name }} ({{ state.profile()?.relationship || 'Guardian' }})</p>
                 </div>
-                <div>
-                    <span class="block text-2xl font-bold text-emerald-400">₵{{ state.totalWalletBalance() | number:'1.0-0' }}</span>
-                    <h3 class="text-xs font-bold text-text-primary/60 uppercase tracking-widest mt-1">Daily Wallets</h3>
-                    <p class="text-[10px] text-text-muted mt-0.5">Canteen & transport</p>
-                </div>
-            </div>
-        </a>
 
-        <!-- 5. Class Schedule (Regular Bento) -->
-        <a routerLink="/parents/schedule" class="bento-card theme-amber">
-            <div class="bento-content">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="bento-icon">
-                        <i class="fas fa-calendar-alt text-lg"></i>
-                    </div>
-                </div>
-                <div>
-                    <span class="block text-2xl font-bold text-text-primary">{{ totalTodayClasses() }}</span>
-                    <h3 class="text-xs font-bold text-text-primary/60 uppercase tracking-widest mt-1">Class Schedule</h3>
-                    <p class="text-[10px] text-text-muted mt-0.5">Today's timetable</p>
-                </div>
+                <a routerLink="/parents/pickup"
+                   class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs transition-colors flex items-center justify-center gap-2 shadow-xs cursor-pointer">
+                    <i class="fas fa-qrcode"></i>
+                    <span>Show Full QR Gate Pass</span>
+                </a>
             </div>
-        </a>
 
-        <!-- 6. Homework Tracker (Wide 2x1 Bento) -->
-        <a routerLink="/parents/homework" class="bento-card bento-wide theme-rose">
-            <div class="bento-content">
-                <div class="flex justify-between items-start">
-                    <div class="bento-icon">
-                        <i class="fas fa-tasks text-xl"></i>
+            <!-- Widget 2: Live Bus GPS Status -->
+            <div class="p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-sm md:text-base font-black text-text-primary tracking-tight flex items-center gap-2">
+                            <i class="fas fa-bus-alt text-amber-500 text-xs"></i>
+                            <span>Live Bus Telemetry</span>
+                        </h2>
+                        <p class="text-[11px] text-text-muted">Campus transit GPS tracking</p>
                     </div>
-                    <div class="text-right">
-                        <span class="block text-3xl font-light text-text-primary">{{ totalPendingHomework() }}</span>
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-text-primary/50">Assignments Pending</span>
-                    </div>
+                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        LIVE
+                    </span>
                 </div>
-                <div class="mt-auto">
-                    <h3 class="text-xl font-bold text-text-primary mb-1">Homework Tracker</h3>
-                    <p class="text-xs text-text-primary/60 font-medium">Deadlines, teacher feedback & submissions</p>
-                </div>
-            </div>
-        </a>
 
-        <!-- Live Bus GPS Telemetry (Regular Bento) -->
-        <a routerLink="/parents/transport" class="bento-card theme-amber">
-            <div class="bento-content">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="bento-icon">
-                        <i class="fas fa-bus-alt text-lg"></i>
+                <div class="p-4 rounded-2xl bg-bg-tertiary/50 border border-border-primary/70 space-y-3">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-text-muted">Fleet Route</span>
+                        <strong class="text-text-primary font-bold">Route 4 &bull; Main Campus</strong>
                     </div>
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-text-muted">Current Status</span>
+                        <span class="text-emerald-600 dark:text-emerald-400 font-bold">On Route &bull; 32 km/h</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-text-muted">Estimated Arrival</span>
+                        <strong class="text-amber-600 dark:text-amber-400 font-bold font-mono">15:45 (In ~12 min)</strong>
+                    </div>
                 </div>
-                <div>
-                    <span class="block text-2xl font-bold text-amber-400">Live GPS</span>
-                    <h3 class="text-xs font-bold text-text-primary/60 uppercase tracking-widest mt-1">Bus Telemetry</h3>
-                    <p class="text-[10px] text-text-muted mt-0.5">Speed, ETA & stops</p>
-                </div>
-            </div>
-        </a>
 
-        <!-- 7. Pickup Pass (Regular Bento) -->
-        <a routerLink="/parents/pickup" class="bento-card theme-purple">
-            <div class="bento-content">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="bento-icon">
-                        <i class="fas fa-qrcode text-lg"></i>
-                    </div>
-                </div>
-                <div>
-                    <span class="block text-xl font-mono font-bold text-blue-400 truncate">{{ state.profile()?.pickup_code || 'ACTIVE' }}</span>
-                    <h3 class="text-xs font-bold text-text-primary/60 uppercase tracking-widest mt-1">Pickup Pass</h3>
-                    <p class="text-[10px] text-text-muted mt-0.5">Gate exit pass</p>
-                </div>
+                <a routerLink="/parents/transport"
+                   class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-900 font-black text-xs transition-colors flex items-center justify-center gap-2 shadow-xs cursor-pointer">
+                    <i class="fas fa-location-crosshairs"></i>
+                    <span>Track Live GPS Map</span>
+                </a>
             </div>
-        </a>
 
-        <!-- 8. Leave & Absence (Regular Bento) -->
-        <a routerLink="/parents/absence" class="bento-card theme-amber">
-            <div class="bento-content">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="bento-icon">
-                        <i class="fas fa-calendar-times text-lg"></i>
+            <!-- Widget 3: School Circulars & Notices -->
+            <div class="p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-sm md:text-base font-black text-text-primary tracking-tight flex items-center gap-2">
+                            <i class="fas fa-bullhorn text-blue-500 text-xs"></i>
+                            <span>School Notices</span>
+                        </h2>
+                        <p class="text-[11px] text-text-muted">Official school circulars &amp; announcements</p>
                     </div>
+                    <a routerLink="/parents/notices" class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
+                        All &rarr;
+                    </a>
                 </div>
-                <div>
-                    <span class="block text-2xl font-bold text-amber-400">{{ pendingAbsences() }}</span>
-                    <h3 class="text-xs font-bold text-text-primary/60 uppercase tracking-widest mt-1">Leave Requests</h3>
-                    <p class="text-[10px] text-text-muted mt-0.5">Submit & track absence</p>
-                </div>
-            </div>
-        </a>
 
-        <!-- 9. Teacher Meetings (Regular Bento) -->
-        <a routerLink="/parents/meetings" class="bento-card theme-blue">
-            <div class="bento-content">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="bento-icon">
-                        <i class="fas fa-handshake text-lg"></i>
-                    </div>
-                </div>
-                <div>
-                    <span class="block text-2xl font-bold text-text-primary">{{ activeBookings() }}</span>
-                    <h3 class="text-xs font-bold text-text-primary/60 uppercase tracking-widest mt-1">Teacher Meetings</h3>
-                    <p class="text-[10px] text-text-muted mt-0.5">Book consultations</p>
+                <div class="space-y-2.5">
+                    @for (notice of (state.notices() || []).slice(0, 3); track notice.id) {
+                        <div class="p-3 rounded-xl bg-bg-tertiary/40 border border-border-primary/50 hover:border-blue-500/30 transition-colors">
+                            <div class="flex items-center justify-between text-[10px] text-text-muted mb-1">
+                                <span class="font-bold uppercase tracking-wider text-blue-500">{{ notice.target || 'Announcement' }}</span>
+                                <span>{{ notice.created_at | date:'shortDate' }}</span>
+                            </div>
+                            <p class="text-xs font-bold text-text-primary line-clamp-1">{{ notice.title }}</p>
+                            <p class="text-[11px] text-text-muted line-clamp-2 mt-0.5">{{ notice.content }}</p>
+                        </div>
+                    } @empty {
+                        <div class="text-center py-4 text-text-muted text-xs">
+                            <p>No new circulars published today.</p>
+                        </div>
+                    }
                 </div>
             </div>
-        </a>
 
-        <!-- 10. Health & Wellness (Regular Bento) -->
-        <a routerLink="/parents/health" class="bento-card theme-rose">
-            <div class="bento-content">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="bento-icon">
-                        <i class="fas fa-heartbeat text-lg"></i>
-                    </div>
-                </div>
-                <div>
-                    <span class="block text-2xl font-bold text-emerald-400">{{ avgAttendance() }}%</span>
-                    <h3 class="text-xs font-bold text-text-primary/60 uppercase tracking-widest mt-1">Health & Wellness</h3>
-                    <p class="text-[10px] text-text-muted mt-0.5">Medical profiles</p>
-                </div>
-            </div>
-        </a>
-
-        <!-- 11. Activities & Badges (Regular Bento) -->
-        <a routerLink="/parents/activities" class="bento-card theme-emerald">
-            <div class="bento-content">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="bento-icon">
-                        <i class="fas fa-trophy text-lg"></i>
-                    </div>
-                </div>
-                <div>
-                    <span class="block text-2xl font-bold text-amber-400">Merits</span>
-                    <h3 class="text-xs font-bold text-text-primary/60 uppercase tracking-widest mt-1">Activities</h3>
-                    <p class="text-[10px] text-text-muted mt-0.5">Streaks & awards</p>
-                </div>
-            </div>
-        </a>
-
-        <!-- 12. School Notices (Regular Bento) -->
-        <a routerLink="/parents/notices" class="bento-card theme-cyan">
-            <div class="bento-content">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="bento-icon">
-                        <i class="fas fa-bullhorn text-lg"></i>
-                    </div>
-                </div>
-                <div>
-                    <span class="block text-2xl font-bold text-cyan-400">{{ state.notices().length }}</span>
-                    <h3 class="text-xs font-bold text-text-primary/60 uppercase tracking-widest mt-1">Notices</h3>
-                    <p class="text-[10px] text-text-muted mt-0.5">Official circulars</p>
-                </div>
-            </div>
-        </a>
-
-        <!-- 13. Settings (Regular Bento) -->
-        <a routerLink="/parents/settings" class="bento-card theme-slate">
-            <div class="bento-content">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="bento-icon">
-                        <i class="fas fa-cog text-lg"></i>
-                    </div>
-                </div>
-                <div>
-                    <span class="block text-2xl font-bold text-text-primary">Profile</span>
-                    <h3 class="text-xs font-bold text-text-primary/60 uppercase tracking-widest mt-1">Settings</h3>
-                    <p class="text-[10px] text-text-muted mt-0.5">Security & preferences</p>
-                </div>
-            </div>
-        </a>
+        </div>
 
     </div>
+
 </div>

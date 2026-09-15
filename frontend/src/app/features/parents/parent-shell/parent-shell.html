@@ -1,19 +1,19 @@
 <div class="relative min-h-[calc(100vh-96px)] bg-bg-primary text-text-primary font-sans overflow-x-hidden">
 
-    <!-- Premium Background Effects (matching Administrator Dashboard) -->
+    <!-- Atmospheric Glow Backdrop (Matching Admin Dashboard) -->
     <div class="absolute inset-x-0 top-0 h-[800px] overflow-hidden pointer-events-none z-0">
-        <div class="absolute -top-[10%] left-[10%] w-[800px] h-[800px] bg-blue-500/10 blur-[140px] rounded-full"></div>
-        <div class="absolute top-[20%] right-[5%] w-[600px] h-[600px] bg-blue-500/10 blur-[120px] rounded-full"></div>
-        <div class="absolute inset-0 bg-bg-primary pointer-events-none"></div>
+        <div class="absolute -top-24 left-1/4 w-[600px] h-[600px] bg-blue-500/10 blur-[150px] rounded-full"></div>
+        <div class="absolute top-1/4 right-1/4 w-[450px] h-[450px] bg-indigo-500/10 blur-[130px] rounded-full"></div>
+        <div class="absolute top-10 right-10 w-[350px] h-[350px] bg-emerald-500/5 blur-[120px] rounded-full"></div>
     </div>
 
-    <!-- Subpage Navigation Bar (Only displayed on subpages, NOT on overview) -->
+    <!-- Subpage Navigation Bar (Shown on Subpages) -->
     @if (!isOverviewPage()) {
-        <div class="sticky top-0 z-30 px-4 md:px-8 py-2.5 bg-bg-primary/95 backdrop-blur-md border-b border-border-primary shadow-lg shadow-black/20">
-            <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1">
+        <div class="sticky top-0 z-30 px-4 md:px-8 py-3 bg-bg-primary/95 backdrop-blur-md border-b border-border-primary shadow-xs">
+            <div class="max-w-[1600px] mx-auto flex items-center gap-2 overflow-x-auto custom-scrollbar">
                 <a routerLink="/parents"
-                   class="px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0 bg-bg-tertiary text-text-muted hover:text-text-primary hover:bg-bg-secondary border border-border-primary">
-                    <i class="fas fa-arrow-left text-[10px]"></i>
+                   class="px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0 bg-bg-secondary text-text-muted hover:text-text-primary hover:bg-bg-tertiary border border-border-primary shadow-2xs">
+                    <i class="fas fa-arrow-left text-[11px] text-blue-500"></i>
                     <span>Dashboard</span>
                 </a>
 
@@ -21,12 +21,12 @@
 
                 @for (item of navItems.slice(1); track item.path) {
                     <a [routerLink]="item.path"
-                       routerLinkActive="bg-blue-600 text-white shadow-md shadow-blue-600/20"
-                       class="px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0 text-text-muted hover:text-text-primary hover:bg-bg-tertiary/50">
-                        <i class="fas {{ item.icon }} text-[10px]"></i>
+                       routerLinkActive="bg-blue-600 text-white shadow-sm shadow-blue-600/25 font-black"
+                       class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0 text-text-muted hover:text-text-primary hover:bg-bg-secondary border border-transparent hover:border-border-primary">
+                        <i class="fas {{ item.icon }} text-[11px]"></i>
                         <span>{{ item.label }}</span>
                         @if (item.badge && item.badge() > 0) {
-                            <span class="ml-1 px-1.5 py-0.2 text-[9px] font-black rounded-full"
+                            <span class="ml-1 px-1.5 py-0.5 text-[9px] font-black rounded-full"
                                   [ngClass]="item.badgeClass || 'bg-blue-500/20 text-blue-400'">
                                 {{ item.badge() }}
                             </span>
@@ -37,7 +37,7 @@
         </div>
     }
 
-    <!-- Page Content -->
+    <!-- Page Content Area -->
     <div class="relative z-10">
         <router-outlet />
     </div>

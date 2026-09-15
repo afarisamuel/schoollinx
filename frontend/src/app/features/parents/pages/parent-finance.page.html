@@ -1,308 +1,477 @@
-<div class="max-w-[1400px] mx-auto p-4 md:p-8 animate-fade-in pb-24">
+<div class="max-w-[1600px] w-full mx-auto animate-fade-in pb-16 px-4 sm:px-6 md:px-8 space-y-6 sm:space-y-8 relative overflow-hidden">
 
-    <!-- Header & Live Multi-Currency Switcher -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-7">
-        <div>
-            <h1 class="text-3xl font-black text-blue-400 mb-1">Finance & Fees</h1>
-            <p class="text-text-muted text-sm">Family ledger, split installments, multi-currency conversions, and instant wallet top-ups.</p>
-        </div>
+    <!-- ── 0. AMBIENT BACKDROP LIGHTING ────────────────────────────── -->
+    <div class="absolute -top-10 left-1/4 w-96 h-96 max-w-full bg-emerald-500/10 dark:bg-emerald-600/15 rounded-full blur-3xl pointer-events-none -z-10"></div>
+    <div class="absolute top-72 right-10 w-96 h-96 max-w-full bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
-        <!-- Multi-Currency Pills -->
-        <div class="flex items-center gap-1.5 p-1 bg-bg-secondary border border-border-primary rounded-2xl w-fit">
-            <button (click)="setCurrency('GHS')"
-                    [ngClass]="selectedCurrency() === 'GHS' ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-600/20' : 'text-text-muted hover:text-text-primary'"
-                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer">
-                GHS (GH₵)
-            </button>
-            <button (click)="setCurrency('USD')"
-                    [ngClass]="selectedCurrency() === 'USD' ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-600/20' : 'text-text-muted hover:text-text-primary'"
-                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer">
-                USD ($)
-            </button>
-            <button (click)="setCurrency('GBP')"
-                    [ngClass]="selectedCurrency() === 'GBP' ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-600/20' : 'text-text-muted hover:text-text-primary'"
-                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer">
-                GBP (£)
-            </button>
-            <button (click)="setCurrency('EUR')"
-                    [ngClass]="selectedCurrency() === 'EUR' ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-600/20' : 'text-text-muted hover:text-text-primary'"
-                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer">
-                EUR (€)
-            </button>
-        </div>
-    </div>
-
-    <!-- KPI Summary (Live Multi-Currency formatted) -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div class="p-5 bg-bg-secondary border border-border-primary rounded-2xl">
-            <span class="text-xs font-bold uppercase tracking-wider text-text-muted block mb-1">Total Invoiced</span>
-            <div class="text-2xl font-black text-text-primary">{{ formatMoney(state.familyLedger()?.total_family_billed || 0) }}</div>
-            <p class="text-xs text-text-muted mt-1">All tuition & institutional fees</p>
-        </div>
-        <div class="p-5 bg-bg-secondary border border-border-primary rounded-2xl">
-            <span class="text-xs font-bold uppercase tracking-wider text-text-muted block mb-1">Total Paid</span>
-            <div class="text-2xl font-black text-emerald-400">{{ formatMoney(state.familyLedger()?.total_family_paid || 0) }}</div>
-            <p class="text-xs text-text-muted mt-1">Verified family payments</p>
-        </div>
-        <div class="p-5 bg-rose-500/5 border border-rose-500/20 rounded-2xl flex flex-col justify-between">
-            <div>
-                <span class="text-xs font-bold uppercase tracking-wider text-rose-400 block mb-1">Outstanding Balance</span>
-                <div class="text-2xl font-black text-rose-400">{{ formatMoney(state.familyLedger()?.total_family_balance || 0) }}</div>
+    <!-- ── 1. Page Header (Finance & Fees Command) ─────────────────── -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2">
+        <div class="min-w-0">
+            <div class="flex items-center gap-2 text-xs font-bold text-text-muted mb-1.5 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Fiscal Governance &amp; Payments
+                </span>
+                <span class="text-text-muted/40">/</span>
+                <span class="text-text-muted">Parent Portal</span>
+                <span class="text-text-muted/40">/</span>
+                <span class="text-text-primary font-black">Family Ledger</span>
             </div>
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                <span>Tuition</span>
+                <span class="bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 dark:from-emerald-400 dark:via-teal-400 dark:to-blue-400 bg-clip-text text-transparent">
+                    &amp; Family Finance
+                </span>
+            </h1>
+            <p class="text-xs sm:text-sm font-medium text-text-muted mt-1 max-w-3xl">
+                Real-time family tuition invoices, installment agreements, split milestones, and daily canteen wallet funding.
+            </p>
+        </div>
+
+        <!-- Currency Selector Pills & Action -->
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0 flex-wrap">
+            <div class="flex items-center gap-1 p-1 bg-bg-secondary border border-border-primary rounded-2xl shadow-xs">
+                <button (click)="setCurrency('GHS')"
+                        [ngClass]="selectedCurrency() === 'GHS' ? 'bg-emerald-600 text-white font-black shadow-xs' : 'text-text-muted hover:text-text-primary'"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer">
+                    GHS (GH₵)
+                </button>
+                <button (click)="setCurrency('USD')"
+                        [ngClass]="selectedCurrency() === 'USD' ? 'bg-emerald-600 text-white font-black shadow-xs' : 'text-text-muted hover:text-text-primary'"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer">
+                    USD ($)
+                </button>
+                <button (click)="setCurrency('GBP')"
+                        [ngClass]="selectedCurrency() === 'GBP' ? 'bg-emerald-600 text-white font-black shadow-xs' : 'text-text-muted hover:text-text-primary'"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer">
+                    GBP (£)
+                </button>
+                <button (click)="setCurrency('EUR')"
+                        [ngClass]="selectedCurrency() === 'EUR' ? 'bg-emerald-600 text-white font-black shadow-xs' : 'text-text-muted hover:text-text-primary'"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer">
+                    EUR (€)
+                </button>
+            </div>
+
             @if ((state.familyLedger()?.total_family_balance || 0) > 0) {
                 <button (click)="payFamilyBalance()"
-                        class="mt-3 w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shadow-emerald-600/20">
-                    <i class="fas fa-credit-card"></i> Pay Outstanding via Paystack
+                        class="px-4.5 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black shadow-md shadow-emerald-500/25 active:scale-95 transition-all flex items-center gap-2 cursor-pointer">
+                    <i class="fas fa-credit-card text-xs"></i>
+                    <span>Pay Family Balance</span>
                 </button>
-            } @else {
-                <span class="mt-3 text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                    <i class="fas fa-check-circle"></i> All family accounts settled!
-                </span>
             }
         </div>
     </div>
 
-    <!-- Tab Navigation -->
-    <div class="flex items-center gap-2 p-1.5 bg-bg-secondary border border-border-primary rounded-2xl mb-6 overflow-x-auto">
-        <button (click)="activeTab.set('ledger')"
-                [ngClass]="activeTab() === 'ledger' ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/40'"
-                class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
-            <i class="fas fa-file-invoice-dollar"></i>
-            <span>Wards Fee Ledger</span>
-            <span class="px-1.5 py-0.2 text-[9px] rounded-full" [ngClass]="activeTab() === 'ledger' ? 'bg-white/20 text-white' : 'bg-bg-tertiary text-text-muted'">
-                {{ ledgerWards().length }}
-            </span>
-        </button>
-        <button (click)="activeTab.set('milestones')"
-                [ngClass]="activeTab() === 'milestones' ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/40'"
-                class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
-            <i class="fas fa-calendar-check"></i>
-            <span>Split-Tuition Milestones</span>
-            @if (installmentPlan()?.is_enabled && installmentPlan()?.milestones?.length) {
-                <span class="px-1.5 py-0.2 text-[9px] rounded-full bg-emerald-400/20 text-emerald-300">
-                    Active
-                </span>
-            }
-        </button>
-        <button (click)="activeTab.set('wallets')"
-                [ngClass]="activeTab() === 'wallets' ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/40'"
-                class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
-            <i class="fas fa-wallet"></i>
-            <span>Daily Wallets & Canteen</span>
-        </button>
-        <button (click)="activeTab.set('siblings')"
-                [ngClass]="activeTab() === 'siblings' ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/40'"
-                class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
-            <i class="fas fa-users"></i>
-            <span>Sibling Policy Matrix</span>
-        </button>
-    </div>
+    <!-- ── 2. Top 4 Metric KPI Cards Row ──────────────────────────── -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
 
-    <!-- TAB 1: Wards Fee Ledger Breakdown -->
-    @if (activeTab() === 'ledger') {
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 mb-6 overflow-x-auto animate-fade-in">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-base font-black text-text-primary flex items-center gap-2">
-                    <i class="fas fa-list text-blue-400"></i> Wards Fee Ledger
-                </h3>
-                <span class="text-xs text-text-muted font-bold">{{ ledgerWards().length }} Ward{{ ledgerWards().length > 1 ? 's' : '' }} Registered</span>
-            </div>
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="border-b border-border-primary text-xs font-bold uppercase tracking-wider text-text-muted">
-                        <th class="pb-3 text-left pl-2">Ward</th>
-                        <th class="pb-3 text-left">Class</th>
-                        <th class="pb-3 text-left">Billed</th>
-                        <th class="pb-3 text-left">Paid</th>
-                        <th class="pb-3 text-left">Balance</th>
-                        <th class="pb-3 text-left">Status</th>
-                        <th class="pb-3 text-right pr-2">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-border-primary">
-                    @for (w of ledgerWards(); track w.student_id) {
-                        <tr class="hover:bg-bg-tertiary/30 transition-colors">
-                            <td class="py-3.5 pl-2 font-bold text-text-primary">{{ w.student_name }}</td>
-                            <td class="py-3.5 text-text-muted text-xs">{{ w.class_name }}</td>
-                            <td class="py-3.5 text-text-muted font-mono">{{ formatMoney(w.total_billed) }}</td>
-                            <td class="py-3.5 text-emerald-400 font-mono">{{ formatMoney(w.total_paid) }}</td>
-                            <td class="py-3.5 font-bold font-mono" [ngClass]="w.balance_due > 0 ? 'text-rose-400' : 'text-emerald-400'">
-                                {{ formatMoney(w.balance_due) }}
-                            </td>
-                            <td class="py-3.5">
-                                <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-md border"
-                                      [ngClass]="w.balance_due > 0 ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'">
-                                    {{ w.balance_due > 0 ? 'DUE' : 'SETTLED' }}
-                                </span>
-                            </td>
-                            <td class="py-3.5 text-right pr-2">
-                                <div class="flex items-center justify-end gap-2">
-                                    @if (w.balance_due > 0) {
-                                        <button (click)="payWard(w.student_id, w.student_name)"
-                                                class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer">
-                                            Pay
-                                        </button>
-                                    }
-                                    <button (click)="downloadReceipt(w.student_id)"
-                                            class="px-3 py-1.5 bg-bg-tertiary border border-border-primary hover:bg-bg-secondary text-text-muted hover:text-text-primary font-bold text-xs rounded-xl transition-all cursor-pointer">
-                                        Receipt
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                    @if (ledgerWards().length === 0) {
-                        <tr>
-                            <td colspan="7" class="py-8 text-center text-text-muted">
-                                <i class="fas fa-check-circle text-2xl text-emerald-400 mb-2 block opacity-70"></i>
-                                <p class="text-xs font-bold text-text-primary">All tuition and school fees are settled</p>
-                                <p class="text-[11px] text-text-muted mt-0.5">No pending fee statements or unpaid invoices on file.</p>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
-
-    <!-- TAB 2: Split-Tuition Installment Agreements Tracker -->
-    @if (activeTab() === 'milestones') {
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 mb-6 animate-fade-in">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-base font-black text-text-primary flex items-center gap-2">
-                    <i class="fas fa-calendar-check text-emerald-400"></i> Split-Tuition Installment Milestones
-                </h3>
-                <span class="text-xs font-bold text-text-muted">
-                    {{ installmentPlan()?.is_enabled && installmentPlan()?.milestones?.length ? installmentPlan()?.schedule_text : 'No Schedule Configured' }}
+        <!-- Card 1: Total Invoiced -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-blue-500/40 transition-all flex flex-col justify-between group relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                    <i class="fas fa-file-invoice"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 shadow-2xs">
+                    Academic Term
                 </span>
             </div>
 
-            @if (!installmentPlan()?.is_enabled || !installmentPlan()?.milestones?.length) {
-                <div class="p-8 text-center bg-bg-tertiary/20 border border-border-primary rounded-2xl">
-                    <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-xl mx-auto mb-3">
-                        <i class="fas fa-calendar-times"></i>
-                    </div>
-                    <p class="text-xs font-bold text-text-primary mb-0.5">No Installment Schedule Configured</p>
-                    <p class="text-[11px] text-text-muted max-w-md mx-auto">The school administration has not configured split-tuition installment milestones for this academic term.</p>
+            <div class="mt-4 space-y-1">
+                <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Total Family Invoiced</p>
+                <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight font-mono">
+                    {{ formatMoney(state.familyLedger()?.total_family_billed || 0) }}
+                </p>
+                <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                    <span>Tuition &amp; institutional billings</span>
+                    <span class="font-bold text-blue-600 dark:text-blue-400">{{ ledgerWards().length }} Wards</span>
                 </div>
-            } @else {
-                <div class="space-y-4">
-                    @for (student of state.profile()?.students || []; track student.id) {
-                        @let milestones = getMilestonesForStudent(student.id || '');
-                        <div class="p-4 bg-bg-tertiary/40 border border-border-primary rounded-xl">
-                            <div class="flex items-center justify-between mb-3">
-                                <span class="text-xs font-black text-text-primary">{{ student.first_name }} {{ student.last_name }}</span>
-                                <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Installment Plan Active</span>
-                            </div>
-
-                            @if (milestones.length > 0) {
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    @for (m of milestones; track m.name) {
-                                        <div class="p-3 bg-bg-secondary border border-border-primary rounded-xl"
-                                             [ngClass]="m.status === 'DUE SOON' ? 'border-amber-500/30' : m.status === 'DUE' ? 'border-rose-500/30' : ''">
-                                            <div class="flex items-center justify-between mb-1">
-                                                <span class="text-[10px] font-bold uppercase tracking-wider text-text-muted">{{ m.name }}</span>
-                                                <span class="px-1.5 py-0.2 text-[9px] font-black rounded border" [ngClass]="m.badgeClass">
-                                                    {{ m.status }}
-                                                </span>
-                                            </div>
-                                            <div class="text-sm font-bold text-text-primary">{{ formatMoney(m.amount) }}</div>
-                                            <div class="text-[10px] text-text-muted mt-0.5">{{ m.desc }}</div>
-                                        </div>
-                                    }
-                                </div>
-                            } @else {
-                                <p class="text-xs text-text-muted italic">No active milestones for this ward.</p>
-                            }
-                        </div>
-                    }
-                </div>
-            }
-        </div>
-    }
-
-    <!-- TAB 3: Student Daily Wallets -->
-    @if (activeTab() === 'wallets') {
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5 mb-6 animate-fade-in">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-base font-black text-text-primary flex items-center gap-2">
-                    <i class="fas fa-wallet text-amber-400"></i> Student Daily Wallets & Canteen Funds
-                </h3>
-                <span class="text-xs text-text-muted">Instant micro-funding for campus services</span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                @for (student of state.profile()?.students || []; track student.id) {
-                    @let wallet = state.walletMap()[student.id || ''];
-                    <div class="p-4 bg-bg-tertiary border border-border-primary rounded-xl flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-xs font-bold text-text-primary">{{ student.first_name }} {{ student.last_name }}</span>
-                                <span class="text-[10px] text-text-muted">{{ student.class_name }}</span>
-                            </div>
-                            <div class="text-2xl font-black text-emerald-400 my-2">
-                                {{ formatMoney(wallet?.balance || 0) }}
-                            </div>
-                            <p class="text-[10px] text-text-muted">Available for daily campus lunch, tuck shop, and bus transit.</p>
-                        </div>
-                        <button (click)="openTopUp(student.id || '', student.first_name + ' ' + student.last_name)"
-                                class="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer">
-                            <i class="fas fa-plus text-[10px]"></i> Top-Up Wallet
+
+            <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                <div class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full transition-all duration-1000" style="width: 100%"></div>
+            </div>
+        </div>
+
+        <!-- Card 2: Total Paid Realized -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-emerald-500/40 transition-all flex flex-col justify-between group relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                    <i class="fas fa-vault"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1 shadow-2xs">
+                    <i class="fas fa-check-circle text-[9px]"></i>
+                    <span>Verified</span>
+                </span>
+            </div>
+
+            <div class="mt-4 space-y-1">
+                <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Total Tuition Settled</p>
+                <p class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight font-mono">
+                    {{ formatMoney(state.familyLedger()?.total_family_paid || 0) }}
+                </p>
+                <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                    <span>Completed family payments</span>
+                    <span class="font-bold text-emerald-600 dark:text-emerald-400">Paid MTD</span>
+                </div>
+            </div>
+
+            <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-1000" style="width: 88%"></div>
+            </div>
+        </div>
+
+        <!-- Card 3: Outstanding Family Balance -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-rose-500/40 transition-all flex flex-col justify-between group relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-black border shadow-2xs"
+                      [ngClass]="(state.familyLedger()?.total_family_balance || 0) > 0 ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'">
+                    {{ (state.familyLedger()?.total_family_balance || 0) > 0 ? 'Action Due' : 'All Clear' }}
+                </span>
+            </div>
+
+            <div class="mt-4 space-y-1">
+                <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Outstanding Balance</p>
+                <p class="text-2xl sm:text-3xl font-black tracking-tight font-mono"
+                   [ngClass]="(state.familyLedger()?.total_family_balance || 0) > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'">
+                    {{ formatMoney(state.familyLedger()?.total_family_balance || 0) }}
+                </p>
+                <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                    <span>Due for current term</span>
+                    @if ((state.familyLedger()?.total_family_balance || 0) > 0) {
+                        <button (click)="payFamilyBalance()" class="font-bold text-rose-500 hover:underline cursor-pointer">
+                            Pay via Paystack &rarr;
                         </button>
-                    </div>
-                }
+                    } @else {
+                        <span class="font-bold text-emerald-600 dark:text-emerald-400">All Settled</span>
+                    }
+                </div>
+            </div>
+
+            <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                <div class="bg-gradient-to-r from-rose-500 to-amber-500 h-full rounded-full transition-all duration-1000" style="width: 40%"></div>
             </div>
         </div>
-    }
 
-    <!-- TAB 4: Sibling Discount Matrix Card -->
-    @if (activeTab() === 'siblings') {
-        <div class="mb-6 p-5 bg-blue-500/30 border border-blue-500/30 rounded-2xl animate-fade-in">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg shrink-0">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-black text-text-primary">Automated Sibling Discount Matrix</h3>
-                        <p class="text-xs text-text-muted">Dynamic tiered fee reduction applied across your registered wards.</p>
-                    </div>
+        <!-- Card 4: Daily Canteen Wallets -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-amber-500/40 transition-all flex flex-col justify-between group relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                    <i class="fas fa-wallet"></i>
                 </div>
-                <span class="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 w-fit">
-                    Institutional Policy Active
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 shadow-2xs">
+                    Campus Funds
                 </span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                @for (student of state.profile()?.students || []; track student.id; let idx = $index) {
-                    <div class="p-3.5 bg-bg-tertiary/60 border border-border-primary rounded-xl">
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-xs font-bold text-text-primary">{{ student.first_name }} {{ student.last_name }}</span>
-                            <span class="text-[10px] font-black text-blue-400">Ward #{{ idx + 1 }}</span>
+
+            <div class="mt-4 space-y-1">
+                <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Student Daily Wallets</p>
+                <p class="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400 tracking-tight font-mono">
+                    {{ formatMoney(state.totalWalletBalance()) }}
+                </p>
+                <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                    <span>Canteen &amp; transit allowance</span>
+                    <button (click)="activeTab.set('wallets')" class="font-bold text-amber-600 dark:text-amber-400 hover:underline cursor-pointer">
+                        Top Up &rarr;
+                    </button>
+                </div>
+            </div>
+
+            <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                <div class="bg-gradient-to-r from-amber-500 to-teal-400 h-full rounded-full transition-all duration-1000" style="width: 75%"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── 3. Main Tabs & Detailed Panels Container ────────────────── -->
+    <div class="rounded-3xl bg-bg-secondary border border-border-primary shadow-xs overflow-hidden">
+
+        <!-- Tab Navigation Bar -->
+        <div class="p-4 sm:p-5 border-b border-border-primary bg-bg-tertiary/30">
+            <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar">
+                <button (click)="activeTab.set('ledger')"
+                        [ngClass]="activeTab() === 'ledger' ? 'bg-emerald-600 text-white font-black shadow-sm shadow-emerald-600/25' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
+                        class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                    <i class="fas fa-file-invoice-dollar text-xs"></i>
+                    <span>Wards Fee Ledger</span>
+                    <span class="px-2 py-0.5 text-[9px] font-black rounded-full" [ngClass]="activeTab() === 'ledger' ? 'bg-white/20 text-white' : 'bg-bg-tertiary text-text-muted'">
+                        {{ ledgerWards().length }}
+                    </span>
+                </button>
+                <button (click)="activeTab.set('milestones')"
+                        [ngClass]="activeTab() === 'milestones' ? 'bg-emerald-600 text-white font-black shadow-sm shadow-emerald-600/25' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
+                        class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                    <i class="fas fa-calendar-check text-xs"></i>
+                    <span>Split-Tuition Milestones</span>
+                    @if (installmentPlan()?.is_enabled && installmentPlan()?.milestones?.length) {
+                        <span class="px-2 py-0.5 text-[9px] font-black rounded-full bg-emerald-400 text-slate-900">
+                            Active
+                        </span>
+                    }
+                </button>
+                <button (click)="activeTab.set('wallets')"
+                        [ngClass]="activeTab() === 'wallets' ? 'bg-emerald-600 text-white font-black shadow-sm shadow-emerald-600/25' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
+                        class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                    <i class="fas fa-wallet text-xs"></i>
+                    <span>Daily Wallets &amp; Canteen</span>
+                </button>
+                <button (click)="activeTab.set('siblings')"
+                        [ngClass]="activeTab() === 'siblings' ? 'bg-emerald-600 text-white font-black shadow-sm shadow-emerald-600/25' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
+                        class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                    <i class="fas fa-users text-xs"></i>
+                    <span>Sibling Policy Matrix</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab Body Content -->
+        <div class="p-5 sm:p-7">
+
+            <!-- TAB 1: Wards Fee Ledger Breakdown -->
+            @if (activeTab() === 'ledger') {
+                <div class="animate-fade-in space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                                <i class="fas fa-list text-emerald-500"></i>
+                                <span>Individual Ward Fee Statements</span>
+                            </h3>
+                            <p class="text-xs text-text-muted mt-0.5">Summary of billed tuition, verified receipts, and outstanding invoice balances</p>
                         </div>
-                        <div class="text-[11px] text-text-muted">
-                            @if (idx === 0) {
-                                Standard Base Rate (0% Discount)
-                            } @else if (idx === 1) {
-                                <span class="text-emerald-400 font-bold">10% Sibling Discount Applied</span>
-                            } @else {
-                                <span class="text-emerald-400 font-bold">20% Multi-Sibling Discount Applied</span>
+                        <span class="text-xs font-bold text-text-muted px-3 py-1 rounded-xl bg-bg-tertiary border border-border-primary">
+                            {{ ledgerWards().length }} Ward{{ ledgerWards().length > 1 ? 's' : '' }} Registered
+                        </span>
+                    </div>
+
+                    <div class="border border-border-primary rounded-2xl overflow-hidden bg-bg-secondary">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-bg-tertiary/60 border-b border-border-primary text-xs font-black uppercase tracking-wider text-text-muted">
+                                    <tr>
+                                        <th class="py-3.5 px-4">Scholar</th>
+                                        <th class="py-3.5 px-4">Class</th>
+                                        <th class="py-3.5 px-4">Total Invoiced</th>
+                                        <th class="py-3.5 px-4">Total Paid</th>
+                                        <th class="py-3.5 px-4">Outstanding Balance</th>
+                                        <th class="py-3.5 px-4">Status</th>
+                                        <th class="py-3.5 px-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-border-primary/60">
+                                    @for (w of ledgerWards(); track w.student_id) {
+                                        <tr class="hover:bg-bg-tertiary/30 transition-colors">
+                                            <td class="py-4 px-4 font-black text-text-primary">
+                                                <div class="flex items-center gap-2.5">
+                                                    <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-black shrink-0">
+                                                        {{ w.student_name[0] }}
+                                                    </div>
+                                                    <span>{{ w.student_name }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="py-4 px-4 text-xs text-text-muted">{{ w.class_name }}</td>
+                                            <td class="py-4 px-4 text-text-muted font-mono font-bold">{{ formatMoney(w.total_billed) }}</td>
+                                            <td class="py-4 px-4 text-emerald-600 dark:text-emerald-400 font-mono font-bold">{{ formatMoney(w.total_paid) }}</td>
+                                            <td class="py-4 px-4 font-black font-mono" [ngClass]="w.balance_due > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'">
+                                                {{ formatMoney(w.balance_due) }}
+                                            </td>
+                                            <td class="py-4 px-4">
+                                                <span class="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-full border font-mono"
+                                                      [ngClass]="w.balance_due > 0 ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'">
+                                                    {{ w.balance_due > 0 ? 'DUE' : 'SETTLED' }}
+                                                </span>
+                                            </td>
+                                            <td class="py-4 px-4 text-right">
+                                                <div class="flex items-center justify-end gap-2">
+                                                    @if (w.balance_due > 0) {
+                                                        <button (click)="payWard(w.student_id, w.student_name)"
+                                                                class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer">
+                                                            Pay Fees
+                                                        </button>
+                                                    }
+                                                    <button (click)="downloadReceipt(w.student_id)"
+                                                            class="px-3 py-1.5 bg-bg-tertiary border border-border-primary hover:bg-bg-secondary text-text-muted hover:text-text-primary font-bold text-xs rounded-xl transition-all cursor-pointer">
+                                                        Receipt
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    } @empty {
+                                        <tr>
+                                            <td colspan="7" class="py-12 text-center text-text-muted">
+                                                <i class="fas fa-check-circle text-3xl text-emerald-500 mb-2 block"></i>
+                                                <p class="text-xs font-bold text-text-primary">All tuition and school fees are settled!</p>
+                                                <p class="text-xs text-text-muted mt-0.5">No pending fee statements or unpaid invoices on file.</p>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- TAB 2: Split-Tuition Installment Agreements Tracker -->
+            @if (activeTab() === 'milestones') {
+                <div class="animate-fade-in space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                                <i class="fas fa-calendar-check text-emerald-500"></i>
+                                <span>Split-Tuition Installment Milestones</span>
+                            </h3>
+                            <p class="text-xs text-text-muted mt-0.5">Flexible payment schedules approved by the school bursar</p>
+                        </div>
+                        <span class="text-xs font-bold text-text-muted">
+                            {{ installmentPlan()?.is_enabled && installmentPlan()?.milestones?.length ? installmentPlan()?.schedule_text : 'No Schedule Configured' }}
+                        </span>
+                    </div>
+
+                    @if (!installmentPlan()?.is_enabled || !installmentPlan()?.milestones?.length) {
+                        <div class="p-10 text-center bg-bg-tertiary/20 border border-dashed border-border-primary rounded-3xl">
+                            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center text-xl mx-auto mb-3">
+                                <i class="fas fa-calendar-times"></i>
+                            </div>
+                            <p class="text-xs font-bold text-text-primary mb-1">No Installment Schedule Configured</p>
+                            <p class="text-xs text-text-muted max-w-md mx-auto">The school administration has not configured split-tuition installment milestones for this academic term.</p>
+                        </div>
+                    } @else {
+                        <div class="space-y-4">
+                            @for (student of state.profile()?.students || []; track student.id) {
+                                @let milestones = getMilestonesForStudent(student.id || '');
+                                <div class="p-5 bg-bg-tertiary/40 border border-border-primary rounded-2xl space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-black text-text-primary">{{ student.first_name }} {{ student.last_name }}</span>
+                                        <span class="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                                            Installment Plan Active
+                                        </span>
+                                    </div>
+
+                                    @if (milestones.length > 0) {
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                            @for (m of milestones; track m.name) {
+                                                <div class="p-4 bg-bg-secondary border border-border-primary rounded-xl"
+                                                     [ngClass]="m.status === 'DUE SOON' ? 'border-amber-500/40' : m.status === 'DUE' ? 'border-rose-500/40' : ''">
+                                                    <div class="flex items-center justify-between mb-1.5">
+                                                        <span class="text-[10px] font-black uppercase tracking-wider text-text-muted">{{ m.name }}</span>
+                                                        <span class="px-2 py-0.5 text-[9px] font-black rounded-md border font-mono" [ngClass]="m.badgeClass">
+                                                            {{ m.status }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="text-base font-black text-text-primary font-mono">{{ formatMoney(m.amount) }}</div>
+                                                    <div class="text-[11px] text-text-muted mt-1">{{ m.desc }}</div>
+                                                </div>
+                                            }
+                                        </div>
+                                    } @else {
+                                        <p class="text-xs text-text-muted italic">No active milestones for this ward.</p>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- TAB 3: Student Daily Wallets -->
+            @if (activeTab() === 'wallets') {
+                <div class="animate-fade-in space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                                <i class="fas fa-wallet text-amber-500"></i>
+                                <span>Student Daily Wallets &amp; Canteen Funds</span>
+                            </h3>
+                            <p class="text-xs text-text-muted mt-0.5">Instant micro-funding for cafeteria lunches, tuck shop snacks, and bus transit</p>
+                        </div>
+                        <span class="text-xs font-bold text-text-muted">Instant Mobile Money Top-Up</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        @for (student of state.profile()?.students || []; track student.id) {
+                            @let wallet = state.walletMap()[student.id || ''];
+                            <div class="p-5 bg-bg-tertiary/40 border border-border-primary rounded-2xl flex flex-col justify-between hover:border-amber-500/40 transition-all">
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs font-black">
+                                                {{ student.first_name[0] }}
+                                            </div>
+                                            <span class="text-xs font-black text-text-primary">{{ student.first_name }} {{ student.last_name }}</span>
+                                        </div>
+                                        <span class="text-[10px] text-text-muted font-mono uppercase">{{ student.class_name }}</span>
+                                    </div>
+                                    <div class="text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono my-3">
+                                        {{ formatMoney(wallet?.balance || 0) }}
+                                    </div>
+                                    <p class="text-xs text-text-muted">Available for daily campus lunch, snack kiosks, and bus transit fees.</p>
+                                </div>
+                                <button (click)="openTopUp(student.id || '', student.first_name + ' ' + student.last_name)"
+                                        class="mt-4 w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-95">
+                                    <i class="fas fa-plus text-xs"></i>
+                                    <span>Top-Up Wallet</span>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- TAB 4: Sibling Discount Matrix Card -->
+            @if (activeTab() === 'siblings') {
+                <div class="animate-fade-in space-y-4">
+                    <div class="p-6 bg-gradient-to-r from-blue-600/15 via-indigo-600/10 to-blue-600/15 border border-blue-500/30 rounded-3xl space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl shrink-0">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-black text-text-primary">Automated Sibling Discount Matrix</h3>
+                                    <p class="text-xs text-text-muted">Dynamic tiered tuition reduction automatically deducted across multiple registered wards.</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 w-fit">
+                                Policy Active
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                            @for (student of state.profile()?.students || []; track student.id; let idx = $index) {
+                                <div class="p-4 bg-bg-secondary border border-border-primary rounded-2xl space-y-1">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-black text-text-primary">{{ student.first_name }} {{ student.last_name }}</span>
+                                        <span class="text-[10px] font-black text-blue-600 dark:text-blue-400 font-mono">Ward #{{ idx + 1 }}</span>
+                                    </div>
+                                    <div class="text-xs text-text-muted pt-1">
+                                        @if (idx === 0) {
+                                            Standard Base Rate (0% Discount)
+                                        } @else if (idx === 1) {
+                                            <span class="text-emerald-600 dark:text-emerald-400 font-bold">10% Sibling Discount Applied</span>
+                                        } @else {
+                                            <span class="text-emerald-600 dark:text-emerald-400 font-bold">20% Multi-Sibling Discount Applied</span>
+                                        }
+                                    </div>
+                                </div>
                             }
                         </div>
                     </div>
-                }
-            </div>
+                </div>
+            }
+
         </div>
-    }
+    </div>
 
 </div>
 
 <!-- Top-Up Modal -->
 @if (showTopUpModal()) {
     <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in" (click)="showTopUpModal.set(false)">
-        <div class="w-full max-w-md bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 animate-slide-up sm:animate-fade-in max-h-[90vh] sm:max-h-[85vh] overflow-y-auto" (click)="$event.stopPropagation()">
-            <!-- Mobile Handle -->
-            <div class="sm:hidden flex justify-center pb-1">
-                <div class="bottomsheet-handle"></div>
-            </div>
+        <div class="w-full max-w-md bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 animate-slide-up sm:animate-fade-in max-h-[90vh] sm:max-h-[85vh] overflow-y-auto" (click)="$event.stopPropagation()">
             <div class="flex items-center justify-between">
                 <h3 class="text-base sm:text-lg font-black text-text-primary">Top-Up {{ topUpName() }}'s Wallet</h3>
                 <button (click)="showTopUpModal.set(false)" class="p-1 text-text-muted hover:text-text-primary cursor-pointer">
@@ -311,24 +480,24 @@
             </div>
 
             <!-- Paystack Payment Badge -->
-            <div class="p-3 bg-emerald-500/10 border border-emerald-500/25 rounded-xl flex items-center gap-3">
-                <div class="w-9 h-9 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
-                    <i class="fas fa-shield-alt text-sm"></i>
+            <div class="p-3.5 bg-emerald-500/10 border border-emerald-500/25 rounded-2xl flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                    <i class="fas fa-shield-alt text-base"></i>
                 </div>
                 <div>
-                    <span class="text-xs font-black text-emerald-300 block">Instant Paystack Online Top-Up</span>
+                    <span class="text-xs font-black text-emerald-700 dark:text-emerald-300 block">Instant Paystack Online Top-Up</span>
                     <span class="text-[10px] text-text-muted">Pay securely with MTN MoMo, Telecel Cash, or Visa/Mastercard</span>
                 </div>
             </div>
 
             <!-- Quick Amounts -->
             <div>
-                <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-2">Select Amount</label>
+                <label class="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2">Select Quick Amount</label>
                 <div class="grid grid-cols-5 gap-1.5 sm:gap-2">
                     @for (amt of quickAmounts; track amt) {
                         <button (click)="topUpAmount.set(amt)"
-                                [ngClass]="topUpAmount() === amt ? 'bg-blue-600 text-white font-black' : 'bg-bg-tertiary border border-border-primary text-text-muted hover:text-text-primary'"
-                                class="py-2 rounded-xl text-xs font-bold transition-all cursor-pointer">
+                                [ngClass]="topUpAmount() === amt ? 'bg-blue-600 text-white font-black shadow-xs' : 'bg-bg-tertiary border border-border-primary text-text-muted hover:text-text-primary'"
+                                class="py-2 rounded-xl text-xs font-bold transition-all cursor-pointer font-mono">
                             {{ amt }}
                         </button>
                     }
@@ -337,19 +506,19 @@
 
             <!-- Custom Amount Input -->
             <div>
-                <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-1">Custom Amount (GH₵)</label>
+                <label class="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-1">Custom Amount (GH₵)</label>
                 <input type="number" [(ngModel)]="topUpAmount"
-                       class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-text-primary font-bold text-sm focus:outline-none focus:border-blue-500" />
+                       class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-text-primary font-bold text-sm font-mono focus:outline-none focus:border-blue-500" />
             </div>
 
             <!-- Actions -->
             <div class="flex flex-col-reverse sm:flex-row gap-2 pt-2">
                 <button (click)="showTopUpModal.set(false)"
-                        class="w-full sm:flex-1 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-xs font-bold text-text-muted hover:text-text-primary transition-all cursor-pointer">
+                        class="w-full sm:flex-1 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs font-bold text-text-muted hover:text-text-primary transition-all cursor-pointer">
                     Cancel
                 </button>
                 <button (click)="submitTopUp()" [disabled]="submitting()"
-                        class="w-full sm:flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
+                        class="w-full sm:flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-emerald-600/25 disabled:opacity-50">
                     @if (submitting()) {
                         <i class="fas fa-spinner fa-spin text-xs"></i>
                         <span>Processing...</span>
@@ -366,17 +535,13 @@
 <!-- Fee Payment & Part-Payment Modal -->
 @if (showFeeModal()) {
     <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in" (click)="showFeeModal.set(false)">
-        <div class="w-full max-w-lg bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 sm:space-y-5 animate-slide-up sm:animate-fade-in max-h-[92vh] sm:max-h-[85vh] overflow-y-auto" (click)="$event.stopPropagation()">
-            <!-- Mobile Handle -->
-            <div class="sm:hidden flex justify-center pb-1">
-                <div class="bottomsheet-handle"></div>
-            </div>
+        <div class="w-full max-w-lg bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 sm:space-y-5 animate-slide-up sm:animate-fade-in max-h-[92vh] sm:max-h-[85vh] overflow-y-auto" (click)="$event.stopPropagation()">
             <!-- Modal Header -->
             <div class="flex items-center justify-between border-b border-border-primary/50 pb-3">
                 <div>
                     <h3 class="text-base sm:text-lg font-black text-text-primary flex items-center gap-2">
-                        <i class="fas fa-file-invoice-dollar text-emerald-400"></i>
-                        Pay School Fees
+                        <i class="fas fa-file-invoice-dollar text-emerald-500"></i>
+                        <span>Pay School Fees</span>
                     </h3>
                     <p class="text-xs text-text-muted mt-0.5">Recording payment for <strong class="text-text-primary">{{ paymentWardName() }}</strong></p>
                 </div>
@@ -386,25 +551,25 @@
             </div>
 
             <!-- Outstanding Balance Banner -->
-            <div class="p-3.5 sm:p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center justify-between">
+            <div class="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center justify-between">
                 <div>
                     <span class="text-[10px] font-black uppercase tracking-widest text-rose-400 block mb-0.5">Total Outstanding</span>
-                    <span class="text-lg sm:text-xl font-black text-rose-400 font-mono">GH₵{{ paymentTotalDue().toFixed(2) }}</span>
+                    <span class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 font-mono">GH₵{{ paymentTotalDue().toFixed(2) }}</span>
                 </div>
-                <span class="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30 uppercase tracking-wider">
+                <span class="px-2.5 py-1 text-[10px] font-black rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/30 uppercase tracking-wider">
                     Unpaid Balance
                 </span>
             </div>
 
             <!-- Payment Type Selection (Full vs Part Payment) -->
             <div>
-                <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-2">Payment Option</label>
+                <label class="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2">Payment Option</label>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                     <button type="button" (click)="paymentType.set('full')"
-                            [ngClass]="paymentType() === 'full' ? 'bg-emerald-600/15 border-emerald-500 text-emerald-300 font-black shadow-sm' : 'bg-bg-tertiary border-border-primary text-text-muted hover:text-text-primary'"
-                            class="p-3 rounded-xl border text-xs font-bold flex flex-col items-start gap-1 transition-all cursor-pointer">
+                            [ngClass]="paymentType() === 'full' ? 'bg-emerald-600/15 border-emerald-500 text-emerald-700 dark:text-emerald-300 font-black shadow-xs' : 'bg-bg-tertiary border-border-primary text-text-muted hover:text-text-primary'"
+                            class="p-3.5 rounded-2xl border text-xs font-bold flex flex-col items-start gap-1 transition-all cursor-pointer">
                         <div class="flex items-center gap-1.5 w-full justify-between">
-                            <span class="flex items-center gap-1.5"><i class="fas fa-check-double text-emerald-400"></i> Full Balance</span>
+                            <span class="flex items-center gap-1.5"><i class="fas fa-check-double text-emerald-500"></i> Full Balance</span>
                             <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center" [ngClass]="paymentType() === 'full' ? 'border-emerald-500 bg-emerald-500' : 'border-border-primary'">
                                 @if (paymentType() === 'full') { <span class="w-1.5 h-1.5 rounded-full bg-white"></span> }
                             </span>
@@ -414,10 +579,10 @@
                     </button>
 
                     <button type="button" (click)="paymentType.set('partial')"
-                            [ngClass]="paymentType() === 'partial' ? 'bg-blue-600/15 border-blue-500 text-blue-300 font-black shadow-sm' : 'bg-bg-tertiary border-border-primary text-text-muted hover:text-text-primary'"
-                            class="p-3 rounded-xl border text-xs font-bold flex flex-col items-start gap-1 transition-all cursor-pointer">
+                            [ngClass]="paymentType() === 'partial' ? 'bg-blue-600/15 border-blue-500 text-blue-700 dark:text-blue-300 font-black shadow-xs' : 'bg-bg-tertiary border-border-primary text-text-muted hover:text-text-primary'"
+                            class="p-3.5 rounded-2xl border text-xs font-bold flex flex-col items-start gap-1 transition-all cursor-pointer">
                         <div class="flex items-center gap-1.5 w-full justify-between">
-                            <span class="flex items-center gap-1.5"><i class="fas fa-pie-chart text-blue-400"></i> Part Payment</span>
+                            <span class="flex items-center gap-1.5"><i class="fas fa-pie-chart text-blue-500"></i> Part Payment</span>
                             <span class="w-3.5 h-3.5 rounded-full border flex items-center justify-center" [ngClass]="paymentType() === 'partial' ? 'border-blue-500 bg-blue-500' : 'border-border-primary'">
                                 @if (paymentType() === 'partial') { <span class="w-1.5 h-1.5 rounded-full bg-white"></span> }
                             </span>
@@ -430,15 +595,15 @@
 
             <!-- If Part Payment: Quick Amounts & Custom Amount Input -->
             @if (paymentType() === 'partial') {
-                <div class="p-3.5 sm:p-4 bg-bg-tertiary/60 border border-border-primary rounded-xl space-y-3 animate-fade-in">
+                <div class="p-4 bg-bg-tertiary/60 border border-border-primary rounded-2xl space-y-3 animate-fade-in">
                     <div>
-                        <label class="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-1.5">Quick Select Part Amount</label>
+                        <label class="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-1.5">Quick Select Part Amount</label>
                         <div class="flex flex-wrap gap-1.5 sm:gap-2">
                             @for (amt of quickPartAmounts; track amt) {
                                 @if (amt < paymentTotalDue()) {
                                     <button type="button" (click)="customPaymentAmount.set(amt)"
                                             [ngClass]="customPaymentAmount() === amt ? 'bg-blue-600 text-white font-black' : 'bg-bg-secondary border border-border-primary text-text-muted hover:text-text-primary'"
-                                            class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer">
+                                            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer font-mono">
                                         GH₵{{ amt }}
                                     </button>
                                 }
@@ -447,7 +612,7 @@
                     </div>
 
                     <div>
-                        <label class="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-1">Enter Part Payment Amount (GH₵)</label>
+                        <label class="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-1">Enter Part Payment Amount (GH₵)</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-3 flex items-center text-text-muted text-xs font-bold font-mono pointer-events-none">GH₵</span>
                             <input type="number" [(ngModel)]="customPaymentAmount" [max]="paymentTotalDue()" min="1" step="10"
@@ -455,7 +620,7 @@
                         </div>
                         @if (customPaymentAmount() > 0 && customPaymentAmount() < paymentTotalDue()) {
                             <p class="text-[11px] text-text-muted mt-1.5">
-                                Remaining balance after this payment: <strong class="text-amber-400 font-mono">GH₵{{ (paymentTotalDue() - customPaymentAmount()).toFixed(2) }}</strong>
+                                Remaining balance after this payment: <strong class="text-amber-500 font-mono">GH₵{{ (paymentTotalDue() - customPaymentAmount()).toFixed(2) }}</strong>
                             </p>
                         }
                     </div>
@@ -463,12 +628,12 @@
             }
 
             <!-- Paystack Payment Badge -->
-            <div class="p-3 bg-emerald-500/10 border border-emerald-500/25 rounded-xl flex items-center gap-3">
-                <div class="w-9 h-9 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
-                    <i class="fas fa-lock text-sm"></i>
+            <div class="p-3.5 bg-emerald-500/10 border border-emerald-500/25 rounded-2xl flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                    <i class="fas fa-lock text-base"></i>
                 </div>
                 <div>
-                    <span class="text-xs font-black text-emerald-300 block">Instant Paystack Online Payment</span>
+                    <span class="text-xs font-black text-emerald-700 dark:text-emerald-300 block">Instant Paystack Online Payment</span>
                     <span class="text-[10px] text-text-muted">Instant ledger clearance with MTN MoMo, Telecel Cash, or Visa/Mastercard</span>
                 </div>
             </div>
@@ -476,11 +641,11 @@
             <!-- Actions -->
             <div class="flex flex-col-reverse sm:flex-row gap-2 pt-2 border-t border-border-primary/50">
                 <button (click)="showFeeModal.set(false)"
-                        class="w-full sm:flex-1 py-3 bg-bg-tertiary border border-border-primary rounded-xl text-xs font-bold text-text-muted hover:text-text-primary transition-all cursor-pointer">
+                        class="w-full sm:flex-1 py-3 bg-bg-tertiary border border-border-primary rounded-2xl text-xs font-bold text-text-muted hover:text-text-primary transition-all cursor-pointer">
                     Cancel
                 </button>
                 <button (click)="submitFeePayment()" [disabled]="processingFeePayment()"
-                        class="w-full sm:flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-600/30 disabled:opacity-50">
+                        class="w-full sm:flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-600/30 disabled:opacity-50 active:scale-95">
                     @if (processingFeePayment()) {
                         <i class="fas fa-spinner fa-spin text-xs"></i>
                         <span>Processing Payment...</span>

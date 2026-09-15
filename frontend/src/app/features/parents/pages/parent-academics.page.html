@@ -1,13 +1,55 @@
-<div class="max-w-[1400px] mx-auto p-4 md:p-8 animate-fade-in pb-24">
-    <div class="mb-7">
-        <h1 class="text-3xl font-black text-blue-400 mb-1">Academics</h1>
-        <p class="text-text-muted text-sm">Grades, competency evaluations, verifiable transcripts, and academic trajectory for each ward.</p>
+<div class="max-w-[1600px] w-full mx-auto animate-fade-in pb-16 px-4 sm:px-6 md:px-8 space-y-6 sm:space-y-8 relative overflow-hidden">
+
+    <!-- ── 0. AMBIENT BACKDROP LIGHTING ────────────────────────────── -->
+    <div class="absolute -top-10 left-1/4 w-96 h-96 max-w-full bg-blue-500/10 dark:bg-blue-600/15 rounded-full blur-3xl pointer-events-none -z-10"></div>
+    <div class="absolute top-72 right-10 w-96 h-96 max-w-full bg-indigo-500/10 dark:bg-purple-600/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+
+    <!-- ── 1. Page Header (Academic Hub) ───────────────────────────── -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2">
+        <div class="min-w-0">
+            <div class="flex items-center gap-2 text-xs font-bold text-text-muted mb-1.5 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                    Curriculum &amp; Assessment Hub
+                </span>
+                <span class="text-text-muted/40">/</span>
+                <span class="text-text-muted">Parent Portal</span>
+                <span class="text-text-muted/40">/</span>
+                <span class="text-text-primary font-black">Academic Records</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                <span>Academic</span>
+                <span class="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600 dark:from-blue-400 dark:via-indigo-400 dark:to-emerald-400 bg-clip-text text-transparent">
+                    Performance &amp; Grades
+                </span>
+            </h1>
+            <p class="text-xs sm:text-sm font-medium text-text-muted mt-1 max-w-3xl">
+                Continuous assessment marks, CBE competency evaluations, verifiable official transcripts, and counselor remarks.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-wrap">
+            <a routerLink="/parents"
+               class="px-3.5 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shadow-xs cursor-pointer active:scale-95">
+                <i class="fas fa-arrow-left text-xs text-blue-500"></i>
+                <span>Overview</span>
+            </a>
+
+            @if (selectedStudent(); as s) {
+                <button (click)="downloadTranscript(s.id || '', s.first_name + ' ' + s.last_name)"
+                        [disabled]="isDownloading()[s.id || '']"
+                        class="px-4.5 py-2.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black shadow-md shadow-blue-500/25 active:scale-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50">
+                    <i class="fas text-xs" [ngClass]="isDownloading()[s.id || ''] ? 'fa-spinner fa-spin' : 'fa-file-pdf'"></i>
+                    <span>Official Transcript</span>
+                </button>
+            }
+        </div>
     </div>
 
     @if (state.loading()) {
-        <div class="flex items-center gap-3 text-text-muted py-12">
-            <div class="w-6 h-6 border-2 border-slate-300 border-t-slate-500 rounded-full animate-spin"></div>
-            <span class="font-bold">Loading academic data...</span>
+        <div class="flex flex-col items-center justify-center py-20 text-text-muted gap-3">
+            <div class="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-xs font-bold">Synchronizing academic records...</span>
         </div>
     } @else if (selectedStudent(); as student) {
         @let grades = state.gradesMap()[student.id || ''] || [];
@@ -18,220 +60,309 @@
         @let pendingHw = hw.filter(h => h.due_date >= today());
         @let hash = getTranscriptHash(student.id);
 
-        <!-- Ward Switcher (if multiple students) -->
+        <!-- ── Ward Selector Pills (if multiple scholars) ───────────── -->
         @if ((state.profile()?.students || []).length > 1) {
-            <div class="flex items-center gap-2 mb-5 overflow-x-auto pb-1">
-                <span class="text-xs font-bold text-text-muted uppercase tracking-wider mr-1">Select Ward:</span>
+            <div class="flex items-center gap-2 overflow-x-auto pb-1">
+                <span class="text-xs font-bold text-text-muted uppercase tracking-wider mr-1 shrink-0">Select Ward:</span>
                 @for (s of state.profile()?.students || []; track s.id) {
                     <button (click)="selectedStudentId.set(s.id || '')"
-                            [ngClass]="selectedStudent()?.id === s.id ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20' : 'bg-bg-secondary text-text-muted hover:text-text-primary border border-border-primary'"
-                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
-                        <span class="w-2 h-2 rounded-full" [ngClass]="selectedStudent()?.id === s.id ? 'bg-white' : 'bg-blue-400'"></span>
+                            [ngClass]="selectedStudent()?.id === s.id ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20 border-blue-600' : 'bg-bg-secondary text-text-muted hover:text-text-primary border-border-primary hover:bg-bg-tertiary'"
+                            class="px-4 py-2 rounded-2xl text-xs font-bold border transition-all flex items-center gap-2.5 cursor-pointer shrink-0">
+                        <div class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black"
+                             [ngClass]="selectedStudent()?.id === s.id ? 'bg-white text-blue-600' : 'bg-blue-500/20 text-blue-400'">
+                            {{ s.first_name[0] }}
+                        </div>
                         <span>{{ s.first_name }} {{ s.last_name }}</span>
-                        <span class="text-[10px] opacity-70">({{ s.class?.name || s.class_name || (s.level ? 'Grade ' + s.level : 'Class') }})</span>
+                        <span class="text-[10px] opacity-75 font-mono">({{ s.class_name || (s.level ? 'Grade ' + s.level : 'Class') }})</span>
                     </button>
                 }
             </div>
         }
 
-        <div class="border border-border-primary rounded-2xl overflow-hidden mb-8 bg-bg-secondary/40 backdrop-blur-sm">
-            <!-- Student Header & Quick Metrics -->
-            <div class="px-5 py-4 bg-blue-500/10 border-b border-border-primary flex items-center justify-between flex-wrap gap-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-black text-lg">{{ student.first_name[0] }}</div>
-                    <div>
-                        <h2 class="font-black text-text-primary text-lg">{{ student.first_name }} {{ student.last_name }}</h2>
-                        <p class="text-xs font-bold text-blue-400">{{ studentClassName() }}</p>
+        <!-- ── Top 4 Metric KPI Cards for Selected Ward ────────────── -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+
+            <!-- Card 1: Ward Academic Index / Average -->
+            <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-blue-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
+                <div class="flex items-center justify-between">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black border shadow-2xs"
+                          [ngClass]="gpa >= 80 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : gpa >= 65 ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30' : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'">
+                        {{ gpa >= 80 ? 'Distinction' : gpa >= 65 ? 'Proficient' : 'Developing' }}
+                    </span>
+                </div>
+                <div class="mt-4 space-y-1">
+                    <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Cumulative Grade Average</p>
+                    <div class="flex items-baseline gap-2">
+                        <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight font-mono">
+                            {{ gpa | number:'1.1-1' }}
+                        </p>
+                        <span class="text-xs font-bold text-text-muted">/ 100</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                        <span>{{ student.first_name }}'s Academic Index</span>
+                        <span class="font-bold text-blue-600 dark:text-blue-400">Class: {{ studentClassName() }}</span>
                     </div>
                 </div>
-                <div class="flex items-center gap-4">
-                    <div class="text-center">
-                        <div class="text-xl font-black" [ngClass]="gpa >= 80 ? 'text-emerald-400' : gpa >= 65 ? 'text-amber-400' : 'text-rose-400'">{{ gpa | number:'1.1-1' }}</div>
-                        <div class="text-[9px] text-text-muted uppercase tracking-wider">Avg Score</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-xl font-black text-blue-400">{{ grades.length }}</div>
-                        <div class="text-[9px] text-text-muted uppercase tracking-wider">Assessments</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-xl font-black text-amber-400">{{ pendingHw.length }}</div>
-                        <div class="text-[9px] text-text-muted uppercase tracking-wider">Pending HW</div>
-                    </div>
+                <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                    <div class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full transition-all duration-1000" [style.width.%]="gpa > 0 ? gpa : 15"></div>
                 </div>
             </div>
 
-            <!-- Tab Navigation Bar -->
-            <div class="px-5 pt-4 border-b border-border-primary bg-bg-tertiary/20">
-                <div class="flex items-center gap-2 overflow-x-auto pb-3">
+            <!-- Card 2: Assessments Evaluated -->
+            <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-emerald-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
+                <div class="flex items-center justify-between">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                        <i class="fas fa-file-signature"></i>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shadow-2xs">
+                        Assessment Ledger
+                    </span>
+                </div>
+                <div class="mt-4 space-y-1">
+                    <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Total Evaluated Marks</p>
+                    <div class="flex items-baseline gap-2">
+                        <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight font-mono">
+                            {{ grades.length }}
+                        </p>
+                        <span class="text-xs font-bold text-text-muted">Recorded</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                        <span>Across active curriculum subjects</span>
+                        <span class="font-bold text-emerald-600 dark:text-emerald-400">Graded</span>
+                    </div>
+                </div>
+                <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                    <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-1000" style="width: 90%"></div>
+                </div>
+            </div>
+
+            <!-- Card 3: Enrolled Class Subjects -->
+            <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-purple-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
+                <div class="flex items-center justify-between">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                        <i class="fas fa-book-bookmark"></i>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 shadow-2xs">
+                        Curriculum
+                    </span>
+                </div>
+                <div class="mt-4 space-y-1">
+                    <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Enrolled Subjects</p>
+                    <div class="flex items-baseline gap-2">
+                        <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight font-mono">
+                            {{ classSubjects().length || objectKeys(bySubj).length || 0 }}
+                        </p>
+                        <span class="text-xs font-bold text-text-muted">Courses</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                        <span>Core &amp; Elective Streams</span>
+                        <span class="font-bold text-purple-600 dark:text-purple-400">Active</span>
+                    </div>
+                </div>
+                <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                    <div class="bg-gradient-to-r from-purple-500 to-indigo-500 h-full rounded-full transition-all duration-1000" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <!-- Card 4: Pending Homework & Tasks -->
+            <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-amber-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
+                <div class="flex items-center justify-between">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black border shadow-2xs"
+                          [ngClass]="pendingHw.length > 0 ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'">
+                        {{ pendingHw.length > 0 ? 'Action Required' : 'All Clear' }}
+                    </span>
+                </div>
+                <div class="mt-4 space-y-1">
+                    <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Pending Homework</p>
+                    <div class="flex items-baseline gap-2">
+                        <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight font-mono">
+                            {{ pendingHw.length }}
+                        </p>
+                        <span class="text-xs font-bold text-text-muted">Assignments</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                        <span>Due this week</span>
+                        <a routerLink="/parents/homework" class="font-bold text-amber-600 dark:text-amber-400 hover:underline">
+                            View &rarr;
+                        </a>
+                    </div>
+                </div>
+                <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                    <div class="bg-gradient-to-r from-amber-500 to-rose-400 h-full rounded-full transition-all duration-1000" [style.width.%]="pendingHw.length > 0 ? 65 : 100"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── Main Tabs & Detailed Panels Container ───────────────── -->
+        <div class="rounded-3xl bg-bg-secondary border border-border-primary shadow-xs overflow-hidden">
+
+            <!-- Tab Pills Header Bar -->
+            <div class="p-4 sm:p-5 border-b border-border-primary bg-bg-tertiary/30">
+                <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar">
                     <button (click)="activeTab.set('subjects')"
-                            [ngClass]="activeTab() === 'subjects' ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
-                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
-                        <i class="fas fa-chart-bar"></i>
-                        <span>Subjects & Grades</span>
+                            [ngClass]="activeTab() === 'subjects' ? 'bg-blue-600 text-white font-black shadow-sm shadow-blue-600/25' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
+                            class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-chart-bar text-xs"></i>
+                        <span>Subjects &amp; Grade Marks</span>
                     </button>
                     <button (click)="activeTab.set('competencies')"
-                            [ngClass]="activeTab() === 'competencies' ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
-                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
-                        <i class="fas fa-layer-group"></i>
-                        <span>Competencies (CBE)</span>
+                            [ngClass]="activeTab() === 'competencies' ? 'bg-blue-600 text-white font-black shadow-sm shadow-blue-600/25' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
+                            class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-layer-group text-xs"></i>
+                        <span>Competencies (CBE / NaCCA)</span>
                     </button>
                     <button (click)="activeTab.set('homework')"
-                            [ngClass]="activeTab() === 'homework' ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
-                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
-                        <i class="fas fa-tasks"></i>
-                        <span>Homework & Tasks</span>
+                            [ngClass]="activeTab() === 'homework' ? 'bg-blue-600 text-white font-black shadow-sm shadow-blue-600/25' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
+                            class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-tasks text-xs"></i>
+                        <span>Homework Tasks</span>
                         @if (pendingHw.length > 0) {
-                            <span class="px-1.5 py-0.2 text-[9px] rounded-full bg-amber-400/20 text-amber-300">
+                            <span class="px-2 py-0.5 text-[9px] font-black rounded-full bg-amber-400 text-slate-900">
                                 {{ pendingHw.length }}
                             </span>
                         }
                     </button>
                     <button (click)="activeTab.set('transcript')"
-                            [ngClass]="activeTab() === 'transcript' ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
-                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
-                        <i class="fas fa-file-certificate"></i>
+                            [ngClass]="activeTab() === 'transcript' ? 'bg-blue-600 text-white font-black shadow-sm shadow-blue-600/25' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
+                            class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-file-certificate text-xs"></i>
                         <span>Official Transcript</span>
                     </button>
                     <button (click)="activeTab.set('insights')"
-                            [ngClass]="activeTab() === 'insights' ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
-                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
-                        <i class="fas fa-sparkles"></i>
-                        <span>Remarks & AI Insights</span>
+                            [ngClass]="activeTab() === 'insights' ? 'bg-blue-600 text-white font-black shadow-sm shadow-blue-600/25' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
+                            class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-sparkles text-xs"></i>
+                        <span>Counselor Remarks</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Tab Content -->
-            <div class="p-5">
+            <!-- Tab Content Body -->
+            <div class="p-5 sm:p-7">
 
                 <!-- TAB 1: Subjects & Grades -->
                 @if (activeTab() === 'subjects') {
-                    <div class="animate-fade-in space-y-4">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+                    <div class="animate-fade-in space-y-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                             <div>
-                                <h3 class="text-sm font-black text-text-primary flex items-center gap-2">
-                                    <i class="fas fa-book-open text-blue-400"></i> Class Subjects & Performance
+                                <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                                    <i class="fas fa-book-open text-blue-500"></i>
+                                    <span>Class Curriculum &amp; Continuous Assessment</span>
                                 </h3>
-                                <p class="text-[11px] text-text-muted mt-0.5">
-                                    Enrolled curriculum subjects for <span class="font-black text-emerald-400">{{ studentClassName() }}</span>
+                                <p class="text-xs text-text-muted mt-0.5">
+                                    Continuous assessment breakdown for <strong class="text-blue-600 dark:text-blue-400">{{ student.first_name }}</strong> &bull; Class: <strong class="text-text-primary">{{ studentClassName() }}</strong>
                                 </p>
                             </div>
-                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider px-2.5 py-1 rounded-lg bg-bg-tertiary border border-border-primary self-start sm:self-auto">
-                                {{ classSubjects().length > 0 ? classSubjects().length + ' Class Subjects' : (objectKeys(bySubj).length > 0 ? objectKeys(bySubj).length + ' Subjects Graded' : 'No Subjects') }}
+                            <span class="text-xs font-bold text-text-muted px-3 py-1.5 rounded-xl bg-bg-tertiary border border-border-primary self-start sm:self-auto">
+                                {{ classSubjects().length > 0 ? classSubjects().length + ' Enrolled Subjects' : (objectKeys(bySubj).length > 0 ? objectKeys(bySubj).length + ' Subjects Graded' : 'No Subjects Assigned') }}
                             </span>
                         </div>
 
                         @if (classSubjects().length > 0) {
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 @for (sub of classSubjects(); track (sub.id || sub.name)) {
                                     @let sg = getGradesForSubject(sub.name, sub.id, bySubj);
                                     @if (sg.length > 0) {
                                         @let avg = subjectAvg(sg);
-                                        <div class="p-4 bg-bg-tertiary border border-border-primary rounded-2xl hover:border-blue-500/40 transition-all">
-                                            <div class="flex items-center justify-between mb-2">
-                                                <div class="flex items-center gap-2">
-                                                    <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-black">{{ sub.name[0] }}</div>
-                                                    <div class="flex flex-col min-w-0">
-                                                        <span class="text-xs font-bold text-text-primary truncate" [title]="sub.name">{{ sub.name }}</span>
-                                                        <span class="text-[9px] text-text-muted font-mono uppercase">{{ sub.code || 'Core' }}</span>
+                                        <div class="p-5 bg-bg-tertiary/40 border border-border-primary/80 rounded-2xl hover:border-blue-500/40 hover:bg-bg-tertiary/70 transition-all flex flex-col justify-between">
+                                            <div>
+                                                <div class="flex items-center justify-between mb-3">
+                                                    <div class="flex items-center gap-2.5 min-w-0">
+                                                        <div class="w-9 h-9 rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-black shrink-0">
+                                                            {{ sub.name[0] }}
+                                                        </div>
+                                                        <div class="min-w-0">
+                                                            <span class="text-xs font-bold text-text-primary truncate block" [title]="sub.name">{{ sub.name }}</span>
+                                                            <span class="text-[10px] text-text-muted font-mono uppercase">{{ sub.code || 'Core' }}</span>
+                                                        </div>
                                                     </div>
+                                                    <span class="px-2.5 py-1 text-[10px] font-black rounded-lg border font-mono" [ngClass]="gradeLetterClass(avg)">
+                                                        {{ gradeLetter(avg) }} &bull; {{ avg | number:'1.0-0' }}%
+                                                    </span>
                                                 </div>
-                                                <span class="px-2 py-0.5 text-[10px] font-black rounded-md border" [ngClass]="gradeLetterClass(avg)">
-                                                    {{ gradeLetter(avg) }} · {{ avg | number:'1.0-0' }}%
-                                                </span>
+
+                                                <div class="h-1.5 bg-bg-secondary rounded-full overflow-hidden my-3">
+                                                    <div class="h-full rounded-full transition-all duration-700" [style.width.%]="avg"
+                                                         [ngClass]="avg >= 80 ? 'bg-emerald-500' : avg >= 65 ? 'bg-blue-500' : 'bg-amber-500'"></div>
+                                                </div>
                                             </div>
-                                            <div class="h-1.5 bg-bg-secondary rounded-full overflow-hidden">
-                                                <div class="h-full rounded-full" [style.width.%]="avg"
-                                                     [ngClass]="avg >= 80 ? 'bg-emerald-400' : avg >= 65 ? 'bg-amber-400' : 'bg-rose-400'"></div>
-                                            </div>
-                                            <div class="mt-2 text-[10px] text-text-muted flex justify-between">
-                                                <span>{{ sg.length }} assessment{{ sg.length > 1 ? 's' : '' }}</span>
-                                                <span class="text-emerald-400 font-bold">Graded</span>
+
+                                            <div class="text-[11px] text-text-muted flex justify-between items-center pt-1 border-t border-border-primary/40">
+                                                <span>{{ sg.length }} recorded mark{{ sg.length > 1 ? 's' : '' }}</span>
+                                                <span class="text-emerald-600 dark:text-emerald-400 font-bold">Graded</span>
                                             </div>
                                         </div>
                                     } @else {
-                                        <div class="p-4 bg-bg-tertiary/60 border border-border-primary rounded-2xl">
-                                            <div class="flex items-center justify-between mb-2">
-                                                <div class="flex items-center gap-2">
-                                                    <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-black">{{ sub.name[0] }}</div>
-                                                    <div class="flex flex-col min-w-0">
-                                                        <span class="text-xs font-bold text-text-primary truncate" [title]="sub.name">{{ sub.name }}</span>
-                                                        <span class="text-[9px] text-text-muted font-mono uppercase">{{ sub.code || 'Core' }}</span>
+                                        <div class="p-5 bg-bg-tertiary/25 border border-border-primary/60 rounded-2xl flex flex-col justify-between">
+                                            <div>
+                                                <div class="flex items-center justify-between mb-3">
+                                                    <div class="flex items-center gap-2.5 min-w-0">
+                                                        <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-xs font-black shrink-0">
+                                                            {{ sub.name[0] }}
+                                                        </div>
+                                                        <div class="min-w-0">
+                                                            <span class="text-xs font-bold text-text-primary truncate block" [title]="sub.name">{{ sub.name }}</span>
+                                                            <span class="text-[10px] text-text-muted font-mono uppercase">{{ sub.code || 'Core' }}</span>
+                                                        </div>
                                                     </div>
+                                                    <span class="px-2 py-0.5 text-[9px] font-black rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 uppercase tracking-wider">
+                                                        Enrolled
+                                                    </span>
                                                 </div>
-                                                <span class="px-2 py-0.5 text-[9px] font-black rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wider">
-                                                    Enrolled
-                                                </span>
+
+                                                <div class="h-1.5 bg-bg-secondary rounded-full overflow-hidden my-3">
+                                                    <div class="h-full w-full bg-border-primary/40 rounded-full"></div>
+                                                </div>
                                             </div>
-                                            <div class="h-1.5 bg-bg-secondary/60 rounded-full overflow-hidden">
-                                                <div class="h-full w-full bg-border-primary/40 rounded-full"></div>
-                                            </div>
-                                            <div class="mt-2 text-[10px] text-text-muted flex justify-between">
+
+                                            <div class="text-[11px] text-text-muted flex justify-between items-center pt-1 border-t border-border-primary/40">
                                                 <span>In Progress</span>
-                                                <span class="text-blue-400 font-medium">Pending Entry</span>
+                                                <span class="text-blue-500 font-medium">Pending Entry</span>
                                             </div>
                                         </div>
                                     }
                                 }
-
-                                <!-- Extra graded subjects outside standard class curriculum if any -->
-                                @for (subj of getOtherGradedSubjects(bySubj); track subj) {
-                                    @let sg = bySubj[subj];
-                                    @let avg = subjectAvg(sg);
-                                    <div class="p-4 bg-bg-tertiary border border-border-primary rounded-2xl">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <div class="flex items-center gap-2">
-                                                <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-black">{{ subj[0] }}</div>
-                                                <span class="text-xs font-bold text-text-primary max-w-[120px] truncate" [title]="subj">{{ subj }}</span>
-                                            </div>
-                                            <span class="px-2 py-0.5 text-[10px] font-black rounded-md border" [ngClass]="gradeLetterClass(avg)">
-                                                {{ gradeLetter(avg) }} · {{ avg | number:'1.0-0' }}%
-                                            </span>
-                                        </div>
-                                        <div class="h-1.5 bg-bg-secondary rounded-full overflow-hidden">
-                                            <div class="h-full rounded-full" [style.width.%]="avg"
-                                                 [ngClass]="avg >= 80 ? 'bg-emerald-400' : avg >= 65 ? 'bg-amber-400' : 'bg-rose-400'"></div>
-                                        </div>
-                                        <div class="mt-2 text-[10px] text-text-muted flex justify-between">
-                                            <span>{{ sg.length }} test{{ sg.length > 1 ? 's' : '' }}</span>
-                                            <span class="text-blue-400 font-bold">Elective</span>
-                                        </div>
-                                    </div>
-                                }
                             </div>
                         } @else if (objectKeys(bySubj).length > 0) {
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 @for (subj of objectKeys(bySubj); track subj) {
                                     @let sg = bySubj[subj];
                                     @let avg = subjectAvg(sg);
-                                    <div class="p-4 bg-bg-tertiary border border-border-primary rounded-2xl">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <div class="flex items-center gap-2">
-                                                <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-black">{{ subj[0] }}</div>
-                                                <span class="text-xs font-bold text-text-primary max-w-[120px] truncate">{{ subj }}</span>
+                                    <div class="p-5 bg-bg-tertiary/40 border border-border-primary rounded-2xl">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-black">{{ subj[0] }}</div>
+                                                <span class="text-xs font-bold text-text-primary truncate max-w-[130px]">{{ subj }}</span>
                                             </div>
-                                            <span class="px-2 py-0.5 text-[10px] font-black rounded-md border" [ngClass]="gradeLetterClass(avg)">
-                                                {{ gradeLetter(avg) }} · {{ avg | number:'1.0-0' }}%
+                                            <span class="px-2.5 py-1 text-[10px] font-black rounded-lg border font-mono" [ngClass]="gradeLetterClass(avg)">
+                                                {{ gradeLetter(avg) }} &bull; {{ avg | number:'1.0-0' }}%
                                             </span>
                                         </div>
-                                        <div class="h-1.5 bg-bg-secondary rounded-full overflow-hidden">
+                                        <div class="h-1.5 bg-bg-secondary rounded-full overflow-hidden my-3">
                                             <div class="h-full rounded-full" [style.width.%]="avg"
-                                                 [ngClass]="avg >= 80 ? 'bg-emerald-400' : avg >= 65 ? 'bg-amber-400' : 'bg-rose-400'"></div>
+                                                 [ngClass]="avg >= 80 ? 'bg-emerald-500' : avg >= 65 ? 'bg-blue-500' : 'bg-rose-500'"></div>
                                         </div>
-                                        <div class="mt-2 text-[10px] text-text-muted flex justify-between">
-                                            <span>{{ sg.length }} test{{ sg.length > 1 ? 's' : '' }}</span>
-                                            <span>Target: 80%</span>
+                                        <div class="text-[11px] text-text-muted flex justify-between">
+                                            <span>{{ sg.length }} test(s)</span>
+                                            <span>Benchmark: 80%</span>
                                         </div>
                                     </div>
                                 }
                             </div>
                         } @else {
-                            <div class="p-8 text-center bg-bg-tertiary/20 border border-border-primary rounded-2xl">
-                                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-xl mx-auto mb-3">
+                            <div class="p-10 text-center bg-bg-tertiary/20 border border-dashed border-border-primary rounded-3xl">
+                                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center text-xl mx-auto mb-3">
                                     <i class="fas fa-book-open"></i>
                                 </div>
                                 <p class="text-xs font-bold text-text-primary mb-1">No Subjects Assigned to {{ studentClassName() }}</p>
-                                <p class="text-[11px] text-text-muted max-w-sm mx-auto">There are currently no curriculum subjects assigned to {{ student.first_name }}'s class ({{ studentClassName() }}).</p>
+                                <p class="text-xs text-text-muted max-w-sm mx-auto">There are currently no curriculum subjects assigned to {{ student.first_name }}'s class.</p>
                             </div>
                         }
                     </div>
@@ -239,46 +370,52 @@
 
                 <!-- TAB 2: Competency-Based Assessment -->
                 @if (activeTab() === 'competencies') {
-                    <div class="animate-fade-in space-y-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-sm font-black text-text-primary flex items-center gap-2">
-                                <i class="fas fa-layer-group text-blue-400"></i> Competency-Based Assessment (CBE / 21st-Century Skills)
-                            </h3>
-                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">NaCCA Aligned</span>
+                    <div class="animate-fade-in space-y-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                                    <i class="fas fa-layer-group text-blue-500"></i>
+                                    <span>Competency-Based Evaluation (CBE / NaCCA 21st Century Skills)</span>
+                                </h3>
+                                <p class="text-xs text-text-muted mt-0.5">Holistic rubric evaluation on critical thinking, teamwork, creativity, and digital literacy</p>
+                            </div>
+                            <span class="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
+                                Standard Framework
+                            </span>
                         </div>
 
                         @let studentEvals = competenciesMap()[student.id || ''] || [];
                         @if (studentEvals.length > 0) {
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 @for (c of studentEvals; track c.id) {
-                                    <div class="p-4 bg-bg-tertiary border border-border-primary rounded-xl">
+                                    <div class="p-5 bg-bg-tertiary/40 border border-border-primary/80 rounded-2xl">
                                         <div class="flex items-center justify-between mb-2">
-                                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">{{ c.rubric?.domain || 'Core Skill' }}</span>
-                                            <span class="px-2 py-0.5 text-[9px] font-black rounded border bg-blue-500/10 text-blue-400 border-blue-500/20">
-                                                Level {{ c.score }}
+                                            <span class="text-[10px] font-black text-text-muted uppercase tracking-wider">{{ c.rubric?.domain || 'Core Competency' }}</span>
+                                            <span class="px-2 py-0.5 text-[9px] font-black rounded-md border bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 font-mono">
+                                                Level {{ c.score }} / 5
                                             </span>
                                         </div>
-                                        <h4 class="text-xs font-bold text-text-primary mb-2.5">{{ c.rubric?.name || 'Competency Evaluation' }}</h4>
+                                        <h4 class="text-xs font-bold text-text-primary mb-3">{{ c.rubric?.name || 'Competency Evaluation' }}</h4>
                                         <div class="flex items-center gap-1.5">
                                             @for (dot of [1, 2, 3, 4, 5]; track dot) {
-                                                <div class="flex-1 h-2 rounded-full"
-                                                     [ngClass]="dot <= c.score ? 'bg-blue-500' : 'bg-bg-secondary'"></div>
+                                                <div class="flex-1 h-2 rounded-full transition-all"
+                                                     [ngClass]="dot <= c.score ? 'bg-blue-600' : 'bg-bg-secondary'"></div>
                                             }
                                         </div>
-                                        <div class="mt-2 text-[10px] text-text-muted flex justify-between">
-                                            <span>Rating</span>
-                                            <span class="font-bold text-text-primary">{{ c.score }}/5</span>
+                                        <div class="mt-3 text-[11px] text-text-muted flex justify-between">
+                                            <span>Proficiency Level</span>
+                                            <strong class="text-text-primary font-bold">{{ c.score >= 4 ? 'Mastered' : c.score >= 3 ? 'Proficient' : 'Developing' }}</strong>
                                         </div>
                                     </div>
                                 }
                             </div>
                         } @else {
-                            <div class="p-8 text-center bg-bg-tertiary/20 border border-border-primary rounded-2xl">
-                                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-xl mx-auto mb-3">
+                            <div class="p-10 text-center bg-bg-tertiary/20 border border-dashed border-border-primary rounded-3xl">
+                                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center text-xl mx-auto mb-3">
                                     <i class="fas fa-layer-group"></i>
                                 </div>
-                                <p class="text-xs font-bold text-text-primary mb-0.5">No Competency Evaluations Recorded</p>
-                                <p class="text-[11px] text-text-muted">CBE / NaCCA rubric evaluations have not been filed for this student yet.</p>
+                                <p class="text-xs font-bold text-text-primary mb-1">No Competency Evaluations Recorded</p>
+                                <p class="text-xs text-text-muted">CBE / NaCCA rubric evaluations have not been filed for this student yet.</p>
                             </div>
                         }
                     </div>
@@ -286,40 +423,48 @@
 
                 <!-- TAB 3: Homework & Assignments -->
                 @if (activeTab() === 'homework') {
-                    <div class="animate-fade-in space-y-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-sm font-black text-text-primary flex items-center gap-2">
-                                <i class="fas fa-tasks text-amber-400"></i> Homework & Assignments
-                            </h3>
-                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider">{{ hw.length }} Assignment{{ hw.length !== 1 ? 's' : '' }}</span>
+                    <div class="animate-fade-in space-y-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                                    <i class="fas fa-tasks text-amber-500"></i>
+                                    <span>Homework &amp; Assignments</span>
+                                </h3>
+                                <p class="text-xs text-text-muted mt-0.5">Tasks assigned to {{ student.first_name }} with due dates and submission statuses</p>
+                            </div>
+                            <span class="text-xs font-bold text-text-muted px-3 py-1 rounded-xl bg-bg-tertiary border border-border-primary">
+                                {{ hw.length }} Assignment{{ hw.length !== 1 ? 's' : '' }}
+                            </span>
                         </div>
 
                         @if (hw.length > 0) {
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 @for (item of hw; track item.id) {
-                                    <div class="p-3.5 bg-bg-tertiary border border-border-primary rounded-xl flex items-center justify-between gap-3"
-                                         [ngClass]="{'border-rose-500/30 bg-rose-500/5': item.due_date < today(), 'border-amber-500/30 bg-amber-500/5': dueSoon(item.due_date)}">
+                                    <div class="p-4.5 bg-bg-tertiary/40 border border-border-primary/80 rounded-2xl flex items-center justify-between gap-3"
+                                         [ngClass]="{'border-rose-500/40 bg-rose-500/5': item.due_date < today(), 'border-amber-500/40 bg-amber-500/5': dueSoon(item.due_date)}">
                                         <div class="flex items-center gap-3 min-w-0">
-                                            <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-black shrink-0">{{ item.subject[0] }}</div>
+                                            <div class="w-9 h-9 rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-black shrink-0">
+                                                {{ item.subject[0] }}
+                                            </div>
                                             <div class="min-w-0">
                                                 <div class="text-xs font-bold text-text-primary truncate">{{ item.title }}</div>
-                                                <div class="text-[10px] text-text-muted">{{ item.subject }} &bull; Due {{ item.due_date }}</div>
+                                                <div class="text-[11px] text-text-muted mt-0.5">{{ item.subject }} &bull; Due {{ item.due_date | date:'mediumDate' }}</div>
                                             </div>
                                         </div>
-                                        <span class="text-[9px] font-black px-2 py-1 rounded-lg border shrink-0"
-                                              [ngClass]="item.due_date < today() ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : dueSoon(item.due_date) ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'">
+                                        <span class="text-[9px] font-black px-2.5 py-1 rounded-full border shrink-0 font-mono"
+                                              [ngClass]="item.due_date < today() ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30' : dueSoon(item.due_date) ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'">
                                             {{ item.due_date < today() ? 'OVERDUE' : dueSoon(item.due_date) ? 'DUE SOON' : 'UPCOMING' }}
                                         </span>
                                     </div>
                                 }
                             </div>
                         } @else {
-                            <div class="py-10 px-4 text-center bg-bg-tertiary/40 border border-dashed border-border-primary rounded-xl">
-                                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mx-auto flex items-center justify-center mb-2">
-                                    <i class="fas fa-check-double text-sm"></i>
+                            <div class="p-10 text-center bg-bg-tertiary/20 border border-dashed border-border-primary rounded-3xl">
+                                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 mx-auto flex items-center justify-center mb-3">
+                                    <i class="fas fa-check-double text-lg"></i>
                                 </div>
-                                <h4 class="text-xs font-black text-text-primary">All Homework Up-To-Date</h4>
-                                <p class="text-[11px] text-text-muted mt-0.5">No pending or overdue homework assignments for {{ student.first_name }}.</p>
+                                <h4 class="text-xs font-bold text-text-primary mb-1">All Homework Up-To-Date</h4>
+                                <p class="text-xs text-text-muted">No pending or overdue homework assignments for {{ student.first_name }}.</p>
                             </div>
                         }
                     </div>
@@ -328,48 +473,49 @@
                 <!-- TAB 4: Verifiable Official Transcript Banner -->
                 @if (activeTab() === 'transcript') {
                     <div class="animate-fade-in space-y-5">
-                        <div class="p-5 md:p-6 bg-blue-500/40 border border-blue-500/30 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                            <div class="flex items-center gap-3.5">
-                                <div class="w-14 h-14 rounded-2xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center text-2xl shrink-0">
+                        <div class="p-6 md:p-7 bg-gradient-to-r from-blue-600/15 via-indigo-600/10 to-blue-600/15 border border-blue-500/30 rounded-3xl flex flex-col md:flex-row items-start md:items-center justify-between gap-5 shadow-xs">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 rounded-2xl bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 flex items-center justify-center text-2xl shrink-0 shadow-xs">
                                     <i class="fas fa-file-certificate"></i>
                                 </div>
                                 <div>
                                     <div class="flex items-center gap-2">
                                         <h3 class="text-base font-black text-text-primary">Verifiable Official Transcript</h3>
-                                        <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                            <i class="fas fa-shield-check mr-1"></i> Authentic
+                                        <span class="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                                            <i class="fas fa-shield-check"></i>
+                                            <span>Authentic</span>
                                         </span>
                                     </div>
                                     <p class="text-xs text-text-muted mt-1 max-w-lg">
-                                        Tamper-proof digital transcript with cryptographic verification hash. Can be shared with colleges, high schools, and educational authorities.
+                                        Tamper-proof digital transcript with cryptographic verification hash. Valid for university admission and educational authorities.
                                     </p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2.5 w-full md:w-auto">
+                            <div class="flex items-center gap-3 w-full md:w-auto">
                                 <a [routerLink]="['/verify/transcript', hash]"
                                    target="_blank"
-                                   class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-bg-tertiary border border-border-primary hover:bg-bg-secondary text-xs font-bold text-text-primary transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-                                    <i class="fas fa-qrcode text-blue-400 text-xs"></i>
+                                   class="flex-1 md:flex-initial px-4 py-2.5 rounded-2xl bg-bg-secondary border border-border-primary hover:bg-bg-tertiary text-xs font-bold text-text-primary transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs">
+                                    <i class="fas fa-qrcode text-blue-500 text-xs"></i>
                                     <span>Verify QR</span>
                                 </a>
                                 <button (click)="downloadTranscript(student.id || '', student.first_name + ' ' + student.last_name)"
                                         [disabled]="isDownloading()[student.id || '']"
-                                        class="flex-1 md:flex-initial px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
+                                        class="flex-1 md:flex-initial px-5 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black transition-all shadow-md shadow-blue-600/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-95">
                                     @if (isDownloading()[student.id || '']) {
                                         <i class="fas fa-spinner fa-spin text-xs"></i>
-                                        <span>Generating...</span>
+                                        <span>Generating PDF...</span>
                                     } @else {
                                         <i class="fas fa-download text-xs"></i>
-                                        <span>Download PDF Transcript</span>
+                                        <span>Download Transcript PDF</span>
                                     }
                                 </button>
                             </div>
                         </div>
 
                         <!-- Cryptographic verification details -->
-                        <div class="p-4 bg-bg-tertiary/40 border border-border-primary rounded-xl">
-                            <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block mb-1">Cryptographic Fingerprint</span>
-                            <div class="text-xs font-mono text-blue-400 break-all select-all">{{ hash }}</div>
+                        <div class="p-5 bg-bg-tertiary/40 border border-border-primary rounded-2xl space-y-1">
+                            <span class="text-[10px] font-black text-text-muted uppercase tracking-widest block">Cryptographic Fingerprint &amp; Verification Token</span>
+                            <div class="text-xs font-mono text-blue-600 dark:text-blue-400 break-all select-all font-bold">{{ hash }}</div>
                         </div>
                     </div>
                 }
@@ -378,10 +524,10 @@
                 @if (activeTab() === 'insights') {
                     <div class="animate-fade-in space-y-6">
                         <!-- AI Terminal Performance Remarks -->
-                        <div class="p-4 bg-bg-tertiary/40 border border-border-primary rounded-xl">
-                            <div class="flex items-center gap-2 mb-2">
-                                <i class="fas fa-sparkles text-amber-400 text-xs"></i>
-                                <span class="text-xs font-black uppercase tracking-wider text-text-primary">Counselor & AI Terminal Remarks</span>
+                        <div class="p-5 bg-bg-tertiary/40 border border-border-primary rounded-2xl space-y-2">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-sparkles text-amber-500 text-sm"></i>
+                                <span class="text-xs font-black uppercase tracking-wider text-text-primary">Counselor &amp; Academic Terminal Remarks</span>
                             </div>
                             <p class="text-xs text-text-secondary leading-relaxed italic">
                                 "{{ getStudentRemarks(student, gpa) }}"
@@ -390,19 +536,20 @@
 
                         <!-- AI Insights Grid -->
                         @if (insights.length > 0) {
-                            <div>
-                                <h3 class="text-sm font-black text-text-primary mb-3 flex items-center gap-2">
-                                    <i class="fas fa-brain text-cyan-400"></i> Academic Trajectory & Insights
+                            <div class="space-y-3">
+                                <h3 class="text-sm font-black text-text-primary flex items-center gap-2">
+                                    <i class="fas fa-brain text-blue-500"></i>
+                                    <span>Academic Trajectory &amp; Learning Insights</span>
                                 </h3>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     @for (ins of insights.slice(0,4); track ins.id) {
-                                        <div class="p-3.5 bg-bg-tertiary border border-border-primary rounded-xl">
-                                            <span class="px-2 py-0.5 text-[9px] font-black rounded border inline-block mb-2"
-                                                  [ngClass]="ins.type === 'RISK' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'">
+                                        <div class="p-4 bg-bg-tertiary/40 border border-border-primary rounded-2xl space-y-1.5">
+                                            <span class="px-2 py-0.5 text-[9px] font-black rounded-md border inline-block font-mono"
+                                                  [ngClass]="ins.type === 'RISK' ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30' : 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30'">
                                                 {{ ins.type }}
                                             </span>
-                                            <h4 class="text-xs font-bold text-text-primary mb-1">{{ ins.title }}</h4>
-                                            <p class="text-[10px] text-text-muted leading-relaxed">{{ ins.description }}</p>
+                                            <h4 class="text-xs font-bold text-text-primary">{{ ins.title }}</h4>
+                                            <p class="text-[11px] text-text-muted leading-relaxed">{{ ins.description }}</p>
                                         </div>
                                     }
                                 </div>

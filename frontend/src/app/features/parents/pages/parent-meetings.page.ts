@@ -108,4 +108,17 @@ export class ParentMeetingsPage implements OnInit {
             error: (err) => this.toast.error(err?.error?.error || 'Failed to book meeting.', 'Error')
         });
     }
+
+    getStudentName(studentId?: string): string {
+        if (!studentId) return 'Ward';
+        const s = this.state.profile()?.students?.find(x => x.id === studentId);
+        return s ? `${s.first_name} ${s.last_name}` : 'Ward';
+    }
+
+    getTeacherName(teacherId?: string): string {
+        if (!teacherId) return 'Faculty Educator';
+        const t = this.teachers().find(x => x.id === teacherId);
+        return t ? `${t.first_name} ${t.last_name}` : 'Faculty Educator';
+    }
 }
+

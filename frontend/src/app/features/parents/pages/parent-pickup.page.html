@@ -1,224 +1,389 @@
-<div class="max-w-2xl mx-auto p-4 md:p-8 animate-fade-in pb-24">
+<div class="max-w-[1600px] w-full mx-auto animate-fade-in pb-16 px-4 sm:px-6 md:px-8 space-y-6 sm:space-y-8 relative overflow-hidden">
 
-    <!-- Header -->
-    <div class="mb-7">
-        <h1 class="text-3xl font-black text-blue-400 mb-1">Gate Pass & Pickup Authorization</h1>
-        <p class="text-text-muted text-sm">Permanent biometric pass and single-use 6-digit OTPs for drivers, uncles, and trusted relatives.</p>
+    <!-- ── 0. AMBIENT BACKDROP LIGHTING ────────────────────────────── -->
+    <div class="absolute -top-10 left-1/4 w-96 h-96 max-w-full bg-purple-500/10 dark:bg-purple-600/15 rounded-full blur-3xl pointer-events-none -z-10"></div>
+    <div class="absolute top-72 right-10 w-96 h-96 max-w-full bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+
+    <!-- ── 1. Page Header (Gate Pass & Pickup Authorization) ───────── -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2">
+        <div class="min-w-0">
+            <div class="flex items-center gap-2 text-xs font-bold text-text-muted mb-1.5 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
+                    Campus Safety &amp; Gate Security
+                </span>
+                <span class="text-text-muted/40">/</span>
+                <span class="text-text-muted">Parent Portal</span>
+                <span class="text-text-muted/40">/</span>
+                <span class="text-text-primary font-black">Pickup Authorization</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                <span>Security</span>
+                <span class="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 dark:from-purple-400 dark:via-indigo-400 dark:to-blue-400 bg-clip-text text-transparent">
+                    Pickup &amp; Gate Pass
+                </span>
+            </h1>
+            <p class="text-xs sm:text-sm font-medium text-text-muted mt-1 max-w-3xl">
+                Cryptographic digital gate passes for dismissal clearance, biometric identity verification, and temporary OTP delegation for authorized third parties.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-wrap">
+            <a routerLink="/parents"
+               class="px-3.5 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shadow-xs cursor-pointer active:scale-95">
+                <i class="fas fa-arrow-left text-xs text-blue-500"></i>
+                <span>Overview</span>
+            </a>
+            <button (click)="printPass()"
+                    class="px-4.5 py-2.5 rounded-2xl bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                <i class="fas fa-print text-xs text-text-muted"></i>
+                <span>Print Pass</span>
+            </button>
+        </div>
     </div>
 
-    <!-- Tab Navigation -->
-    <div class="flex items-center gap-2 p-1.5 bg-bg-secondary border border-border-primary rounded-2xl mb-6 overflow-x-auto">
-        <button (click)="activeTab.set('permanent')"
-                [ngClass]="activeTab() === 'permanent' ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
-                class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer">
-            <i class="fas fa-qrcode"></i>
-            <span>Permanent QR Gate Pass</span>
-        </button>
-        <button (click)="activeTab.set('guest')"
-                [ngClass]="activeTab() === 'guest' ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary/60'"
-                class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer">
-            <i class="fas fa-key"></i>
-            <span>Third-Party Pass (OTP)</span>
-        </button>
-    </div>
+    <!-- ── 2. Top 4 Metric KPI Cards ──────────────────────────────── -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
 
-    <!-- TAB 1: Permanent Guardian Biometric Pass -->
-    @if (activeTab() === 'permanent') {
-        @if (state.profile(); as p) {
-            <div class="bg-blue-600 border-2 border-blue-500/30 rounded-3xl p-6 md:p-8 relative overflow-hidden animate-fade-in">
-                <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
-                <!-- Header -->
-                <div class="flex items-center justify-between pb-5 border-b border-border-primary/60 mb-5">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl">
-                            <i class="fas fa-id-badge"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-black text-text-primary">Permanent Guardian Pass</h3>
-                            <p class="text-[10px] uppercase font-bold tracking-widest text-blue-400">School Linx &bull; Authorized Exit</p>
-                        </div>
-                    </div>
-                    <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-full flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Active
-                    </span>
+        <!-- Card 1: Permanent Gate Code -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-purple-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
+            <div class="flex items-center justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                    <i class="fas fa-qrcode"></i>
                 </div>
-
-                <!-- Guardian Info -->
-                <div class="flex items-center gap-4 mb-5">
-                    <div class="w-14 h-14 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-black text-xl shrink-0">
-                        {{ p.first_name[0] }}{{ p.last_name[0] }}
-                    </div>
-                    <div>
-                        <h4 class="text-base font-black text-text-primary">{{ p.first_name }} {{ p.last_name }}</h4>
-                        <p class="text-xs text-text-muted">{{ p.relationship }} &bull; {{ p.phone_number }}</p>
-                        <span class="inline-block mt-1 text-[10px] font-bold text-emerald-400">
-                            <i class="fas fa-check mr-1"></i> Authorized Primary Collector
-                        </span>
-                    </div>
-                </div>
-
-                <!-- QR Visual -->
-                <div class="bg-white p-5 rounded-xl flex flex-col items-center justify-center mb-5">
-                    <div class="w-36 h-36 bg-white flex items-center justify-center border-4 border-dashed border-gray-200 rounded-xl mb-2">
-                        <svg class="w-28 h-28" viewBox="0 0 100 100" fill="none">
-                            <rect width="100" height="100" fill="white"/>
-                            <rect x="5" y="5" width="30" height="30" fill="black"/>
-                            <rect x="10" y="10" width="20" height="20" fill="white"/>
-                            <rect x="15" y="15" width="10" height="10" fill="black"/>
-                            <rect x="65" y="5" width="30" height="30" fill="black"/>
-                            <rect x="70" y="10" width="20" height="20" fill="white"/>
-                            <rect x="75" y="15" width="10" height="10" fill="black"/>
-                            <rect x="5" y="65" width="30" height="30" fill="black"/>
-                            <rect x="10" y="70" width="20" height="20" fill="white"/>
-                            <rect x="15" y="75" width="10" height="10" fill="black"/>
-                            <rect x="42" y="10" width="16" height="6" fill="black"/>
-                            <rect x="45" y="25" width="10" height="10" fill="black"/>
-                            <rect x="42" y="45" width="16" height="16" fill="black"/>
-                            <rect x="65" y="45" width="10" height="10" fill="black"/>
-                            <rect x="80" y="60" width="15" height="8" fill="black"/>
-                            <rect x="45" y="75" width="10" height="20" fill="black"/>
-                        </svg>
-                    </div>
-                    <div class="font-mono text-xs font-bold text-gray-700 tracking-widest">
-                        ID: {{ p.pickup_code || 'CODE-849201' }}
-                    </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="flex gap-2">
-                    <button (click)="sharePass(p)"
-                            class="flex-1 py-2.5 bg-bg-secondary border border-border-primary hover:bg-bg-tertiary text-text-primary rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-                        <i class="fas fa-share-alt"></i> Share Pass
-                    </button>
-                    <button (click)="printPass()"
-                            class="flex-1 py-2.5 bg-bg-secondary border border-border-primary hover:bg-bg-tertiary text-text-primary rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-                        <i class="fas fa-print"></i> Print Pass
-                    </button>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1 shadow-2xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Active Clearance</span>
+                </span>
+            </div>
+            <div class="mt-4 space-y-1">
+                <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Permanent Security Code</p>
+                <p class="text-xl sm:text-2xl font-black font-mono text-purple-600 dark:text-purple-400 tracking-wider truncate">
+                    {{ state.profile()?.pickup_code || 'GATE-PASS' }}
+                </p>
+                <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                    <span>Authorized Primary Pass</span>
+                    <span class="font-bold text-purple-600 dark:text-purple-400">Verified</span>
                 </div>
             </div>
-        }
-    }
+            <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                <div class="bg-gradient-to-r from-purple-500 to-indigo-500 h-full rounded-full transition-all duration-1000" style="width: 100%"></div>
+            </div>
+        </div>
 
-    <!-- TAB 2: Feature 16: Third-Party Single-Use 6-Digit Gate Pass OTP Generator -->
-    @if (activeTab() === 'guest') {
-        <div class="bg-blue-500/40 border border-blue-500/30 rounded-3xl p-6 relative overflow-hidden animate-fade-in">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg shrink-0">
+        <!-- Card 2: Authorized Primary Collector -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-blue-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
+            <div class="flex items-center justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                    <i class="fas fa-id-card"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 shadow-2xs">
+                    Primary
+                </span>
+            </div>
+            <div class="mt-4 space-y-1">
+                <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Authorized Guardian</p>
+                <p class="text-lg sm:text-xl font-black text-text-primary tracking-tight truncate">
+                    {{ state.profile()?.first_name }} {{ state.profile()?.last_name }}
+                </p>
+                <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                    <span>{{ state.profile()?.relationship || 'Guardian' }} &bull; {{ state.profile()?.phone_number }}</span>
+                    <span class="font-bold text-blue-600 dark:text-blue-400">Biometric</span>
+                </div>
+            </div>
+            <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                <div class="bg-gradient-to-r from-blue-500 to-teal-400 h-full rounded-full transition-all duration-1000" style="width: 100%"></div>
+            </div>
+        </div>
+
+        <!-- Card 3: Registered Scholars -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-emerald-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
+            <div class="flex items-center justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shadow-2xs">
+                    Covered
+                </span>
+            </div>
+            <div class="mt-4 space-y-1">
+                <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Linked Scholars</p>
+                <div class="flex items-baseline gap-2">
+                    <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight font-mono">
+                        {{ state.profile()?.students?.length || 0 }}
+                    </p>
+                    <span class="text-xs font-bold text-text-muted">Scholars</span>
+                </div>
+                <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                    <span>All wards authorized for release</span>
+                    <span class="font-bold text-emerald-600 dark:text-emerald-400">Protected</span>
+                </div>
+            </div>
+            <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-1000" style="width: 100%"></div>
+            </div>
+        </div>
+
+        <!-- Card 4: Guest OTP Delegation -->
+        <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-amber-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
+            <div class="flex items-center justify-between">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
                     <i class="fas fa-key"></i>
                 </div>
-                <div>
-                    <h3 class="text-base font-black text-text-primary">Third-Party Pickup Pass (Single-Use OTP)</h3>
-                    <p class="text-xs text-text-muted">Need a driver, aunt, or friend to collect your child? Generate a secure 6-digit gate code.</p>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 shadow-2xs">
+                    Temporary OTP
+                </span>
+            </div>
+            <div class="mt-4 space-y-1">
+                <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Guest Delegation</p>
+                <p class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 tracking-tight font-mono">
+                    Single-Use OTP
+                </p>
+                <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                    <span>For drivers, uncles &amp; nannies</span>
+                    <button (click)="activeTab.set('guest')" class="font-bold text-amber-600 dark:text-amber-400 hover:underline cursor-pointer">
+                        Delegate &rarr;
+                    </button>
                 </div>
             </div>
+            <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                <div class="bg-gradient-to-r from-amber-500 to-rose-400 h-full rounded-full transition-all duration-1000" style="width: 60%"></div>
+            </div>
+        </div>
 
-            @if (activeOtp(); as otp) {
-                <!-- Active OTP Display Card -->
-                <div class="p-5 bg-bg-tertiary/80 border border-blue-500/40 rounded-2xl mb-4 text-center animate-fade-in">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400 block mb-1">
-                        <i class="fas fa-shield-alt mr-1"></i> Authorized Single-Use Pass Active
-                    </span>
-                    <div class="text-3xl sm:text-4xl font-mono font-black tracking-widest text-text-primary py-2 text-blue-300">
-                        {{ otp.otp }}
+    </div>
+
+    <!-- ── 3. Main Tabs & Pass Display Container ───────────────────── -->
+    <div class="rounded-3xl bg-bg-secondary border border-border-primary shadow-xs overflow-hidden">
+
+        <!-- Tab Navigation Bar -->
+        <div class="p-4 sm:p-5 border-b border-border-primary bg-bg-tertiary/30">
+            <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar">
+                <button (click)="activeTab.set('permanent')"
+                        [ngClass]="activeTab() === 'permanent' ? 'bg-purple-600 text-white font-black shadow-sm shadow-purple-600/25' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
+                        class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                    <i class="fas fa-qrcode text-xs"></i>
+                    <span>Permanent QR Gate Pass</span>
+                </button>
+                <button (click)="activeTab.set('guest')"
+                        [ngClass]="activeTab() === 'guest' ? 'bg-purple-600 text-white font-black shadow-sm shadow-purple-600/25' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
+                        class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                    <i class="fas fa-key text-xs"></i>
+                    <span>Third-Party Temporary Pass (OTP)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab Body Content -->
+        <div class="p-5 sm:p-8">
+
+            <!-- TAB 1: Permanent Guardian Biometric Pass -->
+            @if (activeTab() === 'permanent') {
+                @if (state.profile(); as p) {
+                    <div class="max-w-lg mx-auto bg-bg-tertiary/50 border-2 border-border-primary rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-xl animate-fade-in space-y-6">
+                        <!-- Top Header -->
+                        <div class="flex items-center justify-between pb-4 border-b border-border-primary">
+                            <div class="flex items-center gap-3">
+                                <div class="w-11 h-11 rounded-2xl bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl">
+                                    <i class="fas fa-id-badge"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-black text-text-primary">Permanent Guardian Pass</h3>
+                                    <p class="text-[10px] uppercase font-bold tracking-widest text-purple-600 dark:text-purple-400">SchoolLinx Security Release</p>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-black rounded-full flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                ACTIVE
+                            </span>
+                        </div>
+
+                        <!-- Guardian Info -->
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white font-black text-xl flex items-center justify-center shrink-0 shadow-sm shadow-purple-500/30">
+                                {{ p.first_name[0] }}{{ p.last_name[0] }}
+                            </div>
+                            <div class="min-w-0">
+                                <h4 class="text-base font-black text-text-primary truncate">{{ p.first_name }} {{ p.last_name }}</h4>
+                                <p class="text-xs text-text-muted">{{ p.relationship || 'Guardian' }} &bull; {{ p.phone_number }}</p>
+                                <span class="inline-flex items-center gap-1 text-[10px] font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Authorized Primary Gate Collector</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- QR Code Container -->
+                        <div class="bg-white dark:bg-white p-6 rounded-2xl flex flex-col items-center justify-center text-center shadow-inner border border-slate-200">
+                            <div class="w-40 h-40 bg-white flex items-center justify-center mb-2">
+                                <svg class="w-36 h-36" viewBox="0 0 100 100" fill="none">
+                                    <rect width="100" height="100" fill="white"/>
+                                    <rect x="5" y="5" width="30" height="30" fill="black"/>
+                                    <rect x="10" y="10" width="20" height="20" fill="white"/>
+                                    <rect x="15" y="15" width="10" height="10" fill="black"/>
+                                    <rect x="65" y="5" width="30" height="30" fill="black"/>
+                                    <rect x="70" y="10" width="20" height="20" fill="white"/>
+                                    <rect x="75" y="15" width="10" height="10" fill="black"/>
+                                    <rect x="5" y="65" width="30" height="30" fill="black"/>
+                                    <rect x="10" y="70" width="20" height="20" fill="white"/>
+                                    <rect x="15" y="75" width="10" height="10" fill="black"/>
+                                    <rect x="42" y="10" width="16" height="6" fill="black"/>
+                                    <rect x="45" y="25" width="10" height="10" fill="black"/>
+                                    <rect x="42" y="45" width="16" height="16" fill="black"/>
+                                    <rect x="65" y="45" width="10" height="10" fill="black"/>
+                                    <rect x="80" y="60" width="15" height="8" fill="black"/>
+                                    <rect x="45" y="75" width="10" height="20" fill="black"/>
+                                </svg>
+                            </div>
+                            <p class="font-mono text-xs font-black text-slate-800 tracking-widest">
+                                GATE CODE: {{ p.pickup_code || 'CODE-849201' }}
+                            </p>
+                        </div>
+
+                        <!-- Covered Scholars List -->
+                        <div class="space-y-1.5">
+                            <p class="text-[10px] font-black uppercase tracking-widest text-text-muted">Authorized Wards</p>
+                            <div class="flex flex-wrap gap-2">
+                                @for (s of p.students || []; track s.id) {
+                                    <span class="px-3 py-1 bg-bg-secondary border border-border-primary rounded-xl text-xs font-bold text-text-primary">
+                                        {{ s.first_name }} {{ s.last_name }} ({{ s.class_name }})
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex gap-3 pt-2">
+                            <button (click)="sharePass(p)"
+                                    class="flex-1 py-3 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-95">
+                                <i class="fas fa-share-nodes text-blue-500"></i>
+                                <span>Share Pass</span>
+                            </button>
+                            <button (click)="printPass()"
+                                    class="flex-1 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-purple-600/25 active:scale-95">
+                                <i class="fas fa-print"></i>
+                                <span>Print Badge</span>
+                            </button>
+                        </div>
                     </div>
-                    <div class="text-xs text-text-muted mb-4">
-                        Collector: <span class="font-bold text-text-primary">{{ otp.collector_name }}</span> ({{ otp.collector_phone }})
-                        <br>
-                        <span class="text-amber-400 font-medium text-[11px]"><i class="fas fa-clock mr-1"></i> Valid for 4 hours at the security gate</span>
+                }
+            }
+
+            <!-- TAB 2: Third-Party Guest Pass (OTP Delegation) -->
+            @if (activeTab() === 'guest') {
+                <div class="max-w-2xl mx-auto space-y-6 animate-fade-in">
+                    <div>
+                        <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                            <i class="fas fa-key text-amber-500"></i>
+                            <span>Temporary Third-Party Pickup Delegation</span>
+                        </h3>
+                        <p class="text-xs text-text-muted mt-0.5">Generate a secure 6-digit one-time code for drivers, uncles, or trusted friends picking up your child</p>
                     </div>
-                    <div class="flex items-center justify-center gap-2">
-                        <button (click)="shareOtpWhatsApp(otp.otp, otp.collector_name)"
-                                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
-                            <i class="fab fa-whatsapp"></i> Send via WhatsApp
-                        </button>
-                        <button (click)="copyOtp(otp.otp)"
-                                class="px-4 py-2 bg-bg-secondary border border-border-primary hover:bg-bg-tertiary text-text-primary rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
-                            <i class="fas fa-copy"></i> Copy Code
-                        </button>
-                        <button (click)="activeOtp.set(null)"
-                                class="px-3 py-2 bg-bg-secondary border border-border-primary hover:bg-rose-500/20 text-rose-400 rounded-xl text-xs font-bold transition-all cursor-pointer">
-                            Dismiss
-                        </button>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        @for (student of state.profile()?.students || []; track student.id) {
+                            <div class="p-5 bg-bg-tertiary/40 border border-border-primary rounded-2xl flex flex-col justify-between space-y-4 hover:border-amber-500/40 transition-all">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center font-black text-sm shrink-0">
+                                        {{ student.first_name[0] }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <h4 class="text-sm font-black text-text-primary truncate">{{ student.first_name }} {{ student.last_name }}</h4>
+                                        <p class="text-[11px] text-text-muted">{{ student.class_name }}</p>
+                                    </div>
+                                </div>
+
+                                <button (click)="openOtpModal(student.id || '')"
+                                        class="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-900 font-black text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95">
+                                    <i class="fas fa-key text-xs"></i>
+                                    <span>Create Guest OTP Pass</span>
+                                </button>
+                            </div>
+                        }
                     </div>
+
+                    @if (activeOtp()) {
+                        <div class="p-6 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 border border-amber-500/30 rounded-3xl space-y-4 animate-fade-in shadow-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-300 flex items-center gap-2">
+                                    <i class="fas fa-shield-halved text-amber-500"></i>
+                                    Active Single-Use Gate Pass Generated
+                                </span>
+                                <span class="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                                    Valid 4 Hours
+                                </span>
+                            </div>
+
+                            <div class="p-4 bg-bg-secondary border border-border-primary rounded-2xl text-center space-y-1">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">6-Digit Security OTP</span>
+                                <p class="text-3xl font-black font-mono text-amber-600 dark:text-amber-400 tracking-widest select-all">
+                                    {{ activeOtp().otp || '746182' }}
+                                </p>
+                                <p class="text-[11px] text-text-muted">Collector: <strong>{{ activeOtp().collector_name }}</strong> &bull; Phone: {{ activeOtp().collector_phone }}</p>
+                            </div>
+
+                            <div class="flex gap-3">
+                                <button (click)="copyOtp(activeOtp().otp)"
+                                        class="flex-1 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                    <i class="fas fa-copy text-xs"></i>
+                                    <span>Copy Code</span>
+                                </button>
+                                <button (click)="shareOtpWhatsApp(activeOtp().otp, activeOtp().collector_name)"
+                                        class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-emerald-600/25">
+                                    <i class="fab fa-whatsapp text-sm"></i>
+                                    <span>Send via WhatsApp</span>
+                                </button>
+                            </div>
+                        </div>
+                    }
                 </div>
             }
 
-            <!-- Generate Buttons Per Ward -->
-            <div class="space-y-2">
-                <span class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-1">Generate Gate Code For:</span>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    @for (student of state.profile()?.students || []; track student.id) {
-                        <button (click)="openOtpModal(student.id || '')"
-                                class="p-3 bg-bg-tertiary/70 border border-border-primary hover:border-blue-500/40 rounded-xl flex items-center justify-between text-left transition-all cursor-pointer group">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-xs">
-                                    {{ student.first_name[0] }}
-                                </div>
-                                <span class="text-xs font-bold text-text-primary group-hover:text-blue-400 transition-colors">{{ student.first_name }} {{ student.last_name }}</span>
-                            </div>
-                            <span class="text-[11px] text-blue-400 font-bold flex items-center gap-1">
-                                <span>Get Code</span>
-                                <i class="fas fa-chevron-right text-[9px]"></i>
-                            </span>
-                        </button>
-                    }
-                </div>
-            </div>
         </div>
-    }
-
+    </div>
 </div>
 
-<!-- Third-Party Pickup Delegation Modal -->
+<!-- Modal: OTP Generation -->
 @if (showOtpModal()) {
     <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in" (click)="showOtpModal.set(false)">
-        <div class="w-full max-w-md bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 animate-slide-up sm:animate-fade-in max-h-[90vh] sm:max-h-[85vh] overflow-y-auto" (click)="$event.stopPropagation()">
-            <!-- Mobile Handle -->
-            <div class="sm:hidden flex justify-center pb-1">
-                <div class="bottomsheet-handle"></div>
-            </div>
-            <div class="flex items-center justify-between pb-3 border-b border-border-primary">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-sm">
-                        <i class="fas fa-user-check"></i>
-                    </div>
-                    <h3 class="text-sm sm:text-base font-black text-text-primary">Delegate Third-Party Pickup</h3>
-                </div>
+        <div class="w-full max-w-md bg-bg-secondary border border-border-primary rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base sm:text-lg font-black text-text-primary">Delegate Guest Pickup Pass</h3>
                 <button (click)="showOtpModal.set(false)" class="p-1 text-text-muted hover:text-text-primary cursor-pointer">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <p class="text-xs text-text-muted">
-                The designated collector will receive an official SMS and can show this 6-digit OTP code at the campus security checkpoint.
+                The designated collector must present this 6-digit OTP to gate security at dismissal time.
             </p>
 
             <div class="space-y-3">
                 <div>
-                    <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-1">Collector Full Name</label>
-                    <input type="text" [(ngModel)]="collectorName" placeholder="e.g. Uncle Kwame or Driver Samuel"
-                           class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-text-primary text-sm font-medium focus:outline-none focus:border-blue-500" />
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Collector Full Name *</label>
+                    <input type="text" [(ngModel)]="collectorName" placeholder="e.g. Uncle Kwame Mensah"
+                           class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs font-bold text-text-primary focus:outline-none focus:border-amber-500" />
                 </div>
-
                 <div>
-                    <label class="text-xs font-bold text-text-muted uppercase tracking-wider block mb-1">Collector Phone Number</label>
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Collector Phone Number *</label>
                     <input type="tel" [(ngModel)]="collectorPhone" placeholder="e.g. 0244123456"
-                           class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-text-primary text-sm font-medium focus:outline-none focus:border-blue-500" />
+                           class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs font-bold text-text-primary focus:outline-none focus:border-amber-500" />
                 </div>
             </div>
 
-            <div class="flex flex-col-reverse sm:flex-row gap-2 pt-2">
+            <div class="flex gap-2 pt-2">
                 <button (click)="showOtpModal.set(false)"
-                        class="w-full sm:flex-1 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-xs font-bold text-text-muted hover:text-text-primary transition-all cursor-pointer">
+                        class="flex-1 py-2.5 bg-bg-tertiary border border-border-primary text-text-muted hover:text-text-primary rounded-2xl text-xs font-bold transition-all cursor-pointer">
                     Cancel
                 </button>
                 <button (click)="generateOTP(); showOtpModal.set(false)" [disabled]="generating()"
-                        class="w-full sm:flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50">
+                        class="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-900 font-black rounded-2xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-amber-500/25 disabled:opacity-50">
                     @if (generating()) {
-                        <i class="fas fa-spinner fa-spin"></i> Generating...
+                        <i class="fas fa-spinner fa-spin text-xs"></i>
+                        <span>Generating...</span>
                     } @else {
-                        <i class="fas fa-key"></i> Generate Gate Code
+                        <i class="fas fa-key text-xs"></i>
+                        <span>Generate OTP</span>
                     }
                 </button>
             </div>

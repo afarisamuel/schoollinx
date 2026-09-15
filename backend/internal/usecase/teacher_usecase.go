@@ -20,6 +20,7 @@ type teacherUseCase struct {
 	classRepo   domain.ClassRepository
 	subjectRepo domain.SubjectRepository
 	mailService mailer.MailService
+	sms         domain.SMSProvider
 }
 
 func NewTeacherUseCase(
@@ -28,13 +29,19 @@ func NewTeacherUseCase(
 	classRepo domain.ClassRepository,
 	subjectRepo domain.SubjectRepository,
 	mailService mailer.MailService,
+	sms ...domain.SMSProvider,
 ) domain.TeacherUseCase {
+	var smsProvider domain.SMSProvider
+	if len(sms) > 0 {
+		smsProvider = sms[0]
+	}
 	return &teacherUseCase{
 		teacherRepo: repo,
 		userRepo:    userRepo,
 		classRepo:   classRepo,
 		subjectRepo: subjectRepo,
 		mailService: mailService,
+		sms:         smsProvider,
 	}
 }
 
@@ -146,7 +153,7 @@ func (u *teacherUseCase) ActivatePortalAccess(ctx context.Context, id uuid.UUID)
 		return "", "", err
 	}
 
-	// 5. Send Activation Email
+	// 5. Send Activation Email & SMS
 	subject := "Welcome to your Teacher Portal"
 	body := fmt.Sprintf(`
 		<h2>Hello %s,</h2>
@@ -157,6 +164,14 @@ func (u *teacherUseCase) ActivatePortalAccess(ctx context.Context, id uuid.UUID)
 	`, string(teacher.FirstName), username, password)
 	
 	_ = u.mailService.SendBulkHTML(ctx, subject, body, []string{string(teacher.Email)})
+
+	if u.sms != nil && string(teacher.PhoneNumber) != "" {
+		phone := encryption.DeterministicDecryptedString(string(teacher.PhoneNumber))
+		smsMsg := fmt.Sprintf("Welcome to SchoolLinx! Your Teacher Portal access is active. Username: %s, Temp Password: %s. Please log in and change your password.", username, password)
+		go func(p string, msg string) {
+			_ = u.sms.SendSMS(context.Background(), domain.DefaultSMSSenderID, []string{p}, msg)
+		}(phone, smsMsg)
+	}
 
 	return username, password, nil
 }
@@ -197,6 +212,14 @@ func (u *teacherUseCase) ResetPassword(ctx context.Context, id uuid.UUID) (strin
 	`, string(teacher.FirstName), newPassword)
 
 	_ = u.mailService.SendBulkHTML(ctx, subject, body, []string{string(teacher.Email)})
+
+	if u.sms != nil && string(teacher.PhoneNumber) != "" {
+		phone := encryption.DeterministicDecryptedString(string(teacher.PhoneNumber))
+		smsMsg := fmt.Sprintf("SchoolLinx: Your Teacher Portal password has been reset. New Temp Password: %s. Please log in and change your password.", newPassword)
+		go func(p string, msg string) {
+			_ = u.sms.SendSMS(context.Background(), domain.DefaultSMSSenderID, []string{p}, msg)
+		}(phone, smsMsg)
+	}
 
 	return newPassword, nil
 }

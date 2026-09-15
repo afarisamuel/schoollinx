@@ -24,15 +24,21 @@ type guardianUseCase struct {
 	fiscalRepo   domain.FiscalRepository
 	userRepo     domain.UserRepository
 	mailService  mailer.MailService
+	sms          domain.SMSProvider
 }
 
-func NewGuardianUseCase(repo domain.GuardianRepository, studentRepo domain.StudentRepository, fiscalRepo domain.FiscalRepository, userRepo domain.UserRepository, mailService mailer.MailService) domain.GuardianUseCase {
+func NewGuardianUseCase(repo domain.GuardianRepository, studentRepo domain.StudentRepository, fiscalRepo domain.FiscalRepository, userRepo domain.UserRepository, mailService mailer.MailService, sms ...domain.SMSProvider) domain.GuardianUseCase {
+	var smsProvider domain.SMSProvider
+	if len(sms) > 0 {
+		smsProvider = sms[0]
+	}
 	return &guardianUseCase{
 		guardianRepo: repo,
 		studentRepo:  studentRepo,
 		fiscalRepo:   fiscalRepo,
 		userRepo:     userRepo,
 		mailService:  mailService,
+		sms:          smsProvider,
 	}
 }
 
@@ -128,6 +134,14 @@ func (u *guardianUseCase) CreateGuardian(ctx context.Context, guardian *domain.G
 			`, string(guardian.FirstName), identifier, tempPassword)
 			_ = u.mailService.SendBulkHTML(ctx, subject, body, []string{identifier})
 		}
+
+		if u.sms != nil && hasPhone && tempPassword != "" {
+			phone := encryption.DeterministicDecryptedString(string(guardian.PhoneNumber))
+			smsMsg := fmt.Sprintf("Welcome to SchoolLinx! Your Parent Portal account is active. Login: %s, Temp Password: %s. Please log in and update your password.", identifier, tempPassword)
+			go func(p string, msg string) {
+				_ = u.sms.SendSMS(context.Background(), domain.DefaultSMSSenderID, []string{p}, msg)
+			}(phone, smsMsg)
+		}
 	}
 
 	if err := u.guardianRepo.Create(ctx, guardian); err != nil {
@@ -195,6 +209,14 @@ func (u *guardianUseCase) ResetPassword(ctx context.Context, id uuid.UUID) (stri
 	`, string(guardian.FirstName), newPassword)
 
 	_ = u.mailService.SendBulkHTML(ctx, subject, body, []string{string(guardian.Email)})
+
+	if u.sms != nil && string(guardian.PhoneNumber) != "" {
+		phone := encryption.DeterministicDecryptedString(string(guardian.PhoneNumber))
+		smsMsg := fmt.Sprintf("SchoolLinx: Your Parent Portal password has been reset. New Temp Password: %s. Please log in and change your password.", newPassword)
+		go func(p string, msg string) {
+			_ = u.sms.SendSMS(context.Background(), domain.DefaultSMSSenderID, []string{p}, msg)
+		}(phone, smsMsg)
+	}
 
 	return newPassword, nil
 }

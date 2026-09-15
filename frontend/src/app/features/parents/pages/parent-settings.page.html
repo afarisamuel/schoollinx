@@ -1,214 +1,265 @@
-<div class="max-w-2xl mx-auto p-4 md:p-8 animate-fade-in pb-24 space-y-5">
-    <div class="mb-7">
-        <h1 class="text-3xl font-black text-blue-400 mb-1">Settings</h1>
-        <p class="text-text-muted text-sm">Manage your guardian profile, preferences, and emergency contacts.</p>
+<div class="max-w-[1600px] w-full mx-auto animate-fade-in pb-16 px-4 sm:px-6 md:px-8 space-y-6 sm:space-y-8 relative overflow-hidden">
+
+    <!-- ── 0. AMBIENT BACKDROP LIGHTING ────────────────────────────── -->
+    <div class="absolute -top-10 left-1/4 w-96 h-96 max-w-full bg-slate-500/10 dark:bg-slate-600/15 rounded-full blur-3xl pointer-events-none -z-10"></div>
+    <div class="absolute top-72 right-10 w-96 h-96 max-w-full bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+
+    <!-- ── 1. Page Header (Parent Portal Settings) ─────────────────── -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2">
+        <div class="min-w-0">
+            <div class="flex items-center gap-2 text-xs font-bold text-text-muted mb-1.5 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-full bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                    Account &amp; Communication Preferences
+                </span>
+                <span class="text-text-muted/40">/</span>
+                <span class="text-text-muted">Parent Portal</span>
+                <span class="text-text-muted/40">/</span>
+                <span class="text-text-primary font-black">Preferences</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                <span>Account</span>
+                <span class="bg-gradient-to-r from-slate-600 via-blue-600 to-indigo-600 dark:from-slate-400 dark:via-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+                    &amp; Notification Settings
+                </span>
+            </h1>
+            <p class="text-xs sm:text-sm font-medium text-text-muted mt-1 max-w-3xl">
+                Manage your verified guardian identity, SMS and WhatsApp alert dispatches, multi-factor security, and linked scholars.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-wrap">
+            <a routerLink="/parents"
+               class="px-3.5 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shadow-xs cursor-pointer active:scale-95">
+                <i class="fas fa-arrow-left text-xs text-blue-500"></i>
+                <span>Overview</span>
+            </a>
+            <button (click)="toggleDark()"
+                    class="px-3.5 py-2.5 rounded-2xl bg-bg-secondary hover:bg-bg-tertiary text-text-primary border border-border-primary text-xs font-bold shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                <i class="fas" [ngClass]="isDark() ? 'fa-sun text-amber-500' : 'fa-moon text-blue-500'"></i>
+                <span>{{ isDark() ? 'Light Mode' : 'Dark Mode' }}</span>
+            </button>
+        </div>
     </div>
 
     @if (state.profile(); as p) {
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        <!-- Profile Card -->
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-base font-black text-text-primary flex items-center gap-2">
-                    <i class="fas fa-user-circle text-blue-400"></i> My Profile
-                </h3>
-                @if (!editMode()) {
-                    <button (click)="enterEdit(p)" class="px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-xl text-xs font-bold cursor-pointer flex items-center gap-1.5">
-                        <i class="fas fa-pencil text-[10px]"></i> Edit
-                    </button>
-                }
-            </div>
-            @if (!editMode()) {
-                <div class="space-y-3">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="p-3 bg-bg-tertiary rounded-xl border border-border-primary">
-                            <div class="text-[9px] font-bold text-text-muted uppercase tracking-wider mb-1">First Name</div>
-                            <div class="text-sm font-bold text-text-primary">{{ p.first_name }}</div>
+            <!-- ── Left Column (7 cols): Guardian Profile & Contact ── -->
+            <div class="lg:col-span-7 space-y-6">
+
+                <!-- Profile Card -->
+                <div class="p-6 md:p-7 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl shrink-0">
+                                <i class="fas fa-user-gear"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-base font-black text-text-primary">Guardian Profile Details</h2>
+                                <p class="text-xs text-text-muted">Primary contact and biometric information</p>
+                            </div>
                         </div>
-                        <div class="p-3 bg-bg-tertiary rounded-xl border border-border-primary">
-                            <div class="text-[9px] font-bold text-text-muted uppercase tracking-wider mb-1">Last Name</div>
-                            <div class="text-sm font-bold text-text-primary">{{ p.last_name }}</div>
-                        </div>
+
+                        @if (!editMode()) {
+                            <button (click)="enterEdit(p)"
+                                    class="px-3.5 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 rounded-2xl text-xs font-bold cursor-pointer flex items-center gap-1.5 transition-all">
+                                <i class="fas fa-pencil text-[10px]"></i>
+                                <span>Edit Profile</span>
+                            </button>
+                        }
                     </div>
-                    <div class="p-3 bg-bg-tertiary rounded-xl border border-border-primary">
-                        <div class="text-[9px] font-bold text-text-muted uppercase tracking-wider mb-1">Email</div>
-                        <div class="text-sm font-bold text-text-primary">{{ p.email || 'Not set' }}</div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="p-3 bg-bg-tertiary rounded-xl border border-border-primary">
-                            <div class="text-[9px] font-bold text-text-muted uppercase tracking-wider mb-1">Phone</div>
-                            <div class="text-sm font-bold text-text-primary">{{ p.phone_number }}</div>
+
+                    @if (!editMode()) {
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="p-4 bg-bg-tertiary/40 rounded-2xl border border-border-primary space-y-1">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Full Name</span>
+                                <div class="text-sm font-black text-text-primary">{{ p.first_name }} {{ p.last_name }}</div>
+                            </div>
+
+                            <div class="p-4 bg-bg-tertiary/40 rounded-2xl border border-border-primary space-y-1">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Relationship</span>
+                                <div class="text-sm font-black text-text-primary">{{ p.relationship || 'Guardian' }}</div>
+                            </div>
+
+                            <div class="p-4 bg-bg-tertiary/40 rounded-2xl border border-border-primary space-y-1">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Phone Number</span>
+                                <div class="text-sm font-black font-mono text-text-primary">{{ p.phone_number }}</div>
+                            </div>
+
+                            <div class="p-4 bg-bg-tertiary/40 rounded-2xl border border-border-primary space-y-1">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Email Address</span>
+                                <div class="text-sm font-bold text-text-primary truncate">{{ p.email || 'None on file' }}</div>
+                            </div>
+
+                            <div class="sm:col-span-2 p-4 bg-bg-tertiary/40 rounded-2xl border border-border-primary space-y-1">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Residential Address</span>
+                                <div class="text-sm font-medium text-text-primary">{{ p.address || 'Accra, Ghana' }}</div>
+                            </div>
                         </div>
-                        <div class="p-3 bg-bg-tertiary rounded-xl border border-border-primary">
-                            <div class="text-[9px] font-bold text-text-muted uppercase tracking-wider mb-1">Relationship</div>
-                            <div class="text-sm font-bold text-text-primary">{{ p.relationship }}</div>
-                        </div>
-                    </div>
-                    @if (p.address) {
-                        <div class="p-3 bg-bg-tertiary rounded-xl border border-border-primary">
-                            <div class="text-[9px] font-bold text-text-muted uppercase tracking-wider mb-1">Address</div>
-                            <div class="text-sm font-bold text-text-primary">{{ p.address }}</div>
+                    } @else {
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">First Name *</label>
+                                    <input type="text" [ngModel]="firstName()" (ngModelChange)="firstName.set($event)"
+                                           class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs font-bold text-text-primary focus:outline-none focus:border-blue-500" />
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Last Name *</label>
+                                    <input type="text" [ngModel]="lastName()" (ngModelChange)="lastName.set($event)"
+                                           class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs font-bold text-text-primary focus:outline-none focus:border-blue-500" />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Phone Number *</label>
+                                <input type="tel" [ngModel]="phone()" (ngModelChange)="phone.set($event)"
+                                       class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs font-bold text-text-primary font-mono focus:outline-none focus:border-blue-500" />
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1.5">Residential Address</label>
+                                <input type="text" [ngModel]="address()" (ngModelChange)="address.set($event)"
+                                       class="w-full px-4 py-2.5 bg-bg-tertiary border border-border-primary rounded-2xl text-xs font-bold text-text-primary focus:outline-none focus:border-blue-500" />
+                            </div>
+
+                            <div class="flex gap-2 pt-2">
+                                <button (click)="editMode.set(false)"
+                                        class="flex-1 py-3 bg-bg-tertiary border border-border-primary text-text-muted hover:text-text-primary rounded-2xl text-xs font-bold transition-all cursor-pointer">
+                                    Cancel
+                                </button>
+                                <button (click)="saveProfile()"
+                                        class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl text-xs transition-all cursor-pointer shadow-md shadow-blue-600/25">
+                                    Save Changes
+                                </button>
+                            </div>
                         </div>
                     }
                 </div>
-            } @else {
-                <div class="space-y-3">
-                    <div class="grid grid-cols-2 gap-3">
+
+                <!-- Linked Scholars List Card -->
+                <div class="p-6 md:p-7 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl shrink-0">
+                                <i class="fas fa-users-viewfinder"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-black text-text-primary">Linked Enrolled Scholars</h3>
+                                <p class="text-xs text-text-muted">Students attached to your guardianship account</p>
+                            </div>
+                        </div>
+                        <span class="text-xs font-bold text-text-muted px-3 py-1 rounded-xl bg-bg-tertiary border border-border-primary">
+                            {{ p.students?.length || 0 }} Wards
+                        </span>
+                    </div>
+
+                    <div class="space-y-2.5">
+                        @for (s of p.students || []; track s.id) {
+                            <div class="p-4 bg-bg-tertiary/40 border border-border-primary rounded-2xl flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center font-black text-xs shrink-0">
+                                        {{ s.first_name[0] }}
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-black text-text-primary">{{ s.first_name }} {{ s.last_name }}</div>
+                                        <div class="text-[11px] text-text-muted">Class: {{ s.class_name }} &bull; ID: {{ s.enrollment_num || 'Enrolled' }}</div>
+                                    </div>
+                                </div>
+                                <span class="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                                    ACTIVE
+                                </span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ── Right Column (5 cols): Notifications & Security ──── -->
+            <div class="lg:col-span-5 space-y-6">
+
+                <!-- Notifications Channels -->
+                <div class="p-6 md:p-7 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs space-y-5">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl shrink-0">
+                            <i class="fas fa-bell"></i>
+                        </div>
                         <div>
-                            <label class="block text-xs font-bold text-text-muted mb-1.5">First Name</label>
-                            <input type="text" [ngModel]="firstName()" (ngModelChange)="firstName.set($event)"
-                                   class="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500" />
+                            <h3 class="text-base font-black text-text-primary">Notification Channels</h3>
+                            <p class="text-xs text-text-muted">Instant alert delivery preferences</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="p-4 bg-bg-tertiary/40 border border-border-primary rounded-2xl flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-comment-sms text-blue-500 text-base"></i>
+                                <div>
+                                    <div class="text-xs font-black text-text-primary">Instant SMS Alerts</div>
+                                    <div class="text-[11px] text-text-muted">Absence, gate exit, and emergency notices</div>
+                                </div>
+                            </div>
+                            <input type="checkbox" [checked]="smsAlerts()" (change)="togglePreference('sms')"
+                                   class="w-5 h-5 accent-blue-600 rounded cursor-pointer" />
+                        </div>
+
+                        <div class="p-4 bg-bg-tertiary/40 border border-border-primary rounded-2xl flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <i class="fab fa-whatsapp text-emerald-500 text-lg"></i>
+                                <div>
+                                    <div class="text-xs font-black text-text-primary">WhatsApp Dispatches</div>
+                                    <div class="text-[11px] text-text-muted">Term report cards &amp; circular broadcasts</div>
+                                </div>
+                            </div>
+                            <input type="checkbox" [checked]="whatsappAlerts()" (change)="togglePreference('whatsapp')"
+                                   class="w-5 h-5 accent-emerald-600 rounded cursor-pointer" />
+                        </div>
+
+                        <div class="p-4 bg-bg-tertiary/40 border border-border-primary rounded-2xl flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-envelope text-purple-500 text-base"></i>
+                                <div>
+                                    <div class="text-xs font-black text-text-primary">Email Fee Receipts</div>
+                                    <div class="text-[11px] text-text-muted">Instant payment statements &amp; invoices</div>
+                                </div>
+                            </div>
+                            <input type="checkbox" [checked]="emailReceipts()" (change)="togglePreference('email')"
+                                   class="w-5 h-5 accent-purple-600 rounded cursor-pointer" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gate Clearance Security PIN -->
+                <div class="p-6 md:p-7 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs space-y-4">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0">
+                            <i class="fas fa-shield-halved"></i>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-text-muted mb-1.5">Last Name</label>
-                            <input type="text" [ngModel]="lastName()" (ngModelChange)="lastName.set($event)"
-                                   class="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500" />
+                            <h3 class="text-base font-black text-text-primary">Gate Clearance Security</h3>
+                            <p class="text-xs text-text-muted">Permanent identity release PIN</p>
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-text-muted mb-1.5">Phone</label>
-                        <input type="text" [ngModel]="phone()" (ngModelChange)="phone.set($event)"
-                               class="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500" />
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-text-muted mb-1.5">Address</label>
-                        <input type="text" [ngModel]="address()" (ngModelChange)="address.set($event)"
-                               class="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-xl text-sm text-text-primary focus:outline-none focus:border-blue-500" />
-                    </div>
-                    <div class="flex gap-2 pt-1">
-                        <button (click)="editMode.set(false)" class="flex-1 py-2.5 bg-bg-tertiary border border-border-primary text-text-secondary text-xs font-bold rounded-xl cursor-pointer">Cancel</button>
-                        <button (click)="saveProfile()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl cursor-pointer">Save Changes</button>
-                    </div>
-                </div>
-            }
-        </div>
 
-        <!-- Pickup Authorization -->
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5">
-            <h3 class="text-base font-black text-text-primary mb-3 flex items-center gap-2">
-                <i class="fas fa-shield-alt text-blue-400"></i> Pickup Authorization
-            </h3>
-            <div class="flex items-center justify-between p-4 bg-bg-tertiary rounded-xl border border-border-primary">
-                <div>
-                    <div class="text-xs text-text-muted mb-1">Gate Security Code</div>
-                    <div class="font-mono font-black text-xl text-blue-400 tracking-widest">{{ p.pickup_code || 'Not set' }}</div>
+                    <div class="p-4 bg-purple-500/10 border border-purple-500/20 rounded-2xl text-center space-y-1">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">Pickup Gate PIN</span>
+                        <div class="text-2xl font-black font-mono text-purple-600 dark:text-purple-400 tracking-widest">
+                            {{ p.pickup_code || 'GATE-PASS' }}
+                        </div>
+                        <p class="text-[11px] text-text-muted">Status: <strong class="text-emerald-600 dark:text-emerald-400 font-bold">Authorized for Scholar Release</strong></p>
+                    </div>
+
+                    <a routerLink="/parents/pickup"
+                       class="w-full py-3 bg-bg-tertiary hover:bg-bg-tertiary/80 border border-border-primary rounded-2xl text-xs font-bold text-text-primary transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fas fa-qrcode text-xs text-purple-500"></i>
+                        <span>Manage Pickup Pass &rarr;</span>
+                    </a>
                 </div>
-                <span class="px-2.5 py-1 text-[10px] font-bold rounded-lg border"
-                      [ngClass]="p.can_pickup ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'">
-                    {{ p.can_pickup ? 'Authorized' : 'Not Authorized' }}
-                </span>
+
             </div>
-        </div>
 
-        <!-- Emergency Contacts -->
-        @for (student of p.students || []; track student.id) {
-            @if (student.emergency_contact_name || student.emergency_contact_phone) {
-                <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5">
-                    <h3 class="text-base font-black text-text-primary mb-3 flex items-center gap-2">
-                        <i class="fas fa-phone-alt text-rose-400"></i> Emergency Contact — {{ student.first_name }}
-                    </h3>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="p-3 bg-bg-tertiary rounded-xl border border-border-primary">
-                            <div class="text-[9px] font-bold text-text-muted uppercase mb-1">Contact Name</div>
-                            <div class="text-sm font-bold text-text-primary">{{ student.emergency_contact_name || '—' }}</div>
-                        </div>
-                        <div class="p-3 bg-bg-tertiary rounded-xl border border-border-primary">
-                            <div class="text-[9px] font-bold text-text-muted uppercase mb-1">Phone</div>
-                            <div class="text-sm font-bold text-text-primary">{{ student.emergency_contact_phone || '—' }}</div>
-                        </div>
-                    </div>
-                </div>
-            }
-        }
-
-        <!-- Communication & Alerts Preferences -->
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5">
-            <h3 class="text-base font-black text-text-primary mb-4 flex items-center gap-2">
-                <i class="fas fa-bell text-amber-400"></i> Communication & Alerts
-            </h3>
-            <div class="space-y-3">
-                <div class="flex items-center justify-between p-3.5 bg-bg-tertiary rounded-xl border border-border-primary">
-                    <div>
-                        <div class="text-sm font-bold text-text-primary">Instant SMS Alerts</div>
-                        <div class="text-[10px] text-text-muted">Receive real-time SMS for attendance check-in, fee receipts & sickbay visits</div>
-                    </div>
-                    <button (click)="togglePreference('sms')" class="w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer relative"
-                            [ngClass]="smsAlerts() ? 'bg-blue-600' : 'bg-bg-primary border border-border-primary'">
-                        <div class="w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform duration-300"
-                             [ngClass]="smsAlerts() ? 'translate-x-6' : 'translate-x-0.5'"></div>
-                    </button>
-                </div>
-
-                <div class="flex items-center justify-between p-3.5 bg-bg-tertiary rounded-xl border border-border-primary">
-                    <div>
-                        <div class="text-sm font-bold text-text-primary">WhatsApp Official Updates</div>
-                        <div class="text-[10px] text-text-muted">Weekly homework digests and exam results dispatched directly to WhatsApp</div>
-                    </div>
-                    <button (click)="togglePreference('whatsapp')" class="w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer relative"
-                            [ngClass]="whatsappAlerts() ? 'bg-emerald-600' : 'bg-bg-primary border border-border-primary'">
-                        <div class="w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform duration-300"
-                             [ngClass]="whatsappAlerts() ? 'translate-x-6' : 'translate-x-0.5'"></div>
-                    </button>
-                </div>
-
-                <div class="flex items-center justify-between p-3.5 bg-bg-tertiary rounded-xl border border-border-primary">
-                    <div>
-                        <div class="text-sm font-bold text-text-primary">Email Invoices & Report Cards</div>
-                        <div class="text-[10px] text-text-muted">Digital PDF report cards and official tuition payment receipts via email</div>
-                    </div>
-                    <button (click)="togglePreference('email')" class="w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer relative"
-                            [ngClass]="emailReceipts() ? 'bg-blue-600' : 'bg-bg-primary border border-border-primary'">
-                        <div class="w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform duration-300"
-                             [ngClass]="emailReceipts() ? 'translate-x-6' : 'translate-x-0.5'"></div>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Security & Preferences -->
-        <div class="bg-bg-secondary border border-border-primary rounded-2xl p-5">
-            <h3 class="text-base font-black text-text-primary mb-4 flex items-center gap-2">
-                <i class="fas fa-sliders-h text-cyan-400"></i> System Preferences & Security
-            </h3>
-            <div class="space-y-3">
-                <!-- Two-Factor Authentication -->
-                <div class="flex items-center justify-between p-3.5 bg-bg-tertiary rounded-xl border border-border-primary">
-                    <div>
-                        <div class="text-sm font-bold text-text-primary">Two-Factor Authentication (2FA)</div>
-                        <div class="text-[10px] text-text-muted">Require SMS OTP verification when logging into new devices</div>
-                    </div>
-                    <button (click)="togglePreference('2fa')" class="w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer relative"
-                            [ngClass]="twoFactorAuth() ? 'bg-emerald-600' : 'bg-bg-primary border border-border-primary'">
-                        <div class="w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform duration-300"
-                             [ngClass]="twoFactorAuth() ? 'translate-x-6' : 'translate-x-0.5'"></div>
-                    </button>
-                </div>
-
-                <!-- Dark Mode -->
-                <div class="flex items-center justify-between p-3.5 bg-bg-tertiary rounded-xl border border-border-primary">
-                    <div>
-                        <div class="text-sm font-bold text-text-primary">Dark Mode</div>
-                        <div class="text-[10px] text-text-muted">Toggle dark/light appearance</div>
-                    </div>
-                    <button (click)="toggleDark()" class="w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer relative"
-                            [ngClass]="isDark() ? 'bg-blue-600' : 'bg-bg-primary border border-border-primary'">
-                        <div class="w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform duration-300"
-                             [ngClass]="isDark() ? 'translate-x-6' : 'translate-x-0.5'"></div>
-                    </button>
-                </div>
-
-                <!-- Print -->
-                <button (click)="print()" class="w-full flex items-center justify-between p-3.5 bg-bg-tertiary hover:bg-bg-primary rounded-xl border border-border-primary cursor-pointer transition-all">
-                    <div class="flex items-center gap-3">
-                        <i class="fas fa-print text-blue-400"></i>
-                        <div class="text-left">
-                            <div class="text-sm font-bold text-text-primary">Print Portal Summary</div>
-                            <div class="text-[10px] text-text-muted">Export all ward info as a printable page</div>
-                        </div>
-                    </div>
-                    <i class="fas fa-chevron-right text-text-muted text-xs"></i>
-                </button>
-            </div>
         </div>
     }
 </div>

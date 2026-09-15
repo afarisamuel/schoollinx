@@ -910,20 +910,8 @@ func (h *AuthHandler) RequestOTP(c *gin.Context) {
 		return
 	}
 
-	// Dispatch SMS using tenant custom approved sender ID (or default SCHOOLLINX)
+	// System Authentication: Always dispatch Login OTP using the default system sender ID (SCHOOLLINX)
 	senderID := domain.DefaultSMSSenderID
-	if tenantID, exists := c.Get("tenantID"); exists {
-		if tUUID, ok := tenantID.(uuid.UUID); ok && tUUID != uuid.Nil {
-			var t domain.Tenant
-			if err := h.db.Table("public.tenants").Where("id = ?", tUUID).First(&t).Error; err == nil {
-				if t.SMSSenderID != "" && (t.SMSSenderIDStatus == string(domain.SenderIDStatusApproved) || t.SMSSenderIDStatus == "APPROVED") {
-					senderID = t.SMSSenderID
-				} else if t.SMSSenderID != "" {
-					senderID = t.SMSSenderID
-				}
-			}
-		}
-	}
 
 	smsMessage := fmt.Sprintf("Your School Linx verification code is: %s. Valid for 10 minutes. Do not share this code.", otp)
 	recipient := strings.TrimSpace(matchedPhone)
