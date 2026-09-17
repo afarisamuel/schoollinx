@@ -108,8 +108,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Attendance Tracker',
           route: '/teachers/attendance',
-          color: '#10B981',
-          gradient: 'from-emerald-500/20 to-teal-500/10',
+          color: '#10B981', gradient:'',
           iconClass: 'fas fa-clipboard-user',
           roles: ['ADMIN', 'TEACHER'],
           category: 'Instructional Operations',
@@ -120,8 +119,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Classroom Grading',
           route: '/teachers/grading',
-          color: '#F59E0B',
-          gradient: 'from-amber-500/20 to-orange-500/10',
+          color: '#F59E0B', gradient:'',
           iconClass: 'fas fa-award',
           roles: ['ADMIN', 'TEACHER'],
           category: 'Instructional Operations',
@@ -131,8 +129,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Homework Assignments',
           route: '/teachers/homework',
-          color: '#6366F1',
-          gradient: 'from-indigo-500/20 to-blue-500/10',
+          color: '#6366F1', gradient:'',
           iconClass: 'fas fa-book-open-reader',
           roles: ['ADMIN', 'TEACHER'],
           category: 'Instructional Operations',
@@ -142,8 +139,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Academic Periods',
           route: '/academic-periods',
-          color: '#3B82F6',
-          gradient: 'from-blue-500/20 to-cyan-500/10',
+          color: '#3B82F6', gradient:'',
           iconClass: 'fas fa-calendar-check',
           roles: ['ADMIN'],
           category: 'Curriculum & Governance',
@@ -153,8 +149,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Scholastic Levels',
           route: '/scholastic-levels',
-          color: '#06B6D4',
-          gradient: 'from-cyan-500/20 to-teal-500/10',
+          color: '#06B6D4', gradient:'',
           iconClass: 'fas fa-layer-group',
           roles: ['ADMIN'],
           category: 'Curriculum & Governance',
@@ -164,8 +159,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Classes & Streams',
           route: '/classes',
-          color: '#EC4899',
-          gradient: 'from-pink-500/20 to-rose-500/10',
+          color: '#EC4899', gradient:'',
           iconClass: 'fas fa-chalkboard-user',
           roles: ['ADMIN'],
           category: 'Curriculum & Governance',
@@ -175,8 +169,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Course Catalog & Subjects',
           route: '/subjects',
-          color: '#14B8A6',
-          gradient: 'from-teal-500/20 to-emerald-500/10',
+          color: '#14B8A6', gradient:'',
           iconClass: 'fas fa-book-bookmark',
           roles: ['ADMIN'],
           category: 'Curriculum & Governance',
@@ -186,8 +179,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Faculty Timetable',
           route: '/timetable',
-          color: '#8B5CF6',
-          gradient: 'from-purple-500/20 to-indigo-500/10',
+          color: '#8B5CF6', gradient:'',
           iconClass: 'fas fa-calendar-days',
           roles: ['TEACHER', 'STUDENT'],
           category: 'Instructional Operations',
@@ -197,8 +189,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Timetable Manager',
           route: '/timetable/manage',
-          color: '#4F46E5',
-          gradient: 'from-indigo-600/20 to-blue-500/10',
+          color: '#4F46E5', gradient:'',
           iconClass: 'fas fa-table-cells-large',
           roles: ['ADMIN'],
           category: 'Scheduling & Exams',
@@ -208,8 +199,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Exam Scheduler',
           route: '/timetable/exams',
-          color: '#9333EA',
-          gradient: 'from-purple-600/20 to-pink-500/10',
+          color: '#9333EA', gradient:'',
           iconClass: 'fas fa-stopwatch-20',
           roles: ['ADMIN'],
           category: 'Scheduling & Exams',
@@ -219,8 +209,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Exam Management',
           route: '/exams',
-          color: '#D946EF',
-          gradient: 'from-fuchsia-500/20 to-purple-500/10',
+          color: '#D946EF', gradient:'',
           iconClass: 'fas fa-file-signature',
           roles: ['ADMIN', 'TEACHER'],
           category: 'Scheduling & Exams',
@@ -231,8 +220,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Academic Assignments',
           route: '/academic-assignment',
-          color: '#64748B',
-          gradient: 'from-slate-500/20 to-gray-500/10',
+          color: '#64748B', gradient:'',
           iconClass: 'fas fa-diagram-project',
           roles: ['ADMIN'],
           category: 'Curriculum & Governance',
@@ -242,8 +230,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Learning Path',
           route: '/portal/learning-path',
-          color: '#0284C7',
-          gradient: 'from-sky-500/20 to-blue-500/10',
+          color: '#0284C7', gradient:'',
           iconClass: 'fas fa-compass',
           roles: ['STUDENT'],
           category: 'Student Pathways',
@@ -253,8 +240,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'My Homework',
           route: '/portal/homework',
-          color: '#059669',
-          gradient: 'from-emerald-600/20 to-teal-500/10',
+          color: '#059669', gradient:'',
           iconClass: 'fas fa-pencil-ruler',
           roles: ['STUDENT'],
           category: 'Student Pathways',
@@ -273,8 +259,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Advanced Analytics',
           route: '/analytics',
-          color: '#10B981',
-          gradient: 'from-emerald-500/20 to-teal-500/10',
+          color: '#10B981', gradient:'',
           iconClass: 'fas fa-chart-pie',
           roles: ['ADMIN'],
           category: 'Intelligence & Control',
@@ -285,8 +270,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Student Welfare',
           route: '/welfare',
-          color: '#E11D48',
-          gradient: 'from-rose-500/20 to-red-500/10',
+          color: '#E11D48', gradient:'',
           iconClass: 'fas fa-heart-pulse',
           roles: ['ADMIN'],
           category: 'Student Services',
@@ -297,8 +281,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Logistics Hub',
           route: '/logistics',
-          color: '#F97316',
-          gradient: 'from-orange-500/20 to-amber-500/10',
+          color: '#F97316', gradient:'',
           iconClass: 'fas fa-truck-ramp-box',
           roles: ['ADMIN'],
           category: 'Facilities & Logistics',
@@ -308,8 +291,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Facility Center',
           route: '/facility',
-          color: '#14B8A6',
-          gradient: 'from-teal-500/20 to-emerald-500/10',
+          color: '#14B8A6', gradient:'',
           iconClass: 'fas fa-building-columns',
           roles: ['ADMIN'],
           category: 'Facilities & Logistics',
@@ -319,8 +301,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Faculty Staff Registry',
           route: '/teachers',
-          color: '#8B5CF6',
-          gradient: 'from-purple-500/20 to-indigo-500/10',
+          color: '#8B5CF6', gradient:'',
           iconClass: 'fas fa-users-gear',
           roles: ['ADMIN'],
           category: 'Staff & Personnel',
@@ -330,8 +311,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Teacher Assignments',
           route: '/teachers/assignments',
-          color: '#3B82F6',
-          gradient: 'from-blue-500/20 to-cyan-500/10',
+          color: '#3B82F6', gradient:'',
           iconClass: 'fas fa-user-check',
           roles: ['ADMIN'],
           category: 'Staff & Personnel',
@@ -341,8 +321,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Academic Assignments',
           route: '/academic-assignment',
-          color: '#64748B',
-          gradient: 'from-slate-500/20 to-gray-500/10',
+          color: '#64748B', gradient:'',
           iconClass: 'fas fa-diagram-project',
           roles: ['ADMIN'],
           category: 'Staff & Personnel',
@@ -352,8 +331,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Student Enrollment Studio',
           route: '/student-enrollment',
-          color: '#10B981',
-          gradient: 'from-emerald-500/20 to-teal-500/10',
+          color: '#10B981', gradient:'',
           iconClass: 'fas fa-user-plus',
           roles: ['ADMIN'],
           category: 'Student Services',
@@ -364,8 +342,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Promotion Manager',
           route: '/promotion-manager',
-          color: '#0284C7',
-          gradient: 'from-sky-500/20 to-blue-500/10',
+          color: '#0284C7', gradient:'',
           iconClass: 'fas fa-arrow-up-right-dots',
           roles: ['ADMIN'],
           category: 'Student Services',
@@ -375,8 +352,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Financial Ledger',
           route: '/fiscal',
-          color: '#059669',
-          gradient: 'from-emerald-600/20 to-green-500/10',
+          color: '#059669', gradient:'',
           iconClass: 'fas fa-file-invoice-dollar',
           roles: ['ADMIN'],
           category: 'Fiscal & Commerce',
@@ -386,8 +362,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Academic Departments',
           route: '/department-management',
-          color: '#C026D3',
-          gradient: 'from-fuchsia-600/20 to-pink-500/10',
+          color: '#C026D3', gradient:'',
           iconClass: 'fas fa-sitemap',
           roles: ['ADMIN'],
           category: 'Staff & Personnel',
@@ -397,8 +372,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Course Catalog',
           route: '/subjects',
-          color: '#06B6D4',
-          gradient: 'from-cyan-500/20 to-teal-500/10',
+          color: '#06B6D4', gradient:'',
           iconClass: 'fas fa-book-open',
           roles: ['ADMIN'],
           category: 'Curriculum',
@@ -408,8 +382,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Digital Wallet & POS',
           route: '/fiscal/wallet',
-          color: '#10B981',
-          gradient: 'from-emerald-500/20 to-teal-500/10',
+          color: '#10B981', gradient:'',
           iconClass: 'fas fa-wallet',
           roles: ['ADMIN', 'TEACHER'],
           category: 'Fiscal & Commerce',
@@ -429,8 +402,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Communications Hub',
           route: '/communications/hub',
-          color: '#0284C7',
-          gradient: 'from-sky-500/20 to-blue-500/10',
+          color: '#0284C7', gradient:'',
           iconClass: 'fas fa-bullhorn',
           roles: ['ADMIN'],
           category: 'Broadcasts & Messaging',
@@ -441,8 +413,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Messaging Center',
           route: '/communications/messages',
-          color: '#2563EB',
-          gradient: 'from-blue-600/20 to-indigo-500/10',
+          color: '#2563EB', gradient:'',
           iconClass: 'fas fa-comments',
           roles: [],
           category: 'Broadcasts & Messaging',
@@ -453,8 +424,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Digital Library',
           route: '/library',
-          color: '#9333EA',
-          gradient: 'from-purple-500/20 to-pink-500/10',
+          color: '#9333EA', gradient:'',
           iconClass: 'fas fa-book',
           roles: [],
           category: 'Learning Resources',
@@ -464,8 +434,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Library Management',
           route: '/library-hub',
-          color: '#7C3AED',
-          gradient: 'from-violet-600/20 to-purple-500/10',
+          color: '#7C3AED', gradient:'',
           iconClass: 'fas fa-book-journal-whills',
           roles: ['ADMIN', 'LIBRARIAN'],
           category: 'Learning Resources',
@@ -475,8 +444,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Cloud Resources',
           route: '/resources',
-          color: '#14B8A6',
-          gradient: 'from-teal-500/20 to-cyan-500/10',
+          color: '#14B8A6', gradient:'',
           iconClass: 'fas fa-cloud-arrow-up',
           roles: [],
           category: 'Learning Resources',
@@ -486,8 +454,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Student Organizations & Clubs',
           route: '/clubs',
-          color: '#EA580C',
-          gradient: 'from-orange-500/20 to-amber-500/10',
+          color: '#EA580C', gradient:'',
           iconClass: 'fas fa-people-group',
           roles: [],
           category: 'Campus Life',
@@ -498,8 +465,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Alumni Network',
           route: '/alumni',
-          color: '#475569',
-          gradient: 'from-slate-600/20 to-gray-500/10',
+          color: '#475569', gradient:'',
           iconClass: 'fas fa-user-graduate',
           roles: ['ADMIN', 'TEACHER'],
           category: 'Campus Life',
@@ -509,8 +475,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Parent Portal',
           route: '/parents',
-          color: '#0D9488',
-          gradient: 'from-teal-600/20 to-emerald-500/10',
+          color: '#0D9488', gradient:'',
           iconClass: 'fas fa-house-chimney-user',
           roles: ['PARENT', 'ADMIN'],
           category: 'Family Engagement',
@@ -520,8 +485,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'House Points & Championship',
           route: '/house-points',
-          color: '#EAB308',
-          gradient: 'from-yellow-500/20 to-amber-500/10',
+          color: '#EAB308', gradient:'',
           iconClass: 'fas fa-trophy',
           roles: [],
           category: 'Campus Life',
@@ -532,8 +496,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Parent Newsletters',
           route: '/communications/newsletter',
-          color: '#0284C7',
-          gradient: 'from-sky-500/20 to-blue-500/10',
+          color: '#0284C7', gradient:'',
           iconClass: 'fas fa-envelope-open-text',
           roles: ['ADMIN'],
           category: 'Broadcasts & Messaging',
@@ -552,8 +515,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Academic Periods',
           route: '/academic-periods',
-          color: '#3B82F6',
-          gradient: 'from-blue-500/20 to-indigo-500/10',
+          color: '#3B82F6', gradient:'',
           iconClass: 'fas fa-calendar-check',
           roles: ['ADMIN'],
           category: 'Core Setup',
@@ -564,8 +526,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Scholastic Levels',
           route: '/scholastic-levels',
-          color: '#06B6D4',
-          gradient: 'from-cyan-500/20 to-teal-500/10',
+          color: '#06B6D4', gradient:'',
           iconClass: 'fas fa-layer-group',
           roles: ['ADMIN'],
           category: 'Core Setup',
@@ -575,8 +536,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Role & Permissions Matrix',
           route: '/role-management',
-          color: '#7C3AED',
-          gradient: 'from-violet-500/20 to-purple-500/10',
+          color: '#7C3AED', gradient:'',
           iconClass: 'fas fa-shield-halved',
           roles: ['ADMIN', 'ECOPOWER_ADMIN'],
           category: 'Access & Security',
@@ -587,8 +547,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Audit Logs',
           route: '/audit-logs',
-          color: '#475569',
-          gradient: 'from-slate-600/20 to-gray-500/10',
+          color: '#475569', gradient:'',
           iconClass: 'fas fa-clipboard-list',
           roles: ['ADMIN'],
           category: 'Access & Security',
@@ -598,8 +557,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Super Admin Console',
           route: '/super-admin',
-          color: '#E11D48',
-          gradient: 'from-rose-500/20 to-red-500/10',
+          color: '#E11D48', gradient:'',
           iconClass: 'fas fa-crown',
           roles: ['ECOPOWER_ADMIN'],
           category: 'Global Master',
@@ -610,8 +568,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Department Management',
           route: '/department-management',
-          color: '#C026D3',
-          gradient: 'from-fuchsia-600/20 to-pink-500/10',
+          color: '#C026D3', gradient:'',
           iconClass: 'fas fa-sitemap',
           roles: ['ADMIN'],
           category: 'Core Setup',
@@ -621,8 +578,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Class Management',
           route: '/classes',
-          color: '#0284C7',
-          gradient: 'from-sky-500/20 to-blue-500/10',
+          color: '#0284C7', gradient:'',
           iconClass: 'fas fa-chalkboard-user',
           roles: ['ADMIN'],
           category: 'Core Setup',
@@ -632,8 +588,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Course & Subject Settings',
           route: '/subjects',
-          color: '#10B981',
-          gradient: 'from-emerald-500/20 to-teal-500/10',
+          color: '#10B981', gradient:'',
           iconClass: 'fas fa-book-bookmark',
           roles: ['ADMIN'],
           category: 'Core Setup',
@@ -644,8 +599,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'My Account & Security',
           route: '/profile',
-          color: '#14B8A6',
-          gradient: 'from-teal-500/20 to-cyan-500/10',
+          color: '#14B8A6', gradient:'',
           iconClass: 'fas fa-user-gear',
           roles: [],
           category: 'User Preferences',
@@ -655,8 +609,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Fee Structures & Tariffs',
           route: '/fiscal/fees',
-          color: '#0D9488',
-          gradient: 'from-teal-600/20 to-emerald-500/10',
+          color: '#0D9488', gradient:'',
           iconClass: 'fas fa-file-invoice-dollar',
           roles: ['ADMIN'],
           category: 'Financial Settings',
@@ -666,8 +619,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Department Budget Config',
           route: '/fiscal/budget',
-          color: '#F97316',
-          gradient: 'from-orange-500/20 to-amber-500/10',
+          color: '#F97316', gradient:'',
           iconClass: 'fas fa-scale-balanced',
           roles: ['ADMIN'],
           category: 'Financial Settings',
@@ -678,8 +630,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Campus Rooms & Venues',
           route: '/facility/rooms',
-          color: '#0284C7',
-          gradient: 'from-sky-500/20 to-blue-500/10',
+          color: '#0284C7', gradient:'',
           iconClass: 'fas fa-door-open',
           roles: ['ADMIN'],
           category: 'Facility Settings',
@@ -689,8 +640,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Campus Asset Management',
           route: '/facility/assets',
-          color: '#8B5CF6',
-          gradient: 'from-purple-500/20 to-indigo-500/10',
+          color: '#8B5CF6', gradient:'',
           iconClass: 'fas fa-boxes-stacked',
           roles: ['ADMIN'],
           category: 'Facility Settings',
@@ -700,8 +650,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'HR Policies & Staffing',
           route: '/hr',
-          color: '#10B981',
-          gradient: 'from-emerald-500/20 to-teal-500/10',
+          color: '#10B981', gradient:'',
           iconClass: 'fas fa-id-card-clip',
           roles: ['ADMIN'],
           category: 'Staff & Personnel',
@@ -712,8 +661,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Logistics & Transit Settings',
           route: '/logistics',
-          color: '#F97316',
-          gradient: 'from-orange-500/20 to-amber-500/10',
+          color: '#F97316', gradient:'',
           iconClass: 'fas fa-bus-simple',
           roles: ['ADMIN'],
           category: 'Facility Settings',
@@ -723,8 +671,7 @@ export class HubPageComponent implements OnInit {
         {
           label: 'Biometric Gateway Setup',
           route: '/biometrics',
-          color: '#0D9488',
-          gradient: 'from-teal-600/20 to-emerald-500/10',
+          color: '#0D9488', gradient:'',
           iconClass: 'fas fa-fingerprint',
           roles: ['ADMIN'],
           category: 'Access & Security',

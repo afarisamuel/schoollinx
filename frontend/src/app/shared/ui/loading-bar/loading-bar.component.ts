@@ -6,22 +6,7 @@ import { LoadingService } from '../../../core/services/loading.service';
   selector: 'app-loading-bar',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    @if (loadingService.isLoading()) {
-      <!-- Top Glowing Indeterminate Progress Line -->
-      <div class="fixed top-0 left-0 right-0 h-[3px] z-[99999] overflow-hidden pointer-events-none bg-blue-950/20">
-        <div class="loading-bar-inner h-full w-full"></div>
-      </div>
-
-      <!-- Subtle Floating Sync Indicator -->
-      @if (showPill()) {
-        <div class="fixed bottom-5 right-5 z-[99999] flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-bg-secondary/90 border border-border-primary backdrop-blur-xl shadow-2xl animate-fade-in pointer-events-none transition-all duration-300">
-          <div class="w-3.5 h-3.5 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
-          <span class="text-[11px] font-bold text-text-primary tracking-wide">Syncing data...</span>
-        </div>
-      }
-    }
-  `,
+  template: `@if (loadingService.isLoading()) { <div class="fixed top-0 left-0 right-0 h-[3px] z-[99999] overflow-hidden pointer-events-none bg-blue-950/20"> <div class="loading-bar-inner h-full w-full"></div> </div> <!-- Subtle Floating Sync Indicator --> @if (showPill()) { <div class="fixed bottom-5 right-5 z-[99999] flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-bg-secondary/90 border border-border-primary backdrop-blur-xl shadow-2xl animate-fade-in pointer-events-none transition-all duration-300"> <div class="w-3.5 h-3.5 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div> <span class="text-[11px] font-bold text-text-primary tracking-wide">Syncing data...</span> </div> } }`,
   styles: [`
     @keyframes loadingSlide {
       0% {

@@ -213,7 +213,7 @@ export class BatchIdCardModalComponent {
       const back = `
         <div class="card-box cr80-card">
           <div class="card-inner back-layout" style="position:relative; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:8px 11px; background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;">
-            <div style="position:absolute; top:0; left:0; right:0; height:3.5px; background:${theme.gradient};"></div>
+            <div style="position:absolute; top:0; left:0; right:0; height:3.5px; background:${theme.primary};"></div>
             
             <!-- Terms & Regulation -->
             <div style="display:flex; flex-direction:column; gap:2.5px; padding-top:2px;">
@@ -257,7 +257,7 @@ export class BatchIdCardModalComponent {
               </div>
             </div>
 
-            <div style="position:absolute; bottom:0; left:0; right:0; height:2.5px; background:${theme.gradient};"></div>
+            <div style="position:absolute; bottom:0; left:0; right:0; height:2.5px; background:${theme.primary};"></div>
           </div>
         </div>
       `;

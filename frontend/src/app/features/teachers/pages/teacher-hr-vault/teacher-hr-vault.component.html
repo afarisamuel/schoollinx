@@ -1,16 +1,13 @@
 <div class="space-y-6 sm:space-y-8 max-w-7xl mx-auto animate-fade-in relative">
   <!-- Ambient Background Lighting Cones -->
-  <div class="absolute -top-12 left-1/4 w-96 h-96 bg-emerald-500/10 dark:bg-emerald-500/15 rounded-full blur-3xl pointer-events-none -z-10"></div>
-  <div class="absolute -top-12 right-1/4 w-96 h-96 bg-blue-500/10 dark:bg-blue-500/15 rounded-full blur-3xl pointer-events-none -z-10"></div>
-
-  <!-- Executive Hero Command Deck -->
+<!-- Executive Hero Command Deck -->
   <div class="relative overflow-hidden bg-bg-secondary/90 dark:bg-bg-secondary/80 backdrop-blur-xl border border-border-primary rounded-3xl p-6 sm:p-8 shadow-xl hover:shadow-2xl transition-all duration-300">
-    <div class="absolute -right-16 -top-16 w-64 h-64 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent rounded-full blur-2xl pointer-events-none"></div>
+    <div class="absolute -right-16 -top-16 w-64 h-64 rounded-full blur-2xl pointer-events-none"></div>
 
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 relative z-10">
       <!-- Title & Context -->
       <div class="flex items-start gap-4 sm:gap-5">
-        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-600 text-white flex items-center justify-center font-black text-xl sm:text-2xl shadow-lg shadow-emerald-600/25 shrink-0 border border-white/10">
+        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl text-white flex items-center justify-center font-black text-xl sm:text-2xl shadow-lg shrink-0 border border-white/10">
           @if (teacher()) {
             {{ teacher().first_name.substring(0,1) }}{{ teacher().last_name.substring(0,1) }}
           } @else {
@@ -49,7 +46,7 @@
       <!-- Action Cluster -->
       <div class="flex items-center gap-3 flex-wrap">
         <button (click)="isLeaveModalOpen.set(true)"
-                class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg shadow-emerald-600/25 transition-all flex items-center gap-2 cursor-pointer">
+                class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer">
           <i class="fas fa-plus"></i> Request Leave
         </button>
 
@@ -98,7 +95,7 @@
         {{ totalAvailableLeave() }} <span class="text-xs text-text-muted font-bold">Days Left</span>
       </div>
       <div class="mt-2 w-full bg-bg-tertiary h-2 rounded-full overflow-hidden">
-        <div class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full transition-all duration-500" [style.width.%]="leaveProgressPercent()"></div>
+        <div class="h-full transition-all duration-500" [style.width.%]="leaveProgressPercent()"></div>
       </div>
       <div class="mt-1.5 text-[10px] font-bold text-text-muted">
         @if (totalAllocatedLeave() > 0) {
@@ -265,7 +262,7 @@
                   {{ quota.allocated - quota.used }} <span class="text-[10px] text-text-muted font-bold">/ {{ quota.allocated }} Days</span>
                 </div>
                 <div class="mt-2.5 w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden">
-                  <div class="bg-gradient-to-r h-full transition-all duration-500" [class]="quota.color" [style.width.%]="quota.allocated > 0 ? ((quota.allocated - quota.used) / quota.allocated) * 100 : 0"></div>
+                  <div class="h-full transition-all duration-500" [class]="quota.color" [style.width.%]="quota.allocated > 0 ? ((quota.allocated - quota.used) / quota.allocated) * 100 : 0"></div>
                 </div>
                 <div class="mt-1.5 text-[9px] font-bold text-text-muted flex justify-between">
                   <span>{{ quota.used }} used</span>
@@ -411,7 +408,7 @@
                 {{ quota.allocated - quota.used }} <span class="text-[10px] text-text-muted font-bold">/ {{ quota.allocated }} Days</span>
               </div>
               <div class="mt-2.5 w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden">
-                <div class="bg-gradient-to-r h-full transition-all duration-500" [class]="quota.color" [style.width.%]="quota.allocated > 0 ? ((quota.allocated - quota.used) / quota.allocated) * 100 : 0"></div>
+                <div class="h-full transition-all duration-500" [class]="quota.color" [style.width.%]="quota.allocated > 0 ? ((quota.allocated - quota.used) / quota.allocated) * 100 : 0"></div>
               </div>
             </div>
           }
@@ -426,7 +423,7 @@
             <p class="text-xs text-text-muted">History of formal leave requests submitted to Administration.</p>
           </div>
           <button (click)="isLeaveModalOpen.set(true)"
-                  class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-emerald-600/20">
+                  class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg">
             <i class="fas fa-plus"></i> New Leave Application
           </button>
         </div>
@@ -518,7 +515,7 @@
   @if (activeTab() === 'payslips') {
     <div class="space-y-8">
       <!-- Year to Date (YTD) Summary Card -->
-      <div class="bg-gradient-to-r from-bg-secondary/90 via-bg-secondary/70 to-bg-secondary/90 border border-border-primary rounded-3xl p-6 sm:p-8 shadow-xl backdrop-blur-md">
+      <div class="from-bg-secondary/90 via-bg-secondary/70 to-bg-secondary/90 border border-border-primary rounded-3xl p-6 sm:p-8 shadow-xl backdrop-blur-md">
         <div class="flex items-center justify-between pb-4 mb-6 border-b border-border-primary flex-wrap gap-4">
           <div class="flex items-center gap-3">
             <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xl">
@@ -625,7 +622,7 @@
 
                 <div class="pt-3 border-t border-border-primary flex items-center gap-2">
                   <button (click)="viewPayslipModal(slip)"
-                          class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-emerald-600/20">
+                          class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md">
                     <i class="fas fa-eye text-xs"></i> View Payslip
                   </button>
                   <button (click)="viewPayslipModal(slip); printPayslip()"
@@ -775,7 +772,7 @@
             Cancel
           </button>
           <button (click)="submitLeave()" [disabled]="isSubmittingLeave()"
-                  class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-emerald-600/25 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2">
+                  class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all shadow-lg cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2">
             @if (isSubmittingLeave()) {
               <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Submitting...
             } @else {
@@ -927,7 +924,7 @@
               Close
             </button>
             <button (click)="printPayslip()"
-                    class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-md shadow-emerald-600/20">
+                    class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-md">
               <i class="fas fa-print"></i> Print Statement
             </button>
           </div>

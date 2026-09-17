@@ -27,6 +27,6 @@ export class PageHeroComponent {
     const c55 = c.replace(/[\d.]+\)$/, '0.55)');
     const c15 = c.replace(/[\d.]+\)$/, '0.15)');
     const c75 = c.replace(/[\d.]+\)$/, '0.75)');
-    return `linear-gradient(to right, ${c} 0%, ${c55} 55%, ${c15} 100%), linear-gradient(to top, ${c75} 0%, transparent 55%)`;
+    return c;
   }
 }

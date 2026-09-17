@@ -22,17 +22,7 @@ interface InvoiceDetails {
 }
 
 @Component({
-  selector: 'app-one-click-checkout',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, CurrencyPipe, DatePipe],
-  template: `
-    <div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100 flex flex-col justify-between p-4 sm:p-6 lg:p-12 font-sans selection:bg-indigo-500 selection:text-white">
-      
-      <!-- Top Brand Header -->
-      <header class="max-w-4xl w-full mx-auto flex items-center justify-between py-4 border-b border-white/10 mb-8">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-emerald-400 flex items-center justify-center font-black text-white shadow-lg shadow-indigo-500/20 text-lg">
-            {{ (invoice()?.school_name?.[0] || 'S') }}
+  selector: 'app-one-click-checkout', standalone: true, imports: [CommonModule, FormsModule, RouterModule, CurrencyPipe, DatePipe], template: ` <div class="min-h-screen text-slate-100 flex flex-col justify-between p-4 sm:p-6 lg:p-12 font-sans selection:bg-indigo-500 selection:text-white"> <!-- Top Brand Header --> <header class="max-w-4xl w-full mx-auto flex items-center justify-between py-4 border-b border-white/10 mb-8"> <div class="flex items-center gap-3"> <div class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-white shadow-lg text-lg"> {{ (invoice()?.school_name?.[0] ||'S') }}
           </div>
           <div>
             <h1 class="font-bold text-lg text-white leading-tight">{{ invoice()?.school_name || 'SchoolLinx Portal' }}</h1>
@@ -145,47 +135,7 @@ interface InvoiceDetails {
             </div>
             <div class="flex justify-between" *ngIf="invoice()?.due_date">
               <span>Due Date:</span>
-              <span class="text-amber-400 font-medium">{{ invoice()?.due_date | date:'mediumDate' }}</span>
-            </div>
-          </div>
-
-          <!-- Payment Form -->
-          <form (ngSubmit)="initiatePayment()" class="space-y-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Amount to Pay (GHS)
-              </label>
-              <div class="relative">
-                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">₵</span>
-                <input type="number" 
-                       [(ngModel)]="paymentAmount" 
-                       name="paymentAmount" 
-                       [max]="invoice()?.balance || 99999"
-                       min="1"
-                       step="0.01"
-                       required
-                       class="w-full bg-slate-950/80 border border-white/10 rounded-xl py-3 pl-9 pr-4 text-white font-bold text-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all">
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Email for Receipt
-              </label>
-              <input type="email" 
-                     [(ngModel)]="payerEmail" 
-                     name="payerEmail" 
-                     placeholder="parent@example.com"
-                     required
-                     class="w-full bg-slate-950/80 border border-white/10 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all">
-            </div>
-
-            <!-- Submit Button -->
-            <button type="submit" 
-                    [disabled]="isSubmitting() || paymentAmount <= 0"
-                    class="w-full mt-2 py-4 bg-gradient-to-r from-emerald-500 to-indigo-600 hover:from-emerald-400 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold rounded-2xl shadow-xl shadow-indigo-600/30 transition-all transform active:scale-[0.99] flex items-center justify-center gap-2 text-base">
-              <svg *ngIf="isSubmitting()" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-              <span>{{ isSubmitting() ? 'Connecting to Paystack...' : 'Pay ₵' + (paymentAmount | number:'1.2-2') + ' with Paystack' }}</span>
+              <span class="text-amber-400 font-medium">{{ invoice()?.due_date | date:'mediumDate'}}</span> </div> </div> <!-- Payment Form --> <form (ngSubmit)="initiatePayment()" class="space-y-4"> <div> <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5"> Amount to Pay (GHS) </label> <div class="relative"> <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">₵</span> <input type="number" [(ngModel)]="paymentAmount" name="paymentAmount" [max]="invoice()?.balance || 99999" min="1" step="0.01" required class="w-full bg-slate-950/80 border border-white/10 rounded-xl py-3 pl-9 pr-4 text-white font-bold text-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"> </div> </div> <div> <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5"> Email for Receipt </label> <input type="email" [(ngModel)]="payerEmail" name="payerEmail" placeholder="parent@example.com" required class="w-full bg-slate-950/80 border border-white/10 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"> </div> <!-- Submit Button --> <button type="submit" [disabled]="isSubmitting() || paymentAmount <= 0" class="w-full mt-2 py-4 hover: hover: disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold rounded-2xl shadow-xl transition-all transform active:scale-[0.99] flex items-center justify-center gap-2 text-base"> <svg *ngIf="isSubmitting()" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> <span>{{ isSubmitting() ?'Connecting to Paystack...' : 'Pay ₵' + (paymentAmount | number:'1.2-2') + ' with Paystack' }}</span>
               <svg *ngIf="!isSubmitting()" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
             </button>
           </form>

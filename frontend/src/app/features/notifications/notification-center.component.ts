@@ -118,49 +118,41 @@ export class NotificationCenterComponent {
     return icons[type] || 'fas fa-bell';
   }
 
-  getColorClass(type: Notification['type']): { bg: string; text: string; border: string; glow: string } {
-    switch (type) {
-      case 'PAYMENT':
+  getColorClass(type: Notification['type']): { bg: string; text: string; border: string; glow: string } { switch (type) { case'PAYMENT':
         return {
           bg: 'bg-emerald-500/15',
           text: 'text-emerald-600 dark:text-emerald-400',
-          border: 'border-emerald-500/30',
-          glow: 'from-emerald-500/10'
+          border: 'border-emerald-500/30', glow:''
         };
       case 'GRADE':
         return {
           bg: 'bg-indigo-500/15',
           text: 'text-indigo-600 dark:text-indigo-400',
-          border: 'border-indigo-500/30',
-          glow: 'from-indigo-500/10'
+          border: 'border-indigo-500/30', glow:''
         };
       case 'ATTENDANCE':
         return {
           bg: 'bg-amber-500/15',
           text: 'text-amber-600 dark:text-amber-400',
-          border: 'border-amber-500/30',
-          glow: 'from-amber-500/10'
+          border: 'border-amber-500/30', glow:''
         };
       case 'HOMEWORK':
         return {
           bg: 'bg-purple-500/15',
           text: 'text-purple-600 dark:text-purple-400',
-          border: 'border-purple-500/30',
-          glow: 'from-purple-500/10'
+          border: 'border-purple-500/30', glow:''
         };
       case 'MESSAGE':
         return {
           bg: 'bg-blue-500/15',
           text: 'text-blue-600 dark:text-blue-400',
-          border: 'border-blue-500/30',
-          glow: 'from-blue-500/10'
+          border: 'border-blue-500/30', glow:''
         };
       default:
         return {
           bg: 'bg-cyan-500/15',
           text: 'text-cyan-600 dark:text-cyan-400',
-          border: 'border-cyan-500/30',
-          glow: 'from-cyan-500/10'
+          border: 'border-cyan-500/30', glow:''
         };
     }
   }

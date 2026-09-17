@@ -1,16 +1,12 @@
 <div class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto animate-fade-in" (click)="closeModal()">
     
     <!-- Modal Card -->
-    <div class="relative w-full max-w-4xl my-auto bg-gradient-to-b from-bg-secondary via-bg-secondary/95 to-bg-primary border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-scale-in" (click)="$event.stopPropagation()">
+    <div class="relative w-full max-w-4xl my-auto from-bg-secondary via-bg-secondary/95 to-bg-primary border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-scale-in" (click)="$event.stopPropagation()">
         
-        <!-- Ambient Radial Glow -->
-        <div class="pointer-events-none absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
-        <div class="pointer-events-none absolute bottom-0 left-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl"></div>
-
-        <!-- Header -->
+<!-- Header -->
         <div class="relative z-10 flex items-center justify-between p-5 sm:p-6 border-b border-white/10 bg-bg-tertiary/60 backdrop-blur-md">
             <div class="flex items-center gap-4 min-w-0">
-                <div class="w-12 sm:w-14 h-12 sm:h-14 rounded-2xl bg-gradient-to-tr from-blue-600/30 to-indigo-500/30 border border-blue-500/30 flex items-center justify-center text-blue-400 font-black text-base sm:text-xl uppercase shadow-inner shrink-0">
+                <div class="w-12 sm:w-14 h-12 sm:h-14 rounded-2xl border border-blue-500/30 flex items-center justify-center text-blue-400 font-black text-base sm:text-xl uppercase shadow-inner shrink-0">
                     {{ (staff.first_name || '?')[0] }}{{ (staff.last_name || '')[0] }}
                 </div>
                 <div class="min-w-0">
@@ -227,7 +223,7 @@
                                     <span class="text-emerald-400">{{ balance.allocated_days - balance.used_days }} Available</span>
                                 </div>
                                 <div class="w-full bg-bg-secondary rounded-full h-2 overflow-hidden border border-white/5">
-                                    <div class="bg-gradient-to-r from-blue-500 to-emerald-500 h-2 rounded-full transition-all duration-500" [style.width.%]="(balance.used_days / (balance.allocated_days || 1)) * 100"></div>
+                                    <div class="h-2 rounded-full transition-all duration-500" [style.width.%]="(balance.used_days / (balance.allocated_days || 1)) * 100"></div>
                                 </div>
                                 <div class="text-[10px] text-text-muted text-right mt-1">Total Cap: {{ balance.allocated_days }} days</div>
                             </div>
@@ -278,7 +274,7 @@
         <!-- Modal Footer -->
         <div class="relative z-10 p-4 sm:p-5 border-t border-white/10 bg-bg-tertiary/80 backdrop-blur-md flex items-center justify-between">
             <span class="text-xs text-text-muted">Faculty & Staff Profile Telemetry</span>
-            <button (click)="closeModal()" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-lg shadow-blue-600/20">
+            <button (click)="closeModal()" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-lg">
                 Done
             </button>
         </div>

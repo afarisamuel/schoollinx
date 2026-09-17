@@ -169,7 +169,7 @@ export class TimetableComponent implements OnInit {
                 text: 'text-blue-600 dark:text-blue-400',
                 badgeBg: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30',
                 badgeText: 'text-blue-400',
-                gradient: 'from-blue-600 to-indigo-600',
+                gradient: '',
                 icon: 'fas fa-square-root-variable'
             };
         }
@@ -180,7 +180,7 @@ export class TimetableComponent implements OnInit {
                 text: 'text-emerald-600 dark:text-emerald-400',
                 badgeBg: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
                 badgeText: 'text-emerald-400',
-                gradient: 'from-emerald-600 to-teal-600',
+                gradient: '',
                 icon: 'fas fa-flask'
             };
         }
@@ -191,7 +191,7 @@ export class TimetableComponent implements OnInit {
                 text: 'text-purple-600 dark:text-purple-400',
                 badgeBg: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30',
                 badgeText: 'text-purple-400',
-                gradient: 'from-purple-600 to-pink-600',
+                gradient: '',
                 icon: 'fas fa-book-open'
             };
         }
@@ -202,7 +202,7 @@ export class TimetableComponent implements OnInit {
                 text: 'text-amber-600 dark:text-amber-400',
                 badgeBg: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30',
                 badgeText: 'text-amber-400',
-                gradient: 'from-amber-600 to-orange-600',
+                gradient: '',
                 icon: 'fas fa-landmark'
             };
         }
@@ -213,7 +213,7 @@ export class TimetableComponent implements OnInit {
                 text: 'text-rose-600 dark:text-rose-400',
                 badgeBg: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30',
                 badgeText: 'text-rose-400',
-                gradient: 'from-rose-600 to-red-600',
+                gradient: '',
                 icon: 'fas fa-palette'
             };
         }
@@ -224,7 +224,7 @@ export class TimetableComponent implements OnInit {
                 text: 'text-cyan-600 dark:text-cyan-400',
                 badgeBg: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30',
                 badgeText: 'text-cyan-400',
-                gradient: 'from-cyan-600 to-blue-600',
+                gradient: '',
                 icon: 'fas fa-laptop-code'
             };
         }
@@ -235,7 +235,7 @@ export class TimetableComponent implements OnInit {
                 text: 'text-teal-600 dark:text-teal-400',
                 badgeBg: 'bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/30',
                 badgeText: 'text-teal-400',
-                gradient: 'from-teal-600 to-emerald-600',
+                gradient: '',
                 icon: 'fas fa-dumbbell'
             };
         }
@@ -246,7 +246,7 @@ export class TimetableComponent implements OnInit {
             text: 'text-indigo-600 dark:text-indigo-400',
             badgeBg: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30',
             badgeText: 'text-indigo-400',
-            gradient: 'from-indigo-600 to-blue-600',
+            gradient: '',
             icon: 'fas fa-graduation-cap'
         };
     }

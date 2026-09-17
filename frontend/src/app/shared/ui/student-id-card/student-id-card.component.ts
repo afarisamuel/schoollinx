@@ -33,7 +33,7 @@ export const ID_CARD_THEMES: ThemeConfig[] = [
     primary: '#0d695b',
     secondary: '#138b75',
     accent: '#2dd4bf',
-    gradient: 'linear-gradient(135deg, #084c42 0%, #0d695b 50%, #149d85 100%)',
+    gradient: '#0d695b',
     waveColor: '#0a594c'
   },
   {
@@ -42,7 +42,7 @@ export const ID_CARD_THEMES: ThemeConfig[] = [
     primary: '#1e3a8a',
     secondary: '#2563eb',
     accent: '#60a5fa',
-    gradient: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%)',
+    gradient: '#1e3a8a',
     waveColor: '#1e3a8a'
   },
   {
@@ -51,7 +51,7 @@ export const ID_CARD_THEMES: ThemeConfig[] = [
     primary: '#581c87',
     secondary: '#7e22ce',
     accent: '#c084fc',
-    gradient: 'linear-gradient(135deg, #3b0764 0%, #581c87 50%, #9333ea 100%)',
+    gradient: '#581c87',
     waveColor: '#581c87'
   },
   {
@@ -60,7 +60,7 @@ export const ID_CARD_THEMES: ThemeConfig[] = [
     primary: '#881337',
     secondary: '#be123c',
     accent: '#f43f5e',
-    gradient: 'linear-gradient(135deg, #4c0519 0%, #881337 50%, #e11d48 100%)',
+    gradient: '#881337',
     waveColor: '#881337'
   },
   {
@@ -69,7 +69,7 @@ export const ID_CARD_THEMES: ThemeConfig[] = [
     primary: '#78350f',
     secondary: '#b45309',
     accent: '#f59e0b',
-    gradient: 'linear-gradient(135deg, #1c1917 0%, #451a03 50%, #b45309 100%)',
+    gradient: '#451a03',
     waveColor: '#78350f'
   },
   {
@@ -78,7 +78,7 @@ export const ID_CARD_THEMES: ThemeConfig[] = [
     primary: '#0e7490',
     secondary: '#0891b2',
     accent: '#22d3ee',
-    gradient: 'linear-gradient(135deg, #083344 0%, #0e7490 50%, #06b6d4 100%)',
+    gradient: '#0e7490',
     waveColor: '#0e7490'
   },
   {
@@ -87,7 +87,7 @@ export const ID_CARD_THEMES: ThemeConfig[] = [
     primary: '#9f1239',
     secondary: '#e11d48',
     accent: '#fda4af',
-    gradient: 'linear-gradient(135deg, #4c0519 0%, #9f1239 50%, #fb7185 100%)',
+    gradient: '#9f1239',
     waveColor: '#9f1239'
   },
   {
@@ -96,7 +96,7 @@ export const ID_CARD_THEMES: ThemeConfig[] = [
     primary: '#14532d',
     secondary: '#15803d',
     accent: '#4ade80',
-    gradient: 'linear-gradient(135deg, #052e16 0%, #14532d 50%, #16a34a 100%)',
+    gradient: '#14532d',
     waveColor: '#14532d'
   },
   {
@@ -105,7 +105,7 @@ export const ID_CARD_THEMES: ThemeConfig[] = [
     primary: '#0f172a',
     secondary: '#334155',
     accent: '#94a3b8',
-    gradient: 'linear-gradient(135deg, #020617 0%, #0f172a 50%, #334155 100%)',
+    gradient: '#0f172a',
     waveColor: '#0f172a'
   },
   {
@@ -114,7 +114,7 @@ export const ID_CARD_THEMES: ThemeConfig[] = [
     primary: '#18181b',
     secondary: '#27272a',
     accent: '#e4e4e7',
-    gradient: 'linear-gradient(135deg, #09090b 0%, #18181b 50%, #3f3f46 100%)',
+    gradient: '#18181b',
     waveColor: '#18181b'
   }
 ];
@@ -281,7 +281,7 @@ export class StudentIdCardComponent implements OnInit, AfterViewInit, OnDestroy 
         primary: this.customPrimaryColor(),
         secondary: this.customSecondaryColor(),
         accent: '#38bdf8',
-        gradient: `linear-gradient(135deg, ${this.customPrimaryColor()} 0%, ${this.customSecondaryColor()} 100%)`,
+        gradient: `${this.customPrimaryColor()}`,
         waveColor: this.customPrimaryColor()
       };
     }
@@ -501,25 +501,15 @@ export class StudentIdCardComponent implements OnInit, AfterViewInit, OnDestroy 
           <!-- SVG Top Wave -->
           <svg viewBox="0 0 540 160" style="position:absolute; top:0; left:0; width:100%; height:45%; pointer-events:none;" preserveAspectRatio="none">
             <defs>
-              <linearGradient id="waveTopPrint" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="${theme.primary}" />
-                <stop offset="60%" stop-color="${theme.secondary}" />
-                <stop offset="100%" stop-color="${theme.accent}" />
-              </linearGradient>
             </defs>
-            <path d="M 0,0 L 540,0 L 540,110 C 440,175 320,135 220,95 C 130,55 50,85 0,140 Z" fill="url(#waveTopPrint)" />
+            <path d="M 0,0 L 540,0 L 540,110 C 440,175 320,135 220,95 C 130,55 50,85 0,140 Z" fill="${theme.primary}" />
           </svg>
 
           <!-- SVG Bottom Wave -->
           <svg viewBox="0 0 540 100" style="position:absolute; bottom:0; left:0; width:100%; height:26%; pointer-events:none;" preserveAspectRatio="none">
             <defs>
-              <linearGradient id="waveBottomPrint" x1="0%" y1="100%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="${theme.accent}" />
-                <stop offset="60%" stop-color="${theme.secondary}" />
-                <stop offset="100%" stop-color="${theme.primary}" />
-              </linearGradient>
             </defs>
-            <path d="M 0,60 C 150,20 350,90 540,30 L 540,100 L 0,100 Z" fill="url(#waveBottomPrint)" />
+            <path d="M 0,60 C 150,20 350,90 540,30 L 540,100 L 0,100 Z" fill="${theme.primary}" />
           </svg>
 
           <!-- Header -->
@@ -573,7 +563,7 @@ export class StudentIdCardComponent implements OnInit, AfterViewInit, OnDestroy 
     const backCardBody = `
       <div class="card-inner back-layout" style="position:relative; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:12px 16px; background:#f9fafb; color:#111827;">
         <!-- Top Wave Strip -->
-        <div style="position:absolute; top:0; left:0; right:0; height:5px; background:${theme.gradient};"></div>
+        <div style="position:absolute; top:0; left:0; right:0; height:5px; background:${theme.primary};"></div>
 
         <!-- Rules & Regulations -->
         <div style="display:flex; flex-direction:column; gap:4px; padding-top:4px;">
@@ -609,7 +599,7 @@ export class StudentIdCardComponent implements OnInit, AfterViewInit, OnDestroy 
         </div>
 
         <!-- Bottom Wave Strip -->
-        <div style="position:absolute; bottom:0; left:0; right:0; height:4px; background:${theme.gradient};"></div>
+        <div style="position:absolute; bottom:0; left:0; right:0; height:4px; background:${theme.primary};"></div>
       </div>
     `;
 

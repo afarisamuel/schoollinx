@@ -61,7 +61,7 @@
 
       <!-- Launch Gate Kiosk Mode -->
       <button type="button" (click)="toggleKioskMode()"
-        class="self-end px-4 py-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-teal-600/25 flex items-center gap-2 cursor-pointer active:scale-95">
+        class="self-end px-4 py-2 rounded-xl hover: hover: text-white text-xs font-black uppercase tracking-wider transition-all shadow-lg flex items-center gap-2 cursor-pointer active:scale-95">
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
         <span>Gate Kiosk Mode</span>
       </button>
@@ -179,7 +179,7 @@
 
             @if (!isCameraActive()) {
               <button type="button" (click)="startCamera()" [disabled]="isCameraInitializing()"
-                class="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold transition-all shadow-md shadow-teal-600/20 flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
+                class="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
                 @if (isCameraInitializing()) {
                   <div class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   <span>Starting Camera...</span>
@@ -242,7 +242,7 @@
                 class="w-full bg-bg-primary/90 border border-border-secondary focus:border-teal-500 text-text-primary text-xs font-mono rounded-xl pl-10 pr-3.5 py-2.5 outline-none font-semibold">
             </div>
             <button type="button" (click)="processManualInput()"
-              class="px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-teal-600/25 cursor-pointer">
+              class="px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md cursor-pointer">
               Scan
             </button>
           </div>
@@ -281,7 +281,7 @@
 
       <!-- 2. Last Scanned Candidate Profile Card (Large Confirmation View) -->
       @if (lastScannedStudent()) {
-        <div class="bg-gradient-to-br from-bg-secondary via-bg-secondary to-teal-500/5 border-2 border-teal-500/40 rounded-3xl p-6 shadow-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden animate-fade-in">
+        <div class="from-bg-secondary via-bg-secondary border-2 border-teal-500/40 rounded-3xl p-6 shadow-2xl flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden animate-fade-in">
           <div class="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 blur-[50px] rounded-full pointer-events-none"></div>
 
           <!-- Photo Portrait / Avatar -->
@@ -289,7 +289,7 @@
             @if (lastScannedStudent()?.student?.photo_url) {
               <img [src]="lastScannedStudent()?.student?.photo_url" alt="Student" class="w-24 h-24 rounded-2xl object-cover border-2 border-teal-400 shadow-xl">
             } @else {
-              <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white font-black text-2xl flex items-center justify-center shadow-xl">
+              <div class="w-24 h-24 rounded-2xl text-white font-black text-2xl flex items-center justify-center shadow-xl">
                 {{ lastScannedStudent()?.student?.first_name ? lastScannedStudent()?.student?.first_name![0] : 'S' }}
               </div>
             }
@@ -430,12 +430,12 @@
         <div class="absolute -top-40 left-1/4 w-[650px] h-[650px] bg-teal-500/10 rounded-full blur-[150px]"></div>
         <div class="absolute -bottom-40 right-1/4 w-[650px] h-[650px] bg-blue-600/10 rounded-full blur-[150px]"></div>
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-500/5 rounded-full blur-[180px]"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:28px_28px] opacity-25"></div>
+        <div class="absolute inset-0  [background-size:28px_28px] opacity-25"></div>
       } @else {
         <div class="absolute -top-40 left-1/4 w-[650px] h-[650px] bg-teal-200/40 rounded-full blur-[140px]"></div>
         <div class="absolute -bottom-40 right-1/4 w-[650px] h-[650px] bg-blue-200/30 rounded-full blur-[140px]"></div>
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-100/40 rounded-full blur-[160px]"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-40"></div>
+        <div class="absolute inset-0  [background-size:24px_24px] opacity-40"></div>
       }
     </div>
 
@@ -449,7 +449,6 @@
         <!-- Station Brand -->
         <div class="flex items-center gap-2 sm:gap-3">
           <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-md transition-all"
-               [class.bg-gradient-to-br]="true"
                [class.from-teal-500\/20]="kioskTheme() === 'dark'"
                [class.to-blue-600\/20]="kioskTheme() === 'dark'"
                [class.border-2]="true"
@@ -705,7 +704,6 @@
         
         <!-- Live Roll Call Progress Card -->
         <div class="rounded-3xl p-4 sm:p-5 backdrop-blur-xl shadow-xl flex flex-col gap-3 border transition-all"
-             [class.bg-gradient-to-b]="true"
              [class.from-white\/10]="kioskTheme() === 'dark'"
              [class.to-white\/5]="kioskTheme() === 'dark'"
              [class.border-white\/15]="kioskTheme() === 'dark'"
@@ -756,7 +754,7 @@
                [class.border-white\/10]="kioskTheme() === 'dark'"
                [class.bg-slate-200]="kioskTheme() === 'light'"
                [class.border-slate-300]="kioskTheme() === 'light'">
-            <div class="h-full bg-gradient-to-r from-teal-500 via-emerald-400 to-cyan-400 rounded-full transition-all duration-500 shadow-[0_0_12px_rgba(52,211,153,0.5)]"
+            <div class="h-full rounded-full transition-all duration-500 shadow-[0_0_12px_rgba(52,211,153,0.5)]"
                  [style.width.%]="attendanceRate()"></div>
           </div>
 
@@ -1034,7 +1032,6 @@
         <!-- SUCCESS STATE: HIGH IMPACT HOLOGRAPHIC CANDIDATE SPOTLIGHT -->
         @if (feedbackState() === 'SUCCESS' && lastScannedStudent()) {
           <div class="w-full max-w-xl rounded-3xl p-4 sm:p-7 shadow-2xl flex flex-col items-center text-center gap-3.5 sm:gap-5 backdrop-blur-2xl animate-scale-up relative overflow-hidden border-2"
-               [class.bg-gradient-to-b]="true"
                [class.from-teal-950\/90]="kioskTheme() === 'dark'"
                [class.via-gray-900\/95]="kioskTheme() === 'dark'"
                [class.to-gray-950]="kioskTheme() === 'dark'"
@@ -1044,8 +1041,7 @@
                [class.to-white]="kioskTheme() === 'light'"
                [class.border-emerald-500]="kioskTheme() === 'light'">
             
-            <!-- Neon Glow Accents -->
-            <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-20 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none"></div>
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-20 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none"></div>
 
             <!-- Top Verified Badge -->
             <div class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1 rounded-full border shadow-sm"
@@ -1070,7 +1066,6 @@
                   <img [src]="lastScannedStudent()!.student.photo_url" alt="Portrait" class="w-full h-full object-cover">
                 } @else {
                   <div class="w-full h-full flex items-center justify-center font-serif font-black text-2xl sm:text-4xl"
-                       [class.bg-gradient-to-br]="true"
                        [class.from-teal-800]="kioskTheme() === 'dark'"
                        [class.to-gray-900]="kioskTheme() === 'dark'"
                        [class.text-white]="kioskTheme() === 'dark'"
@@ -1185,7 +1180,6 @@
         <!-- DUPLICATE SCAN WARNING -->
         @else if (feedbackState() === 'DUPLICATE') {
           <div class="w-full max-w-lg rounded-3xl p-5 sm:p-8 shadow-2xl flex flex-col items-center text-center gap-3.5 sm:gap-4 backdrop-blur-2xl animate-scale-up border-2"
-               [class.bg-gradient-to-b]="true"
                [class.from-amber-950\/80]="kioskTheme() === 'dark'"
                [class.to-gray-900\/90]="kioskTheme() === 'dark'"
                [class.border-amber-400]="kioskTheme() === 'dark'"
@@ -1228,7 +1222,6 @@
         <!-- UNRECOGNIZED CARD WARNING -->
         @else if (feedbackState() === 'NOT_FOUND') {
           <div class="w-full max-w-lg rounded-3xl p-5 sm:p-8 shadow-2xl flex flex-col items-center text-center gap-3.5 sm:gap-4 backdrop-blur-2xl animate-scale-up border-2"
-               [class.bg-gradient-to-b]="true"
                [class.from-rose-950\/80]="kioskTheme() === 'dark'"
                [class.to-gray-900\/90]="kioskTheme() === 'dark'"
                [class.border-rose-500]="kioskTheme() === 'dark'"
@@ -1274,7 +1267,6 @@
             
             <!-- Viewfinder Card Container -->
             <div class="relative w-full aspect-[4/3] sm:aspect-[16/10] max-h-[340px] sm:max-h-[380px] rounded-2xl sm:rounded-3xl overflow-hidden p-2 shadow-2xl backdrop-blur-2xl flex items-center justify-center border-2 transition-all"
-                 [class.bg-gradient-to-b]="true"
                  [class.from-gray-900\/90]="kioskTheme() === 'dark'"
                  [class.to-[#050b14]]="kioskTheme() === 'dark'"
                  [class.border-teal-500\/50]="kioskTheme() === 'dark'"
@@ -1303,7 +1295,7 @@
 
               <!-- Animated Laser Scan Beam -->
               @if (isCameraActive()) {
-                <div class="absolute left-4 sm:left-6 right-4 sm:right-6 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_20px_#34d399] pointer-events-none animate-scanline z-20"></div>
+                <div class="absolute left-4 sm:left-6 right-4 sm:right-6 h-1 shadow-[0_0_20px_#34d399] pointer-events-none animate-scanline z-20"></div>
                 
                 <!-- Live Telemetry Status Pill -->
                 <div class="absolute top-2.5 sm:top-4 inset-x-0 flex justify-center pointer-events-none z-30">
@@ -1334,7 +1326,7 @@
                 <div class="relative z-10 w-full h-full flex flex-col items-center justify-center gap-2 sm:gap-3 p-3 sm:p-4 text-center">
                   
                   <!-- Central Target Pulse Ring -->
-                  <div class="w-12 h-12 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl border-2 border-dashed flex items-center justify-center animate-pulse-glow"
+                  <div class="w-12 h-12 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl border-2 border-dashed flex items-center justify-center"
                        [class.bg-teal-500\/10]="kioskTheme() === 'dark'"
                        [class.border-teal-400\/60]="kioskTheme() === 'dark'"
                        [class.text-teal-300]="kioskTheme() === 'dark'"
@@ -1361,7 +1353,6 @@
                   <div class="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mt-0.5 sm:mt-1">
                     <button type="button" (click)="startCamera()" [disabled]="isCameraInitializing()"
                       class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl font-black text-[11px] sm:text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-1.5 sm:gap-2 cursor-pointer active:scale-95 disabled:opacity-50"
-                      [class.bg-gradient-to-r]="true"
                       [class.from-teal-500]="kioskTheme() === 'dark'"
                       [class.to-emerald-500]="kioskTheme() === 'dark'"
                       [class.text-gray-950]="kioskTheme() === 'dark'"
