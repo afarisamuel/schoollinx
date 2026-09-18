@@ -1,9 +1,10 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { environment } from '../../../../environments/environment';
+import { SeoService } from '../../../shared/services/seo';
 
 @Component({
   selector: 'app-signup',
@@ -12,8 +13,9 @@ import { environment } from '../../../../environments/environment';
   templateUrl: './signup.html',
   styleUrl: './signup.css'
 })
-export class SignupComponent {
+export class SignupComponent implements OnInit {
   private http = inject(HttpClient);
+  private seo = inject(SeoService);
 
   currentStep = signal(1);
   totalSteps = 4;
@@ -36,6 +38,19 @@ export class SignupComponent {
   subdomainError = signal<string | null>(null);
   subdomainTouched = signal(false);
   currentYear = new Date().getFullYear();
+
+  ngOnInit() {
+    this.seo.updateMeta({
+      title: 'Start Your Free Institutional Trial — School Registration',
+      description: 'Create your school tenant in under 2 minutes. Provision a dedicated isolated database, customize grading formulas, and start free with zero commitment.',
+      url: '/signup'
+    });
+
+    this.seo.setBreadcrumbs([
+      { name: 'Home', url: '/' },
+      { name: 'Sign Up', url: '/signup' }
+    ]);
+  }
 
   steps = [
     { number: 1, label: 'School', icon: 'school' },

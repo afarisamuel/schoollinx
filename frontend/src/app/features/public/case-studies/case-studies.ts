@@ -1,20 +1,38 @@
 import { Component, OnInit } from '@angular/core';
 import { PageHeroComponent, PageHeroConfig } from '../../../shared/components/page-hero/page-hero.component';
-import { Meta, Title } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
+import { SeoService } from '../../../shared/services/seo';
 
 @Component({
   selector: 'app-case-studies',
+  standalone: true,
   imports: [RouterModule, PageHeroComponent],
   templateUrl: './case-studies.html',
   styleUrl: './case-studies.css',
 })
 export class CaseStudies implements OnInit {
-  constructor(private meta: Meta, private title: Title) {}
+  constructor(private seo: SeoService) {}
 
   ngOnInit() {
-    this.title.setTitle('Success Stories & Case Studies | School Linx');
-    this.meta.updateTag({ name: 'description', content: 'See how 500+ schools across Africa are transforming their operations with School Linx. Real results, real metrics, real schools.' });
+    this.seo.updateMeta({
+      title: 'Success Stories & Institutional Case Studies',
+      description: 'See how 500+ schools across Africa are transforming their operations with SchoolLinx. Real results: 99.4% fee recovery, 18 hours saved per teacher weekly.',
+      url: '/case-studies',
+      image: 'assets/hero-features.jpg'
+    });
+
+    this.seo.setBreadcrumbs([
+      { name: 'Home', url: '/' },
+      { name: 'Case Studies', url: '/case-studies' }
+    ]);
+
+    this.seo.setJsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      'name': 'SchoolLinx Customer Case Studies',
+      'description': 'Real-world case studies demonstrating operational transformation in African primary, secondary, and international schools.',
+      'url': 'https://schoollinx.com/case-studies'
+    });
   }
 
   heroConfig: PageHeroConfig = {

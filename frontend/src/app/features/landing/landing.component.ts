@@ -49,11 +49,37 @@ export class LandingComponent implements OnInit, OnDestroy {
   constructor(private seo: SeoService) {}
 
   ngOnInit() {
-    this.seo.updateMeta(
-      'School Linx — Institutional School Operating System',
-      'Unified institutional platform for African schools. Real-time academics, biometric attendance, speed gradebooks, parent SMS, and automated fee collections.',
-      '/'
-    );
+    this.seo.updateMeta({
+      title: 'SchoolLinx — Institutional School Operating System',
+      description: 'Unified cloud platform for African schools. Real-time academics, biometric roll-call, speed gradebooks, parent SMS, and automated tuition recovery.',
+      url: '/',
+      type: 'website'
+    });
+
+    this.seo.setJsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      'name': 'SchoolLinx',
+      'applicationCategory': 'EducationalApplication, BusinessApplication',
+      'operatingSystem': 'Web, Android, iOS',
+      'description': 'Unified cloud operating system for educational institutions across Africa.',
+      'offers': {
+        '@type': 'AggregateOffer',
+        'priceCurrency': 'USD',
+        'lowPrice': '2.00',
+        'highPrice': '5.00',
+        'offerCount': '3'
+      },
+      'aggregateRating': {
+        '@type': 'AggregateRating',
+        'ratingValue': '4.9',
+        'reviewCount': '520',
+        'bestRating': '5',
+        'worstRating': '1'
+      }
+    });
+
+    this.seo.setFaqJsonLd(this.faqs);
     this.startCarousel();
   }
 

@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { PageHeroComponent, PageHeroConfig } from '../../../shared/components/page-hero/page-hero.component';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { SeoService } from '../../../shared/services/seo';
 
 @Component({
     selector: 'app-features',
@@ -10,7 +11,9 @@ import { RouterModule } from '@angular/router';
     templateUrl: './features.component.html',
     styleUrl: './features.component.css'
 })
-export class FeaturesComponent {
+export class FeaturesComponent implements OnInit {
+    constructor(private seo: SeoService) {}
+
     modules = [
         {
             title: 'Academic Hub',
@@ -46,13 +49,40 @@ export class FeaturesComponent {
         }
     ];
 
-  heroConfig: PageHeroConfig = {
-    badge: { icon: 'fa-layer-group', label: 'Platform Capabilities' },
-    heading: `Every Tool Needed to Run a <span class="ph-accent">World-Class School</span>.`,
-    subtitle: `Explore our complete suite of institutional modules engineered to eliminate administrative bottlenecks, improve learning outcomes, and automate fiscal recovery.`,
-    image: 'assets/hero-features.jpg',
-    overlayColor: 'rgba(5,10,30,0.82)',
-    ctaPrimary: { label: 'Start Free Trial', route: '/signup' },
-    ctaSecondary: { label: 'See Pricing', route: '/pricing' },
-  };
+    heroConfig: PageHeroConfig = {
+        badge: { icon: 'fa-layer-group', label: 'Platform Capabilities' },
+        heading: `Every Tool Needed to Run a <span class="ph-accent">World-Class School</span>.`,
+        subtitle: `Explore our complete suite of institutional modules engineered to eliminate administrative bottlenecks, improve learning outcomes, and automate fiscal recovery.`,
+        image: 'assets/hero-features.jpg',
+        overlayColor: 'rgba(5,10,30,0.82)',
+        ctaPrimary: { label: 'Start Free Trial', route: '/signup' },
+        ctaSecondary: { label: 'See Pricing', route: '/pricing' },
+    };
+
+    ngOnInit() {
+        this.seo.updateMeta({
+            title: 'Platform Features & Capabilities',
+            description: 'Explore the complete suite of institutional modules in SchoolLinx: interactive gradebooks, biometric roll-call, conflict-free timetables, automated parent SMS, and fee ledgers.',
+            url: '/features',
+            image: 'assets/hero-features.jpg'
+        });
+
+        this.seo.setBreadcrumbs([
+            { name: 'Home', url: '/' },
+            { name: 'Features', url: '/features' }
+        ]);
+
+        this.seo.setJsonLd({
+            '@context': 'https://schema.org',
+            '@type': 'ItemList',
+            'name': 'SchoolLinx Platform Modules',
+            'description': 'Complete suite of institutional software modules for schools.',
+            'itemListElement': this.modules.map((m, idx) => ({
+                '@type': 'ListItem',
+                'position': idx + 1,
+                'name': m.title,
+                'description': m.items.join(', ')
+            }))
+        });
+    }
 }

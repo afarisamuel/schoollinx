@@ -6,6 +6,7 @@ import { Meta, Title, DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
 import { PageHeroComponent, PageHeroConfig } from '../../../shared/components/page-hero/page-hero.component';
 import { environment } from '../../../../environments/environment';
+import { SeoService } from '../../../shared/services/seo';
 
 export interface PublicLegalPage {
   id: string;
@@ -33,6 +34,7 @@ export class LegalPageComponent implements OnInit, OnDestroy {
   private meta = inject(Meta);
   private titleService = inject(Title);
   private sanitizer = inject(DomSanitizer);
+  private seo = inject(SeoService);
 
   private sub = new Subscription();
 
@@ -106,13 +108,30 @@ export class LegalPageComponent implements OnInit, OnDestroy {
   }
 
   private updateSeo(page: PublicLegalPage) {
-    const pageTitle = `${page.title} | Legal & Trust | School Linx`;
-    this.titleService.setTitle(pageTitle);
+    const pageTitle = `${page.title} — Institutional Trust & Compliance`;
+    const desc = page.summary || `Official ${page.title} policy for the SchoolLinx educational management platform.`;
 
-    const desc = page.summary || `Official ${page.title} for the School Linx educational management platform.`;
-    this.meta.updateTag({ name: 'description', content: desc });
-    this.meta.updateTag({ property: 'og:title', content: pageTitle });
-    this.meta.updateTag({ property: 'og:description', content: desc });
+    this.seo.updateMeta({
+      title: pageTitle,
+      description: desc,
+      url: `/legal/${page.slug}`,
+      image: 'assets/hero-pricing.jpg'
+    });
+
+    this.seo.setBreadcrumbs([
+      { name: 'Home', url: '/' },
+      { name: 'Legal Registry', url: '/legal/privacy-policy' },
+      { name: page.title, url: `/legal/${page.slug}` }
+    ]);
+
+    this.seo.setJsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      'name': page.title,
+      'description': desc,
+      'url': `https://schoollinx.com/legal/${page.slug}`,
+      'dateModified': page.updated_at || new Date().toISOString()
+    });
 
     this.heroConfig.set({
       badge: { icon: 'fa-shield-halved', label: page.category || 'Legal & Compliance' },

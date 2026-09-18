@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { SeoService } from '../../../shared/services/seo';
 
 interface InvoiceDetails {
   invoice_id: string;
@@ -164,6 +165,7 @@ interface InvoiceDetails {
 export class OneClickCheckoutComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private http = inject(HttpClient);
+  private seo = inject(SeoService);
 
   invoice = signal<InvoiceDetails | null>(null);
   isLoading = signal(true);
@@ -181,6 +183,12 @@ export class OneClickCheckoutComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.seo.updateMeta({
+      title: 'Online School Fee Settlement — Secure Paystack Checkout',
+      description: 'Secure online fee settlement gateway for parents and guardians powered by SchoolLinx.',
+      noindex: true
+    });
+
     this.invoiceId = this.route.snapshot.paramMap.get('id') || '';
     const verified = this.route.snapshot.queryParamMap.get('verified');
     if (verified === 'true') {

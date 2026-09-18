@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { ReportService, TranscriptVerificationResult } from '../../../core/infrastructure/report/report.service';
+import { SeoService } from '../../../shared/services/seo';
 
 @Component({
     selector: 'app-transcript-verify',
@@ -13,6 +14,7 @@ import { ReportService, TranscriptVerificationResult } from '../../../core/infra
 export class TranscriptVerifyComponent implements OnInit {
     private route = inject(ActivatedRoute);
     private reportService = inject(ReportService);
+    private seo = inject(SeoService);
 
     hash = signal<string>('');
     isLoading = signal<boolean>(true);
@@ -20,6 +22,12 @@ export class TranscriptVerifyComponent implements OnInit {
     errorMessage = signal<string>('');
 
     ngOnInit() {
+        this.seo.updateMeta({
+            title: 'Verifiable Document Registry — Official Academic Authenticator',
+            description: 'Cryptographic document verification ledger. Authenticate student transcripts, graduation certificates, and terminal records issued by SchoolLinx partner institutions.',
+            noindex: true
+        });
+
         this.route.paramMap.subscribe(params => {
             const h = params.get('hash');
             if (h) {

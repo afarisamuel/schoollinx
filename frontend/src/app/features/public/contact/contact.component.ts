@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { SeoService } from '../../../shared/services/seo';
 
 export interface CompanyContactInfo {
     sales_email: string;
@@ -74,9 +75,43 @@ export class ContactComponent implements OnInit {
         message: ''
     });
 
-    constructor(private http: HttpClient) {}
+    constructor(
+        private http: HttpClient,
+        private seo: SeoService
+    ) {}
 
     ngOnInit() {
+        this.seo.updateMeta({
+            title: 'Contact Institutional Sales & Support',
+            description: 'Get in touch with the SchoolLinx team. Schedule a demo, discuss multi-campus pricing, or get technical support for your school.',
+            url: '/contact',
+            image: 'assets/hero-slide-3.jpg'
+        });
+
+        this.seo.setBreadcrumbs([
+            { name: 'Home', url: '/' },
+            { name: 'Contact', url: '/contact' }
+        ]);
+
+        this.seo.setJsonLd({
+            '@context': 'https://schema.org',
+            '@type': 'ContactPage',
+            'name': 'Contact SchoolLinx',
+            'description': 'Contact details for sales, technical support, and data protection at SchoolLinx.',
+            'mainEntity': {
+                '@type': 'Organization',
+                'name': 'SchoolLinx',
+                'telephone': '+233-24-412-3456',
+                'email': 'sales@schoollinx.com',
+                'address': {
+                    '@type': 'PostalAddress',
+                    'streetAddress': '12 Independence Avenue, Ridge',
+                    'addressLocality': 'Accra',
+                    'addressCountry': 'GH'
+                }
+            }
+        });
+
         this.http.get<CompanyContactInfo>(`${environment.apiUrl}/public/contact-info`).subscribe({
             next: (data) => {
                 if (data) {

@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
+import { SeoService } from '../../../shared/services/seo';
 
 @Component({
     selector: 'app-login',
@@ -37,8 +38,15 @@ export class LoginComponent implements OnDestroy {
         private authService: AuthService,
         private router: Router,
         private http: HttpClient,
+        private seo: SeoService,
         @Inject(PLATFORM_ID) private platformId: Object
     ) {
+        this.seo.updateMeta({
+            title: 'Institutional Portal Login',
+            description: 'Secure sign-in for school administrators, teachers, and guardians.',
+            noindex: true
+        });
+
         if (isPlatformBrowser(this.platformId)) {
             this.loadTenantName();
         }

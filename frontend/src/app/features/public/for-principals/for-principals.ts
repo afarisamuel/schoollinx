@@ -1,19 +1,38 @@
 import { Component, OnInit } from '@angular/core';
 import { PageHeroComponent, PageHeroConfig } from '../../../shared/components/page-hero/page-hero.component';
-import { Meta, Title } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
+import { SeoService } from '../../../shared/services/seo';
 
 @Component({
   selector: 'app-for-principals',
+  standalone: true,
   imports: [RouterModule, PageHeroComponent],
   templateUrl: './for-principals.html',
   styleUrl: './for-principals.css'
 })
 export class ForPrincipals implements OnInit {
-  constructor(private meta: Meta, private title: Title) {}
+  constructor(private seo: SeoService) {}
+
   ngOnInit() {
-    this.title.setTitle('School Linx for Principals & Headteachers');
-    this.meta.updateTag({ name: 'description', content: 'Give principals a real-time command centre. Track KPIs, manage staff, oversee academics and fees — all from one executive dashboard.' });
+    this.seo.updateMeta({
+      title: 'SchoolLinx for Principals & School Owners — Executive Control',
+      description: 'Give school leaders an executive command center. Real-time institutional KPIs, staff accountability, automated grading oversight, and fee recovery ledgers.',
+      url: '/for-principals',
+      image: 'assets/hero-slide-2.jpg'
+    });
+
+    this.seo.setBreadcrumbs([
+      { name: 'Home', url: '/' },
+      { name: 'For Principals', url: '/for-principals' }
+    ]);
+
+    this.seo.setJsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      'name': 'SchoolLinx for Principals & Headteachers',
+      'description': 'Executive management tools designed for school principals and institutional directors.',
+      'url': 'https://schoollinx.com/for-principals'
+    });
   }
 
   heroConfig: PageHeroConfig = {

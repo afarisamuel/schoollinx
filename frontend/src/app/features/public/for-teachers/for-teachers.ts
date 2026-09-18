@@ -1,19 +1,38 @@
 import { Component, OnInit } from '@angular/core';
 import { PageHeroComponent, PageHeroConfig } from '../../../shared/components/page-hero/page-hero.component';
-import { Meta, Title } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
+import { SeoService } from '../../../shared/services/seo';
 
 @Component({
   selector: 'app-for-teachers',
+  standalone: true,
   imports: [RouterModule, PageHeroComponent],
   templateUrl: './for-teachers.html',
   styleUrl: './for-teachers.css'
 })
 export class ForTeachers implements OnInit {
-  constructor(private meta: Meta, private title: Title) {}
+  constructor(private seo: SeoService) {}
+
   ngOnInit() {
-    this.title.setTitle('School Linx for Teachers — Less Admin, More Teaching');
-    this.meta.updateTag({ name: 'description', content: 'Digital grade book, one-click attendance, and automated report cards. School Linx helps teachers spend less time on paperwork and more time on teaching.' });
+    this.seo.updateMeta({
+      title: 'SchoolLinx for Teachers — Fast Gradebooks & Roll-Call',
+      description: 'Dynamic speed gradebook, 1-click attendance, and automated remark generator. SchoolLinx saves teachers 18+ hours per week on administrative paperwork.',
+      url: '/for-teachers',
+      image: 'assets/hero-slide-1.jpg'
+    });
+
+    this.seo.setBreadcrumbs([
+      { name: 'Home', url: '/' },
+      { name: 'For Teachers', url: '/for-teachers' }
+    ]);
+
+    this.seo.setJsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      'name': 'SchoolLinx for Teachers & Faculty',
+      'description': 'Speed gradebooks and automated classroom tools for school teachers.',
+      'url': 'https://schoollinx.com/for-teachers'
+    });
   }
 
   heroConfig: PageHeroConfig = {

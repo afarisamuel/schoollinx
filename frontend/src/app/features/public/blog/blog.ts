@@ -1,21 +1,47 @@
 import { Component, OnInit } from '@angular/core';
 import { PageHeroComponent, PageHeroConfig } from '../../../shared/components/page-hero/page-hero.component';
-import { Meta, Title } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
+import { SeoService } from '../../../shared/services/seo';
 
 @Component({
   selector: 'app-blog',
+  standalone: true,
   imports: [RouterModule, PageHeroComponent],
   templateUrl: './blog.html',
   styleUrl: './blog.css',
 })
 export class Blog implements OnInit {
-  constructor(private meta: Meta, private title: Title) {}
+  constructor(private seo: SeoService) {}
 
   ngOnInit() {
-    this.title.setTitle('Blog & Insights | School Linx — EdTech Best Practices');
-    this.meta.updateTag({ name: 'description', content: 'School administration best practices, edtech trends, and product deep-dives — curated for forward-thinking educators by the School Linx team.' });
-    this.meta.updateTag({ name: 'keywords', content: 'school administration, edtech, school management, Africa education, student information system' });
+    this.seo.updateMeta({
+      title: 'Blog & Insights — EdTech Best Practices for School Leaders',
+      description: 'School administration best practices, EdTech trends, biometric roll-call guides, and financial governance frameworks for African educational leaders.',
+      keywords: 'school administration, edtech Africa, school management, student information system, speed gradebook',
+      url: '/blog',
+      image: 'assets/hero-slide-1.jpg'
+    });
+
+    this.seo.setBreadcrumbs([
+      { name: 'Home', url: '/' },
+      { name: 'Blog', url: '/blog' }
+    ]);
+
+    this.seo.setJsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'Blog',
+      'name': 'The Linx Ledger — SchoolLinx Blog',
+      'description': 'Insights, product deep-dives, and administrative best practices curated for educators.',
+      'url': 'https://schoollinx.com/blog',
+      'publisher': {
+        '@type': 'Organization',
+        'name': 'SchoolLinx',
+        'logo': {
+          '@type': 'ImageObject',
+          'url': 'https://schoollinx.com/assets/images/app-icon.png'
+        }
+      }
+    });
   }
 
   heroConfig: PageHeroConfig = {

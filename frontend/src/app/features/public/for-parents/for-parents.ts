@@ -1,19 +1,38 @@
 import { Component, OnInit } from '@angular/core';
 import { PageHeroComponent, PageHeroConfig } from '../../../shared/components/page-hero/page-hero.component';
-import { Meta, Title } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
+import { SeoService } from '../../../shared/services/seo';
 
 @Component({
   selector: 'app-for-parents',
+  standalone: true,
   imports: [RouterModule, PageHeroComponent],
   templateUrl: './for-parents.html',
   styleUrl: './for-parents.css'
 })
 export class ForParents implements OnInit {
-  constructor(private meta: Meta, private title: Title) {}
+  constructor(private seo: SeoService) {}
+
   ngOnInit() {
-    this.title.setTitle('School Linx for Parents — Stay Close to Your Child\'s Education');
-    this.meta.updateTag({ name: 'description', content: 'Real-time grades, attendance alerts, and online fee payments. School Linx keeps parents fully informed about their child\'s school life.' });
+    this.seo.updateMeta({
+      title: 'SchoolLinx for Parents & Guardians — Real-Time Academic Tracking',
+      description: 'Stay connected to your child\'s education with instant SMS attendance alerts, live grade tracking, terminal PDF report cards, and secure online fee payments.',
+      url: '/for-parents',
+      image: 'assets/hero-slide-3.jpg'
+    });
+
+    this.seo.setBreadcrumbs([
+      { name: 'Home', url: '/' },
+      { name: 'For Parents', url: '/for-parents' }
+    ]);
+
+    this.seo.setJsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      'name': 'SchoolLinx for Parents & Families',
+      'description': 'Real-time parent portal and instant SMS communication platform.',
+      'url': 'https://schoollinx.com/for-parents'
+    });
   }
 
   heroConfig: PageHeroConfig = {
