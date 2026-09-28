@@ -170,20 +170,37 @@ func (r *studentRepository) GetStudentsForTeacherPaginated(ctx context.Context, 
 func (r *studentRepository) Update(ctx context.Context, student *domain.Student) error {
 	student.CapitalizeNames()
 	fields := map[string]interface{}{
-		"first_name":            student.FirstName,
-		"last_name":             student.LastName,
-		"other_name":            student.OtherName,
-		"gender":                student.Gender,
-		"dob":                   student.DOB,
-		"phone_number":          student.PhoneNumber,
-		"address":               student.Address,
-		"placed_residence_type": student.PlacedResidenceType,
-		"status":                student.Status,
-		"level":                 student.Level,
-		"academic_year":         student.AcademicYear,
-		"photo_url":             student.PhotoURL,
-		"rfid_token":            student.RFIDToken,
-		"prepaid_balance":       student.PrepaidBalance,
+		"first_name":              student.FirstName,
+		"last_name":               student.LastName,
+		"other_name":              student.OtherName,
+		"gender":                  student.Gender,
+		"dob":                     student.DOB,
+		"phone_number":            student.PhoneNumber,
+		"address":                 student.Address,
+		"placed_residence_type":   student.PlacedResidenceType,
+		"status":                  student.Status,
+		"level":                   student.Level,
+		"academic_year":           student.AcademicYear,
+		"photo_url":               student.PhotoURL,
+		"rfid_token":              student.RFIDToken,
+		"prepaid_balance":         student.PrepaidBalance,
+		"father_name":             student.FatherName,
+		"father_phone":            student.FatherPhone,
+		"father_email":            student.FatherEmail,
+		"father_occupation":       student.FatherOccupation,
+		"mother_name":             student.MotherName,
+		"mother_phone":            student.MotherPhone,
+		"mother_email":            student.MotherEmail,
+		"mother_occupation":       student.MotherOccupation,
+		"guardian_name":           student.GuardianName,
+		"guardian_phone":          student.GuardianPhone,
+		"guardian_email":          student.GuardianEmail,
+		"guardian_relation":       student.GuardianRelation,
+		"emergency_contact_name":  student.EmergencyContactName,
+		"emergency_contact_phone": student.EmergencyContactPhone,
+		"health_conditions":       student.HealthConditions,
+		"allergies":               student.Allergies,
+		"blood_group":             student.BloodGroup,
 	}
 
 	// enrollment_num has a UNIQUE constraint — only update it when non-empty
@@ -192,15 +209,19 @@ func (r *studentRepository) Update(ctx context.Context, student *domain.Student)
 		fields["enrollment_num"] = student.EnrollmentNum
 	}
 
-	// class_id is a nullable FK; explicitly write NULL when cleared.
-	if student.ClassID != nil {
+	// class_id is a nullable FK; safely write null when empty or cleared.
+	if student.ClassID != nil && *student.ClassID != uuid.Nil {
 		fields["class_id"] = student.ClassID
 	} else {
-		fields["class_id"] = gorm.Expr("NULL")
+		fields["class_id"] = nil
 	}
 
-	return r.db.WithContext(ctx).Model(student).
-		Omit("Guardians", "Class", "User", "AlumniProfile").
+	if student.UserID != nil && *student.UserID != uuid.Nil {
+		fields["user_id"] = student.UserID
+	}
+
+	return r.db.WithContext(ctx).Model(&domain.Student{}).
+		Where("id = ?", student.ID).
 		Updates(fields).Error
 }
 
