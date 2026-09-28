@@ -35,6 +35,22 @@ func (g *Guardian) BeforeCreate(tx *gorm.DB) (err error) {
 	if g.PickupCode == "" {
 		g.PickupCode = uuid.New().String()[:8]
 	}
+	if g.FirstName != "" {
+		g.FirstName = encryption.EncryptedString(CapitalizeName(string(g.FirstName)))
+	}
+	if g.LastName != "" {
+		g.LastName = encryption.EncryptedString(CapitalizeName(string(g.LastName)))
+	}
+	return
+}
+
+func (g *Guardian) BeforeUpdate(tx *gorm.DB) (err error) {
+	if g.FirstName != "" {
+		g.FirstName = encryption.EncryptedString(CapitalizeName(string(g.FirstName)))
+	}
+	if g.LastName != "" {
+		g.LastName = encryption.EncryptedString(CapitalizeName(string(g.LastName)))
+	}
 	return
 }
 

@@ -7,8 +7,73 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/user/high-school-management/backend/pkg/encryption"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"gorm.io/gorm"
 )
+
+// CapitalizeName converts a string to Proper/Title Case, handling multi-word and hyphenated names.
+// Examples: "john doe" -> "John Doe", "MARY-JANE" -> "Mary-Jane", " kwame   mensah " -> "Kwame Mensah"
+func CapitalizeName(name string) string {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return ""
+	}
+	words := strings.Fields(name)
+	caser := cases.Title(language.English)
+	for i, w := range words {
+		if strings.Contains(w, "-") {
+			parts := strings.Split(w, "-")
+			for j, p := range parts {
+				if p != "" {
+					parts[j] = caser.String(strings.ToLower(p))
+				}
+			}
+			words[i] = strings.Join(parts, "-")
+		} else {
+			words[i] = caser.String(strings.ToLower(w))
+		}
+	}
+	return strings.Join(words, " ")
+}
+
+// CapitalizeNames capitalizes all student and guardian name fields.
+func (s *Student) CapitalizeNames() {
+	if s == nil {
+		return
+	}
+	if s.FirstName != "" {
+		s.FirstName = encryption.EncryptedString(CapitalizeName(string(s.FirstName)))
+	}
+	if s.LastName != "" {
+		s.LastName = encryption.EncryptedString(CapitalizeName(string(s.LastName)))
+	}
+	if s.OtherName != "" {
+		s.OtherName = encryption.EncryptedString(CapitalizeName(string(s.OtherName)))
+	}
+	if s.FatherName != "" {
+		s.FatherName = encryption.EncryptedString(CapitalizeName(string(s.FatherName)))
+	}
+	if s.MotherName != "" {
+		s.MotherName = encryption.EncryptedString(CapitalizeName(string(s.MotherName)))
+	}
+	if s.GuardianName != "" {
+		s.GuardianName = encryption.EncryptedString(CapitalizeName(string(s.GuardianName)))
+	}
+	if s.EmergencyContactName != "" {
+		s.EmergencyContactName = encryption.EncryptedString(CapitalizeName(string(s.EmergencyContactName)))
+	}
+	for _, g := range s.Guardians {
+		if g != nil {
+			if g.FirstName != "" {
+				g.FirstName = encryption.EncryptedString(CapitalizeName(string(g.FirstName)))
+			}
+			if g.LastName != "" {
+				g.LastName = encryption.EncryptedString(CapitalizeName(string(g.LastName)))
+			}
+		}
+	}
+}
 
 type StudentStatus string
 
@@ -69,6 +134,7 @@ type Student struct {
 }
 
 func (s *Student) BeforeCreate(tx *gorm.DB) (err error) {
+	s.CapitalizeNames()
 	if s.ID == uuid.Nil {
 		s.ID = uuid.New()
 	}
@@ -76,6 +142,11 @@ func (s *Student) BeforeCreate(tx *gorm.DB) (err error) {
 		year := time.Now().Year()
 		s.EnrollmentNum = fmt.Sprintf("STU-%d-%s", year, strings.ToUpper(s.ID.String()[:6]))
 	}
+	return
+}
+
+func (s *Student) BeforeUpdate(tx *gorm.DB) (err error) {
+	s.CapitalizeNames()
 	return
 }
 

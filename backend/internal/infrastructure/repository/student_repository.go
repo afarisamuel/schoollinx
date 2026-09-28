@@ -22,6 +22,7 @@ func NewStudentRepository(db *gorm.DB) domain.StudentRepository {
 }
 
 func (r *studentRepository) Create(ctx context.Context, student *domain.Student) error {
+	student.CapitalizeNames()
 	if student.ID == uuid.Nil {
 		student.ID = uuid.New()
 	}
@@ -38,6 +39,7 @@ func (r *studentRepository) BulkUpsert(ctx context.Context, students []domain.St
 		return nil
 	}
 	for i := range students {
+		students[i].CapitalizeNames()
 		if students[i].ID == uuid.Nil {
 			students[i].ID = uuid.New()
 		}
@@ -166,6 +168,7 @@ func (r *studentRepository) GetStudentsForTeacherPaginated(ctx context.Context, 
 }
 
 func (r *studentRepository) Update(ctx context.Context, student *domain.Student) error {
+	student.CapitalizeNames()
 	fields := map[string]interface{}{
 		"first_name":            student.FirstName,
 		"last_name":             student.LastName,

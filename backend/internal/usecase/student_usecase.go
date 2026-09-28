@@ -153,6 +153,7 @@ func (u *studentUseCase) provisionGuardianUser(ctx context.Context, g *domain.Gu
 }
 
 func (u *studentUseCase) CreateStudent(ctx context.Context, student *domain.Student) error {
+	student.CapitalizeNames()
 	for i, g := range student.Guardians {
 		if _, err := u.provisionGuardianUser(ctx, g); err != nil {
 			return err
@@ -279,6 +280,7 @@ func (u *studentUseCase) applyTermFeesIfGenerated(ctx context.Context, student *
 
 func (u *studentUseCase) BulkUpsertStudents(ctx context.Context, students []domain.Student, batchSize int) error {
 	for i := range students {
+		students[i].CapitalizeNames()
 		for j, g := range students[i].Guardians {
 			if _, err := u.provisionGuardianUser(ctx, g); err == nil {
 				students[i].Guardians[j] = g
@@ -314,6 +316,7 @@ func (u *studentUseCase) GetStudentsForTeacherPaginated(ctx context.Context, use
 }
 
 func (u *studentUseCase) UpdateStudent(ctx context.Context, student *domain.Student) error {
+	student.CapitalizeNames()
 	// Only process guardian changes if the payload includes guardian data.
 	if len(student.Guardians) > 0 {
 		incoming := student.Guardians[0] // treat the first entry as the primary guardian

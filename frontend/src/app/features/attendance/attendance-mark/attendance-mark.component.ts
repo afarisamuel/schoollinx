@@ -326,7 +326,12 @@ export class AttendanceMarkComponent implements OnInit {
         }
 
         this.isSaving.set(true);
-        const isoDate = new Date(date + 'T00:00:00Z').toISOString();
+        // Use the actual current time when saving today's attendance so the SMS
+        // notification shows the real clock-in time rather than 12:00 AM.
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const isoDate = (date === todayStr)
+            ? new Date().toISOString()          // real current time
+            : new Date(date + 'T12:00:00').toISOString(); // midday for historical dates
         const attendances: Attendance[] = this.students().map(student => ({
             student_id: student.id!,
             class_id: classId,

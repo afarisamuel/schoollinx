@@ -108,6 +108,8 @@ func (h *StudentHandler) Create(c *gin.Context) {
 		student.ID = uuid.New()
 	}
 
+	student.CapitalizeNames()
+
 	// CampusID injection removed as part of transition to single-campus global data model.
 
 	err := h.studentUseCase.CreateStudent(c.Request.Context(), &student)
@@ -196,6 +198,7 @@ func (h *StudentHandler) Update(c *gin.Context) {
 		return
 	}
 	student.ID = id
+	student.CapitalizeNames()
 
 	err = h.studentUseCase.UpdateStudent(c.Request.Context(), &student)
 	if err != nil {
@@ -622,6 +625,7 @@ func (h *StudentHandler) Import(c *gin.Context) {
 					Allergies:             encryption.EncryptedString(getField(row, "allergies")),
 					HealthConditions:      encryption.EncryptedString(getField(row, "health_conditions")),
 				}
+				s.CapitalizeNames()
 				resultsCh <- rowResult{rowNum: rowNum, student: &s}
 			}
 		}()

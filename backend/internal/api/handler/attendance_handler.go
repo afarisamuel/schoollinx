@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"encoding/xml"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -32,6 +35,9 @@ func NewAttendanceHandler(r *gin.RouterGroup, useCase domain.AttendanceUseCase) 
 
 		// ZKTeco ADMS-compatible adapter (no auth — device pushes directly)
 		g.POST("/hardware/zkteco", h.ProcessZKTecoScan)
+
+		// Hikvision ISAPI event push adapter (MinMoe face/fingerprint terminals)
+		g.POST("/hardware/hikvision", h.ProcessHikvisionScan)
 
 		// Device Management & Health Watchdog (Gap #14)
 		g.GET("/hardware/devices", middleware.RoleMiddleware(domain.RoleAdmin), h.GetDevices)
@@ -91,6 +97,13 @@ func (h *AttendanceHandler) MarkAttendance(c *gin.Context) {
 	if err != nil {
 		if parsedDate, err = time.Parse("2006-01-02", dto.Date); err != nil {
 			parsedDate = time.Now()
+		} else {
+			// Date-only string received (YYYY-MM-DD): preserve the date but use
+			// the current wall-clock time so SMS notifications show the real time,
+			// not 12:00 AM.
+			now := time.Now()
+			parsedDate = time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(),
+				now.Hour(), now.Minute(), now.Second(), 0, now.Location())
 		}
 	}
 
@@ -167,6 +180,11 @@ func (h *AttendanceHandler) MarkBulkAttendance(c *gin.Context) {
 		if err != nil {
 			if parsedDate, err = time.Parse("2006-01-02", dto.Date); err != nil {
 				parsedDate = time.Now()
+			} else {
+				// Date-only string: inject current wall-clock time.
+				now := time.Now()
+				parsedDate = time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(),
+					now.Hour(), now.Minute(), now.Second(), 0, now.Location())
 			}
 		}
 
@@ -529,3 +547,104 @@ func (h *AttendanceHandler) TriggerBusGeofenceAlert(c *gin.Context) {
 		"message":          fmt.Sprintf("Geofence alert broadcast: Bus %s is %d mins away from %s", req.BusID, req.ETA_Minutes, req.StopName),
 	})
 }
+
+// ProcessHikvisionScan godoc
+// @Summary      Hikvision ISAPI event push adapter
+// @Description  Accepts Hikvision MinMoe / access control terminal event pushes (XML or JSON).
+//
+//	Configure the device Alarm Server to POST to this URL. The handler maps
+//	employeeNo/cardNo to an RFID token and routes through the standard scan pipeline.
+//	Returns "OK" so Hikvision ANR buffer does not re-queue the event.
+//
+// @Tags         Attendance
+// @Accept       json
+// @Produce      plain
+// @Success      200  {string}  string  "OK"
+// @Failure      400  {object}  map[string]string
+// @Router       /attendance/hardware/hikvision [post]
+func (h *AttendanceHandler) ProcessHikvisionScan(c *gin.Context) {
+	// Hikvision ISAPI XML event structure (EventNotificationAlert).
+	// Newer firmware may POST JSON instead; we try XML first and fall back.
+	type hikAttendanceInfo struct {
+		EmployeeNo       string `xml:"employeeNo"       json:"employeeNo"`
+		AttendanceStatus string `xml:"attendanceStatus" json:"attendanceStatus"` // check-in / check-out
+		VerifyMode       string `xml:"verifyMode"       json:"verifyMode"`       // face / fingerprint / card
+	}
+	type hikAccessControlEvent struct {
+		EmployeeNo string `xml:"employeeNo" json:"employeeNo"`
+		CardNo     string `xml:"cardNo"     json:"cardNo"`
+		UID        string `xml:"uid"        json:"uid"`
+	}
+	type hikEvent struct {
+		XMLName               xml.Name              `xml:"EventNotificationAlert"`
+		IPAddress             string                `xml:"ipAddress"             json:"ipAddress"`
+		MACAddress            string                `xml:"macAddress"            json:"macAddress"`
+		DeviceSerialNo        string                `xml:"deviceSerialNo"        json:"deviceSerialNo"`
+		DateTime              string                `xml:"dateTime"              json:"dateTime"`
+		EventType             string                `xml:"eventType"             json:"eventType"`
+		AttendanceInfo        hikAttendanceInfo     `xml:"attendanceInfo"        json:"attendanceInfo"`
+		AccessControlEvent    hikAccessControlEvent `xml:"AccessControlEvent"    json:"AccessControlEvent"`
+	}
+
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil || len(body) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "empty body"})
+		return
+	}
+
+	var evt hikEvent
+
+	contentType := c.ContentType()
+	if strings.Contains(contentType, "json") {
+		// Some newer Hikvision firmware versions push JSON
+		if err := c.ShouldBindJSON(&evt); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON: " + err.Error()})
+			return
+		}
+	} else {
+		// Default: XML (most MinMoe / DS-K1T* firmware)
+		if err := xml.Unmarshal(body, &evt); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid XML: " + err.Error()})
+			return
+		}
+	}
+
+	// Derive a stable device identifier: prefer serial number, fall back to MAC / IP.
+	deviceID := evt.DeviceSerialNo
+	if deviceID == "" {
+		deviceID = evt.MACAddress
+	}
+	if deviceID == "" {
+		deviceID = evt.IPAddress
+	}
+	if deviceID == "" {
+		deviceID = "HIK-UNKNOWN"
+	}
+
+	// Extract the user token: employeeNo (enrollment number) or cardNo.
+	// employeeNo is the primary field for face/fingerprint terminals.
+	rfidToken := evt.AttendanceInfo.EmployeeNo
+	if rfidToken == "" {
+		rfidToken = evt.AccessControlEvent.EmployeeNo
+	}
+	if rfidToken == "" {
+		rfidToken = evt.AccessControlEvent.CardNo
+	}
+	if rfidToken == "" {
+		rfidToken = evt.AccessControlEvent.UID
+	}
+
+	if rfidToken == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "could not extract user token from Hikvision payload"})
+		return
+	}
+
+	if err := h.useCase.ProcessHardwareScan(c.Request.Context(), deviceID, rfidToken); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Hikvision expects a 200 OK (ANR compliance). Plain "OK" is also accepted.
+	c.String(http.StatusOK, "OK")
+}
+
