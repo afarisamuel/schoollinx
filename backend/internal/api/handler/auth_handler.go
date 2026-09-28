@@ -805,14 +805,17 @@ func generateNumericOTP(length int) (string, error) {
 }
 
 func (h *AuthHandler) findUserByPhoneCandidates(ctx context.Context, candidates []string) (*domain.User, string, error) {
-	// 1. Direct match on users table
+	// 1. Direct match on users table (Admins, Teachers, Staff, Guardians, Students)
 	for _, cand := range candidates {
-		encPhone, err := encryption.EncryptDeterministic(cand, "")
-		if err != nil {
-			continue
-		}
+		encPhone, _ := encryption.EncryptDeterministic(cand, "")
 		var user domain.User
-		if err := h.db.WithContext(ctx).Where("phone_number = ?", encPhone).First(&user).Error; err == nil {
+		query := h.db.WithContext(ctx)
+		if encPhone != "" {
+			query = query.Where("phone_number = ? OR phone_number = ?", encPhone, cand)
+		} else {
+			query = query.Where("phone_number = ?", cand)
+		}
+		if err := query.First(&user).Error; err == nil {
 			return &user, cand, nil
 		}
 	}
@@ -821,22 +824,94 @@ func (h *AuthHandler) findUserByPhoneCandidates(ctx context.Context, candidates 
 	for _, cand := range candidates {
 		var teacher domain.Teacher
 		encPhone, _ := encryption.EncryptDeterministic(cand, "")
-		if err := h.db.WithContext(ctx).Where("phone_number = ? OR email = ?", encPhone, encPhone).First(&teacher).Error; err == nil && teacher.UserID != nil {
+		query := h.db.WithContext(ctx)
+		if encPhone != "" {
+			query = query.Where("phone_number = ? OR phone_number = ? OR emergency_contact = ? OR emergency_contact = ?", encPhone, cand, encPhone, cand)
+		} else {
+			query = query.Where("phone_number = ? OR emergency_contact = ?", cand, cand)
+		}
+		if err := query.First(&teacher).Error; err == nil {
 			var user domain.User
-			if err := h.db.WithContext(ctx).First(&user, "id = ?", *teacher.UserID).Error; err == nil {
-				encVal := encryption.DeterministicEncryptedString(cand)
-				user.PhoneNumber = &encVal
-				_ = h.db.WithContext(ctx).Save(&user)
-				return &user, cand, nil
+			if teacher.UserID != nil && *teacher.UserID != uuid.Nil {
+				if err := h.db.WithContext(ctx).First(&user, "id = ?", *teacher.UserID).Error; err == nil {
+					encVal := encryption.DeterministicEncryptedString(cand)
+					user.PhoneNumber = &encVal
+					_ = h.db.WithContext(ctx).Save(&user)
+					return &user, cand, nil
+				}
+			}
+			// Fallback: match by teacher's email on user table if user_id was unlinked
+			if teacher.Email != "" {
+				encEmail, _ := encryption.EncryptDeterministic(string(teacher.Email), "")
+				uQuery := h.db.WithContext(ctx)
+				if encEmail != "" {
+					uQuery = uQuery.Where("email = ? OR email = ?", encEmail, teacher.Email)
+				} else {
+					uQuery = uQuery.Where("email = ?", teacher.Email)
+				}
+				if err := uQuery.First(&user).Error; err == nil {
+					teacher.UserID = &user.ID
+					_ = h.db.WithContext(ctx).Save(&teacher)
+					encVal := encryption.DeterministicEncryptedString(cand)
+					user.PhoneNumber = &encVal
+					_ = h.db.WithContext(ctx).Save(&user)
+					return &user, cand, nil
+				}
 			}
 		}
 	}
 
-	// 3. Search guardians table
+	// 3. Search staff_profiles table (Non-teaching staff, accountants, admin staff)
+	for _, cand := range candidates {
+		var staff domain.StaffProfile
+		encPhone, _ := encryption.EncryptDeterministic(cand, "")
+		query := h.db.WithContext(ctx)
+		if encPhone != "" {
+			query = query.Where("phone_number = ? OR phone_number = ?", encPhone, cand)
+		} else {
+			query = query.Where("phone_number = ?", cand)
+		}
+		if err := query.First(&staff).Error; err == nil {
+			var user domain.User
+			if staff.UserID != nil && *staff.UserID != uuid.Nil {
+				if err := h.db.WithContext(ctx).First(&user, "id = ?", *staff.UserID).Error; err == nil {
+					encVal := encryption.DeterministicEncryptedString(cand)
+					user.PhoneNumber = &encVal
+					_ = h.db.WithContext(ctx).Save(&user)
+					return &user, cand, nil
+				}
+			}
+			if staff.Email != "" {
+				encEmail, _ := encryption.EncryptDeterministic(string(staff.Email), "")
+				uQuery := h.db.WithContext(ctx)
+				if encEmail != "" {
+					uQuery = uQuery.Where("email = ? OR email = ?", encEmail, staff.Email)
+				} else {
+					uQuery = uQuery.Where("email = ?", staff.Email)
+				}
+				if err := uQuery.First(&user).Error; err == nil {
+					staff.UserID = &user.ID
+					_ = h.db.WithContext(ctx).Save(&staff)
+					encVal := encryption.DeterministicEncryptedString(cand)
+					user.PhoneNumber = &encVal
+					_ = h.db.WithContext(ctx).Save(&user)
+					return &user, cand, nil
+				}
+			}
+		}
+	}
+
+	// 4. Search guardians table
 	for _, cand := range candidates {
 		var guardian domain.Guardian
 		encPhone, _ := encryption.EncryptDeterministic(cand, "")
-		if err := h.db.WithContext(ctx).Where("phone_number = ? OR email = ?", encPhone, encPhone).First(&guardian).Error; err == nil && guardian.UserID != uuid.Nil {
+		query := h.db.WithContext(ctx)
+		if encPhone != "" {
+			query = query.Where("phone_number = ? OR phone_number = ? OR alternate_phone = ? OR alternate_phone = ?", encPhone, cand, encPhone, cand)
+		} else {
+			query = query.Where("phone_number = ? OR alternate_phone = ?", cand, cand)
+		}
+		if err := query.First(&guardian).Error; err == nil && guardian.UserID != uuid.Nil {
 			var user domain.User
 			if err := h.db.WithContext(ctx).First(&user, "id = ?", guardian.UserID).Error; err == nil {
 				encVal := encryption.DeterministicEncryptedString(cand)
@@ -847,11 +922,17 @@ func (h *AuthHandler) findUserByPhoneCandidates(ctx context.Context, candidates 
 		}
 	}
 
-	// 4. Search students table
+	// 5. Search students table
 	for _, cand := range candidates {
 		var student domain.Student
 		encPhone, _ := encryption.EncryptDeterministic(cand, "")
-		if err := h.db.WithContext(ctx).Where("emergency_contact_phone = ? OR phone_number = ? OR email = ?", encPhone, encPhone, encPhone).First(&student).Error; err == nil && student.UserID != nil {
+		query := h.db.WithContext(ctx)
+		if encPhone != "" {
+			query = query.Where("emergency_contact_phone = ? OR emergency_contact_phone = ? OR phone_number = ? OR phone_number = ?", encPhone, cand, encPhone, cand)
+		} else {
+			query = query.Where("emergency_contact_phone = ? OR phone_number = ?", cand, cand)
+		}
+		if err := query.First(&student).Error; err == nil && student.UserID != nil && *student.UserID != uuid.Nil {
 			var user domain.User
 			if err := h.db.WithContext(ctx).First(&user, "id = ?", *student.UserID).Error; err == nil {
 				encVal := encryption.DeterministicEncryptedString(cand)
