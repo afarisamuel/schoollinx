@@ -30,6 +30,7 @@ export class StudentFormComponent implements OnInit {
     
     selectedFile: File | null = null;
     photoPreviewUrl = signal<string | null>(null);
+    existingPhotoUrl = signal<string>('');
     isCameraModalOpen = signal(false);
     classes = signal<Class[]>([]);
     scholasticLevels = signal<ScholasticLevel[]>([]);
@@ -267,6 +268,7 @@ export class StudentFormComponent implements OnInit {
                     
                     this.studentForm.patchValue(formData);
                     if (student.photo_url) {
+                        this.existingPhotoUrl.set(student.photo_url);
                         this.photoPreviewUrl.set(formatMediaUrl(student.photo_url));
                     }
                 }
@@ -335,6 +337,7 @@ export class StudentFormComponent implements OnInit {
 
     removePhoto() {
         this.selectedFile = null;
+        this.existingPhotoUrl.set('');
         this.photoPreviewUrl.set(null);
     }
 
@@ -391,6 +394,7 @@ export class StudentFormComponent implements OnInit {
         this.errorMessage.set('');
         this.successMessage.set('');
         const formData = { ...this.studentForm.value };
+        formData.photo_url = this.existingPhotoUrl();
 
         // Ensure level is a valid integer number
         if (formData.level !== null && formData.level !== undefined && formData.level !== '') {
