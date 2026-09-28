@@ -47,8 +47,10 @@ func NewDocumentHandler(r *gin.RouterGroup, publicR *gin.RouterGroup, useCase do
 	{
 		g.POST("/upload", h.Upload)
 		g.GET("/owner/:owner_id", h.GetByOwner)
-		g.GET("/:id/download", h.Download)
-		g.GET("/:id/view", h.Download)
+		if publicR == nil {
+			g.GET("/:id/download", h.Download)
+			g.GET("/:id/view", h.Download)
+		}
 		g.DELETE("/:id", h.Delete)
 	}
 }
