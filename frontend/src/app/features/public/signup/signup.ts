@@ -41,7 +41,7 @@ export class SignupComponent implements OnInit {
 
   ngOnInit() {
     this.seo.updateMeta({
-      title: 'Start Your Free Institutional Trial — School Registration',
+      title: 'Deploy Your School Operating System — Registration',
       description: 'Create your school tenant in under 2 minutes. Provision a dedicated isolated database, customize grading formulas, and start free with zero commitment.',
       url: '/signup'
     });
@@ -53,10 +53,10 @@ export class SignupComponent implements OnInit {
   }
 
   steps = [
-    { number: 1, label: 'School', icon: 'school' },
-    { number: 2, label: 'Account', icon: 'account' },
-    { number: 3, label: 'Plan', icon: 'plan' },
-    { number: 4, label: 'Review', icon: 'review' }
+    { number: 1, label: 'School Details', desc: 'Name & Custom URL' },
+    { number: 2, label: 'Admin Account', desc: 'Secure Credentials' },
+    { number: 3, label: 'Choose Plan', desc: 'Select Tier' },
+    { number: 4, label: 'Review & Launch', desc: 'Instant Provisioning' }
   ];
 
   progressWidth = computed(() => `${((this.currentStep() - 1) / (this.totalSteps - 1)) * 100}%`);
@@ -146,6 +146,39 @@ export class SignupComponent implements OnInit {
     }
   }
 
+  getPortalUrl(): string {
+    if (typeof window === 'undefined') return '/login';
+    const subdomain = this.form.subdomain.trim().toLowerCase();
+    if (!subdomain) return '/login';
+
+    const hostname = window.location.hostname;
+    const port = window.location.port ? `:${window.location.port}` : '';
+    const protocol = window.location.protocol;
+
+    // Local development (localhost, 127.0.0.1)
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return `${protocol}//${subdomain}.localhost${port}/login`;
+    }
+
+    // Production / Staging domain handling (e.g. schoollinx.com)
+    const parts = hostname.split('.');
+    let baseDomain = hostname;
+    if (parts.length >= 2) {
+      baseDomain = parts.slice(-2).join('.');
+    }
+    return `${protocol}//${subdomain}.${baseDomain}${port}/login`;
+  }
+
+  launchPortal() {
+    const subdomain = this.form.subdomain.trim().toLowerCase();
+    if (typeof window !== 'undefined') {
+      if (subdomain) {
+        localStorage.setItem('tenant_subdomain', subdomain);
+      }
+      window.location.href = this.getPortalUrl();
+    }
+  }
+
   onSubmit() {
     this.isSubmitting.set(true);
     this.errorMessage.set(null);
@@ -162,6 +195,9 @@ export class SignupComponent implements OnInit {
       next: () => {
         this.isSubmitting.set(false);
         this.isSuccess.set(true);
+        if (typeof window !== 'undefined' && this.form.subdomain) {
+          localStorage.setItem('tenant_subdomain', this.form.subdomain.trim().toLowerCase());
+        }
       },
       error: (err) => {
         this.isSubmitting.set(false);

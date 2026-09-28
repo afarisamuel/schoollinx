@@ -1,137 +1,162 @@
-<div class="min-h-screen bg-[#070b14] text-slate-100 flex flex-col justify-between relative overflow-hidden selection:bg-blue-500 selection:text-white">
+<div class="min-h-screen bg-[#060b18] text-slate-100 flex flex-col justify-between relative overflow-hidden selection:bg-indigo-500 selection:text-white">
 
-  <!-- Ambient Glowing Background Aura & Grid Lattice -->
+  <!-- Ambient Glowing Background Aura & High-Tech Mesh -->
   <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-    <!-- Top-left Blue Aurora -->
-    <div class="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-gradient-to-br from-blue-600/25 to-indigo-600/10 blur-[130px] animate-pulse" style="animation-duration: 8s;"></div>
-    <!-- Bottom-right Cyan Aurora -->
-    <div class="absolute -bottom-40 -right-40 w-[650px] h-[650px] rounded-full bg-gradient-to-tl from-cyan-500/20 via-blue-600/15 to-transparent blur-[140px] animate-pulse" style="animation-duration: 10s; animation-delay: 2s;"></div>
-    <!-- Center Violet Accent -->
-    <div class="absolute top-1/2 left-1/3 -translate-y-1/2 w-[450px] h-[450px] rounded-full bg-violet-600/10 blur-[120px]"></div>
-
-    <!-- Tech Grid Overlay -->
-    <div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
+    <div class="absolute -top-40 -left-40 w-[650px] h-[650px] rounded-full bg-blue-600/20 blur-[150px]"></div>
+    <div class="absolute -bottom-40 -right-40 w-[700px] h-[700px] rounded-full bg-indigo-600/20 blur-[160px]"></div>
+    <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] rounded-full bg-cyan-500/10 blur-[140px]"></div>
+    <div class="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] rounded-full bg-purple-600/10 blur-[130px]"></div>
+    
+    <!-- High-Tech Blueprint Matrix Grid -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_75%_65%_at_50%_45%,#000_70%,transparent_100%)]"></div>
   </div>
 
-  <!-- Main Container Grid -->
+  <!-- Main Viewport Layout -->
   <div class="relative z-10 flex-1 flex flex-col lg:flex-row items-stretch w-full max-w-[1600px] mx-auto min-h-screen">
 
     <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- LEFT SIDE: Institutional Identity & Experience Showcase (52%)  -->
+    <!-- LEFT PANEL: School Branding & Feature Showcase (58%)           -->
     <!-- ═══════════════════════════════════════════════════════════════ -->
-    <div class="hidden lg:flex lg:w-7/12 flex-col justify-between p-12 xl:p-16 border-r border-white/5 relative z-10">
+    <div class="hidden lg:flex lg:w-7/12 flex-col justify-between p-12 xl:p-16 border-r border-white/10 relative">
       
-      <!-- Top Brand Header -->
+      <!-- Top Brand Header Bar -->
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3.5 group">
-          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-cyan-400 p-[1.5px] shadow-lg shadow-blue-500/20 transition-transform group-hover:scale-105">
-            <div class="w-full h-full rounded-[14px] bg-[#0b0f19] flex items-center justify-center overflow-hidden p-1.5">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-600 to-cyan-400 p-[1.5px] shadow-xl shadow-indigo-500/20 flex-shrink-0">
+            <div class="w-full h-full rounded-[14px] bg-[#0b1329] flex items-center justify-center overflow-hidden p-2">
               @if (tenantLogo()) {
-                <img [src]="tenantLogo()" class="w-full h-full object-contain" alt="School Logo">
+                <img [src]="tenantLogo()" class="w-full h-full object-contain" alt="School Crest">
               } @else {
                 <img src="assets/images/app-icon.png" class="w-full h-full object-contain" alt="SchoolLinx Logo">
               }
             </div>
           </div>
-          <div class="flex flex-col">
-            <span class="text-xl font-black tracking-tight text-white flex items-center gap-2">
-              {{ tenantName() || 'SchoolLinx OS' }}
-              <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-ping"></span>
-            </span>
-            <span class="text-[11px] font-bold text-slate-400 tracking-wider uppercase">Unified Institutional Operating System</span>
+          <div>
+            <div class="flex items-center gap-2.5">
+              <h2 class="text-2xl font-black text-white tracking-tight leading-tight">{{ tenantName() || 'SchoolLinx' }}</h2>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[10px] font-extrabold text-emerald-300 uppercase tracking-wide">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Verified Portal
+              </span>
+            </div>
+            <p class="text-xs font-semibold text-slate-300 mt-0.5 tracking-wider uppercase">Unified Institutional Operating System</p>
           </div>
         </div>
 
-        <!-- Session Status Badge -->
-        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-md text-xs font-semibold text-slate-300 shadow-xs">
-          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span>Active Session • 2026/2027</span>
+        <!-- Academic Session Indicator Pill -->
+        <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.07] border border-white/15 text-xs font-bold text-slate-200 backdrop-blur-md shadow-inner">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></span>
+          <span>Academic Session 2026/2027</span>
         </div>
       </div>
 
-      <!-- Hero Value Proposition & Bento Feature Cards -->
-      <div class="my-auto py-12 flex flex-col gap-8 max-w-2xl">
+      <!-- Center Showcase Hero & Capabilities -->
+      <div class="my-auto py-10 flex flex-col gap-9 max-w-2xl">
         
         <!-- Main Headline -->
-        <div class="space-y-4">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-black uppercase tracking-widest">
+        <div class="space-y-3.5">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/15 border border-indigo-500/35 text-indigo-300 text-xs font-bold uppercase tracking-wider shadow-sm">
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Bank-Grade Schema Security
+            Bank-Grade Cloud Infrastructure
           </div>
-          <h1 class="text-4xl xl:text-5xl font-black text-white leading-[1.12] tracking-tight">
-            Empowering <span class="bg-gradient-to-r from-blue-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">Excellence</span> in School Operations.
+          <h1 class="text-4xl xl:text-5xl font-black text-white leading-[1.18] tracking-tight">
+            Empowering <span class="bg-gradient-to-r from-sky-400 via-blue-300 to-indigo-300 bg-clip-text text-transparent">Excellence</span> in Campus Operations.
           </h1>
-          <p class="text-base text-slate-400 font-normal leading-relaxed max-w-xl">
-            Single unified gateway for Administrators, Educators, and Guardians to orchestrate academics, student finances, and live campus biometrics.
+          <p class="text-base text-slate-300 leading-relaxed max-w-xl font-normal">
+            Single unified gateway for Administrators, Faculty, and Guardians to orchestrate academics, student finances, and live campus biometrics with sub-second responsiveness.
           </p>
         </div>
 
-        <!-- Bento Grid Feature Highlights -->
-        <div class="grid grid-cols-2 gap-4 pt-2">
+        <!-- 2x2 Feature Showcase Grid -->
+        <div class="grid grid-cols-2 gap-4">
           
-          <!-- Card 1 -->
-          <div class="p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] backdrop-blur-xl transition-all duration-300 hover:scale-[1.02] shadow-sm flex flex-col gap-2.5 group">
-            <div class="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-all">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect width="10" height="8" x="7" y="8" rx="1"/></svg>
+          <div class="feature-card p-4 rounded-2xl flex flex-col gap-2.5">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500/35 flex items-center justify-center text-blue-400 shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect width="10" height="8" x="7" y="8" rx="1"/></svg>
             </div>
             <div>
-              <h3 class="text-sm font-bold text-white tracking-tight">Biometric & RFID Sync</h3>
-              <p class="text-[11px] text-slate-400 mt-0.5 leading-normal">Automated student attendance check-in with real-time SMS arrival dispatch.</p>
+              <h3 class="text-sm font-bold text-white">Biometric &amp; RFID Attendance</h3>
+              <p class="text-xs text-slate-300 mt-1 leading-relaxed">Automated gate check-ins with instant real-time SMS arrival dispatch to parents.</p>
             </div>
           </div>
 
-          <!-- Card 2 -->
-          <div class="p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] backdrop-blur-xl transition-all duration-300 hover:scale-[1.02] shadow-sm flex flex-col gap-2.5 group">
-            <div class="w-9 h-9 rounded-xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400 group-hover:bg-teal-500 group-hover:text-white transition-all">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <div class="feature-card p-4 rounded-2xl flex flex-col gap-2.5">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/35 flex items-center justify-center text-indigo-300 shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
             </div>
             <div>
-              <h3 class="text-sm font-bold text-white tracking-tight">Terminal Reports & Insights</h3>
-              <p class="text-[11px] text-slate-400 mt-0.5 leading-normal">Automated transcript formatting, grade calculations, and parent portals.</p>
+              <h3 class="text-sm font-bold text-white">Terminal Reports &amp; Scores</h3>
+              <p class="text-xs text-slate-300 mt-1 leading-relaxed">Automated grading formulas, class rankings, and instant batch PDF report generation.</p>
+            </div>
+          </div>
+
+          <div class="feature-card p-4 rounded-2xl flex flex-col gap-2.5">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/35 flex items-center justify-center text-cyan-300 shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Fee Billing &amp; Fiscal Ledgers</h3>
+              <p class="text-xs text-slate-300 mt-1 leading-relaxed">Direct payment tracking, instant digital receipts, and comprehensive fee reconciliation.</p>
+            </div>
+          </div>
+
+          <div class="feature-card p-4 rounded-2xl flex flex-col gap-2.5">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/35 flex items-center justify-center text-purple-300 shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="11" r="3"/></svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Isolated Tenant Schemas</h3>
+              <p class="text-xs text-slate-300 mt-1 leading-relaxed">Strict multi-tenant cryptographic isolation ensuring complete student privacy.</p>
             </div>
           </div>
 
         </div>
 
-        <!-- Trust Badges -->
-        <div class="flex items-center gap-6 pt-2 text-xs font-semibold text-slate-400">
+        <!-- Trust Badges Row -->
+        <div class="flex items-center gap-7 pt-2 text-xs font-bold text-slate-200">
           <div class="flex items-center gap-2">
-            <svg class="text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            <span>256-Bit Data Isolation</span>
+            <div class="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span>256-Bit TLS Encryption</span>
           </div>
           <div class="flex items-center gap-2">
-            <svg class="text-blue-400" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <div class="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
             <span>99.98% High Availability</span>
           </div>
           <div class="flex items-center gap-2">
-            <svg class="text-purple-400" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <div class="w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
             <span>DPA Compliant</span>
           </div>
         </div>
 
       </div>
 
-      <!-- Bottom Platform Footer -->
-      <div class="flex items-center justify-between text-xs font-medium text-slate-400 pt-6 border-t border-white/5">
-        <span>&copy; 2026 SchoolLinx Platform. All rights reserved.</span>
-        <div class="flex items-center gap-4">
-          <a routerLink="/privacy" class="hover:text-slate-200 transition-colors">Privacy Policy</a>
-          <span>•</span>
-          <a routerLink="/terms" class="hover:text-slate-200 transition-colors">Terms of Service</a>
+      <!-- Footer Bar -->
+      <div class="flex items-center justify-between text-xs text-slate-300 pt-6 border-t border-white/10">
+        <span class="font-medium">&copy; 2026 SchoolLinx Platform. All rights reserved.</span>
+        <div class="flex items-center gap-4 font-semibold">
+          <a routerLink="/privacy" class="text-slate-300 hover:text-white transition-colors">Privacy Policy</a>
+          <span class="text-slate-500">•</span>
+          <a routerLink="/terms" class="text-slate-300 hover:text-white transition-colors">Terms of Service</a>
         </div>
       </div>
 
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- RIGHT SIDE: Elevated Authentication Portal (48%)                -->
+    <!-- RIGHT PANEL: Authentication Center (42%)                       -->
     <!-- ═══════════════════════════════════════════════════════════════ -->
-    <div class="w-full lg:w-5/12 flex flex-col justify-center items-center p-6 sm:p-10 lg:p-12 xl:p-16 relative z-10">
+    <div class="w-full lg:w-5/12 flex flex-col justify-center items-center p-6 sm:p-10 lg:p-12 relative">
       
-      <!-- Mobile School Header (Displayed only on mobile screens) -->
-      <div class="lg:hidden w-full max-w-md flex items-center gap-3.5 mb-8">
-        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-cyan-400 p-[1.5px] shadow-lg shadow-blue-500/20">
-          <div class="w-full h-full rounded-[14px] bg-[#0b0f19] flex items-center justify-center overflow-hidden p-1">
+      <!-- Mobile School Header -->
+      <div class="lg:hidden w-full max-w-md flex items-center gap-3.5 mb-7">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 p-[1.5px] shadow-lg shadow-blue-500/25">
+          <div class="w-full h-full rounded-[14px] bg-[#0b1329] flex items-center justify-center overflow-hidden p-1.5">
             @if (tenantLogo()) {
               <img [src]="tenantLogo()" class="w-full h-full object-contain" alt="School Logo">
             } @else {
@@ -140,45 +165,43 @@
           </div>
         </div>
         <div>
-          <h2 class="text-lg font-black text-white leading-tight">{{ tenantName() || 'SchoolLinx' }}</h2>
-          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Institutional Portal</span>
+          <h2 class="text-xl font-black text-white leading-tight">{{ tenantName() || 'SchoolLinx' }}</h2>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-300">Institutional Portal</span>
         </div>
       </div>
 
-      <!-- Elevated Glass Auth Container -->
-      <div class="w-full max-w-md rounded-3xl bg-slate-900/70 border border-white/10 shadow-2xl backdrop-blur-2xl p-7 sm:p-9 relative overflow-hidden transition-all">
+      <!-- Main Glass Card Container -->
+      <div class="auth-card w-full max-w-md rounded-[28px] p-7 sm:p-9 relative overflow-hidden shadow-2xl">
         
-        <!-- Glowing Top Border Accent Line -->
-        <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent"></div>
+        <!-- Glowing Top Border Accent Strip -->
+        <div class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-400"></div>
 
         <!-- Card Header -->
         <div class="mb-7">
           <div class="flex items-center justify-between mb-1.5">
             <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Portal Access</h2>
-            <div class="w-7 h-7 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <div class="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             </div>
           </div>
-          <p class="text-xs text-slate-400 font-normal">
-            Sign in to access your administrative, faculty, or parent workspace.
-          </p>
+          <p class="text-xs text-slate-300 font-medium">Sign in to access your administrative, faculty, or parent workspace.</p>
         </div>
 
-        <!-- Mode Switcher Pill Control (Password vs Phone OTP) -->
+        <!-- Mode Switcher Tabs -->
         @if (!requires2FA()) {
-          <div class="flex p-1 bg-slate-950/70 border border-white/10 rounded-2xl mb-7 relative">
+          <div class="flex p-1.5 bg-[#080d1d] border border-white/10 rounded-2xl mb-7 shadow-inner">
             <button type="button" (click)="switchMode('password')"
                     [class]="loginMode() === 'password' 
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-bold' 
-                      : 'text-slate-400 hover:text-white font-medium'"
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/30 font-bold' 
+                      : 'text-slate-300 hover:text-white hover:bg-white/5 font-semibold'"
                     class="flex-1 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
               <span>Password</span>
             </button>
             <button type="button" (click)="switchMode('otp')"
                     [class]="loginMode() === 'otp' 
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-bold' 
-                      : 'text-slate-400 hover:text-white font-medium'"
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/30 font-bold' 
+                      : 'text-slate-300 hover:text-white hover:bg-white/5 font-semibold'"
                     class="flex-1 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
               <span>Phone OTP</span>
@@ -186,154 +209,152 @@
           </div>
         }
 
-        <!-- Error Toast Banner -->
+        <!-- Error Toast -->
         @if (error()) {
-          <div class="bg-rose-500/10 border border-rose-500/30 text-rose-300 px-4 py-3 rounded-2xl text-xs font-semibold mb-6 flex items-start gap-2.5 animate-shake">
+          <div class="bg-rose-500/15 border border-rose-500/40 text-rose-100 px-4 py-3 rounded-2xl text-xs font-semibold mb-6 flex items-start gap-2.5 animate-shake shadow-sm">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="mt-0.5 shrink-0 text-rose-400"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <span class="flex-1">{{ error() }}</span>
+            <span class="flex-1 leading-relaxed">{{ error() }}</span>
           </div>
         }
 
-        <!-- Success Toast Banner -->
+        <!-- Success Toast -->
         @if (successMsg()) {
-          <div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-4 py-3 rounded-2xl text-xs font-semibold mb-6 flex items-center gap-2.5">
+          <div class="bg-emerald-500/15 border border-emerald-500/40 text-emerald-100 px-4 py-3 rounded-2xl text-xs font-semibold mb-6 flex items-center gap-2.5 shadow-sm">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="shrink-0 text-emerald-400"><polyline points="20 6 9 17 4 12"/></svg>
-            <span class="flex-1">{{ successMsg() }}</span>
+            <span class="flex-1 leading-relaxed">{{ successMsg() }}</span>
           </div>
         }
 
         <!-- ═══════════════════════════════════════════════════════════ -->
-        <!-- 1. STANDARD PASSWORD SIGN-IN FORM                          -->
+        <!-- 1. PASSWORD AUTHENTICATION FORM                            -->
         <!-- ═══════════════════════════════════════════════════════════ -->
         @if (!requires2FA() && loginMode() === 'password') {
           <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-5">
             
-            <!-- Identifier Field -->
+            <!-- Identifier -->
             <div class="space-y-2">
-              <label class="block text-[11px] font-black uppercase tracking-wider text-slate-300">
-                Institutional Identifier
+              <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-200">
+                Identity / Username / Email
               </label>
               <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-indigo-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 </div>
                 <input type="text" formControlName="identifier" required autofocus
-                       class="w-full bg-slate-950/60 border border-white/10 rounded-2xl pl-11 pr-4 py-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25 transition-all shadow-inner"
-                       placeholder="Email, Username or Phone">
+                       class="auth-input w-full rounded-2xl pl-11 pr-4 py-3.5 text-sm font-semibold"
+                       placeholder="admin@school.org or 0244123456">
               </div>
             </div>
 
-            <!-- Password Field with Show/Hide Toggle -->
+            <!-- Password -->
             <div class="space-y-2">
               <div class="flex justify-between items-center">
-                <label class="block text-[11px] font-black uppercase tracking-wider text-slate-300">
-                  Security Password
+                <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-200">
+                  Security Key
                 </label>
-                <a routerLink="/forgot-password" class="text-[11px] font-bold text-blue-400 hover:text-blue-300 transition-colors">
-                  Forgot Password?
+                <a routerLink="/forgot-password" class="text-xs font-bold text-sky-400 hover:text-sky-300 transition-colors">
+                  Forgot?
                 </a>
               </div>
               <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-indigo-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </div>
                 <input [type]="showPassword() ? 'text' : 'password'" formControlName="password" required
-                       class="w-full bg-slate-950/60 border border-white/10 rounded-2xl pl-11 pr-11 py-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25 transition-all shadow-inner"
+                       class="auth-input w-full rounded-2xl pl-11 pr-11 py-3.5 text-sm font-semibold"
                        placeholder="••••••••">
                 <button type="button" (click)="togglePassword()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-white transition-colors cursor-pointer" title="Toggle password visibility">
                   @if (showPassword()) {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                   } @else {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                   }
                 </button>
               </div>
             </div>
 
-            <!-- Submit CTA -->
+            <!-- CTA Submit Button -->
             <button type="submit" [disabled]="loginForm.invalid || loading()"
-                    class="w-full mt-7 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-[length:200%_auto] hover:bg-right text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow-xl shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2.5 cursor-pointer">
+                    class="w-full mt-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:to-indigo-500 active:from-blue-700 active:to-indigo-700 text-white font-extrabold py-4 rounded-2xl text-xs uppercase tracking-widest shadow-xl shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2.5 cursor-pointer">
               @if (!loading()) {
-                <span>Sign In to Workspace</span>
+                <span>ENTER WORKSPACE</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               } @else {
                 <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                <span>Authenticating...</span>
+                <span>SECURING ACCESS...</span>
               }
             </button>
           </form>
         }
 
         <!-- ═══════════════════════════════════════════════════════════ -->
-        <!-- 2. PHONE OTP SIGN-IN WORKFLOW                              -->
+        <!-- 2. PHONE OTP AUTHENTICATION FORM                           -->
         <!-- ═══════════════════════════════════════════════════════════ -->
         @if (!requires2FA() && loginMode() === 'otp') {
           <div class="space-y-5">
             
-            <!-- STEP 1: Phone Request -->
             @if (otpStep() === 'phone') {
               <form [formGroup]="phoneForm" (ngSubmit)="onRequestOTP()" class="space-y-5">
                 <div class="space-y-2">
-                  <label class="block text-[11px] font-black uppercase tracking-wider text-slate-300">
+                  <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-200">
                     Registered Mobile Phone
                   </label>
                   <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-indigo-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                     </div>
                     <input type="tel" formControlName="phoneNumber" required autofocus
-                           class="w-full bg-slate-950/60 border border-white/10 rounded-2xl pl-11 pr-4 py-3.5 text-sm text-white placeholder-slate-500 font-mono focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25 transition-all shadow-inner"
+                           class="auth-input w-full rounded-2xl pl-11 pr-4 py-3.5 text-sm font-mono font-semibold"
                            placeholder="024 412 3456 or +233 24 412 3456">
                   </div>
-                  <p class="text-[11px] text-slate-400 leading-normal">
+                  <p class="text-xs text-slate-300 leading-normal font-normal">
                     Admins, Teachers, and Guardians can sign in instantly using their registered mobile contact.
                   </p>
                 </div>
 
                 <button type="submit" [disabled]="phoneForm.invalid || loading()"
-                        class="w-full mt-7 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-[length:200%_auto] hover:bg-right text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow-xl shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2.5 cursor-pointer">
+                        class="w-full mt-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:to-indigo-500 active:from-blue-700 active:to-indigo-700 text-white font-extrabold py-4 rounded-2xl text-xs uppercase tracking-widest shadow-xl shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2.5 cursor-pointer">
                   @if (!loading()) {
-                    <span>Send SMS Verification Code</span>
+                    <span>SEND SMS VERIFICATION CODE</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                   } @else {
                     <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <span>Dispatching Code...</span>
+                    <span>SENDING SMS...</span>
                   }
                 </button>
               </form>
             }
 
-            <!-- STEP 2: Code Verification -->
             @if (otpStep() === 'code') {
               <form [formGroup]="otpForm" (ngSubmit)="onVerifyOTP()" class="space-y-5">
-                <div class="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-between">
-                  <div class="flex items-center gap-2.5">
-                    <div class="w-7 h-7 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                <div class="p-4 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-indigo-500/25 flex items-center justify-center text-indigo-300 shrink-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                     </div>
                     <div>
-                      <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">SMS Code Sent To</p>
-                      <p class="text-xs font-mono font-bold text-white">{{ maskedPhone() }}</p>
+                      <p class="text-[10px] font-extrabold text-slate-300 uppercase tracking-wider">SMS Code Sent To</p>
+                      <p class="text-sm font-mono font-extrabold text-white">{{ maskedPhone() }}</p>
                     </div>
                   </div>
-                  <button type="button" (click)="changePhoneNumber()" class="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors cursor-pointer">
+                  <button type="button" (click)="changePhoneNumber()" class="text-xs font-bold text-sky-400 hover:text-sky-300 transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-white/5">
                     Change
                   </button>
                 </div>
 
                 <div class="space-y-2">
-                  <label class="block text-[11px] font-black uppercase tracking-wider text-slate-300 text-center">
+                  <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-200 text-center">
                     6-Digit Verification Code
                   </label>
                   <input type="text" formControlName="otp" maxlength="6" required autofocus
-                         class="w-full bg-slate-950/60 border border-white/10 rounded-2xl px-4 py-3.5 text-center font-mono tracking-[0.6em] text-2xl text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25 transition-all shadow-inner"
+                         class="auth-input w-full rounded-2xl px-4 py-3.5 text-center font-mono font-bold tracking-[0.6em] text-2xl"
                          placeholder="••••••">
                   <div class="flex items-center justify-between pt-1 text-xs">
-                    <span class="text-slate-400">Didn't receive SMS?</span>
+                    <span class="text-slate-300">Didn't receive SMS?</span>
                     @if (countdown() > 0) {
-                      <span class="text-slate-400 font-mono font-bold">Resend in {{ countdown() }}s</span>
+                      <span class="text-slate-300 font-mono font-bold">Resend in {{ countdown() }}s</span>
                     } @else {
-                      <button type="button" (click)="onResendOTP()" [disabled]="loading()" class="font-bold text-blue-400 hover:text-blue-300 transition-colors cursor-pointer">
+                      <button type="button" (click)="onResendOTP()" [disabled]="loading()" class="font-bold text-sky-400 hover:text-sky-300 transition-colors cursor-pointer">
                         Resend Code
                       </button>
                     }
@@ -341,13 +362,13 @@
                 </div>
 
                 <button type="submit" [disabled]="otpForm.invalid || loading()"
-                        class="w-full mt-7 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-[length:200%_auto] hover:bg-right text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow-xl shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2.5 cursor-pointer">
+                        class="w-full mt-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:to-indigo-500 active:from-blue-700 active:to-indigo-700 text-white font-extrabold py-4 rounded-2xl text-xs uppercase tracking-widest shadow-xl shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2.5 cursor-pointer">
                   @if (!loading()) {
-                    <span>Verify &amp; Enter Workspace</span>
+                    <span>VERIFY &amp; ENTER WORKSPACE</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
                   } @else {
                     <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <span>Validating Code...</span>
+                    <span>VERIFYING...</span>
                   }
                 </button>
               </form>
@@ -362,42 +383,42 @@
         @if (requires2FA()) {
           <form [formGroup]="twoFaForm" (ngSubmit)="on2FASubmit()" class="space-y-5">
             <div class="space-y-2">
-              <label class="block text-[11px] font-black uppercase tracking-wider text-slate-300 text-center">
-                Authenticator App Security Code
+              <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-200 text-center">
+                Authenticator Security Code
               </label>
               <input type="text" formControlName="token" maxlength="6" required autofocus
-                     class="w-full bg-slate-950/60 border border-white/10 rounded-2xl px-4 py-3.5 text-center font-mono tracking-[0.6em] text-2xl text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25 transition-all shadow-inner"
+                     class="auth-input w-full rounded-2xl px-4 py-3.5 text-center font-mono font-bold tracking-[0.6em] text-2xl"
                      placeholder="••••••">
-              <p class="text-[11px] text-slate-400 text-center">
-                Enter the 6-digit one-time code from Google Authenticator or your authenticator app.
+              <p class="text-xs text-slate-300 text-center leading-relaxed">
+                Enter the 6-digit code from Google Authenticator or your authentication mobile app.
               </p>
             </div>
 
             <button type="submit" [disabled]="twoFaForm.invalid || loading()"
-                    class="w-full mt-7 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-[length:200%_auto] hover:bg-right text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow-xl shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2.5 cursor-pointer">
+                    class="w-full mt-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:to-indigo-500 active:from-blue-700 active:to-indigo-700 text-white font-extrabold py-4 rounded-2xl text-xs uppercase tracking-widest shadow-xl shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2.5 cursor-pointer">
               @if (!loading()) {
-                <span>Verify Token &amp; Enter</span>
+                <span>VERIFY TOKEN &amp; ENTER</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
               } @else {
                 <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                <span>Verifying MFA...</span>
+                <span>VERIFYING MFA...</span>
               }
             </button>
 
             <div class="text-center pt-2">
-              <button type="button" (click)="requires2FA.set(false); error.set('')" class="text-xs font-bold text-slate-400 hover:text-white transition-colors cursor-pointer">
+              <button type="button" (click)="requires2FA.set(false); error.set('')" class="text-xs font-bold text-slate-300 hover:text-white transition-colors cursor-pointer">
                 Cancel &amp; Return to Sign In
               </button>
             </div>
           </form>
         }
 
-        <!-- Bottom Signup / Help Link -->
+        <!-- Bottom Signup / Onboard Link -->
         @if (!requires2FA()) {
-          <div class="text-center pt-6 mt-6 border-t border-white/5">
-            <p class="text-xs font-normal text-slate-400">
+          <div class="text-center pt-6 mt-6 border-t border-white/10">
+            <p class="text-xs text-slate-300">
               New institution or tenant? 
-              <a routerLink="/signup" class="text-blue-400 hover:text-blue-300 font-bold ml-1 transition-colors">
+              <a routerLink="/signup" class="text-sky-400 hover:text-sky-300 font-bold ml-1 transition-colors">
                 Create Account
               </a>
             </p>
@@ -407,8 +428,8 @@
       </div>
 
       <!-- Mobile Footer Note -->
-      <div class="lg:hidden text-center text-xs text-slate-500 mt-8">
-        &copy; 2026 SchoolLinx Platform
+      <div class="lg:hidden text-center text-xs text-slate-400 mt-8">
+        &copy; 2026 SchoolLinx Platform. All rights reserved.
       </div>
 
     </div>
