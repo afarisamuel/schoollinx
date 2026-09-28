@@ -34,8 +34,13 @@ type DocumentHandler struct {
 	useCase domain.DocumentUseCase
 }
 
-func NewDocumentHandler(r *gin.RouterGroup, useCase domain.DocumentUseCase) {
+func NewDocumentHandler(r *gin.RouterGroup, publicR *gin.RouterGroup, useCase domain.DocumentUseCase) {
 	h := &DocumentHandler{useCase: useCase}
+
+	if publicR != nil {
+		publicR.GET("/:id/download", h.Download)
+		publicR.GET("/:id/view", h.Download)
+	}
 
 	g := r.Group("/documents")
 	g.Use(middleware.RoleMiddleware(domain.RoleAdmin, domain.RoleTeacher, domain.RoleStudent))
@@ -43,6 +48,7 @@ func NewDocumentHandler(r *gin.RouterGroup, useCase domain.DocumentUseCase) {
 		g.POST("/upload", h.Upload)
 		g.GET("/owner/:owner_id", h.GetByOwner)
 		g.GET("/:id/download", h.Download)
+		g.GET("/:id/view", h.Download)
 		g.DELETE("/:id", h.Delete)
 	}
 }
@@ -137,14 +143,21 @@ func (h *DocumentHandler) Download(c *gin.Context) {
 
 	doc, fileBytes, err := h.useCase.DownloadDocument(c.Request.Context(), id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Document not found"})
 		return
+	}
+
+	// For images or inline view, use inline Content-Disposition so <img> tags and browser previews render directly
+	dispositionType := "attachment"
+	if strings.HasPrefix(doc.FileMimeType, "image/") || c.Query("inline") == "true" || strings.HasSuffix(c.Request.URL.Path, "/view") {
+		dispositionType = "inline"
 	}
 
 	// Safely encode the filename in Content-Disposition (Gap #44)
 	params := map[string]string{"filename": doc.Title}
-	disposition := mime.FormatMediaType("attachment", params)
+	disposition := mime.FormatMediaType(dispositionType, params)
 	c.Header("Content-Disposition", disposition)
+	c.Header("Cache-Control", "public, max-age=86400")
 	c.Data(http.StatusOK, doc.FileMimeType, fileBytes)
 }
 
