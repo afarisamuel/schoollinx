@@ -25,6 +25,8 @@ export class LoginComponent implements OnDestroy {
     readonly tenantName  = signal('School Portal');
     readonly requires2FA = signal(false);
     readonly pendingToken = signal('');
+    readonly showPassword = signal(false);
+    readonly tenantLogo = signal('');
 
     // Phone OTP login state
     readonly loginMode   = signal<'password' | 'otp'>('password');
@@ -79,6 +81,10 @@ export class LoginComponent implements OnDestroy {
         }
     }
 
+    togglePassword() {
+        this.showPassword.update(v => !v);
+    }
+
     private getSubdomain(): string {
         const hostname = window.location.hostname;
         const parts = hostname.split('.');
@@ -102,11 +108,14 @@ export class LoginComponent implements OnDestroy {
 
         this.tenantName.set(subdomain.charAt(0).toUpperCase() + subdomain.slice(1));
 
-        this.http.get<{ name: string; subdomain: string; logo_url: string }>(
+        this.http.get<{ name: string; subdomain: string; logo_url?: string }>(
             '/api/public/tenant-info',
             { headers: { 'X-Tenant-Subdomain': subdomain } }
         ).subscribe({
-            next: (info) => this.tenantName.set(info.name),
+            next: (info) => {
+                if (info?.name) this.tenantName.set(info.name);
+                if (info?.logo_url) this.tenantLogo.set(info.logo_url);
+            },
             error: (err) => {
                 console.error('[Login] Could not fetch tenant name:', err?.status, err?.error);
             }
