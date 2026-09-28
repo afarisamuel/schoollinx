@@ -35,11 +35,13 @@ export interface TimelineEvent {
 
 import { AcademicPeriodService } from '../../../core/infrastructure/academic-period/academic-period.service';
 import { DocumentService } from '../../../core/infrastructure/document/document.service';
+import { CameraCaptureModalComponent, CapturedPhotoResult } from '../../../shared/ui/camera-capture-modal/camera-capture-modal.component';
+import { compressImage } from '../../../core/utils/image-compressor.util';
 
 @Component({
     selector: 'app-student-detail',
     standalone: true,
-    imports: [CommonModule, DatePipe, CurrencyPipe, RouterLink, FormsModule, DocumentManagerComponent, NgxChartsModule],
+    imports: [CommonModule, DatePipe, CurrencyPipe, RouterLink, FormsModule, DocumentManagerComponent, NgxChartsModule, CameraCaptureModalComponent],
     templateUrl: './student-detail.component.html',
     styleUrl: './student-detail.component.css'
 })
@@ -67,6 +69,13 @@ export class StudentDetailComponent implements OnInit {
     // Photo management signals
     photoLoadError = signal<boolean>(false);
     isUploadingPhoto = signal<boolean>(false);
+    isCameraModalOpen = signal<boolean>(false);
+
+    studentFullName = computed(() => {
+        const s = this.student();
+        if (!s) return 'Student';
+        return [s.first_name, s.other_name, s.last_name].filter(Boolean).join(' ');
+    });
     
     // Data Signals
     student = signal<Student | null>(null);
@@ -418,41 +427,73 @@ export class StudentDetailComponent implements OnInit {
         const input = event.target as HTMLInputElement;
         if (!input.files || input.files.length === 0) return;
         const file = input.files[0];
+        input.value = '';
+        this.saveCapturedPhoto(file);
+    }
+
+    openCameraCapture() {
+        this.isCameraModalOpen.set(true);
+    }
+
+    closeCameraCapture() {
+        this.isCameraModalOpen.set(false);
+    }
+
+    onPhotoCaptured(result: CapturedPhotoResult) {
+        this.isCameraModalOpen.set(false);
+        this.saveCapturedPhoto(result.file);
+    }
+
+    async saveCapturedPhoto(file: File) {
         const studentObj = this.student();
         const studentId = studentObj?.id;
         if (!studentObj || !studentId) return;
 
-        this.isUploadingPhoto.set(true);
-        this.documentService.upload(file, {
-            owner_id: studentId,
-            owner_type: 'STUDENT',
-            category: 'IDENTITY',
-            description: 'Passport Photo'
-        }).subscribe({
-            next: (doc) => {
-                const photoUrl = `/api/documents/${doc.id}/download`;
-                const updated = { ...studentObj, photo_url: photoUrl };
-                this.studentService.updateStudent(studentId, updated).subscribe({
-                    next: (res) => {
-                        this.student.set(res || updated);
-                        this.photoLoadError.set(false);
-                        this.isUploadingPhoto.set(false);
-                        input.value = '';
-                        this.dialog.alert('Passport photo updated successfully.', 'Photo Updated', 'success');
-                    },
-                    error: (err) => {
-                        this.isUploadingPhoto.set(false);
-                        input.value = '';
-                        this.dialog.alert(err.error?.error || 'Failed to save photo to student record.', 'Update Error', 'error');
-                    }
-                });
-            },
-            error: (err) => {
-                this.isUploadingPhoto.set(false);
-                input.value = '';
-                this.dialog.alert(err.error?.error || 'Failed to upload photo.', 'Upload Error', 'error');
+        // 1. Instant local preview (Zero-lag Optimistic UI)
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+            if (e.target?.result) {
+                const optimisticStudent = { ...studentObj, photo_url: e.target.result as string };
+                this.student.set(optimisticStudent);
+                this.photoLoadError.set(false);
             }
-        });
+        };
+        reader.readAsDataURL(file);
+
+        this.isUploadingPhoto.set(true);
+
+        try {
+            // 2. High-speed client-side compression down to ~35KB
+            const compressedFile = await compressImage(file, 600, 0.82);
+
+            // 3. Fast background upload & student link
+            this.documentService.upload(compressedFile, {
+                owner_id: studentId,
+                owner_type: 'STUDENT',
+                category: 'IDENTITY',
+                description: 'Passport Photo'
+            }).subscribe({
+                next: (doc) => {
+                    const serverPhotoUrl = `/api/documents/${doc.id}/download`;
+                    const updated = { ...studentObj, photo_url: serverPhotoUrl };
+                    this.studentService.updateStudent(studentId, updated).subscribe({
+                        next: (res) => {
+                            this.student.set(res || updated);
+                            this.isUploadingPhoto.set(false);
+                        },
+                        error: () => {
+                            this.isUploadingPhoto.set(false);
+                        }
+                    });
+                },
+                error: (err) => {
+                    this.isUploadingPhoto.set(false);
+                    this.dialog.alert(err.error?.error || 'Failed to upload photo.', 'Upload Error', 'error');
+                }
+            });
+        } catch {
+            this.isUploadingPhoto.set(false);
+        }
     }
 
     removeStudentPhoto() {

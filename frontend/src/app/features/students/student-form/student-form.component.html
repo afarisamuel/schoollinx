@@ -115,15 +115,20 @@
                     <div class="flex flex-col gap-1.5 text-center sm:text-left flex-1">
                         <h4 class="text-xs font-black text-text-primary">Candidate Identity Portrait</h4>
                         <p class="text-[11px] text-text-muted leading-relaxed">
-                            Upload a high-resolution passport portrait (JPEG/PNG up to 5MB). Used for official ID cards and academic credentials.
+                            Upload a high-resolution passport portrait (JPEG/PNG up to 5MB) or open the camera to capture a live student portrait for official ID cards and academic credentials.
                         </p>
-                        <div class="flex items-center gap-2 mt-1 justify-center sm:justify-start">
-                            <label class="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-text-primary text-[11px] font-bold rounded-lg cursor-pointer transition-all shadow-sm">
+                        <div class="flex flex-wrap items-center gap-2 mt-1 justify-center sm:justify-start">
+                            <label class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold rounded-lg cursor-pointer transition-all shadow-sm flex items-center gap-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                                 Browse File
                                 <input type="file" (change)="onFileSelected($event)" accept="image/*" class="hidden">
                             </label>
+                            <button type="button" (click)="openCameraCapture()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white text-[11px] font-bold rounded-lg transition-all shadow-sm flex items-center gap-1.5 cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                                Open Camera
+                            </button>
                             @if (photoPreviewUrl()) {
-                                <button type="button" (click)="removePhoto()" class="px-3 py-1 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-[11px] font-bold rounded-lg transition-all">
+                                <button type="button" (click)="removePhoto()" class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-[11px] font-bold rounded-lg transition-all cursor-pointer">
                                     Remove Photo
                                 </button>
                             }
@@ -738,4 +743,12 @@
         </div>
 
     </form>
+
+    <!-- Camera Capture Modal -->
+    <app-camera-capture-modal
+        [isOpen]="isCameraModalOpen()"
+        [studentName]="studentFullName()"
+        (photoCaptured)="onPhotoCaptured($event)"
+        (closed)="closeCameraCapture()">
+    </app-camera-capture-modal>
 </div>

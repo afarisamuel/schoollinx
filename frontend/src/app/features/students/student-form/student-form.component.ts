@@ -9,10 +9,12 @@ import { ScholasticLevelService } from '../../../core/infrastructure/scholastic-
 import { ScholasticLevel } from '../../../core/domain/scholastic-level.model';
 import { CommonModule } from '@angular/common';
 import { StudentIdCardComponent } from '../../../shared/ui/student-id-card/student-id-card.component';
+import { CameraCaptureModalComponent, CapturedPhotoResult } from '../../../shared/ui/camera-capture-modal/camera-capture-modal.component';
+import { compressImage } from '../../../core/utils/image-compressor.util';
 
 @Component({
     selector: 'app-student-form',
-    imports: [ReactiveFormsModule, FormsModule, RouterLink, CommonModule, StudentIdCardComponent],
+    imports: [ReactiveFormsModule, FormsModule, RouterLink, CommonModule, StudentIdCardComponent, CameraCaptureModalComponent],
     templateUrl: './student-form.component.html',
     styleUrl: './student-form.component.css',
     standalone: true
@@ -27,6 +29,7 @@ export class StudentFormComponent implements OnInit {
     
     selectedFile: File | null = null;
     photoPreviewUrl = signal<string | null>(null);
+    isCameraModalOpen = signal(false);
     classes = signal<Class[]>([]);
     scholasticLevels = signal<ScholasticLevel[]>([]);
 
@@ -310,21 +313,46 @@ export class StudentFormComponent implements OnInit {
         return current.split(',').map(s => s.trim().toLowerCase()).includes(allergy.toLowerCase());
     }
 
-    onFileSelected(event: any) {
-        const file = event.target.files[0];
+    async onFileSelected(event: any) {
+        const file = event.target.files?.[0];
         if (file) {
-            this.selectedFile = file;
+            // 1. Instant local preview
             const reader = new FileReader();
             reader.onload = (e: any) => {
                 this.photoPreviewUrl.set(e.target.result);
             };
             reader.readAsDataURL(file);
+
+            // 2. Pre-compress to ~35KB in background
+            try {
+                this.selectedFile = await compressImage(file, 600, 0.82);
+            } catch {
+                this.selectedFile = file;
+            }
         }
     }
 
     removePhoto() {
         this.selectedFile = null;
         this.photoPreviewUrl.set(null);
+    }
+
+    openCameraCapture() {
+        this.isCameraModalOpen.set(true);
+    }
+
+    closeCameraCapture() {
+        this.isCameraModalOpen.set(false);
+    }
+
+    async onPhotoCaptured(result: CapturedPhotoResult) {
+        this.photoPreviewUrl.set(result.dataUrl);
+        this.isCameraModalOpen.set(false);
+        try {
+            this.selectedFile = await compressImage(result.file, 600, 0.82);
+        } catch {
+            this.selectedFile = result.file;
+        }
     }
 
     // Quick fill helper for Emergency Contact from Father or Mother
@@ -424,29 +452,25 @@ export class StudentFormComponent implements OnInit {
                 const finalRoute = this.isEditMode && targetId ? ['/students/details', targetId] : returnRoute;
 
                 if (this.selectedFile && targetId) {
-                    this.documentService.upload(this.selectedFile, {
+                    const uploadFile = this.selectedFile;
+                    this.documentService.upload(uploadFile, {
                         owner_id: targetId,
                         owner_type: 'STUDENT',
                         category: 'IDENTITY'
                     }).subscribe({
                         next: (doc) => {
-                            savedStudent.photo_url = `/api/documents/${doc.id}/download`;
-                            this.studentService.updateStudent(targetId, savedStudent).subscribe({
-                                next: () => this.router.navigate(finalRoute),
-                                error: () => { 
-                                    this.isSubmitting.set(false);
-                                    this.router.navigate(finalRoute);
-                                }
+                            const updated = { ...savedStudent, photo_url: `/api/documents/${doc.id}/download` };
+                            this.studentService.updateStudent(targetId, updated).subscribe({
+                                next: () => {},
+                                error: () => {}
                             });
                         },
-                        error: () => {
-                            this.isSubmitting.set(false);
-                            this.router.navigate(finalRoute);
-                        }
+                        error: () => {}
                     });
-                } else {
-                    this.router.navigate(finalRoute);
                 }
+
+                this.isSubmitting.set(false);
+                this.router.navigate(finalRoute);
             },
             error: (err) => {
                 this.isSubmitting.set(false);
