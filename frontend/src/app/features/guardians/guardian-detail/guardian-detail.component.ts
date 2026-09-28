@@ -6,6 +6,7 @@ import { GuardianService } from '../../../core/infrastructure/guardian/guardian.
 import { Guardian, Student, FamilyLedgerSummary } from '../../../core/domain/student.model';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 import { StudentSearchDropdownComponent } from '../../../shared/ui/student-search-dropdown/student-search-dropdown.component';
+import { formatMediaUrl } from '../../../core/utils/media-url.util';
 
 @Component({
   selector: 'app-guardian-detail',
@@ -49,6 +50,10 @@ export class GuardianDetailComponent implements OnInit {
 
   hasPhoto(student: Student): boolean {
     return !!student.photo_url && !this.failedImageIds().has(student.id || '');
+  }
+
+  getStudentPhotoUrl(url?: string | null): string {
+    return formatMediaUrl(url);
   }
 
   // Copy helper

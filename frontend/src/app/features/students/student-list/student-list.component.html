@@ -409,7 +409,7 @@
                 <div class="flex items-start justify-between">
                   <div class="relative">
                     @if (hasPhoto(student)) {
-                      <img [src]="student.photo_url" alt="" (error)="onStudentImageError(student.id)" class="w-14 h-14 rounded-2xl object-cover border-2 border-border-primary shadow-sm group-hover:scale-105 transition-transform">
+                      <img [src]="getStudentPhotoUrl(student.photo_url)" alt="" (error)="onStudentImageError(student.id)" class="w-14 h-14 rounded-2xl object-cover border-2 border-border-primary shadow-sm group-hover:scale-105 transition-transform">
                     } @else {
                       <div class="w-14 h-14 rounded-2xl flex items-center justify-center font-mono text-base font-black border shadow-sm group-hover:scale-105 transition-transform"
                         [ngClass]="student.gender === 'female'
@@ -555,7 +555,7 @@
                       <div class="flex items-center gap-3">
                         <div class="relative shrink-0">
                           @if (hasPhoto(student)) {
-                            <img [src]="student.photo_url" alt="" (error)="onStudentImageError(student.id)" class="w-9 h-9 rounded-xl object-cover border border-border-primary">
+                            <img [src]="getStudentPhotoUrl(student.photo_url)" alt="" (error)="onStudentImageError(student.id)" class="w-9 h-9 rounded-xl object-cover border border-border-primary">
                           } @else {
                             <div class="w-9 h-9 rounded-xl flex items-center justify-center font-mono text-xs font-black border"
                               [ngClass]="student.gender === 'female'

@@ -14,6 +14,7 @@ import { ScholasticLevel } from '../../../core/domain/scholastic-level.model';
 import { PaginationState, defaultPaginationState } from '../../../core/domain/pagination.model';
 
 import { BatchIdCardModalComponent } from '../../../shared/ui/batch-id-card/batch-id-card-modal.component';
+import { formatMediaUrl } from '../../../core/utils/media-url.util';
 
 @Component({
     selector: 'app-student-list',
@@ -48,6 +49,10 @@ export class StudentListComponent implements OnInit {
 
     hasPhoto(student: Student): boolean {
         return !!student.photo_url && !this.failedImageIds().has(student.id || '');
+    }
+
+    getStudentPhotoUrl(photoUrl?: string): string {
+        return formatMediaUrl(photoUrl);
     }
 
     selectedStudentsList = computed(() => {

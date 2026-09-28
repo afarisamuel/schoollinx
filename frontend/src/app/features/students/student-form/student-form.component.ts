@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { StudentIdCardComponent } from '../../../shared/ui/student-id-card/student-id-card.component';
 import { CameraCaptureModalComponent, CapturedPhotoResult } from '../../../shared/ui/camera-capture-modal/camera-capture-modal.component';
 import { compressImage } from '../../../core/utils/image-compressor.util';
+import { formatMediaUrl } from '../../../core/utils/media-url.util';
 
 @Component({
     selector: 'app-student-form',
@@ -266,7 +267,7 @@ export class StudentFormComponent implements OnInit {
                     
                     this.studentForm.patchValue(formData);
                     if (student.photo_url) {
-                        this.photoPreviewUrl.set(student.photo_url);
+                        this.photoPreviewUrl.set(formatMediaUrl(student.photo_url));
                     }
                 }
             },
@@ -438,39 +439,79 @@ export class StudentFormComponent implements OnInit {
             }];
         }
 
-        const operation = this.isEditMode && this.studentId
-            ? this.studentService.updateStudent(this.studentId, formData as Student)
-            : this.studentService.createStudent(formData as Student);
-
         const returnRoute = this.isEditMode && this.studentId
             ? ['/students/details', this.studentId]
             : ['/students'];
 
-        operation.subscribe({
-            next: (savedStudent: any) => {
-                const targetId = savedStudent?.id || this.studentId;
-                const finalRoute = this.isEditMode && targetId ? ['/students/details', targetId] : returnRoute;
-
-                if (this.selectedFile && targetId) {
-                    const uploadFile = this.selectedFile;
-                    this.documentService.upload(uploadFile, {
-                        owner_id: targetId,
-                        owner_type: 'STUDENT',
-                        category: 'IDENTITY'
-                    }).subscribe({
-                        next: (doc) => {
-                            const updated = { ...savedStudent, photo_url: `/api/documents/${doc.id}/download` };
-                            this.studentService.updateStudent(targetId, updated).subscribe({
-                                next: () => {},
-                                error: () => {}
-                            });
-                        },
-                        error: () => {}
-                    });
+        if (this.isEditMode && this.studentId) {
+            // EDIT MODE: If a new photo was selected/captured, upload it first, then update student
+            if (this.selectedFile) {
+                this.documentService.upload(this.selectedFile, {
+                    owner_id: this.studentId,
+                    owner_type: 'STUDENT',
+                    category: 'IDENTITY'
+                }).subscribe({
+                    next: (doc) => {
+                        formData.photo_url = `/api/documents/${doc.id}/download`;
+                        this.executeStudentSave(formData, returnRoute);
+                    },
+                    error: () => {
+                        // If document upload fails, still save biodata
+                        this.executeStudentSave(formData, returnRoute);
+                    }
+                });
+            } else {
+                this.executeStudentSave(formData, returnRoute);
+            }
+        } else {
+            // CREATE MODE: Create student first, then attach photo if selected
+            this.studentService.createStudent(formData as Student).subscribe({
+                next: (savedStudent: any) => {
+                    const targetId = savedStudent?.id;
+                    if (this.selectedFile && targetId) {
+                        this.documentService.upload(this.selectedFile, {
+                            owner_id: targetId,
+                            owner_type: 'STUDENT',
+                            category: 'IDENTITY'
+                        }).subscribe({
+                            next: (doc) => {
+                                const updated = { ...savedStudent, photo_url: `/api/documents/${doc.id}/download` };
+                                this.studentService.updateStudent(targetId, updated).subscribe({
+                                    next: () => {
+                                        this.isSubmitting.set(false);
+                                        this.router.navigate(['/students/details', targetId]);
+                                    },
+                                    error: () => {
+                                        this.isSubmitting.set(false);
+                                        this.router.navigate(['/students/details', targetId]);
+                                    }
+                                });
+                            },
+                            error: () => {
+                                this.isSubmitting.set(false);
+                                this.router.navigate(returnRoute);
+                            }
+                        });
+                    } else {
+                        this.isSubmitting.set(false);
+                        this.router.navigate(targetId ? ['/students/details', targetId] : returnRoute);
+                    }
+                },
+                error: (err) => {
+                    this.isSubmitting.set(false);
+                    this.errorMessage.set(err?.error?.error || 'An error occurred while saving the candidate record.');
+                    setTimeout(() => this.errorMessage.set(''), 5000);
                 }
+            });
+        }
+    }
 
+    private executeStudentSave(formData: any, returnRoute: any[]) {
+        this.studentService.updateStudent(this.studentId!, formData as Student).subscribe({
+            next: (savedStudent: any) => {
                 this.isSubmitting.set(false);
-                this.router.navigate(finalRoute);
+                const targetId = savedStudent?.id || this.studentId;
+                this.router.navigate(targetId ? ['/students/details', targetId] : returnRoute);
             },
             error: (err) => {
                 this.isSubmitting.set(false);

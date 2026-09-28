@@ -159,6 +159,60 @@ func TenantMiddleware(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+// OptionalTenantMiddleware attempts to extract and inject the tenant context if available,
+// but does not abort if the tenant context cannot be resolved (allowing public/universal routes).
+func OptionalTenantMiddleware(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		subdomain := ExtractSubdomain(c.Request)
+
+		// 1. Try X-Tenant-Subdomain header
+		if sub := c.GetHeader("X-Tenant-Subdomain"); sub != "" {
+			var t domain.Tenant
+			if err := db.Table("public.tenants").Where("subdomain = ? AND is_active = true", sub).First(&t).Error; err == nil {
+				injectContext(c, t)
+				c.Next()
+				return
+			}
+		}
+
+		// 2. Try X-Tenant-ID header
+		if tenantStr := c.GetHeader("X-Tenant-ID"); tenantStr != "" {
+			if parsedUUID, err := uuid.Parse(tenantStr); err == nil {
+				var t domain.Tenant
+				if err := db.Table("public.tenants").Where("id = ? AND is_active = true", parsedUUID).First(&t).Error; err == nil {
+					injectContext(c, t)
+					c.Next()
+					return
+				}
+			}
+		}
+
+		// 3. Try query parameter ?tenant=
+		if tenantQuery := c.Query("tenant"); tenantQuery != "" {
+			var t domain.Tenant
+			if err := db.Table("public.tenants").Where("subdomain = ? AND is_active = true", tenantQuery).First(&t).Error; err == nil {
+				injectContext(c, t)
+				c.Next()
+				return
+			}
+		}
+
+		// 4. Host match
+		host := c.Request.Host
+		var t domain.Tenant
+		err := db.Table("public.tenants").Where("custom_domain = ? AND is_active = true", host).First(&t).Error
+		if err != nil && subdomain != "" && subdomain != "www" && subdomain != "localhost" && subdomain != "127" && subdomain != "api" {
+			err = db.Table("public.tenants").Where("subdomain = ? AND is_active = true", subdomain).First(&t).Error
+		}
+
+		if err == nil {
+			injectContext(c, t)
+		}
+
+		c.Next()
+	}
+}
+
 func injectContext(c *gin.Context, t domain.Tenant) {
 	c.Set("tenantID", t.ID)
 	c.Set("tenantSchema", t.SchemaName)

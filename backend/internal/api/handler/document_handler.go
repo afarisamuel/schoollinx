@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"fmt"
 	"io"
 	"mime"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -11,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/domain"
+	"gorm.io/gorm"
 )
 
 // Maximum upload size: 10MB
@@ -32,10 +35,11 @@ var allowedMimeTypes = map[string]bool{
 
 type DocumentHandler struct {
 	useCase domain.DocumentUseCase
+	db      *gorm.DB
 }
 
-func NewDocumentHandler(r *gin.RouterGroup, publicR *gin.RouterGroup, useCase domain.DocumentUseCase) {
-	h := &DocumentHandler{useCase: useCase}
+func NewDocumentHandler(r *gin.RouterGroup, publicR *gin.RouterGroup, useCase domain.DocumentUseCase, db *gorm.DB) {
+	h := &DocumentHandler{useCase: useCase, db: db}
 
 	if publicR != nil {
 		publicR.GET("/:id/download", h.Download)
@@ -144,7 +148,30 @@ func (h *DocumentHandler) Download(c *gin.Context) {
 	}
 
 	doc, fileBytes, err := h.useCase.DownloadDocument(c.Request.Context(), id)
-	if err != nil {
+	if err != nil && h.db != nil {
+		// Fallback: If tenant context was missing or document wasn't in the resolved schema,
+		// scan active tenant schemas for this globally unique document ID.
+		var tenants []domain.Tenant
+		if dbErr := h.db.Table("public.tenants").Where("is_active = true").Find(&tenants).Error; dbErr == nil {
+			for _, t := range tenants {
+				if t.SchemaName == "" {
+					continue
+				}
+				var foundDoc domain.Document
+				query := fmt.Sprintf("SELECT * FROM %s.documents WHERE id = ? AND deleted_at IS NULL LIMIT 1", t.SchemaName)
+				if h.db.Raw(query, id).Scan(&foundDoc).Error == nil && foundDoc.ID != uuid.Nil {
+					if data, readErr := os.ReadFile(foundDoc.StoragePath); readErr == nil {
+						doc = &foundDoc
+						fileBytes = data
+						err = nil
+						break
+					}
+				}
+			}
+		}
+	}
+
+	if err != nil || doc == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Document not found"})
 		return
 	}

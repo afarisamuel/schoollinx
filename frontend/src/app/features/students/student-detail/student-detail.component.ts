@@ -37,6 +37,7 @@ import { AcademicPeriodService } from '../../../core/infrastructure/academic-per
 import { DocumentService } from '../../../core/infrastructure/document/document.service';
 import { CameraCaptureModalComponent, CapturedPhotoResult } from '../../../shared/ui/camera-capture-modal/camera-capture-modal.component';
 import { compressImage } from '../../../core/utils/image-compressor.util';
+import { formatMediaUrl } from '../../../core/utils/media-url.util';
 
 @Component({
     selector: 'app-student-detail',
@@ -70,6 +71,11 @@ export class StudentDetailComponent implements OnInit {
     photoLoadError = signal<boolean>(false);
     isUploadingPhoto = signal<boolean>(false);
     isCameraModalOpen = signal<boolean>(false);
+
+    studentPhotoUrl = computed(() => {
+        const url = this.student()?.photo_url;
+        return formatMediaUrl(url);
+    });
 
     studentFullName = computed(() => {
         const s = this.student();

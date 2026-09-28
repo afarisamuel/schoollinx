@@ -6,6 +6,7 @@ import { Class } from '../../../core/infrastructure/curriculum/class.service';
 import { TenantProfileService, TenantProfile } from '../../../core/infrastructure/tenant-profile.service';
 import { ID_CARD_THEMES, ID_CARD_TEMPLATES, IdCardTheme, IdCardTemplate, ThemeConfig } from '../student-id-card/student-id-card.component';
 import { BarcodeGenerator } from '../../../core/utils/barcode.util';
+import { formatMediaUrl } from '../../../core/utils/media-url.util';
 
 @Component({
   selector: 'app-batch-id-card-modal',
@@ -96,6 +97,10 @@ export class BatchIdCardModalComponent {
     return !!s.photo_url && !this.failedImageIds().has(s.id || '');
   }
 
+  getStudentPhotoUrl(photoUrl?: string): string {
+    return formatMediaUrl(photoUrl);
+  }
+
   getInitials(s: Student): string {
     const fn = s.first_name?.[0] || 'S';
     const ln = s.last_name?.[0] || 'T';
@@ -129,7 +134,7 @@ export class BatchIdCardModalComponent {
       const emergencyPhone = s.emergency_contact_phone || s.guardian_phone || s.father_phone || hotline;
       const allergies = s.allergies || 'None';
       const initials = this.getInitials(s);
-      const photo = s.photo_url || null;
+      const photo = s.photo_url ? formatMediaUrl(s.photo_url) : null;
 
       const barcode = BarcodeGenerator.generateCode128(id, 1.6);
       const barcodeSvg = `

@@ -8,6 +8,7 @@ import { TenantProfileService, TenantProfile } from '../../../core/infrastructur
 import { Student } from '../../../core/domain/student.model';
 import { StudentIdCardComponent, IdCardTheme, IdCardTemplate, ID_CARD_THEMES, ID_CARD_TEMPLATES, ThemeConfig, TemplateOption } from '../../../shared/ui/student-id-card/student-id-card.component';
 import { BatchIdCardModalComponent } from '../../../shared/ui/batch-id-card/batch-id-card-modal.component';
+import { formatMediaUrl } from '../../../core/utils/media-url.util';
 
 @Component({
   selector: 'app-id-card-studio',
@@ -56,6 +57,10 @@ export class IdCardStudioComponent implements OnInit {
 
   hasPhoto(student: Student): boolean {
     return !!student.photo_url && !this.failedImageIds().has(student.id || '');
+  }
+
+  getStudentPhotoUrl(photoUrl?: string): string {
+    return formatMediaUrl(photoUrl);
   }
 
   // Batch Printing Modal

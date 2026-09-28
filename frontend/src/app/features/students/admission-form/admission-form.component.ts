@@ -8,6 +8,7 @@ import { TenantProfileService, TenantProfile } from '../../../core/infrastructur
 import { ClassService, Class } from '../../../core/infrastructure/curriculum/class.service';
 import { ScholasticLevelService } from '../../../core/infrastructure/scholastic-level/scholastic-level.service';
 import { ScholasticLevel } from '../../../core/domain/scholastic-level.model';
+import { formatMediaUrl } from '../../../core/utils/media-url.util';
 
 export interface AdmissionCustomField {
   id: string;
@@ -57,6 +58,10 @@ export class AdmissionFormComponent implements OnInit {
   includeDeclaration = signal(true);
   academicYear = signal('2026/2027');
   admissionDate = signal(new Date());
+
+  getStudentPhotoUrl(url?: string | null): string {
+    return formatMediaUrl(url);
+  }
 
   // Custom Dynamic Fields System
   isCustomizerOpen = signal(false);

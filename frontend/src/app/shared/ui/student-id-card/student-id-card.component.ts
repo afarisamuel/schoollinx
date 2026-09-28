@@ -5,6 +5,7 @@ import { Student } from '../../../core/domain/student.model';
 import { BarcodeGenerator, BarcodeBar } from '../../../core/utils/barcode.util';
 import { QRCodeComponent } from 'angularx-qrcode';
 import { TenantProfileService, TenantProfile } from '../../../core/infrastructure/tenant-profile.service';
+import { formatMediaUrl } from '../../../core/utils/media-url.util';
 
 export type IdCardTheme = 'teal' | 'blue' | 'purple' | 'ruby' | 'amber' | 'cyan' | 'rose' | 'forest' | 'dark' | 'onyx' | 'custom';
 export type IdCardTemplate = 'wave' | 'academic' | 'corporate' | 'cyber' | 'vertical';
@@ -240,7 +241,8 @@ export class StudentIdCardComponent implements OnInit, AfterViewInit, OnDestroy 
   });
 
   resolvedPhoto = computed(() => {
-    return this.studentPhotoUrl() || this.student()?.photo_url || null;
+    const raw = this.studentPhotoUrl() || this.student()?.photo_url || null;
+    return raw ? formatMediaUrl(raw) : null;
   });
 
   resolvedSchoolName = computed(() => {
