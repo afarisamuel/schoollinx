@@ -44,11 +44,17 @@ export class CameraCaptureModalComponent implements OnInit, OnDestroy {
     // React to isOpen signal changes
     effect(() => {
       if (this.isOpen()) {
+        if (typeof document !== 'undefined') {
+          document.body.style.overflow = 'hidden';
+        }
         this.capturedDataUrl.set(null);
         this.capturedFile.set(null);
         this.cameraError.set(null);
         setTimeout(() => this.startCamera(), 100);
       } else {
+        if (typeof document !== 'undefined') {
+          document.body.style.overflow = '';
+        }
         this.stopCamera();
       }
     });
@@ -59,6 +65,9 @@ export class CameraCaptureModalComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = '';
+    }
     this.stopCamera();
     if (this.countdownTimer) {
       clearInterval(this.countdownTimer);
