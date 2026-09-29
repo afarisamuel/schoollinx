@@ -10,7 +10,21 @@ import { join } from 'node:path';
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
 const app = express();
-const angularApp = new AngularNodeAppEngine();
+app.set('trust proxy', true);
+
+const angularApp = new AngularNodeAppEngine({
+  trustProxyHeaders: true,
+  allowedHosts: [
+    'localhost',
+    '.localhost',
+    'thinkce.localhost',
+    'schoollinx.com',
+    '.schoollinx.com',
+    'kendemy.schoollinx.com',
+    'kwame.schoollinx.com',
+    'great.schoollinx.com',
+  ],
+});
 
 /**
  * Example Express Rest API endpoints can be defined here.
