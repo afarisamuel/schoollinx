@@ -1,4 +1,5 @@
-import { Injectable, inject, signal, OnDestroy } from '@angular/core';
+import { Injectable, inject, signal, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, Subject, BehaviorSubject, tap } from 'rxjs';
@@ -138,6 +139,7 @@ export interface Message {
 export class MessagingService implements OnDestroy {
     private http = inject(HttpClient);
     private router = inject(Router);
+    private platformId = inject(PLATFORM_ID);
     private api = '/api/messages';
 
     readonly totalUnreadCount = signal<number>(0);
@@ -213,6 +215,7 @@ export class MessagingService implements OnDestroy {
 
     // ── WebSocket ────────────────────────────────────────────────
     connectWebSocket(token: string): void {
+        if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined') return;
         this.wsToken = token;
         if (this.ws && this.ws.readyState === WebSocket.OPEN) return;
         const protocol = location.protocol === 'https:' ? 'wss' : 'ws';

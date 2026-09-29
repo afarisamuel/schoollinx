@@ -1,5 +1,5 @@
-import { Component, inject, signal, OnInit, OnDestroy, computed, AfterViewChecked, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, signal, OnInit, OnDestroy, computed, AfterViewChecked, ElementRef, ViewChild, ChangeDetectorRef, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -30,6 +30,7 @@ export class MessagingHubComponent implements OnInit, OnDestroy, AfterViewChecke
     private msgService = inject(MessagingService);
     private authService = inject(AuthService);
     private route = inject(ActivatedRoute);
+    private platformId = inject(PLATFORM_ID);
 
     conversations = signal<Conversation[]>([]);
     activeConversation = signal<Conversation | null>(null);
@@ -228,6 +229,8 @@ export class MessagingHubComponent implements OnInit, OnDestroy, AfterViewChecke
     });
 
     ngOnInit() {
+        if (!isPlatformBrowser(this.platformId)) return;
+
         this.loadConversations();
 
         // Query param to open specific conversation

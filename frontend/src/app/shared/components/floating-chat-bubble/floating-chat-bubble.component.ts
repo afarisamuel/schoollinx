@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { Component, OnInit, OnDestroy, inject, signal, computed, ViewChild, ElementRef, AfterViewChecked, PLATFORM_ID } from '@angular/core';
+import { CommonModule, DatePipe, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription, interval } from 'rxjs';
@@ -17,6 +17,7 @@ export class FloatingChatBubbleComponent implements OnInit, OnDestroy, AfterView
   messagingService = inject(MessagingService);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
 
   @ViewChild('messagesContainer') private messagesContainer?: ElementRef;
   @ViewChild('messageInput') private messageInput?: ElementRef<HTMLTextAreaElement>;
@@ -97,6 +98,8 @@ export class FloatingChatBubbleComponent implements OnInit, OnDestroy, AfterView
   private shouldScrollToBottom = false;
 
   ngOnInit(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
     if (this.messagingService.activeFloatingConversation()) {
       this.selectConversation(this.messagingService.activeFloatingConversation()!);
     }
