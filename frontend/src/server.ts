@@ -4,10 +4,23 @@ import {
   isMainModule,
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
+import { ɵsetAngularAppEngineManifest } from '@angular/ssr';
 import express from 'express';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
-const browserDistFolder = join(import.meta.dirname, '../browser');
+const serverDistFolder = import.meta.dirname;
+const browserDistFolder = join(serverDistFolder, '../browser');
+
+/**
+ * Explicitly load and set the Angular app engine manifest.
+ * This is needed because the @angular/build esbuild plugin's virtual module
+ * that normally handles this gets tree-shaken due to @angular/ssr declaring
+ * "sideEffects": false in its package.json.
+ */
+const manifestPath = join(serverDistFolder, 'angular-app-engine-manifest.mjs');
+const manifestModule = await import(pathToFileURL(manifestPath).href);
+ɵsetAngularAppEngineManifest(manifestModule.default);
 
 const app = express();
 app.set('trust proxy', true);
