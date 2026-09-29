@@ -1,4 +1,5 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
+import { forkJoin, of, switchMap } from 'rxjs';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -26,6 +27,8 @@ export class TeacherFormComponent implements OnInit {
     availableSubjects = signal<Subject[]>([]);
     availableClasses = signal<Class[]>([]);
     assignments = signal<TeacherClassAssignment[]>([]);
+    // Staged assignments for create-mode (persisted after teacher is saved)
+    pendingAssignments = signal<(TeacherClassAssignment & { _tempId: string; _className?: string; _subjectName?: string })[]>([]);
 
     // Subject Filter & Multi-Select State
     subjectSearch = signal<string>('');
@@ -207,29 +210,52 @@ export class TeacherFormComponent implements OnInit {
 
     addAssignment() {
         const assignmentVal = this.teacherForm.get('current_assignment')?.value;
-        if (!assignmentVal.class_id || !this.teacherId) return;
+        if (!assignmentVal.class_id) return;
 
         const isClassTeacher = this.assignmentType() === 'class';
-        const payload = {
-            teacher_id: this.teacherId,
-            class_id: assignmentVal.class_id,
-            subject_id: isClassTeacher ? null : (assignmentVal.subject_id || null),
-            academic_year: assignmentVal.academic_year || '2026/2027'
-        };
 
-        this.teacherService.assignToClass(payload).subscribe({
-            next: () => {
-                if (this.teacherId) this.loadAssignments(this.teacherId);
-                this.teacherForm.get('current_assignment')?.patchValue({
-                    class_id: '',
-                    subject_id: ''
-                });
-            },
-            error: () => {}
-        });
+        if (this.isEditMode && this.teacherId) {
+            // Edit mode: persist immediately
+            const payload = {
+                teacher_id: this.teacherId,
+                class_id: assignmentVal.class_id,
+                subject_id: isClassTeacher ? null : (assignmentVal.subject_id || null),
+                academic_year: assignmentVal.academic_year || '2026/2027'
+            };
+            this.teacherService.assignToClass(payload).subscribe({
+                next: () => {
+                    if (this.teacherId) this.loadAssignments(this.teacherId);
+                    this.teacherForm.get('current_assignment')?.patchValue({ class_id: '', subject_id: '' });
+                },
+                error: () => {}
+            });
+        } else {
+            // Create mode: stage for later
+            const selectedClass = this.availableClasses().find(c => c.id === assignmentVal.class_id);
+            const selectedSubject = isClassTeacher ? null : this.availableSubjects().find(s => s.id === assignmentVal.subject_id);
+            const tempId = `pending-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+            this.pendingAssignments.update(list => [
+                ...list,
+                {
+                    _tempId: tempId,
+                    _className: selectedClass?.name || assignmentVal.class_id,
+                    _subjectName: selectedSubject?.name || undefined,
+                    teacher_id: '',  // filled in after create
+                    class_id: assignmentVal.class_id,
+                    subject_id: isClassTeacher ? undefined : (assignmentVal.subject_id || undefined),
+                    academic_year: assignmentVal.academic_year || '2026/2027'
+                }
+            ]);
+            this.teacherForm.get('current_assignment')?.patchValue({ class_id: '', subject_id: '' });
+        }
     }
 
     removeAssignment(id: string) {
+        if (!this.isEditMode) {
+            // Create mode: remove from staging list by _tempId
+            this.pendingAssignments.update(list => list.filter(a => a._tempId !== id));
+            return;
+        }
         this.teacherService.unassignFromClass(id).subscribe({
             next: () => {
                 if (this.teacherId) this.loadAssignments(this.teacherId);
@@ -265,7 +291,25 @@ export class TeacherFormComponent implements OnInit {
             ? this.teacherService.updateTeacher(this.teacherId, teacherData)
             : this.teacherService.createTeacher(teacherData);
 
-        operation.subscribe({
+        operation.pipe(
+            switchMap(createdOrUpdated => {
+                // After creating a new teacher, batch-assign any pending assignments
+                if (!this.isEditMode && createdOrUpdated?.id) {
+                    const pending = this.pendingAssignments();
+                    if (pending.length === 0) return of(createdOrUpdated);
+                    const calls = pending.map(p =>
+                        this.teacherService.assignToClass({
+                            teacher_id: createdOrUpdated.id,
+                            class_id: p.class_id,
+                            subject_id: p.subject_id || null,
+                            academic_year: p.academic_year
+                        })
+                    );
+                    return forkJoin(calls);
+                }
+                return of(createdOrUpdated);
+            })
+        ).subscribe({
             next: () => {
                 if (!this.isEditMode) {
                     this.router.navigate(['/teachers']);

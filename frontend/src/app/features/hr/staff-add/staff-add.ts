@@ -26,6 +26,7 @@ export class StaffAdd {
     department: '',
     base_salary: 0,
     bank_account: '',
+    is_teacher: false,
     hire_date: new Date().toISOString().split('T')[0],
   });
 

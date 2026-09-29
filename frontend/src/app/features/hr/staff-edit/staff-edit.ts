@@ -31,6 +31,7 @@ export class StaffEdit implements OnInit {
     base_salary: 0,
     bank_account: '',
     hire_date: '',
+    is_teacher: false,
   });
 
   readonly departments = [

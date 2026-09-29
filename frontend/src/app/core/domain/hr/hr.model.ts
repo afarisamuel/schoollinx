@@ -14,6 +14,7 @@ export interface StaffProfile {
     base_salary: number;
     bank_account?: string;
     hire_date: string;
+    is_teacher?: boolean;
     created_at?: string;
     updated_at?: string;
 }

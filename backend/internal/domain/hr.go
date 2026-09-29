@@ -38,6 +38,7 @@ type StaffProfile struct {
 	BaseSalary  float64                    `json:"base_salary" gorm:"not null"`
 	BankAccount encryption.EncryptedString `json:"bank_account"`
 	HireDate    time.Time                  `json:"hire_date" gorm:"not null"`
+	IsTeacher   bool                       `json:"is_teacher" gorm:"default:false"`
 	CreatedAt   time.Time                  `json:"created_at"`
 	UpdatedAt   time.Time                  `json:"updated_at"`
 }

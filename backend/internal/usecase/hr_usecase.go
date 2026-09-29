@@ -5,20 +5,99 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/user/high-school-management/backend/internal/domain"
 	"github.com/user/high-school-management/backend/internal/infrastructure/pdf"
+	"github.com/user/high-school-management/backend/pkg/encryption"
 )
 
 type hrUseCase struct {
-	repo domain.HRRepository
-	pdf  *pdf.PDFService
+	repo        domain.HRRepository
+	pdf         *pdf.PDFService
+	teacherRepo domain.TeacherRepository
 }
 
-func NewHRUseCase(repo domain.HRRepository, pdfService *pdf.PDFService) domain.HRUseCase {
-	return &hrUseCase{repo: repo, pdf: pdfService}
+func NewHRUseCase(repo domain.HRRepository, pdfService *pdf.PDFService, teacherRepo ...domain.TeacherRepository) domain.HRUseCase {
+	var tr domain.TeacherRepository
+	if len(teacherRepo) > 0 {
+		tr = teacherRepo[0]
+	}
+	return &hrUseCase{repo: repo, pdf: pdfService, teacherRepo: tr}
+}
+
+func isTeachingRole(jobTitle, department string, isTeacher bool) bool {
+	if isTeacher {
+		return true
+	}
+	combined := strings.ToLower(jobTitle + " " + department)
+	keywords := []string{"teacher", "educator", "tutor", "instructor", "lecturer", "faculty", "headmaster", "principal", "science master", "math master"}
+	for _, kw := range keywords {
+		if strings.Contains(combined, kw) {
+			return true
+		}
+	}
+	return false
+}
+
+func (u *hrUseCase) syncTeacherProfile(ctx context.Context, staff *domain.StaffProfile) {
+	if u.teacherRepo == nil || staff == nil {
+		return
+	}
+	shouldBeTeacher := isTeachingRole(staff.JobTitle, staff.Department, staff.IsTeacher)
+
+	// Fetch all teachers to check if already linked
+	teachers, err := u.teacherRepo.GetAll(ctx)
+	if err != nil {
+		return
+	}
+
+	var existingTeacher *domain.Teacher
+	staffEmail := strings.TrimSpace(string(staff.Email))
+
+	for i := range teachers {
+		t := &teachers[i]
+		if t.StaffProfileID != nil && *t.StaffProfileID == staff.ID {
+			existingTeacher = t
+			break
+		}
+		if staffEmail != "" && strings.EqualFold(string(t.Email), staffEmail) {
+			existingTeacher = t
+			break
+		}
+	}
+
+	if shouldBeTeacher {
+		if existingTeacher != nil {
+			// Update teacher identity
+			existingTeacher.FirstName = encryption.EncryptedString(staff.FirstName)
+			existingTeacher.LastName = encryption.EncryptedString(staff.LastName)
+			if staffEmail != "" {
+				existingTeacher.Email = encryption.DeterministicEncryptedString(staffEmail)
+			}
+			if string(staff.PhoneNumber) != "" {
+				existingTeacher.PhoneNumber = encryption.EncryptedString(string(staff.PhoneNumber))
+			}
+			existingTeacher.StaffProfileID = &staff.ID
+			if staff.UserID != nil {
+				existingTeacher.UserID = staff.UserID
+			}
+			_ = u.teacherRepo.Update(ctx, existingTeacher)
+		} else {
+			// Create new teacher
+			newTeacher := &domain.Teacher{
+				FirstName:      encryption.EncryptedString(staff.FirstName),
+				LastName:       encryption.EncryptedString(staff.LastName),
+				Email:          encryption.DeterministicEncryptedString(staffEmail),
+				PhoneNumber:    encryption.EncryptedString(string(staff.PhoneNumber)),
+				StaffProfileID: &staff.ID,
+				UserID:         staff.UserID,
+			}
+			_ = u.teacherRepo.Create(ctx, newTeacher)
+		}
+	}
 }
 
 // Staff
@@ -26,6 +105,9 @@ func (u *hrUseCase) CreateStaffProfile(ctx context.Context, req *domain.StaffPro
 	if err := u.repo.CreateStaff(ctx, req); err != nil {
 		return err
 	}
+	// Sync teacher profile if marked as teacher
+	u.syncTeacherProfile(ctx, req)
+
 	// Auto-initialize onboarding checklist for every new hire
 	return u.InitializeOnboarding(ctx, req.ID)
 }
@@ -36,10 +118,24 @@ func (u *hrUseCase) GetStaffProfiles(ctx context.Context) ([]domain.StaffProfile
 
 func (u *hrUseCase) UpdateStaffProfile(ctx context.Context, id uuid.UUID, req *domain.StaffProfile) error {
 	req.ID = id
-	return u.repo.UpdateStaff(ctx, req)
+	if err := u.repo.UpdateStaff(ctx, req); err != nil {
+		return err
+	}
+	// Sync teacher profile if marked as teacher
+	u.syncTeacherProfile(ctx, req)
+	return nil
 }
 
 func (u *hrUseCase) DeleteStaffProfile(ctx context.Context, id uuid.UUID) error {
+	if u.teacherRepo != nil {
+		if teachers, err := u.teacherRepo.GetAll(ctx); err == nil {
+			for _, t := range teachers {
+				if t.StaffProfileID != nil && *t.StaffProfileID == id {
+					_ = u.teacherRepo.Delete(ctx, t.ID)
+				}
+			}
+		}
+	}
 	return u.repo.DeleteStaff(ctx, id)
 }
 

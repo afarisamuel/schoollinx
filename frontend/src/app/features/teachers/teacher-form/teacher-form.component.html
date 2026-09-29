@@ -252,70 +252,83 @@
                     </div>
                 </div>
 
-                <!-- Card 4: Class Assignments (Edit Mode) -->
-                @if (isEditMode) {
-                    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden space-y-6">
-                        <div class="flex items-center gap-3.5 pb-4 border-b border-border-primary">
-                            <div class="w-10 h-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 shadow-xs">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                            </div>
-                            <div>
+                <!-- Card 4: Class Cohort Assignments (Create & Edit Mode) -->
+                <div class="bg-bg-secondary border border-border-primary rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden space-y-6">
+                    <div class="flex items-center gap-3.5 pb-4 border-b border-border-primary">
+                        <div class="w-10 h-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 shadow-xs">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
                                 <h2 class="text-sm sm:text-base font-black text-text-primary">Class Cohort Assignments</h2>
-                                <p class="text-[10px] text-text-muted uppercase tracking-widest font-bold">Assign class stream oversight or subject teaching duties</p>
+                                @if (!isEditMode) {
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">Staged — saved after creation</span>
+                                }
                             </div>
+                            <p class="text-[10px] text-text-muted uppercase tracking-widest font-bold">Assign class stream oversight or subject teaching duties</p>
+                        </div>
+                    </div>
+
+                    @if (!isEditMode) {
+                        <!-- Create mode: informational nudge -->
+                        <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
+                            <svg class="w-4 h-4 mt-0.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <p class="text-[11px] text-amber-700 dark:text-amber-400 font-semibold leading-relaxed">You can pre-assign classrooms now. These assignments will be created automatically when you save the new educator record.</p>
+                        </div>
+                    }
+
+                    <!-- Assignment Type Segmented Toggle -->
+                    <div class="flex items-center gap-2 p-1.5 bg-bg-tertiary rounded-2xl border border-border-primary">
+                        <button type="button" (click)="assignmentType.set('subject')"
+                            class="flex-1 py-2.5 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+                            [ngClass]="assignmentType() === 'subject' ? 'bg-blue-600 text-white shadow-md' : 'text-text-muted hover:text-text-primary'">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                            <span>Subject Teacher</span>
+                        </button>
+
+                        <button type="button" (click)="assignmentType.set('class')"
+                            class="flex-1 py-2.5 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+                            [ngClass]="assignmentType() === 'class' ? 'bg-amber-600 text-white shadow-md' : 'text-text-muted hover:text-text-primary'">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <span>Class Master (All Subjects)</span>
+                        </button>
+                    </div>
+
+                    <!-- Add Assignment Fields -->
+                    <div [formGroupName]="'current_assignment'" class="grid grid-cols-1 sm:grid-cols-12 gap-3.5 p-4.5 bg-bg-tertiary/60 rounded-2xl border border-border-primary items-end">
+                        <div class="sm:col-span-5 space-y-1">
+                            <label class="text-[10px] font-bold text-text-muted uppercase tracking-wider">Select Class</label>
+                            <select formControlName="class_id" class="w-full bg-bg-primary border border-border-primary rounded-xl px-3 py-2.5 text-xs text-text-primary focus:outline-none focus:border-blue-500 shadow-xs cursor-pointer">
+                                <option value="">— Choose Class —</option>
+                                @for (cls of availableClasses(); track cls.id) {
+                                    <option [value]="cls.id">{{ cls.name }}</option>
+                                }
+                            </select>
                         </div>
 
-                        <!-- Assignment Type Segmented Toggle -->
-                        <div class="flex items-center gap-2 p-1.5 bg-bg-tertiary rounded-2xl border border-border-primary">
-                            <button type="button" (click)="assignmentType.set('subject')"
-                                class="flex-1 py-2.5 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
-                                [ngClass]="assignmentType() === 'subject' ? 'bg-blue-600 text-white shadow-md' : 'text-text-muted hover:text-text-primary'">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                                <span>Subject Teacher</span>
-                            </button>
-
-                            <button type="button" (click)="assignmentType.set('class')"
-                                class="flex-1 py-2.5 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
-                                [ngClass]="assignmentType() === 'class' ? 'bg-amber-600 text-white shadow-md' : 'text-text-muted hover:text-text-primary'">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                <span>Class Master (All Subjects)</span>
-                            </button>
-                        </div>
-
-                        <!-- Add Assignment Fields -->
-                        <div [formGroupName]="'current_assignment'" class="grid grid-cols-1 sm:grid-cols-12 gap-3.5 p-4.5 bg-bg-tertiary/60 rounded-2xl border border-border-primary items-end">
-                            <div class="sm:col-span-5 space-y-1">
-                                <label class="text-[10px] font-bold text-text-muted uppercase tracking-wider">Select Class</label>
-                                <select formControlName="class_id" class="w-full bg-bg-primary border border-border-primary rounded-xl px-3 py-2.5 text-xs text-text-primary focus:outline-none focus:border-blue-500 shadow-xs cursor-pointer">
-                                    <option value="">— Choose Class —</option>
-                                    @for (cls of availableClasses(); track cls.id) {
-                                        <option [value]="cls.id">{{ cls.name }}</option>
+                        @if (assignmentType() === 'subject') {
+                            <div class="sm:col-span-4 space-y-1">
+                                <label class="text-[10px] font-bold text-text-muted uppercase tracking-wider">Subject</label>
+                                <select formControlName="subject_id" class="w-full bg-bg-primary border border-border-primary rounded-xl px-3 py-2.5 text-xs text-text-primary focus:outline-none focus:border-blue-500 shadow-xs cursor-pointer">
+                                    <option value="">— Choose Subject —</option>
+                                    @for (subj of availableSubjects(); track subj.id) {
+                                        <option [value]="subj.id">{{ subj.name }}</option>
                                     }
                                 </select>
                             </div>
+                        }
 
-                            @if (assignmentType() === 'subject') {
-                                <div class="sm:col-span-4 space-y-1">
-                                    <label class="text-[10px] font-bold text-text-muted uppercase tracking-wider">Subject</label>
-                                    <select formControlName="subject_id" class="w-full bg-bg-primary border border-border-primary rounded-xl px-3 py-2.5 text-xs text-text-primary focus:outline-none focus:border-blue-500 shadow-xs cursor-pointer">
-                                        <option value="">— Choose Subject —</option>
-                                        @for (subj of availableSubjects(); track subj.id) {
-                                            <option [value]="subj.id">{{ subj.name }}</option>
-                                        }
-                                    </select>
-                                </div>
-                            }
-
-                            <div class="sm:col-span-3">
-                                <button type="button" (click)="addAssignment()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black rounded-xl shadow-md transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-1.5">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                                    <span>Assign</span>
-                                </button>
-                            </div>
+                        <div class="sm:col-span-3">
+                            <button type="button" (click)="addAssignment()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black rounded-xl shadow-md transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                <span>{{ isEditMode ? 'Assign' : 'Stage' }}</span>
+                            </button>
                         </div>
+                    </div>
 
-                        <!-- Active Assignments List -->
-                        <div class="space-y-2.5">
+                    <!-- Active / Pending Assignments List -->
+                    <div class="space-y-2.5">
+                        @if (isEditMode) {
                             @for (asn of assignments(); track asn.id) {
                                 <div class="p-3.5 rounded-2xl bg-bg-tertiary border border-border-primary flex items-center justify-between gap-3 group hover:border-blue-500/40 transition-colors">
                                     <div class="flex items-center gap-3 min-w-0">
@@ -333,7 +346,6 @@
                                             <p class="text-[11px] text-text-muted mt-0.5">{{ asn.subject?.name || 'All Subjects Assigned' }} &bull; {{ asn.academic_year || '2026/2027' }}</p>
                                         </div>
                                     </div>
-
                                     <button type="button" (click)="removeAssignment(asn.id!)" class="w-8 h-8 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity cursor-pointer">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
@@ -343,9 +355,36 @@
                                     No classroom cohorts assigned yet.
                                 </div>
                             }
-                        </div>
+                        } @else {
+                            @for (asn of pendingAssignments(); track asn._tempId) {
+                                <div class="p-3.5 rounded-2xl bg-bg-tertiary border border-amber-500/30 flex items-center justify-between gap-3 group hover:border-amber-500/50 transition-colors">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-xs font-black text-amber-600 dark:text-amber-400 shrink-0">
+                                            {{ $index + 1 }}
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-2">
+                                                <p class="text-xs font-black text-text-primary truncate">{{ asn._className || 'Class Cohort' }}</p>
+                                                <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase"
+                                                    [ngClass]="!asn.subject_id ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30' : 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30'">
+                                                    {{ !asn.subject_id ? 'Class Master' : 'Subject' }}
+                                                </span>
+                                            </div>
+                                            <p class="text-[11px] text-text-muted mt-0.5">{{ asn._subjectName || 'All Subjects Assigned' }} &bull; {{ asn.academic_year }}</p>
+                                        </div>
+                                    </div>
+                                    <button type="button" (click)="removeAssignment(asn._tempId)" class="w-8 h-8 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                </div>
+                            } @empty {
+                                <div class="py-8 text-center text-xs text-text-muted border border-dashed border-border-primary rounded-2xl">
+                                    No class assignments staged yet — use the selectors above.
+                                </div>
+                            }
+                        }
                     </div>
-                }
+                </div>
 
             </div>
 

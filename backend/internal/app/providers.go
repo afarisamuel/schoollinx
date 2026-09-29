@@ -243,7 +243,7 @@ func initUseCases(repos *Repositories, infra *Infrastructure, db *gorm.DB, cfg *
 		Payment:        usecase.NewPaymentUseCase(repos.Payment, repos.Fiscal, repos.User, repos.Tenant, infra.Paystack, repos.Student, db, feeNotifier),
 		Document:       usecase.NewDocumentUseCase(repos.Document, "./storage/uploads"),
 		TeacherPortal:  usecase.NewTeacherPortalUseCase(repos.Teacher, repos.Student, repos.Grade, repos.Class, repos.Subject, repos.TeacherPortal),
-		HR:             usecase.NewHRUseCase(repos.HR, infra.PDF),
+		HR:             usecase.NewHRUseCase(repos.HR, infra.PDF, repos.Teacher),
 		Exam:           usecase.NewExamUseCase(repos.Exam),
 		Portfolio:      usecase.NewPortfolioUseCase(repos.Portfolio),
 		Communication:  usecase.NewCommunicationUseCase(repos.Communication, infra.SMS, infra.WhatsApp, repos.Guardian, repos.Student, repos.Teacher, repos.Tenant, db, repos.Fiscal),
