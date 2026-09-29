@@ -144,8 +144,13 @@ func initInfrastructure(cfg *config.Config) *Infrastructure {
 		PDF:      pdf.NewPDFService(),
 		Paystack: payment.NewPaystackService(cfg),
 		Hub:      hub,
-		SMS:      sms.NewArkaselSMSProvider(cfg.SMSAPIKey),
-		WhatsApp: sms.NewArkaselWhatsAppProvider(cfg.WhatsAppAPIKey, cfg.WhatsAppSenderNumber),
+		SMS: sms.NewArkaselSMSProvider(cfg.SMSAPIKey),
+		WhatsApp: func() domain.WhatsAppProvider {
+			if cfg.WhatsAppProvider == "arkesel" && cfg.WhatsAppAPIKey != "" {
+				return sms.NewArkaselWhatsAppProvider(cfg.WhatsAppAPIKey, cfg.WhatsAppSenderNumber)
+			}
+			return sms.NewMetaWhatsAppProvider(cfg.WhatsAppAccessToken, cfg.WhatsAppPhoneNumberID, cfg.WhatsAppAPIVersion)
+		}(),
 	}
 }
 

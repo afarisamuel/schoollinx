@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -29,6 +30,7 @@ func NewCommunicationHandler(api *gin.RouterGroup, uc domain.CommunicationUseCas
 		comm.GET("/meeting-bookings/guardian/:guardianID", h.GetBookingsByGuardian)
 		comm.GET("/meeting-bookings/teacher/:teacherID", h.GetBookingsByTeacher)
 
+		comm.GET("/whatsapp/webhook", h.VerifyWhatsAppWebhook)
 		comm.POST("/whatsapp/webhook", h.ReceiveWhatsAppWebhook)
 		comm.POST("/whatsapp/send", h.SendWhatsAppMessage)
 		comm.POST("/whatsapp/messages", h.GetWhatsAppMessages)
@@ -209,8 +211,29 @@ func (h *CommunicationHandler) GetBookingsByTeacher(c *gin.Context) {
 	c.JSON(http.StatusOK, bookings)
 }
 
+// VerifyWhatsAppWebhook handles the GET verification handshake from Meta Cloud API
+func (h *CommunicationHandler) VerifyWhatsAppWebhook(c *gin.Context) {
+	mode := c.Query("hub.mode")
+	token := c.Query("hub.verify_token")
+	challenge := c.Query("hub.challenge")
+
+	expectedToken := os.Getenv("META_WHATSAPP_WEBHOOK_VERIFY_TOKEN")
+	if expectedToken == "" {
+		expectedToken = os.Getenv("WHATSAPP_WEBHOOK_VERIFY_TOKEN")
+	}
+	if expectedToken == "" {
+		expectedToken = "schoollinx_whatsapp_verify_token_2026"
+	}
+
+	if mode == "subscribe" && token == expectedToken {
+		c.String(http.StatusOK, challenge)
+		return
+	}
+	c.JSON(http.StatusForbidden, gin.H{"error": "Verification token mismatch"})
+}
+
 func (h *CommunicationHandler) ReceiveWhatsAppWebhook(c *gin.Context) {
-	// Accept JSON or form-data (Twilio uses form data, standard webhooks might use JSON)
+	// Accept JSON or form-data (Meta Cloud API, Twilio, or standard webhook format)
 	var payload map[string]interface{}
 	if err := c.ShouldBind(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid payload"})

@@ -19,14 +19,20 @@ type Config struct {
 	SMTPPass             string
 	SMTPFrom             string
 	PaystackSecretKey    string
-	SMSAPIKey            string
-	WhatsAppAPIKey       string // ARKASEL_WHATSAPP_API_KEY
-	WhatsAppSenderNumber string // ARKASEL_WHATSAPP_SENDER  (WhatsApp Business phone number ID)
-	AutoMigrate          bool
-	RedisURL             string
-	VAPIDPublicKey       string
-	VAPIDPrivateKey      string
-	VAPIDSubject         string
+	SMSAPIKey                  string
+	WhatsAppProvider           string // "meta" or "arkesel"
+	WhatsAppAccessToken        string // META_WHATSAPP_ACCESS_TOKEN or WHATSAPP_ACCESS_TOKEN
+	WhatsAppPhoneNumberID      string // META_WHATSAPP_PHONE_NUMBER_ID or WHATSAPP_PHONE_NUMBER_ID
+	WhatsAppBusinessAccountID  string // META_WHATSAPP_WABA_ID or WHATSAPP_BUSINESS_ACCOUNT_ID
+	WhatsAppWebhookVerifyToken string // META_WHATSAPP_WEBHOOK_VERIFY_TOKEN or WHATSAPP_WEBHOOK_VERIFY_TOKEN
+	WhatsAppAPIVersion         string // META_WHATSAPP_API_VERSION (default: "v20.0")
+	WhatsAppAPIKey             string // Legacy/Fallback ARKASEL_WHATSAPP_API_KEY
+	WhatsAppSenderNumber       string // Legacy/Fallback ARKASEL_WHATSAPP_SENDER
+	AutoMigrate                bool
+	RedisURL                   string
+	VAPIDPublicKey             string
+	VAPIDPrivateKey            string
+	VAPIDSubject               string
 }
 
 func LoadConfig() *Config {
@@ -54,17 +60,17 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		DatabaseURL:          os.Getenv("DATABASE_URL"),
-		Port:                 os.Getenv("PORT"),
-		JWTSecret:            os.Getenv("JWT_SECRET"),
-		EncryptionKey:        os.Getenv("ENCRYPTION_KEY"),
-		SMTPHost:             os.Getenv("SMTP_HOST"),
-		SMTPPort:             os.Getenv("SMTP_PORT"),
-		SMTPUser:             os.Getenv("SMTP_USER"),
-		SMTPPass:             os.Getenv("SMTP_PASS"),
-		SMTPFrom:             os.Getenv("SMTP_FROM"),
-		AutoMigrate:          os.Getenv("AUTO_MIGRATE") == "true",
-		PaystackSecretKey:    os.Getenv("PAYSTACK_SECRET_KEY"),
+		DatabaseURL:       os.Getenv("DATABASE_URL"),
+		Port:              os.Getenv("PORT"),
+		JWTSecret:         os.Getenv("JWT_SECRET"),
+		EncryptionKey:     os.Getenv("ENCRYPTION_KEY"),
+		SMTPHost:          os.Getenv("SMTP_HOST"),
+		SMTPPort:          os.Getenv("SMTP_PORT"),
+		SMTPUser:          os.Getenv("SMTP_USER"),
+		SMTPPass:          os.Getenv("SMTP_PASS"),
+		SMTPFrom:          os.Getenv("SMTP_FROM"),
+		AutoMigrate:       os.Getenv("AUTO_MIGRATE") == "true",
+		PaystackSecretKey: os.Getenv("PAYSTACK_SECRET_KEY"),
 		SMSAPIKey: func() string {
 			if k := os.Getenv("ARKASEL_SMS_API_KEY"); k != "" {
 				return k
@@ -76,6 +82,54 @@ func LoadConfig() *Config {
 				return k
 			}
 			return os.Getenv("SMS_API_KEY")
+		}(),
+		WhatsAppProvider: func() string {
+			if p := os.Getenv("WHATSAPP_PROVIDER"); p != "" {
+				return p
+			}
+			if os.Getenv("META_WHATSAPP_ACCESS_TOKEN") != "" || os.Getenv("WHATSAPP_ACCESS_TOKEN") != "" {
+				return "meta"
+			}
+			return "meta"
+		}(),
+		WhatsAppAccessToken: func() string {
+			if t := os.Getenv("META_WHATSAPP_ACCESS_TOKEN"); t != "" {
+				return t
+			}
+			if t := os.Getenv("WHATSAPP_ACCESS_TOKEN"); t != "" {
+				return t
+			}
+			return os.Getenv("WHATSAPP_TOKEN")
+		}(),
+		WhatsAppPhoneNumberID: func() string {
+			if id := os.Getenv("META_WHATSAPP_PHONE_NUMBER_ID"); id != "" {
+				return id
+			}
+			if id := os.Getenv("WHATSAPP_PHONE_NUMBER_ID"); id != "" {
+				return id
+			}
+			return os.Getenv("ARKASEL_WHATSAPP_SENDER")
+		}(),
+		WhatsAppBusinessAccountID: func() string {
+			if id := os.Getenv("META_WHATSAPP_WABA_ID"); id != "" {
+				return id
+			}
+			return os.Getenv("WHATSAPP_BUSINESS_ACCOUNT_ID")
+		}(),
+		WhatsAppWebhookVerifyToken: func() string {
+			if vt := os.Getenv("META_WHATSAPP_WEBHOOK_VERIFY_TOKEN"); vt != "" {
+				return vt
+			}
+			if vt := os.Getenv("WHATSAPP_WEBHOOK_VERIFY_TOKEN"); vt != "" {
+				return vt
+			}
+			return "schoollinx_whatsapp_verify_token_2026"
+		}(),
+		WhatsAppAPIVersion: func() string {
+			if v := os.Getenv("META_WHATSAPP_API_VERSION"); v != "" {
+				return v
+			}
+			return "v20.0"
 		}(),
 		WhatsAppAPIKey:       os.Getenv("ARKASEL_WHATSAPP_API_KEY"),
 		WhatsAppSenderNumber: os.Getenv("ARKASEL_WHATSAPP_SENDER"),

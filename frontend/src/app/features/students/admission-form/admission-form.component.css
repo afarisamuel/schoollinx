@@ -42,6 +42,36 @@
     page-break-inside: avoid;
     break-inside: avoid;
   }
+
+  /* In print, use position:fixed so the watermark repeats on EVERY printed page */
+  .logo-page-watermark {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) rotate(-25deg) !important;
+    width: 200mm !important;
+    height: 200mm !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    pointer-events: none !important;
+    z-index: 0 !important;
+    opacity: 0.045 !important;
+  }
+
+  .watermark-logo-img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    filter: grayscale(100%) !important;
+  }
+
+  .watermark-logo-svg {
+    width: 100% !important;
+    height: 100% !important;
+    color: #111827 !important;
+    stroke: #111827 !important;
+  }
 }
 
 /* Animations for screen preview */
@@ -58,4 +88,36 @@
 
 .animate-fade-in {
   animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* === LOGO WATERMARK: Screen preview (absolute, inside doc container) === */
+.logo-page-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-25deg);
+  width: 55%;
+  max-width: 420px;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  select: none;
+  z-index: 0;
+  opacity: 0.04;
+}
+
+.watermark-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: grayscale(100%);
+}
+
+.watermark-logo-svg {
+  width: 100%;
+  height: 100%;
+  color: #111827;
+  stroke: #111827;
 }

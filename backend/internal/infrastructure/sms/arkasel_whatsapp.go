@@ -101,6 +101,14 @@ func (p *arkaselWhatsAppProvider) SendText(ctx context.Context, recipient, messa
 	return p.post(ctx, arkaselWhatsAppBaseURL+"/send/text", payload)
 }
 
+func (p *arkaselWhatsAppProvider) SendDocument(ctx context.Context, recipient, documentURL, filename, caption string) error {
+	if p.apiKey == "" {
+		fmt.Printf("[Arkasel WhatsApp - Sandbox] Document To=%s URL=%s Filename=%s\n", recipient, documentURL, filename)
+		return nil
+	}
+	return p.SendText(ctx, recipient, fmt.Sprintf("%s\n%s", caption, documentURL))
+}
+
 // ── HTTP helper ─────────────────────────────────────────────────────────────
 
 func (p *arkaselWhatsAppProvider) post(ctx context.Context, url string, body interface{}) error {

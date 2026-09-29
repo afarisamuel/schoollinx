@@ -267,21 +267,106 @@ func (u *communicationUseCase) GetBookingsByTeacher(ctx context.Context, teacher
 }
 
 func (u *communicationUseCase) ReceiveWhatsAppWebhook(ctx context.Context, payload map[string]interface{}) error {
-	// Simple generic parser for a mock webhook payload or typical format
-	// Extract sender phone, content
-	// E.g. {"From": "whatsapp:+233241234567", "Body": "Hello!"}
+	// 1. Check for Meta Cloud API nested structure: entry[].changes[].value
+	if entries, ok := payload["entry"].([]interface{}); ok && len(entries) > 0 {
+		for _, entryRaw := range entries {
+			entry, ok := entryRaw.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			changes, ok := entry["changes"].([]interface{})
+			if !ok {
+				continue
+			}
+			for _, changeRaw := range changes {
+				change, ok := changeRaw.(map[string]interface{})
+				if !ok {
+					continue
+				}
+				value, ok := change["value"].(map[string]interface{})
+				if !ok {
+					continue
+				}
+
+				// Check for incoming messages
+				if messages, ok := value["messages"].([]interface{}); ok && len(messages) > 0 {
+					for _, msgRaw := range messages {
+						m, ok := msgRaw.(map[string]interface{})
+						if !ok {
+							continue
+						}
+						from, _ := m["from"].(string)
+						msgID, _ := m["id"].(string)
+						msgType, _ := m["type"].(string)
+
+						content := ""
+						switch msgType {
+case "text":
+							if textObj, ok := m["text"].(map[string]interface{}); ok {
+								content, _ = textObj["body"].(string)
+							}
+						case "interactive":
+							if interObj, ok := m["interactive"].(map[string]interface{}); ok {
+								if btnReply, ok := interObj["button_reply"].(map[string]interface{}); ok {
+									content, _ = btnReply["title"].(string)
+								} else if listReply, ok := interObj["list_reply"].(map[string]interface{}); ok {
+									content, _ = listReply["title"].(string)
+								}
+							}
+						case "button":
+							if btnObj, ok := m["button"].(map[string]interface{}); ok {
+								content, _ = btnObj["text"].(string)
+							}
+						default:
+							content = fmt.Sprintf("[%s attachment received]", strings.ToUpper(msgType))
+						}
+
+						if from != "" {
+							dbMsg := &domain.WhatsAppMessage{
+								PhoneNumber: from,
+								Direction:   "INBOUND",
+								Content:     content,
+								Status:      "RECEIVED",
+								MessageID:   msgID,
+							}
+							_ = u.repo.SaveWhatsAppMessage(ctx, dbMsg)
+						}
+					}
+				}
+			}
+		}
+		return nil
+	}
+
+	// 2. Generic / Flat Webhook format fallback (Twilio / Arkesel / Mock)
 	phone := ""
 	content := ""
 	messageID := ""
 
 	if from, ok := payload["From"].(string); ok {
 		phone = from
+	} else if from, ok := payload["from"].(string); ok {
+		phone = from
+	} else if phoneVal, ok := payload["phone"].(string); ok {
+		phone = phoneVal
 	}
+
 	if body, ok := payload["Body"].(string); ok {
 		content = body
+	} else if body, ok := payload["body"].(string); ok {
+		content = body
+	} else if text, ok := payload["message"].(string); ok {
+		content = text
 	}
+
 	if msgID, ok := payload["MessageSid"].(string); ok {
 		messageID = msgID
+	} else if msgID, ok := payload["id"].(string); ok {
+		messageID = msgID
+	}
+
+	if phone == "" && content == "" {
+		return nil
 	}
 
 	msg := &domain.WhatsAppMessage{

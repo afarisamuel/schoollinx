@@ -192,13 +192,18 @@
   <!-- OFFICIAL PRINTABLE ADMISSION FORM DOCUMENT (Standard A4 Document) -->
   <!-- ================================================================= -->
   @if (!isLoading()) {
-    <div id="admission-printable-doc" class="bg-white text-gray-900 rounded-3xl p-8 sm:p-12 shadow-2xl print:shadow-none print:p-0 print:rounded-none relative overflow-hidden border border-gray-200 print:border-none font-sans">
+    <div id="admission-printable-doc" class="bg-white text-gray-900 rounded-3xl p-8 sm:p-12 shadow-2xl print:shadow-none print:p-0 print:rounded-none relative border border-gray-200 print:border-none font-sans">
       
-      <!-- Institutional Watermark for Print -->
-      <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.02] select-none z-0">
-        <div class="text-[120px] font-black tracking-widest text-gray-900 uppercase rotate-[-25deg]">
-          ADMISSION
-        </div>
+      <!-- Institutional Logo Watermark (repeats on every printed page via position:fixed) -->
+      <div class="logo-page-watermark">
+        @if (tenantProfile()?.logo_url) {
+          <img [src]="tenantProfile()?.logo_url" alt="" aria-hidden="true" class="watermark-logo-img">
+        } @else {
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="watermark-logo-svg">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+          </svg>
+        }
       </div>
 
       <div class="relative z-10 flex flex-col gap-7">
