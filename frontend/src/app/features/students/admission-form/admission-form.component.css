@@ -43,20 +43,26 @@
     break-inside: avoid;
   }
 
-  /* In print, use position:fixed so the watermark repeats on EVERY printed page */
+  /* In print, page-shell creates a fresh stacking context per page */
+  .page-shell {
+    position: relative !important;
+    min-height: 250mm !important; /* ensure watermark has room to center */
+  }
+
+  /* Watermark: absolute inside page-shell, so it stays on its own page */
   .logo-page-watermark {
-    position: fixed !important;
+    position: absolute !important;
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) rotate(-25deg) !important;
-    width: 200mm !important;
-    height: 200mm !important;
+    width: 170mm !important;
+    height: 170mm !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     pointer-events: none !important;
     z-index: 0 !important;
-    opacity: 0.045 !important;
+    opacity: 0.05 !important;
   }
 
   .watermark-logo-img {
@@ -90,7 +96,11 @@
   animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* === LOGO WATERMARK: Screen preview (absolute, inside doc container) === */
+/* === LOGO WATERMARK: Screen preview (absolute, inside page-shell) === */
+.page-shell {
+  position: relative;
+}
+
 .logo-page-watermark {
   position: absolute;
   top: 50%;
