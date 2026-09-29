@@ -32,7 +32,7 @@
         <!-- Target Class Stream -->
         <div class="flex flex-col gap-2">
           <label class="text-[11px] font-black uppercase tracking-wider text-text-muted">1. Target Class Roster / Scope</label>
-          <select [(ngModel)]="selectedClassId" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 text-xs font-bold text-text-primary focus:outline-none focus:border-teal-500">
+          <select [ngModel]="selectedClassId()" (ngModelChange)="selectedClassId.set($event)" class="w-full bg-bg-tertiary border border-border-primary rounded-xl px-4 py-2.5 text-xs font-bold text-text-primary focus:outline-none focus:border-teal-500">
             <option value="all">Entire School Roster (Up to 100 Scholars)</option>
             @for (cls of classes; track cls.id) {
               <option [value]="cls.id">{{ cls.name }} (Stream)</option>
@@ -76,9 +76,32 @@
 
       </div>
 
+      <!-- Design Template Layout Selector -->
+      <div class="flex flex-col gap-2">
+        <label class="text-[11px] font-black uppercase tracking-wider text-text-muted">3. Card Design Template</label>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+          @for (tpl of templates; track tpl.id) {
+            <button type="button" (click)="selectedTemplate.set(tpl.id)"
+              class="p-2 rounded-xl border text-left flex flex-col gap-1 transition-all cursor-pointer"
+              [class.bg-teal-600/10]="selectedTemplate() === tpl.id"
+              [class.border-teal-500]="selectedTemplate() === tpl.id"
+              [class.text-teal-400]="selectedTemplate() === tpl.id"
+              [class.bg-bg-tertiary]="selectedTemplate() !== tpl.id"
+              [class.border-border-primary]="selectedTemplate() !== tpl.id"
+              [class.text-text-muted]="selectedTemplate() !== tpl.id">
+              <div class="flex items-center gap-1.5">
+                <i [class]="tpl.icon + ' text-xs'"></i>
+                <span class="text-xs font-black truncate">{{ tpl.name }}</span>
+              </div>
+              <span class="text-[9px] opacity-75 line-clamp-1">{{ tpl.desc }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
       <!-- Color Theme Swatches -->
       <div class="flex flex-col gap-2">
-        <label class="text-[11px] font-black uppercase tracking-wider text-text-muted">3. Institutional Accent Palette</label>
+        <label class="text-[11px] font-black uppercase tracking-wider text-text-muted">4. Institutional Accent Palette</label>
         <div class="flex items-center gap-2 flex-wrap">
           @for (th of themes; track th.id) {
             <button type="button" (click)="selectedTheme.set(th.id)"

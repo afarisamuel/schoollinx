@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, signal, computed, inject } from '@angular/core';
+import { Component, Input, OnInit, Output, EventEmitter, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Student } from '../../../core/domain/student.model';
@@ -15,12 +15,14 @@ import { formatMediaUrl } from '../../../core/utils/media-url.util';
   templateUrl: './batch-id-card-modal.component.html',
   styleUrl: './batch-id-card-modal.component.css'
 })
-export class BatchIdCardModalComponent {
+export class BatchIdCardModalComponent implements OnInit {
   private tenantService = inject(TenantProfileService);
 
   @Input({ required: true }) allStudents: Student[] = [];
   @Input() selectedStudents: Student[] = [];
   @Input() classes: Class[] = [];
+  @Input() initialTheme?: IdCardTheme;
+  @Input() initialTemplate?: IdCardTemplate;
   @Output() close = new EventEmitter<void>();
 
   // Configuration Signals
@@ -32,6 +34,15 @@ export class BatchIdCardModalComponent {
 
   themes = ID_CARD_THEMES;
   templates = ID_CARD_TEMPLATES;
+
+  ngOnInit(): void {
+    if (this.initialTheme) {
+      this.selectedTheme.set(this.initialTheme);
+    }
+    if (this.initialTemplate) {
+      this.selectedTemplate.set(this.initialTemplate);
+    }
+  }
 
   constructor() {
     this.tenantService.getProfile().subscribe({
@@ -75,6 +86,20 @@ export class BatchIdCardModalComponent {
     return 'STU-2026-0001';
   }
 
+  getClassName(s: Student): string {
+    if (s.class_name && s.class_name.trim() !== '' && s.class_name.toLowerCase() !== 'class roster') {
+      return s.class_name;
+    }
+    if (s.class && s.class.name) {
+      return s.class.name;
+    }
+    if (s.class_id && this.classes && this.classes.length > 0) {
+      const found = this.classes.find(c => c.id === s.class_id);
+      if (found?.name) return found.name;
+    }
+    return s.class_name || 'General';
+  }
+
   getStudentDob(s: Student): string {
     if (!s.dob) return '01 Jan 2012';
     const d = new Date(s.dob);
@@ -108,13 +133,15 @@ export class BatchIdCardModalComponent {
   }
 
   /**
-   * Generates High-Density Batch Printable Document
+   * Generates High-Density Batch Printable Document with Chosen Template & Theme
    */
   printBatch() {
     const students = this.targetStudents();
     if (students.length === 0) return;
 
     const theme = this.currentThemeConfig();
+    const template = this.selectedTemplate();
+    const isVertical = template === 'vertical';
     const schoolName = this.getSchoolName();
     const schoolLogo = this.getSchoolLogo();
     const hotline = this.tenantProfile()?.contact_numbers || '+233 24 000 0000';
@@ -127,12 +154,12 @@ export class BatchIdCardModalComponent {
       const name = this.getStudentFullName(s);
       const id = this.getStudentId(s);
       const dob = this.getStudentDob(s);
-      const className = s.class_name || 'Class Roster';
+      const className = this.getClassName(s);
       const bloodGroup = s.blood_group || 'O+';
       const residence = s.placed_residence_type || 'Day Scholar';
+      const address = s.address || 'Campus Resident, Accra';
       const emergencyContact = s.emergency_contact_name || s.guardian_name || s.father_name || 'Guardian';
       const emergencyPhone = s.emergency_contact_phone || s.guardian_phone || s.father_phone || hotline;
-      const allergies = s.allergies || 'None';
       const initials = this.getInitials(s);
       const photo = s.photo_url ? formatMediaUrl(s.photo_url) : null;
 
@@ -143,9 +170,177 @@ export class BatchIdCardModalComponent {
         </svg>
       `;
 
-      // Front Side
-      const front = `
-        <div class="card-box cr80-card">
+      let frontBody = '';
+
+      if (template === 'academic') {
+        frontBody = `
+          <div class="card-inner academic-layout" style="position:relative; height:100%; display:flex; flex-direction:column; justify-content:space-between; background:#fafafa; overflow:hidden;">
+            <!-- Header -->
+            <div style="background:${theme.primary}; border-bottom:2px solid #fbbf24; padding:6px 10px; display:flex; align-items:center; justify-content:space-between; color:#fff;">
+              <div style="display:flex; align-items:center; gap:6px; max-width:72%;">
+                ${schoolLogo ? `<img src="${schoolLogo}" style="width:24px; height:24px; object-fit:contain; background:#fff; padding:1.5px; border-radius:4px; border:1px solid #fde68a;">` : `<div style="width:22px; height:22px; background:rgba(255,255,255,0.2); border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fde68a; font-weight:bold; font-size:10px;">🎓</div>`}
+                <div>
+                  <div style="font-size:8px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:0.3px; line-height:1.1;">${schoolName}</div>
+                  <div style="font-size:5.5px; font-weight:800; color:#fde68a; text-transform:uppercase; letter-spacing:0.5px;">STUDENT PASSPORT • ${className}</div>
+                </div>
+              </div>
+              <div style="background:#fbbf24; color:#111827; padding:1.5px 5px; border-radius:3px; font-size:6.5px; font-weight:900;">2026/27</div>
+            </div>
+
+            <!-- Body -->
+            <div style="padding:4px 10px; display:flex; align-items:center; gap:10px; flex:1;">
+              <div style="width:62px; height:74px; border:2.5px solid #fbbf24; border-radius:6px; overflow:hidden; background:#e5e7eb; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                ${photo ? `<img src="${photo}" style="width:100%; height:100%; object-fit:cover;">` : `<div style="font-size:18px; font-weight:900; color:#374151;">${initials}</div>`}
+              </div>
+              <div style="flex:1; display:flex; flex-direction:column; gap:2.5px; font-size:7.5px; color:#1f2937;">
+                <div style="border-bottom:1px solid #e5e7eb; padding-bottom:1.5px;">
+                  <span style="font-size:5.5px; font-weight:800; color:#6b7280; text-transform:uppercase; display:block;">Candidate Name</span>
+                  <strong style="font-size:8.5px; text-transform:uppercase; color:#0f172a;">${name}</strong>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:2px; font-size:7px;">
+                  <div><span style="font-size:5.5px; font-weight:700; color:#64748b; display:block;">ID Number</span><strong style="font-family:monospace; color:#0f172a;">${id}</strong></div>
+                  <div><span style="font-size:5.5px; font-weight:700; color:#64748b; display:block;">D.O.B</span><span>${dob}</span></div>
+                  <div><span style="font-size:5.5px; font-weight:700; color:#64748b; display:block;">Class</span><strong style="color:#0f172a;">${className}</strong></div>
+                  <div><span style="font-size:5.5px; font-weight:700; color:#64748b; display:block;">Blood Group</span><strong style="color:#e11d48;">🩸 ${bloodGroup}</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="background:#f3f4f6; border-top:1px solid #d1d5db; display:flex; align-items:center; justify-content:space-between; padding:2px 10px;">
+              <div style="background:#fff; padding:1.5px 4px; border-radius:3px; border:1px solid #e2e8f0;">
+                ${barcodeSvg}
+                <div style="font-size:5.5px; font-family:monospace; text-align:center; color:#374151;">${id}</div>
+              </div>
+              <span style="font-size:6px; font-weight:800; color:#64748b; text-transform:uppercase;">Principal Certified</span>
+            </div>
+          </div>
+        `;
+      } else if (template === 'corporate') {
+        frontBody = `
+          <div class="card-inner corporate-layout" style="position:relative; height:100%; display:flex; background:#fff; overflow:hidden;">
+            <!-- Left Side -->
+            <div style="width:34%; background:${theme.primary}; color:#fff; padding:6px; display:flex; flex-direction:column; align-items:center; justify-content:space-between; text-align:center;">
+              ${schoolLogo ? `<img src="${schoolLogo}" style="width:22px; height:22px; object-fit:contain; background:rgba(255,255,255,0.2); padding:1.5px; border-radius:4px;">` : `<div style="width:20px; height:20px; border-radius:4px; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:10px;">🏫</div>`}
+              <div style="width:58px; height:58px; border-radius:50%; border:2px solid #fff; overflow:hidden; background:#e5e7eb; display:flex; align-items:center; justify-content:center;">
+                ${photo ? `<img src="${photo}" style="width:100%; height:100%; object-fit:cover;">` : `<div style="font-size:16px; font-weight:900; color:#1f2937;">${initials}</div>`}
+              </div>
+              <div style="background:rgba(255,255,255,0.25); padding:1px 5px; border-radius:10px; font-size:6.5px; font-family:monospace; font-weight:800;">${id}</div>
+            </div>
+
+            <!-- Right Side -->
+            <div style="width:66%; padding:6px 10px; display:flex; flex-direction:column; justify-content:space-between; background:#fff;">
+              <div style="border-bottom:1px solid #e2e8f0; padding-bottom:2px; display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                  <div style="font-size:8px; font-weight:900; color:#0f172a; text-transform:uppercase; line-height:1.1;">${schoolName}</div>
+                  <div style="font-size:5.5px; color:#64748b; font-weight:700; text-transform:uppercase;">Student Identity Card</div>
+                </div>
+                <div style="background:${theme.secondary}; color:#fff; padding:1px 5px; border-radius:3px; font-size:6.5px; font-weight:800;">${className}</div>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <div style="font-size:5.5px; color:#94a3b8; font-weight:800; text-transform:uppercase;">Full Name</div>
+                <div style="font-size:8.5px; font-weight:900; color:#0f172a; text-transform:uppercase;">${name}</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:2px; font-size:6.5px; margin-top:1px;">
+                  <div><span style="font-size:5.5px; color:#94a3b8; font-weight:800; display:block;">D.O.B</span><strong>${dob}</strong></div>
+                  <div><span style="font-size:5.5px; color:#94a3b8; font-weight:800; display:block;">Blood Group</span><strong style="color:#e11d48;">${bloodGroup}</strong></div>
+                </div>
+                <div><span style="font-size:5.5px; color:#94a3b8; font-weight:800; display:block;">Campus Address</span><span style="font-size:6.5px; color:#334155; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; max-width:140px;">${address}</span></div>
+              </div>
+              <div style="border-top:1px solid #e2e8f0; padding-top:2px; display:flex; justify-content:space-between; align-items:center;">
+                ${barcodeSvg}
+                <div style="font-size:6px; font-weight:800; color:#64748b;">EXP: 2027</div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (template === 'cyber') {
+        frontBody = `
+          <div class="card-inner cyber-layout" style="position:relative; height:100%; display:flex; flex-direction:column; justify-content:space-between; background:#fff; overflow:hidden;">
+            <!-- Angled Header Polygon -->
+            <svg viewBox="0 0 540 160" style="position:absolute; top:0; left:0; width:100%; height:45%; pointer-events:none;" preserveAspectRatio="none">
+              <polygon points="0,0 540,0 540,90 280,140 0,110" fill="${theme.primary}" />
+              <polygon points="0,0 540,0 540,60 320,110 0,80" fill="white" opacity="0.12" />
+            </svg>
+
+            <!-- Angled Footer Polygon -->
+            <svg viewBox="0 0 540 100" style="position:absolute; bottom:0; left:0; width:100%; height:26%; pointer-events:none;" preserveAspectRatio="none">
+              <polygon points="0,45 220,15 540,65 540,100 0,100" fill="${theme.primary}" />
+            </svg>
+
+            <!-- Header -->
+            <div style="position:relative; z-index:2; padding:7px 12px 2px 12px; display:flex; justify-content:space-between; align-items:flex-start; color:#fff;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                ${schoolLogo ? `<img src="${schoolLogo}" style="width:24px; height:24px; object-fit:contain; background:rgba(255,255,255,0.25); padding:1.5px; border-radius:4px;">` : `<div style="width:22px; height:22px; border-radius:4px; background:rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; font-size:10px;">🔷</div>`}
+                <div>
+                  <div style="font-size:8.5px; font-weight:900; text-transform:uppercase; line-height:1.1;">${schoolName}</div>
+                  <div style="font-size:6px; font-weight:700; color:rgba(255,255,255,0.85); text-transform:uppercase; letter-spacing:0.5px;">Digital Student Pass</div>
+                </div>
+              </div>
+              <div style="background:rgba(255,255,255,0.25); border:1px solid rgba(255,255,255,0.4); color:#fff; padding:1.5px 6px; border-radius:12px; font-size:6.5px; font-weight:900; text-transform:uppercase;">${className}</div>
+            </div>
+
+            <!-- Body -->
+            <div style="position:relative; z-index:2; padding:1px 12px; display:flex; align-items:center; gap:10px;">
+              <div style="width:62px; height:62px; border-radius:10px; border:2.5px solid ${theme.secondary}; overflow:hidden; background:#e5e7eb; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+                ${photo ? `<img src="${photo}" style="width:100%; height:100%; object-fit:cover;">` : `<div style="font-size:18px; font-weight:900; color:#374151;">${initials}</div>`}
+              </div>
+              <div style="flex:1; display:flex; flex-direction:column; gap:2px; font-size:7.5px; color:#1f2937;">
+                <div style="display:flex;"><span style="width:42px; font-weight:700; color:#4b5563;">Name</span><span style="margin-right:3px;">:</span><strong style="font-size:8.5px; text-transform:uppercase; color:#0f172a;">${name}</strong></div>
+                <div style="display:flex;"><span style="width:42px; font-weight:700; color:#4b5563;">ID No</span><span style="margin-right:3px;">:</span><strong style="font-family:monospace; font-size:8px; color:#0f172a;">${id}</strong></div>
+                <div style="display:flex;"><span style="width:42px; font-weight:700; color:#4b5563;">D.O.B</span><span style="margin-right:3px;">:</span><span>${dob}</span></div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <div style="display:flex;"><span style="width:42px; font-weight:700; color:#4b5563;">Class</span><span style="margin-right:3px;">:</span><strong style="color:#0f172a;">${className}</strong></div>
+                  <span style="font-size:6px; font-weight:800; color:#e11d48; background:#ffe4e6; padding:1px 4px; border-radius:3px;">🩸 ${bloodGroup}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="position:relative; z-index:2; padding:1px 12px 5px 12px; display:flex; align-items:flex-end; justify-content:space-between;">
+              <div style="background:rgba(255,255,255,0.95); padding:2px 5px; border-radius:4px; border:1px solid #cbd5e1;">
+                ${barcodeSvg}
+                <div style="font-size:5.5px; font-family:monospace; text-align:center; color:#334155;">${id}</div>
+              </div>
+              <span style="font-size:6.5px; font-weight:900; color:#0f172a; background:rgba(255,255,255,0.95); padding:1px 5px; border-radius:3px; border:1px solid #cbd5e1;">VALID: 2026/27</span>
+            </div>
+          </div>
+        `;
+      } else if (template === 'vertical') {
+        frontBody = `
+          <div class="card-inner vertical-layout" style="position:relative; height:100%; display:flex; flex-direction:column; justify-content:space-between; background:#fff; padding:8px; border:1px solid #cbd5e1; text-align:center;">
+            <!-- Lanyard Slot -->
+            <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
+              <div style="width:36px; height:8px; border-radius:6px; background:#e2e8f0; border:1px solid #94a3b8;"></div>
+              <div style="display:flex; align-items:center; gap:4px; margin-top:2px;">
+                ${schoolLogo ? `<img src="${schoolLogo}" style="width:20px; height:20px; object-fit:contain;">` : `<div style="font-size:12px;">🎓</div>`}
+                <div style="font-size:8px; font-weight:900; text-transform:uppercase; color:#0f172a;">${schoolName}</div>
+              </div>
+            </div>
+
+            <!-- Portrait & Identity -->
+            <div style="display:flex; flex-direction:column; align-items:center; gap:2px; margin:2px 0;">
+              <div style="width:64px; height:74px; border-radius:8px; border:2.5px solid ${theme.primary}; overflow:hidden; background:#e5e7eb; display:flex; align-items:center; justify-content:center;">
+                ${photo ? `<img src="${photo}" style="width:100%; height:100%; object-fit:cover;">` : `<div style="font-size:18px; font-weight:900; color:#374151;">${initials}</div>`}
+              </div>
+              <div style="font-size:9px; font-weight:900; text-transform:uppercase; color:#0f172a; margin-top:2px; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${name}</div>
+              <div style="font-size:7px; font-family:monospace; color:#64748b; font-weight:700;">${id}</div>
+              <div style="background:${theme.primary}; color:#fff; padding:1px 8px; border-radius:10px; font-size:7px; font-weight:800; text-transform:uppercase; margin-top:1px;">${className}</div>
+            </div>
+
+            <!-- Barcode & Footer -->
+            <div style="display:flex; flex-direction:column; align-items:center; gap:2px; border-top:1px solid #e2e8f0; padding-top:4px;">
+              ${barcodeSvg}
+              <div style="display:flex; justify-content:space-between; width:100%; font-size:6px; color:#64748b; font-weight:700;">
+                <span>DOB: ${dob}</span>
+                <span style="color:#e11d48;">🩸 ${bloodGroup}</span>
+                <span>VALID: 2026/27</span>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        // Fluid Wave Template (Default)
+        frontBody = `
           <div class="card-inner wave-layout" style="position:relative; height:100%; display:flex; flex-direction:column; justify-content:space-between; background:#fff; overflow:hidden;">
             <!-- SVG Top Wave Ribbon -->
             <svg viewBox="0 0 540 160" style="position:absolute; top:0; left:0; width:100%; height:46%; pointer-events:none;" preserveAspectRatio="none">
@@ -191,7 +386,7 @@ export class BatchIdCardModalComponent {
               <div style="flex:1; display:flex; flex-direction:column; gap:2px; font-size:7.5px; color:#1f2937;">
                 <div style="display:flex;"><span style="width:42px; font-weight:700; color:#4b5563;">Name</span><span style="margin-right:3px;">:</span><strong style="font-size:8.5px; text-transform:uppercase; color:#0f172a;">${name}</strong></div>
                 <div style="display:flex;"><span style="width:42px; font-weight:700; color:#4b5563;">ID No</span><span style="margin-right:3px;">:</span><strong style="font-family:monospace; font-size:8px; color:#0f172a;">${id}</strong></div>
-                <div style="display:flex;"><span style="width:42px; font-weight:700; color:#4b5563;">Class</span><span style="margin-right:3px;">:</span><span style="font-weight:700;">${className}</span></div>
+                <div style="display:flex;"><span style="width:42px; font-weight:700; color:#4b5563;">Class</span><span style="margin-right:3px;">:</span><strong style="font-weight:700; color:#0f172a;">${className}</strong></div>
                 <div style="display:flex; justify-content:space-between; align-items:center; padding-right:4px;">
                   <div style="display:flex;"><span style="width:42px; font-weight:700; color:#4b5563;">D.O.B</span><span style="margin-right:3px;">:</span><span>${dob}</span></div>
                   <span style="font-size:6px; font-weight:800; color:#e11d48; background:#ffe4e6; padding:1px 4px; border-radius:3px; border:1px solid #fecdd3;">🩸 ${bloodGroup}</span>
@@ -211,12 +406,15 @@ export class BatchIdCardModalComponent {
               </div>
             </div>
           </div>
-        </div>
-      `;
+        `;
+      }
+
+      const cardBoxClass = isVertical ? 'card-box cr80-card-vertical' : 'card-box cr80-card';
+      const front = `<div class="${cardBoxClass}">${frontBody}</div>`;
 
       // Back Side
       const back = `
-        <div class="card-box cr80-card">
+        <div class="${cardBoxClass}">
           <div class="card-inner back-layout" style="position:relative; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:8px 11px; background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;">
             <div style="position:absolute; top:0; left:0; right:0; height:3.5px; background:${theme.primary};"></div>
             
@@ -269,12 +467,12 @@ export class BatchIdCardModalComponent {
 
       if (mode === 'pvc-duplex') {
         return `
-          <div class="duplex-page">${front}</div>
-          <div class="duplex-page">${back}</div>
+          <div class="duplex-page ${isVertical ? 'duplex-vertical' : ''}">${front}</div>
+          <div class="duplex-page ${isVertical ? 'duplex-vertical' : ''}">${back}</div>
         `;
       } else {
         return `
-          <div class="card-pair-row">
+          <div class="card-pair-row ${isVertical ? 'card-pair-row-vertical' : ''}">
             <div class="card-col">${front}</div>
             <div class="cut-line">✂</div>
             <div class="card-col">${back}</div>
@@ -304,7 +502,7 @@ export class BatchIdCardModalComponent {
           <title>Batch Student ID Cards - ${schoolName}</title>
           <style>
             @page {
-              size: ${mode === 'pvc-duplex' ? '85.6mm 53.98mm' : 'A4 portrait'};
+              size: ${mode === 'pvc-duplex' ? (isVertical ? '53.98mm 85.6mm' : '85.6mm 53.98mm') : 'A4 portrait'};
               margin: ${mode === 'pvc-duplex' ? '0' : '8mm'};
             }
             *, *::before, *::after {
@@ -347,6 +545,15 @@ export class BatchIdCardModalComponent {
               background: #fff;
               position: relative;
             }
+            .cr80-card-vertical {
+              width: 53.98mm;
+              height: 85.6mm;
+              border-radius: 3.18mm;
+              border: 1px solid #cbd5e1;
+              overflow: hidden;
+              background: #fff;
+              position: relative;
+            }
             .cut-line {
               font-size: 10px;
               color: #94a3b8;
@@ -363,6 +570,10 @@ export class BatchIdCardModalComponent {
               page-break-after: always;
               break-after: page;
               overflow: hidden;
+            }
+            .duplex-vertical {
+              width: 53.98mm;
+              height: 85.6mm;
             }
           </style>
         </head>

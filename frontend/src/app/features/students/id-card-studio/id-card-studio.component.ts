@@ -163,6 +163,21 @@ export class IdCardStudioComponent implements OnInit {
     this.isBatchModalOpen.set(false);
   }
 
+  getClassName(s: Student | null): string {
+    if (!s) return '';
+    if (s.class_name && s.class_name.trim() !== '' && s.class_name.toLowerCase() !== 'class roster') {
+      return s.class_name;
+    }
+    if (s.class && s.class.name) {
+      return s.class.name;
+    }
+    if (s.class_id && this.classes().length > 0) {
+      const found = this.classes().find(c => c.id === s.class_id);
+      if (found?.name) return found.name;
+    }
+    return s.class_name || '';
+  }
+
   triggerPrint() {
     window.print();
   }

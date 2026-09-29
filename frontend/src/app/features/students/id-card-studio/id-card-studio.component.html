@@ -304,6 +304,7 @@
           @if (activeStudent()) {
             <app-student-id-card
               [student]="activeStudent()!"
+              [studentClass]="getClassName(activeStudent())"
               [template]="selectedTemplate()"
               [theme]="selectedTheme()"
               [showControls]="false"
@@ -328,6 +329,10 @@
             <div class="flex items-center justify-between">
               <span class="text-text-muted font-semibold">Assigned ID:</span>
               <strong class="text-text-primary font-mono">{{ current.enrollment_num || current.id || 'STU-2026-0001' }}</strong>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-text-muted font-semibold">Assigned Class:</span>
+              <strong class="text-text-primary font-bold">{{ getClassName(current) }}</strong>
             </div>
             <div class="flex items-center justify-between">
               <span class="text-text-muted font-semibold">Dimensions & Standard:</span>
@@ -379,6 +384,7 @@
         <div class="p-6 overflow-y-auto flex items-center justify-center min-h-[380px] bg-bg-tertiary/20">
           <app-student-id-card
             [student]="activeStudent()!"
+            [studentClass]="getClassName(activeStudent())"
             [template]="selectedTemplate()"
             [theme]="selectedTheme()"
             [showControls]="false"
@@ -413,6 +419,8 @@
     <app-batch-id-card-modal
       [allStudents]="students()"
       [classes]="classes()"
+      [initialTheme]="selectedTheme()"
+      [initialTemplate]="selectedTemplate()"
       (close)="closeBatchModal()">
     </app-batch-id-card-modal>
   }
