@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -38,10 +39,21 @@ func NewDailyBillHandler(r *gin.RouterGroup, uc domain.DailyBillUseCase, teacher
 		g.GET("/today", h.GetTodaysBills)
 		// Teacher: collect (pay) a bill
 		g.POST("/:id/collect", h.CollectBill)
+		// Teacher: batch collect multiple bills
+		g.POST("/batch-collect", h.BatchCollect)
+		// Teacher: quick-scan collect a student ID / code
+		g.POST("/quick-collect", h.QuickCollect)
 		// Teacher: view their own collections today
 		g.GET("/my-collections", h.GetMyCollections)
-		// Admin: run overdue audit
-		g.POST("/run-overdue-audit", h.RunOverdueAudit)
+		// Shift Handover & Reconciliation
+		g.POST("/handover", h.SubmitHandover)
+		g.GET("/handovers", h.GetHandovers)
+		g.POST("/handover/:id/verify", h.VerifyHandover)
+		// Rollover Overdue Bills into Arrears / Debt status
+		g.POST("/rollover-overdue", h.RolloverOverdue)
+		// Route Performance & Financial Telemetry Analytics
+		g.GET("/analytics", h.GetDailyFeeAnalytics)
+
 		// Student Daily Bills
 		g.GET("/students/:id", h.GetStudentDailyBills)
 	}
@@ -153,6 +165,81 @@ func (h *DailyBillHandler) CollectBill(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Bill collected successfully"})
+}
+
+// POST /api/fiscal/daily-bills/batch-collect
+func (h *DailyBillHandler) BatchCollect(c *gin.Context) {
+	collectorIDVal, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	collectorID, ok := collectorIDVal.(uuid.UUID)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID in token"})
+		return
+	}
+
+	var req struct {
+		BillIDs []string `json:"bill_ids" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	parsedIDs := make([]uuid.UUID, 0, len(req.BillIDs))
+	for _, idStr := range req.BillIDs {
+		if id, err := uuid.Parse(idStr); err == nil {
+			parsedIDs = append(parsedIDs, id)
+		}
+	}
+
+	count, err := h.uc.BatchCollectBills(c.Request.Context(), parsedIDs, collectorID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Batch collection completed", "count": count})
+}
+
+// POST /api/fiscal/daily-bills/quick-collect
+func (h *DailyBillHandler) QuickCollect(c *gin.Context) {
+	collectorIDVal, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	collectorID, ok := collectorIDVal.(uuid.UUID)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID in token"})
+		return
+	}
+
+	var req struct {
+		Identifier string `json:"identifier" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	bill, err := h.uc.QuickCollectStudent(c.Request.Context(), req.Identifier, collectorID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Daily fee collected successfully", "bill": bill})
+}
+
+// GET /api/fiscal/daily-bills/reconciliation
+func (h *DailyBillHandler) GetReconciliationSummary(c *gin.Context) {
+	summary, err := h.uc.GetReconciliationSummary(c.Request.Context(), time.Now())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, summary)
 }
 
 // GET /api/fiscal/daily-bills/my-collections
@@ -327,3 +414,135 @@ func (h *DailyBillHandler) GetPendingBillsForWalkIns(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"bills": bills, "count": len(bills)})
 }
+
+// POST /api/fiscal/daily-bills/handover
+func (h *DailyBillHandler) SubmitHandover(c *gin.Context) {
+	collectorIDVal, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	collectorID, ok := collectorIDVal.(uuid.UUID)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID in token"})
+		return
+	}
+
+	var req struct {
+		ExpectedCash      float64 `json:"expected_cash"`
+		ActualCash        float64 `json:"actual_cash"`
+		DenominationsJSON string  `json:"denominations_json"`
+		Notes             string  `json:"notes"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	handover, err := h.uc.SubmitHandover(c.Request.Context(), collectorID, req.ExpectedCash, req.ActualCash, req.DenominationsJSON, req.Notes)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"message": "Shift handover submitted successfully", "handover": handover})
+}
+
+// GET /api/fiscal/daily-bills/handovers
+func (h *DailyBillHandler) GetHandovers(c *gin.Context) {
+	dateStr := c.Query("date")
+	targetDate := time.Now()
+	if dateStr != "" {
+		if parsed, err := time.Parse("2006-01-02", dateStr); err == nil {
+			targetDate = parsed
+		}
+	}
+
+	handovers, err := h.uc.GetHandovers(c.Request.Context(), targetDate)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"handovers": handovers, "count": len(handovers)})
+}
+
+// POST /api/fiscal/daily-bills/handover/:id/verify
+func (h *DailyBillHandler) VerifyHandover(c *gin.Context) {
+	bursarIDVal, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	bursarID, ok := bursarIDVal.(uuid.UUID)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID in token"})
+		return
+	}
+
+	handoverID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid handover ID format"})
+		return
+	}
+
+	var req struct {
+		Status string `json:"status" binding:"required"` // VERIFIED, REJECTED
+		Notes  string `json:"notes"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	status := domain.DailyHandoverStatus(req.Status)
+	handover, err := h.uc.VerifyHandover(c.Request.Context(), handoverID, bursarID, status, req.Notes)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Handover record updated successfully", "handover": handover})
+}
+
+// POST /api/fiscal/daily-bills/rollover-overdue
+func (h *DailyBillHandler) RolloverOverdue(c *gin.Context) {
+	var req struct {
+		BeforeDate string `json:"before_date"`
+	}
+	_ = c.ShouldBindJSON(&req)
+
+	beforeDate := time.Now().Truncate(24 * time.Hour)
+	if req.BeforeDate != "" {
+		if parsed, err := time.Parse("2006-01-02", req.BeforeDate); err == nil {
+			beforeDate = parsed
+		}
+	}
+
+	count, totalAmount, err := h.uc.RolloverOverdueBills(c.Request.Context(), beforeDate)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"message":      "Overdue bills audit and rollover completed",
+		"count":        count,
+		"total_amount": totalAmount,
+	})
+}
+
+// GET /api/fiscal/daily-bills/analytics
+func (h *DailyBillHandler) GetDailyFeeAnalytics(c *gin.Context) {
+	dateStr := c.Query("date")
+	targetDate := time.Now()
+	if dateStr != "" {
+		if parsed, err := time.Parse("2006-01-02", dateStr); err == nil {
+			targetDate = parsed
+		}
+	}
+
+	analytics, err := h.uc.GetDailyFeeAnalytics(c.Request.Context(), targetDate)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, analytics)
+}
+

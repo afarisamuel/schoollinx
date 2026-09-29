@@ -53,6 +53,18 @@ func (u *dailyBillUseCase) processBillWithWallet(ctx context.Context, student *d
 		})
 		status = domain.DailyBillPaid
 		collectedAt = &now
+
+		if u.feeNotifier != nil {
+			_ = u.feeNotifier.NotifyPayment(ctx, FeePaymentNotification{
+				StudentID:        student.ID,
+				Amount:           amount,
+				Category:         "DAILY_FEE",
+				PaymentMethod:    "WALLET_AUTODEDUCT",
+				ReceiptReference: fmt.Sprintf("AUTO-%s", strings.ToUpper(student.ID.String()[:8])),
+				RemainingBalance: student.PrepaidBalance,
+				Note:             fmt.Sprintf("Daily Fee Auto-Deduction (%s) for %s %s", category, student.FirstName, student.LastName),
+			})
+		}
 	}
 	return domain.DailyBill{
 		StudentID:   student.ID,
@@ -367,3 +379,303 @@ func (u *dailyBillUseCase) GetPendingBillsForWalkIns(ctx context.Context) ([]dom
 	}
 	return filtered, nil
 }
+
+// BatchCollectBills collects multiple daily bills at once in a single batch operation
+func (u *dailyBillUseCase) BatchCollectBills(ctx context.Context, billIDs []uuid.UUID, collectorID uuid.UUID) (int64, error) {
+	if len(billIDs) == 0 {
+		return 0, nil
+	}
+	count, err := u.billRepo.BatchMarkPaid(ctx, billIDs, collectorID)
+	if err == nil && u.feeNotifier != nil {
+		for _, bID := range billIDs {
+			if bill, bErr := u.billRepo.GetByID(ctx, bID); bErr == nil && bill != nil {
+				_ = u.feeNotifier.NotifyPayment(ctx, FeePaymentNotification{
+					StudentID:        bill.StudentID,
+					Amount:           bill.Amount,
+					Category:         "DAILY_FEE",
+					PaymentMethod:    "BATCH_COLLECT",
+					ReceiptReference: fmt.Sprintf("BATCH-%s", strings.ToUpper(bill.ID.String()[:8])),
+					RemainingBalance: 0,
+					Note:             "Daily Bill Batch Collection",
+				})
+			}
+		}
+	}
+	return count, err
+}
+
+// QuickCollectStudent locates today's pending bill for a student by ID or enrollment code,
+// auto-deducts from their prepaid wallet if funded, or collects as cash.
+func (u *dailyBillUseCase) QuickCollectStudent(ctx context.Context, identifier string, collectorID uuid.UUID) (*domain.DailyBill, error) {
+	var student *domain.Student
+	var err error
+
+	// 1. Try parsing as UUID first
+	if studentID, parseErr := uuid.Parse(identifier); parseErr == nil {
+		student, err = u.studentRepo.GetByID(ctx, studentID)
+	}
+
+	// 2. If not found by UUID, try by enrollment number / index number
+	if student == nil {
+		student, err = u.studentRepo.GetByEnrollmentNumber(ctx, identifier)
+	}
+
+	if err != nil || student == nil {
+		return nil, fmt.Errorf("student not found for identifier '%s'", identifier)
+	}
+
+	today := time.Now()
+	// Find pending bill for today
+	bill, err := u.billRepo.GetTodaysPendingBillByStudentID(ctx, student.ID, today)
+	if err != nil || bill == nil {
+		// Check if already paid today
+		studentBills, _ := u.billRepo.GetByStudent(ctx, student.ID)
+		for _, sb := range studentBills {
+			if sb.Date.Year() == today.Year() && sb.Date.YearDay() == today.YearDay() && sb.Status == domain.DailyBillPaid {
+				return &sb, fmt.Errorf("fee for %s %s is already PAID for today", student.FirstName, student.LastName)
+			}
+		}
+		return nil, fmt.Errorf("no pending daily bill found today for %s %s", student.FirstName, student.LastName)
+	}
+
+	// If student has prepaid wallet balance, auto-deduct from wallet
+	if student.PrepaidBalance >= bill.Amount && bill.Amount > 0 {
+		now := time.Now()
+		student.PrepaidBalance -= bill.Amount
+		_ = u.studentRepo.Update(ctx, student)
+		_ = u.fiscalRepo.CreateWalletTransaction(ctx, &domain.WalletTransaction{
+			StudentID:   student.ID,
+			Type:        domain.WalletTransactionDebit,
+			Amount:      bill.Amount,
+			Balance:     student.PrepaidBalance,
+			Description: "Daily Fee Quick-Scan Deduction",
+		})
+		bill.Status = domain.DailyBillPaid
+		bill.CollectedAt = &now
+		bill.CollectedBy = &collectorID
+		_ = u.billRepo.MarkPaid(ctx, bill.ID, collectorID)
+	} else {
+		// Cash collection
+		if err := u.billRepo.MarkPaid(ctx, bill.ID, collectorID); err != nil {
+			return nil, fmt.Errorf("failed to record payment: %w", err)
+		}
+		now := time.Now()
+		bill.Status = domain.DailyBillPaid
+		bill.CollectedAt = &now
+		bill.CollectedBy = &collectorID
+	}
+
+	if u.feeNotifier != nil {
+		_ = u.feeNotifier.NotifyPayment(ctx, FeePaymentNotification{
+			StudentID:        student.ID,
+			Amount:           bill.Amount,
+			Category:         "DAILY_FEE",
+			PaymentMethod:    "SCAN_COLLECT",
+			ReceiptReference: fmt.Sprintf("SCAN-%s", strings.ToUpper(bill.ID.String()[:8])),
+			RemainingBalance: student.PrepaidBalance,
+			Note:             fmt.Sprintf("Quick Collection for %s %s", student.FirstName, student.LastName),
+		})
+	}
+
+	bill.Student = student
+	return bill, nil
+}
+
+// GetReconciliationSummary aggregates all daily collections for a given date for audit & handover
+func (u *dailyBillUseCase) GetReconciliationSummary(ctx context.Context, date time.Time) (*domain.DailyReconciliationSummary, error) {
+	bills, err := u.billRepo.GetByDate(ctx, date)
+	if err != nil {
+		return nil, err
+	}
+
+	summary := &domain.DailyReconciliationSummary{
+		Date:               date.Format("2006-01-02"),
+		TotalBillsCount:    len(bills),
+		CollectorSummaries: make([]domain.CollectorReconciliation, 0),
+	}
+
+	collectorMap := make(map[uuid.UUID]*domain.CollectorReconciliation)
+
+	for _, b := range bills {
+		summary.TotalBilledAmount += b.Amount
+
+		switch b.Status {
+		case domain.DailyBillPaid:
+			summary.PaidBillsCount++
+			if b.CollectedBy != nil && *b.CollectedBy != uuid.Nil {
+				summary.TotalCashCollected += b.Amount
+				cID := *b.CollectedBy
+				if item, exists := collectorMap[cID]; exists {
+					item.CountCollected++
+					item.TotalCash += b.Amount
+				} else {
+					collectorMap[cID] = &domain.CollectorReconciliation{
+						CollectorID:    cID,
+						CollectorName:  "Collector " + cID.String()[:8],
+						CountCollected: 1,
+						TotalCash:      b.Amount,
+					}
+				}
+			} else {
+				summary.TotalWalletDeducted += b.Amount
+			}
+		case domain.DailyBillPending:
+			summary.PendingBillsCount++
+			summary.TotalPendingAmount += b.Amount
+		case domain.DailyBillOverdue:
+			summary.OverdueBillsCount++
+			summary.TotalPendingAmount += b.Amount
+		}
+	}
+
+	for _, cSummary := range collectorMap {
+		summary.CollectorSummaries = append(summary.CollectorSummaries, *cSummary)
+	}
+
+	return summary, nil
+}
+
+// RolloverOverdueBills finds all unpaid daily bills prior to beforeDate and converts them to overdue status
+func (u *dailyBillUseCase) RolloverOverdueBills(ctx context.Context, beforeDate time.Time) (int64, float64, error) {
+	overdueBills, err := u.billRepo.GetOverdueBills(ctx, beforeDate)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	var totalAmount float64
+	for _, b := range overdueBills {
+		totalAmount += b.Amount
+	}
+
+	count, err := u.billRepo.MarkOverdue(ctx, beforeDate)
+	return count, totalAmount, err
+}
+
+// SubmitHandover registers a shift handover submission by a faculty collector
+func (u *dailyBillUseCase) SubmitHandover(ctx context.Context, collectorID uuid.UUID, expectedCash, actualCash float64, denomsJSON, notes string) (*domain.DailyHandover, error) {
+	handover := &domain.DailyHandover{
+		Date:              time.Now(),
+		CollectorID:       collectorID,
+		ExpectedCash:      expectedCash,
+		ActualCash:        actualCash,
+		Variance:          actualCash - expectedCash,
+		DenominationsJSON: denomsJSON,
+		Notes:             notes,
+		Status:            domain.HandoverStatusPending,
+	}
+
+	if err := u.billRepo.CreateHandover(ctx, handover); err != nil {
+		return nil, fmt.Errorf("failed to record shift handover: %w", err)
+	}
+
+	return handover, nil
+}
+
+// VerifyHandover processes the Bursar/Accountant verification and countersignature of a shift handover
+func (u *dailyBillUseCase) VerifyHandover(ctx context.Context, handoverID uuid.UUID, bursarID uuid.UUID, status domain.DailyHandoverStatus, notes string) (*domain.DailyHandover, error) {
+	handover, err := u.billRepo.GetHandoverByID(ctx, handoverID)
+	if err != nil {
+		return nil, fmt.Errorf("handover record not found: %w", err)
+	}
+
+	now := time.Now()
+	handover.BursarID = &bursarID
+	handover.Status = status
+	handover.VerifiedAt = &now
+	if notes != "" {
+		if handover.Notes != "" {
+			handover.Notes += "\n[Bursar Verification Note]: " + notes
+		} else {
+			handover.Notes = "[Bursar Verification Note]: " + notes
+		}
+	}
+
+	if err := u.billRepo.UpdateHandover(ctx, handover); err != nil {
+		return nil, fmt.Errorf("failed to update handover record: %w", err)
+	}
+
+	return handover, nil
+}
+
+// GetHandovers fetches all shift handover records for a specific date
+func (u *dailyBillUseCase) GetHandovers(ctx context.Context, date time.Time) ([]domain.DailyHandover, error) {
+	return u.billRepo.GetHandoversByDate(ctx, date)
+}
+
+// GetDailyFeeAnalytics computes route-by-route performance, payment distribution, and hourly collection velocity
+func (u *dailyBillUseCase) GetDailyFeeAnalytics(ctx context.Context, date time.Time) (*domain.DailyFeeAnalytics, error) {
+	bills, err := u.billRepo.GetByDate(ctx, date)
+	if err != nil {
+		return nil, err
+	}
+
+	analytics := &domain.DailyFeeAnalytics{
+		Date:              date.Format("2006-01-02"),
+		RoutePerformances: make([]domain.RouteFeePerformance, 0),
+		HourlyVelocity:    make(map[string]float64),
+	}
+
+	for _, b := range bills {
+		analytics.TotalBilled += b.Amount
+
+		if b.Status == domain.DailyBillPaid {
+			analytics.TotalCollected += b.Amount
+			if b.CollectedBy != nil && *b.CollectedBy != uuid.Nil {
+				analytics.TotalCash += b.Amount
+			} else {
+				analytics.TotalWallet += b.Amount
+			}
+
+			if b.CollectedAt != nil {
+				hourKey := b.CollectedAt.Format("15:00")
+				analytics.HourlyVelocity[hourKey] += b.Amount
+			}
+		} else {
+			analytics.TotalPending += b.Amount
+		}
+	}
+
+	if analytics.TotalBilled > 0 {
+		analytics.OverallClearance = (analytics.TotalCollected / analytics.TotalBilled) * 100.0
+	}
+
+	// Calculate per-route performance
+	routes, _ := u.logisticsRepo.GetRoutes(ctx)
+	for _, route := range routes {
+		assignments, _ := u.logisticsRepo.GetAssignmentsByRoute(ctx, route.ID)
+		studentIDs := make(map[uuid.UUID]bool)
+		for _, a := range assignments {
+			studentIDs[a.StudentID] = true
+		}
+
+		perf := domain.RouteFeePerformance{
+			RouteID:          route.ID,
+			RouteName:        route.Name,
+			DailyRate:        route.DailyFee,
+			AssignedStudents: len(assignments),
+		}
+
+		for _, b := range bills {
+			if studentIDs[b.StudentID] {
+				perf.BilledCount++
+				perf.TotalBilled += b.Amount
+				if b.Status == domain.DailyBillPaid {
+					perf.PaidCount++
+					perf.TotalCollected += b.Amount
+				} else {
+					perf.PendingCount++
+				}
+			}
+		}
+
+		if perf.TotalBilled > 0 {
+			perf.ClearanceRate = (perf.TotalCollected / perf.TotalBilled) * 100.0
+		}
+
+		analytics.RoutePerformances = append(analytics.RoutePerformances, perf)
+	}
+
+	return analytics, nil
+}
+
+

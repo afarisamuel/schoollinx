@@ -2,7 +2,7 @@ import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { FiscalService, DailyBill } from '../../../core/infrastructure/fiscal/fiscal.service';
+import { FiscalService, DailyBill, DailyReconciliationSummary } from '../../../core/infrastructure/fiscal/fiscal.service';
 import { AcademicPeriodService } from '../../../core/infrastructure/academic-period/academic-period.service';
 import { LogisticsService } from '../../../core/infrastructure/logistics/logistics.service';
 import { TransportRoute } from '../../../core/domain/logistics.model';
@@ -38,6 +38,32 @@ export class DailyCollectionComponent implements OnInit {
     activePeriodName = signal<string>('Current Term');
     viewMode = signal<'grid' | 'table'>('grid');
     filterScope = signal<'all' | 'high' | 'standard'>('all');
+
+    // Batch Selection State
+    selectedBillIds = signal<Set<string>>(new Set());
+
+    // Scanner Mode State
+    scanInput = signal('');
+    isScanning = signal(false);
+    scanFeedback = signal<{ type: 'success' | 'error' | 'info'; message: string; bill?: DailyBill } | null>(null);
+    showScannerDrawer = signal(false);
+
+    // Shift Handover & Reconciliation Modal State
+    showHandoverModal = signal(false);
+    reconciliationData = signal<DailyReconciliationSummary | null>(null);
+    isLoadingReconciliation = signal(false);
+    handoverNotes = signal('');
+    handoverDenominations = signal<{ [key: string]: number }>({
+        '200': 0,
+        '100': 0,
+        '50': 0,
+        '20': 0,
+        '10': 0,
+        '5': 0,
+        '2': 0,
+        '1': 0,
+        '0.5': 0
+    });
 
     today = new Date();
 
@@ -84,6 +110,34 @@ export class DailyCollectionComponent implements OnInit {
         });
     });
 
+    selectedPendingBillsCount = computed(() => this.selectedBillIds().size);
+    selectedPendingBillsTotal = computed(() => {
+        const ids = this.selectedBillIds();
+        return this.pendingBills()
+            .filter(b => ids.has(b.id))
+            .reduce((acc, b) => acc + (b.amount || 0), 0);
+    });
+
+    isAllSelected = computed(() => {
+        const list = this.filteredBills();
+        if (list.length === 0) return false;
+        return list.every(b => this.selectedBillIds().has(b.id));
+    });
+
+    // Handover physical cash calculation
+    physicalCashTotal = computed(() => {
+        const denoms = this.handoverDenominations();
+        let sum = 0;
+        for (const [denom, count] of Object.entries(denoms)) {
+            sum += parseFloat(denom) * (count || 0);
+        }
+        return sum;
+    });
+
+    handoverDiscrepancy = computed(() => {
+        return this.physicalCashTotal() - this.myTotal();
+    });
+
     filteredAuditCollections = computed(() => {
         const q = this.auditSearchTerm().toLowerCase();
         if (!q) return this.myCollections();
@@ -112,7 +166,7 @@ export class DailyCollectionComponent implements OnInit {
         });
 
         this.loadMyCollections();
-        this.isLoading.set(false); // Initially false until a route is selected
+        this.isLoading.set(false);
     }
 
     loadMyCollections() {
@@ -125,6 +179,7 @@ export class DailyCollectionComponent implements OnInit {
     }
 
     onRouteSelected() {
+        this.selectedBillIds.set(new Set());
         if (!this.selectedRouteId()) {
             this.pendingBills.set([]);
             return;
@@ -152,6 +207,180 @@ export class DailyCollectionComponent implements OnInit {
                 this.isLoading.set(false);
             }
         });
+    }
+
+    toggleSelectBill(id: string) {
+        const updated = new Set(this.selectedBillIds());
+        if (updated.has(id)) {
+            updated.delete(id);
+        } else {
+            updated.add(id);
+        }
+        this.selectedBillIds.set(updated);
+    }
+
+    clearSelection() {
+        this.selectedBillIds.set(new Set());
+    }
+
+    private playAudioBeep(type: 'success' | 'error') {
+        try {
+            const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+            if (!AudioCtx) return;
+            const ctx = new AudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            if (type === 'success') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+                osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1); // A5
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.3);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, ctx.currentTime); // A3
+                osc.frequency.setValueAtTime(164.81, ctx.currentTime + 0.15); // E3
+                gain.gain.setValueAtTime(0.4, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.35);
+            }
+        } catch (e) {
+            // Audio context safely ignored if blocked by autoplay policy
+        }
+    }
+
+    completeHandover() {
+        const expected = this.myTotal();
+        const actual = this.physicalCashTotal();
+        const denoms = JSON.stringify(this.handoverDenominations());
+        const notes = this.handoverNotes();
+
+        this.fiscalService.submitHandover({
+            expected_cash: expected,
+            actual_cash: actual,
+            denominations_json: denoms,
+            notes: notes
+        }).subscribe({
+            next: () => {
+                this.closeHandoverModal();
+                this.dialog.alert('Shift Handover Sheet successfully recorded and logged for Bursar verification.', 'Handover Recorded', 'success');
+            },
+            error: (err) => {
+                this.dialog.alert(err?.error?.error || 'Failed to submit handover record.', 'Handover Error', 'danger');
+            }
+        });
+    }
+
+    toggleSelectAll() {
+        const currentList = this.filteredBills();
+        const currentSelected = this.selectedBillIds();
+        if (this.isAllSelected()) {
+            const updated = new Set(currentSelected);
+            currentList.forEach(b => updated.delete(b.id));
+            this.selectedBillIds.set(updated);
+        } else {
+            const updated = new Set(currentSelected);
+            currentList.forEach(b => updated.add(b.id));
+            this.selectedBillIds.set(updated);
+        }
+    }
+
+    batchCollectSelected() {
+        const ids = Array.from(this.selectedBillIds());
+        if (ids.length === 0) return;
+
+        const totalAmount = this.selectedPendingBillsTotal();
+
+        this.dialog.confirm(
+            `Record collection of GH₵${totalAmount.toFixed(2)} for ${ids.length} selected students?`,
+            `Batch Collection (${ids.length} Students)`,
+            'info',
+            'Confirm Batch Collect'
+        ).subscribe(confirmed => {
+            if (!confirmed) return;
+            this.isBatchCollecting.set(true);
+            this.fiscalService.batchCollectBills(ids).subscribe({
+                next: (res) => {
+                    this.isBatchCollecting.set(false);
+                    this.selectedBillIds.set(new Set());
+                    this.loadData();
+                    this.loadMyCollections();
+                    this.playAudioBeep('success');
+                    this.dialog.alert(`Successfully processed ${res.count} daily bills.`, 'Batch Complete', 'success');
+                },
+                error: (err) => {
+                    this.isBatchCollecting.set(false);
+                    this.playAudioBeep('error');
+                    this.dialog.alert(err?.error?.error || 'Failed to process batch collection.', 'Error', 'danger');
+                }
+            });
+        });
+    }
+
+    handleScanSubmit() {
+        const code = this.scanInput().trim();
+        if (!code) return;
+
+        this.isScanning.set(true);
+        this.fiscalService.quickCollectStudent(code).subscribe({
+            next: (res) => {
+                this.isScanning.set(false);
+                this.scanInput.set('');
+                const s = res.bill?.student;
+                const name = s ? `${s.first_name} ${s.last_name}` : 'Student';
+                this.scanFeedback.set({
+                    type: 'success',
+                    message: `Collected GH₵${res.bill?.amount?.toFixed(2)} from ${name}`,
+                    bill: res.bill
+                });
+                this.playAudioBeep('success');
+                this.loadData();
+                this.loadMyCollections();
+            },
+            error: (err) => {
+                this.isScanning.set(false);
+                this.playAudioBeep('error');
+                this.scanFeedback.set({
+                    type: 'error',
+                    message: err?.error?.error || 'Quick collect scan failed'
+                });
+            }
+        });
+    }
+
+    openHandoverModal() {
+        this.showHandoverModal.set(true);
+        this.isLoadingReconciliation.set(true);
+        this.fiscalService.getReconciliationSummary().subscribe({
+            next: (data) => {
+                this.reconciliationData.set(data);
+                this.isLoadingReconciliation.set(false);
+            },
+            error: () => {
+                this.isLoadingReconciliation.set(false);
+            }
+        });
+    }
+
+    closeHandoverModal() {
+        this.showHandoverModal.set(false);
+    }
+
+    updateDenom(denomKey: string, val: string) {
+        const parsed = parseInt(val, 10) || 0;
+        const copy = { ...this.handoverDenominations() };
+        copy[denomKey] = Math.max(0, parsed);
+        this.handoverDenominations.set(copy);
+    }
+
+    printHandoverManifest() {
+        window.print();
     }
 
     generateBills() {
@@ -219,7 +448,7 @@ export class DailyCollectionComponent implements OnInit {
                 next: () => {
                     this.isCollecting.set(null);
                     this.loadData();
-                    this.loadMyCollections(); // Refresh collections side-pane
+                    this.loadMyCollections();
                 },
                 error: (err) => {
                     this.isCollecting.set(null);
@@ -256,4 +485,5 @@ export class DailyCollectionComponent implements OnInit {
         document.body.removeChild(link);
     }
 }
+
 

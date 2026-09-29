@@ -174,6 +174,7 @@ var TenantModels = []interface{}{
 	&domain.FeeStructure{},
 	&domain.WalletTransaction{},
 	&domain.DailyBill{},
+	&domain.DailyHandover{},
 	&domain.Budget{},
 	&domain.Expenditure{},
 	&domain.ExpenseClaim{},

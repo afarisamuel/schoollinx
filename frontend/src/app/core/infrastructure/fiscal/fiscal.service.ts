@@ -256,6 +256,33 @@ export class FiscalService {
     collectBill(billId: string): Observable<any> {
         return this.http.post<any>(`${this.apiUrl}/daily-bills/${billId}/collect`, {});
     }
+    batchCollectBills(billIds: string[]): Observable<{ message: string; count: number }> {
+        return this.http.post<{ message: string; count: number }>(`${this.apiUrl}/daily-bills/batch-collect`, { bill_ids: billIds });
+    }
+    quickCollectStudent(identifier: string): Observable<{ message: string; bill: DailyBill }> {
+        return this.http.post<{ message: string; bill: DailyBill }>(`${this.apiUrl}/daily-bills/quick-collect`, { identifier });
+    }
+    getReconciliationSummary(date?: string): Observable<DailyReconciliationSummary> {
+        const params: Record<string, string> = date ? { date } : {};
+        return this.http.get<DailyReconciliationSummary>(`${this.apiUrl}/daily-bills/reconciliation`, { params });
+    }
+    submitHandover(payload: { expected_cash: number; actual_cash: number; denominations_json: string; notes: string }): Observable<{ message: string; handover: DailyHandover }> {
+        return this.http.post<{ message: string; handover: DailyHandover }>(`${this.apiUrl}/daily-bills/handover`, payload);
+    }
+    getHandovers(date?: string): Observable<{ handovers: DailyHandover[]; count: number }> {
+        const params: Record<string, string> = date ? { date } : {};
+        return this.http.get<{ handovers: DailyHandover[]; count: number }>(`${this.apiUrl}/daily-bills/handovers`, { params });
+    }
+    verifyHandover(handoverId: string, payload: { status: 'VERIFIED' | 'REJECTED'; notes?: string }): Observable<{ message: string; handover: DailyHandover }> {
+        return this.http.post<{ message: string; handover: DailyHandover }>(`${this.apiUrl}/daily-bills/handover/${handoverId}/verify`, payload);
+    }
+    rolloverOverdue(beforeDate?: string): Observable<{ message: string; count: number; total_amount: number }> {
+        return this.http.post<{ message: string; count: number; total_amount: number }>(`${this.apiUrl}/daily-bills/rollover-overdue`, { before_date: beforeDate });
+    }
+    getDailyFeeAnalytics(date?: string): Observable<DailyFeeAnalytics> {
+        const params: Record<string, string> = date ? { date } : {};
+        return this.http.get<DailyFeeAnalytics>(`${this.apiUrl}/daily-bills/analytics`, { params });
+    }
     getMyCollections(): Observable<{ bills: DailyBill[]; count: number; total_collected: number }> {
         return this.http.get<{ bills: DailyBill[]; count: number; total_collected: number }>(`${this.apiUrl}/daily-bills/my-collections`);
     }
@@ -399,4 +426,70 @@ export interface DailyBill {
     collected_by?: string;
     collected_at?: string;
 }
+
+export interface CollectorReconciliation {
+    collector_id: string;
+    collector_name: string;
+    count_collected: number;
+    total_cash: number;
+}
+
+export interface DailyReconciliationSummary {
+    date: string;
+    total_bills_count: number;
+    paid_bills_count: number;
+    pending_bills_count: number;
+    overdue_bills_count: number;
+    total_billed_amount: number;
+    total_cash_collected: number;
+    total_wallet_deducted: number;
+    total_pending_amount: number;
+    collector_summaries: CollectorReconciliation[];
+}
+
+export type DailyHandoverStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
+
+export interface DailyHandover {
+    id: string;
+    date: string;
+    collector_id: string;
+    collector?: { id: string; email?: string; role?: string };
+    bursar_id?: string;
+    bursar?: { id: string; email?: string; role?: string };
+    expected_cash: number;
+    actual_cash: number;
+    variance: number;
+    denominations_json: string;
+    notes: string;
+    status: DailyHandoverStatus;
+    verified_at?: string;
+    created_at?: string;
+}
+
+export interface RouteFeePerformance {
+    route_id: string;
+    route_name: string;
+    daily_rate: number;
+    assigned_students: number;
+    billed_count: number;
+    paid_count: number;
+    pending_count: number;
+    total_billed: number;
+    total_collected: number;
+    clearance_rate: number;
+}
+
+export interface DailyFeeAnalytics {
+    date: string;
+    total_billed: number;
+    total_collected: number;
+    total_cash: number;
+    total_wallet: number;
+    total_pending: number;
+    overall_clearance: number;
+    route_performances: RouteFeePerformance[];
+    hourly_velocity: { [hour: string]: number };
+}
+
+
 
