@@ -130,6 +130,11 @@ export class MessagingHubComponent implements OnInit, OnDestroy, AfterViewChecke
     cardType = signal<'PAY_FEE' | 'VIEW_REPORT' | 'VIEW_HOMEWORK'>('PAY_FEE');
     cardPayload = signal('');
 
+    // Mobile UI State
+    showMobileActionsMenu = signal(false);
+    showMobileComposerTools = signal(false);
+    showMobileNoticeOptions = signal(false);
+
     // Media & Document Vault Drawer
     showMediaVault = signal(false);
     channelMediaList = signal<Message[]>([]);

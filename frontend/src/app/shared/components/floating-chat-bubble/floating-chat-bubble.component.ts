@@ -60,6 +60,7 @@ export class FloatingChatBubbleComponent implements OnInit, OnDestroy, AfterView
   currentUserId = computed(() => this.authService.currentUserValue?.id ?? '');
   currentUserRole = computed(() => this.authService.currentUserValue?.role ?? 'ADMIN');
   totalUnread = computed(() => this.messagingService.totalUnreadCount());
+  isOnMessagingHub = computed(() => this.router.url.includes('/communications/messages'));
 
   // Safeguarding status check
   isSafeguardedChannel = computed(() => {

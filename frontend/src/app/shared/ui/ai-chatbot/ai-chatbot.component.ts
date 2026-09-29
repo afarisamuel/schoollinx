@@ -1,9 +1,10 @@
-import { Component, OnInit, signal, inject, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { ChatbotService, ChatMessage } from './chatbot.service';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
+import { MessagingService } from '../../../core/infrastructure/communications/messaging.service';
 
 @Component({
     selector: 'app-ai-chatbot',
@@ -17,8 +18,11 @@ export class AiChatbotComponent implements OnInit, AfterViewChecked {
 
     private chatbot = inject(ChatbotService);
     private auth = inject(AuthService);
+    private router = inject(Router);
+    private messagingService = inject(MessagingService);
 
     isAdmin = () => this.auth.currentUserValue?.role === 'ADMIN';
+    isOnMessagingHub = computed(() => this.router.url.includes('/communications/messages'));
 
     isOpen = signal(false);
     isTyping = signal(false);
@@ -34,7 +38,11 @@ export class AiChatbotComponent implements OnInit, AfterViewChecked {
     }
 
     toggle() {
-        this.isOpen.set(!this.isOpen());
+        const nextState = !this.isOpen();
+        this.isOpen.set(nextState);
+        if (nextState) {
+            this.messagingService.closeFloatingChat();
+        }
     }
 
     close() {
