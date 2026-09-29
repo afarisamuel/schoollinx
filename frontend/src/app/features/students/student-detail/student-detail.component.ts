@@ -35,6 +35,7 @@ export interface TimelineEvent {
 
 import { AcademicPeriodService } from '../../../core/infrastructure/academic-period/academic-period.service';
 import { DocumentService } from '../../../core/infrastructure/document/document.service';
+import { MessagingService } from '../../../core/infrastructure/communications/messaging.service';
 import { CameraCaptureModalComponent, CapturedPhotoResult } from '../../../shared/ui/camera-capture-modal/camera-capture-modal.component';
 import { compressImage } from '../../../core/utils/image-compressor.util';
 import { formatMediaUrl } from '../../../core/utils/media-url.util';
@@ -60,6 +61,24 @@ export class StudentDetailComponent implements OnInit {
     private dialog = inject(DialogService);
     private periodService = inject(AcademicPeriodService);
     private documentService = inject(DocumentService);
+    private messagingService = inject(MessagingService);
+
+    chatWithStudent(): void {
+        const s = this.student();
+        if (!s) return;
+        const targetId = (s as any).user_id || s.id || '';
+        if (targetId) {
+            this.messagingService.openDirectChat(targetId);
+        }
+    }
+
+    chatWithGuardian(guardian: Guardian): void {
+        if (!guardian) return;
+        const targetId = guardian.user_id || guardian.id || '';
+        if (targetId) {
+            this.messagingService.openDirectChat(targetId);
+        }
+    }
 
     isAdmin = computed(() => this.authService.currentUserValue?.role === 'ADMIN');
     isTeacher = computed(() => this.authService.currentUserValue?.role === 'TEACHER');

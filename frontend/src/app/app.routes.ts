@@ -124,6 +124,16 @@ export const tenantRoutes: Routes = [
                 loadChildren: () => import('./features/communications/communications.routes').then(m => m.communicationsRoutes)
             },
             {
+                path: 'chat',
+                redirectTo: 'communications/messages',
+                pathMatch: 'full'
+            },
+            {
+                path: 'messages',
+                redirectTo: 'communications/messages',
+                pathMatch: 'full'
+            },
+            {
                 path: 'portal',
                 loadChildren: () => import('./features/portal/portal.routes').then(m => m.portalRoutes)
             },

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TeacherPortalService } from '../../../../core/infrastructure/teacher/teacher-portal.service';
 import { ToastService } from '../../../../shared/ui/toast/toast.service';
+import { MessagingService } from '../../../../core/infrastructure/communications/messaging.service';
 
 @Component({
   selector: 'app-teacher-consultations',
@@ -14,6 +15,15 @@ import { ToastService } from '../../../../shared/ui/toast/toast.service';
 export class TeacherConsultationsComponent implements OnInit {
   private portalService = inject(TeacherPortalService);
   private toast = inject(ToastService);
+  private messagingService = inject(MessagingService);
+
+  chatWithGuardian(guardian: any): void {
+    if (!guardian) return;
+    const targetId = guardian.user_id || guardian.id || '';
+    if (targetId) {
+      this.messagingService.openDirectChat(targetId);
+    }
+  }
 
   isLoading = signal(true);
   teacher = signal<any>(null);

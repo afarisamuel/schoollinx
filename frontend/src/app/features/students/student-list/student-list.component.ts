@@ -15,6 +15,7 @@ import { PaginationState, defaultPaginationState } from '../../../core/domain/pa
 
 import { BatchIdCardModalComponent } from '../../../shared/ui/batch-id-card/batch-id-card-modal.component';
 import { formatMediaUrl } from '../../../core/utils/media-url.util';
+import { MessagingService } from '../../../core/infrastructure/communications/messaging.service';
 
 @Component({
     selector: 'app-student-list',
@@ -24,8 +25,16 @@ import { formatMediaUrl } from '../../../core/utils/media-url.util';
     styleUrl: './student-list.component.css'
 })
 export class StudentListComponent implements OnInit {
-
+    private messagingService = inject(MessagingService);
     private dialog = inject(DialogService);
+
+    chatWithStudent(student: Student): void {
+        if (!student) return;
+        const targetId = (student as any).user_id || student.id || '';
+        if (targetId) {
+            this.messagingService.openDirectChat(targetId);
+        }
+    }
     loading = signal<boolean>(true);
     students = signal<Student[]>([]);
     selectedIds = signal<Set<string>>(new Set());

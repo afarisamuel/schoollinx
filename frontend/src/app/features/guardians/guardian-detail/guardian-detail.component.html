@@ -26,6 +26,15 @@
       @if (guardian()) {
         <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-end">
           <button 
+            (click)="chatWithGuardian()" 
+            class="px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer active:scale-95 shadow-sm"
+            title="Open direct chat with guardian"
+          >
+            <i class="fas fa-comment-dots text-emerald-500"></i>
+            <span>Chat with Guardian</span>
+          </button>
+
+          <button 
             (click)="openEditModal()" 
             class="px-4 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-primary rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer hover:border-blue-500/30 active:scale-95 shadow-sm"
           >
@@ -509,14 +518,25 @@
               </div>
 
               <!-- Student Card Actions -->
-              <div class="mt-4 pt-3 border-t border-border-primary/50 flex items-center justify-between">
-                <a 
-                  [routerLink]="['/students/details', student.id]" 
-                  class="text-xs font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1.5 transition-colors"
-                >
-                  <i class="fas fa-external-link-alt text-[10px]"></i>
-                  <span>View Student Profile</span>
-                </a>
+              <div class="mt-4 pt-3 border-t border-border-primary/50 flex items-center justify-between gap-2 flex-wrap">
+                <div class="flex items-center gap-3">
+                  <a 
+                    [routerLink]="['/students/details', student.id]" 
+                    class="text-xs font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1.5 transition-colors"
+                  >
+                    <i class="fas fa-external-link-alt text-[10px]"></i>
+                    <span>Profile</span>
+                  </a>
+
+                  <button 
+                    (click)="chatWithStudent(student)"
+                    class="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1.5 transition-colors cursor-pointer"
+                    title="Open chat with student"
+                  >
+                    <i class="fas fa-comment-dots text-[10px]"></i>
+                    <span>Chat</span>
+                  </button>
+                </div>
 
                 <button 
                   (click)="unlinkStudent(student)" 

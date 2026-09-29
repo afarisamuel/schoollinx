@@ -97,8 +97,16 @@
                 {{ bk.status }}
               </span>
             </div>
-            <div class="font-bold text-xs text-text-primary">
-              Guardian: {{ bk.guardian?.first_name || 'Parent' }} {{ bk.guardian?.last_name || '' }}
+            <div class="flex items-center justify-between gap-2">
+              <div class="font-bold text-xs text-text-primary">
+                Guardian: {{ bk.guardian?.first_name || 'Parent' }} {{ bk.guardian?.last_name || '' }}
+              </div>
+              <button (click)="chatWithGuardian(bk.guardian || { id: bk.guardian_id })"
+                      class="px-2.5 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95"
+                      title="Direct chat with guardian">
+                <i class="fas fa-comment-dots text-[10px]"></i>
+                <span>Chat</span>
+              </button>
             </div>
             @if (bk.agenda) {
               <p class="text-[11px] text-text-muted bg-bg-secondary p-2 rounded-xl border border-border-primary/50">

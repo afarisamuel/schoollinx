@@ -25,5 +25,11 @@ export const portalRoutes: Routes = [
         loadComponent: () => import('./staff-portal/staff-portal.component').then(c => c.StaffPortalComponent),
         canActivate: [roleGuard],
         data: { roles: ['STAFF', 'TEACHER'] }
+    },
+    {
+        path: 'chat',
+        loadComponent: () => import('../communications/messaging-hub/messaging-hub.component').then(c => c.MessagingHubComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['STUDENT', 'TEACHER', 'STAFF', 'GUARDIAN', 'ADMIN'] }
     }
 ];

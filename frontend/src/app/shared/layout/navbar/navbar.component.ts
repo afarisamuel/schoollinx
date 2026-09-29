@@ -5,6 +5,7 @@ import { ThemeService } from '../../../core/infrastructure/theme/theme.service';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 import { NotificationService, Notification } from '../../../core/infrastructure/notifications/notification.service';
 import { SearchService } from '../../../core/infrastructure/search/search.service';
+import { MessagingService } from '../../../core/infrastructure/communications/messaging.service';
 
 @Component({
   selector: 'app-navbar',
@@ -16,10 +17,17 @@ import { SearchService } from '../../../core/infrastructure/search/search.servic
 export class NavbarComponent {
   themeService = inject(ThemeService);
   searchService = inject(SearchService);
+  messagingService = inject(MessagingService);
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
   private platformId = inject(PLATFORM_ID);
   private elementRef = inject(ElementRef);
+
+  unreadChatCount = this.messagingService.totalUnreadCount;
+
+  toggleChat(): void {
+    this.messagingService.toggleFloatingChat();
+  }
 
   // Inputs
   currentRouteTitle = input<string>('Dashboard');

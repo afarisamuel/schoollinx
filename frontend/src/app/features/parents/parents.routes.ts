@@ -74,6 +74,16 @@ export const PARENT_ROUTES: Routes = [
                 path: 'bus-tracker',
                 loadComponent: () => import('./bus-tracker/bus-tracker.component').then(c => c.BusTrackerComponent),
                 title: 'Live Bus Tracker'
+            },
+            {
+                path: 'chat',
+                loadComponent: () => import('../communications/messaging-hub/messaging-hub.component').then(c => c.MessagingHubComponent),
+                title: 'Parent Portal - Campus Chat'
+            },
+            {
+                path: 'messages',
+                redirectTo: 'chat',
+                pathMatch: 'full'
             }
         ]
     }

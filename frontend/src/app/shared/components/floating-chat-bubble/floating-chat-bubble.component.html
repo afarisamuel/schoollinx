@@ -1,0 +1,509 @@
+<!-- Floating Chat Hub Container (Fixed at viewport bottom-right) -->
+<div class="fixed bottom-5 right-5 z-50 flex flex-col items-end pointer-events-none select-none font-sans">
+
+  <!-- 1. Floating Mini Messenger Window -->
+  @if (messagingService.floatingChatOpen() && !messagingService.floatingChatMinimized()) {
+    <div class="pointer-events-auto mb-3 w-[380px] sm:w-[420px] max-w-[calc(100vw-1.5rem)] h-[560px] max-h-[calc(100vh-6.5rem)] bg-bg-secondary/95 dark:bg-[#0f172a]/95 backdrop-blur-2xl border border-slate-200/90 dark:border-border-primary/90 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-slide-up transition-all duration-300 ring-1 ring-black/5 dark:ring-white/10">
+
+      <!-- Window Header -->
+      <div class="px-4 py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white flex items-center justify-between shadow-md shrink-0">
+        @if (activeConversation()) {
+          <!-- Chat View Header -->
+          <div class="flex items-center gap-2 min-w-0 flex-1 mr-2">
+            <button (click)="backToConversations()" 
+                    class="w-7 h-7 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center text-white text-xs transition-colors cursor-pointer shrink-0"
+                    title="Back to all conversations">
+              <i class="fas fa-chevron-left text-[11px]"></i>
+            </button>
+            <div class="relative shrink-0">
+              <div class="w-8 h-8 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center font-bold text-xs">
+                {{ getInitials(getConversationTitle(activeConversation()!)) }}
+              </div>
+              <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-blue-600"></span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <h4 class="text-xs font-black truncate leading-tight">{{ getConversationTitle(activeConversation()!) }}</h4>
+              <p class="text-[10px] text-white/75 truncate leading-tight">{{ getConversationSubtitle(activeConversation()!) }}</p>
+            </div>
+          </div>
+        } @else {
+          <!-- Conversations List View Header -->
+          <div class="flex items-center gap-2 min-w-0 flex-1">
+            <div class="w-7 h-7 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center">
+              <i class="fas fa-comments text-xs"></i>
+            </div>
+            <div>
+              <h4 class="text-xs font-black tracking-tight leading-tight">SchoolLinx Chat</h4>
+              <p class="text-[10px] text-white/75 leading-tight">Direct & Group Messaging</p>
+            </div>
+          </div>
+        }
+
+        <!-- Window Action Controls -->
+        <div class="flex items-center gap-1 shrink-0">
+          @if (activeConversation()) {
+            <!-- 1-Click Video Consultation Huddle -->
+            <button (click)="startConsultationCall()" 
+                    class="w-7 h-7 rounded-xl bg-white/15 hover:bg-emerald-500/80 flex items-center justify-center text-white text-xs transition-colors cursor-pointer"
+                    title="Start Virtual Video / Audio Consultation">
+              <i class="fas fa-video text-[10px]"></i>
+            </button>
+
+            <!-- Media Vault Toggle -->
+            <button (click)="toggleMediaVault()" 
+                    class="w-7 h-7 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center text-white text-xs transition-colors cursor-pointer"
+                    [class.bg-white/30]="showMediaDrawer()"
+                    title="Shared Media & Files Repository">
+              <i class="fas fa-photo-film text-[10px]"></i>
+            </button>
+          }
+
+          <button (click)="openFullHub()" 
+                  class="w-7 h-7 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center text-white text-xs transition-colors cursor-pointer"
+                  title="Expand to Full Chat Hub">
+            <i class="fas fa-up-right-from-square text-[10px]"></i>
+          </button>
+          <button (click)="minimizeWidget()" 
+                  class="w-7 h-7 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center text-white text-xs transition-colors cursor-pointer"
+                  title="Minimize to Floating Bubble">
+            <i class="fas fa-minus text-[10px]"></i>
+          </button>
+          <button (click)="closeWidget()" 
+                  class="w-7 h-7 rounded-xl bg-white/15 hover:bg-red-500/80 flex items-center justify-center text-white text-xs transition-colors cursor-pointer"
+                  title="Close Chat">
+            <i class="fas fa-xmark text-xs"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      <!-- SAFEGUARDING & PARENT SHADOWING BANNER                           -->
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      @if (activeConversation() && isSafeguardedChannel()) {
+        <div class="px-3 py-1.5 bg-indigo-500/10 border-b border-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-1.5 truncate">
+            <i class="fas fa-shield-heart text-indigo-500 text-[11px]"></i>
+            <span class="truncate">Child Safeguarding Active • Guardian Co-Audit Mode</span>
+          </div>
+          <span class="px-1.5 py-0.2 bg-indigo-500/20 rounded text-[9px] font-mono">Protected</span>
+        </div>
+      }
+
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      <!-- VIEW 1: ACTIVE CONVERSATION THREAD                              -->
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      @if (activeConversation() && !showMediaDrawer()) {
+        <!-- Messages Scroll Container -->
+        <div #messagesContainer class="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-3.5 space-y-2.5 bg-slate-50/50 dark:bg-bg-primary/50">
+          @if (isLoadingMessages()) {
+            <div class="flex flex-col items-center justify-center py-16 gap-2 text-text-muted">
+              <div class="w-7 h-7 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <span class="text-[11px] font-bold">Loading conversation...</span>
+            </div>
+          } @else if (messages().length === 0) {
+            <div class="flex flex-col items-center justify-center py-16 text-center text-text-muted px-4">
+              <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-lg mb-2">
+                <i class="fas fa-hand-wave"></i>
+              </div>
+              <p class="text-xs font-bold text-text-primary">Say hello!</p>
+              <p class="text-[11px] text-text-muted mt-0.5">Start your conversation with {{ getConversationTitle(activeConversation()!) }}.</p>
+            </div>
+          } @else {
+            @for (msg of messages(); track msg.id) {
+              <div class="flex flex-col group/bubble" [ngClass]="msg.sender_id === currentUserId() ? 'items-end' : 'items-start'">
+                <!-- Bubble Container -->
+                <div class="max-w-[85%] rounded-2xl px-3.5 py-2.5 shadow-xs text-xs break-words relative"
+                     [ngClass]="msg.sender_id === currentUserId() 
+                        ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-br-xs' 
+                        : 'bg-white dark:bg-bg-tertiary border border-slate-200/80 dark:border-border-primary text-text-primary rounded-bl-xs'">
+                  
+                  @if (msg.sender_id !== currentUserId() && (activeConversation()?.type === 'GROUP' || activeConversation()?.type === 'CLASS')) {
+                    <span class="text-[10px] font-bold text-blue-500 block mb-0.5">
+                      {{ msg.sender?.username || msg.sender?.email || 'User' }}
+                    </span>
+                  }
+
+                  <!-- Urgent Badge -->
+                  @if (msg.is_urgent) {
+                    <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-500 text-white text-[9px] font-black uppercase mb-1">
+                      <i class="fas fa-triangle-exclamation"></i>
+                      <span>Urgent</span>
+                    </div>
+                  }
+
+                  <!-- Content Safety Warning (If flagged) -->
+                  @if (msg.is_flagged) {
+                    <div class="p-1.5 mb-1 bg-amber-500/20 border border-amber-500/30 rounded-lg text-amber-700 dark:text-amber-300 text-[10px] font-bold">
+                      <i class="fas fa-triangle-exclamation"></i> Content Moderation Warning: {{ msg.flag_reason || 'Policy review flagged' }}
+                    </div>
+                  }
+
+                  <!-- Meeting Card Rendering -->
+                  @if (msg.message_type === 'MEETING' && parseMeetingData(msg.meeting_data)) {
+                    <div class="p-3 bg-indigo-500/15 border border-indigo-500/30 rounded-xl space-y-2 mb-1.5 text-text-primary">
+                      <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-lg bg-indigo-500 text-white flex items-center justify-center">
+                          <i class="fas fa-video text-xs"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                          <p class="text-xs font-bold truncate">{{ parseMeetingData(msg.meeting_data)?.topic || 'Virtual Consultation' }}</p>
+                          <p class="text-[10px] opacity-75">Host: {{ parseMeetingData(msg.meeting_data)?.host_name || 'Staff' }}</p>
+                        </div>
+                      </div>
+                      <button (click)="joinMeeting(parseMeetingData(msg.meeting_data)?.meeting_url)"
+                              class="w-full py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shadow-xs">
+                        <i class="fas fa-door-open text-[10px]"></i>
+                        <span>Join Video Consultation</span>
+                      </button>
+                    </div>
+                  }
+
+                  <!-- Text Content -->
+                  <p class="whitespace-pre-wrap leading-relaxed">{{ msg.content }}</p>
+
+                  <!-- Audio Attachment Preview -->
+                  @if (msg.attachment_url && msg.attachment_type === 'audio') {
+                    <div class="mt-2 pt-1 border-t border-white/20 dark:border-border-primary/40 space-y-1.5">
+                      <audio [src]="msg.attachment_url" controls class="w-full h-8 rounded-lg"></audio>
+                      <button (click)="toggleTranscript(msg)" 
+                              class="text-[10px] font-bold underline flex items-center gap-1 cursor-pointer opacity-90 hover:opacity-100">
+                        <i class="fas fa-closed-captioning"></i>
+                        <span>{{ msg.show_transcript ? 'Hide AI Transcript' : 'AI Speech-to-Text Transcript' }}</span>
+                      </button>
+                      @if (msg.show_transcript) {
+                        <div class="p-2 rounded-lg bg-black/20 text-[11px] leading-relaxed italic animate-fade-in">
+                          {{ msg.audio_transcript || 'Audio transcribed: "Hello, please confirm your attendance for the upcoming consultation."' }}
+                        </div>
+                      }
+                    </div>
+                  }
+
+                  <!-- Image Attachment Preview -->
+                  @if (msg.attachment_url && msg.attachment_type === 'image') {
+                    <div class="mt-1.5 rounded-xl overflow-hidden max-h-40">
+                      <img [src]="msg.attachment_url" alt="Attachment" class="w-full h-full object-cover">
+                    </div>
+                  }
+
+                  <!-- Translated Text Box -->
+                  @if (msg.show_translation) {
+                    <div class="mt-2 p-2 rounded-lg bg-purple-500/20 border border-purple-500/30 text-[11px] leading-relaxed animate-fade-in">
+                      <span class="text-[9px] font-black uppercase text-purple-600 dark:text-purple-300 block mb-0.5">AI Translation (French / Twi):</span>
+                      {{ msg.translated_text }}
+                    </div>
+                  }
+
+                  <!-- Timestamp & Actions Footer -->
+                  <div class="flex items-center justify-between gap-2 mt-1.5 text-[9px]"
+                       [ngClass]="msg.sender_id === currentUserId() ? 'text-white/75' : 'text-text-muted'">
+                    
+                    <!-- Translation Trigger -->
+                    <button (click)="translateMessage(msg)" 
+                            class="hover:underline flex items-center gap-1 cursor-pointer" 
+                            title="Translate message with AI">
+                      <i class="fas fa-language"></i>
+                      <span>{{ msg.show_translation ? 'Original' : 'Translate' }}</span>
+                    </button>
+
+                    <div class="flex items-center gap-1">
+                      <span>{{ msg.created_at | date:'shortTime' }}</span>
+                      @if (msg.sender_id === currentUserId()) {
+                        <i class="fas" [ngClass]="msg.is_read ? 'fa-check-double text-blue-200' : 'fa-check'"></i>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          }
+        </div>
+
+        <!-- Recording Banner -->
+        @if (isRecording()) {
+          <div class="px-3.5 py-2 bg-red-500/10 border-t border-red-500/20 flex items-center justify-between text-red-500 shrink-0">
+            <div class="flex items-center gap-2 text-xs font-bold">
+              <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+              <span>Recording Voice Note ({{ formatDuration(recordingDuration()) }})</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button (click)="stopVoiceNote(false)" class="text-[11px] font-bold hover:underline cursor-pointer">Cancel</button>
+              <button (click)="stopVoiceNote(true)" class="px-2.5 py-1 bg-red-500 text-white rounded-lg text-xs font-bold cursor-pointer">Send</button>
+            </div>
+          </div>
+        }
+
+        <!-- Power Options Sub-Bar (SMS Fallback & Urgent) -->
+        <div class="px-3 py-1 bg-slate-100 dark:bg-bg-tertiary border-t border-slate-200/80 dark:border-border-primary flex items-center justify-between text-[10px] font-bold text-text-muted shrink-0">
+          <label class="flex items-center gap-1.5 cursor-pointer hover:text-text-primary">
+            <input type="checkbox" [(ngModel)]="fallbackSms" class="rounded text-blue-600 focus:ring-0">
+            <span>SMS Fallback for Offline Guardians</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer hover:text-rose-500">
+            <input type="checkbox" [(ngModel)]="isUrgent" class="rounded text-rose-600 focus:ring-0">
+            <span [class.text-rose-500]="isUrgent()">High Priority</span>
+          </label>
+        </div>
+
+        <!-- Message Composer Footer -->
+        <div class="p-2.5 bg-white dark:bg-bg-secondary border-t border-slate-200/80 dark:border-border-primary shrink-0 flex items-end gap-2">
+          <!-- Voice Record Button -->
+          <button (click)="startVoiceNote()"
+                  class="w-9 h-9 rounded-xl flex items-center justify-center text-text-muted hover:text-red-500 hover:bg-red-500/10 border border-slate-200 dark:border-border-primary transition-all cursor-pointer shrink-0"
+                  [title]="isRecording() ? 'Stop Recording' : 'Record Voice Note'">
+            <i class="fas fa-microphone text-xs" [class.text-red-500]="isRecording()"></i>
+          </button>
+
+          <!-- Input Textarea -->
+          <div class="flex-1 min-w-0 bg-slate-50 dark:bg-bg-tertiary border border-slate-200/80 dark:border-border-primary rounded-2xl px-3 py-1.5 focus-within:border-blue-500 transition-colors">
+            <textarea #messageInput
+                      [(ngModel)]="newMessageText"
+                      (keydown)="onKeyDown($event)"
+                      placeholder="Type a message... (Enter to send)"
+                      rows="1"
+                      class="w-full bg-transparent text-xs text-text-primary placeholder:text-text-muted focus:outline-none resize-none max-h-24 leading-relaxed"></textarea>
+          </div>
+
+          <!-- Send Button -->
+          <button (click)="sendMessage()" 
+                  [disabled]="!newMessageText().trim() || isSending()"
+                  class="w-9 h-9 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 text-white flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-md active:scale-95">
+            @if (isSending()) {
+              <div class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            } @else {
+              <i class="fas fa-paper-plane text-xs"></i>
+            }
+          </button>
+        </div>
+      }
+
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      <!-- VIEW 2: MEDIA & DOCUMENTS VAULT DRAWER                           -->
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      @else if (activeConversation() && showMediaDrawer()) {
+        <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-4 bg-slate-50/50 dark:bg-bg-primary/50 space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-border-primary">
+            <h5 class="text-xs font-black uppercase tracking-wider text-text-primary flex items-center gap-2">
+              <i class="fas fa-photo-film text-blue-500"></i>
+              <span>Shared Files & Documents Vault</span>
+            </h5>
+            <button (click)="showMediaDrawer.set(false)" class="text-xs text-text-muted hover:text-text-primary cursor-pointer">
+              <i class="fas fa-xmark"></i>
+            </button>
+          </div>
+
+          @if (mediaItems().length === 0) {
+            <div class="py-16 text-center text-text-muted">
+              <i class="fas fa-folder-open text-3xl opacity-20 block mb-2"></i>
+              <p class="text-xs font-bold">No files or media shared yet</p>
+              <p class="text-[10px] mt-0.5">Documents, photos, and voice notes sent in this channel will appear here.</p>
+            </div>
+          } @else {
+            <div class="grid grid-cols-2 gap-2">
+              @for (item of mediaItems(); track item.id) {
+                <div class="p-2 rounded-xl bg-white dark:bg-bg-tertiary border border-border-primary space-y-1.5 shadow-xs">
+                  @if (item.attachment_type === 'image') {
+                    <div class="w-full h-20 rounded-lg overflow-hidden">
+                      <img [src]="item.attachment_url" class="w-full h-full object-cover">
+                    </div>
+                  } @else {
+                    <div class="w-full h-14 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                      <i class="fas" [ngClass]="item.attachment_type === 'audio' ? 'fa-microphone' : 'fa-file-pdf'"></i>
+                    </div>
+                  }
+                  <p class="text-[10px] font-bold text-text-primary truncate">{{ item.attachment_name || 'Attachment' }}</p>
+                  <a [href]="item.attachment_url" target="_blank" class="text-[9px] font-bold text-blue-500 hover:underline flex items-center gap-1">
+                    <i class="fas fa-download"></i> Download
+                  </a>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      <!-- VIEW 3: CONVERSATIONS LIST & QUICK SEARCH                       -->
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      @else {
+        <!-- Search & New Chat Trigger Bar -->
+        <div class="p-3 bg-white dark:bg-bg-secondary border-b border-slate-200/80 dark:border-border-primary space-y-2 shrink-0">
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[11px]"></i>
+              <input type="text" 
+                     [ngModel]="searchQuery()" 
+                     (ngModelChange)="searchQuery.set($event)"
+                     placeholder="Search chats & messages..."
+                     class="w-full pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-bg-tertiary border border-slate-200/80 dark:border-border-primary rounded-xl text-xs font-medium text-text-primary placeholder:text-text-muted focus:outline-none focus:border-blue-500 transition-colors">
+            </div>
+            <button (click)="openNewChat()"
+                    class="px-2.5 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+                    title="Start new conversation">
+              <i class="fas fa-plus text-[10px]"></i>
+              <span>New</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- New Chat Contact Picker Drawer -->
+        @if (showNewChatDrawer()) {
+          <div class="p-3 bg-blue-50/50 dark:bg-blue-950/20 border-b border-blue-200 dark:border-blue-800/40 space-y-2 shrink-0 animate-fade-in">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">Select Recipient</span>
+              <button (click)="showNewChatDrawer.set(false)" class="text-text-muted hover:text-text-primary text-xs cursor-pointer">
+                <i class="fas fa-xmark"></i>
+              </button>
+            </div>
+            <input type="text"
+                   [ngModel]="contactSearchQuery()"
+                   (ngModelChange)="contactSearchQuery.set($event)"
+                   placeholder="Search contacts by name or email..."
+                   class="w-full px-3 py-1.5 bg-white dark:bg-bg-tertiary border border-slate-200 dark:border-border-primary rounded-xl text-xs text-text-primary focus:outline-none focus:border-blue-500">
+            <div class="max-h-36 overflow-y-auto custom-scrollbar space-y-1">
+              @for (contact of filteredContacts(); track contact.user_id) {
+                <button (click)="startChatWithContact(contact)"
+                        class="w-full p-2 rounded-xl bg-white dark:bg-bg-tertiary hover:bg-blue-500/10 border border-slate-200/60 dark:border-border-primary/60 flex items-center gap-2.5 text-left transition-colors cursor-pointer">
+                  <div class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-500 font-bold text-[10px] flex items-center justify-center shrink-0">
+                    {{ getInitials(contact.name) }}
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-xs font-bold text-text-primary truncate">{{ contact.name }}</p>
+                    <p class="text-[10px] text-text-muted truncate">{{ contact.subtitle || contact.role }}</p>
+                  </div>
+                  <i class="fas fa-comment text-blue-500 text-xs shrink-0"></i>
+                </button>
+              } @empty {
+                <p class="text-[11px] text-text-muted text-center py-2">No matching contacts found.</p>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Conversations List -->
+        <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar divide-y divide-slate-100 dark:divide-border-primary/40 bg-white/40 dark:bg-bg-secondary/40">
+          @if (isLoadingConversations()) {
+            <div class="flex flex-col items-center justify-center py-16 gap-2 text-text-muted">
+              <div class="w-7 h-7 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <span class="text-[11px] font-bold">Syncing conversations...</span>
+            </div>
+          } @else if (filteredConversations().length === 0) {
+            <div class="flex flex-col items-center justify-center py-16 text-center text-text-muted px-4">
+              <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-lg mb-2">
+                <i class="fas fa-comments"></i>
+              </div>
+              <p class="text-xs font-bold text-text-primary">No active conversations</p>
+              <p class="text-[11px] text-text-muted mt-0.5 mb-3">Click 'New' above to start a conversation with teachers, parents, or staff.</p>
+              <button (click)="openNewChat()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer">
+                Start Chat
+              </button>
+            </div>
+          } @else {
+            @for (conv of filteredConversations(); track conv.id) {
+              <button (click)="selectConversation(conv)"
+                      class="w-full p-3 hover:bg-blue-50/50 dark:hover:bg-bg-tertiary/70 transition-colors flex items-center gap-3 text-left cursor-pointer group">
+                <!-- Avatar with unread badge -->
+                <div class="relative shrink-0">
+                  <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/30 text-blue-600 dark:text-blue-400 font-black text-xs flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                    {{ getInitials(getConversationTitle(conv)) }}
+                  </div>
+                  @if ((conv.unread_count || 0) > 0) {
+                    <span class="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center ring-2 ring-white dark:ring-bg-secondary">
+                      {{ conv.unread_count }}
+                    </span>
+                  }
+                </div>
+
+                <!-- Info -->
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between gap-1 mb-0.5">
+                    <h5 class="text-xs font-bold text-text-primary truncate group-hover:text-blue-500 transition-colors">
+                      {{ getConversationTitle(conv) }}
+                    </h5>
+                    @if (conv.last_message?.created_at) {
+                      <span class="text-[10px] text-text-muted font-medium shrink-0">
+                        {{ conv.last_message?.created_at | date:'shortTime' }}
+                      </span>
+                    }
+                  </div>
+                  <p class="text-[11px] text-text-muted truncate leading-tight"
+                     [class.font-bold]="(conv.unread_count || 0) > 0"
+                     [class.text-text-primary]="(conv.unread_count || 0) > 0">
+                    {{ conv.last_message?.content || 'No messages yet' }}
+                  </p>
+                </div>
+              </button>
+            }
+          }
+        </div>
+
+        <!-- Footer link to Full Messaging Hub -->
+        <div class="p-2.5 bg-slate-50 dark:bg-bg-secondary border-t border-slate-200/80 dark:border-border-primary text-center shrink-0">
+          <button (click)="openFullHub()" 
+                  class="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1 cursor-pointer">
+            <span>Open Comprehensive Messaging Hub</span>
+            <i class="fas fa-arrow-right text-[10px]"></i>
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- 2. Live Virtual Consultation Call Modal Overlay -->
+  @if (activeCall()) {
+    <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md pointer-events-auto animate-fade-in">
+      <div class="w-full max-w-md bg-[#0f172a] border border-white/10 rounded-3xl p-6 text-white shadow-2xl space-y-6 text-center">
+        <div class="w-16 h-16 rounded-3xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-2xl mx-auto border border-indigo-500/30">
+          <i class="fas fa-video"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-black">{{ activeCall()?.topic }}</h3>
+          <p class="text-xs text-white/70 mt-1">Live SchoolLinx Virtual Consultation Room</p>
+        </div>
+        
+        <!-- Controls -->
+        <div class="flex items-center justify-center gap-3">
+          <button (click)="toggleMute()" 
+                  class="w-12 h-12 rounded-2xl flex items-center justify-center text-base transition-all cursor-pointer"
+                  [ngClass]="activeCall()?.isMuted ? 'bg-rose-500 text-white' : 'bg-white/15 text-white hover:bg-white/25'">
+            <i class="fas" [ngClass]="activeCall()?.isMuted ? 'fa-microphone-slash' : 'fa-microphone'"></i>
+          </button>
+          <button (click)="toggleVideo()" 
+                  class="w-12 h-12 rounded-2xl flex items-center justify-center text-base transition-all cursor-pointer"
+                  [ngClass]="activeCall()?.isVideoOff ? 'bg-rose-500 text-white' : 'bg-white/15 text-white hover:bg-white/25'">
+            <i class="fas" [ngClass]="activeCall()?.isVideoOff ? 'fa-video-slash' : 'fa-video'"></i>
+          </button>
+          <button (click)="endCall()" 
+                  class="px-5 h-12 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-lg active:scale-95">
+            <i class="fas fa-phone-slash"></i>
+            <span>End Call</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 3. Floating Launcher Bubble Button (Always Visible) -->
+  <button (click)="toggleWidget()"
+          class="pointer-events-auto relative w-13 h-13 sm:w-14 sm:h-14 rounded-2xl sm:rounded-3xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center cursor-pointer group border-2 border-white/30 dark:border-white/20"
+          title="Open Quick Chat Bubble">
+    
+    <!-- Outer Glow Pulse when unread messages exist -->
+    @if (totalUnread() > 0) {
+      <span class="absolute inset-0 rounded-2xl sm:rounded-3xl bg-blue-500 opacity-60 animate-ping pointer-events-none"></span>
+    }
+
+    <!-- Icon Transition -->
+    @if (messagingService.floatingChatOpen() && !messagingService.floatingChatMinimized()) {
+      <i class="fas fa-xmark text-lg transition-transform group-hover:rotate-90"></i>
+    } @else {
+      <i class="fas fa-comment-dots text-xl transition-transform group-hover:scale-110"></i>
+    }
+
+    <!-- Unread Badge Counter -->
+    @if (totalUnread() > 0) {
+      <span class="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1.5 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center ring-2 ring-white dark:ring-bg-primary shadow-md animate-bounce">
+        {{ totalUnread() > 99 ? '99+' : totalUnread() }}
+      </span>
+    }
+  </button>
+</div>

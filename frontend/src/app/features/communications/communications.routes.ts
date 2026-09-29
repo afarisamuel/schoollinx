@@ -16,9 +16,9 @@ export const communicationsRoutes: Routes = [
     },
     {
         path: 'messages',
-        loadComponent: () => import('./messaging-hub/messaging-hub.component').then(c => c.MessagingHubComponent),
+        loadComponent: () => import('./messaging-hub/messaging-hub.component').then(m => m.MessagingHubComponent),
         canActivate: [roleGuard],
-        data: { roles: ['ADMIN', 'TEACHER', 'GUARDIAN'] }
+        data: { roles: ['ADMIN', 'ECOPOWER_ADMIN', 'TEACHER', 'GUARDIAN', 'PARENT', 'STUDENT'] }
     },
     {
         path: 'inbox',

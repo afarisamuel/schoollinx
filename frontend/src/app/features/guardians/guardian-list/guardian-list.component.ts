@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { GuardianService } from '../../../core/infrastructure/guardian/guardian.service';
+import { MessagingService } from '../../../core/infrastructure/communications/messaging.service';
 import { Guardian, Student, AbsenceRequest } from '../../../core/domain/student.model';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 
@@ -14,8 +15,17 @@ import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 })
 export class GuardianListComponent implements OnInit {
   private guardianService = inject(GuardianService);
+  private messagingService = inject(MessagingService);
   private dialog = inject(DialogService);
   private fb = inject(FormBuilder);
+
+  chatWithGuardian(guardian: Guardian): void {
+    if (!guardian) return;
+    const targetId = guardian.user_id || guardian.id || '';
+    if (targetId) {
+      this.messagingService.openDirectChat(targetId);
+    }
+  }
 
   guardians = signal<Guardian[]>([]);
   isLoading = signal<boolean>(true);

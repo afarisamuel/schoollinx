@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { GuardianService } from '../../../core/infrastructure/guardian/guardian.service';
+import { MessagingService } from '../../../core/infrastructure/communications/messaging.service';
 import { Guardian, Student, FamilyLedgerSummary } from '../../../core/domain/student.model';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 import { StudentSearchDropdownComponent } from '../../../shared/ui/student-search-dropdown/student-search-dropdown.component';
@@ -18,8 +19,26 @@ export class GuardianDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private guardianService = inject(GuardianService);
+  private messagingService = inject(MessagingService);
   private dialog = inject(DialogService);
   private fb = inject(FormBuilder);
+
+  chatWithGuardian(): void {
+    const g = this.guardian();
+    if (!g) return;
+    const targetId = g.user_id || g.id || '';
+    if (targetId) {
+      this.messagingService.openDirectChat(targetId);
+    }
+  }
+
+  chatWithStudent(student: Student): void {
+    if (!student) return;
+    const targetId = (student as any).user_id || student.id || '';
+    if (targetId) {
+      this.messagingService.openDirectChat(targetId);
+    }
+  }
 
   guardianId = signal<string>('');
   guardian = signal<Guardian | null>(null);

@@ -8,6 +8,8 @@ import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 import { DocumentManagerComponent } from '../../../shared/components/document-manager/document-manager.component';
 import { PaginationState, defaultPaginationState } from '../../../core/domain/pagination.model';
 import { SubjectService, Subject } from '../../../core/infrastructure/curriculum/subject.service';
+import { MessagingService } from '../../../core/infrastructure/communications/messaging.service';
+import { inject } from '@angular/core';
 
 @Component({
     selector: 'app-teacher-list',
@@ -16,9 +18,18 @@ import { SubjectService, Subject } from '../../../core/infrastructure/curriculum
     standalone: true
 })
 export class TeacherListComponent implements OnInit {
+    private messagingService = inject(MessagingService);
     teachers = signal<Teacher[]>([]);
     selectedIds = signal<Set<string>>(new Set<string>());
     selectedTeacherForDocs = signal<Teacher | null>(null);
+
+    chatWithTeacher(teacher: Teacher): void {
+        if (!teacher) return;
+        const targetId = teacher.user_id || teacher.id || '';
+        if (targetId) {
+            this.messagingService.openDirectChat(targetId);
+        }
+    }
 
     // Pagination State
     pagination = signal<PaginationState>(defaultPaginationState());

@@ -414,13 +414,22 @@
                     <!-- 6. Actions -->
                     <td class="py-4 px-6 text-right">
                       <div class="flex items-center justify-end gap-1.5">
+                        <button 
+                          (click)="chatWithGuardian(guardian)"
+                          class="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
+                          title="Open direct chat with guardian"
+                        >
+                          <i class="fas fa-comment-dots text-[10px]"></i>
+                          <span>Chat</span>
+                        </button>
+
                         <a 
                           [routerLink]="['/guardians', guardian.id]" 
                           class="px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95"
                           title="Manage linked student wards and guardian details"
                         >
                           <i class="fas fa-link text-[10px]"></i>
-                          <span>Manage Wards</span>
+                          <span>Wards</span>
                         </a>
 
                         @if (guardian.user_id) {
@@ -552,6 +561,15 @@
 
               <!-- Card Actions Footer -->
               <div class="pt-3 border-t border-border-primary flex items-center justify-between gap-2">
+                <button 
+                  (click)="chatWithGuardian(guardian)"
+                  class="py-2 px-3 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                  title="Open direct chat with guardian"
+                >
+                  <i class="fas fa-comment-dots text-[10px]"></i>
+                  <span>Chat</span>
+                </button>
+
                 <a 
                   [routerLink]="['/guardians', guardian.id]" 
                   class="flex-1 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5"

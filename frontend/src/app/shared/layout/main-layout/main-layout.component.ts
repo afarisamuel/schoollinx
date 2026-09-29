@@ -12,11 +12,12 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { CommandPaletteComponent } from '../../components/command-palette/command-palette.component';
 import { CookieConsentComponent } from '../../components/cookie-consent/cookie-consent.component';
+import { FloatingChatBubbleComponent } from '../../components/floating-chat-bubble/floating-chat-bubble.component';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, CommonModule, AiChatbotComponent, SidebarComponent, NavbarComponent, CommandPaletteComponent, CookieConsentComponent],
+  imports: [RouterOutlet, RouterLink, CommonModule, AiChatbotComponent, SidebarComponent, NavbarComponent, CommandPaletteComponent, CookieConsentComponent, FloatingChatBubbleComponent],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.css',
 })
