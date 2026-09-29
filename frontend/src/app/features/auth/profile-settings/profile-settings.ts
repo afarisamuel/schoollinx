@@ -200,6 +200,7 @@ export class ProfileSettings implements OnInit {
       address: this.tenantProfile.address,
       contact_numbers: this.tenantProfile.contact_numbers,
       email: this.tenantProfile.email,
+      website: this.tenantProfile.website,
       logo_url: this.tenantProfile.logo_url,
       headmaster_signature_url: this.tenantProfile.headmaster_signature_url,
     }).subscribe({

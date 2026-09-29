@@ -161,6 +161,18 @@ export class AdmissionFormComponent implements OnInit {
     return null;
   });
 
+  schoolWebsite = computed(() => {
+    const profile = this.tenantProfile();
+    if (profile?.website) {
+      return profile.website.startsWith('http') ? profile.website : `https://${profile.website}`;
+    }
+    const sub = profile?.subdomain || (typeof localStorage !== 'undefined' ? localStorage.getItem('tenant_subdomain') : '');
+    if (sub) {
+      return `https://${sub}.schoollinx.com`;
+    }
+    return 'https://schoollinx.com';
+  });
+
   referenceNumber = computed(() => {
     const id = this.studentId();
     if (id && !this.isFormBlank()) {

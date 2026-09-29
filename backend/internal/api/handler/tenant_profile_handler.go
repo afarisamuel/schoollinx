@@ -101,6 +101,8 @@ func (h *TenantProfileHandler) GetPublicInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"name":          t.Name,
 		"subdomain":     t.Subdomain,
+		"logo_url":      t.LogoURL,
+		"website":       t.Website,
 		"trial_ends_at": t.TrialEndsAt,
 	})
 }
@@ -142,6 +144,7 @@ func (h *TenantProfileHandler) UpdateProfile(c *gin.Context) {
 		Address                string `json:"address"`
 		ContactNumbers         string `json:"contact_numbers"`
 		Email                  string `json:"email"`
+		Website                string `json:"website"`
 		LogoURL                string `json:"logo_url"`
 		HeadmasterSignatureURL string `json:"headmaster_signature_url"`
 	}
@@ -169,6 +172,7 @@ func (h *TenantProfileHandler) UpdateProfile(c *gin.Context) {
 	if req.Email != "" {
 		t.Email = req.Email
 	}
+	t.Website = req.Website
 	// Logo URL can be explicitly set (even to clear it by passing empty)
 	t.LogoURL = req.LogoURL
 	t.HeadmasterSignatureURL = req.HeadmasterSignatureURL

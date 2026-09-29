@@ -192,24 +192,23 @@
   <!-- OFFICIAL PRINTABLE ADMISSION FORM DOCUMENT (Standard A4 Document) -->
   <!-- ================================================================= -->
   @if (!isLoading()) {
-    <div id="admission-printable-doc" class="bg-white text-gray-900 rounded-3xl p-8 sm:p-12 shadow-2xl print:shadow-none print:p-0 print:rounded-none border border-gray-200 print:border-none font-sans">
+    <div id="admission-printable-doc"
+         class="bg-white text-gray-900 rounded-3xl p-8 sm:p-12 shadow-2xl print:shadow-none print:p-0 print:rounded-none relative border border-gray-200 print:border-none font-sans"
+         [style]="tenantProfile()?.logo_url ? '--watermark-logo-url: url(' + tenantProfile()!.logo_url + ')' : ''">
 
-      <!-- PAGE 1 SHELL: position:relative so the absolute watermark stays on this page -->
-      <div class="page-shell">
+      <!-- Logo Watermark: repeated on every page via CSS ::before on page break sections -->
+      <div class="logo-page-watermark" aria-hidden="true">
+        @if (tenantProfile()?.logo_url) {
+          <img [src]="tenantProfile()?.logo_url" alt="" class="watermark-logo-img">
+        } @else {
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="watermark-logo-svg">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+          </svg>
+        }
+      </div>
 
-        <!-- Page 1 Logo Watermark -->
-        <div class="logo-page-watermark" aria-hidden="true">
-          @if (tenantProfile()?.logo_url) {
-            <img [src]="tenantProfile()?.logo_url" alt="" class="watermark-logo-img">
-          } @else {
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="watermark-logo-svg">
-              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-            </svg>
-          }
-        </div>
-
-        <div class="relative z-10 flex flex-col gap-7">
+      <div class="relative z-10 flex flex-col gap-7">
 
         <!-- ========================================== -->
         <!-- 1. HEADER: LETTERHEAD & PASSPORT BOX       -->
@@ -237,7 +236,7 @@
                 {{ tenantProfile()?.address || 'Campus Road, Box 104, Accra, Ghana' }} • Tel: {{ tenantProfile()?.contact_numbers || '+233 (0) 24 000 0000' }}
               </p>
               <p class="text-[10px] text-gray-500 font-mono">
-                Email: {{ tenantProfile()?.email || 'admissions@schoollinx.edu' }} • Web: https://schoollinx.com
+                Email: {{ tenantProfile()?.email || 'admissions@schoollinx.edu' }} • Web: {{ schoolWebsite() }}
               </p>
             </div>
           </div>
@@ -502,203 +501,9 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- SECTION C: PARENTS & GUARDIAN REGISTRY     -->
+        <!-- PAGE 2: PARENTS, MEDICAL & OFFICIAL SIGN-OFF -->
         <!-- ========================================== -->
-        <div class="flex flex-col gap-4">
-          <div class="flex items-center justify-between bg-gray-100 px-3.5 py-2 rounded-lg border-l-4 border-gray-900">
-            <span class="text-xs font-black uppercase tracking-wider text-gray-900 font-serif">
-              SECTION C: PARENT, FAMILY & GUARDIAN PARTICULARS
-            </span>
-            <span class="text-[10px] font-bold text-gray-500">LEGAL GUARDIANS</span>
-          </div>
-
-          <div class="grid grid-cols-12 gap-5 text-xs">
-            
-            <!-- 1. FATHER'S DETAILS BOX -->
-            <div class="col-span-12 sm:col-span-6 p-4 rounded-2xl border-2 border-gray-300 bg-gray-50/40 flex flex-col gap-3">
-              <div class="flex items-center justify-between border-b-2 border-gray-400 pb-1.5">
-                <span class="text-[11px] font-black uppercase text-gray-900 font-serif">1. Father / Male Guardian</span>
-                <span class="text-[9px] font-mono text-gray-500 font-bold">PRIMARY CONTACT</span>
-              </div>
-
-              <!-- Father Name -->
-              <div class="flex flex-col gap-1">
-                <span class="text-[9px] font-black uppercase text-gray-600">Full Name (Surname First):</span>
-                <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
-                  {{ (!isFormBlank() && student()?.father_name) ? student()?.father_name : '' }}
-                </div>
-              </div>
-
-              <!-- Father Phone & Occupation -->
-              <div class="grid grid-cols-2 gap-3">
-                <div class="flex flex-col gap-1">
-                  <span class="text-[9px] font-black uppercase text-gray-600">Telephone / Mobile:</span>
-                  <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-mono font-bold text-xs text-gray-900">
-                    {{ (!isFormBlank() && student()?.father_phone) ? student()?.father_phone : '' }}
-                  </div>
-                </div>
-                <div class="flex flex-col gap-1">
-                  <span class="text-[9px] font-black uppercase text-gray-600">Occupation / Trade:</span>
-                  <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
-                    {{ (!isFormBlank() && student()?.father_occupation) ? student()?.father_occupation : '' }}
-                  </div>
-                </div>
-              </div>
-
-              <!-- Father Employer & Email -->
-              <div class="grid grid-cols-2 gap-3">
-                <div class="flex flex-col gap-1">
-                  <span class="text-[9px] font-black uppercase text-gray-600">Workplace / Employer:</span>
-                  <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
-                  </div>
-                </div>
-                <div class="flex flex-col gap-1">
-                  <span class="text-[9px] font-black uppercase text-gray-600">Email Address:</span>
-                  <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
-                    {{ (!isFormBlank() && student()?.father_email) ? student()?.father_email : '' }}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 2. MOTHER'S DETAILS BOX -->
-            <div class="col-span-12 sm:col-span-6 p-4 rounded-2xl border-2 border-gray-300 bg-gray-50/40 flex flex-col gap-3">
-              <div class="flex items-center justify-between border-b-2 border-gray-400 pb-1.5">
-                <span class="text-[11px] font-black uppercase text-gray-900 font-serif">2. Mother / Female Guardian</span>
-                <span class="text-[9px] font-mono text-gray-500 font-bold">PRIMARY CONTACT</span>
-              </div>
-
-              <!-- Mother Name -->
-              <div class="flex flex-col gap-1">
-                <span class="text-[9px] font-black uppercase text-gray-600">Full Name (Surname First):</span>
-                <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
-                  {{ (!isFormBlank() && student()?.mother_name) ? student()?.mother_name : '' }}
-                </div>
-              </div>
-
-              <!-- Mother Phone & Occupation -->
-              <div class="grid grid-cols-2 gap-3">
-                <div class="flex flex-col gap-1">
-                  <span class="text-[9px] font-black uppercase text-gray-600">Telephone / Mobile:</span>
-                  <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-mono font-bold text-xs text-gray-900">
-                    {{ (!isFormBlank() && student()?.mother_phone) ? student()?.mother_phone : '' }}
-                  </div>
-                </div>
-                <div class="flex flex-col gap-1">
-                  <span class="text-[9px] font-black uppercase text-gray-600">Occupation / Trade:</span>
-                  <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
-                    {{ (!isFormBlank() && student()?.mother_occupation) ? student()?.mother_occupation : '' }}
-                  </div>
-                </div>
-              </div>
-
-              <!-- Mother Employer & Email -->
-              <div class="grid grid-cols-2 gap-3">
-                <div class="flex flex-col gap-1">
-                  <span class="text-[9px] font-black uppercase text-gray-600">Workplace / Employer:</span>
-                  <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
-                  </div>
-                </div>
-                <div class="flex flex-col gap-1">
-                  <span class="text-[9px] font-black uppercase text-gray-600">Email Address:</span>
-                  <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
-                    {{ (!isFormBlank() && student()?.mother_email) ? student()?.mother_email : '' }}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 3. PRIMARY LEGAL GUARDIAN / PICKUP REPRESENTATIVE -->
-            <div class="col-span-12 p-4 rounded-2xl border-2 border-gray-300 bg-gray-50/40 flex flex-col gap-3">
-              <div class="flex items-center justify-between border-b-2 border-gray-400 pb-1.5">
-                <span class="text-[11px] font-black uppercase text-gray-900 font-serif">
-                  3. Primary Legal Guardian / Emergency Pickup Representative (If other than biological parents)
-                </span>
-                <span class="text-[10px] font-bold text-gray-700">[ ✓ ] Authorized for School Pickup & SMS Alerts</span>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                <div class="flex flex-col gap-1">
-                  <span class="text-[9px] font-black uppercase text-gray-600">Guardian Full Name:</span>
-                  <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
-                    {{ (!isFormBlank() && primaryGuardian()?.first_name) ? (primaryGuardian()?.first_name + ' ' + (primaryGuardian()?.last_name || '')) : '' }}
-                  </div>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                  <span class="text-[9px] font-black uppercase text-gray-600">Relationship to Ward:</span>
-                  <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
-                    {{ (!isFormBlank() && primaryGuardian()?.relationship) ? primaryGuardian()?.relationship : '' }}
-                  </div>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                  <span class="text-[9px] font-black uppercase text-gray-600">Telephone / Mobile:</span>
-                  <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-mono font-bold text-xs text-gray-900">
-                    {{ (!isFormBlank() && primaryGuardian()?.phone_number) ? primaryGuardian()?.phone_number : '' }}
-                  </div>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                  <span class="text-[9px] font-black uppercase text-gray-600">Email Address:</span>
-                  <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
-                    {{ (!isFormBlank() && primaryGuardian()?.email) ? primaryGuardian()?.email : '' }}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Dynamic Custom Fields for Guardian Section -->
-            @for (cf of guardianCustomFields(); track cf.id) {
-              <div class="col-span-12" [class.sm:col-span-6]="cf.span === 'half'" [class.sm:col-span-4]="cf.span === 'third'">
-                <span class="text-[10px] font-black uppercase text-gray-700">{{ cf.title }}:</span>
-                @if (cf.lineType === 'checkboxes') {
-                  <div class="border-b-2 border-gray-800 h-10 flex items-center gap-4 text-xs font-bold text-gray-900">
-                    @for (opt of cf.options; track opt) {
-                      <span class="flex items-center gap-1.5">
-                        <span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> {{ opt }}
-                      </span>
-                    }
-                  </div>
-                } @else if (cf.lineType === 'double') {
-                  <div class="flex flex-col gap-2 pt-1">
-                    <div class="border-b-2 border-gray-800 h-8 flex items-end pb-1 font-bold text-xs text-gray-900">{{ cf.value || '' }}</div>
-                    <div class="border-b-2 border-gray-800 h-8"></div>
-                  </div>
-                } @else {
-                  <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
-                    {{ cf.value || '' }}
-                  </div>
-                }
-              </div>
-            }
-
-          </div>
-        </div>
-
-        <!-- ========================================== -->
-        <!-- PAGE 2: MEDICAL, INQUIRIES & SIGN-OFF      -->
-        <!-- ========================================== -->
-
-        </div><!-- end page-1 relative z-10 content -->
-      </div><!-- end page-shell (page 1) -->
-
-      <!-- PAGE 2 SHELL: own relative container so watermark is contained to page 2 -->
-      <div class="page-shell print:break-before-page">
-
-        <!-- Page 2 Logo Watermark -->
-        <div class="logo-page-watermark" aria-hidden="true">
-          @if (tenantProfile()?.logo_url) {
-            <img [src]="tenantProfile()?.logo_url" alt="" class="watermark-logo-img">
-          } @else {
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="watermark-logo-svg">
-              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-            </svg>
-          }
-        </div>
-
-        <div class="relative z-10 flex flex-col gap-6 pt-4 print:pt-0">
+        <div class="page-break-section print:break-before-page flex flex-col gap-6 pt-4 print:pt-0">
 
           <!-- Page 2 Sub-Header for Print -->
           <div class="hidden print:flex items-center justify-between pb-3 border-b-2 border-gray-900">
@@ -709,6 +514,179 @@
               <span class="text-[10px] text-gray-500 font-mono">• ADMISSION DOSSIER (PAGE 2 OF 2)</span>
             </div>
             <span class="text-[9px] font-mono font-bold text-gray-500">REF: {{ referenceNumber() }}</span>
+          </div>
+
+          <!-- SECTION C: PARENTS & GUARDIAN REGISTRY     -->
+          <div class="flex flex-col gap-4">
+            <div class="flex items-center justify-between bg-gray-100 px-3.5 py-2 rounded-lg border-l-4 border-gray-900">
+              <span class="text-xs font-black uppercase tracking-wider text-gray-900 font-serif">
+                SECTION C: PARENT, FAMILY & GUARDIAN PARTICULARS
+              </span>
+              <span class="text-[10px] font-bold text-gray-500">LEGAL GUARDIANS</span>
+            </div>
+
+            <div class="grid grid-cols-12 gap-5 text-xs">
+              
+              <!-- 1. FATHER'S DETAILS BOX -->
+              <div class="col-span-12 sm:col-span-6 p-4 rounded-2xl border-2 border-gray-300 bg-gray-50/40 flex flex-col gap-3">
+                <div class="flex items-center justify-between border-b-2 border-gray-400 pb-1.5">
+                  <span class="text-[11px] font-black uppercase text-gray-900 font-serif">1. Father / Male Guardian</span>
+                  <span class="text-[9px] font-mono text-gray-500 font-bold">PRIMARY CONTACT</span>
+                </div>
+
+                <!-- Father Name -->
+                <div class="flex flex-col gap-1">
+                  <span class="text-[9px] font-black uppercase text-gray-600">Full Name (Surname First):</span>
+                  <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                    {{ (!isFormBlank() && student()?.father_name) ? student()?.father_name : '' }}
+                  </div>
+                </div>
+
+                <!-- Father Phone & Occupation -->
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[9px] font-black uppercase text-gray-600">Telephone / Mobile:</span>
+                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-mono font-bold text-xs text-gray-900">
+                      {{ (!isFormBlank() && student()?.father_phone) ? student()?.father_phone : '' }}
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[9px] font-black uppercase text-gray-600">Occupation / Trade:</span>
+                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                      {{ (!isFormBlank() && student()?.father_occupation) ? student()?.father_occupation : '' }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Father Employer & Email -->
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[9px] font-black uppercase text-gray-600">Workplace / Employer:</span>
+                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[9px] font-black uppercase text-gray-600">Email Address:</span>
+                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                      {{ (!isFormBlank() && student()?.father_email) ? student()?.father_email : '' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. MOTHER'S DETAILS BOX -->
+              <div class="col-span-12 sm:col-span-6 p-4 rounded-2xl border-2 border-gray-300 bg-gray-50/40 flex flex-col gap-3">
+                <div class="flex items-center justify-between border-b-2 border-gray-400 pb-1.5">
+                  <span class="text-[11px] font-black uppercase text-gray-900 font-serif">2. Mother / Female Guardian</span>
+                  <span class="text-[9px] font-mono text-gray-500 font-bold">PRIMARY CONTACT</span>
+                </div>
+
+                <!-- Mother Name -->
+                <div class="flex flex-col gap-1">
+                  <span class="text-[9px] font-black uppercase text-gray-600">Full Name (Surname First):</span>
+                  <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                    {{ (!isFormBlank() && student()?.mother_name) ? student()?.mother_name : '' }}
+                  </div>
+                </div>
+
+                <!-- Mother Phone & Occupation -->
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[9px] font-black uppercase text-gray-600">Telephone / Mobile:</span>
+                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-mono font-bold text-xs text-gray-900">
+                      {{ (!isFormBlank() && student()?.mother_phone) ? student()?.mother_phone : '' }}
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[9px] font-black uppercase text-gray-600">Occupation / Trade:</span>
+                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                      {{ (!isFormBlank() && student()?.mother_occupation) ? student()?.mother_occupation : '' }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Mother Employer & Email -->
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[9px] font-black uppercase text-gray-600">Workplace / Employer:</span>
+                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[9px] font-black uppercase text-gray-600">Email Address:</span>
+                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                      {{ (!isFormBlank() && student()?.mother_email) ? student()?.mother_email : '' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. PRIMARY LEGAL GUARDIAN / PICKUP REPRESENTATIVE -->
+              <div class="col-span-12 p-4 rounded-2xl border-2 border-gray-300 bg-gray-50/40 flex flex-col gap-3">
+                <div class="flex items-center justify-between border-b-2 border-gray-400 pb-1.5">
+                  <span class="text-[11px] font-black uppercase text-gray-900 font-serif">
+                    3. Primary Legal Guardian / Emergency Pickup Representative (If other than biological parents)
+                  </span>
+                  <span class="text-[10px] font-bold text-gray-700">[ ✓ ] Authorized for School Pickup & SMS Alerts</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[9px] font-black uppercase text-gray-600">Guardian Full Name:</span>
+                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                      {{ (!isFormBlank() && primaryGuardian()?.first_name) ? (primaryGuardian()?.first_name + ' ' + (primaryGuardian()?.last_name || '')) : '' }}
+                    </div>
+                  </div>
+
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[9px] font-black uppercase text-gray-600">Relationship to Ward:</span>
+                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                      {{ (!isFormBlank() && primaryGuardian()?.relationship) ? primaryGuardian()?.relationship : '' }}
+                    </div>
+                  </div>
+
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[9px] font-black uppercase text-gray-600">Telephone / Mobile:</span>
+                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-mono font-bold text-xs text-gray-900">
+                      {{ (!isFormBlank() && primaryGuardian()?.phone_number) ? primaryGuardian()?.phone_number : '' }}
+                    </div>
+                  </div>
+
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[9px] font-black uppercase text-gray-600">Email Address:</span>
+                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                      {{ (!isFormBlank() && primaryGuardian()?.email) ? primaryGuardian()?.email : '' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Dynamic Custom Fields for Guardian Section -->
+              @for (cf of guardianCustomFields(); track cf.id) {
+                <div class="col-span-12" [class.sm:col-span-6]="cf.span === 'half'" [class.sm:col-span-4]="cf.span === 'third'">
+                  <span class="text-[10px] font-black uppercase text-gray-700">{{ cf.title }}:</span>
+                  @if (cf.lineType === 'checkboxes') {
+                    <div class="border-b-2 border-gray-800 h-10 flex items-center gap-4 text-xs font-bold text-gray-900">
+                      @for (opt of cf.options; track opt) {
+                        <span class="flex items-center gap-1.5">
+                          <span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> {{ opt }}
+                        </span>
+                      }
+                    </div>
+                  } @else if (cf.lineType === 'double') {
+                    <div class="flex flex-col gap-2 pt-1">
+                      <div class="border-b-2 border-gray-800 h-8 flex items-end pb-1 font-bold text-xs text-gray-900">{{ cf.value || '' }}</div>
+                      <div class="border-b-2 border-gray-800 h-8"></div>
+                    </div>
+                  } @else {
+                    <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
+                      {{ cf.value || '' }}
+                    </div>
+                  }
+                </div>
+              }
+
+            </div>
           </div>
 
           <!-- SECTION D: HEALTH, MEDICAL & EMERGENCY     -->
@@ -929,16 +907,15 @@
             </div>
           }
 
-        </div>
-
         <!-- Document Footer -->
         <div class="pt-3 border-t border-gray-300 flex items-center justify-between text-[9px] text-gray-500 font-mono">
           <span>SchoolLinx Student Information System • Admission Form Rev 3.5</span>
           <span>Confidential Official Academic Record</span>
         </div>
 
-        </div><!-- end page-2 relative z-10 content -->
-      </div><!-- end page-shell (page 2) -->
+        </div><!-- end page-break-section (page 2) -->
+
+      </div><!-- end relative z-10 content wrapper -->
     </div><!-- end #admission-printable-doc -->
 
   }

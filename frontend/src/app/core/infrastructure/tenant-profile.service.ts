@@ -20,6 +20,7 @@ export interface TenantProfile {
   address?: string;
   contact_numbers?: string;
   email?: string;
+  website?: string;
   paystack_public_key?: string;
   paystack_secret_key?: string; // Only sent during update
 }
@@ -35,8 +36,8 @@ export class TenantProfileService {
   }
 
   /** No auth required — safe to call from public-facing pages. */
-  getPublicInfo(): Observable<{ name: string; subdomain: string; logo_url: string }> {
-    return this.http.get<{ name: string; subdomain: string; logo_url: string }>('/api/public/tenant-info');
+  getPublicInfo(): Observable<{ name: string; subdomain: string; logo_url: string; website?: string }> {
+    return this.http.get<{ name: string; subdomain: string; logo_url: string; website?: string }>('/api/public/tenant-info');
   }
 
   updateProfile(profile: Partial<TenantProfile>): Observable<TenantProfile> {

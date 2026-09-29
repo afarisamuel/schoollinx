@@ -38,6 +38,7 @@ type Tenant struct {
 	Address                string    `json:"address"`
 	ContactNumbers         string    `json:"contact_numbers"`
 	Email                  string    `json:"email"`
+	Website                string    `json:"website"`
 	LogoURL                string    `json:"logo_url"`
 	FaviconURL             string    `json:"favicon_url"`
 	Motto                  string    `json:"motto"`
