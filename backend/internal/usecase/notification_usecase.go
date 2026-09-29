@@ -29,6 +29,25 @@ func NewNotificationUseCase(hub *ws.Hub, db *gorm.DB, pushRepo domain.PushSubscr
 	}
 }
 
+func getTargetURLForNotification(notifType domain.NotificationType) string {
+	switch notifType {
+	case domain.NotificationAttendance:
+		return "/parents/academics"
+	case domain.NotificationPayment:
+		return "/parents/payments"
+	case domain.NotificationMessage:
+		return "/communications/messages"
+	case domain.NotificationGrade, domain.NotificationExam:
+		return "/parents/academics"
+	case domain.NotificationWelfare:
+		return "/parents/overview"
+	case domain.NotificationAnnouncement:
+		return "/notifications"
+	default:
+		return "/notifications"
+	}
+}
+
 func (u *notificationUseCase) dispatchWebPush(ctx context.Context, userID uuid.UUID, title, message string, data map[string]interface{}) {
 	if u.webPush == nil || u.pushRepo == nil || userID == uuid.Nil {
 		return
@@ -91,9 +110,11 @@ func (u *notificationUseCase) SendToUser(ctx context.Context, userID uuid.UUID, 
 		u.hub.SendToUserWithTenant(schema, userID, n)
 	}
 
+	targetURL := getTargetURLForNotification(n.Type)
 	u.dispatchWebPush(ctx, userID, n.Title, n.Message, map[string]interface{}{
 		"id":   n.ID.String(),
 		"type": string(n.Type),
+		"url":  targetURL,
 	})
 
 	return nil
@@ -111,6 +132,7 @@ func (u *notificationUseCase) SendToRole(ctx context.Context, role domain.Role, 
 		var userIDs []uuid.UUID
 		if err := u.db.WithContext(ctx).Model(&domain.User{}).Where("role = ?", role).Pluck("id", &userIDs).Error; err == nil {
 			schema, _ := middleware.GetTenantSchemaFromContext(ctx)
+			targetURL := getTargetURLForNotification(n.Type)
 			for _, uid := range userIDs {
 				userNotif := n
 				userNotif.ID = uuid.New()
@@ -119,6 +141,11 @@ func (u *notificationUseCase) SendToRole(ctx context.Context, role domain.Role, 
 				if u.hub != nil {
 					u.hub.SendToUserWithTenant(schema, uid, userNotif)
 				}
+				u.dispatchWebPush(ctx, uid, userNotif.Title, userNotif.Message, map[string]interface{}{
+					"id":   userNotif.ID.String(),
+					"type": string(userNotif.Type),
+					"url":  targetURL,
+				})
 			}
 		}
 	}

@@ -25,6 +25,7 @@ export class PushNotificationService {
 
   readonly isSubscribed = signal<boolean>(false);
   readonly isLoading = signal<boolean>(false);
+  readonly showPrompt = signal<boolean>(false);
 
   constructor() {
     if (this.isSupported()) {
@@ -40,9 +41,46 @@ export class PushNotificationService {
       const sub = await reg.pushManager.getSubscription();
       this.isSubscribed.set(!!sub);
       this.permission.set(Notification.permission);
+
+      this.checkAndPrompt();
     } catch (err) {
       console.warn('Service Worker registration or Push check skipped:', err);
     }
+  }
+
+  checkAndPrompt(): void {
+    if (!this.isSupported()) return;
+
+    const perm = Notification.permission;
+    this.permission.set(perm);
+
+    // If permission is not granted (i.e. 'default' or not yet subscribed)
+    if (perm !== 'granted') {
+      try {
+        const isDismissed = sessionStorage.getItem('schoollinx_push_prompt_dismissed');
+        if (!isDismissed) {
+          // Delay briefly for smooth UI entry
+          setTimeout(() => {
+            this.showPrompt.set(true);
+          }, 1200);
+        }
+      } catch {
+        this.showPrompt.set(true);
+      }
+    }
+  }
+
+  dismissPrompt(snoozeSession = true): void {
+    this.showPrompt.set(false);
+    if (snoozeSession) {
+      try {
+        sessionStorage.setItem('schoollinx_push_prompt_dismissed', 'true');
+      } catch {}
+    }
+  }
+
+  openPrompt(): void {
+    this.showPrompt.set(true);
   }
 
   private urlB64ToUint8Array(base64String: string): ArrayBuffer {
@@ -109,6 +147,10 @@ export class PushNotificationService {
       );
 
       this.isSubscribed.set(true);
+      this.showPrompt.set(false);
+      try {
+        sessionStorage.setItem('schoollinx_push_prompt_dismissed', 'true');
+      } catch {}
       return true;
     } catch (err) {
       console.error('Failed to subscribe to push notifications:', err);

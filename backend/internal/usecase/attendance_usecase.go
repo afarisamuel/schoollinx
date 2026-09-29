@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
@@ -9,8 +10,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/user/high-school-management/backend/internal/api/middleware"
+	"github.com/user/high-school-management/backend/internal/api/ws"
 	"github.com/user/high-school-management/backend/internal/domain"
 	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 var scanDebounceMap sync.Map // Map[string]time.Time (Gap #12)
@@ -25,6 +28,9 @@ type AttendanceUseCase struct {
 	sms          domain.SMSProvider
 	guardianRepo domain.GuardianRepository
 	tenantRepo   domain.TenantRepository
+	msgRepo      domain.MessageRepository
+	hub          *ws.Hub
+	db           *gorm.DB
 }
 
 func NewAttendanceUseCase(
@@ -37,6 +43,9 @@ func NewAttendanceUseCase(
 	sms domain.SMSProvider,
 	guardianRepo domain.GuardianRepository,
 	tenantRepo domain.TenantRepository,
+	msgRepo domain.MessageRepository,
+	hub *ws.Hub,
+	db *gorm.DB,
 ) domain.AttendanceUseCase {
 	return &AttendanceUseCase{
 		repo:         repo,
@@ -48,6 +57,9 @@ func NewAttendanceUseCase(
 		sms:          sms,
 		guardianRepo: guardianRepo,
 		tenantRepo:   tenantRepo,
+		msgRepo:      msgRepo,
+		hub:          hub,
+		db:           db,
 	}
 }
 
@@ -180,6 +192,80 @@ func (u *AttendanceUseCase) notifyAttendanceToGuardian(ctx context.Context, stud
 					Message: notifMsg,
 					Data:    notifData,
 				})
+			}
+		}
+
+		// 3. Send Direct In-App Chat Message with Action Card to Guardian(s) & Student
+		if u.msgRepo != nil {
+			var adminUserID uuid.UUID
+			if u.db != nil {
+				var adminUser domain.User
+				if err := u.db.WithContext(bgCtx).Where("role = ? OR role = ?", domain.RoleAdmin, domain.RoleHeadmaster).Order("created_at ASC").First(&adminUser).Error; err == nil {
+					adminUserID = adminUser.ID
+				}
+			}
+
+			actionCard := domain.ActionCardData{
+				Title:         fmt.Sprintf("Attendance: %s (%s)", studentName, statusLabel),
+				Subtitle:      fmt.Sprintf("Recorded on %s at %s. %s", dateStr, timeStr, remarks),
+				ActionType:    "VIEW_REPORT",
+				ActionPayload: "/parents/academics",
+				ButtonText:    "View Attendance History",
+				Icon:          "fa-clipboard-check",
+				Badge:         "ATTENDANCE ALERT",
+			}
+			cardBytes, _ := json.Marshal(actionCard)
+
+			chatContent := fmt.Sprintf("📋 **Attendance Notification**: %s was recorded as **%s** on %s at %s. %s",
+				studentName, statusLabel, dateStr, timeStr, remarks)
+
+			for _, gUID := range guardianUserIDs {
+				if gUID == uuid.Nil || gUID == adminUserID {
+					continue
+				}
+				sender := adminUserID
+				if sender == uuid.Nil {
+					sender = gUID
+				}
+				conv, err := u.msgRepo.FindOrCreateConversation(bgCtx, sender, gUID)
+				if err == nil && conv != nil {
+					chatMsg := domain.Message{
+						ConversationID: conv.ID,
+						SenderID:       sender,
+						MessageType:    "ACTION_CARD",
+						Content:        chatContent,
+						ActionCardData: string(cardBytes),
+						CreatedAt:      time.Now(),
+					}
+					if err := u.msgRepo.SendMessage(bgCtx, &chatMsg); err == nil {
+						if u.hub != nil {
+							u.hub.SendDirectMessage(gUID, chatMsg, tenantSchema)
+						}
+					}
+				}
+			}
+
+			if student.UserID != nil && *student.UserID != uuid.Nil && *student.UserID != adminUserID {
+				sender := adminUserID
+				if sender == uuid.Nil {
+					sender = *student.UserID
+				}
+				conv, err := u.msgRepo.FindOrCreateConversation(bgCtx, sender, *student.UserID)
+				if err == nil && conv != nil {
+					chatMsg := domain.Message{
+						ConversationID: conv.ID,
+						SenderID:       sender,
+						MessageType:    "ACTION_CARD",
+						Content:        chatContent,
+						ActionCardData: string(cardBytes),
+						CreatedAt:      time.Now(),
+					}
+					if err := u.msgRepo.SendMessage(bgCtx, &chatMsg); err == nil {
+						if u.hub != nil {
+							u.hub.SendDirectMessage(*student.UserID, chatMsg, tenantSchema)
+						}
+					}
+				}
 			}
 		}
 	}()

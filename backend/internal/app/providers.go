@@ -207,7 +207,7 @@ func initRepositories(db *gorm.DB, cacheService cache.CacheService) *Repositorie
 func initUseCases(repos *Repositories, infra *Infrastructure, db *gorm.DB, cfg *config.Config) *UseCases {
 	campaignManager := usecase.NewCampaignManager(repos.Campaign, repos.Student, repos.User, infra.SMTP)
 	notifUC := usecase.NewNotificationUseCase(infra.Hub, db, repos.PushSubscription, infra.WebPush)
-	feeNotifier := usecase.NewFeeNotifier(infra.SMS, notifUC, repos.Student, repos.Guardian, repos.Tenant)
+	feeNotifier := usecase.NewFeeNotifier(infra.SMS, notifUC, repos.Student, repos.Guardian, repos.Tenant, repos.Message, infra.Hub, db)
 	fiscalUC := usecase.NewFiscalUseCase(repos.Fiscal, repos.Student, repos.Donation, repos.AcademicPeriod, repos.Tenant, repos.Communication, repos.Logistics, feeNotifier)
 
 	return &UseCases{
@@ -231,13 +231,13 @@ func initUseCases(repos *Repositories, infra *Infrastructure, db *gorm.DB, cfg *
 		Intelligence:   usecase.NewIntelligenceUseCase(repos.Intelligence, repos.Intervention, campaignManager),
 		Message:        usecase.NewMessageUseCase(repos.Message),
 		Fiscal:         fiscalUC,
-		Attendance:     usecase.NewAttendanceUseCase(repos.Attendance, campaignManager, repos.Student, fiscalUC, repos.AcademicPeriod, notifUC, infra.SMS, repos.Guardian, repos.Tenant),
+		Attendance:     usecase.NewAttendanceUseCase(repos.Attendance, campaignManager, repos.Student, fiscalUC, repos.AcademicPeriod, notifUC, infra.SMS, repos.Guardian, repos.Tenant, repos.Message, infra.Hub, db),
 		Resource:       usecase.NewResourceUseCase(repos.Resource),
 		Library:        usecase.NewLibraryUseCase(repos.Library, repos.Fiscal),
 		Extra:          usecase.NewExtracurricularUseCase(repos.Extra, repos.Timetable),
 		AcademicPeriod: usecase.NewAcademicPeriodUseCase(repos.AcademicPeriod),
 		Scholastic:     usecase.NewScholasticLevelUseCase(repos.Scholastic),
-		Welfare:        usecase.NewWelfareUseCase(repos.Welfare, infra.SMS, repos.Student, repos.Guardian, repos.Tenant),
+		Welfare:        usecase.NewWelfareUseCase(repos.Welfare, infra.SMS, repos.Student, repos.Guardian, repos.Tenant, notifUC),
 		Logistics:      usecase.NewLogisticsUseCase(repos.Logistics),
 		Facility:       usecase.NewFacilityUseCase(repos.Facility),
 		Payment:        usecase.NewPaymentUseCase(repos.Payment, repos.Fiscal, repos.User, repos.Tenant, infra.Paystack, repos.Student, db, feeNotifier),

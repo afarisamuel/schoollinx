@@ -15,6 +15,7 @@ type welfareUseCase struct {
 	students  domain.StudentRepository
 	guardians domain.GuardianRepository
 	tenants   domain.TenantRepository
+	notifUC   domain.NotificationUseCase
 }
 
 func NewWelfareUseCase(
@@ -22,11 +23,12 @@ func NewWelfareUseCase(
 	sms domain.SMSProvider,
 	students domain.StudentRepository,
 	guardians domain.GuardianRepository,
-	tenants ...domain.TenantRepository,
+	tenants domain.TenantRepository,
+	notifUC ...domain.NotificationUseCase,
 ) domain.WelfareUseCase {
-	uc := &welfareUseCase{repo: repo, sms: sms, students: students, guardians: guardians}
-	if len(tenants) > 0 && tenants[0] != nil {
-		uc.tenants = tenants[0]
+	uc := &welfareUseCase{repo: repo, sms: sms, students: students, guardians: guardians, tenants: tenants}
+	if len(notifUC) > 0 {
+		uc.notifUC = notifUC[0]
 	}
 	return uc
 }
@@ -96,6 +98,18 @@ func (u *welfareUseCase) LogBehaviorEvent(ctx context.Context, log *domain.Behav
 						if len(phones) > 0 {
 							_ = u.sms.SendSMS(ctx, u.getTenantSenderID(ctx), phones, msg)
 						}
+
+						if u.notifUC != nil {
+							for _, g := range guardians {
+								if g.UserID != uuid.Nil {
+									_ = u.notifUC.SendToUser(ctx, g.UserID, domain.Notification{
+										Type:    domain.NotificationWelfare,
+										Title:   "Student Behavioral Alert",
+										Message: fmt.Sprintf("%s has received behavioral demerits (%s).", string(student.FirstName), log.Category),
+									})
+								}
+							}
+						}
 					}
 				}
 			}
@@ -118,7 +132,7 @@ func (u *welfareUseCase) RecordSickbayVisit(ctx context.Context, visit *domain.S
 		return err
 	}
 
-	// If FeverAlert or ParentNotified requested, send instant SMS alert to guardians
+	// If FeverAlert or ParentNotified requested, send instant SMS and Push alert to guardians
 	if visit.FeverAlert || visit.ParentNotified {
 		student, err := u.students.GetByID(ctx, visit.StudentID)
 		if err == nil && student != nil {
@@ -131,10 +145,21 @@ func (u *welfareUseCase) RecordSickbayVisit(ctx context.Context, visit *domain.S
 						phones = append(phones, phone)
 					}
 				}
+				alertMsg := fmt.Sprintf("SICKBAY NOTICE: %s attended the campus clinic (Temp: %.1f°C). Symptoms: %s. Care provided by %s.",
+					string(student.FirstName), visit.TemperatureCelsius, visit.Symptoms, visit.AttendingNurse)
 				if len(phones) > 0 {
-					alertMsg := fmt.Sprintf("SICKBAY NOTICE: %s attended the campus clinic (Temp: %.1f°C). Symptoms: %s. Care provided by %s.",
-						string(student.FirstName), visit.TemperatureCelsius, visit.Symptoms, visit.AttendingNurse)
 					_ = u.sms.SendSMS(ctx, u.getTenantSenderID(ctx), phones, alertMsg)
+				}
+				if u.notifUC != nil {
+					for _, g := range guardians {
+						if g.UserID != uuid.Nil {
+							_ = u.notifUC.SendToUser(ctx, g.UserID, domain.Notification{
+								Type:    domain.NotificationWelfare,
+								Title:   "Campus Clinic / Sickbay Notice",
+								Message: alertMsg,
+							})
+						}
+					}
 				}
 			}
 		}

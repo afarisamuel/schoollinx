@@ -11,10 +11,14 @@ import (
 type NotificationType string
 
 const (
-	NotificationAttendance NotificationType = "ATTENDANCE"
-	NotificationGrade      NotificationType = "GRADE"
-	NotificationSystem     NotificationType = "SYSTEM"
-	NotificationPayment    NotificationType = "PAYMENT"
+	NotificationAttendance   NotificationType = "ATTENDANCE"
+	NotificationGrade        NotificationType = "GRADE"
+	NotificationSystem       NotificationType = "SYSTEM"
+	NotificationPayment      NotificationType = "PAYMENT"
+	NotificationMessage      NotificationType = "MESSAGE"
+	NotificationExam         NotificationType = "EXAM"
+	NotificationWelfare      NotificationType = "WELFARE"
+	NotificationAnnouncement NotificationType = "ANNOUNCEMENT"
 )
 
 type Notification struct {

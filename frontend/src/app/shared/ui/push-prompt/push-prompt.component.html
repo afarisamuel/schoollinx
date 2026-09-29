@@ -1,0 +1,93 @@
+@if (pushService.showPrompt() && !pushService.isSubscribed() && pushService.permission() !== 'denied') {
+  <!-- Floating Push Prompt Card -->
+  <div class="fixed top-4 sm:top-6 right-3 sm:right-6 left-3 sm:left-auto max-w-md z-[9995] animate-slide-down select-none pointer-events-auto">
+    <div class="bg-white/95 dark:bg-[#0f172a]/95 backdrop-blur-xl border border-indigo-500/30 dark:border-indigo-500/20 rounded-3xl shadow-2xl p-4 sm:p-5 text-slate-900 dark:text-white relative overflow-hidden ring-1 ring-black/5 dark:ring-white/10">
+      
+      <!-- Top subtle gradient accent line -->
+      <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+
+      <!-- Close Button -->
+      <button 
+        (click)="onDismiss()" 
+        class="absolute top-3.5 right-3.5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
+        title="Dismiss prompt"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+
+      <!-- Content Header -->
+      <div class="flex items-start gap-3.5 pr-6">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 p-2.5 shrink-0 shadow-lg shadow-indigo-500/20 flex items-center justify-center text-white relative">
+          <svg class="w-6 h-6 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+          <span class="absolute -top-1 -right-1 flex h-3 w-3">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-pink-500"></span>
+          </span>
+        </div>
+
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60">
+              Instant Alerts
+            </span>
+            <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live Sync
+            </span>
+          </div>
+          <h3 class="text-sm font-black text-slate-900 dark:text-white tracking-tight mt-1">
+            Enable Push Notifications
+          </h3>
+          <p class="text-xs text-slate-600 dark:text-slate-300 mt-0.5 leading-snug">
+            Get instant alerts for student attendance check-ins, fee receipts, chat messages, and school announcements directly on your device.
+          </p>
+        </div>
+      </div>
+
+      <!-- Feature Badges -->
+      <div class="grid grid-cols-3 gap-1.5 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 text-[10px] font-semibold text-slate-600 dark:text-slate-300">
+        <div class="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 p-1.5 rounded-lg">
+          <svg class="w-3.5 h-3.5 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span class="truncate">Attendance</span>
+        </div>
+        <div class="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 p-1.5 rounded-lg">
+          <svg class="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          <span class="truncate">Fee Receipts</span>
+        </div>
+        <div class="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 p-1.5 rounded-lg">
+          <svg class="w-3.5 h-3.5 text-pink-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          <span class="truncate">Chat & Notices</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2.5 mt-3.5">
+        <button 
+          (click)="onEnable()"
+          [disabled]="pushService.isLoading()"
+          class="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 hover:from-indigo-500 hover:to-purple-600 text-white text-xs font-bold shadow-md shadow-indigo-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+        >
+          @if (pushService.isLoading()) {
+            <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Enabling...</span>
+          } @else {
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            <span>Enable Notifications</span>
+          }
+        </button>
+
+        <button 
+          (click)="onDismiss()"
+          class="py-2.5 px-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all active:scale-95 cursor-pointer shrink-0"
+        >
+          Maybe Later
+        </button>
+      </div>
+
+    </div>
+  </div>
+}

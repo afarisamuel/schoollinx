@@ -2,15 +2,18 @@ package usecase
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/user/high-school-management/backend/internal/api/middleware"
+	"github.com/user/high-school-management/backend/internal/api/ws"
 	"github.com/user/high-school-management/backend/internal/domain"
 	"github.com/user/high-school-management/backend/pkg/encryption"
 	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 type FeePaymentNotification struct {
@@ -33,6 +36,9 @@ type feeNotifier struct {
 	studentRepo  domain.StudentRepository
 	guardianRepo domain.GuardianRepository
 	tenantRepo   domain.TenantRepository
+	msgRepo      domain.MessageRepository
+	hub          *ws.Hub
+	db           *gorm.DB
 }
 
 func NewFeeNotifier(
@@ -41,6 +47,9 @@ func NewFeeNotifier(
 	studentRepo domain.StudentRepository,
 	guardianRepo domain.GuardianRepository,
 	tenantRepo domain.TenantRepository,
+	msgRepo domain.MessageRepository,
+	hub *ws.Hub,
+	db *gorm.DB,
 ) FeeNotifier {
 	return &feeNotifier{
 		sms:          sms,
@@ -48,6 +57,9 @@ func NewFeeNotifier(
 		studentRepo:  studentRepo,
 		guardianRepo: guardianRepo,
 		tenantRepo:   tenantRepo,
+		msgRepo:      msgRepo,
+		hub:          hub,
+		db:           db,
 	}
 }
 
@@ -218,6 +230,82 @@ func (n *feeNotifier) NotifyPayment(ctx context.Context, p FeePaymentNotificatio
 				Message: studentNotifMsg,
 				Data:    dataJSON,
 			})
+		}
+	}
+
+	// 5. Send In-App Direct Chat Message with Action Card to Guardian(s) & Student
+	if n.msgRepo != nil {
+		var adminUserID uuid.UUID
+		if n.db != nil {
+			var adminUser domain.User
+			if err := n.db.WithContext(ctx).Where("role = ? OR role = ?", domain.RoleAdmin, domain.RoleAccountant).Order("created_at ASC").First(&adminUser).Error; err == nil {
+				adminUserID = adminUser.ID
+			}
+		}
+
+		actionCard := domain.ActionCardData{
+			Title:         fmt.Sprintf("Fee Payment Receipt - GHS %.2f", p.Amount),
+			Subtitle:      fmt.Sprintf("Category: %s • Ref: %s • Balance: %s", categoryDisplay, refDisplay, balDisplay),
+			ActionType:    "PAY_FEE",
+			ActionPayload: "/parents/payments",
+			ButtonText:    "View Payment Receipt & Ledger",
+			Icon:          "fa-receipt",
+			Badge:         "PAYMENT CONFIRMED",
+		}
+		cardBytes, _ := json.Marshal(actionCard)
+
+		chatContent := fmt.Sprintf("💳 **Payment Confirmed**: Payment of **GHS %.2f** received for **%s%s**.\n• Category: %s\n• Receipt Reference: `%s`\n• Outstanding Balance: %s\n• Date: %s\n\nThank you for your prompt payment!",
+			p.Amount, studentName, displayClass, categoryDisplay, refDisplay, balDisplay, today)
+
+		schema, _ := middleware.GetTenantSchemaFromContext(ctx)
+
+		for _, gUID := range guardianUserIDs {
+			if gUID == uuid.Nil || gUID == adminUserID {
+				continue
+			}
+			sender := adminUserID
+			if sender == uuid.Nil {
+				sender = gUID
+			}
+			conv, err := n.msgRepo.FindOrCreateConversation(ctx, sender, gUID)
+			if err == nil && conv != nil {
+				chatMsg := domain.Message{
+					ConversationID: conv.ID,
+					SenderID:       sender,
+					MessageType:    "ACTION_CARD",
+					Content:        chatContent,
+					ActionCardData: string(cardBytes),
+					CreatedAt:      time.Now(),
+				}
+				if err := n.msgRepo.SendMessage(ctx, &chatMsg); err == nil {
+					if n.hub != nil {
+						n.hub.SendDirectMessage(gUID, chatMsg, schema)
+					}
+				}
+			}
+		}
+
+		if student.UserID != nil && *student.UserID != uuid.Nil && *student.UserID != adminUserID {
+			sender := adminUserID
+			if sender == uuid.Nil {
+				sender = *student.UserID
+			}
+			conv, err := n.msgRepo.FindOrCreateConversation(ctx, sender, *student.UserID)
+			if err == nil && conv != nil {
+				chatMsg := domain.Message{
+					ConversationID: conv.ID,
+					SenderID:       sender,
+					MessageType:    "ACTION_CARD",
+					Content:        chatContent,
+					ActionCardData: string(cardBytes),
+					CreatedAt:      time.Now(),
+				}
+				if err := n.msgRepo.SendMessage(ctx, &chatMsg); err == nil {
+					if n.hub != nil {
+						n.hub.SendDirectMessage(*student.UserID, chatMsg, schema)
+					}
+				}
+			}
 		}
 	}
 
