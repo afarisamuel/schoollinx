@@ -34,9 +34,10 @@ export class NotificationCenterComponent {
       } else {
         const success = await this.pushService.subscribeToPush();
         if (success) {
-          this.toast.success('Browser push notifications enabled!');
+          this.toast.success('Browser push notifications enabled! Sending test notification...');
+          await this.pushService.sendTestNotification().catch(() => {});
         } else {
-          this.toast.warning('Push notification permission was denied.');
+          this.toast.warning('Push notification permission was not granted.');
         }
       }
     } catch (err: any) {
@@ -46,10 +47,17 @@ export class NotificationCenterComponent {
 
   async testPush() {
     try {
+      if (!this.pushService.isSubscribed()) {
+        const success = await this.pushService.subscribeToPush();
+        if (!success) {
+          this.toast.warning('Push notification permission was not granted.');
+          return;
+        }
+      }
       await this.pushService.sendTestNotification();
-      this.toast.success('Test push notification dispatched to your browser.');
+      this.toast.success('Test push notification dispatched! Check your device notifications.');
     } catch (err: any) {
-      this.toast.error('Failed to dispatch test notification: ' + (err?.message || ''));
+      this.toast.error(err?.error?.error || err?.message || 'Failed to dispatch test notification.');
     }
   }
 

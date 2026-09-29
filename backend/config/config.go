@@ -41,7 +41,13 @@ func LoadConfig() *Config {
 	}
 
 	vapidPublic := os.Getenv("VAPID_PUBLIC_KEY")
+	if vapidPublic == "" {
+		vapidPublic = "BAbf0lMDGYjVjUHlgfEeZzfIX_urfI9UBZL8GOp8DFNcIdcAwS4TDBbN5dCcH1ieao9buXc2_JR_h6V7XLQoiAQ"
+	}
 	vapidPrivate := os.Getenv("VAPID_PRIVATE_KEY")
+	if vapidPrivate == "" {
+		vapidPrivate = "fqlG88R1VK5b-xC3yUYn1lPFZJjN7aG1A-fbLup2cKA"
+	}
 	vapidSubject := os.Getenv("VAPID_SUBJECT")
 	if vapidSubject == "" {
 		vapidSubject = "mailto:admin@schoollinx.com"

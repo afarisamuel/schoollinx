@@ -83,7 +83,7 @@ export class PushNotificationService {
     this.showPrompt.set(true);
   }
 
-  private urlB64ToUint8Array(base64String: string): ArrayBuffer {
+  private urlB64ToUint8Array(base64String: string): Uint8Array {
     const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
     const base64 = (base64String + padding)
       .replace(/-/g, '+')
@@ -95,7 +95,7 @@ export class PushNotificationService {
     for (let i = 0; i < rawData.length; ++i) {
       outputArray[i] = rawData.charCodeAt(i);
     }
-    return outputArray.buffer as ArrayBuffer;
+    return outputArray;
   }
 
   async subscribeToPush(): Promise<boolean> {
@@ -126,12 +126,19 @@ export class PushNotificationService {
       const reg = await navigator.serviceWorker.ready;
       let subscription = await reg.pushManager.getSubscription();
 
-      if (!subscription) {
-        subscription = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: this.urlB64ToUint8Array(res.publicKey)
-        });
+      // If an existing subscription exists, refresh it to synchronize with current VAPID keys
+      if (subscription) {
+        try {
+          await subscription.unsubscribe();
+        } catch (e) {
+          console.warn('Old subscription unsubscribe:', e);
+        }
       }
+
+      subscription = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: this.urlB64ToUint8Array(res.publicKey)
+      });
 
       // 3. Post subscription to backend
       const subJson = subscription.toJSON();

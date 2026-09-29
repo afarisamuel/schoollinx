@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -231,12 +232,15 @@ func (u *notificationUseCase) UnsubscribePush(ctx context.Context, endpoint stri
 
 func (u *notificationUseCase) SendPushNotification(ctx context.Context, userID uuid.UUID, title, body, icon, url string) error {
 	if u.pushRepo == nil || u.webPush == nil {
-		return nil
+		return fmt.Errorf("push notification service not configured")
 	}
 
 	subs, err := u.pushRepo.GetByUserID(ctx, userID)
-	if err != nil || len(subs) == 0 {
-		return nil
+	if err != nil {
+		return fmt.Errorf("failed to load push subscriptions: %w", err)
+	}
+	if len(subs) == 0 {
+		return fmt.Errorf("no active push subscription found for your account — please enable push notifications on this device first")
 	}
 
 	if icon == "" {
@@ -252,12 +256,21 @@ func (u *notificationUseCase) SendPushNotification(ctx context.Context, userID u
 		"vibrate": []int{100, 50, 100},
 	}
 
+	var lastErr error
+	successCount := 0
 	for _, sub := range subs {
 		if err := u.webPush.SendNotification(ctx, &sub, payload); err != nil {
+			lastErr = err
 			if err.Error() == "subscription_expired" {
 				_ = u.pushRepo.DeleteByEndpoint(ctx, sub.Endpoint)
 			}
+		} else {
+			successCount++
 		}
+	}
+
+	if successCount == 0 && lastErr != nil {
+		return fmt.Errorf("push dispatch failed: %w", lastErr)
 	}
 
 	return nil

@@ -218,14 +218,18 @@ func (h *NotificationHandler) SendTestPush(c *gin.Context) {
 	}
 
 	if h.notifUC != nil {
-		_ = h.notifUC.SendPushNotification(
+		err := h.notifUC.SendPushNotification(
 			c.Request.Context(),
 			userID,
-			"🔔 SchoolLinx Push Notifications",
-			"Push notification channel is active and connected securely to your device.",
+			"🔔 SchoolLinx Institutional Alert",
+			"Push notifications are active and connected securely to your device. You will receive live alerts for attendance, fee payments, and chat messages.",
 			"/favicon.ico",
 			"/notifications",
 		)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "test notification dispatched"})

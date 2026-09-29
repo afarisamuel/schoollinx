@@ -138,11 +138,11 @@ self.addEventListener('push', (event) => {
     data: data.data || { url: '/' },
     vibrate: data.vibrate || [100, 50, 100],
     requireInteraction: false,
-    tag: (data.data && data.data.id) ? data.data.id : 'schoollinx-push',
+    tag: (data.data && data.data.id) ? data.data.id : 'schoollinx-push-' + Date.now(),
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title, options)
+    self.registration.showNotification(data.title || 'SchoolLinx Notification', options)
   );
 });
 
