@@ -152,13 +152,18 @@ func (u *studentUseCase) provisionGuardianUser(ctx context.Context, g *domain.Gu
 	}
 
 	newUser := &domain.User{
-		Email:    userEmail,
-		Password: hashedPassword,
-		Role:     domain.RoleGuardian,
+		Email:              userEmail,
+		Password:           hashedPassword,
+		Role:               domain.RoleGuardian,
+		MustChangePassword: true,
 	}
 	if hasPhone {
-		phone := encryption.DeterministicEncryptedString(string(g.PhoneNumber))
+		cleanPhone := strings.TrimSpace(encryption.DeterministicDecryptedString(string(g.PhoneNumber)))
+		phone := encryption.DeterministicEncryptedString(cleanPhone)
 		newUser.PhoneNumber = &phone
+		if !hasEmail {
+			newUser.Username = &phone
+		}
 	}
 
 	if err := u.userRepo.Create(ctx, newUser); err != nil {

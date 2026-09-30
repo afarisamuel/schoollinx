@@ -161,8 +161,12 @@ func (u *guardianUseCase) CreateGuardian(ctx context.Context, guardian *domain.G
 			MustChangePassword: true,
 		}
 		if hasPhone {
-			phone := encryption.DeterministicEncryptedString(string(guardian.PhoneNumber))
+			cleanPhone := strings.TrimSpace(encryption.DeterministicDecryptedString(string(guardian.PhoneNumber)))
+			phone := encryption.DeterministicEncryptedString(cleanPhone)
 			newUser.PhoneNumber = &phone
+			if !hasEmail {
+				newUser.Username = &phone
+			}
 		}
 
 		if err := u.userRepo.Create(ctx, newUser); err != nil {
