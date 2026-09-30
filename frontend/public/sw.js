@@ -16,6 +16,13 @@ self.addEventListener('install', (event) => {
       return cache.addAll(PRECACHE_ASSETS).catch((err) => {
         console.warn('[SW] Precache asset registration non-fatal error:', err);
       });
+    }).then(() => {
+      // Notify all clients that a new version has been installed
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({ type: 'SW_UPDATE_AVAILABLE' });
+        });
+      });
     })
   );
 });

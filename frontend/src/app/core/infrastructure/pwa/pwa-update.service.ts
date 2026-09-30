@@ -1,6 +1,5 @@
 import { Injectable, ApplicationRef, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { filter, concatMap } from 'rxjs/operators';
 import { first } from 'rxjs';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
@@ -9,7 +8,6 @@ import { DialogService } from '../../../shared/ui/dialog/dialog.service';
     providedIn: 'root'
 })
 export class PwaUpdateService {
-    private updates = inject(SwUpdate);
     private appRef = inject(ApplicationRef);
     private dialog = inject(DialogService);
 
@@ -23,29 +21,45 @@ export class PwaUpdateService {
     }
 
     private initUpdateChecks() {
-        if (!this.updates.isEnabled) {
+        if (!('serviceWorker' in navigator)) {
             return;
         }
 
-        // Allow the app to stabilize first before polling for updates
-        // This prevents polling during initial heavy bootstrapping/rendering.
+        // Wait for the app to stabilize before checking for updates
         const appIsStable$ = this.appRef.isStable.pipe(first(isStable => isStable === true));
 
-        // After stable, check for an update immediately, then set an interval (e.g., every 6 hours)
         appIsStable$.subscribe(() => {
-            this.updates.checkForUpdate();
-            setInterval(() => {
-                this.updates.checkForUpdate();
-            }, 6 * 60 * 60 * 1000);
+            this.checkForUpdate();
+            // Re-check every 6 hours
+            setInterval(() => this.checkForUpdate(), 6 * 60 * 60 * 1000);
         });
 
-        // Listen for events indicating a new version was successfully downloaded
-        this.updates.versionUpdates
-            .pipe(filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'))
-            .subscribe(evt => {
-                console.log(`New version ready: ${evt.currentVersion} -> ${evt.latestVersion}`);
+        // Listen for the service worker's update found message
+        navigator.serviceWorker.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'SW_UPDATE_AVAILABLE') {
                 this.promptUserToUpdate();
-            });
+            }
+        });
+
+        // Also listen for controllerchange which fires when a new SW takes over
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            // Avoid reloading immediately on first install
+            if (this.hasActivatedBefore()) {
+                window.location.reload();
+            }
+            this.markActivated();
+        });
+    }
+
+    private async checkForUpdate(): Promise<void> {
+        try {
+            const reg = await navigator.serviceWorker.getRegistration('/');
+            if (reg) {
+                await reg.update();
+            }
+        } catch {
+            // SW update check is non-critical
+        }
     }
 
     private promptUserToUpdate() {
@@ -56,10 +70,22 @@ export class PwaUpdateService {
             'Update Now'
         ).subscribe((shouldUpdate: boolean) => {
             if (shouldUpdate) {
-                this.updates.activateUpdate().then(() => {
-                    document.location.reload();
-                });
+                window.location.reload();
             }
         });
+    }
+
+    private hasActivatedBefore(): boolean {
+        try {
+            return !!sessionStorage.getItem('sw_activated');
+        } catch {
+            return false;
+        }
+    }
+
+    private markActivated(): void {
+        try {
+            sessionStorage.setItem('sw_activated', '1');
+        } catch {}
     }
 }
