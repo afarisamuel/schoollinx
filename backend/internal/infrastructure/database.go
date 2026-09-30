@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/user/high-school-management/backend/config"
 	"github.com/user/high-school-management/backend/internal/domain"
 	"go.uber.org/zap"
@@ -48,6 +49,19 @@ func (l *zapGormLogger) Trace(ctx context.Context, begin time.Time, fc func() (s
 	}
 	switch {
 	case err != nil && !errors.Is(err, gorm.ErrRecordNotFound):
+		// Suppress expected PostgreSQL schema-migration errors:
+		// 42P01 = undefined_table, 42703 = undefined_column
+		// These are transient during tenant provisioning and worker startup.
+		if pgErr := (*pgconn.PgError)(nil); errors.As(err, &pgErr) {
+			if pgErr.Code == "42P01" || pgErr.Code == "42703" {
+				// Log at debug/warn level — not error — to prevent log noise.
+				l.zap.Debug("pg schema not ready yet (suppressed)",
+					zap.String("pg_code", pgErr.Code),
+					zap.String("detail", pgErr.Message),
+				)
+				return
+			}
+		}
 		l.zap.Error("gorm query error", append(fields, zap.Error(err))...)
 	case elapsed > slowQueryThreshold:
 		l.zap.Warn("slow query detected", fields...)

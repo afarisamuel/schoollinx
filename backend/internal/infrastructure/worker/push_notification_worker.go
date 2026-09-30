@@ -110,7 +110,7 @@ func (w *PushNotificationWorker) run(ctx context.Context) {
 		Exec("ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS pushed_at TIMESTAMPTZ").Error
 
 	// ── 1. Global (public) notifications ────────────────────────────────────
-	w.dispatchForTable(ctx, "public.notifications", "/favicon.ico")
+	w.dispatchForTable(ctx, "public", "notifications", "/favicon.ico")
 
 	// ── 2. Per-tenant notifications ─────────────────────────────────────────
 	var tenants []domain.Tenant
@@ -149,7 +149,7 @@ func (w *PushNotificationWorker) run(ctx context.Context) {
 		if tenantLogo == "" {
 			tenantLogo = "/favicon.ico"
 		}
-		w.dispatchForTable(tenantCtx, fmt.Sprintf("%s.notifications", t.SchemaName), tenantLogo)
+		w.dispatchForTable(tenantCtx, t.SchemaName, "notifications", tenantLogo)
 	}
 }
 
@@ -161,25 +161,32 @@ type pushSubRow struct {
 	Auth     string
 }
 
-// dispatchForTable processes unsent push notifications from a specific table.
-func (w *PushNotificationWorker) dispatchForTable(ctx context.Context, table string, logoURL string) {
-	// Guard against unmigrated/missing tenant tables
-	var tableExists bool
+// dispatchForTable processes unsent push notifications from a specific schema+table.
+// schemaName and tableName are passed separately to allow safe information_schema checks.
+func (w *PushNotificationWorker) dispatchForTable(ctx context.Context, schemaName, tableName string, logoURL string) {
+	fullTable := fmt.Sprintf("%s.%s", schemaName, tableName)
+
+	// Guard 1: verify the table AND the pushed_at column both exist using
+	// information_schema so we never fire a query on an unmigrated schema.
+	var colCount int64
 	if err := w.db.WithContext(ctx).
-		Raw("SELECT to_regclass(?) IS NOT NULL", table).
-		Scan(&tableExists).Error; err != nil || !tableExists {
+		Raw(`SELECT COUNT(*) FROM information_schema.columns
+		     WHERE table_schema = ? AND table_name = ? AND column_name = 'pushed_at'`,
+			schemaName, tableName).
+		Scan(&colCount).Error; err != nil || colCount == 0 {
+		// Table or column not yet migrated — silently skip this cycle.
 		return
 	}
 
 	var notifications []domain.Notification
 
 	if err := w.db.WithContext(ctx).
-		Table(table).
+		Table(fullTable).
 		Where("pushed_at IS NULL AND created_at > ?", time.Now().Add(-24*time.Hour)).
 		Order("created_at ASC").
 		Limit(200).
 		Find(&notifications).Error; err != nil {
-		return // Column may not yet exist — silently skip.
+		return
 	}
 
 	if len(notifications) == 0 {
@@ -207,7 +214,7 @@ func (w *PushNotificationWorker) dispatchForTable(ctx context.Context, table str
 			Select("id, user_id, endpoint, p256dh, auth").
 			Where("user_id IN ?", userIDs).
 			Find(&rawSubs).Error; err != nil {
-			log.Printf("[PushNotificationWorker] failed to load subscriptions for %s: %v", table, err)
+			log.Printf("[PushNotificationWorker] failed to load subscriptions for %s: %v", fullTable, err)
 		}
 	}
 
@@ -241,14 +248,14 @@ func (w *PushNotificationWorker) dispatchForTable(ctx context.Context, table str
 		subs := subsByUser[notif.UserID]
 		// No subscriptions — mark as dispatched so we don't re-query endlessly.
 		if len(subs) == 0 {
-			w.markPushed(ctx, table, notif.ID)
+			w.markPushed(ctx, fullTable, notif.ID)
 			continue
 		}
 
 		// Check user notification preferences & quiet hours
 		if pref, exists := prefByUser[notif.UserID]; exists {
 			if !isNotificationAllowed(pref, notif.Type) {
-				w.markPushed(ctx, table, notif.ID)
+				w.markPushed(ctx, fullTable, notif.ID)
 				continue
 			}
 		}
@@ -308,7 +315,7 @@ func (w *PushNotificationWorker) dispatchForTable(ctx context.Context, table str
 			}
 		}
 
-		w.markPushed(ctx, table, notif.ID)
+		w.markPushed(ctx, fullTable, notif.ID)
 	}
 }
 
