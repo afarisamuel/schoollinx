@@ -91,6 +91,8 @@ var GlobalModels = []interface{}{
 	&domain.SMSTopUpPayment{},
 	&domain.TenantNote{},
 	&domain.Notification{},
+	&domain.PushSubscription{},
+	&domain.NotificationPreference{},
 	&domain.LegalPage{},
 	&domain.CompanyContactInfo{},
 }

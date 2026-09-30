@@ -33,6 +33,10 @@ type Config struct {
 	VAPIDPublicKey             string
 	VAPIDPrivateKey            string
 	VAPIDSubject               string
+	FCMCredentialsFile         string
+	FCMCredentialsJSON         string
+	PushWorkerIntervalSec      int
+	PushWorkerRateLimit        int
 }
 
 func LoadConfig() *Config {
@@ -137,6 +141,26 @@ func LoadConfig() *Config {
 		VAPIDPublicKey:       vapidPublic,
 		VAPIDPrivateKey:      vapidPrivate,
 		VAPIDSubject:         vapidSubject,
+		FCMCredentialsFile:   os.Getenv("FIREBASE_CREDENTIALS_FILE"),
+		FCMCredentialsJSON:   os.Getenv("FIREBASE_CREDENTIALS_JSON"),
+		PushWorkerIntervalSec: func() int {
+			if s := os.Getenv("PUSH_WORKER_INTERVAL_SEC"); s != "" {
+				var v int
+				if _, err := fmt.Sscanf(s, "%d", &v); err == nil && v > 0 {
+					return v
+				}
+			}
+			return 30
+		}(),
+		PushWorkerRateLimit: func() int {
+			if s := os.Getenv("PUSH_WORKER_RATE_LIMIT"); s != "" {
+				var v int
+				if _, err := fmt.Sscanf(s, "%d", &v); err == nil && v > 0 {
+					return v
+				}
+			}
+			return 10
+		}(),
 	}
 }
 
@@ -149,6 +173,10 @@ func (c *Config) Validate() error {
 	}
 	if c.EncryptionKey == "" {
 		return fmt.Errorf("ENCRYPTION_KEY is required")
+	}
+	if (os.Getenv("ENV") == "production" || os.Getenv("GIN_MODE") == "release") &&
+		c.VAPIDPublicKey == "BAbf0lMDGYjVjUHlgfEeZzfIX_urfI9UBZL8GOp8DFNcIdcAwS4TDBbN5dCcH1ieao9buXc2_JR_h6V7XLQoiAQ" {
+		log.Println("WARNING: Default VAPID keys detected in production environment. Please generate dedicated VAPID keys for WebPush.")
 	}
 	return nil
 }

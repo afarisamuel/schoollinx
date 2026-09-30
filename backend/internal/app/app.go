@@ -253,7 +253,7 @@ func (a *App) setupRoutes() {
 		worker.NewFeeEscalationWorker(a.DB, locker, repos.Student, repos.Guardian, repos.Fiscal, infra.SMS, usecases.Notification, 12*time.Hour),
 		worker.NewStorageCleanerWorker(locker, nil, 24*time.Hour),
 		worker.NewReportCardPreRendererWorker(a.DB, locker, repos.Student, repos.AcademicPeriod, repos.TerminalEvaluation, repos.Grade, 24*time.Hour),
-		worker.NewPushNotificationWorker(a.DB, locker, infra.WebPush, 30*time.Second, 10),
+		worker.NewPushNotificationWorker(a.DB, locker, infra.WebPush, infra.FCM, time.Duration(a.Config.PushWorkerIntervalSec)*time.Second, a.Config.PushWorkerRateLimit),
 	)
 
 	telemetryUseCase := usecase.NewTelemetryUseCase(a.DB)

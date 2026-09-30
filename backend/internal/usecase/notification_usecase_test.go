@@ -30,6 +30,7 @@ func setupTestNotificationDB(t *testing.T) *gorm.DB {
 		message TEXT NOT NULL,
 		read BOOLEAN DEFAULT 0,
 		created_at DATETIME,
+		pushed_at DATETIME,
 		data JSON
 	)`).Error
 	assert.NoError(t, err)

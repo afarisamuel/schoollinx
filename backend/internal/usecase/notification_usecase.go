@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,69 +29,6 @@ func NewNotificationUseCase(hub *ws.Hub, db *gorm.DB, pushRepo domain.PushSubscr
 	}
 }
 
-func getTargetURLForNotification(notifType domain.NotificationType) string {
-	switch notifType {
-	case domain.NotificationAttendance:
-		return "/parents/academics"
-	case domain.NotificationPayment:
-		return "/parents/payments"
-	case domain.NotificationMessage:
-		return "/communications/messages"
-	case domain.NotificationGrade, domain.NotificationExam:
-		return "/parents/academics"
-	case domain.NotificationWelfare:
-		return "/parents/overview"
-	case domain.NotificationAnnouncement:
-		return "/notifications"
-	default:
-		return "/notifications"
-	}
-}
-
-func (u *notificationUseCase) dispatchWebPush(ctx context.Context, userID uuid.UUID, title, message string, data map[string]interface{}) {
-	if u.webPush == nil || u.pushRepo == nil || userID == uuid.Nil {
-		return
-	}
-
-	// Create detached context preserving tenant schema & ID for background push dispatch
-	bgCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	if schema, ok := middleware.GetTenantSchemaFromContext(ctx); ok && schema != "" {
-		bgCtx = context.WithValue(bgCtx, middleware.TenantSchemaKey, schema)
-	}
-	if tID, ok := middleware.GetTenantIDFromContext(ctx); ok && tID != uuid.Nil {
-		bgCtx = context.WithValue(bgCtx, middleware.TenantIDKey, tID)
-	}
-
-	go func() {
-		defer cancel()
-
-		subs, err := u.pushRepo.GetByUserID(bgCtx, userID)
-		if err != nil || len(subs) == 0 {
-			return
-		}
-
-		payload := map[string]interface{}{
-			"title":   title,
-			"body":    message,
-			"icon":    "/favicon.ico",
-			"badge":   "/favicon.ico",
-			"data":    data,
-			"vibrate": []int{100, 50, 100},
-		}
-
-		for _, sub := range subs {
-			err := u.webPush.SendNotification(bgCtx, &sub, payload)
-			if err != nil {
-				if err.Error() == "subscription_expired" {
-					_ = u.pushRepo.DeleteByEndpoint(bgCtx, sub.Endpoint)
-				} else {
-					log.Printf("WARN: Web push notification failed for user %s: %v", userID, err)
-				}
-			}
-		}
-	}()
-}
-
 func (u *notificationUseCase) SendToUser(ctx context.Context, userID uuid.UUID, n domain.Notification) error {
 	if n.ID == uuid.Nil {
 		n.ID = uuid.New()
@@ -111,13 +47,6 @@ func (u *notificationUseCase) SendToUser(ctx context.Context, userID uuid.UUID, 
 		u.hub.SendToUserWithTenant(schema, userID, n)
 	}
 
-	targetURL := getTargetURLForNotification(n.Type)
-	u.dispatchWebPush(ctx, userID, n.Title, n.Message, map[string]interface{}{
-		"id":   n.ID.String(),
-		"type": string(n.Type),
-		"url":  targetURL,
-	})
-
 	return nil
 }
 
@@ -133,7 +62,6 @@ func (u *notificationUseCase) SendToRole(ctx context.Context, role domain.Role, 
 		var userIDs []uuid.UUID
 		if err := u.db.WithContext(ctx).Model(&domain.User{}).Where("role = ?", role).Pluck("id", &userIDs).Error; err == nil {
 			schema, _ := middleware.GetTenantSchemaFromContext(ctx)
-			targetURL := getTargetURLForNotification(n.Type)
 			for _, uid := range userIDs {
 				userNotif := n
 				userNotif.ID = uuid.New()
@@ -142,11 +70,6 @@ func (u *notificationUseCase) SendToRole(ctx context.Context, role domain.Role, 
 				if u.hub != nil {
 					u.hub.SendToUserWithTenant(schema, uid, userNotif)
 				}
-				u.dispatchWebPush(ctx, uid, userNotif.Title, userNotif.Message, map[string]interface{}{
-					"id":   userNotif.ID.String(),
-					"type": string(userNotif.Type),
-					"url":  targetURL,
-				})
 			}
 		}
 	}
@@ -228,6 +151,45 @@ func (u *notificationUseCase) UnsubscribePush(ctx context.Context, endpoint stri
 		return nil
 	}
 	return u.pushRepo.DeleteByEndpoint(ctx, endpoint)
+}
+
+func (u *notificationUseCase) GetUserSubscriptions(ctx context.Context, userID uuid.UUID) ([]domain.PushSubscription, error) {
+	if u.pushRepo == nil {
+		return []domain.PushSubscription{}, nil
+	}
+	return u.pushRepo.GetByUserID(ctx, userID)
+}
+
+func (u *notificationUseCase) DeleteSubscription(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
+	if u.pushRepo == nil {
+		return nil
+	}
+	return u.pushRepo.DeleteByID(ctx, id, userID)
+}
+
+func (u *notificationUseCase) GetPreferences(ctx context.Context, userID uuid.UUID) (*domain.NotificationPreference, error) {
+	if u.pushRepo == nil {
+		return &domain.NotificationPreference{
+			UserID:             userID,
+			AttendanceAlerts:   true,
+			GradeAlerts:        true,
+			PaymentAlerts:      true,
+			MessageAlerts:      true,
+			AnnouncementAlerts: true,
+			WelfareAlerts:      true,
+			QuietHoursEnabled:  false,
+			QuietHoursStart:    "21:00",
+			QuietHoursEnd:      "06:30",
+		}, nil
+	}
+	return u.pushRepo.GetPreferences(ctx, userID)
+}
+
+func (u *notificationUseCase) UpdatePreferences(ctx context.Context, pref *domain.NotificationPreference) error {
+	if u.pushRepo == nil {
+		return nil
+	}
+	return u.pushRepo.UpsertPreferences(ctx, pref)
 }
 
 func (u *notificationUseCase) SendPushNotification(ctx context.Context, userID uuid.UUID, title, body, icon, url string) error {

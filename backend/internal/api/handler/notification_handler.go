@@ -31,10 +31,16 @@ func NewNotificationHandler(r *gin.RouterGroup, hub *ws.Hub, msgUseCase domain.M
 	r.PUT("/notifications/:id/read", h.MarkAsRead)
 	r.PUT("/notifications/read-all", h.MarkAllAsRead)
 
+	// Notification Preferences Endpoints
+	r.GET("/notifications/preferences", h.GetPreferences)
+	r.PUT("/notifications/preferences", h.UpdatePreferences)
+
 	// Web Push Notification Endpoints
 	r.GET("/notifications/push/vapid-public-key", h.GetVAPIDPublicKey)
 	r.POST("/notifications/push/subscribe", h.SubscribePush)
 	r.POST("/notifications/push/unsubscribe", h.UnsubscribePush)
+	r.GET("/notifications/push/subscriptions", h.GetUserSubscriptions)
+	r.DELETE("/notifications/push/subscriptions/:id", h.DeleteSubscription)
 	r.POST("/notifications/push/test", h.SendTestPush)
 }
 
@@ -283,4 +289,110 @@ func (h *NotificationHandler) SendTestPush(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "test notification dispatched"})
+}
+
+func (h *NotificationHandler) GetPreferences(c *gin.Context) {
+	val, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	userID, ok := val.(uuid.UUID)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user context"})
+		return
+	}
+
+	if h.notifUC == nil {
+		c.JSON(http.StatusOK, domain.NotificationPreference{UserID: userID})
+		return
+	}
+
+	pref, err := h.notifUC.GetPreferences(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch preferences: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, pref)
+}
+
+func (h *NotificationHandler) UpdatePreferences(c *gin.Context) {
+	val, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	userID, ok := val.(uuid.UUID)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user context"})
+		return
+	}
+
+	var pref domain.NotificationPreference
+	if err := c.ShouldBindJSON(&pref); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid preferences payload: " + err.Error()})
+		return
+	}
+	pref.UserID = userID
+
+	if h.notifUC != nil {
+		if err := h.notifUC.UpdatePreferences(c.Request.Context(), &pref); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save preferences: " + err.Error()})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, pref)
+}
+
+func (h *NotificationHandler) GetUserSubscriptions(c *gin.Context) {
+	val, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	userID, ok := val.(uuid.UUID)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user context"})
+		return
+	}
+
+	if h.notifUC == nil {
+		c.JSON(http.StatusOK, []domain.PushSubscription{})
+		return
+	}
+
+	subs, err := h.notifUC.GetUserSubscriptions(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusOK, []domain.PushSubscription{})
+		return
+	}
+
+	c.JSON(http.StatusOK, subs)
+}
+
+func (h *NotificationHandler) DeleteSubscription(c *gin.Context) {
+	val, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	userID, ok := val.(uuid.UUID)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user context"})
+		return
+	}
+
+	subID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid subscription ID"})
+		return
+	}
+
+	if h.notifUC != nil {
+		_ = h.notifUC.DeleteSubscription(c.Request.Context(), subID, userID)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "subscription removed"})
 }

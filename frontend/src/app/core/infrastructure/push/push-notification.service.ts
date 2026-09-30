@@ -98,9 +98,30 @@ export class PushNotificationService {
     return outputArray as unknown as BufferSource;
   }
 
+  private cachedVapidKey: string | null = null;
+
+  async getVapidPublicKey(): Promise<string> {
+    if (this.cachedVapidKey) {
+      return this.cachedVapidKey;
+    }
+    const res = await firstValueFrom(
+      this.http.get<{ publicKey: string }>(`${this.apiUrl}/notifications/push/vapid-public-key`)
+    );
+    if (!res?.publicKey) {
+      throw new Error('Could not retrieve VAPID public key from server.');
+    }
+    this.cachedVapidKey = res.publicKey;
+    return res.publicKey;
+  }
+
   async subscribeToPush(): Promise<boolean> {
     if (!this.isSupported()) {
       throw new Error('Push notifications are not supported in this browser.');
+    }
+
+    // If Firebase configuration is present, use FCM Web SDK
+    if (environment.firebase?.apiKey) {
+      return this.subscribeWithFCM();
     }
 
     this.isLoading.set(true);
@@ -113,14 +134,8 @@ export class PushNotificationService {
         return false;
       }
 
-      // 1. Fetch VAPID public key from backend
-      const res = await firstValueFrom(
-        this.http.get<{ publicKey: string }>(`${this.apiUrl}/notifications/push/vapid-public-key`)
-      );
-
-      if (!res?.publicKey) {
-        throw new Error('Could not retrieve VAPID public key from server.');
-      }
+      // 1. Fetch VAPID public key from backend (cached after first fetch)
+      const publicKey = await this.getVapidPublicKey();
 
       // 2. Register Service Worker & Subscribe with PushManager
       const reg = await navigator.serviceWorker.ready;
@@ -137,7 +152,7 @@ export class PushNotificationService {
 
       subscription = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: this.urlB64ToUint8Array(res.publicKey)
+        applicationServerKey: this.urlB64ToUint8Array(publicKey)
       });
 
       // 3. Post subscription to backend
@@ -191,9 +206,156 @@ export class PushNotificationService {
     }
   }
 
+  async subscribeWithFCM(): Promise<boolean> {
+    if (!this.isSupported()) {
+      throw new Error('Push notifications are not supported in this browser.');
+    }
+    this.isLoading.set(true);
+    try {
+      const perm = await Notification.requestPermission();
+      this.permission.set(perm);
+      if (perm !== 'granted') {
+        this.isLoading.set(false);
+        return false;
+      }
+
+      const { initializeApp, getApps } = await import('firebase/app');
+      const { getMessaging, getToken } = await import('firebase/messaging');
+
+      const app = getApps().length === 0 ? initializeApp(environment.firebase) : getApps()[0];
+      const messaging = getMessaging(app);
+
+      const reg = await navigator.serviceWorker.ready;
+      const vapidKey = environment.firebase.vapidKey || (await this.getVapidPublicKey());
+
+      const fcmToken = await getToken(messaging, {
+        vapidKey,
+        serviceWorkerRegistration: reg
+      });
+
+      if (!fcmToken) {
+        throw new Error('No FCM registration token returned by Firebase.');
+      }
+
+      const success = await this.subscribeFCMToken(fcmToken, navigator.userAgent);
+      if (success) {
+        this.showPrompt.set(false);
+        try {
+          sessionStorage.setItem('schoollinx_push_prompt_dismissed', 'true');
+        } catch {}
+      }
+      return success;
+    } catch (err) {
+      console.warn('FCM subscription failed, attempting standard WebPush fallback:', err);
+      // Fallback
+      return this.subscribeStandardWebPush();
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  private async subscribeStandardWebPush(): Promise<boolean> {
+    const publicKey = await this.getVapidPublicKey();
+    const reg = await navigator.serviceWorker.ready;
+    let subscription = await reg.pushManager.getSubscription();
+    if (subscription) {
+      try { await subscription.unsubscribe(); } catch {}
+    }
+    subscription = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: this.urlB64ToUint8Array(publicKey)
+    });
+    const subJson = subscription.toJSON();
+    await firstValueFrom(
+      this.http.post(`${this.apiUrl}/notifications/push/subscribe`, {
+        endpoint: subJson.endpoint,
+        keys: {
+          p256dh: subJson.keys?.['p256dh'] || '',
+          auth: subJson.keys?.['auth'] || ''
+        },
+        user_agent: navigator.userAgent
+      })
+    );
+    this.isSubscribed.set(true);
+    this.showPrompt.set(false);
+    try { sessionStorage.setItem('schoollinx_push_prompt_dismissed', 'true'); } catch {}
+    return true;
+  }
+
+  async subscribeFCMToken(token: string, userAgent?: string): Promise<boolean> {
+    if (!token) return false;
+    this.isLoading.set(true);
+    try {
+      await firstValueFrom(
+        this.http.post(`${this.apiUrl}/notifications/push/subscribe`, {
+          endpoint: token,
+          keys: {
+            p256dh: '',
+            auth: ''
+          },
+          user_agent: userAgent || (typeof navigator !== 'undefined' ? navigator.userAgent : 'fcm-client')
+        })
+      );
+      this.isSubscribed.set(true);
+      return true;
+    } catch (err) {
+      console.error('Failed to register FCM push token:', err);
+      return false;
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
   async sendTestNotification(): Promise<void> {
     await firstValueFrom(
       this.http.post(`${this.apiUrl}/notifications/push/test`, {})
     );
   }
+
+  async getPreferences(): Promise<NotificationPreference> {
+    return firstValueFrom(
+      this.http.get<NotificationPreference>(`${this.apiUrl}/notifications/preferences`)
+    );
+  }
+
+  async updatePreferences(pref: Partial<NotificationPreference>): Promise<NotificationPreference> {
+    return firstValueFrom(
+      this.http.put<NotificationPreference>(`${this.apiUrl}/notifications/preferences`, pref)
+    );
+  }
+
+  async getSubscriptions(): Promise<DeviceSubscription[]> {
+    return firstValueFrom(
+      this.http.get<DeviceSubscription[]>(`${this.apiUrl}/notifications/push/subscriptions`)
+    );
+  }
+
+  async removeSubscription(id: string): Promise<void> {
+    await firstValueFrom(
+      this.http.delete(`${this.apiUrl}/notifications/push/subscriptions/${id}`)
+    );
+  }
+}
+
+export interface NotificationPreference {
+  id?: string;
+  user_id?: string;
+  attendance_alerts: boolean;
+  grade_alerts: boolean;
+  payment_alerts: boolean;
+  message_alerts: boolean;
+  announcement_alerts: boolean;
+  welfare_alerts: boolean;
+  quiet_hours_enabled: boolean;
+  quiet_hours_start: string;
+  quiet_hours_end: string;
+}
+
+export interface DeviceSubscription {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  user_agent: string;
+  created_at: string;
+  updated_at: string;
 }

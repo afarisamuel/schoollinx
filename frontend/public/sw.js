@@ -136,6 +136,7 @@ self.addEventListener('push', (event) => {
     icon: data.icon || '/favicon.ico',
     badge: data.badge || '/favicon.ico',
     data: data.data || { url: '/' },
+    actions: data.actions || [],
     vibrate: data.vibrate || [100, 50, 100],
     requireInteraction: false,
     tag: (data.data && data.data.id) ? data.data.id : 'schoollinx-push-' + Date.now(),
@@ -148,7 +149,12 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = (event.notification.data && event.notification.data.url) ? event.notification.data.url : '/';
+  let targetUrl = (event.notification.data && event.notification.data.url) ? event.notification.data.url : '/';
+
+  // If a specific notification action button was clicked with a target URL
+  if (event.action && event.action.startsWith('/')) {
+    targetUrl = event.action;
+  }
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {

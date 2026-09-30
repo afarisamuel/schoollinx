@@ -27,17 +27,19 @@ type PushNotificationWorker struct {
 	db       *gorm.DB
 	locker   Locker
 	webPush  push.WebPushService
+	fcm      push.FCMService
 	interval time.Duration
 	rate     int
 }
 
-// NewPushNotificationWorker constructs the worker.
+// NewPushNotificationWorker constructs the worker with both WebPush and FCM support.
 // interval: polling frequency (default 30s).
 // rate: max WebPush sends/second (default 10).
 func NewPushNotificationWorker(
 	db *gorm.DB,
 	locker Locker,
 	webPush push.WebPushService,
+	fcm push.FCMService,
 	interval time.Duration,
 	rate int,
 ) *PushNotificationWorker {
@@ -51,6 +53,7 @@ func NewPushNotificationWorker(
 		db:       db,
 		locker:   locker,
 		webPush:  webPush,
+		fcm:      fcm,
 		interval: interval,
 		rate:     rate,
 	}
@@ -177,6 +180,19 @@ func (w *PushNotificationWorker) dispatchForTable(ctx context.Context, table str
 		subsByUser[s.UserID] = append(subsByUser[s.UserID], s)
 	}
 
+	// Load user notification preferences
+	var rawPrefs []domain.NotificationPreference
+	if len(userIDs) > 0 {
+		_ = w.db.WithContext(ctx).
+			Table("public.notification_preferences").
+			Where("user_id IN ?", userIDs).
+			Find(&rawPrefs).Error
+	}
+	prefByUser := make(map[uuid.UUID]*domain.NotificationPreference)
+	for i := range rawPrefs {
+		prefByUser[rawPrefs[i].UserID] = &rawPrefs[i]
+	}
+
 	rateLimiter := NewRateLimiter(w.rate)
 	defer rateLimiter.Stop()
 
@@ -192,12 +208,21 @@ func (w *PushNotificationWorker) dispatchForTable(ctx context.Context, table str
 			continue
 		}
 
+		// Check user notification preferences & quiet hours
+		if pref, exists := prefByUser[notif.UserID]; exists {
+			if !isNotificationAllowed(pref, notif.Type) {
+				w.markPushed(ctx, table, notif.ID)
+				continue
+			}
+		}
+
 		payload := map[string]interface{}{
 			"title":   notif.Title,
 			"body":    notif.Message,
 			"icon":    "/favicon.ico",
 			"badge":   "/favicon.ico",
 			"vibrate": []int{100, 50, 100},
+			"actions": pushNotificationActions(notif.Type),
 			"data": map[string]string{
 				"id":   notif.ID.String(),
 				"type": string(notif.Type),
@@ -221,7 +246,14 @@ func (w *PushNotificationWorker) dispatchForTable(ctx context.Context, table str
 			sub.ID = s.ID
 			sub.UserID = s.UserID
 
-			if err := w.webPush.SendNotification(ctx, sub, payload); err != nil {
+			var err error
+			if (s.P256dh == "" || s.Auth == "") && w.fcm != nil && w.fcm.IsConfigured() {
+				err = w.fcm.SendNotification(ctx, sub, payload)
+			} else if w.webPush != nil {
+				err = w.webPush.SendNotification(ctx, sub, payload)
+			}
+
+			if err != nil {
 				if err.Error() == "subscription_expired" {
 					_ = w.db.WithContext(ctx).
 						Table("public.push_subscriptions").
@@ -245,8 +277,70 @@ func (w *PushNotificationWorker) markPushed(ctx context.Context, table string, i
 		Update("pushed_at", time.Now()).Error
 }
 
+// isNotificationAllowed checks user preferences and quiet hours.
+func isNotificationAllowed(pref *domain.NotificationPreference, notifType domain.NotificationType) bool {
+	if pref == nil {
+		return true
+	}
+	if pref.QuietHoursEnabled && pref.QuietHoursStart != "" && pref.QuietHoursEnd != "" {
+		nowStr := time.Now().Format("15:04")
+		if pref.QuietHoursStart < pref.QuietHoursEnd {
+			if nowStr >= pref.QuietHoursStart && nowStr <= pref.QuietHoursEnd {
+				return false
+			}
+		} else {
+			if nowStr >= pref.QuietHoursStart || nowStr <= pref.QuietHoursEnd {
+				return false
+			}
+		}
+	}
+
+	switch notifType {
+	case domain.NotificationAttendance:
+		return pref.AttendanceAlerts
+	case domain.NotificationGrade, domain.NotificationExam:
+		return pref.GradeAlerts
+	case domain.NotificationPayment:
+		return pref.PaymentAlerts
+	case domain.NotificationMessage:
+		return pref.MessageAlerts
+	case domain.NotificationAnnouncement:
+		return pref.AnnouncementAlerts
+	case domain.NotificationWelfare:
+		return pref.WelfareAlerts
+	default:
+		return true
+	}
+}
+
+// pushNotificationActions returns interactive buttons for WebPush OS notifications.
+func pushNotificationActions(t domain.NotificationType) []map[string]string {
+	switch t {
+	case domain.NotificationPayment:
+		return []map[string]string{
+			{"action": "/parents/payments", "title": "💳 Pay Now"},
+			{"action": "/notifications", "title": "View Receipt"},
+		}
+	case domain.NotificationMessage:
+		return []map[string]string{
+			{"action": "/communications/messages", "title": "💬 Open Chat"},
+		}
+	case domain.NotificationAttendance:
+		return []map[string]string{
+			{"action": "/parents/academics", "title": "📊 Attendance"},
+		}
+	case domain.NotificationGrade, domain.NotificationExam:
+		return []map[string]string{
+			{"action": "/parents/academics", "title": "📝 View Grades"},
+		}
+	default:
+		return []map[string]string{
+			{"action": "/notifications", "title": "🔔 View Alert"},
+		}
+	}
+}
+
 // pushTargetURL returns the in-app deep-link path for a notification type.
-// Mirrors getTargetURLForNotification in notification_usecase.go.
 func pushTargetURL(t domain.NotificationType) string {
 	switch t {
 	case domain.NotificationAttendance:

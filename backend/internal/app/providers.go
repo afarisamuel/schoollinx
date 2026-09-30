@@ -18,6 +18,7 @@ import (
 type Infrastructure struct {
 	Cache    cache.CacheService
 	WebPush  push.WebPushService
+	FCM      push.FCMService
 	SMTP     mailer.MailService
 	PDF      *pdf.PDFService
 	Paystack domain.PaystackService
@@ -136,10 +137,12 @@ func initInfrastructure(cfg *config.Config) *Infrastructure {
 
 	cacheService := cache.NewCacheService(cfg.RedisURL)
 	webPushService := push.NewWebPushService(cfg.VAPIDPublicKey, cfg.VAPIDPrivateKey, cfg.VAPIDSubject)
+	fcmService := push.NewFCMService(cfg.FCMCredentialsFile)
 
 	return &Infrastructure{
 		Cache:    cacheService,
 		WebPush:  webPushService,
+		FCM:      fcmService,
 		SMTP:     mailer.NewSMTPService(cfg),
 		PDF:      pdf.NewPDFService(),
 		Paystack: payment.NewPaystackService(cfg),
