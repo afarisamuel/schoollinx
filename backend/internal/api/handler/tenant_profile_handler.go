@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/user/high-school-management/backend/internal/api/middleware"
@@ -122,6 +123,14 @@ func (h *TenantProfileHandler) GetTenantManifest(c *gin.Context) {
 	if subdomain == "" {
 		subdomain = c.GetHeader("X-Tenant-Subdomain")
 	}
+	if subdomain == "" {
+		// Try to derive subdomain from Host header (e.g. "kendemy.schoollinx.com")
+		host := c.Request.Host
+		parts := strings.SplitN(host, ".", 2)
+		if len(parts) == 2 && parts[0] != "www" && parts[0] != "api" && parts[0] != "admin" {
+			subdomain = parts[0]
+		}
+	}
 
 	appName := "SchoolLinx — Institutional Operating System"
 	shortName := "SchoolLinx"
@@ -138,7 +147,8 @@ func (h *TenantProfileHandler) GetTenantManifest(c *gin.Context) {
 				}
 			}
 			if t.LogoURL != "" {
-				iconSrc = t.LogoURL
+				// Force HTTPS to avoid mixed-content warnings
+				iconSrc = strings.Replace(t.LogoURL, "http://", "https://", 1)
 			}
 		}
 	}
@@ -199,8 +209,10 @@ func (h *TenantProfileHandler) GetTenantManifest(c *gin.Context) {
 
 	c.Header("Content-Type", "application/manifest+json")
 	c.Header("Access-Control-Allow-Origin", "*")
+	c.Header("Cache-Control", "public, max-age=300") // 5-minute cache
 	c.JSON(http.StatusOK, manifest)
 }
+
 
 func (h *TenantProfileHandler) GetActiveAnnouncements(c *gin.Context) {
 	var announcements []domain.SystemAnnouncement
