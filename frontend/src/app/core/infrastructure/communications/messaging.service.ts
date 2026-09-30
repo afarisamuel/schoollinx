@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, Subject, BehaviorSubject, tap } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 export interface PollOption {
     id: string;
@@ -217,10 +218,33 @@ export class MessagingService implements OnDestroy {
     connectWebSocket(token: string): void {
         if (!isPlatformBrowser(this.platformId) || typeof window === 'undefined') return;
         this.wsToken = token;
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) return;
+        // Guard against both OPEN (1) and CONNECTING (0) states
+        if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) return;
         const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+
+        // Resolve tenant subdomain for the WebSocket connection
+        let tenant = '';
+        const hostname = window.location.hostname;
+        const parts = hostname.split('.');
+        if (parts.length >= 2) {
+            tenant = parts[0];
+            if (tenant === 'www' || tenant === 'localhost' || tenant === '127') {
+                tenant = '';
+            }
+        }
+        if (!tenant) {
+            try { tenant = localStorage.getItem('schoollinx_tenant_subdomain') || ''; } catch {}
+        }
+
+        // Resolve backend host (handles both proxy and direct API URL configs)
+        let apiHost = location.host;
+        if (environment.apiUrl?.startsWith('http')) {
+            try { apiHost = new URL(environment.apiUrl).host; } catch {}
+        }
+
+        const wsUrl = `${protocol}://${apiHost}/ws/chat?token=${token}&tenant=${tenant}`;
         try {
-            this.ws = new WebSocket(`${protocol}://${location.host}/ws/chat?token=${token}`);
+            this.ws = new WebSocket(wsUrl);
             this.ws.onopen = () => {
                 if (this.wsReconnectTimer) clearTimeout(this.wsReconnectTimer);
                 console.log('[Chat] WS connected');

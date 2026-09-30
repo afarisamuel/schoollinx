@@ -9,6 +9,9 @@ import (
 	"github.com/user/high-school-management/backend/internal/api/ws"
 	"github.com/user/high-school-management/backend/internal/domain"
 	"github.com/user/high-school-management/backend/internal/infrastructure/push"
+	"github.com/user/high-school-management/backend/config"
+	"github.com/user/high-school-management/backend/pkg/utils"
+	"gorm.io/gorm"
 )
 
 type NotificationHandler struct {
@@ -33,6 +36,53 @@ func NewNotificationHandler(r *gin.RouterGroup, hub *ws.Hub, msgUseCase domain.M
 	r.POST("/notifications/push/subscribe", h.SubscribePush)
 	r.POST("/notifications/push/unsubscribe", h.UnsubscribePush)
 	r.POST("/notifications/push/test", h.SendTestPush)
+}
+
+// ChatWebSocketHandler serves the dedicated /ws/chat WebSocket endpoint.
+// It performs its own token validation and tenant resolution so the route
+// can live outside the authenticated /api group (required for browser WS upgrades).
+type ChatWebSocketHandler struct {
+	hub        *ws.Hub
+	msgUseCase domain.MessageUseCase
+	cfg        *config.Config
+	db         *gorm.DB
+}
+
+// NewChatWebSocketHandler registers GET /ws/chat on the given router group.
+func NewChatWebSocketHandler(r *gin.RouterGroup, hub *ws.Hub, msgUseCase domain.MessageUseCase, cfg *config.Config, db *gorm.DB) {
+	h := &ChatWebSocketHandler{hub: hub, msgUseCase: msgUseCase, cfg: cfg, db: db}
+	r.GET("/chat", h.ServeChat)
+}
+
+func (h *ChatWebSocketHandler) ServeChat(c *gin.Context) {
+	// 1. Validate JWT from ?token= query param (browsers cannot set headers during WS upgrade).
+	tokenString := c.Query("token")
+	if tokenString == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "token required"})
+		return
+	}
+
+	claims, err := utils.ValidateToken(tokenString, h.cfg)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
+		return
+	}
+
+	userID := claims.UserID
+
+	// 2. Resolve tenant schema from ?tenant= subdomain query param.
+	//    The frontend sends the subdomain exactly as done by notification.service.ts.
+	tenantSchema := ""
+	if tenantSubdomain := c.Query("tenant"); tenantSubdomain != "" && h.db != nil {
+		var t domain.Tenant
+		if err := h.db.Table("public.tenants").
+			Where("subdomain = ? AND is_active = true", tenantSubdomain).
+			First(&t).Error; err == nil {
+			tenantSchema = t.SchemaName
+		}
+	}
+
+	ws.ServeWs(h.hub, c.Writer, c.Request, userID, tenantSchema, h.msgUseCase)
 }
 
 func (h *NotificationHandler) WebSocket(c *gin.Context) {

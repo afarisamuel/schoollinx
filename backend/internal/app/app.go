@@ -135,6 +135,11 @@ func (a *App) setupRoutes() {
 	// Static file serving for uploads (Logos, etc.)
 	a.Router.Static("/uploads", "./uploads")
 
+	// Dedicated Chat WebSocket — lives at /ws/chat (outside /api) so it can
+	// do its own token-in-query-param validation that browsers require for WS upgrades.
+	wsGroup := a.Router.Group("/ws")
+	handler.NewChatWebSocketHandler(wsGroup, infra.Hub, usecases.Message, a.Config, a.DB)
+
 	// API Routes
 	api := a.Router.Group("/api")
 
@@ -248,6 +253,7 @@ func (a *App) setupRoutes() {
 		worker.NewFeeEscalationWorker(a.DB, locker, repos.Student, repos.Guardian, repos.Fiscal, infra.SMS, usecases.Notification, 12*time.Hour),
 		worker.NewStorageCleanerWorker(locker, nil, 24*time.Hour),
 		worker.NewReportCardPreRendererWorker(a.DB, locker, repos.Student, repos.AcademicPeriod, repos.TerminalEvaluation, repos.Grade, 24*time.Hour),
+		worker.NewPushNotificationWorker(a.DB, locker, infra.WebPush, 30*time.Second, 10),
 	)
 
 	telemetryUseCase := usecase.NewTelemetryUseCase(a.DB)

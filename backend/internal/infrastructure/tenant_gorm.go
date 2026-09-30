@@ -44,6 +44,12 @@ var globalTables = map[string]bool{
 	"tenant_notes":                 true,
 	"legal_pages":                  true,
 	"company_contact_infos":        true,
+	// notifications live in the public schema (GlobalModels) and must not be
+	// prefixed with a tenant schema even when a tenant context is active.
+	"notifications":                true,
+	// push_subscriptions is queried from background goroutines that propagate
+	// the tenant schema context; keep it global so GORM doesn't double-prefix.
+	"push_subscriptions":           true,
 }
 
 // setupTenantSchema automatically prepends the schema name to the table name

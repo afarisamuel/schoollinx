@@ -40,7 +40,7 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url);
 
-  // Bypass WebSockets and Uploads
+  // Bypass WebSockets (/ws/chat, /ws/*) and static upload files
   if (url.pathname.startsWith('/ws') || url.pathname.startsWith('/uploads')) {
     return;
   }
@@ -152,14 +152,17 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Prefer an already-open window
       for (const client of clientList) {
-        if (client.url.includes(self.location.origin) && 'focus' in client) {
-          if ('navigate' in client && targetUrl !== '/') {
-            client.navigate(targetUrl);
-          }
-          return client.focus();
+        if ('focus' in client) {
+          return client.focus().then((focusedClient) => {
+            if ('navigate' in focusedClient && targetUrl !== '/') {
+              return focusedClient.navigate(targetUrl);
+            }
+          });
         }
       }
+      // No open window — open a new one
       if (clients.openWindow) {
         return clients.openWindow(targetUrl);
       }
