@@ -211,66 +211,80 @@ systemctl restart $APP_NAME
 
 echo -e "${YELLOW}Phase 6: Nginx Configuration${NC}"
 
-# read -p "Do you want to configure Nginx with Cloudflare SSL for the Backend? (y/n) " SETUP_SSL
-# if [ "$SETUP_SSL" = "y" ]; then
-#     read -p "Enter your API domain (e.g. api.yourdomain.com): " DOMAIN
-    
-#     mkdir -p /etc/nginx/ssl/$DOMAIN
-    
-#     if [ ! -f "/etc/nginx/ssl/$DOMAIN/cert.pem" ]; then
-#         echo "Please paste your Cloudflare Origin Certificate (Ctrl+D to save):"
-#         cat > /etc/nginx/ssl/$DOMAIN/cert.pem
-#     else
-#         echo -e "${GREEN}✓ Cloudflare Origin Certificate already exists${NC}"
-#     fi
-    
-#     if [ ! -f "/etc/nginx/ssl/$DOMAIN/key.pem" ]; then
-#         echo "Please paste your Cloudflare Private Key (Ctrl+D to save):"
-#         cat > /etc/nginx/ssl/$DOMAIN/key.pem
-#     else
-#         echo -e "${GREEN}✓ Cloudflare Private Key already exists${NC}"
-#     fi
-    
-    cat << EOF > /etc/nginx/sites-available/$APP_NAME
+    cat << 'NGINX_EOF' > /etc/nginx/sites-available/$APP_NAME
+# ── WebSocket connection upgrade map ────────────────────────────────────────
+# This MUST be in the http{} context. For sites-available configs included by
+# nginx, it is placed here at file scope — nginx accepts this.
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+# Backend API + WebSocket server (api.schoollinx.com)
+# Cloudflare terminates TLS and forwards plain HTTP on port 80 to origin.
+# Do NOT redirect 80 → 443 here — that creates an infinite redirect loop
+# when Cloudflare's SSL mode is Flexible or Full (non-strict).
 server {
     listen 80;
-    server_name api.$DOMAIN;
-    
-    # Block IP-based access
-    if (\$host ~* "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$") {
-        return 444;
-    }
-    
-    return 301 https://\$server_name\$request_uri;
-}
+    server_name api.schoollinx.com;
 
-server {
-    listen 443 ssl http2;
-    server_name api.$DOMAIN;
-
-    # Block IP-based access
-    if (\$host ~* "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$") {
+    # Block raw IP-based access
+    if ($host ~* "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$") {
         return 444;
     }
 
-    ssl_certificate /etc/nginx/ssl/$DOMAIN/cert.pem;
-    ssl_certificate_key /etc/nginx/ssl/$DOMAIN/key.pem;
+    # ── WebSocket endpoints ─────────────────────────────────────────────────
+    # Must be listed before location / so they get the long timeout.
+    location /ws/ {
+        proxy_pass          http://localhost:8080;
+        proxy_http_version  1.1;
+        proxy_set_header    Upgrade           $http_upgrade;
+        proxy_set_header    Connection        $connection_upgrade;
+        proxy_set_header    Host              $host;
+        proxy_set_header    X-Real-IP         $remote_addr;
+        proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header    X-Forwarded-Proto $http_x_forwarded_proto;
+        proxy_read_timeout  3600s;   # keep WS connections alive for 1 hour
+        proxy_send_timeout  3600s;
+    }
 
+    location /api/ws {
+        proxy_pass          http://localhost:8080;
+        proxy_http_version  1.1;
+        proxy_set_header    Upgrade           $http_upgrade;
+        proxy_set_header    Connection        $connection_upgrade;
+        proxy_set_header    Host              $host;
+        proxy_set_header    X-Real-IP         $remote_addr;
+        proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header    X-Forwarded-Proto $http_x_forwarded_proto;
+        proxy_read_timeout  3600s;
+        proxy_send_timeout  3600s;
+    }
+
+    # ── Regular HTTP API ────────────────────────────────────────────────────
     location / {
-        proxy_pass http://localhost:8080; # Change if your Go app uses a different port
+        proxy_pass         http://localhost:8080;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_cache_bypass \$http_upgrade;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $http_x_forwarded_proto;
+        proxy_read_timeout 120s;
     }
-    
-   
 }
-EOF
+NGINX_EOF
 
 ln -sf /etc/nginx/sites-available/$APP_NAME /etc/nginx/sites-enabled/
-systemctl restart nginx
+
+# Remove default site — it conflicts with our server_name
+rm -f /etc/nginx/sites-enabled/default
+
+# Validate and reload (not restart — reload is zero-downtime)
+nginx -t && systemctl reload nginx && echo -e "${GREEN}✓ Nginx reloaded${NC}" || {
+    echo -e "${RED}✗ Nginx config test failed — check above${NC}"
+    exit 1
+}
+
 
 # Purge Cloudflare cache if credentials are set
 if [ -n "$CF_ZONE_ID" ] && [ -n "$CF_API_TOKEN" ]; then
