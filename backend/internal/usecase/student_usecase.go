@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/domain"
 	"github.com/user/high-school-management/backend/internal/infrastructure/mailer"
 	"github.com/user/high-school-management/backend/pkg/encryption"
@@ -26,6 +27,7 @@ type studentUseCase struct {
 	fiscalRepo     domain.FiscalRepository
 	academicRepo   domain.AcademicPeriodRepository
 	sms            domain.SMSProvider
+	tenants        domain.TenantRepository
 }
 
 func NewStudentUseCase(
@@ -38,11 +40,12 @@ func NewStudentUseCase(
 	mailService mailer.MailService,
 	fiscalRepo domain.FiscalRepository,
 	academicRepo domain.AcademicPeriodRepository,
-	sms ...domain.SMSProvider,
+	sms domain.SMSProvider,
+	tenants ...domain.TenantRepository,
 ) domain.StudentUseCase {
-	var smsProvider domain.SMSProvider
-	if len(sms) > 0 {
-		smsProvider = sms[0]
+	var tenantRepo domain.TenantRepository
+	if len(tenants) > 0 {
+		tenantRepo = tenants[0]
 	}
 	return &studentUseCase{
 		studentRepo:    repo,
@@ -54,8 +57,56 @@ func NewStudentUseCase(
 		mailer:         mailService,
 		fiscalRepo:     fiscalRepo,
 		academicRepo:   academicRepo,
-		sms:            smsProvider,
+		sms:            sms,
+		tenants:        tenantRepo,
 	}
+}
+
+func (u *studentUseCase) resolveSenderID(ctx context.Context) string {
+	tenantID, hasTenant := middleware.GetTenantIDFromContext(ctx)
+	if hasTenant && tenantID != uuid.Nil && u.tenants != nil {
+		if tenant, err := u.tenants.GetByID(ctx, tenantID); err == nil && tenant != nil {
+			if tenant.SMSSenderID != "" {
+				return tenant.SMSSenderID
+			}
+		}
+	}
+	return domain.DefaultSMSSenderID
+}
+
+func (u *studentUseCase) sendSMSWithFallback(ctx context.Context, phone string, message string) {
+	if u.sms == nil || strings.TrimSpace(phone) == "" {
+		return
+	}
+	cleanPhone := strings.TrimSpace(phone)
+	primarySenderID := u.resolveSenderID(ctx)
+	recipients := []string{cleanPhone}
+	tenantID, _ := middleware.GetTenantIDFromContext(ctx)
+
+	go func(sID string, recs []string, msg string, tID uuid.UUID) {
+		bgCtx := context.Background()
+		err := u.sms.SendSMS(bgCtx, sID, recs, msg)
+		if err != nil {
+			log.Printf("[STUDENT GUARDIAN SMS] Failed to send SMS via sender '%s' to %v: %v. Attempting fallback.", sID, recs, err)
+			fallbackID := domain.DefaultSMSSenderID
+			if sID == domain.DefaultSMSSenderID {
+				if tID != uuid.Nil && u.tenants != nil {
+					if t, _ := u.tenants.GetByID(bgCtx, tID); t != nil && t.SMSSenderID != "" {
+						fallbackID = t.SMSSenderID
+					}
+				}
+			}
+			if fallbackID != sID {
+				if fbErr := u.sms.SendSMS(bgCtx, fallbackID, recs, msg); fbErr != nil {
+					log.Printf("[STUDENT GUARDIAN SMS] Fallback SMS via '%s' also failed to %v: %v", fallbackID, recs, fbErr)
+				} else {
+					log.Printf("[STUDENT GUARDIAN SMS] Fallback SMS via '%s' sent successfully to %v", fallbackID, recs)
+				}
+			}
+		} else {
+			log.Printf("[STUDENT GUARDIAN SMS] Credentials SMS successfully dispatched to %v via sender '%s'", recs, sID)
+		}
+	}(primarySenderID, recipients, message, tenantID)
 }
 
 // provisionGuardianUser ensures the given guardian has a User account.
@@ -143,10 +194,12 @@ func (u *studentUseCase) provisionGuardianUser(ctx context.Context, g *domain.Gu
 
 	if u.sms != nil && hasPhone && tempPassword != "" {
 		phone := encryption.DeterministicDecryptedString(string(g.PhoneNumber))
-		smsMsg := fmt.Sprintf("Welcome to SchoolLinx! Your Parent Portal account is active. Login: %s, Temp Password: %s. Please log in and change your password.", identifier, tempPassword)
-		go func(p string, msg string) {
-			_ = u.sms.SendSMS(context.Background(), domain.DefaultSMSSenderID, []string{p}, msg)
-		}(phone, smsMsg)
+		loginUsername := identifier
+		if !hasEmail {
+			loginUsername = phone
+		}
+		smsMsg := fmt.Sprintf("Welcome to SchoolLinx! Your Parent Portal account is active. Login: %s, Temp Password: %s. Please log in and change your password.", loginUsername, tempPassword)
+		u.sendSMSWithFallback(ctx, phone, smsMsg)
 	}
 
 	return tempPassword, nil

@@ -4,10 +4,12 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
+	"log"
 	"math/big"
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/domain"
 	"github.com/user/high-school-management/backend/internal/infrastructure/mailer"
 	"github.com/user/high-school-management/backend/pkg/encryption"
@@ -21,6 +23,7 @@ type teacherUseCase struct {
 	subjectRepo domain.SubjectRepository
 	mailService mailer.MailService
 	sms         domain.SMSProvider
+	tenants     domain.TenantRepository
 }
 
 func NewTeacherUseCase(
@@ -29,11 +32,12 @@ func NewTeacherUseCase(
 	classRepo domain.ClassRepository,
 	subjectRepo domain.SubjectRepository,
 	mailService mailer.MailService,
-	sms ...domain.SMSProvider,
+	sms domain.SMSProvider,
+	tenants ...domain.TenantRepository,
 ) domain.TeacherUseCase {
-	var smsProvider domain.SMSProvider
-	if len(sms) > 0 {
-		smsProvider = sms[0]
+	var tenantRepo domain.TenantRepository
+	if len(tenants) > 0 {
+		tenantRepo = tenants[0]
 	}
 	return &teacherUseCase{
 		teacherRepo: repo,
@@ -41,8 +45,56 @@ func NewTeacherUseCase(
 		classRepo:   classRepo,
 		subjectRepo: subjectRepo,
 		mailService: mailService,
-		sms:         smsProvider,
+		sms:         sms,
+		tenants:      tenantRepo,
 	}
+}
+
+func (u *teacherUseCase) resolveSenderID(ctx context.Context) string {
+	tenantID, hasTenant := middleware.GetTenantIDFromContext(ctx)
+	if hasTenant && tenantID != uuid.Nil && u.tenants != nil {
+		if tenant, err := u.tenants.GetByID(ctx, tenantID); err == nil && tenant != nil {
+			if tenant.SMSSenderID != "" {
+				return tenant.SMSSenderID
+			}
+		}
+	}
+	return domain.DefaultSMSSenderID
+}
+
+func (u *teacherUseCase) sendSMSWithFallback(ctx context.Context, phone string, message string) {
+	if u.sms == nil || strings.TrimSpace(phone) == "" {
+		return
+	}
+	cleanPhone := strings.TrimSpace(phone)
+	primarySenderID := u.resolveSenderID(ctx)
+	recipients := []string{cleanPhone}
+	tenantID, _ := middleware.GetTenantIDFromContext(ctx)
+
+	go func(sID string, recs []string, msg string, tID uuid.UUID) {
+		bgCtx := context.Background()
+		err := u.sms.SendSMS(bgCtx, sID, recs, msg)
+		if err != nil {
+			log.Printf("[TEACHER SMS] Failed to send SMS via sender '%s' to %v: %v. Attempting fallback.", sID, recs, err)
+			fallbackID := domain.DefaultSMSSenderID
+			if sID == domain.DefaultSMSSenderID {
+				if tID != uuid.Nil && u.tenants != nil {
+					if t, _ := u.tenants.GetByID(bgCtx, tID); t != nil && t.SMSSenderID != "" {
+						fallbackID = t.SMSSenderID
+					}
+				}
+			}
+			if fallbackID != sID {
+				if fbErr := u.sms.SendSMS(bgCtx, fallbackID, recs, msg); fbErr != nil {
+					log.Printf("[TEACHER SMS] Fallback SMS via '%s' also failed to %v: %v", fallbackID, recs, fbErr)
+				} else {
+					log.Printf("[TEACHER SMS] Fallback SMS via '%s' sent successfully to %v", fallbackID, recs)
+				}
+			}
+		} else {
+			log.Printf("[TEACHER SMS] Credentials SMS successfully dispatched to %v via sender '%s'", recs, sID)
+		}
+	}(primarySenderID, recipients, message, tenantID)
 }
 
 func (u *teacherUseCase) CreateTeacher(ctx context.Context, teacher *domain.Teacher) error {
@@ -168,9 +220,7 @@ func (u *teacherUseCase) ActivatePortalAccess(ctx context.Context, id uuid.UUID)
 	if u.sms != nil && string(teacher.PhoneNumber) != "" {
 		phone := encryption.DeterministicDecryptedString(string(teacher.PhoneNumber))
 		smsMsg := fmt.Sprintf("Welcome to SchoolLinx! Your Teacher Portal access is active. Username: %s, Temp Password: %s. Please log in and change your password.", username, password)
-		go func(p string, msg string) {
-			_ = u.sms.SendSMS(context.Background(), domain.DefaultSMSSenderID, []string{p}, msg)
-		}(phone, smsMsg)
+		u.sendSMSWithFallback(ctx, phone, smsMsg)
 	}
 
 	return username, password, nil
@@ -215,10 +265,15 @@ func (u *teacherUseCase) ResetPassword(ctx context.Context, id uuid.UUID) (strin
 
 	if u.sms != nil && string(teacher.PhoneNumber) != "" {
 		phone := encryption.DeterministicDecryptedString(string(teacher.PhoneNumber))
-		smsMsg := fmt.Sprintf("SchoolLinx: Your Teacher Portal password has been reset. New Temp Password: %s. Please log in and change your password.", newPassword)
-		go func(p string, msg string) {
-			_ = u.sms.SendSMS(context.Background(), domain.DefaultSMSSenderID, []string{p}, msg)
-		}(phone, smsMsg)
+		userUsername := ""
+		if user.Username != nil {
+			userUsername = encryption.DeterministicDecryptedString(string(*user.Username))
+		}
+		if userUsername == "" && user.Email != "" {
+			userUsername = encryption.DeterministicDecryptedString(string(user.Email))
+		}
+		smsMsg := fmt.Sprintf("SchoolLinx: Your Teacher Portal password has been reset. Username: %s, New Temp Password: %s. Please log in and change your password.", userUsername, newPassword)
+		u.sendSMSWithFallback(ctx, phone, smsMsg)
 	}
 
 	return newPassword, nil

@@ -91,8 +91,20 @@ func (p *arkaselProvider) SendSMS(ctx context.Context, senderID string, recipien
 
 	bodyBytes, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode >= 400 {
-		return fmt.Errorf("arkesel returned error status: %d, body: %s", resp.StatusCode, string(bodyBytes))
+		return fmt.Errorf("arkesel returned HTTP status %d: %s", resp.StatusCode, string(bodyBytes))
 	}
 
+	var arkeselResp struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+		Code    string `json:"code"`
+	}
+	if err := json.Unmarshal(bodyBytes, &arkeselResp); err == nil {
+		if strings.EqualFold(arkeselResp.Status, "error") || (arkeselResp.Code != "" && arkeselResp.Code != "1000" && arkeselResp.Code != "SUCCESS" && arkeselResp.Code != "100" && arkeselResp.Code != "200") {
+			return fmt.Errorf("arkesel error: %s (code: %s)", arkeselResp.Message, arkeselResp.Code)
+		}
+	}
+
+	fmt.Printf("[Arkesel SMS Gateway] Successfully dispatched to %v via sender '%s'. Response: %s\n", validRecipients, senderID, string(bodyBytes))
 	return nil
 }

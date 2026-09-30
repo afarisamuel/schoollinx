@@ -160,13 +160,20 @@ func DecryptDeterministic(cryptoText string, keyString string) (string, error) {
 	return string(plainText), nil
 }
 
-// DeterministicDecryptedString is a helper that uses the default key to decrypt a deterministic string.
+// DeterministicDecryptedString is a helper that uses the default key to decrypt a deterministic or standard encrypted string, or returns the original string if plaintext.
 func DeterministicDecryptedString(val string) string {
-	decrypted, err := DecryptDeterministic(val, "")
-	if err != nil {
-		return val // Return original if not a valid encrypted string
+	if val == "" {
+		return ""
 	}
-	return decrypted
+	decrypted, err := DecryptDeterministic(val, "")
+	if err == nil && decrypted != "" {
+		return decrypted
+	}
+	decryptedNonDet, err2 := Decrypt(val, "")
+	if err2 == nil && decryptedNonDet != "" {
+		return decryptedNonDet
+	}
+	return val // Return original if not a valid encrypted string or already plaintext
 }
 
 func (des *DeterministicEncryptedString) Scan(value interface{}) error {

@@ -7,11 +7,13 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"log"
 	"math/big"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/domain"
 	"github.com/user/high-school-management/backend/internal/infrastructure/mailer"
 	"github.com/user/high-school-management/backend/pkg/encryption"
@@ -25,12 +27,21 @@ type guardianUseCase struct {
 	userRepo     domain.UserRepository
 	mailService  mailer.MailService
 	sms          domain.SMSProvider
+	tenants      domain.TenantRepository
 }
 
-func NewGuardianUseCase(repo domain.GuardianRepository, studentRepo domain.StudentRepository, fiscalRepo domain.FiscalRepository, userRepo domain.UserRepository, mailService mailer.MailService, sms ...domain.SMSProvider) domain.GuardianUseCase {
-	var smsProvider domain.SMSProvider
-	if len(sms) > 0 {
-		smsProvider = sms[0]
+func NewGuardianUseCase(
+	repo domain.GuardianRepository,
+	studentRepo domain.StudentRepository,
+	fiscalRepo domain.FiscalRepository,
+	userRepo domain.UserRepository,
+	mailService mailer.MailService,
+	sms domain.SMSProvider,
+	tenants ...domain.TenantRepository,
+) domain.GuardianUseCase {
+	var tenantRepo domain.TenantRepository
+	if len(tenants) > 0 {
+		tenantRepo = tenants[0]
 	}
 	return &guardianUseCase{
 		guardianRepo: repo,
@@ -38,8 +49,56 @@ func NewGuardianUseCase(repo domain.GuardianRepository, studentRepo domain.Stude
 		fiscalRepo:   fiscalRepo,
 		userRepo:     userRepo,
 		mailService:  mailService,
-		sms:          smsProvider,
+		sms:          sms,
+		tenants:      tenantRepo,
 	}
+}
+
+func (u *guardianUseCase) resolveSenderID(ctx context.Context) string {
+	tenantID, hasTenant := middleware.GetTenantIDFromContext(ctx)
+	if hasTenant && tenantID != uuid.Nil && u.tenants != nil {
+		if tenant, err := u.tenants.GetByID(ctx, tenantID); err == nil && tenant != nil {
+			if tenant.SMSSenderID != "" {
+				return tenant.SMSSenderID
+			}
+		}
+	}
+	return domain.DefaultSMSSenderID
+}
+
+func (u *guardianUseCase) sendSMSWithFallback(ctx context.Context, phone string, message string) {
+	if u.sms == nil || strings.TrimSpace(phone) == "" {
+		return
+	}
+	cleanPhone := strings.TrimSpace(phone)
+	primarySenderID := u.resolveSenderID(ctx)
+	recipients := []string{cleanPhone}
+	tenantID, _ := middleware.GetTenantIDFromContext(ctx)
+
+	go func(sID string, recs []string, msg string, tID uuid.UUID) {
+		bgCtx := context.Background()
+		err := u.sms.SendSMS(bgCtx, sID, recs, msg)
+		if err != nil {
+			log.Printf("[GUARDIAN SMS] Failed to send SMS via sender '%s' to %v: %v. Attempting fallback.", sID, recs, err)
+			fallbackID := domain.DefaultSMSSenderID
+			if sID == domain.DefaultSMSSenderID {
+				if tID != uuid.Nil && u.tenants != nil {
+					if t, _ := u.tenants.GetByID(bgCtx, tID); t != nil && t.SMSSenderID != "" {
+						fallbackID = t.SMSSenderID
+					}
+				}
+			}
+			if fallbackID != sID {
+				if fbErr := u.sms.SendSMS(bgCtx, fallbackID, recs, msg); fbErr != nil {
+					log.Printf("[GUARDIAN SMS] Fallback SMS via '%s' also failed to %v: %v", fallbackID, recs, fbErr)
+				} else {
+					log.Printf("[GUARDIAN SMS] Fallback SMS via '%s' sent successfully to %v", fallbackID, recs)
+				}
+			}
+		} else {
+			log.Printf("[GUARDIAN SMS] Credentials SMS successfully dispatched to %v via sender '%s'", recs, sID)
+		}
+	}(primarySenderID, recipients, message, tenantID)
 }
 
 func (u *guardianUseCase) GetAllGuardians(ctx context.Context) ([]domain.Guardian, error) {
@@ -137,10 +196,12 @@ func (u *guardianUseCase) CreateGuardian(ctx context.Context, guardian *domain.G
 
 		if u.sms != nil && hasPhone && tempPassword != "" {
 			phone := encryption.DeterministicDecryptedString(string(guardian.PhoneNumber))
-			smsMsg := fmt.Sprintf("Welcome to SchoolLinx! Your Parent Portal account is active. Login: %s, Temp Password: %s. Please log in and update your password.", identifier, tempPassword)
-			go func(p string, msg string) {
-				_ = u.sms.SendSMS(context.Background(), domain.DefaultSMSSenderID, []string{p}, msg)
-			}(phone, smsMsg)
+			loginUsername := identifier
+			if !hasEmail {
+				loginUsername = phone
+			}
+			smsMsg := fmt.Sprintf("Welcome to SchoolLinx! Your Parent Portal account is active. Login: %s, Temp Password: %s. Please log in and change your password.", loginUsername, tempPassword)
+			u.sendSMSWithFallback(ctx, phone, smsMsg)
 		}
 	}
 
@@ -212,10 +273,12 @@ func (u *guardianUseCase) ResetPassword(ctx context.Context, id uuid.UUID) (stri
 
 	if u.sms != nil && string(guardian.PhoneNumber) != "" {
 		phone := encryption.DeterministicDecryptedString(string(guardian.PhoneNumber))
-		smsMsg := fmt.Sprintf("SchoolLinx: Your Parent Portal password has been reset. New Temp Password: %s. Please log in and change your password.", newPassword)
-		go func(p string, msg string) {
-			_ = u.sms.SendSMS(context.Background(), domain.DefaultSMSSenderID, []string{p}, msg)
-		}(phone, smsMsg)
+		loginUsername := phone
+		if string(guardian.Email) != "" {
+			loginUsername = encryption.DeterministicDecryptedString(string(guardian.Email))
+		}
+		smsMsg := fmt.Sprintf("SchoolLinx: Your Parent Portal password has been reset. Login: %s, New Temp Password: %s. Please log in and update your password.", loginUsername, newPassword)
+		u.sendSMSWithFallback(ctx, phone, smsMsg)
 	}
 
 	return newPassword, nil
