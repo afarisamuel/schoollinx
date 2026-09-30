@@ -265,23 +265,7 @@ server {
         proxy_cache_bypass \$http_upgrade;
     }
     
-    location = /manifest.webmanifest {
-            proxy_pass http://localhost:8080;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            add_header Content-Type "application/manifest+json";
-    }
-
-    location = /tenant-manifest {
-            proxy_pass http://localhost:8080;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            add_header Content-Type "application/manifest+json";
-    }
+   
 }
 EOF
 
