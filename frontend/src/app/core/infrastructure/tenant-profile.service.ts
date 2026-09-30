@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+import { map } from 'rxjs/operators';
+
 export interface TenantProfile {
   id: string;
   name: string;
@@ -31,14 +33,42 @@ export interface TenantProfile {
 export class TenantProfileService {
   private http = inject(HttpClient);
 
+  private sanitizeUrl(url?: string): string {
+    if (!url) return '';
+    if (url.startsWith('http://api.schoollinx.com')) {
+      return url.replace('http://api.schoollinx.com', 'https://api.schoollinx.com');
+    }
+    if (url.startsWith('http://') && typeof window !== 'undefined' && window.location.protocol === 'https:') {
+      return url.replace(/^http:\/\//, 'https://');
+    }
+    return url;
+  }
+
+  private sanitizeProfile(profile: TenantProfile): TenantProfile {
+    if (!profile) return profile;
+    return {
+      ...profile,
+      logo_url: this.sanitizeUrl(profile.logo_url),
+      headmaster_signature_url: this.sanitizeUrl(profile.headmaster_signature_url)
+    };
+  }
+
   getProfile(): Observable<TenantProfile> {
-    return this.http.get<TenantProfile>('/api/tenant/profile');
+    return this.http.get<TenantProfile>('/api/tenant/profile').pipe(
+      map(p => this.sanitizeProfile(p))
+    );
   }
 
   /** No auth required — safe to call from public-facing pages. */
   getPublicInfo(): Observable<{ name: string; subdomain: string; logo_url: string; website?: string }> {
-    return this.http.get<{ name: string; subdomain: string; logo_url: string; website?: string }>('/api/public/tenant-info');
+    return this.http.get<{ name: string; subdomain: string; logo_url: string; website?: string }>('/api/public/tenant-info').pipe(
+      map(info => ({
+        ...info,
+        logo_url: this.sanitizeUrl(info.logo_url)
+      }))
+    );
   }
+
 
   updateProfile(profile: Partial<TenantProfile>): Observable<TenantProfile> {
     return this.http.put<TenantProfile>('/api/tenant/profile', profile);

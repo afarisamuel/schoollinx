@@ -69,23 +69,15 @@
           subdomain = localStorage.getItem('tenant_subdomain') || '';
         }
 
-        var manifestLink = document.getElementById('app-manifest') || document.querySelector('link[rel="manifest"]');
-        if (manifestLink) {
-          var manifestUrl = subdomain
-            ? ('/manifest.webmanifest?subdomain=' + encodeURIComponent(subdomain))
-            : '/manifest.webmanifest';
-          manifestLink.setAttribute('href', manifestUrl);
-        }
-
         // Register service worker as early as possible so Chrome can evaluate
         // the PWA installability criteria before the app fully bootstraps.
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function() {});
         }
-
       } catch (e) {}
     })();
   </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
