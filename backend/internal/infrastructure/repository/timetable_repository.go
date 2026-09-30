@@ -283,7 +283,7 @@ func (r *TimetableRepository) AutoGenerateClassTimetable(ctx context.Context, cl
 
 	// 2. Fetch all teachers and subjects for fallback assignment
 	var allTeachers []domain.Teacher
-	_ = r.db.WithContext(ctx).Find(&allTeachers).Error
+	_ = r.db.WithContext(ctx).Preload("Subjects").Find(&allTeachers).Error
 
 	var allSubjects []domain.Subject
 	_ = r.db.WithContext(ctx).Find(&allSubjects).Error
@@ -390,7 +390,9 @@ func (r *TimetableRepository) AutoGenerateClassTimetable(ctx context.Context, cl
 			IsPractical bool
 		}
 		var pairs []Pair
+		assignedSubjectMap := make(map[uuid.UUID]bool)
 
+		// 1. Check explicitly assigned teacher-subject pairings for this class
 		var assignments []domain.TeacherClassAssignment
 		_ = r.db.WithContext(ctx).Where("class_id = ?", class.ID).Find(&assignments).Error
 
@@ -398,37 +400,93 @@ func (r *TimetableRepository) AutoGenerateClassTimetable(ctx context.Context, cl
 			for _, a := range assignments {
 				if a.SubjectID != nil && *a.SubjectID != uuid.Nil {
 					name := subjectNameMap[*a.SubjectID]
-					sLower := strings.ToLower(name)
-					isCore := strings.Contains(sLower, "math") || strings.Contains(sLower, "english") || strings.Contains(sLower, "science") || strings.Contains(sLower, "social")
-					isPractical := strings.Contains(sLower, "ict") || strings.Contains(sLower, "art") || strings.Contains(sLower, "pe") || strings.Contains(sLower, "lab")
-					pairs = append(pairs, Pair{
-						SubjectID:   *a.SubjectID,
-						SubjectName: name,
-						TeacherID:   a.TeacherID,
-						IsCore:      isCore,
-						IsPractical: isPractical,
-					})
+					if name == "" {
+						var s domain.Subject
+						if err := r.db.WithContext(ctx).First(&s, "id = ?", *a.SubjectID).Error; err == nil {
+							name = s.Name
+							subjectNameMap[s.ID] = name
+						}
+					}
+					if name != "" && !assignedSubjectMap[*a.SubjectID] {
+						sLower := strings.ToLower(name)
+						isCore := strings.Contains(sLower, "math") || strings.Contains(sLower, "english") || strings.Contains(sLower, "science") || strings.Contains(sLower, "social")
+						isPractical := strings.Contains(sLower, "ict") || strings.Contains(sLower, "art") || strings.Contains(sLower, "pe") || strings.Contains(sLower, "lab") || strings.Contains(sLower, "computing")
+						pairs = append(pairs, Pair{
+							SubjectID:   *a.SubjectID,
+							SubjectName: name,
+							TeacherID:   a.TeacherID,
+							IsCore:      isCore,
+							IsPractical: isPractical,
+						})
+						assignedSubjectMap[*a.SubjectID] = true
+					}
 				}
 			}
 		}
 
-		// If no assignments exist, map available subjects to teachers
-		if len(pairs) == 0 {
-			for i, subj := range allSubjects {
-				var tID uuid.UUID
-				if len(allTeachers) > 0 {
-					tID = allTeachers[i%len(allTeachers)].ID
+		// 2. Check subjects assigned to this class via class_subjects (Class.Subjects)
+		var classSubjects []domain.Subject
+		_ = r.db.WithContext(ctx).Model(&class).Association("Subjects").Find(&classSubjects)
+
+		for _, subj := range classSubjects {
+			if !assignedSubjectMap[subj.ID] {
+				// Find if a teacher specializes in this subject, or use class teacher
+				var teacherID uuid.UUID
+				for _, t := range allTeachers {
+					for _, ts := range t.Subjects {
+						if ts.ID == subj.ID || strings.EqualFold(ts.Name, subj.Name) {
+							teacherID = t.ID
+							break
+						}
+					}
+					if teacherID != uuid.Nil {
+						break
+					}
 				}
+				if teacherID == uuid.Nil && class.TeacherID != nil {
+					teacherID = *class.TeacherID
+				}
+				if teacherID == uuid.Nil && len(allTeachers) > 0 {
+					teacherID = allTeachers[len(pairs)%len(allTeachers)].ID
+				}
+
 				sLower := strings.ToLower(subj.Name)
-				isCore := i < 4 || strings.Contains(sLower, "math") || strings.Contains(sLower, "english") || strings.Contains(sLower, "science")
-				isPractical := strings.Contains(sLower, "ict") || strings.Contains(sLower, "art") || strings.Contains(sLower, "pe")
+				isCore := strings.Contains(sLower, "math") || strings.Contains(sLower, "english") || strings.Contains(sLower, "science") || strings.Contains(sLower, "social")
+				isPractical := strings.Contains(sLower, "ict") || strings.Contains(sLower, "art") || strings.Contains(sLower, "pe") || strings.Contains(sLower, "lab") || strings.Contains(sLower, "computing")
 				pairs = append(pairs, Pair{
 					SubjectID:   subj.ID,
 					SubjectName: subj.Name,
-					TeacherID:   tID,
+					TeacherID:   teacherID,
 					IsCore:      isCore,
 					IsPractical: isPractical,
 				})
+				assignedSubjectMap[subj.ID] = true
+			}
+		}
+
+		// 3. Fallback ONLY if the class has NO assigned subjects configured at all
+		if len(pairs) == 0 {
+			// Find core subjects only (do NOT blast all platform subjects)
+			for i, subj := range allSubjects {
+				sLower := strings.ToLower(subj.Name)
+				isCore := strings.Contains(sLower, "math") || strings.Contains(sLower, "english") || strings.Contains(sLower, "science") || strings.Contains(sLower, "social")
+				isPractical := strings.Contains(sLower, "ict") || strings.Contains(sLower, "art") || strings.Contains(sLower, "pe") || strings.Contains(sLower, "computing")
+				if isCore || isPractical || i < 6 {
+					var tID uuid.UUID
+					if len(allTeachers) > 0 {
+						tID = allTeachers[i%len(allTeachers)].ID
+					}
+					pairs = append(pairs, Pair{
+						SubjectID:   subj.ID,
+						SubjectName: subj.Name,
+						TeacherID:   tID,
+						IsCore:      isCore,
+						IsPractical: isPractical,
+					})
+					if len(pairs) >= 6 {
+						break
+					}
+				}
 			}
 		}
 
@@ -441,6 +499,11 @@ func (r *TimetableRepository) AutoGenerateClassTimetable(ctx context.Context, cl
 
 		// Schedule across Days (Mon=1 to Fri=5) and Periods (1 to 8)
 		pairIdx := 0
+		maxDailyPerSubject := 2
+		if len(pairs) <= 4 {
+			maxDailyPerSubject = 3
+		}
+
 		for day := 1; day <= 5; day++ {
 			for pIdx, p := range periods {
 				classKey := fmt.Sprintf("%d_%s_%s", day, p.StartTime, class.ID.String())
@@ -452,7 +515,7 @@ func (r *TimetableRepository) AutoGenerateClassTimetable(ctx context.Context, cl
 				var selectedPair *Pair
 				var targetRoom string
 
-				for tries := 0; tries < len(pairs); tries++ {
+				for tries := 0; tries < len(pairs)*2; tries++ {
 					candidate := &pairs[(pairIdx+tries)%len(pairs)]
 					teacherKey := fmt.Sprintf("%d_%s_%s", day, p.StartTime, candidate.TeacherID.String())
 					subjDayKey := fmt.Sprintf("%d_%s", day, candidate.SubjectID.String())
@@ -464,12 +527,12 @@ func (r *TimetableRepository) AutoGenerateClassTimetable(ctx context.Context, cl
 					}
 
 					// Teacher fatigue protection: Max 3 consecutive periods without a break
-					if candidate.TeacherID != uuid.Nil && teacherConsecutive[teacherDayKey] >= 3 {
+					if candidate.TeacherID != uuid.Nil && teacherConsecutive[teacherDayKey] >= 3 && tries < len(pairs) {
 						continue
 					}
 
-					// Don't place same subject more than twice in one day
-					if daySubjectCount[subjDayKey] >= 2 {
+					// Don't place same subject more than daily limit (unless forced to fill all periods)
+					if daySubjectCount[subjDayKey] >= maxDailyPerSubject && tries < len(pairs) {
 						continue
 					}
 
