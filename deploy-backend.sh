@@ -264,28 +264,7 @@ server {
         proxy_set_header Host \$host;
         proxy_cache_bypass \$http_upgrade;
     }
-     location /ws/ {
-            proxy_pass http://backend:8080;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection "upgrade";
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_read_timeout 3600s;
-        }
-
-        # Static uploads (logos, signatures, etc.) served directly from backend
-        location /uploads/ {
-            proxy_pass http://backend:8080;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            expires 30d;
-            add_header Cache-Control "public, max-age=2592000";
-        }
+    
     location = /manifest.webmanifest {
             proxy_pass http://backend:8080;
             proxy_set_header Host $host;
