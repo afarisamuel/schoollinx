@@ -211,30 +211,69 @@ systemctl restart $APP_NAME
 
 echo -e "${YELLOW}Phase 6: Nginx Configuration${NC}"
 
+SSL_DIR="/etc/nginx/ssl/api.schoollinx.com"
+mkdir -p "$SSL_DIR"
+
+if [ ! -f "$SSL_DIR/cert.pem" ] || [ ! -f "$SSL_DIR/key.pem" ]; then
+    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}  SSL Certificate Required${NC}"
+    echo -e "${YELLOW}  Go to: Cloudflare Dashboard → SSL/TLS → Origin Server${NC}"
+    echo -e "${YELLOW}  → Create Certificate → copy the cert and key below.${NC}"
+    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+    echo "Paste your Cloudflare Origin Certificate (press Ctrl+D when done):"
+    cat > "$SSL_DIR/cert.pem"
+
+    echo "Paste your Cloudflare Origin Private Key (press Ctrl+D when done):"
+    cat > "$SSL_DIR/key.pem"
+
+    chmod 600 "$SSL_DIR/key.pem"
+    echo -e "${GREEN}✓ SSL certificate saved${NC}"
+else
+    echo -e "${GREEN}✓ SSL certificate already exists at $SSL_DIR${NC}"
+fi
+
     cat << 'NGINX_EOF' > /etc/nginx/sites-available/$APP_NAME
 # ── WebSocket connection upgrade map ────────────────────────────────────────
-# This MUST be in the http{} context. For sites-available configs included by
-# nginx, it is placed here at file scope — nginx accepts this.
 map $http_upgrade $connection_upgrade {
     default upgrade;
     ''      close;
 }
 
-# Backend API + WebSocket server (api.schoollinx.com)
-# Cloudflare terminates TLS and forwards plain HTTP on port 80 to origin.
-# Do NOT redirect 80 → 443 here — that creates an infinite redirect loop
-# when Cloudflare's SSL mode is Flexible or Full (non-strict).
+# HTTP → HTTPS redirect (for direct browser access)
+# Cloudflare with Full/Full-Strict SSL also hits 443 on origin, so this
+# redirect is only for clients bypassing Cloudflare.
 server {
     listen 80;
     server_name api.schoollinx.com;
+
+    if ($host ~* "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$") {
+        return 444;
+    }
+
+    return 301 https://$host$request_uri;
+}
+
+# HTTPS — Cloudflare Full/Full-Strict SSL with Origin Certificate
+# Cert files: paste your Cloudflare Origin Certificate at these paths.
+server {
+    listen 443 ssl http2;
+    server_name api.schoollinx.com;
+
+    ssl_certificate     /etc/nginx/ssl/api.schoollinx.com/cert.pem;
+    ssl_certificate_key /etc/nginx/ssl/api.schoollinx.com/key.pem;
+
+    # Modern TLS settings
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
 
     # Block raw IP-based access
     if ($host ~* "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$") {
         return 444;
     }
 
-    # ── WebSocket endpoints ─────────────────────────────────────────────────
-    # Must be listed before location / so they get the long timeout.
+    # ── WebSocket: /ws/chat and /ws/* ───────────────────────────────────────
     location /ws/ {
         proxy_pass          http://localhost:8080;
         proxy_http_version  1.1;
@@ -243,11 +282,12 @@ server {
         proxy_set_header    Host              $host;
         proxy_set_header    X-Real-IP         $remote_addr;
         proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header    X-Forwarded-Proto $http_x_forwarded_proto;
-        proxy_read_timeout  3600s;   # keep WS connections alive for 1 hour
+        proxy_set_header    X-Forwarded-Proto https;
+        proxy_read_timeout  3600s;
         proxy_send_timeout  3600s;
     }
 
+    # ── WebSocket: /api/ws (notifications hub) ──────────────────────────────
     location /api/ws {
         proxy_pass          http://localhost:8080;
         proxy_http_version  1.1;
@@ -256,19 +296,19 @@ server {
         proxy_set_header    Host              $host;
         proxy_set_header    X-Real-IP         $remote_addr;
         proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header    X-Forwarded-Proto $http_x_forwarded_proto;
+        proxy_set_header    X-Forwarded-Proto https;
         proxy_read_timeout  3600s;
         proxy_send_timeout  3600s;
     }
 
-    # ── Regular HTTP API ────────────────────────────────────────────────────
+    # ── Regular API ─────────────────────────────────────────────────────────
     location / {
         proxy_pass         http://localhost:8080;
         proxy_http_version 1.1;
         proxy_set_header   Host              $host;
         proxy_set_header   X-Real-IP         $remote_addr;
         proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header   X-Forwarded-Proto $http_x_forwarded_proto;
+        proxy_set_header   X-Forwarded-Proto https;
         proxy_read_timeout 120s;
     }
 }
