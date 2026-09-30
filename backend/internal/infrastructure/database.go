@@ -118,6 +118,12 @@ var TenantModels = []interface{}{
 	&domain.Subject{},
 	&domain.TeacherClassAssignment{},
 	&domain.TimetableEntry{},
+	&domain.TeacherUnavailability{},
+	&domain.TeacherAbsence{},
+	&domain.SubstituteLog{},
+	&domain.TimetableSnapshot{},
+	&domain.SubjectCognitiveWeight{},
+	&domain.TimetableTemplate{},
 	// Attendance
 	&domain.Attendance{},
 	&domain.StaffAttendance{},

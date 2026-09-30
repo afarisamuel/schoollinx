@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { GuardianService } from '../../../core/infrastructure/guardian/guardian.service';
@@ -6,6 +6,10 @@ import { Student } from '../../../core/domain/student.model';
 import { AcademicInsight } from '../../../core/infrastructure/insights/insights.service';
 import { FiscalService, FiscalRecord } from '../../../core/infrastructure/fiscal/fiscal.service';
 import { PaymentService } from '../../../core/infrastructure/payment/payment.service';
+import { TimetableService } from '../../../core/infrastructure/timetable/timetable.service';
+import { SubjectService } from '../../../core/infrastructure/curriculum/subject.service';
+import { TeacherService } from '../../../core/infrastructure/teacher/teacher.service';
+import { TimetableEntry } from '../../../core/domain/timetable.model';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 
 @Component({
@@ -19,6 +23,9 @@ export class GuardianPortalComponent implements OnInit {
     private guardianService = inject(GuardianService);
     private fiscalService = inject(FiscalService);
     private paymentService = inject(PaymentService);
+    private timetableService = inject(TimetableService);
+    private subjectService = inject(SubjectService);
+    private teacherService = inject(TeacherService);
     private dialog = inject(DialogService);
 
     children = signal<Student[]>([]);
@@ -39,12 +46,20 @@ export class GuardianPortalComponent implements OnInit {
         rate: 100
     });
 
+    // Timetable & Live Class Highlights State
+    timetableEntries = signal<TimetableEntry[]>([]);
+    timetableLoading = signal(false);
+    activeScheduleDay = signal<number>(new Date().getDay() >= 1 && new Date().getDay() <= 5 ? new Date().getDay() : 1);
+    subjectsMap = signal<Record<string, string>>({});
+    teachersMap = signal<Record<string, string>>({});
+
     isLoading = signal(true);
     insightsLoading = signal(false);
     fiscalLoading = signal(false);
     attendanceLoading = signal(false);
 
     ngOnInit() {
+        this.loadMetadata();
         this.guardianService.getChildren().subscribe({
             next: (data) => {
                 this.children.set(data);
@@ -57,12 +72,44 @@ export class GuardianPortalComponent implements OnInit {
         });
     }
 
+    loadMetadata() {
+        this.subjectService.getSubjects().subscribe(subjs => {
+            const map: Record<string, string> = {};
+            for (const s of subjs) if (s.id) map[s.id] = s.name;
+            this.subjectsMap.set(map);
+        });
+        this.teacherService.getTeachers().subscribe(teachers => {
+            const map: Record<string, string> = {};
+            for (const t of teachers) if (t.id) map[t.id] = `${t.first_name} ${t.last_name}`;
+            this.teachersMap.set(map);
+        });
+    }
+
     selectChild(child: Student) {
         this.selectedChild.set(child);
         this.loadInsights(child.id!);
         this.loadFiscalStatus(child.id!);
         this.loadAttendance(child.id!);
         this.loadWallet(child.id!);
+        if (child.class_id) {
+            this.loadTimetable(child.class_id);
+        } else {
+            this.timetableEntries.set([]);
+        }
+    }
+
+    loadTimetable(classId: string) {
+        this.timetableLoading.set(true);
+        this.timetableService.getClassTimetable(classId).subscribe({
+            next: (entries) => {
+                this.timetableEntries.set(entries);
+                this.timetableLoading.set(false);
+            },
+            error: () => {
+                this.timetableEntries.set([]);
+                this.timetableLoading.set(false);
+            }
+        });
     }
 
     loadWallet(studentId: string) {
@@ -238,4 +285,31 @@ export class GuardianPortalComponent implements OnInit {
             }
         });
     }
+
+    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+
+    filteredTimetableEntries = computed(() => {
+        const day = this.activeScheduleDay();
+        return this.timetableEntries()
+            .filter(e => e.day_of_week === day)
+            .sort((a, b) => a.start_time.localeCompare(b.start_time));
+    });
+
+    getSessionStatus(entry: TimetableEntry): 'active' | 'upcoming' | 'completed' {
+        const now = new Date();
+        const curMinutes = now.getHours() * 60 + now.getMinutes();
+        const [sh, sm] = (entry.start_time || '00:00').split(':').map(Number);
+        const [eh, em] = (entry.end_time || '00:00').split(':').map(Number);
+        const startMin = sh * 60 + sm;
+        const endMin = eh * 60 + em;
+
+        if (curMinutes >= startMin && curMinutes <= endMin) return 'active';
+        if (curMinutes < startMin) return 'upcoming';
+        return 'completed';
+    }
+
+    selectScheduleDay(day: number) {
+        this.activeScheduleDay.set(day);
+    }
 }
+

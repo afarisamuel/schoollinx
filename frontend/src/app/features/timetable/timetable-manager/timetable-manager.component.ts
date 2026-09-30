@@ -7,7 +7,23 @@ import { ClassService, Class } from '../../../core/infrastructure/curriculum/cla
 import { SubjectService, Subject } from '../../../core/infrastructure/curriculum/subject.service';
 import { TeacherService } from '../../../core/infrastructure/teacher/teacher.service';
 import { Teacher } from '../../../core/domain/teacher.model';
-import { TimetableEntry } from '../../../core/domain/timetable.model';
+import {
+    TimetableEntry,
+    TeacherUnavailability,
+    TimetableAuditReport,
+    TimetableConflict,
+    RoomOccupancySlot,
+    OptimizationResult,
+    ExamInvigilationReport,
+    ExamSessionWithInvigilation,
+    TeacherAbsence,
+    SubstituteLog,
+    TimetableSnapshot,
+    SubjectCognitiveWeight,
+    TimetableTemplate,
+    InvigilatorDutyLoadReport
+} from '../../../core/domain/timetable.model';
+import { TenantProfileService, TenantProfile } from '../../../core/infrastructure/tenant-profile.service';
 import { DialogService } from '../../../shared/ui/dialog/dialog.service';
 
 export interface SchedulePeriod {
@@ -38,6 +54,7 @@ export class TimetableManagerComponent implements OnInit {
     private classService = inject(ClassService);
     private subjectService = inject(SubjectService);
     private teacherService = inject(TeacherService);
+    private tenantProfileService = inject(TenantProfileService);
     private dialog = inject(DialogService);
     private platformId = inject(PLATFORM_ID);
 
@@ -46,14 +63,116 @@ export class TimetableManagerComponent implements OnInit {
     teachers = signal<Teacher[]>([]);
     entries = signal<TimetableEntry[]>([]);
     classCounts = signal<Record<string, number>>({});
+    tenantProfile = signal<TenantProfile | null>(null);
 
     selectedClassId = signal<string>('');
-    viewMode = signal<'grid' | 'list'>('grid');
+    viewMode = signal<'grid' | 'list' | 'master' | 'rooms'>('grid');
     isAdding = signal(false);
     isSaving = signal(false);
     showCopyModal = signal(false);
     copySourceClassId = signal('');
     isCopying = signal(false);
+
+    // Drag-and-Drop State
+    draggedEntry = signal<TimetableEntry | null>(null);
+    isDragging = signal(false);
+
+    // Master Heatmap & Room Occupancy State
+    masterDay = signal(1);
+    masterSchedule = signal<TimetableEntry[]>([]);
+    roomOccupancy = signal<RoomOccupancySlot[]>([]);
+    isLoadingMaster = signal(false);
+    isLoadingRooms = signal(false);
+
+    // AI Simulated Annealing Optimizer State
+    isOptimizingAI = signal(false);
+    optimizationResult = signal<OptimizationResult | null>(null);
+    showOptimizationModal = signal(false);
+
+    // Exam Invigilation & Seating State
+    showInvigilationModal = signal(false);
+    isInvigilating = signal(false);
+    invigilationReport = signal<ExamInvigilationReport | null>(null);
+
+    // Calendar Subscription Feed State
+    showICSFeedModal = signal(false);
+    selectedTeacherForFeed = signal('');
+    copiedFeedback = signal(false);
+
+    // Auto-Scheduler State
+    showAutoScheduleModal = signal(false);
+    autoScheduleScope = signal<'single' | 'all'>('single');
+    autoScheduleClearExisting = signal(true);
+    isAutoScheduling = signal(false);
+    isClearing = signal(false);
+
+    // Live Timetable Conflict Audit State
+    auditReport = signal<TimetableAuditReport | null>(null);
+    isAuditing = signal(false);
+    showAuditModal = signal(false);
+
+    // Teacher Availability / Off-Period Preferences State
+    showUnavailabilityModal = signal(false);
+    unavailabilities = signal<TeacherUnavailability[]>([]);
+    isSavingUnavailability = signal(false);
+    draftUnavailability = {
+        teacher_id: '',
+        day_of_week: 1,
+        start_time: '08:00',
+        end_time: '12:00',
+        reason: 'Part-time off-duty'
+    };
+
+    // Digest Dispatch State
+    isSendingDigest = signal(false);
+
+    // Relief / Substitute Teacher Finder State
+    showReliefModal = signal(false);
+    reliefDay = signal(1);
+    reliefPeriod = signal<SchedulePeriod | null>(null);
+    reliefSlotStartTime = signal('08:00');
+    reliefSlotEndTime = signal('08:45');
+    reliefSubjectName = signal('');
+    availableReliefTeachers = signal<any[]>([]);
+    isLoadingRelief = signal(false);
+    selectedReliefEntry = signal<TimetableEntry | null>(null);
+
+    // Recommendation #4: Teacher Absences & Substitute Management
+    showAbsenceModal = signal(false);
+    absences = signal<TeacherAbsence[]>([]);
+    substituteLogs = signal<SubstituteLog[]>([]);
+    isLoadingAbsences = signal(false);
+    isSavingAbsence = signal(false);
+    isAutoSubstituting = signal(false);
+    draftAbsence = {
+        teacher_id: '',
+        absent_date: new Date().toISOString().substring(0, 10),
+        reason: 'Medical Leave'
+    };
+
+    // Recommendation #6: Timetable Snapshots & Version History
+    showSnapshotModal = signal(false);
+    snapshots = signal<TimetableSnapshot[]>([]);
+    isLoadingSnapshots = signal(false);
+    isCreatingSnapshot = signal(false);
+    draftSnapshotLabel = signal('');
+
+    // Recommendation #7: Subject Cognitive Weights
+    showCognitiveModal = signal(false);
+    cognitiveWeights = signal<SubjectCognitiveWeight[]>([]);
+    isLoadingCognitive = signal(false);
+
+    // Recommendation #8: Timetable Templates
+    showTemplateModal = signal(false);
+    templates = signal<TimetableTemplate[]>([]);
+    isLoadingTemplates = signal(false);
+    isSavingTemplate = signal(false);
+    draftTemplateName = signal('');
+
+    // Recommendation #10: Invigilator Duty Load Balancing
+    invigilatorDutyReport = signal<InvigilatorDutyLoadReport | null>(null);
+    isLoadingDutyReport = signal(false);
+    isRebalancingInvigilators = signal(false);
 
     successMsg = signal('');
     errorMsg = signal('');
@@ -154,15 +273,19 @@ export class TimetableManagerComponent implements OnInit {
         forkJoin({
             classes: this.classService.getClasses(),
             subjects: this.subjectService.getSubjects(),
-            teachers: this.teacherService.getTeachers()
-        }).subscribe(({ classes, subjects, teachers }) => {
+            teachers: this.teacherService.getTeachers(),
+            profile: this.tenantProfileService.getProfile()
+        }).subscribe(({ classes, subjects, teachers, profile }) => {
             this.classes.set(classes);
             this.subjects.set(subjects);
             this.teachers.set(teachers);
+            this.tenantProfile.set(profile);
 
             if (classes.length > 0 && !this.selectedClassId()) {
                 this.selectClass(classes[0].id!);
             }
+            this.runAudit();
+            this.loadUnavailabilities();
         });
     }
 
@@ -177,6 +300,7 @@ export class TimetableManagerComponent implements OnInit {
         this.timetableService.getClassTimetable(cid).subscribe(data => {
             this.entries.set(data);
             this.classCounts.update(map => ({ ...map, [cid]: data.length }));
+            this.runAudit();
         });
     }
 
@@ -407,6 +531,833 @@ export class TimetableManagerComponent implements OnInit {
         }
     }
 
+    openAutoScheduleModal() {
+        this.showAutoScheduleModal.set(true);
+    }
+
+    closeAutoScheduleModal() {
+        this.showAutoScheduleModal.set(false);
+    }
+
+    runAutoSchedule() {
+        this.isAutoScheduling.set(true);
+        const targetClassId = this.autoScheduleScope() === 'single' ? this.selectedClassId() : undefined;
+        
+        this.timetableService.autoGenerateTimetable(targetClassId, this.autoScheduleClearExisting()).subscribe({
+            next: (res) => {
+                this.isAutoScheduling.set(false);
+                this.showAutoScheduleModal.set(false);
+                this.dialog.alert(
+                    `Successfully generated ${res.entries_count} conflict-free instructional sessions across ${res.classes_count} class(es)!`,
+                    'Auto-Schedule Complete',
+                    'success'
+                );
+                this.onClassChange();
+                this.refreshAllClassCounts();
+            },
+            error: (err) => {
+                this.isAutoScheduling.set(false);
+                this.dialog.alert(err?.error?.error || 'Failed to auto-generate timetable schedule.', 'Error', 'danger');
+            }
+        });
+    }
+
+    clearSchedule() {
+        const classId = this.selectedClassId();
+        const className = this.selectedClass()?.name || 'this class';
+        if (!classId) return;
+
+        this.dialog.confirm(
+            `Are you sure you want to completely clear the weekly timetable schedule for ${className}? This action cannot be undone.`,
+            'Clear Timetable Schedule',
+            'warning',
+            'Clear Schedule'
+        ).subscribe((confirmed) => {
+            if (confirmed) {
+                this.isClearing.set(true);
+                this.timetableService.clearClassTimetable(classId).subscribe({
+                    next: () => {
+                        this.isClearing.set(false);
+                        this.successMsg.set(`Schedule for ${className} cleared.`);
+                        this.onClassChange();
+                        this.refreshAllClassCounts();
+                        setTimeout(() => this.successMsg.set(''), 3000);
+                    },
+                    error: (err) => {
+                        this.isClearing.set(false);
+                        this.dialog.alert(err?.error?.error || 'Failed to clear schedule.', 'Error', 'danger');
+                    }
+                });
+            }
+        });
+    }
+
+    refreshAllClassCounts() {
+        this.classes().forEach(c => {
+            if (c.id) {
+                this.timetableService.getClassTimetable(c.id).subscribe(data => {
+                    this.classCounts.update(map => ({ ...map, [c.id!]: data.length }));
+                });
+            }
+        });
+    }
+
+    openReliefFinder(day: number, period: SchedulePeriod, entry?: TimetableEntry) {
+        this.reliefDay.set(day);
+        this.reliefPeriod.set(period);
+        this.reliefSlotStartTime.set(period.startTime);
+        this.reliefSlotEndTime.set(period.endTime);
+        this.selectedReliefEntry.set(entry || null);
+        if (entry && entry.subject_id) {
+            this.reliefSubjectName.set(this.subjectMap()[entry.subject_id] || '');
+        } else {
+            this.reliefSubjectName.set('');
+        }
+        this.showReliefModal.set(true);
+        this.loadAvailableReliefTeachers();
+    }
+
+    closeReliefFinder() {
+        this.showReliefModal.set(false);
+        this.selectedReliefEntry.set(null);
+    }
+
+    loadAvailableReliefTeachers() {
+        this.isLoadingRelief.set(true);
+        this.timetableService.getAvailableTeachers(this.reliefDay(), this.reliefSlotStartTime(), this.reliefSlotEndTime()).subscribe({
+            next: (teachers) => {
+                this.availableReliefTeachers.set(teachers);
+                this.isLoadingRelief.set(false);
+            },
+            error: () => {
+                this.availableReliefTeachers.set([]);
+                this.isLoadingRelief.set(false);
+            }
+        });
+    }
+
+    assignReliefTeacher(teacher: any) {
+        const entry = this.selectedReliefEntry();
+        if (!entry || !entry.id) {
+            this.draft = {
+                day_of_week: this.reliefDay(),
+                start_time: this.reliefSlotStartTime(),
+                end_time: this.reliefSlotEndTime(),
+                teacher_id: teacher.id,
+                room: this.selectedClass()?.name || ''
+            };
+            this.isAdding.set(true);
+            this.closeReliefFinder();
+            return;
+        }
+
+        this.timetableService.removeEntry(entry.id).subscribe({
+            next: () => {
+                const updated: TimetableEntry = {
+                    class_id: entry.class_id,
+                    subject_id: entry.subject_id,
+                    teacher_id: teacher.id,
+                    day_of_week: entry.day_of_week,
+                    start_time: entry.start_time,
+                    end_time: entry.end_time,
+                    room: entry.room || ''
+                };
+                this.timetableService.addEntry(updated).subscribe({
+                    next: () => {
+                        this.successMsg.set(`Assigned ${teacher.first_name} ${teacher.last_name} as substitute teacher!`);
+                        this.closeReliefFinder();
+                        this.onClassChange();
+                        setTimeout(() => this.successMsg.set(''), 3500);
+                    },
+                    error: (err) => {
+                        this.dialog.alert(err?.error?.error || 'Failed to update substitute teacher.', 'Error', 'danger');
+                    }
+                });
+            },
+            error: (err) => {
+                this.dialog.alert(err?.error?.error || 'Failed to replace teacher.', 'Error', 'danger');
+            }
+        });
+    }
+
+    exportToICal() {
+        const cls = this.selectedClass();
+        const entries = this.entries();
+        if (!cls || entries.length === 0) {
+            this.dialog.alert('No scheduled sessions found for this class to export.', 'Empty Timetable', 'info');
+            return;
+        }
+
+        const byDays: Record<number, string> = { 1: 'MO', 2: 'TU', 3: 'WE', 4: 'TH', 5: 'FR' };
+        
+        let ics = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//SchoolLinx//Institutional Timetable//EN',
+            'CALSCALE:GREGORIAN',
+            'METHOD:PUBLISH',
+            `X-WR-CALNAME:${cls.name} Class Schedule`,
+            'X-WR-TIMEZONE:Africa/Accra'
+        ];
+
+        // Anchor date: next Monday
+        const now = new Date();
+        const monday = new Date(now);
+        monday.setDate(now.getDate() + ((1 + 7 - now.getDay()) % 7));
+
+        entries.forEach((e, idx) => {
+            const subjName = this.subjectMap()[e.subject_id] || 'Instructional Period';
+            const teacherName = this.teacherMap()[e.teacher_id] || 'Staff';
+            const byDay = byDays[e.day_of_week] || 'MO';
+
+            const [startH, startM] = (e.start_time || '08:00').split(':').map(Number);
+            const [endH, endM] = (e.end_time || '08:45').split(':').map(Number);
+
+            const sessionDate = new Date(monday);
+            sessionDate.setDate(monday.getDate() + (e.day_of_week - 1));
+
+            const pad = (n: number) => n < 10 ? '0' + n : '' + n;
+            const dtStart = `${sessionDate.getFullYear()}${pad(sessionDate.getMonth() + 1)}${pad(sessionDate.getDate())}T${pad(startH)}${pad(startM)}00`;
+            const dtEnd = `${sessionDate.getFullYear()}${pad(sessionDate.getMonth() + 1)}${pad(sessionDate.getDate())}T${pad(endH)}${pad(endM)}00`;
+
+            ics.push(
+                'BEGIN:VEVENT',
+                `UID:schoollinx-timetable-${e.id || idx}-${cls.id}@schoollinx.com`,
+                `DTSTAMP:${dtStart}Z`,
+                `DTSTART;TZID=Africa/Accra:${dtStart}`,
+                `DTEND;TZID=Africa/Accra:${dtEnd}`,
+                `RRULE:FREQ=WEEKLY;BYDAY=${byDay}`,
+                `SUMMARY:${subjName} (${cls.name})`,
+                `DESCRIPTION:Instructor: ${teacherName}\\nClass: ${cls.name}\\nRoom: ${e.room || 'Main Classroom'}`,
+                `LOCATION:${e.room || cls.name}`,
+                'STATUS:CONFIRMED',
+                'END:VEVENT'
+            );
+        });
+
+        ics.push('END:VCALENDAR');
+        const icsBlob = new Blob([ics.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+        const url = window.URL.createObjectURL(icsBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Timetable_${cls.name.replace(/\s+/g, '_')}.ics`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+    }
+
     dayLabel(n: number) { return this.days[n - 1] ?? ''; }
+
+    runAudit() {
+        this.isAuditing.set(true);
+        this.timetableService.auditTimetable().subscribe({
+            next: (report) => {
+                this.auditReport.set(report);
+                this.isAuditing.set(false);
+            },
+            error: () => {
+                this.isAuditing.set(false);
+            }
+        });
+    }
+
+    openAuditModal() {
+        this.runAudit();
+        this.showAuditModal.set(true);
+    }
+
+    closeAuditModal() {
+        this.showAuditModal.set(false);
+    }
+
+    getEntryConflict(day: number, period: SchedulePeriod): TimetableConflict | undefined {
+        const report = this.auditReport();
+        if (!report || !report.conflicts) return undefined;
+        const cid = this.selectedClassId();
+        return report.conflicts.find(c =>
+            c.day_of_week === day &&
+            c.start_time === period.startTime &&
+            (!c.class_id || c.class_id === cid)
+        );
+    }
+
+    openUnavailabilityModal() {
+        this.loadUnavailabilities();
+        this.showUnavailabilityModal.set(true);
+    }
+
+    closeUnavailabilityModal() {
+        this.showUnavailabilityModal.set(false);
+    }
+
+    loadUnavailabilities() {
+        this.timetableService.getTeacherUnavailabilities().subscribe({
+            next: (list) => this.unavailabilities.set(list),
+            error: () => this.unavailabilities.set([])
+        });
+    }
+
+    saveUnavailability() {
+        if (!this.draftUnavailability.teacher_id) {
+            this.dialog.alert('Please select a teacher.', 'Required Field', 'warning');
+            return;
+        }
+        this.isSavingUnavailability.set(true);
+        this.timetableService.addTeacherUnavailability({
+            teacher_id: this.draftUnavailability.teacher_id,
+            day_of_week: Number(this.draftUnavailability.day_of_week),
+            start_time: this.draftUnavailability.start_time || undefined,
+            end_time: this.draftUnavailability.end_time || undefined,
+            reason: this.draftUnavailability.reason
+        }).subscribe({
+            next: () => {
+                this.isSavingUnavailability.set(false);
+                this.loadUnavailabilities();
+                this.runAudit();
+                this.draftUnavailability = {
+                    teacher_id: '',
+                    day_of_week: 1,
+                    start_time: '08:00',
+                    end_time: '12:00',
+                    reason: 'Part-time off-duty'
+                };
+            },
+            error: (err) => {
+                this.isSavingUnavailability.set(false);
+                this.dialog.alert(err?.error?.error || 'Failed to save unavailability constraint.', 'Error', 'danger');
+            }
+        });
+    }
+
+    removeUnavailability(id?: string) {
+        if (!id) return;
+        this.timetableService.deleteTeacherUnavailability(id).subscribe({
+            next: () => {
+                this.loadUnavailabilities();
+                this.runAudit();
+            }
+        });
+    }
+
+    sendTeacherDigest() {
+        const todayDay = new Date().getDay() || 1; // 1 (Mon) to 5 (Fri)
+        const adjustedDay = todayDay > 5 ? 1 : todayDay;
+        const dayTitle = this.days[adjustedDay - 1];
+
+        this.dialog.confirm(
+            `Dispatch today's (${dayTitle}) personalized schedule digest to all academic faculty members via SMS / Notification?`,
+            'Dispatch Teacher Daily Digest',
+            'info',
+            'Send Digest'
+        ).subscribe((confirmed) => {
+            if (confirmed) {
+                this.isSendingDigest.set(true);
+                this.timetableService.sendDailyDigest(adjustedDay).subscribe({
+                    next: (res) => {
+                        this.isSendingDigest.set(false);
+                        this.dialog.alert(
+                            `Successfully sent today's instructional schedule summary to ${res.dispatched_count} active teacher(s)!`,
+                            'Schedule Digest Sent',
+                            'success'
+                        );
+                    },
+                    error: (err) => {
+                        this.isSendingDigest.set(false);
+                        this.dialog.alert(err?.error?.error || 'Failed to dispatch teacher schedule digests.', 'Error', 'danger');
+                    }
+                });
+            }
+        });
+    }
+
+    quickFixConflict(conflict: TimetableConflict) {
+        this.closeAuditModal();
+        const period = this.periods.find(p => p.startTime === conflict.start_time) || {
+            id: 'slot',
+            label: `Slot (${conflict.start_time})`,
+            startTime: conflict.start_time,
+            endTime: conflict.end_time
+        };
+        const entry = this.entries().find(e => e.id === conflict.entry_id || (e.day_of_week === conflict.day_of_week && e.start_time === conflict.start_time));
+        this.openReliefFinder(conflict.day_of_week, period, entry);
+    }
+
+    // ═══════════════════════ DRAG AND DROP HANDLERS ═══════════════════════
+    onDragStart(event: DragEvent, entry: TimetableEntry) {
+        this.draggedEntry.set(entry);
+        this.isDragging.set(true);
+        if (event.dataTransfer) {
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', entry.id || '');
+        }
+    }
+
+    onDragOver(event: DragEvent) {
+        event.preventDefault();
+        if (event.dataTransfer) {
+            event.dataTransfer.dropEffect = 'move';
+        }
+    }
+
+    onDragEnd() {
+        this.draggedEntry.set(null);
+        this.isDragging.set(false);
+    }
+
+    onDrop(event: DragEvent, targetDay: number, targetPeriod: SchedulePeriod) {
+        event.preventDefault();
+        const dragged = this.draggedEntry();
+        this.onDragEnd();
+        if (!dragged || !dragged.id || targetPeriod.isBreak) return;
+        if (dragged.day_of_week === targetDay && dragged.start_time === targetPeriod.startTime) {
+            return;
+        }
+
+        this.timetableService.moveOrSwapSlot(
+            dragged.id,
+            targetDay,
+            targetPeriod.startTime,
+            targetPeriod.endTime,
+            dragged.room
+        ).subscribe({
+            next: (res) => {
+                this.successMsg.set(res.swapped ? 'Timetable slots swapped successfully!' : 'Timetable slot moved successfully!');
+                this.onClassChange();
+                this.runAudit();
+                setTimeout(() => this.successMsg.set(''), 3000);
+            },
+            error: (err) => {
+                this.dialog.alert(err?.error?.error || 'Failed to move timetable slot due to scheduling conflict.', 'Move Conflict', 'warning');
+            }
+        });
+    }
+
+    // ═══════════════════════ MASTER HEATMAP & ROOM OCCUPANCY ═══════════════════════
+    loadMasterSchedule(day?: number) {
+        if (day !== undefined) this.masterDay.set(day);
+        this.isLoadingMaster.set(true);
+        this.timetableService.getMasterSchedule(this.masterDay()).subscribe({
+            next: (entries) => {
+                this.masterSchedule.set(entries);
+                this.isLoadingMaster.set(false);
+            },
+            error: () => this.isLoadingMaster.set(false)
+        });
+    }
+
+    loadRoomOccupancy(day?: number) {
+        if (day !== undefined) this.masterDay.set(day);
+        this.isLoadingRooms.set(true);
+        this.timetableService.getRoomOccupancy(this.masterDay()).subscribe({
+            next: (slots) => {
+                this.roomOccupancy.set(slots);
+                this.isLoadingRooms.set(false);
+            },
+            error: () => this.isLoadingRooms.set(false)
+        });
+    }
+
+    setMasterDay(day: number) {
+        this.masterDay.set(day);
+        if (this.viewMode() === 'master') {
+            this.loadMasterSchedule(day);
+        } else if (this.viewMode() === 'rooms') {
+            this.loadRoomOccupancy(day);
+        }
+    }
+
+    switchViewMode(mode: 'grid' | 'list' | 'master' | 'rooms') {
+        this.viewMode.set(mode);
+        if (mode === 'master') {
+            this.loadMasterSchedule(this.masterDay());
+        } else if (mode === 'rooms') {
+            this.loadRoomOccupancy(this.masterDay());
+        }
+    }
+
+    getMasterEntry(classId: string, period: SchedulePeriod): TimetableEntry | undefined {
+        return this.masterSchedule().find(e => e.class_id === classId && e.start_time === period.startTime);
+    }
+
+    getUniqueRooms(): string[] {
+        const set = new Set<string>();
+        for (const slot of this.roomOccupancy()) {
+            if (slot.room) set.add(slot.room);
+        }
+        return Array.from(set).sort();
+    }
+
+    getRoomSlot(room: string, period: SchedulePeriod): RoomOccupancySlot | undefined {
+        return this.roomOccupancy().find(s => s.room === room && s.start_time === period.startTime);
+    }
+
+    // ═══════════════════════ AI OPTIMIZER ═══════════════════════
+    runAIOptimizer(classOnly = false) {
+        const classId = classOnly ? this.selectedClassId() : undefined;
+        const targetName = classOnly && this.selectedClass() ? this.selectedClass()?.name : 'All School Classes';
+        
+        this.dialog.confirm(
+            `Execute AI Simulated Annealing multi-objective solver to resolve teacher clashes, balance cognitive subject loads, and optimize room utilization for ${targetName}?`,
+            'AI Timetable Optimizer',
+            'info',
+            'Run AI Optimizer'
+        ).subscribe(confirmed => {
+            if (confirmed) {
+                this.isOptimizingAI.set(true);
+                this.timetableService.optimizeAI(classId).subscribe({
+                    next: (res) => {
+                        this.isOptimizingAI.set(false);
+                        this.optimizationResult.set(res);
+                        this.showOptimizationModal.set(true);
+                        this.onClassChange();
+                        this.refreshAllClassCounts();
+                        this.runAudit();
+                    },
+                    error: (err) => {
+                        this.isOptimizingAI.set(false);
+                        this.dialog.alert(err?.error?.error || 'AI Optimization solver failed.', 'Optimizer Error', 'danger');
+                    }
+                });
+            }
+        });
+    }
+
+    closeOptimizationModal() {
+        this.showOptimizationModal.set(false);
+    }
+
+    // ═══════════════════════ ICS CALENDAR FEEDS ═══════════════════════
+    openICSFeedModal() {
+        if (!this.selectedTeacherForFeed() && this.teachers().length > 0) {
+            this.selectedTeacherForFeed.set(this.teachers()[0].id || '');
+        }
+        this.showICSFeedModal.set(true);
+    }
+
+    closeICSFeedModal() {
+        this.showICSFeedModal.set(false);
+    }
+
+    getClassFeedUrl(): string {
+        const clsId = this.selectedClassId();
+        if (!clsId) return '';
+        return this.timetableService.getClassFeedUrl(clsId);
+    }
+
+    getTeacherFeedUrl(): string {
+        const tId = this.selectedTeacherForFeed();
+        if (!tId) return '';
+        return this.timetableService.getTeacherFeedUrl(tId);
+    }
+
+    copyToClipboard(url: string) {
+        if (!url) return;
+        navigator.clipboard.writeText(url).then(() => {
+            this.copiedFeedback.set(true);
+            setTimeout(() => this.copiedFeedback.set(false), 2500);
+        });
+    }
+
+    // ═══════════════════════ EXAM INVIGILATION ═══════════════════════
+    openInvigilationModal() {
+        this.showInvigilationModal.set(true);
+    }
+
+    closeInvigilationModal() {
+        this.showInvigilationModal.set(false);
+    }
+
+    runAutoInvigilation() {
+        const periodId = this.classes()[0]?.id || '00000000-0000-0000-0000-000000000000';
+        this.isInvigilating.set(true);
+        this.timetableService.autoAssignExamInvigilators(periodId).subscribe({
+            next: (report) => {
+                this.invigilationReport.set(report);
+                this.isInvigilating.set(false);
+                this.loadInvigilatorDutyReport();
+            },
+            error: (err) => {
+                this.isInvigilating.set(false);
+                this.dialog.alert(err?.error?.error || 'Failed to auto-assign invigilators.', 'Invigilation Error', 'danger');
+            }
+        });
+    }
+
+    loadInvigilatorDutyReport() {
+        const periodId = this.classes()[0]?.id || '00000000-0000-0000-0000-000000000000';
+        this.isLoadingDutyReport.set(true);
+        this.timetableService.getInvigilatorDutyLoadReport(periodId).subscribe({
+            next: (report) => {
+                this.invigilatorDutyReport.set(report);
+                this.isLoadingDutyReport.set(false);
+            },
+            error: () => this.isLoadingDutyReport.set(false)
+        });
+    }
+
+    rebalanceInvigilatorDuties() {
+        const periodId = this.classes()[0]?.id || '00000000-0000-0000-0000-000000000000';
+        this.isRebalancingInvigilators.set(true);
+        this.timetableService.rebalanceInvigilators(periodId, 3).subscribe({
+            next: (res) => {
+                this.isRebalancingInvigilators.set(false);
+                this.dialog.alert(res.message || 'Invigilation duties rebalanced successfully.', 'Duties Rebalanced', 'info');
+                this.loadInvigilatorDutyReport();
+                this.runAutoInvigilation();
+            },
+            error: (err) => {
+                this.isRebalancingInvigilators.set(false);
+                this.dialog.alert(err?.error?.error || 'Failed to rebalance invigilators.', 'Error', 'danger');
+            }
+        });
+    }
+
+    // ═══════════════════════ ABSENCE & SUBSTITUTES (Rec #4) ═══════════════════════
+    openAbsenceModal() {
+        if (!this.draftAbsence.teacher_id && this.teachers().length > 0) {
+            this.draftAbsence.teacher_id = this.teachers()[0].id || '';
+        }
+        this.showAbsenceModal.set(true);
+        this.loadAbsences();
+        this.loadSubstituteLogs();
+    }
+
+    closeAbsenceModal() {
+        this.showAbsenceModal.set(false);
+    }
+
+    loadAbsences() {
+        this.isLoadingAbsences.set(true);
+        this.timetableService.listAbsences().subscribe({
+            next: (data) => {
+                this.absences.set(data || []);
+                this.isLoadingAbsences.set(false);
+            },
+            error: () => this.isLoadingAbsences.set(false)
+        });
+    }
+
+    loadSubstituteLogs() {
+        this.timetableService.getSubstituteLogs(30).subscribe({
+            next: (logs) => this.substituteLogs.set(logs || []),
+            error: () => {}
+        });
+    }
+
+    recordAbsence() {
+        if (!this.draftAbsence.teacher_id) {
+            this.dialog.alert('Please select an absent teacher.', 'Missing Information', 'danger');
+            return;
+        }
+        this.isSavingAbsence.set(true);
+        this.timetableService.recordAbsence(
+            this.draftAbsence.teacher_id,
+            this.draftAbsence.absent_date,
+            this.draftAbsence.reason
+        ).subscribe({
+            next: (res) => {
+                this.isSavingAbsence.set(false);
+                const affectedCount = res.affected_slots?.length || 0;
+                const subsCount = res.available_substitutes?.length || 0;
+                this.dialog.alert(
+                    `Absence recorded for ${this.teacherMap()[this.draftAbsence.teacher_id]}. Found ${affectedCount} affected periods and ${subsCount} available candidate substitutes.`,
+                    'Absence Logged',
+                    'info'
+                );
+                this.loadAbsences();
+                if (res.absence?.id) {
+                    this.autoSubstitute(res.absence.id);
+                }
+            },
+            error: (err) => {
+                this.isSavingAbsence.set(false);
+                this.dialog.alert(err?.error?.error || 'Failed to record absence.', 'Error', 'danger');
+            }
+        });
+    }
+
+    autoSubstitute(absenceId: string) {
+        this.isAutoSubstituting.set(true);
+        this.timetableService.autoAssignSubstitutes(absenceId).subscribe({
+            next: (res) => {
+                this.isAutoSubstituting.set(false);
+                this.dialog.alert(res.message, 'Substitute Auto-Assigned', 'info');
+                this.loadAbsences();
+                this.loadSubstituteLogs();
+                this.onClassChange();
+                this.refreshAllClassCounts();
+            },
+            error: (err) => {
+                this.isAutoSubstituting.set(false);
+                this.dialog.alert(err?.error?.error || 'Failed to auto-assign substitute.', 'Error', 'danger');
+            }
+        });
+    }
+
+    // ═══════════════════════ TIMETABLE SNAPSHOTS (Rec #6) ═══════════════════════
+    openSnapshotModal() {
+        this.showSnapshotModal.set(true);
+        this.loadSnapshots();
+    }
+
+    closeSnapshotModal() {
+        this.showSnapshotModal.set(false);
+    }
+
+    loadSnapshots() {
+        this.isLoadingSnapshots.set(true);
+        this.timetableService.listSnapshots().subscribe({
+            next: (snaps) => {
+                this.snapshots.set(snaps || []);
+                this.isLoadingSnapshots.set(false);
+            },
+            error: () => this.isLoadingSnapshots.set(false)
+        });
+    }
+
+    createSnapshot() {
+        const label = this.draftSnapshotLabel().trim() || `Snapshot ${new Date().toLocaleString()}`;
+        this.isCreatingSnapshot.set(true);
+        this.timetableService.createSnapshot(label).subscribe({
+            next: (s) => {
+                this.isCreatingSnapshot.set(false);
+                this.draftSnapshotLabel.set('');
+                this.dialog.alert(`Snapshot "${s.label}" created successfully.`, 'Snapshot Saved', 'info');
+                this.loadSnapshots();
+            },
+            error: (err) => {
+                this.isCreatingSnapshot.set(false);
+                this.dialog.alert(err?.error?.error || 'Failed to save snapshot.', 'Error', 'danger');
+            }
+        });
+    }
+
+    restoreSnapshot(snapshot: TimetableSnapshot) {
+        if (!snapshot.id) return;
+        this.dialog.confirm(
+            `Restore timetable to snapshot "${snapshot.label}" (${new Date(snapshot.created_at || '').toLocaleDateString()})? Current schedules will be safely overwritten with this snapshot.`,
+            'Restore Snapshot',
+            'warning',
+            'Restore Timetable'
+        ).subscribe(confirmed => {
+            if (confirmed) {
+                this.timetableService.restoreSnapshot(snapshot.id!).subscribe({
+                    next: (res) => {
+                        this.dialog.alert(res.message, 'Snapshot Restored', 'info');
+                        this.onClassChange();
+                        this.refreshAllClassCounts();
+                        this.runAudit();
+                        this.closeSnapshotModal();
+                    },
+                    error: (err) => {
+                        this.dialog.alert(err?.error?.error || 'Failed to restore snapshot.', 'Error', 'danger');
+                    }
+                });
+            }
+        });
+    }
+
+    // ═══════════════════════ COGNITIVE WEIGHTS (Rec #7) ═══════════════════════
+    openCognitiveModal() {
+        this.showCognitiveModal.set(true);
+        this.loadCognitiveWeights();
+    }
+
+    closeCognitiveModal() {
+        this.showCognitiveModal.set(false);
+    }
+
+    loadCognitiveWeights() {
+        this.isLoadingCognitive.set(true);
+        this.timetableService.getSubjectCognitiveWeights().subscribe({
+            next: (weights) => {
+                this.cognitiveWeights.set(weights || []);
+                this.isLoadingCognitive.set(false);
+            },
+            error: () => this.isLoadingCognitive.set(false)
+        });
+    }
+
+    getSubjectWeight(subjectId: string): number {
+        const found = this.cognitiveWeights().find(w => w.subject_id === subjectId);
+        return found ? found.weight : 3;
+    }
+
+    updateSubjectWeight(subjectId: string, weight: number) {
+        this.timetableService.setSubjectCognitiveWeight(subjectId, weight).subscribe({
+            next: () => {
+                this.loadCognitiveWeights();
+            },
+            error: (err) => {
+                this.dialog.alert(err?.error?.error || 'Failed to update weight.', 'Error', 'danger');
+            }
+        });
+    }
+
+    // ═══════════════════════ TEMPLATES (Rec #8) ═══════════════════════
+    openTemplateModal() {
+        this.showTemplateModal.set(true);
+        this.loadTemplates();
+    }
+
+    closeTemplateModal() {
+        this.showTemplateModal.set(false);
+    }
+
+    loadTemplates() {
+        this.isLoadingTemplates.set(true);
+        this.timetableService.listTemplates().subscribe({
+            next: (data) => {
+                this.templates.set(data || []);
+                this.isLoadingTemplates.set(false);
+            },
+            error: () => this.isLoadingTemplates.set(false)
+        });
+    }
+
+    saveCurrentAsTemplate() {
+        const name = this.draftTemplateName().trim() || `${this.selectedClass()?.name || 'Standard'} Template (${new Date().toLocaleDateString()})`;
+        this.isSavingTemplate.set(true);
+        this.timetableService.saveTemplate(name, false).subscribe({
+            next: (tmpl) => {
+                this.isSavingTemplate.set(false);
+                this.draftTemplateName.set('');
+                this.dialog.alert(`Template "${tmpl.name}" saved successfully.`, 'Template Created', 'info');
+                this.loadTemplates();
+            },
+            error: (err) => {
+                this.isSavingTemplate.set(false);
+                this.dialog.alert(err?.error?.error || 'Failed to save template.', 'Error', 'danger');
+            }
+        });
+    }
+
+    applyTemplateToClasses(templateId: string) {
+        const targetName = this.selectedClass() ? this.selectedClass()?.name : 'all classes';
+        this.dialog.confirm(
+            `Apply this template structure to ${targetName}?`,
+            'Apply Template',
+            'info',
+            'Apply Structure'
+        ).subscribe(confirmed => {
+            if (confirmed) {
+                const classIds = this.selectedClassId() ? [this.selectedClassId()] : [];
+                this.timetableService.applyTemplate(templateId, classIds).subscribe({
+                    next: (res) => {
+                        this.dialog.alert(res.message, 'Template Applied', 'info');
+                        this.onClassChange();
+                        this.refreshAllClassCounts();
+                        this.closeTemplateModal();
+                    },
+                    error: (err) => {
+                        this.dialog.alert(err?.error?.error || 'Failed to apply template.', 'Error', 'danger');
+                    }
+                });
+            }
+        });
+    }
 }
+
+
 

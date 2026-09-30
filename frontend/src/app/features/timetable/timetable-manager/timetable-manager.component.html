@@ -15,29 +15,172 @@
         <div class="flex flex-wrap items-center gap-3 relative z-10 no-print">
             <!-- View Mode Switch -->
             <div class="flex bg-bg-secondary border border-border-primary rounded-2xl p-1 shadow-sm">
-                <button (click)="viewMode.set('grid')"
+                <button (click)="switchViewMode('grid')"
                     [class.bg-blue-600]="viewMode() === 'grid'"
                     [class.text-white]="viewMode() === 'grid'"
                     [class.text-text-muted]="viewMode() !== 'grid'"
-                    class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all">
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all"
+                    title="Class grid view with drag & drop">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                     Grid
                 </button>
-                <button (click)="viewMode.set('list')"
+                <button (click)="switchViewMode('list')"
                     [class.bg-blue-600]="viewMode() === 'list'"
                     [class.text-white]="viewMode() === 'list'"
                     [class.text-text-muted]="viewMode() !== 'list'"
-                    class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all">
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all"
+                    title="Chronological list view">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                     List
                 </button>
+                <button (click)="switchViewMode('master')"
+                    [class.bg-violet-600]="viewMode() === 'master'"
+                    [class.text-white]="viewMode() === 'master'"
+                    [class.text-text-muted]="viewMode() !== 'master'"
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all"
+                    title="All-classes master heatmap">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M3 14h7v7H3z"/><path d="M14 14h7v7h-7z"/><path d="M7 3v18M17 3v18M3 7h18M3 17h18"/></svg>
+                    Master
+                </button>
+                <button (click)="switchViewMode('rooms')"
+                    [class.bg-teal-600]="viewMode() === 'rooms'"
+                    [class.text-white]="viewMode() === 'rooms'"
+                    [class.text-text-muted]="viewMode() !== 'rooms'"
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all"
+                    title="Room occupancy matrix">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    Rooms
+                </button>
             </div>
 
+            <!-- Live Health Audit & Conflict Shield Button -->
+            <button (click)="openAuditModal()"
+                [class.bg-emerald-500/10]="(auditReport()?.summary?.total_conflicts || 0) === 0"
+                [class.border-emerald-500/30]="(auditReport()?.summary?.total_conflicts || 0) === 0"
+                [class.text-emerald-400]="(auditReport()?.summary?.total_conflicts || 0) === 0"
+                [class.bg-rose-500/10]="(auditReport()?.summary?.total_conflicts || 0) > 0"
+                [class.border-rose-500/30]="(auditReport()?.summary?.total_conflicts || 0) > 0"
+                [class.text-rose-400]="(auditReport()?.summary?.total_conflicts || 0) > 0"
+                class="px-3.5 py-2.5 rounded-2xl border text-xs font-bold transition-all flex items-center gap-2 shadow-sm hover:scale-[1.02] cursor-pointer"
+                title="View automated schedule health report and detected conflicts">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                @if ((auditReport()?.summary?.total_conflicts || 0) === 0) {
+                <span>100% Conflict-Free</span>
+                } @else {
+                <span>{{ auditReport()?.summary?.total_conflicts }} Conflict(s)</span>
+                }
+            </button>
+
+            <!-- Teacher Availability Rules Button -->
+            <button (click)="openUnavailabilityModal()"
+                class="px-3.5 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary hover:border-purple-500/30 text-text-primary text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+                title="Configure part-time teacher off-days and availability rules">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+                <span>Teacher Availability</span>
+            </button>
+
+            <!-- Send Daily Digest Button -->
+            <button (click)="sendTeacherDigest()"
+                [disabled]="isSendingDigest()"
+                class="px-3.5 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary hover:border-blue-500/30 text-text-primary text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-40 cursor-pointer"
+                title="Send daily class schedule digest to all teachers via SMS/Notification">
+                @if (isSendingDigest()) {
+                <div class="w-3.5 h-3.5 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+                } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                }
+                <span>Send Digest</span>
+            </button>
+
+            <!-- AI Optimizer Button (always visible) -->
+            <button (click)="runAIOptimizer(false)"
+                [disabled]="isOptimizingAI()"
+                class="px-3.5 py-2.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white text-xs font-black uppercase tracking-wider rounded-2xl shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 hover:-translate-y-0.5 transition-all flex items-center gap-2 disabled:opacity-40 cursor-pointer no-print"
+                title="Run AI Simulated Annealing optimizer to resolve conflicts and balance schedules">
+                @if (isOptimizingAI()) {
+                <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <span>Optimizing...</span>
+                } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg>
+                <span>AI Optimize</span>
+                }
+            </button>
+
+            <!-- ICS Subscription Feed Button -->
+            <button (click)="openICSFeedModal()"
+                class="px-3.5 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary hover:border-indigo-500/30 text-text-primary text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shadow-sm cursor-pointer no-print"
+                title="Copy live iCalendar subscription feed URL for Google Calendar, Outlook, or Apple Calendar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+                <span>CalSync Feed</span>
+            </button>
+
+            <!-- Exam Invigilation Button -->
+            <button (click)="openInvigilationModal()"
+                class="px-3.5 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary hover:border-amber-500/30 text-text-primary text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shadow-sm cursor-pointer no-print"
+                title="Auto-assign exam invigilators with anti-bias duty balancing">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Invigilation</span>
+            </button>
+
+            <!-- Teacher Absences & Substitute Auto-Assign (Rec #4) -->
+            <button (click)="openAbsenceModal()"
+                class="px-3.5 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary hover:border-rose-500/30 text-text-primary text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shadow-sm cursor-pointer no-print"
+                title="Record teacher absence and auto-assign qualified substitute teachers">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="11" x2="23" y2="11"/></svg>
+                <span>Absences & Substitutes</span>
+            </button>
+
+            <!-- Timetable Snapshots & History (Rec #6) -->
+            <button (click)="openSnapshotModal()"
+                class="px-3.5 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary hover:border-cyan-500/30 text-text-primary text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shadow-sm cursor-pointer no-print"
+                title="Create snapshots and rollback timetable versions safely">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>Snapshots</span>
+            </button>
+
+            <!-- Cognitive Weights (Rec #7) -->
+            <button (click)="openCognitiveModal()"
+                class="px-3.5 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary hover:border-emerald-500/30 text-text-primary text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shadow-sm cursor-pointer no-print"
+                title="Configure subject cognitive difficulty weights for balanced brain-drain scheduling">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span>Cognitive Weights</span>
+            </button>
+
+            <!-- Templates (Rec #8) -->
+            <button (click)="openTemplateModal()"
+                class="px-3.5 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary hover:border-indigo-500/30 text-text-primary text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shadow-sm cursor-pointer no-print"
+                title="Save & reuse multi-year timetable templates">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                <span>Templates</span>
+            </button>
+
             @if (selectedClassId()) {
+            <button (click)="openAutoScheduleModal()"
+                class="px-4 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-xs font-black uppercase tracking-wider rounded-2xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <span>Auto-Schedule</span>
+            </button>
+
             <button (click)="openCopyModal()"
                 class="px-4 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary hover:border-blue-500/30 text-text-primary text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                 Copy Schedule
+            </button>
+
+            <button (click)="clearSchedule()"
+                [disabled]="entries().length === 0 || isClearing()"
+                class="px-3.5 py-2.5 bg-bg-secondary hover:bg-rose-500/10 border border-border-primary hover:border-rose-500/30 text-rose-400 text-xs font-bold rounded-2xl transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+                title="Clear schedule for this class">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <span>Clear</span>
+            </button>
+
+            <button (click)="exportToICal()"
+                [disabled]="entries().length === 0"
+                class="px-3.5 py-2.5 bg-bg-secondary hover:bg-bg-tertiary border border-border-primary hover:border-indigo-500/30 text-text-primary text-xs font-bold rounded-2xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+                title="Export schedule to Google Calendar / Outlook (.ics)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Calendar (.ics)</span>
             </button>
 
             <button (click)="printTimetable()"
@@ -160,10 +303,29 @@
     </div>
     } @else {
 
-    <!-- Print Header (Only visible on paper printout) -->
-    <div class="hidden print-header p-4 mb-4 border-b-2 border-black text-center">
-        <h2 class="text-2xl font-black uppercase tracking-wider text-black">Official Class Timetable</h2>
-        <p class="text-base font-bold text-gray-800 mt-1">Class: {{ selectedClass()?.name }} • Academic Year 2026/2027</p>
+    <!-- Print Header (Only visible on paper printout / PDF export) -->
+    <div class="hidden print-header p-6 mb-6 border-b-2 border-slate-900 bg-white text-slate-900">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                @if (tenantProfile()?.logo_url) {
+                <img [src]="tenantProfile()!.logo_url" alt="School Crest" class="w-16 h-16 object-contain">
+                }
+                <div>
+                    <h2 class="text-2xl font-black uppercase tracking-wider text-slate-900">{{ tenantProfile()?.name || 'SchoolLinx Academy' }}</h2>
+                    <p class="text-xs font-semibold text-slate-600">
+                        {{ tenantProfile()?.website || ('https://' + (tenantProfile()?.subdomain || 'portal') + '.schoollinx.com') }}
+                        • {{ tenantProfile()?.address || 'Official Academic Schedule' }}
+                    </p>
+                </div>
+            </div>
+            <div class="text-right">
+                <span class="inline-block px-3 py-1 bg-slate-100 rounded-lg text-xs font-black uppercase tracking-wider text-slate-800">
+                    Class Timetable
+                </span>
+                <p class="text-sm font-black text-slate-900 mt-1">Class: {{ selectedClass()?.name }}</p>
+                <p class="text-[10px] text-slate-500 font-mono">Academic Year 2026/2027 • Active Term</p>
+            </div>
+        </div>
     </div>
 
     <!-- VIEW 1: Visual Time-Grid Matrix View -->
@@ -206,13 +368,20 @@
 
                         <!-- 5 Day Columns -->
                         @for (dayNum of [1, 2, 3, 4, 5]; track dayNum) {
-                        <td class="py-2.5 px-2 align-top border-r border-border-primary/20 last:border-r-0">
+                        <td class="py-2.5 px-2 align-top border-r border-border-primary/20 last:border-r-0 transition-all"
+                            (dragover)="onDragOver($event)"
+                            (drop)="onDrop($event, dayNum, period)"
+                            [class.bg-blue-500/10]="isDragging() && draggedEntry()?.day_of_week !== dayNum || isDragging() && draggedEntry()?.start_time !== period.startTime">
                             @if (getEntryForSlot(dayNum, period); as slotEntry) {
-                            <!-- Allocated Session Card -->
-                            <div class="relative group/card p-3 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg flex flex-col justify-between min-h-[90px]"
+                            <!-- Allocated Session Card (Draggable) -->
+                            <div class="relative group/card p-3 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg flex flex-col justify-between min-h-[90px] cursor-grab active:cursor-grabbing"
+                                draggable="true"
+                                (dragstart)="onDragStart($event, slotEntry)"
+                                (dragend)="onDragEnd()"
+                                [class.opacity-40]="isDragging() && draggedEntry()?.id === slotEntry.id"
                                 [ngClass]="[
                                     getSubjectTheme(subjectMap()[slotEntry.subject_id]).bg,
-                                    getSubjectTheme(subjectMap()[slotEntry.subject_id]).border
+                                    getEntryConflict(dayNum, period) ? 'border-rose-500 ring-2 ring-rose-500/30' : getSubjectTheme(subjectMap()[slotEntry.subject_id]).border
                                 ]">
                                 <!-- Top: Subject + Remove -->
                                 <div class="flex justify-between items-start gap-1">
@@ -220,17 +389,34 @@
                                         [ngClass]="getSubjectTheme(subjectMap()[slotEntry.subject_id]).text">
                                         {{ subjectMap()[slotEntry.subject_id] || 'Subject' }}
                                     </span>
-                                    <button (click)="removeEntry(slotEntry.id)"
-                                        class="p-1 rounded-lg text-text-muted hover:text-rose-400 hover:bg-rose-500/15 opacity-0 group-hover/card:opacity-100 transition-all shrink-0 no-print"
-                                        title="Remove session">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                    </button>
+                                    <div class="flex items-center gap-1 opacity-0 group-hover/card:opacity-100 transition-all shrink-0 no-print">
+                                        <button (click)="openReliefFinder(dayNum, period, slotEntry)"
+                                            class="p-1 rounded-lg text-text-muted hover:text-amber-400 hover:bg-amber-500/15 transition-all cursor-pointer"
+                                            title="Find & Assign Substitute / Relief Teacher">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                        </button>
+                                        <button (click)="removeEntry(slotEntry.id)"
+                                            class="p-1 rounded-lg text-text-muted hover:text-rose-400 hover:bg-rose-500/15 transition-all cursor-pointer"
+                                            title="Remove session">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <!-- Middle: Teacher -->
                                 <p class="text-[11px] font-bold text-text-secondary truncate mt-1">
                                     {{ teacherMap()[slotEntry.teacher_id] || 'Teacher unassigned' }}
                                 </p>
+
+                                <!-- Conflict Warning Ribbon (If audit detects clash) -->
+                                @if (getEntryConflict(dayNum, period); as conflict) {
+                                <div (click)="quickFixConflict(conflict)"
+                                    class="my-1 px-2 py-1 rounded-lg bg-rose-500/20 border border-rose-500/40 text-rose-300 text-[9px] font-black uppercase tracking-wider flex items-center justify-between cursor-pointer hover:bg-rose-500/30 transition-all no-print animate-pulse"
+                                    [title]="conflict.message">
+                                    <span class="truncate">⚠️ {{ conflict.type === 'teacher_double_booked' ? 'Teacher Clash' : conflict.type === 'room_double_booked' ? 'Room Clash' : 'Overlap Risk' }}</span>
+                                    <span class="underline shrink-0 ml-1">Fix</span>
+                                </div>
+                                }
 
                                 <!-- Bottom: Room / Custom Time -->
                                 <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-border-primary/30 text-[9px] font-bold text-text-muted">
@@ -257,6 +443,20 @@
                     }
                 </tbody>
             </table>
+        </div>
+
+        <!-- Print Footer Sign-off Block (Visible on printout) -->
+        <div class="hidden print-footer mt-8 pt-6 border-t-2 border-slate-900 grid grid-cols-2 gap-8 text-slate-900">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Prepared & Verified By</p>
+                <div class="mt-8 border-b border-slate-900 w-3/4"></div>
+                <p class="text-xs font-black mt-1">Timetable Committee Coordinator</p>
+            </div>
+            <div class="text-right">
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Authorized & Approved By</p>
+                <div class="mt-8 border-b border-slate-900 w-3/4 ml-auto"></div>
+                <p class="text-xs font-black mt-1">Head of School / Academic Principal</p>
+            </div>
         </div>
     </div>
     }
@@ -319,11 +519,432 @@
     </div>
     }
 
+    <!-- ═══════════════════════ MASTER HEATMAP VIEW ═══════════════════════ -->
+    @if (viewMode() === 'master') {
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-4 md:p-6 shadow-xl animate-fade-in relative overflow-hidden">
+        <div class="flex items-center justify-between mb-5">
+            <div>
+                <p class="text-[10px] font-black uppercase tracking-widest text-violet-400 mb-1">Enterprise View</p>
+                <h3 class="text-lg font-black text-text-primary">All-Class Master Heatmap</h3>
+                <p class="text-xs text-text-muted mt-0.5">Simultaneous view of every cohort's timetable for the selected day</p>
+            </div>
+            <!-- Day Selector -->
+            <div class="flex bg-bg-tertiary border border-border-primary rounded-2xl p-1">
+                @for (d of [1,2,3,4,5]; track d) {
+                <button (click)="setMasterDay(d)"
+                    [class.bg-violet-600]="masterDay() === d"
+                    [class.text-white]="masterDay() === d"
+                    [class.text-text-muted]="masterDay() !== d"
+                    class="px-3 py-1.5 rounded-xl text-[11px] font-black transition-all">
+                    {{ days[d-1].slice(0,3) }}
+                </button>
+                }
+            </div>
+        </div>
+
+        @if (isLoadingMaster()) {
+        <div class="flex items-center justify-center py-20">
+            <div class="w-8 h-8 border-2 border-violet-500/30 border-t-violet-500 rounded-full animate-spin"></div>
+        </div>
+        } @else {
+        <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full border-collapse min-w-[1100px]">
+                <thead>
+                    <tr class="border-b border-border-primary/60">
+                        <th class="py-3 px-3 text-[10px] font-black uppercase tracking-widest text-text-muted text-left w-32 bg-bg-tertiary/40 rounded-tl-xl">Period</th>
+                        @for (cls of classes(); track cls.id) {
+                        <th class="py-3 px-3 text-[10px] font-black uppercase tracking-wider text-text-primary text-center bg-bg-tertiary/40">{{ cls.name }}</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border-primary/30">
+                    @for (period of periods; track period.id) {
+                    @if (!period.isBreak) {
+                    <tr class="hover:bg-bg-tertiary/20">
+                        <td class="py-3 px-3 bg-bg-tertiary/20 border-r border-border-primary/30">
+                            <p class="text-[11px] font-black text-text-primary">{{ period.label }}</p>
+                            <p class="text-[10px] text-text-muted font-mono">{{ period.startTime }}</p>
+                        </td>
+                        @for (cls of classes(); track cls.id) {
+                        <td class="py-2 px-2 text-center border-r border-border-primary/20 last:border-r-0">
+                            @if (getMasterEntry(cls.id!, period); as mEntry) {
+                            <div class="p-2 rounded-xl text-[10px] font-bold"
+                                [ngClass]="getSubjectTheme(subjectMap()[mEntry.subject_id]).bg">
+                                <span [ngClass]="getSubjectTheme(subjectMap()[mEntry.subject_id]).text">
+                                    {{ subjectMap()[mEntry.subject_id] || '—' }}
+                                </span>
+                            </div>
+                            } @else {
+                            <div class="w-full h-8 rounded-lg bg-bg-tertiary/40 flex items-center justify-center">
+                                <span class="text-[10px] text-text-muted/40 font-bold">—</span>
+                            </div>
+                            }
+                        </td>
+                        }
+                    </tr>
+                    } @else {
+                    <tr class="bg-amber-500/5">
+                        <td [attr.colspan]="classes().length + 1" class="py-1.5 px-3 text-center text-[10px] text-amber-400 font-black uppercase tracking-widest">
+                            ☕ {{ period.label }}
+                        </td>
+                    </tr>
+                    }
+                    }
+                </tbody>
+            </table>
+        </div>
+        }
+    </div>
+    }
+
+    <!-- ═══════════════════════ ROOM OCCUPANCY MATRIX ═══════════════════════ -->
+    @if (viewMode() === 'rooms') {
+    <div class="bg-bg-secondary border border-border-primary rounded-3xl p-4 md:p-6 shadow-xl animate-fade-in relative overflow-hidden">
+        <div class="flex items-center justify-between mb-5">
+            <div>
+                <p class="text-[10px] font-black uppercase tracking-widest text-teal-400 mb-1">Facilities View</p>
+                <h3 class="text-lg font-black text-text-primary">Room Occupancy Matrix</h3>
+                <p class="text-xs text-text-muted mt-0.5">Real-time room booking overview — green = available, amber = occupied</p>
+            </div>
+            <div class="flex bg-bg-tertiary border border-border-primary rounded-2xl p-1">
+                @for (d of [1,2,3,4,5]; track d) {
+                <button (click)="setMasterDay(d)"
+                    [class.bg-teal-600]="masterDay() === d"
+                    [class.text-white]="masterDay() === d"
+                    [class.text-text-muted]="masterDay() !== d"
+                    class="px-3 py-1.5 rounded-xl text-[11px] font-black transition-all">
+                    {{ days[d-1].slice(0,3) }}
+                </button>
+                }
+            </div>
+        </div>
+
+        @if (isLoadingRooms()) {
+        <div class="flex items-center justify-center py-20">
+            <div class="w-8 h-8 border-2 border-teal-500/30 border-t-teal-500 rounded-full animate-spin"></div>
+        </div>
+        } @else if (getUniqueRooms().length === 0) {
+        <div class="py-16 text-center rounded-2xl border border-dashed border-border-primary">
+            <p class="text-sm text-text-muted">No rooms allocated in this day's schedule yet.</p>
+        </div>
+        } @else {
+        <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full border-collapse min-w-[900px]">
+                <thead>
+                    <tr class="border-b border-border-primary/60">
+                        <th class="py-3 px-3 text-[10px] font-black uppercase tracking-widest text-text-muted text-left w-36 bg-bg-tertiary/40 rounded-tl-xl">Room</th>
+                        @for (period of periods; track period.id) {
+                        @if (!period.isBreak) {
+                        <th class="py-3 px-2 text-[10px] font-black uppercase tracking-wider text-text-muted text-center bg-bg-tertiary/40">
+                            <span>{{ period.label }}</span>
+                            <span class="block text-[9px] font-mono font-normal mt-0.5">{{ period.startTime }}</span>
+                        </th>
+                        }
+                        }
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border-primary/30">
+                    @for (room of getUniqueRooms(); track room) {
+                    <tr class="hover:bg-bg-tertiary/20">
+                        <td class="py-3 px-3 font-black text-xs text-text-primary bg-bg-tertiary/20 border-r border-border-primary/30">{{ room }}</td>
+                        @for (period of periods; track period.id) {
+                        @if (!period.isBreak) {
+                        <td class="py-2 px-2 text-center border-r border-border-primary/20 last:border-r-0">
+                            @if (getRoomSlot(room, period); as slot) {
+                            @if (slot.is_occupied) {
+                            <div class="p-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-[10px] font-bold text-amber-300">
+                                <span class="block truncate max-w-[80px]">{{ slot.class_name || 'Occupied' }}</span>
+                                <span class="text-[9px] opacity-70 truncate block">{{ slot.subject_name }}</span>
+                            </div>
+                            } @else {
+                            <div class="w-full h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                                <span class="text-[10px] text-emerald-400 font-bold">Free</span>
+                            </div>
+                            }
+                            } @else {
+                            <div class="w-full h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                                <span class="text-[10px] text-emerald-400 font-bold">Free</span>
+                            </div>
+                            }
+                        </td>
+                        }
+                        }
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        }
+    </div>
+    }
+
     }
 </div>
 
+<!-- ═══════════════════════ AI OPTIMIZATION RESULT MODAL ═══════════════════════ -->
+@if (showOptimizationModal()) {
+<div class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in no-print" (click)="closeOptimizationModal()">
+    <div class="bg-bg-secondary w-full max-w-md rounded-3xl border border-violet-500/30 shadow-2xl shadow-violet-500/20 p-8 relative z-10 animate-fade-in" (click)="$event.stopPropagation()">
+        <div class="flex items-start justify-between mb-6">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-violet-400">AI Solver Complete</p>
+                    <h3 class="text-xl font-black text-text-primary">Optimization Report</h3>
+                </div>
+            </div>
+            <button (click)="closeOptimizationModal()" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        @if (optimizationResult(); as res) {
+        <!-- Fitness Gauge -->
+        <div class="mb-6 p-5 rounded-2xl bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 border border-violet-500/20 text-center">
+            <p class="text-[10px] font-black uppercase tracking-widest text-violet-400 mb-2">Fitness Score</p>
+            <p class="text-5xl font-black text-white">{{ res.fitness_score | number:'1.1-1' }}<span class="text-2xl text-violet-400">%</span></p>
+            <div class="mt-3 w-full bg-bg-tertiary rounded-full h-2">
+                <div class="h-2 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all duration-700"
+                    [style.width.%]="res.fitness_score"></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 mb-6">
+            <div class="p-3 rounded-xl bg-bg-tertiary text-center">
+                <p class="text-xl font-black text-emerald-400">{{ res.conflicts_resolved }}</p>
+                <p class="text-[10px] text-text-muted font-bold mt-0.5">Conflicts Resolved</p>
+            </div>
+            <div class="p-3 rounded-xl bg-bg-tertiary text-center">
+                <p class="text-xl font-black text-blue-400">{{ res.iterations }}</p>
+                <p class="text-[10px] text-text-muted font-bold mt-0.5">Iterations</p>
+            </div>
+            <div class="p-3 rounded-xl bg-bg-tertiary text-center">
+                <p class="text-xl font-black text-amber-400">{{ res.elapsed_ms }}ms</p>
+                <p class="text-[10px] text-text-muted font-bold mt-0.5">Solve Time</p>
+            </div>
+        </div>
+
+        <p class="text-xs text-text-muted p-3 rounded-xl bg-bg-tertiary border border-border-primary mb-4">{{ res.message }}</p>
+        }
+
+        <button (click)="closeOptimizationModal()" class="w-full py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-black rounded-2xl transition-all shadow-lg shadow-violet-500/20 cursor-pointer">
+            Done
+        </button>
+    </div>
+</div>
+}
+
+<!-- ═══════════════════════ ICS CALENDAR FEED MODAL ═══════════════════════ -->
+@if (showICSFeedModal()) {
+<div class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in no-print" (click)="closeICSFeedModal()">
+    <div class="bg-bg-secondary w-full max-w-lg rounded-3xl border border-indigo-500/30 shadow-2xl shadow-indigo-500/10 p-8 relative z-10 animate-fade-in" (click)="$event.stopPropagation()">
+        <div class="flex items-start justify-between mb-6">
+            <div>
+                <p class="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1">Live Sync</p>
+                <h3 class="text-xl font-black text-text-primary">CalSync Subscription Feeds</h3>
+                <p class="text-xs text-text-muted mt-1">Subscribe to a live feed in Google Calendar, Apple Calendar, or Outlook — it auto-updates whenever the timetable changes.</p>
+            </div>
+            <button (click)="closeICSFeedModal()" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <div class="space-y-5">
+            <!-- Class Feed -->
+            @if (selectedClassId()) {
+            <div class="p-4 rounded-2xl bg-bg-tertiary border border-border-primary">
+                <p class="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-2">Class Feed — {{ selectedClass()?.name }}</p>
+                <div class="flex items-center gap-2">
+                    <code class="flex-1 text-[10px] font-mono text-text-muted bg-bg-secondary p-2.5 rounded-xl border border-border-primary truncate">{{ getClassFeedUrl() }}</code>
+                    <button (click)="copyToClipboard(getClassFeedUrl())"
+                        class="shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                        [class.bg-emerald-500]="copiedFeedback()"
+                        [class.text-white]="copiedFeedback()"
+                        [class.bg-bg-secondary]="!copiedFeedback()"
+                        [class.text-text-primary]="!copiedFeedback()"
+                        [class.border]="!copiedFeedback()"
+                        [class.border-border-primary]="!copiedFeedback()">
+                        {{ copiedFeedback() ? '✓ Copied!' : 'Copy' }}
+                    </button>
+                </div>
+            </div>
+            }
+
+            <!-- Teacher Feed -->
+            <div class="p-4 rounded-2xl bg-bg-tertiary border border-border-primary">
+                <p class="text-[10px] font-black uppercase tracking-widest text-purple-400 mb-2">Teacher Personal Feed</p>
+                <select [(ngModel)]="selectedTeacherForFeed"
+                    class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary outline-none focus:border-purple-500 mb-2">
+                    <option value="">— Select Teacher —</option>
+                    @for (t of teachers(); track t.id) {
+                    <option [value]="t.id">{{ t.first_name }} {{ t.last_name }}</option>
+                    }
+                </select>
+                @if (selectedTeacherForFeed()) {
+                <div class="flex items-center gap-2">
+                    <code class="flex-1 text-[10px] font-mono text-text-muted bg-bg-secondary p-2.5 rounded-xl border border-border-primary truncate">{{ getTeacherFeedUrl() }}</code>
+                    <button (click)="copyToClipboard(getTeacherFeedUrl())"
+                        class="shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                        [class.bg-emerald-500]="copiedFeedback()"
+                        [class.text-white]="copiedFeedback()"
+                        [class.bg-bg-secondary]="!copiedFeedback()"
+                        [class.text-text-primary]="!copiedFeedback()"
+                        [class.border]="!copiedFeedback()"
+                        [class.border-border-primary]="!copiedFeedback()">
+                        {{ copiedFeedback() ? '✓ Copied!' : 'Copy' }}
+                    </button>
+                </div>
+                }
+            </div>
+
+            <!-- Instructions -->
+            <div class="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/20">
+                <p class="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-2">How to subscribe</p>
+                <ul class="text-[11px] text-text-muted space-y-1">
+                    <li>• <strong class="text-text-primary">Google Calendar:</strong> Other Calendars → From URL → paste link</li>
+                    <li>• <strong class="text-text-primary">Apple Calendar:</strong> File → New Calendar Subscription → paste link</li>
+                    <li>• <strong class="text-text-primary">Outlook:</strong> Add Calendar → From Internet → paste link</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-border-primary">
+            <button (click)="closeICSFeedModal()" class="w-full py-3 rounded-2xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-primary border border-border-primary transition-all cursor-pointer">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ═══════════════════════ EXAM INVIGILATION MODAL ═══════════════════════ -->
+@if (showInvigilationModal()) {
+<div class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in no-print" (click)="closeInvigilationModal()">
+    <div class="bg-bg-secondary w-full max-w-2xl rounded-3xl border border-amber-500/30 shadow-2xl shadow-amber-500/10 p-8 relative z-10 animate-fade-in max-h-[90vh] overflow-y-auto custom-scrollbar" (click)="$event.stopPropagation()">
+        <div class="flex items-start justify-between mb-6">
+            <div>
+                <p class="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-1">Exam Scheduling</p>
+                <h3 class="text-xl font-black text-text-primary">Exam Invigilation Manager</h3>
+                <p class="text-xs text-text-muted mt-1">Auto-assign invigilators with anti-bias duty balancing — teachers never invigilate their own subject exams.</p>
+            </div>
+            <button (click)="closeInvigilationModal()" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        @if (!invigilationReport()) {
+        <div class="py-12 text-center rounded-2xl border border-dashed border-border-primary bg-bg-tertiary/30 mb-6">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-amber-400"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <p class="text-text-muted text-sm">Click <strong class="text-amber-400">Auto-Assign Invigilators</strong> to run the AI duty balancer.</p>
+        </div>
+        } @else {
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-3 gap-3 mb-6">
+            <div class="p-4 rounded-2xl bg-bg-tertiary border border-border-primary text-center">
+                <p class="text-2xl font-black text-amber-400">{{ invigilationReport()?.total_sessions }}</p>
+                <p class="text-[10px] text-text-muted font-bold mt-1">Exam Sessions</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-bg-tertiary border border-border-primary text-center">
+                <p class="text-2xl font-black text-blue-400">{{ invigilationReport()?.invigilators_assigned }}</p>
+                <p class="text-[10px] text-text-muted font-bold mt-1">Invigilators Assigned</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-bg-tertiary border border-border-primary text-center">
+                <p class="text-2xl font-black text-emerald-400">{{ invigilationReport()?.rooms_allocated }}</p>
+                <p class="text-[10px] text-text-muted font-bold mt-1">Rooms Allocated</p>
+            </div>
+        </div>
+
+        <!-- Session List -->
+        <div class="space-y-3 max-h-[320px] overflow-y-auto custom-scrollbar pr-1">
+            @for (session of invigilationReport()?.sessions; track session.session_id) {
+            <div class="p-4 rounded-2xl bg-bg-tertiary border border-border-primary">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-sm font-black text-text-primary">{{ session.subject_name }}</p>
+                        <p class="text-xs text-text-muted">{{ session.class_name }} • {{ session.room_name }}</p>
+                        <p class="text-[10px] font-mono text-text-muted mt-0.5">{{ session.start_time }} – {{ session.end_time }}</p>
+                    </div>
+                    <span class="shrink-0 px-2 py-1 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[10px] font-black">
+                        {{ (session.invigilators || []).length }} invigilator(s)
+                    </span>
+                </div>
+                @if ((session.invigilators || []).length > 0) {
+                <div class="mt-2 flex flex-wrap gap-1.5">
+                    @for (inv of session.invigilators; track inv.id) {
+                    <span class="px-2 py-0.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-300 text-[10px] font-bold">
+                        {{ inv.title || 'Teacher' }}
+                    </span>
+                    }
+                </div>
+                }
+            </div>
+            }
+        </div>
+        }
+
+        <!-- Duty Load Balancing Analysis (Rec #10) -->
+        @if (invigilatorDutyReport()) {
+        <div class="mt-4 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20">
+            <div class="flex items-center justify-between mb-2">
+                <p class="text-xs font-black text-text-primary flex items-center gap-1.5">
+                    <span>Faculty Duty Load Distribution</span>
+                    @if ((invigilatorDutyReport()?.overloaded_count || 0) > 0) {
+                    <span class="px-2 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-400 text-[10px] font-bold">
+                        {{ invigilatorDutyReport()?.overloaded_count }} Overloaded (>150% avg)
+                    </span>
+                    }
+                </p>
+                <button (click)="rebalanceInvigilatorDuties()" [disabled]="isRebalancingInvigilators()"
+                    class="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-[10px] font-black uppercase tracking-wider transition-all disabled:opacity-40 cursor-pointer">
+                    @if (isRebalancingInvigilators()) { Rebalancing... } @else { Rebalance Load (Max 3/T) }
+                </button>
+            </div>
+            <p class="text-[10px] text-text-muted mb-2">
+                Average faculty invigilation load: <strong class="text-text-primary">{{ (invigilatorDutyReport()?.average_minutes || 0) | number:'1.0-0' }} mins</strong> across {{ invigilatorDutyReport()?.total_sessions }} total exams.
+            </p>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[140px] overflow-y-auto custom-scrollbar">
+                @for (load of invigilatorDutyReport()?.loads; track load.teacher.id) {
+                <div class="p-2.5 rounded-xl border flex flex-col justify-between"
+                    [class.bg-rose-500/10]="load.is_overloaded"
+                    [class.border-rose-500/30]="load.is_overloaded"
+                    [class.bg-bg-tertiary]="!load.is_overloaded"
+                    [class.border-border-primary]="!load.is_overloaded">
+                    <p class="text-[11px] font-bold text-text-primary truncate">{{ load.teacher.first_name }} {{ load.teacher.last_name }}</p>
+                    <div class="flex items-center justify-between text-[10px] mt-1">
+                        <span class="text-text-muted">{{ load.session_count }} sessions</span>
+                        <span [class.text-rose-400]="load.is_overloaded" [class.text-amber-400]="!load.is_overloaded" class="font-mono font-bold">{{ load.total_minutes }}m</span>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+        }
+
+        <div class="mt-6 flex gap-3">
+            <button (click)="runAutoInvigilation()" [disabled]="isInvigilating()"
+                class="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-black rounded-2xl transition-all shadow-lg shadow-amber-500/20 disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer">
+                @if (isInvigilating()) {
+                <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Assigning...
+                } @else {
+                Auto-Assign Invigilators
+                }
+            </button>
+            <button (click)="closeInvigilationModal()" class="px-6 py-3 rounded-2xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-primary border border-border-primary transition-all cursor-pointer">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+}
+
 <!-- ═══════════════════════ ADD ENTRY MODAL ═══════════════════════ -->
 @if (isAdding()) {
+
 <div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in no-print" (click)="isAdding.set(false)">
     <div class="bg-bg-secondary w-full max-w-lg rounded-t-3xl sm:rounded-3xl border border-border-primary shadow-2xl p-5 sm:p-8 relative z-10 max-h-[90vh] sm:max-h-[85vh] overflow-y-auto animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
         <!-- Mobile Bottomsheet Handle -->
@@ -474,3 +1095,753 @@
     </div>
 </div>
 }
+
+<!-- ═══════════════════════ AUTO-SCHEDULER ENGINE MODAL ═══════════════════════ -->
+@if (showAutoScheduleModal()) {
+<div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in no-print" (click)="closeAutoScheduleModal()">
+    <div class="bg-bg-secondary w-full max-w-lg rounded-t-3xl sm:rounded-3xl border border-border-primary shadow-2xl p-6 sm:p-8 relative z-10 max-h-[90vh] sm:max-h-[85vh] overflow-y-auto animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
+        <!-- Mobile Bottomsheet Handle -->
+        <div class="sm:hidden flex justify-center pb-2">
+            <div class="bottomsheet-handle"></div>
+        </div>
+
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-widest mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Constraint Satisfaction Engine
+                </div>
+                <h3 class="text-xl font-black text-text-primary">Auto-Generate Timetable</h3>
+                <p class="text-xs text-text-muted mt-0.5">Generate balanced, conflict-free weekly instructional schedules automatically.</p>
+            </div>
+            <button (click)="closeAutoScheduleModal()" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <!-- Scope Selection -->
+        <div class="space-y-4 mb-6">
+            <label class="block text-[10px] font-black uppercase tracking-widest text-text-muted">Target Scheduling Scope</label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label (click)="autoScheduleScope.set('single')"
+                    [class.border-indigo-500]="autoScheduleScope() === 'single'"
+                    [class.bg-indigo-500/10]="autoScheduleScope() === 'single'"
+                    class="p-4 rounded-2xl border border-border-primary bg-bg-tertiary/60 flex flex-col gap-1 cursor-pointer transition-all hover:border-indigo-500/50">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black text-text-primary">Selected Class Only</span>
+                        <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center"
+                            [class.border-indigo-500]="autoScheduleScope() === 'single'"
+                            [class.border-border-primary]="autoScheduleScope() !== 'single'">
+                            <span *ngIf="autoScheduleScope() === 'single'" class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                        </span>
+                    </div>
+                    <span class="text-[11px] text-text-muted">{{ selectedClass()?.name || 'Active Class' }}</span>
+                </label>
+
+                <label (click)="autoScheduleScope.set('all')"
+                    [class.border-indigo-500]="autoScheduleScope() === 'all'"
+                    [class.bg-indigo-500/10]="autoScheduleScope() === 'all'"
+                    class="p-4 rounded-2xl border border-border-primary bg-bg-tertiary/60 flex flex-col gap-1 cursor-pointer transition-all hover:border-indigo-500/50">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black text-text-primary">School-Wide (All)</span>
+                        <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center"
+                            [class.border-indigo-500]="autoScheduleScope() === 'all'"
+                            [class.border-border-primary]="autoScheduleScope() !== 'all'">
+                            <span *ngIf="autoScheduleScope() === 'all'" class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                        </span>
+                    </div>
+                    <span class="text-[11px] text-text-muted">All {{ classes().length }} cohorts simultaneously</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Automation Parameters & Rules List -->
+        <div class="bg-bg-tertiary/50 border border-border-primary rounded-2xl p-4 mb-6 space-y-3">
+            <span class="text-[10px] font-black uppercase tracking-wider text-text-primary flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Active Automated Constraints
+            </span>
+
+            <div class="space-y-2 text-[11px] text-text-muted">
+                <div class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    <span><strong>Zero Teacher Overlaps:</strong> Global check ensures no teacher is double-booked.</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                    <span><strong>Pedagogical Priority:</strong> Core subjects (Math, English, Science) placed in morning peak slots.</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                    <span><strong>Break Times Protected:</strong> Snack break (10:15) & Lunch break (12:15) preserved.</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                    <span><strong>Daily Variety:</strong> Balances subject distribution so students don't experience fatigue.</span>
+                </div>
+            </div>
+
+            <!-- Clear Existing Toggle -->
+            <div class="pt-3 border-t border-border-primary/50 flex items-center justify-between">
+                <div class="flex flex-col">
+                    <span class="text-xs font-bold text-text-primary">Reset existing entries</span>
+                    <span class="text-[10px] text-text-muted">Wipes existing slots before repopulating</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" [(ngModel)]="autoScheduleClearExisting" class="sr-only peer">
+                    <div class="w-9 h-5 bg-bg-secondary peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600 border border-border-primary"></div>
+                </label>
+            </div>
+        </div>
+
+        <div class="flex flex-col-reverse sm:flex-row gap-3">
+            <button (click)="closeAutoScheduleModal()" [disabled]="isAutoScheduling()" class="w-full sm:flex-1 py-3 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-primary border border-border-primary transition-all">
+                Cancel
+            </button>
+            <button (click)="runAutoSchedule()" [disabled]="isAutoScheduling()"
+                class="w-full sm:flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-50 cursor-pointer">
+                @if (isAutoScheduling()) {
+                <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Solving Schedule…
+                } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Generate Schedule
+                }
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ═══════════════════════ RELIEF / SUBSTITUTE TEACHER FINDER MODAL ═══════════════════════ -->
+@if (showReliefModal()) {
+<div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in no-print" (click)="closeReliefFinder()">
+    <div class="bg-bg-secondary w-full max-w-lg rounded-t-3xl sm:rounded-3xl border border-border-primary shadow-2xl p-6 sm:p-8 relative z-10 max-h-[90vh] sm:max-h-[85vh] overflow-y-auto animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
+        <!-- Mobile Bottomsheet Handle -->
+        <div class="sm:hidden flex justify-center pb-2">
+            <div class="bottomsheet-handle"></div>
+        </div>
+
+        <div class="flex justify-between items-start mb-5">
+            <div>
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Substitute Teacher Suggester
+                </div>
+                <h3 class="text-xl font-black text-text-primary">Find Available Relief Teacher</h3>
+                <p class="text-xs text-text-muted mt-0.5">Identify teachers with zero scheduled periods during this specific slot.</p>
+            </div>
+            <button (click)="closeReliefFinder()" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <!-- Target Slot Info Card -->
+        <div class="p-4 rounded-2xl bg-bg-tertiary/60 border border-border-primary mb-5 flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 rounded-lg bg-blue-500/15 border border-blue-500/30 text-blue-300 text-xs font-black uppercase">
+                        {{ dayLabel(reliefDay()) }}
+                    </span>
+                    <span class="text-xs font-mono font-bold text-text-secondary">
+                        {{ reliefSlotStartTime() }} – {{ reliefSlotEndTime() }}
+                    </span>
+                </div>
+                <span class="text-xs font-black text-text-primary">{{ selectedClass()?.name }}</span>
+            </div>
+            @if (reliefSubjectName()) {
+            <div class="text-xs text-text-muted pt-2 border-t border-border-primary/40 flex items-center justify-between">
+                <span>Subject: <strong class="text-text-primary">{{ reliefSubjectName() }}</strong></span>
+                @if (selectedReliefEntry()?.teacher_id) {
+                <span>Current: <span class="text-rose-400 font-bold">{{ teacherMap()[selectedReliefEntry()!.teacher_id] || 'Assigned' }}</span></span>
+                }
+            </div>
+            }
+        </div>
+
+        <!-- Available Teachers List -->
+        <div class="space-y-3">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">
+                    Available Teachers ({{ availableReliefTeachers().length }})
+                </span>
+                <button (click)="loadAvailableReliefTeachers()" [disabled]="isLoadingRelief()" class="text-[11px] text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1 transition-colors">
+                    <svg class="w-3 h-3" [class.animate-spin]="isLoadingRelief()" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Refresh
+                </button>
+            </div>
+
+            @if (isLoadingRelief()) {
+            <div class="p-8 text-center">
+                <div class="w-8 h-8 border-3 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mx-auto mb-3"></div>
+                <p class="text-xs text-text-muted">Querying teacher schedules for {{ dayLabel(reliefDay()) }}...</p>
+            </div>
+            } @else if (availableReliefTeachers().length > 0) {
+            <div class="max-h-[280px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                @for (t of availableReliefTeachers(); track t.id) {
+                <div class="p-3.5 rounded-2xl bg-bg-tertiary border border-border-primary hover:border-emerald-500/40 flex items-center justify-between gap-3 transition-all group">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black flex items-center justify-center text-sm shrink-0">
+                            {{ t.first_name[0] }}{{ t.last_name[0] }}
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-xs font-black text-text-primary truncate">{{ t.first_name }} {{ t.last_name }}</p>
+                            <p class="text-[10px] text-text-muted truncate">{{ t.email || t.specialization || 'Academic Staff' }}</p>
+                        </div>
+                    </div>
+                    <button (click)="assignReliefTeacher(t)"
+                        class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shrink-0 transition-all shadow-md shadow-emerald-500/20 flex items-center gap-1.5 cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Assign</span>
+                    </button>
+                </div>
+                }
+            </div>
+            } @else {
+            <div class="p-8 text-center rounded-2xl border border-dashed border-border-primary bg-bg-tertiary/30">
+                <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center mx-auto mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <p class="text-xs font-bold text-text-primary">No Available Teachers</p>
+                <p class="text-[11px] text-text-muted mt-0.5">All academic staff are already assigned to active classes during this period.</p>
+            </div>
+            }
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-border-primary">
+            <button (click)="closeReliefFinder()" class="w-full py-3 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-primary border border-border-primary transition-all">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ═══════════════════════ LIVE CONFLICT AUDIT & HEALTH MODAL ═══════════════════════ -->
+@if (showAuditModal()) {
+<div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in no-print" (click)="closeAuditModal()">
+    <div class="bg-bg-secondary w-full max-w-2xl rounded-t-3xl sm:rounded-3xl border border-border-primary shadow-2xl p-6 sm:p-8 relative z-10 max-h-[90vh] sm:max-h-[85vh] overflow-y-auto animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
+        <!-- Mobile Bottomsheet Handle -->
+        <div class="sm:hidden flex justify-center pb-2">
+            <div class="bottomsheet-handle"></div>
+        </div>
+
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Real-Time Timetable Health Auditor
+                </div>
+                <h3 class="text-xl font-black text-text-primary">Schedule Health & Conflict Inspector</h3>
+                <p class="text-xs text-text-muted mt-0.5">Comprehensive audit of teacher assignments, room collisions, and fatigue limits.</p>
+            </div>
+            <button (click)="closeAuditModal()" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <!-- Health Score & Metrics Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <div class="p-3.5 rounded-2xl bg-bg-tertiary border border-border-primary flex flex-col items-center text-center">
+                <span class="text-[9px] font-black uppercase tracking-widest text-text-muted">Health Score</span>
+                <span class="text-2xl font-black mt-1"
+                    [class.text-emerald-400]="(auditReport()?.summary?.health_score || 0) >= 90"
+                    [class.text-amber-400]="(auditReport()?.summary?.health_score || 0) >= 60 && (auditReport()?.summary?.health_score || 0) < 90"
+                    [class.text-rose-400]="(auditReport()?.summary?.health_score || 0) < 60">
+                    {{ auditReport()?.summary?.health_score || 100 }}%
+                </span>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-bg-tertiary border border-border-primary flex flex-col items-center text-center">
+                <span class="text-[9px] font-black uppercase tracking-widest text-text-muted">Teacher Clashes</span>
+                <span class="text-2xl font-black mt-1" [class.text-rose-400]="(auditReport()?.summary?.teacher_overlaps || 0) > 0" [class.text-text-primary]="(auditReport()?.summary?.teacher_overlaps || 0) === 0">
+                    {{ auditReport()?.summary?.teacher_overlaps || 0 }}
+                </span>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-bg-tertiary border border-border-primary flex flex-col items-center text-center">
+                <span class="text-[9px] font-black uppercase tracking-widest text-text-muted">Room Clashes</span>
+                <span class="text-2xl font-black mt-1" [class.text-amber-400]="(auditReport()?.summary?.room_overlaps || 0) > 0" [class.text-text-primary]="(auditReport()?.summary?.room_overlaps || 0) === 0">
+                    {{ auditReport()?.summary?.room_overlaps || 0 }}
+                </span>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-bg-tertiary border border-border-primary flex flex-col items-center text-center">
+                <span class="text-[9px] font-black uppercase tracking-widest text-text-muted">Total Conflicts</span>
+                <span class="text-2xl font-black mt-1" [class.text-rose-400]="(auditReport()?.summary?.total_conflicts || 0) > 0" [class.text-emerald-400]="(auditReport()?.summary?.total_conflicts || 0) === 0">
+                    {{ auditReport()?.summary?.total_conflicts || 0 }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Detected Conflicts List -->
+        <div class="space-y-3 mb-6">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-widest text-text-muted">
+                    Detected Issues ({{ auditReport()?.conflicts?.length || 0 }})
+                </span>
+                <button (click)="runAudit()" [disabled]="isAuditing()" class="text-xs text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1 transition-colors">
+                    <svg class="w-3.5 h-3.5" [class.animate-spin]="isAuditing()" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Re-Audit Schedule
+                </button>
+            </div>
+
+            @if ((auditReport()?.conflicts?.length || 0) > 0) {
+            <div class="space-y-2 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar">
+                @for (conflict of auditReport()?.conflicts || []; track $index) {
+                <div class="p-4 rounded-2xl bg-bg-tertiary border border-border-primary flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-all hover:border-rose-500/40">
+                    <div class="flex items-start gap-3 min-w-0">
+                        <span class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm font-black"
+                            [class.bg-rose-500/15]="conflict.severity === 'critical'"
+                            [class.text-rose-400]="conflict.severity === 'critical'"
+                            [class.bg-amber-500/15]="conflict.severity === 'warning'"
+                            [class.text-amber-400]="conflict.severity === 'warning'">
+                            ⚠️
+                        </span>
+                        <div class="min-w-0">
+                            <p class="text-xs font-black text-text-primary">{{ conflict.message }}</p>
+                            <p class="text-[10px] text-text-muted mt-0.5 font-mono">
+                                {{ dayLabel(conflict.day_of_week) }} • {{ conflict.start_time }} – {{ conflict.end_time }}
+                            </p>
+                        </div>
+                    </div>
+                    <button (click)="quickFixConflict(conflict)"
+                        class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shrink-0 shadow-md shadow-blue-500/20 transition-all cursor-pointer">
+                        Substitute / Fix
+                    </button>
+                </div>
+                }
+            </div>
+            } @else {
+            <div class="p-8 text-center rounded-2xl border border-dashed border-emerald-500/30 bg-emerald-500/5">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <h4 class="text-sm font-black text-text-primary">Zero Conflicts Detected</h4>
+                <p class="text-xs text-text-muted mt-1 max-w-sm mx-auto">All teachers, specialized rooms, and pedagogical rules are properly satisfied across cohorts.</p>
+            </div>
+            }
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-border-primary">
+            <button (click)="closeAuditModal()" class="px-6 py-2.5 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-primary border border-border-primary transition-all">
+                Close Inspector
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ═══════════════════════ TEACHER AVAILABILITY & OFF-PERIOD RULES MODAL ═══════════════════════ -->
+@if (showUnavailabilityModal()) {
+<div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in no-print" (click)="closeUnavailabilityModal()">
+    <div class="bg-bg-secondary w-full max-w-2xl rounded-t-3xl sm:rounded-3xl border border-border-primary shadow-2xl p-6 sm:p-8 relative z-10 max-h-[90vh] sm:max-h-[85vh] overflow-y-auto animate-slide-up sm:animate-fade-in" (click)="$event.stopPropagation()">
+        <!-- Mobile Bottomsheet Handle -->
+        <div class="sm:hidden flex justify-center pb-2">
+            <div class="bottomsheet-handle"></div>
+        </div>
+
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] font-black uppercase tracking-widest mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+                    Faculty Availability Constraints
+                </div>
+                <h3 class="text-xl font-black text-text-primary">Teacher Availability Preferences</h3>
+                <p class="text-xs text-text-muted mt-0.5">Specify part-time staff off-days or administrative unavailable slots so the auto-scheduler skips them.</p>
+            </div>
+            <button (click)="closeUnavailabilityModal()" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <!-- Add Unavailability Form -->
+        <div class="p-4 rounded-2xl bg-bg-tertiary/60 border border-border-primary mb-6 space-y-3">
+            <span class="text-[10px] font-black uppercase tracking-widest text-text-primary block">Add Unavailability Rule</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Teacher -->
+                <div>
+                    <label class="block text-[9px] font-black uppercase tracking-widest text-text-muted mb-1">Teacher *</label>
+                    <select [(ngModel)]="draftUnavailability.teacher_id" class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary outline-none focus:border-purple-500">
+                        <option value="">Select Teacher...</option>
+                        @for (t of teachers(); track t.id) {
+                        <option [value]="t.id">{{ t.first_name }} {{ t.last_name }}</option>
+                        }
+                    </select>
+                </div>
+                <!-- Day of Week -->
+                <div>
+                    <label class="block text-[9px] font-black uppercase tracking-widest text-text-muted mb-1">Unavailable Day *</label>
+                    <select [(ngModel)]="draftUnavailability.day_of_week" class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary outline-none focus:border-purple-500">
+                        <option [value]="0">All Weekdays (Everyday)</option>
+                        @for (d of days; track d; let idx = $index) {
+                        <option [value]="idx + 1">{{ d }}</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <!-- Start Time -->
+                <div>
+                    <label class="block text-[9px] font-black uppercase tracking-widest text-text-muted mb-1">From Time (Optional)</label>
+                    <select [(ngModel)]="draftUnavailability.start_time" class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-mono outline-none focus:border-purple-500">
+                        <option value="">Full Day</option>
+                        @for (t of timeSlots; track t) {
+                        <option [value]="t">{{ t }}</option>
+                        }
+                    </select>
+                </div>
+                <!-- End Time -->
+                <div>
+                    <label class="block text-[9px] font-black uppercase tracking-widest text-text-muted mb-1">To Time (Optional)</label>
+                    <select [(ngModel)]="draftUnavailability.end_time" class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary font-mono outline-none focus:border-purple-500">
+                        <option value="">Full Day</option>
+                        @for (t of timeSlots; track t) {
+                        <option [value]="t">{{ t }}</option>
+                        }
+                    </select>
+                </div>
+                <!-- Reason -->
+                <div>
+                    <label class="block text-[9px] font-black uppercase tracking-widest text-text-muted mb-1">Reason / Note</label>
+                    <input type="text" [(ngModel)]="draftUnavailability.reason" placeholder="e.g. Part-time off-duty"
+                        class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary outline-none focus:border-purple-500" />
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button (click)="saveUnavailability()" [disabled]="isSavingUnavailability() || !draftUnavailability.teacher_id"
+                    class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-purple-500/20 disabled:opacity-50 flex items-center gap-1.5 cursor-pointer">
+                    @if (isSavingUnavailability()) {
+                    <div class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Saving...
+                    } @else {
+                    <span>+ Add Constraint</span>
+                    }
+                </button>
+            </div>
+        </div>
+
+        <!-- Existing Rules Table -->
+        <div class="space-y-3">
+            <span class="text-[10px] font-black uppercase tracking-widest text-text-muted block">
+                Active Availability Rules ({{ unavailabilities().length }})
+            </span>
+
+            @if (unavailabilities().length > 0) {
+            <div class="max-h-[240px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                @for (u of unavailabilities(); track u.id) {
+                <div class="p-3.5 rounded-2xl bg-bg-tertiary border border-border-primary flex items-center justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="text-xs font-black text-text-primary">{{ teacherMap()[u.teacher_id] || 'Teacher' }}</p>
+                        <p class="text-[10px] text-text-muted mt-0.5">
+                            <span class="px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 font-bold mr-1.5">
+                                {{ u.day_of_week === 0 ? 'All Days' : dayLabel(u.day_of_week) }}
+                            </span>
+                            @if (u.start_time && u.end_time) {
+                            <span class="font-mono text-text-secondary mr-1.5">{{ u.start_time }} – {{ u.end_time }}</span>
+                            } @else {
+                            <span class="text-text-secondary mr-1.5">(Full Day)</span>
+                            }
+                            • {{ u.reason || 'Off-duty' }}
+                        </p>
+                    </div>
+                    <button (click)="removeUnavailability(u.id)"
+                        class="p-1.5 rounded-xl text-text-muted hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer"
+                        title="Delete rule">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                }
+            </div>
+            } @else {
+            <div class="p-6 text-center rounded-2xl border border-dashed border-border-primary bg-bg-tertiary/30">
+                <p class="text-xs text-text-muted">No unavailability constraints defined. All teachers are considered fully available.</p>
+            </div>
+            }
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-border-primary">
+            <button (click)="closeUnavailabilityModal()" class="w-full py-3 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-primary border border-border-primary transition-all">
+                Done
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ═══════════════════════ TEACHER ABSENCES & SUBSTITUTION MODAL (Rec #4) ═══════════════════════ -->
+@if (showAbsenceModal()) {
+<div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in no-print" (click)="closeAbsenceModal()">
+    <div class="bg-bg-secondary w-full max-w-3xl rounded-t-3xl sm:rounded-3xl border border-rose-500/30 shadow-2xl p-6 sm:p-8 relative z-10 max-h-[90vh] overflow-y-auto custom-scrollbar" (click)="$event.stopPropagation()">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-black uppercase tracking-widest mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="11" x2="23" y2="11"/></svg>
+                    Substitute Coverage Engine
+                </div>
+                <h3 class="text-xl font-black text-text-primary">Teacher Absence & Substitute Dispatch</h3>
+                <p class="text-xs text-text-muted mt-0.5">Report faculty absence, find free qualified teachers for each affected period, and auto-dispatch relief schedules.</p>
+            </div>
+            <button (click)="closeAbsenceModal()" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <!-- Log New Absence Form -->
+        <div class="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 mb-6 space-y-3">
+            <span class="text-[10px] font-black uppercase tracking-widest text-rose-400 block">Report Faculty Absence</span>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-[9px] font-black uppercase tracking-widest text-text-muted mb-1">Absent Teacher *</label>
+                    <select [(ngModel)]="draftAbsence.teacher_id" class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary outline-none focus:border-rose-500">
+                        <option value="">Select Teacher...</option>
+                        @for (t of teachers(); track t.id) {
+                        <option [value]="t.id">{{ t.first_name }} {{ t.last_name }}</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[9px] font-black uppercase tracking-widest text-text-muted mb-1">Absence Date *</label>
+                    <input type="date" [(ngModel)]="draftAbsence.absent_date" class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary outline-none focus:border-rose-500">
+                </div>
+                <div>
+                    <label class="block text-[9px] font-black uppercase tracking-widest text-text-muted mb-1">Reason / Note</label>
+                    <input type="text" [(ngModel)]="draftAbsence.reason" placeholder="e.g. Medical Leave, Conference" class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary outline-none focus:border-rose-500">
+                </div>
+            </div>
+            <div class="flex justify-end pt-2">
+                <button (click)="recordAbsence()" [disabled]="isSavingAbsence() || !draftAbsence.teacher_id"
+                    class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs transition-all shadow-md disabled:opacity-40 flex items-center gap-2 cursor-pointer">
+                    @if (isSavingAbsence()) { Logging... } @else { Record & Auto-Find Substitutes }
+                </button>
+            </div>
+        </div>
+
+        <!-- Recent Absences & Substitution Status -->
+        <div class="space-y-3">
+            <span class="text-[10px] font-black uppercase tracking-widest text-text-muted block">Recent Absence Records</span>
+            @if (absences().length > 0) {
+            <div class="space-y-2 max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
+                @for (a of absences(); track a.id) {
+                <div class="p-3.5 rounded-2xl bg-bg-tertiary border border-border-primary flex items-center justify-between gap-3">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <p class="text-xs font-black text-text-primary">{{ teacherMap()[a.teacher_id] || 'Teacher' }}</p>
+                            @if (a.substitute_id) {
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold">
+                                Covered by {{ teacherMap()[a.substitute_id] }}
+                            </span>
+                            } @else {
+                            <span class="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-bold">
+                                Pending Coverage
+                            </span>
+                            }
+                        </div>
+                        <p class="text-[10px] text-text-muted mt-1">
+                            <span class="font-mono text-text-secondary">{{ a.absent_date | date:'mediumDate' }}</span> • {{ a.reason || 'Leave' }}
+                        </p>
+                    </div>
+                    @if (!a.substitute_id && a.id) {
+                    <button (click)="autoSubstitute(a.id)" [disabled]="isAutoSubstituting()"
+                        class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase tracking-wider transition-all disabled:opacity-40 cursor-pointer">
+                        Auto-Assign
+                    </button>
+                    }
+                </div>
+                }
+            </div>
+            } @else {
+            <div class="p-6 text-center rounded-2xl border border-dashed border-border-primary bg-bg-tertiary/30">
+                <p class="text-xs text-text-muted">No faculty absences recorded. All teachers are present.</p>
+            </div>
+            }
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-border-primary flex justify-end">
+            <button (click)="closeAbsenceModal()" class="px-6 py-2.5 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-primary border border-border-primary transition-all">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ═══════════════════════ TIMETABLE SNAPSHOTS & HISTORY MODAL (Rec #6) ═══════════════════════ -->
+@if (showSnapshotModal()) {
+<div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in no-print" (click)="closeSnapshotModal()">
+    <div class="bg-bg-secondary w-full max-w-2xl rounded-t-3xl sm:rounded-3xl border border-cyan-500/30 shadow-2xl p-6 sm:p-8 relative z-10 max-h-[90vh] overflow-y-auto custom-scrollbar" (click)="$event.stopPropagation()">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-black uppercase tracking-widest mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Version History & Safety Rollbacks
+                </div>
+                <h3 class="text-xl font-black text-text-primary">Timetable Snapshots</h3>
+                <p class="text-xs text-text-muted mt-0.5">Capture point-in-time states before major edits or optimizer runs. Restore any snapshot with one click.</p>
+            </div>
+            <button (click)="closeSnapshotModal()" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <!-- Create Snapshot -->
+        <div class="p-4 rounded-2xl bg-cyan-500/5 border border-cyan-500/20 mb-6 flex flex-col sm:flex-row gap-3 items-end sm:items-center">
+            <div class="flex-1 w-full">
+                <label class="block text-[9px] font-black uppercase tracking-widest text-text-muted mb-1">Snapshot Label</label>
+                <input type="text" [ngModel]="draftSnapshotLabel()" (ngModelChange)="draftSnapshotLabel.set($event)" placeholder="e.g. Mid-Term Stable Schedule 2026-Q3" class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary outline-none focus:border-cyan-500">
+            </div>
+            <button (click)="createSnapshot()" [disabled]="isCreatingSnapshot()"
+                class="px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-black text-xs transition-all shadow-md disabled:opacity-40 flex items-center gap-2 shrink-0 cursor-pointer">
+                @if (isCreatingSnapshot()) { Saving... } @else { Save Snapshot }
+            </button>
+        </div>
+
+        <!-- Snapshot List -->
+        <div class="space-y-3">
+            <span class="text-[10px] font-black uppercase tracking-widest text-text-muted block">Saved Snapshots</span>
+            @if (snapshots().length > 0) {
+            <div class="space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-1">
+                @for (s of snapshots(); track s.id) {
+                <div class="p-3.5 rounded-2xl bg-bg-tertiary border border-border-primary flex items-center justify-between gap-3">
+                    <div>
+                        <p class="text-xs font-black text-text-primary">{{ s.label }}</p>
+                        <p class="text-[10px] text-text-muted mt-0.5 font-mono">{{ s.created_at | date:'medium' }}</p>
+                    </div>
+                    <button (click)="restoreSnapshot(s)"
+                        class="px-3.5 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-bold transition-all cursor-pointer">
+                        Rollback to This
+                    </button>
+                </div>
+                }
+            </div>
+            } @else {
+            <div class="p-6 text-center rounded-2xl border border-dashed border-border-primary bg-bg-tertiary/30">
+                <p class="text-xs text-text-muted">No snapshots recorded yet. Click "Save Snapshot" to create your first safety backup.</p>
+            </div>
+            }
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-border-primary flex justify-end">
+            <button (click)="closeSnapshotModal()" class="px-6 py-2.5 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-primary border border-border-primary transition-all">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ═══════════════════════ COGNITIVE DIFFICULTY WEIGHTS MODAL (Rec #7) ═══════════════════════ -->
+@if (showCognitiveModal()) {
+<div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in no-print" (click)="closeCognitiveModal()">
+    <div class="bg-bg-secondary w-full max-w-2xl rounded-t-3xl sm:rounded-3xl border border-emerald-500/30 shadow-2xl p-6 sm:p-8 relative z-10 max-h-[90vh] overflow-y-auto custom-scrollbar" (click)="$event.stopPropagation()">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    Pedagogical Brain-Drain Optimization
+                </div>
+                <h3 class="text-xl font-black text-text-primary">Subject Cognitive Weights</h3>
+                <p class="text-xs text-text-muted mt-0.5">Rate subjects from 1 (Light/Recreational) to 5 (Heavy/High Cognitive Demand). The optimizer schedules heavy subjects in early morning peak mental focus slots.</p>
+            </div>
+            <button (click)="closeCognitiveModal()" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <div class="space-y-2.5 max-h-[360px] overflow-y-auto custom-scrollbar pr-1">
+            @for (subj of subjects(); track subj.id) {
+            <div class="p-3.5 rounded-2xl bg-bg-tertiary border border-border-primary flex items-center justify-between gap-4">
+                <div>
+                    <p class="text-xs font-black text-text-primary">{{ subj.name }}</p>
+                    <p class="text-[10px] text-text-muted">{{ subj.code || 'Standard Subject' }}</p>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    @for (w of [1, 2, 3, 4, 5]; track w) {
+                    <button (click)="subj.id && updateSubjectWeight(subj.id, w)"
+                        [class.bg-emerald-500]="subj.id && getSubjectWeight(subj.id) === w"
+                        [class.text-white]="subj.id && getSubjectWeight(subj.id) === w"
+                        [class.bg-bg-secondary]="subj.id && getSubjectWeight(subj.id) !== w"
+                        [class.text-text-muted]="subj.id && getSubjectWeight(subj.id) !== w"
+                        class="w-7 h-7 rounded-lg text-xs font-bold border border-border-primary hover:border-emerald-500 transition-all cursor-pointer"
+                        [title]="w === 5 ? '5 - High Cognitive Load (Math, Physics)' : w === 1 ? '1 - Light (PE, Arts)' : w + ' - Moderate'">
+                        {{ w }}
+                    </button>
+                    }
+                </div>
+            </div>
+            }
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-border-primary flex justify-end">
+            <button (click)="closeCognitiveModal()" class="px-6 py-2.5 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-primary border border-border-primary transition-all">
+                Done
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ═══════════════════════ TIMETABLE TEMPLATES MODAL (Rec #8) ═══════════════════════ -->
+@if (showTemplateModal()) {
+<div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in no-print" (click)="closeTemplateModal()">
+    <div class="bg-bg-secondary w-full max-w-2xl rounded-t-3xl sm:rounded-3xl border border-indigo-500/30 shadow-2xl p-6 sm:p-8 relative z-10 max-h-[90vh] overflow-y-auto custom-scrollbar" (click)="$event.stopPropagation()">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-widest mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                    Multi-Year Scheduling Patterns
+                </div>
+                <h3 class="text-xl font-black text-text-primary">Timetable Templates</h3>
+                <p class="text-xs text-text-muted mt-0.5">Save weekly subject distributions into reusable templates and instantiate them each academic term without redesigning from scratch.</p>
+            </div>
+            <button (click)="closeTemplateModal()" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <!-- Save Template -->
+        <div class="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/20 mb-6 flex flex-col sm:flex-row gap-3 items-end sm:items-center">
+            <div class="flex-1 w-full">
+                <label class="block text-[9px] font-black uppercase tracking-widest text-text-muted mb-1">Template Name</label>
+                <input type="text" [ngModel]="draftTemplateName()" (ngModelChange)="draftTemplateName.set($event)" placeholder="e.g. Standard 8-Period Term Template" class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs text-text-primary outline-none focus:border-indigo-500">
+            </div>
+            <button (click)="saveCurrentAsTemplate()" [disabled]="isSavingTemplate()"
+                class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs transition-all shadow-md disabled:opacity-40 flex items-center gap-2 shrink-0 cursor-pointer">
+                @if (isSavingTemplate()) { Saving... } @else { Save As Template }
+            </button>
+        </div>
+
+        <!-- Template List -->
+        <div class="space-y-3">
+            <span class="text-[10px] font-black uppercase tracking-widest text-text-muted block">Available Templates</span>
+            @if (templates().length > 0) {
+            <div class="space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-1">
+                @for (t of templates(); track t.id) {
+                <div class="p-3.5 rounded-2xl bg-bg-tertiary border border-border-primary flex items-center justify-between gap-3">
+                    <div>
+                        <p class="text-xs font-black text-text-primary">{{ t.name }}</p>
+                        <p class="text-[10px] text-text-muted mt-0.5 font-mono">{{ t.created_at | date:'mediumDate' }}</p>
+                    </div>
+                    <button (click)="t.id && applyTemplateToClasses(t.id)"
+                        class="px-3.5 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-bold transition-all cursor-pointer">
+                        Apply to {{ selectedClass() ? selectedClass()?.name : 'Classes' }}
+                    </button>
+                </div>
+                }
+            </div>
+            } @else {
+            <div class="p-6 text-center rounded-2xl border border-dashed border-border-primary bg-bg-tertiary/30">
+                <p class="text-xs text-text-muted">No templates created yet. Save current class schedule as a template to get started.</p>
+            </div>
+            }
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-border-primary flex justify-end">
+            <button (click)="closeTemplateModal()" class="px-6 py-2.5 rounded-xl font-bold text-xs bg-bg-tertiary hover:bg-bg-primary text-text-primary border border-border-primary transition-all">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+
