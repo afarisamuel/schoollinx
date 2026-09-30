@@ -70,20 +70,18 @@
 
         var manifestLink = document.getElementById('app-manifest') || document.querySelector('link[rel="manifest"]');
         if (manifestLink) {
-          var isProd = window.location.hostname.endsWith('schoollinx.com');
-          var apiBase = isProd ? 'https://api.schoollinx.com/api' : '/api';
           var manifestUrl = subdomain
-            ? (apiBase + '/public/tenant-manifest?subdomain=' + encodeURIComponent(subdomain))
-            : (apiBase + '/public/tenant-manifest');
+            ? ('/manifest.webmanifest?subdomain=' + encodeURIComponent(subdomain))
+            : '/manifest.webmanifest';
           manifestLink.setAttribute('href', manifestUrl);
         }
-
 
         // Register service worker as early as possible so Chrome can evaluate
         // the PWA installability criteria before the app fully bootstraps.
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function() {});
         }
+
       } catch (e) {}
     })();
   </script>

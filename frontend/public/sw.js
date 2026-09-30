@@ -53,8 +53,33 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // 0. Dynamic Same-Origin Web App Manifest (for multi-tenant customized PWA branding)
+  if (url.pathname === '/manifest.webmanifest') {
+    const subdomain = url.searchParams.get('subdomain') || '';
+    const manifestApi = 'https://api.schoollinx.com/api/public/tenant-manifest' + (subdomain ? '?subdomain=' + encodeURIComponent(subdomain) : '');
+    event.respondWith(
+      fetch(manifestApi)
+        .then((res) => {
+          if (res && res.status === 200) {
+            return res.json().then((manifestData) => {
+              manifestData.start_url = '/';
+              manifestData.scope = '/';
+              return new Response(JSON.stringify(manifestData), {
+                status: 200,
+                headers: { 'Content-Type': 'application/manifest+json' }
+              });
+            });
+          }
+          return caches.match('/manifest.webmanifest');
+        })
+        .catch(() => caches.match('/manifest.webmanifest'))
+    );
+    return;
+  }
+
   // 1. Navigation Requests (SPA Page Routes: /dashboard, /students, etc.)
   if (event.request.mode === 'navigate' || (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html'))) {
+
     event.respondWith(
       fetch(event.request)
         .then((response) => {
