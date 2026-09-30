@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, ErrorHandler, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter, withPreloading, PreloadAllModules } from '@angular/router';
 
 import { publicRoutes, tenantRoutes } from './app.routes';
@@ -10,14 +10,17 @@ import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { tenantInterceptor } from './core/interceptors/tenant.interceptor';
 import { errorToastInterceptor } from './core/interceptors/error-toast.interceptor';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
+import { GlobalErrorHandler } from './core/errors/global-error-handler';
 
 const activeRoutes = isTenantDomain() ? tenantRoutes : publicRoutes;
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    { provide: ErrorHandler, useClass: GlobalErrorHandler },
     provideRouter(activeRoutes, withPreloading(PreloadAllModules)),
     provideAnimations(),
     provideHttpClient(withFetch(), withInterceptors([tenantInterceptor, authInterceptor, loadingInterceptor, errorToastInterceptor])),
   ]
 };
+

@@ -1,6 +1,6 @@
 // SchoolLinx Push Notification & Comprehensive Offline PWA Service Worker
-const CACHE_NAME = 'schoollinx-v2';
-const DATA_CACHE_NAME = 'schoollinx-data-v2';
+const CACHE_NAME = 'schoollinx-v4';
+const DATA_CACHE_NAME = 'schoollinx-data-v4';
 
 const PRECACHE_ASSETS = [
   '/',
@@ -14,10 +14,10 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(PRECACHE_ASSETS).catch((err) => {
-        console.warn('[SW] Precache asset registration non-fatal error:', err);
+        console.warn('[SW] Precache non-fatal error:', err);
       });
     }).then(() => {
-      // Notify all clients that a new version has been installed
+      // Notify active clients that a new SW version is installed
       self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
         clients.forEach((client) => {
           client.postMessage({ type: 'SW_UPDATE_AVAILABLE' });
@@ -33,6 +33,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME && key !== DATA_CACHE_NAME) {
+            console.log('[SW] Purging stale cache:', key);
             return caches.delete(key);
           }
         })
@@ -52,8 +53,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 1. All Page Navigation Requests (SPA Client-Side Routes)
-  // Ensures all pages (/dashboard, /students, /teachers, /attendance/mark, etc.) load offline
+  // 1. Navigation Requests (SPA Page Routes: /dashboard, /students, etc.)
   if (event.request.mode === 'navigate' || (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html'))) {
     event.respondWith(
       fetch(event.request)
@@ -64,18 +64,21 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => {
-          // Serve cached root index.html when offline so Angular Router activates the requested page
-          return caches.match('/').then((cachedRoot) => {
-            if (cachedRoot) return cachedRoot;
-            return caches.match('/index.html');
+        .catch(async () => {
+          const cachedRoot = await caches.match('/');
+          if (cachedRoot) return cachedRoot;
+          const cachedIndex = await caches.match('/index.html');
+          if (cachedIndex) return cachedIndex;
+          return new Response('Offline: Page not cached.', {
+            status: 503,
+            headers: { 'Content-Type': 'text/plain' }
           });
         })
     );
     return;
   }
 
-  // 2. API Requests: Network-First with Data Cache Fallback (for viewing rosters, marks, etc. offline)
+  // 2. API Requests: Network-First with Data Cache Fallback
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(event.request)
@@ -86,22 +89,50 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => {
-          return caches.match(event.request);
+        .catch(async () => {
+          const cached = await caches.match(event.request);
+          if (cached) return cached;
+          return new Response(JSON.stringify({ error: 'Offline network error' }), {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' }
+          });
         })
     );
     return;
   }
 
   // 3. Static Assets (Scripts, Styles, Fonts, Images)
+  // Use Network-First for JS/CSS chunks to avoid stale chunk 404 mismatches after new deploys
+  const isCodeChunk = url.pathname.endsWith('.js') || url.pathname.endsWith('.mjs') || url.pathname.endsWith('.css');
+
+  if (isCodeChunk) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return networkResponse;
+        })
+        .catch(async () => {
+          const cached = await caches.match(event.request);
+          if (cached) return cached;
+          return new Response('', { status: 404 });
+        })
+    );
+    return;
+  }
+
+  // Other static assets (images, fonts, etc.): Cache-First with background revalidation
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        // Stale-while-revalidate in background
         fetch(event.request)
           .then((networkResponse) => {
             if (networkResponse && networkResponse.status === 200) {
-              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
+              const copy = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
             }
           })
           .catch(() => {});
@@ -114,7 +145,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         }
         return networkResponse;
-      });
+      }).catch(() => new Response('', { status: 404 }));
     })
   );
 });
