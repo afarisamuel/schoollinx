@@ -94,7 +94,18 @@ func (w *PushNotificationWorker) run(ctx context.Context) {
 	}
 
 	// Ensure pushed_at column exists in the public notifications table.
-	// This is safe to run repeatedly — it's a no-op when the column already exists.
+	_ = w.db.WithContext(ctx).
+		Exec(`CREATE TABLE IF NOT EXISTS public.notifications (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			user_id UUID NOT NULL,
+			type VARCHAR(50) NOT NULL,
+			title TEXT NOT NULL,
+			message TEXT NOT NULL,
+			read BOOLEAN DEFAULT FALSE,
+			created_at TIMESTAMPTZ DEFAULT NOW(),
+			pushed_at TIMESTAMPTZ,
+			data JSONB
+		)`).Error
 	_ = w.db.WithContext(ctx).
 		Exec("ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS pushed_at TIMESTAMPTZ").Error
 
@@ -117,7 +128,20 @@ func (w *PushNotificationWorker) run(ctx context.Context) {
 		}
 		tenantCtx := context.WithValue(ctx, middleware.TenantSchemaKey, t.SchemaName)
 		tenantCtx = context.WithValue(tenantCtx, middleware.TenantIDKey, t.ID)
-		// Ensure the column exists in this tenant's notifications table too.
+
+		// Ensure the notifications table and pushed_at column exist in this tenant's schema
+		_ = w.db.WithContext(tenantCtx).
+			Exec(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.notifications (
+				id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+				user_id UUID NOT NULL,
+				type VARCHAR(50) NOT NULL,
+				title TEXT NOT NULL,
+				message TEXT NOT NULL,
+				read BOOLEAN DEFAULT FALSE,
+				created_at TIMESTAMPTZ DEFAULT NOW(),
+				pushed_at TIMESTAMPTZ,
+				data JSONB
+			)`, t.SchemaName)).Error
 		_ = w.db.WithContext(tenantCtx).
 			Exec(fmt.Sprintf("ALTER TABLE %s.notifications ADD COLUMN IF NOT EXISTS pushed_at TIMESTAMPTZ", t.SchemaName)).Error
 		
@@ -139,6 +163,14 @@ type pushSubRow struct {
 
 // dispatchForTable processes unsent push notifications from a specific table.
 func (w *PushNotificationWorker) dispatchForTable(ctx context.Context, table string, logoURL string) {
+	// Guard against unmigrated/missing tenant tables
+	var tableExists bool
+	if err := w.db.WithContext(ctx).
+		Raw("SELECT to_regclass(?) IS NOT NULL", table).
+		Scan(&tableExists).Error; err != nil || !tableExists {
+		return
+	}
+
 	var notifications []domain.Notification
 
 	if err := w.db.WithContext(ctx).
