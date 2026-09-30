@@ -16,12 +16,15 @@ import (
 // and dispatches them asynchronously through rate-limited email/SMS queues.
 type CampaignWorker struct {
 	db          *gorm.DB
+	locker      Locker
 	campaignMgr usecase.CampaignManager
+	rateLimiter *RateLimiter
 	interval    time.Duration
 }
 
 func NewCampaignWorker(
 	db *gorm.DB,
+	locker Locker,
 	campaignMgr usecase.CampaignManager,
 	interval time.Duration,
 ) *CampaignWorker {
@@ -30,7 +33,9 @@ func NewCampaignWorker(
 	}
 	return &CampaignWorker{
 		db:          db,
+		locker:      locker,
 		campaignMgr: campaignMgr,
+		rateLimiter: NewRateLimiter(25), // Max 25 campaign dispatch triggers per second
 		interval:    interval,
 	}
 }
@@ -42,6 +47,7 @@ func (w *CampaignWorker) Name() string {
 func (w *CampaignWorker) Start(ctx context.Context) {
 	ticker := time.NewTicker(w.interval)
 	defer ticker.Stop()
+	defer w.rateLimiter.Stop()
 
 	for {
 		select {
@@ -54,6 +60,14 @@ func (w *CampaignWorker) Start(ctx context.Context) {
 }
 
 func (w *CampaignWorker) processPendingCampaigns(ctx context.Context) {
+	if w.locker != nil {
+		acquired, release := w.locker.Acquire(ctx, "campaign_worker", 2*time.Minute)
+		if !acquired {
+			return
+		}
+		defer release()
+	}
+
 	var tenants []domain.Tenant
 	if err := w.db.WithContext(ctx).Table("public.tenants").Where("is_active = ?", true).Find(&tenants).Error; err != nil {
 		logger.Error("CampaignWorker: failed to fetch tenants", err)
@@ -83,6 +97,7 @@ func (w *CampaignWorker) processTenantCampaigns(ctx context.Context, tenant *dom
 		Find(&stalledCampaigns).Error
 
 	for _, c := range stalledCampaigns {
+		_ = w.rateLimiter.Wait(ctx)
 		logger.Warn("CampaignWorker: recovering stalled campaign",
 			zap.String("campaign_id", c.ID.String()),
 			zap.String("tenant", tenant.SchemaName),

@@ -15,6 +15,7 @@ import (
 // on active school days for enrolled students across all active tenants.
 type DailyBillingWorker struct {
 	db             *gorm.DB
+	locker         Locker
 	academicPeriod domain.AcademicPeriodRepository
 	dailyBillUC    domain.DailyBillUseCase
 	interval       time.Duration
@@ -22,6 +23,7 @@ type DailyBillingWorker struct {
 
 func NewDailyBillingWorker(
 	db *gorm.DB,
+	locker Locker,
 	academicPeriod domain.AcademicPeriodRepository,
 	dailyBillUC domain.DailyBillUseCase,
 	interval time.Duration,
@@ -31,6 +33,7 @@ func NewDailyBillingWorker(
 	}
 	return &DailyBillingWorker{
 		db:             db,
+		locker:         locker,
 		academicPeriod: academicPeriod,
 		dailyBillUC:    dailyBillUC,
 		interval:       interval,
@@ -60,6 +63,15 @@ func (w *DailyBillingWorker) runBilling(ctx context.Context) {
 	// Run only on weekdays (Monday - Friday)
 	if now.Weekday() == time.Saturday || now.Weekday() == time.Sunday {
 		return
+	}
+
+	// Distributed lock to prevent duplicate billing across multiple app instances
+	if w.locker != nil {
+		acquired, release := w.locker.Acquire(ctx, "daily_billing", 30*time.Minute)
+		if !acquired {
+			return
+		}
+		defer release()
 	}
 
 	var tenants []domain.Tenant

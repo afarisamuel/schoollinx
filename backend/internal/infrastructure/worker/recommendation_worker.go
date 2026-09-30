@@ -15,12 +15,14 @@ import (
 // and curriculum trends across all active schools to generate AI/rule-based learning recommendations.
 type RecommendationWorker struct {
 	db        *gorm.DB
+	locker    Locker
 	recEngine domain.RecommendationEngine
 	interval  time.Duration
 }
 
 func NewRecommendationWorker(
 	db *gorm.DB,
+	locker Locker,
 	recEngine domain.RecommendationEngine,
 	interval time.Duration,
 ) *RecommendationWorker {
@@ -29,6 +31,7 @@ func NewRecommendationWorker(
 	}
 	return &RecommendationWorker{
 		db:        db,
+		locker:    locker,
 		recEngine: recEngine,
 		interval:  interval,
 	}
@@ -53,6 +56,14 @@ func (w *RecommendationWorker) Start(ctx context.Context) {
 }
 
 func (w *RecommendationWorker) runInsights(ctx context.Context) {
+	if w.locker != nil {
+		acquired, release := w.locker.Acquire(ctx, "recommendation_insights", 45*time.Minute)
+		if !acquired {
+			return
+		}
+		defer release()
+	}
+
 	var tenants []domain.Tenant
 	if err := w.db.WithContext(ctx).Table("public.tenants").Where("is_active = ?", true).Find(&tenants).Error; err != nil {
 		logger.Error("RecommendationWorker: failed to fetch active tenants", err)

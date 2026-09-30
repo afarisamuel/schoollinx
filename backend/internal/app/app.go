@@ -235,20 +235,24 @@ func (a *App) setupRoutes() {
 	handler.NewLegalPageHandler(superAdmin, public, a.DB)
 	handler.NewContactInfoHandler(superAdmin, public, a.DB)
 
-	telemetryUseCase := usecase.NewTelemetryUseCase(a.DB)
-	telemetryGroup := a.Router.Group("/api/telemetry")
-	handler.NewTelemetryHandler(telemetryGroup, telemetryUseCase)
-
-	// Initialize Background Workers
+	// Initialize Background Workers & Distributed Locker
+	locker := worker.NewLocker(infra.Cache)
 	a.WorkerManager = worker.NewManager()
 	a.WorkerManager.Register(
 		worker.NewTokenCleanerWorker(repos.Blacklist, 1*time.Hour),
-		worker.NewTenantMonitorWorker(a.DB, infra.SMTP, infra.SMS, usecases.Notification, 12*time.Hour),
-		worker.NewTruancyWorker(a.DB, repos.Student, repos.Guardian, infra.SMS, usecases.Notification, 4*time.Hour),
-		worker.NewDailyBillingWorker(a.DB, repos.AcademicPeriod, usecases.DailyBill, 6*time.Hour),
-		worker.NewRecommendationWorker(a.DB, usecases.Recommendation, 24*time.Hour),
-		worker.NewCampaignWorker(a.DB, usecases.Campaign, 1*time.Minute),
+		worker.NewTenantMonitorWorker(a.DB, locker, infra.SMTP, infra.SMS, usecases.Notification, 12*time.Hour),
+		worker.NewTruancyWorker(a.DB, locker, repos.Student, repos.Guardian, infra.SMS, usecases.Notification, 4*time.Hour),
+		worker.NewDailyBillingWorker(a.DB, locker, repos.AcademicPeriod, usecases.DailyBill, 6*time.Hour),
+		worker.NewRecommendationWorker(a.DB, locker, usecases.Recommendation, 24*time.Hour),
+		worker.NewCampaignWorker(a.DB, locker, usecases.Campaign, 1*time.Minute),
+		worker.NewFeeEscalationWorker(a.DB, locker, repos.Student, repos.Guardian, repos.Fiscal, infra.SMS, usecases.Notification, 12*time.Hour),
+		worker.NewStorageCleanerWorker(locker, nil, 24*time.Hour),
+		worker.NewReportCardPreRendererWorker(a.DB, locker, repos.Student, repos.AcademicPeriod, repos.TerminalEvaluation, repos.Grade, 24*time.Hour),
 	)
+
+	telemetryUseCase := usecase.NewTelemetryUseCase(a.DB)
+	telemetryGroup := a.Router.Group("/api/telemetry")
+	handler.NewTelemetryHandler(telemetryGroup, telemetryUseCase, a.WorkerManager)
 }
 
 func (a *App) Run() {

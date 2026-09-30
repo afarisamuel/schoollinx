@@ -6,15 +6,20 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/user/high-school-management/backend/internal/domain"
+	"github.com/user/high-school-management/backend/internal/infrastructure/worker"
 	"github.com/user/high-school-management/backend/internal/usecase"
 )
 
 type TelemetryHandler struct {
-	useCase usecase.TelemetryUseCase
+	useCase       usecase.TelemetryUseCase
+	workerManager *worker.Manager
 }
 
-func NewTelemetryHandler(r *gin.RouterGroup, useCase usecase.TelemetryUseCase) {
+func NewTelemetryHandler(r *gin.RouterGroup, useCase usecase.TelemetryUseCase, workerMgr ...*worker.Manager) {
 	h := &TelemetryHandler{useCase: useCase}
+	if len(workerMgr) > 0 {
+		h.workerManager = workerMgr[0]
+	}
 
 	// Public / Front-end endpoints
 	r.POST("/events", h.LogEvent)
@@ -26,6 +31,7 @@ func NewTelemetryHandler(r *gin.RouterGroup, useCase usecase.TelemetryUseCase) {
 	admin.GET("/funnel", h.GetFunnelMetrics)
 	admin.GET("/errors", h.GetErrors)
 	admin.GET("/db-pool", h.GetDatabaseStats)
+	admin.GET("/workers", h.GetWorkerStats)
 }
 
 func (h *TelemetryHandler) LogEvent(c *gin.Context) {
@@ -95,4 +101,18 @@ func (h *TelemetryHandler) GetDatabaseStats(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, data)
+}
+
+func (h *TelemetryHandler) GetWorkerStats(c *gin.Context) {
+	if h.workerManager == nil {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "active",
+			"workers": []interface{}{},
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "active",
+		"workers": h.workerManager.GetTelemetry(),
+	})
 }

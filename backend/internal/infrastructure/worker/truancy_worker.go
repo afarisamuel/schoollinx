@@ -18,6 +18,7 @@ import (
 // It automatically flags at-risk students and sends notification/SMS digests to parents.
 type TruancyWorker struct {
 	db           *gorm.DB
+	locker       Locker
 	studentRepo  domain.StudentRepository
 	guardianRepo domain.GuardianRepository
 	sms          domain.SMSProvider
@@ -27,6 +28,7 @@ type TruancyWorker struct {
 
 func NewTruancyWorker(
 	db *gorm.DB,
+	locker Locker,
 	studentRepo domain.StudentRepository,
 	guardianRepo domain.GuardianRepository,
 	sms domain.SMSProvider,
@@ -38,6 +40,7 @@ func NewTruancyWorker(
 	}
 	return &TruancyWorker{
 		db:           db,
+		locker:       locker,
 		studentRepo:  studentRepo,
 		guardianRepo: guardianRepo,
 		sms:          sms,
@@ -65,6 +68,21 @@ func (w *TruancyWorker) Start(ctx context.Context) {
 }
 
 func (w *TruancyWorker) evaluateAbsencesAcrossTenants(ctx context.Context) {
+	now := time.Now()
+	// Restrict parent notifications to allowed time window (07:00 - 21:00)
+	if !IsWithinNotificationWindow(now) {
+		return
+	}
+
+	// Distributed lock to prevent multi-instance concurrent runs
+	if w.locker != nil {
+		acquired, release := w.locker.Acquire(ctx, "truancy_worker", 15*time.Minute)
+		if !acquired {
+			return
+		}
+		defer release()
+	}
+
 	var tenants []domain.Tenant
 	if err := w.db.WithContext(ctx).Table("public.tenants").Where("is_active = ?", true).Find(&tenants).Error; err != nil {
 		logger.Error("TruancyWorker: failed to fetch tenants", err)

@@ -17,6 +17,7 @@ import (
 // 2. Alert schools when their prepaid SMS credit balance falls below threshold (<= 50 credits).
 type TenantMonitorWorker struct {
 	db       *gorm.DB
+	locker   Locker
 	mailer   mailer.MailService
 	sms      domain.SMSProvider
 	notifUC  domain.NotificationUseCase
@@ -25,6 +26,7 @@ type TenantMonitorWorker struct {
 
 func NewTenantMonitorWorker(
 	db *gorm.DB,
+	locker Locker,
 	mailSvc mailer.MailService,
 	sms domain.SMSProvider,
 	notifUC domain.NotificationUseCase,
@@ -35,6 +37,7 @@ func NewTenantMonitorWorker(
 	}
 	return &TenantMonitorWorker{
 		db:       db,
+		locker:   locker,
 		mailer:   mailSvc,
 		sms:      sms,
 		notifUC:  notifUC,
@@ -64,6 +67,21 @@ func (w *TenantMonitorWorker) Start(ctx context.Context) {
 }
 
 func (w *TenantMonitorWorker) inspectTenants(ctx context.Context) {
+	now := time.Now()
+	// Respect communication hours (07:00 - 21:00)
+	if !IsWithinNotificationWindow(now) {
+		return
+	}
+
+	// Distributed lock to prevent multi-instance runs
+	if w.locker != nil {
+		acquired, release := w.locker.Acquire(ctx, "tenant_monitor", 20*time.Minute)
+		if !acquired {
+			return
+		}
+		defer release()
+	}
+
 	reqCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
 
@@ -73,7 +91,6 @@ func (w *TenantMonitorWorker) inspectTenants(ctx context.Context) {
 		return
 	}
 
-	now := time.Now()
 	for _, t := range tenants {
 		tenant := t
 		// 1. Check SMS Credit threshold
