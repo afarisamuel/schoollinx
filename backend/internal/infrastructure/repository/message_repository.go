@@ -180,13 +180,86 @@ func (r *messageRepository) GetMessages(ctx context.Context, conversationID uuid
 	return messages, err
 }
 
+func (r *messageRepository) resolveUserName(ctx context.Context, id uuid.UUID) string {
+	var teacher domain.Teacher
+	if err := r.db.WithContext(ctx).Where("user_id = ? OR id = ?", id, id).First(&teacher).Error; err == nil {
+		if name := strings.TrimSpace(string(teacher.FirstName) + " " + string(teacher.LastName)); name != "" {
+			return name
+		}
+	}
+	var guardian domain.Guardian
+	if err := r.db.WithContext(ctx).Where("user_id = ? OR id = ?", id, id).First(&guardian).Error; err == nil {
+		if name := strings.TrimSpace(string(guardian.FirstName) + " " + string(guardian.LastName)); name != "" {
+			return name
+		}
+	}
+	var student domain.Student
+	if err := r.db.WithContext(ctx).Where("user_id = ? OR id = ?", id, id).First(&student).Error; err == nil {
+		if name := strings.TrimSpace(string(student.FirstName) + " " + string(student.LastName)); name != "" {
+			return name
+		}
+	}
+	return "New Message"
+}
+
 func (r *messageRepository) SendMessage(ctx context.Context, msg *domain.Message) error {
 	if err := r.db.WithContext(ctx).Create(msg).Error; err != nil {
 		return err
 	}
-	return r.db.WithContext(ctx).Model(&domain.Conversation{}).
+	_ = r.db.WithContext(ctx).Model(&domain.Conversation{}).
 		Where("id = ?", msg.ConversationID).
 		Update("updated_at", msg.CreatedAt).Error
+
+	// Generate notification for recipient(s) in background so FCM push worker triggers
+	go func() {
+		var conv domain.Conversation
+		if err := r.db.WithContext(ctx).First(&conv, "id = ?", msg.ConversationID).Error; err == nil {
+			var recipients []uuid.UUID
+
+			if conv.Type == "DIRECT" || (conv.ParticipantA != uuid.Nil && conv.ParticipantB != uuid.Nil) {
+				if conv.ParticipantA == msg.SenderID {
+					recipients = append(recipients, conv.ParticipantB)
+				} else if conv.ParticipantB == msg.SenderID {
+					recipients = append(recipients, conv.ParticipantA)
+				}
+			} else if conv.ClassID != nil && *conv.ClassID != uuid.Nil {
+				var studentUserIDs []uuid.UUID
+				_ = r.db.WithContext(ctx).Table("students").Where("class_id = ? AND user_id IS NOT NULL", *conv.ClassID).Pluck("user_id", &studentUserIDs).Error
+				for _, uid := range studentUserIDs {
+					if uid != msg.SenderID && uid != uuid.Nil {
+						recipients = append(recipients, uid)
+					}
+				}
+			}
+
+			if len(recipients) > 0 {
+				senderName := r.resolveUserName(ctx, msg.SenderID)
+
+				preview := msg.Content
+				if len(preview) > 100 {
+					preview = preview[:100] + "..."
+				}
+				if preview == "" && msg.AttachmentName != "" {
+					preview = fmt.Sprintf("Sent an attachment: %s", msg.AttachmentName)
+				}
+
+				for _, recipientID := range recipients {
+					if recipientID != uuid.Nil {
+						notif := domain.Notification{
+							UserID:    recipientID,
+							Title:     senderName,
+							Message:   preview,
+							Type:      domain.NotificationMessage,
+							CreatedAt: time.Now(),
+						}
+						_ = r.db.WithContext(ctx).Create(&notif).Error
+					}
+				}
+			}
+		}
+	}()
+
+	return nil
 }
 
 func (r *messageRepository) MarkAsRead(ctx context.Context, conversationID, readerID uuid.UUID, readerName string, readerRole domain.Role) error {

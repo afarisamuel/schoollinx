@@ -99,7 +99,7 @@ func (w *PushNotificationWorker) run(ctx context.Context) {
 		Exec("ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS pushed_at TIMESTAMPTZ").Error
 
 	// ── 1. Global (public) notifications ────────────────────────────────────
-	w.dispatchForTable(ctx, "public.notifications")
+	w.dispatchForTable(ctx, "public.notifications", "/favicon.ico")
 
 	// ── 2. Per-tenant notifications ─────────────────────────────────────────
 	var tenants []domain.Tenant
@@ -120,7 +120,12 @@ func (w *PushNotificationWorker) run(ctx context.Context) {
 		// Ensure the column exists in this tenant's notifications table too.
 		_ = w.db.WithContext(tenantCtx).
 			Exec(fmt.Sprintf("ALTER TABLE %s.notifications ADD COLUMN IF NOT EXISTS pushed_at TIMESTAMPTZ", t.SchemaName)).Error
-		w.dispatchForTable(tenantCtx, fmt.Sprintf("%s.notifications", t.SchemaName))
+		
+		tenantLogo := t.LogoURL
+		if tenantLogo == "" {
+			tenantLogo = "/favicon.ico"
+		}
+		w.dispatchForTable(tenantCtx, fmt.Sprintf("%s.notifications", t.SchemaName), tenantLogo)
 	}
 }
 
@@ -133,7 +138,7 @@ type pushSubRow struct {
 }
 
 // dispatchForTable processes unsent push notifications from a specific table.
-func (w *PushNotificationWorker) dispatchForTable(ctx context.Context, table string) {
+func (w *PushNotificationWorker) dispatchForTable(ctx context.Context, table string, logoURL string) {
 	var notifications []domain.Notification
 
 	if err := w.db.WithContext(ctx).
@@ -216,17 +221,23 @@ func (w *PushNotificationWorker) dispatchForTable(ctx context.Context, table str
 			}
 		}
 
+		icon := logoURL
+		if icon == "" {
+			icon = "/favicon.ico"
+		}
+
 		payload := map[string]interface{}{
 			"title":   notif.Title,
 			"body":    notif.Message,
-			"icon":    "/favicon.ico",
-			"badge":   "/favicon.ico",
+			"icon":    icon,
+			"badge":   icon,
 			"vibrate": []int{100, 50, 100},
 			"actions": pushNotificationActions(notif.Type),
 			"data": map[string]string{
-				"id":   notif.ID.String(),
-				"type": string(notif.Type),
-				"url":  pushTargetURL(notif.Type),
+				"id":       notif.ID.String(),
+				"type":     string(notif.Type),
+				"url":      pushTargetURL(notif.Type),
+				"logo_url": icon,
 			},
 		}
 

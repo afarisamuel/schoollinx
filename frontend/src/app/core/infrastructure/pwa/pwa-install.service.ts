@@ -29,8 +29,44 @@ export class PwaInstallService {
 
   constructor() {
     if (this.isBrowser) {
+      this.updateManifest();
       this.init();
     }
+  }
+
+  public updateManifest(subdomain?: string): void {
+    if (!this.isBrowser) return;
+    try {
+      const sub = subdomain || this.detectSubdomain();
+      const manifestUrl = sub
+        ? `/api/public/tenant-manifest?subdomain=${encodeURIComponent(sub)}`
+        : '/api/public/tenant-manifest';
+
+      let link = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'manifest';
+        document.head.appendChild(link);
+      }
+      if (link.getAttribute('href') !== manifestUrl) {
+        link.setAttribute('href', manifestUrl);
+      }
+    } catch (e) {
+      console.warn('Could not update dynamic manifest link:', e);
+    }
+  }
+
+  private detectSubdomain(): string {
+    if (!this.isBrowser) return '';
+    const hostname = window.location.hostname;
+    const parts = hostname.split('.');
+    if (parts.length >= 2) {
+      const sub = parts[0];
+      if (sub !== 'www' && sub !== 'localhost' && sub !== '127') {
+        return sub;
+      }
+    }
+    return localStorage.getItem('tenant_subdomain') || '';
   }
 
   private init(): void {

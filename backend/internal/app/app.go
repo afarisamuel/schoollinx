@@ -131,6 +131,7 @@ func (a *App) setupRoutes() {
 	// Public Routes (no auth, no tenant middleware)
 	publicGroup := a.Router.Group("/api/public")
 	handler.NewPublicTenantHandler(publicGroup, a.DB)
+	handler.RegisterRootPublicRoutes(a.Router, a.DB)
 
 	// Static file serving for uploads (Logos, etc.)
 	a.Router.Static("/uploads", "./uploads")

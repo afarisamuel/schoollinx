@@ -42,8 +42,17 @@ func NewTenantProfileHandler(r *gin.RouterGroup, db *gorm.DB, uc usecase.TenantU
 func NewPublicTenantHandler(r *gin.RouterGroup, db *gorm.DB) {
 	h := &TenantProfileHandler{db: db}
 	r.GET("/tenant-info", h.GetPublicInfo)
+	r.GET("/tenant-manifest", h.GetTenantManifest)
+	r.GET("/manifest.webmanifest", h.GetTenantManifest)
 	r.GET("/announcements", h.GetActiveAnnouncements)
 	r.POST("/contact", h.SubmitContactForm)
+}
+
+// RegisterRootPublicRoutes registers root-level public endpoints like /manifest.webmanifest
+func RegisterRootPublicRoutes(engine *gin.Engine, db *gorm.DB) {
+	h := &TenantProfileHandler{db: db}
+	engine.GET("/manifest.webmanifest", h.GetTenantManifest)
+	engine.GET("/tenant-manifest", h.GetTenantManifest)
 }
 
 // SubmitContactForm handles public contact form submissions and saves them to the database.
@@ -105,6 +114,81 @@ func (h *TenantProfileHandler) GetPublicInfo(c *gin.Context) {
 		"website":       t.Website,
 		"trial_ends_at": t.TrialEndsAt,
 	})
+}
+
+// GetTenantManifest serves a dynamic PWA Web App Manifest customized with the school's name and logo.
+func (h *TenantProfileHandler) GetTenantManifest(c *gin.Context) {
+	subdomain := c.Query("subdomain")
+	if subdomain == "" {
+		subdomain = c.GetHeader("X-Tenant-Subdomain")
+	}
+
+	appName := "SchoolLinx — Institutional Operating System"
+	shortName := "SchoolLinx"
+	iconSrc := "/app-icon.png"
+
+	if subdomain != "" && h.db != nil {
+		var t domain.Tenant
+		if err := h.db.Table("public.tenants").Where("subdomain = ? AND is_active = true", subdomain).First(&t).Error; err == nil {
+			if t.Name != "" {
+				appName = t.Name
+				shortName = t.Name
+				if len(shortName) > 20 {
+					shortName = shortName[:20]
+				}
+			}
+			if t.LogoURL != "" {
+				iconSrc = t.LogoURL
+			}
+		}
+	}
+
+	manifest := gin.H{
+		"name":             appName,
+		"short_name":       shortName,
+		"description":      appName + " Portal",
+		"start_url":        "/",
+		"scope":            "/",
+		"display":          "standalone",
+		"background_color": "#0f172a",
+		"theme_color":      "#1e293b",
+		"orientation":      "portrait-primary",
+		"icons": []gin.H{
+			{
+				"src":     iconSrc,
+				"sizes":   "512x512 192x192 128x128 64x64",
+				"type":    "image/png",
+				"purpose": "any maskable",
+			},
+			{
+				"src":   "/favicon.ico",
+				"sizes": "64x64 32x32 24x24 16x16",
+				"type":  "image/x-icon",
+			},
+		},
+		"categories": []string{"education", "productivity"},
+		"shortcuts": []gin.H{
+			{
+				"name":        "Dashboard",
+				"url":         "/dashboard",
+				"description": "View institutional executive dashboard",
+			},
+			{
+				"name":        "Student Roster",
+				"url":         "/students",
+				"description": "Access core student registry",
+			},
+			{
+				"name":        "Attendance Register",
+				"url":         "/attendance/mark",
+				"description": "Record daily attendance",
+			},
+		},
+	}
+
+	c.Header("Content-Type", "application/manifest+json")
+	c.Header("Access-Control-Allow-Origin", "*")
+	c.JSON(http.StatusOK, manifest)
 }
 
 func (h *TenantProfileHandler) GetActiveAnnouncements(c *gin.Context) {

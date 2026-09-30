@@ -33,7 +33,7 @@
   <meta name="twitter:image:alt" content="SchoolLinx — Modern Institutional School Operating System">
 
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="manifest" href="manifest.webmanifest">
+  <link id="app-manifest" rel="manifest" href="/api/public/tenant-manifest">
   <meta name="theme-color" content="#1e293b">
 
   <script>
@@ -46,6 +46,26 @@
         } else {
           document.documentElement.classList.add('dark');
           document.documentElement.classList.remove('light-mode');
+        }
+
+        // Dynamically point manifest link to the tenant-specific manifest if on a school subdomain or session
+        var hostname = window.location.hostname;
+        var parts = hostname.split('.');
+        var subdomain = '';
+        if (parts.length >= 2) {
+          var sub = parts[0];
+          if (sub !== 'www' && sub !== 'localhost' && sub !== '127') {
+            subdomain = sub;
+          }
+        }
+        if (!subdomain) {
+          subdomain = localStorage.getItem('tenant_subdomain') || '';
+        }
+
+        var manifestLink = document.getElementById('app-manifest') || document.querySelector('link[rel="manifest"]');
+        if (manifestLink) {
+          var manifestUrl = subdomain ? ('/api/public/tenant-manifest?subdomain=' + encodeURIComponent(subdomain)) : '/api/public/tenant-manifest';
+          manifestLink.setAttribute('href', manifestUrl);
         }
       } catch (e) {}
     })();

@@ -26,6 +26,7 @@ export class PushNotificationService {
   readonly isSubscribed = signal<boolean>(false);
   readonly isLoading = signal<boolean>(false);
   readonly showPrompt = signal<boolean>(false);
+  readonly latestNotification = signal<{ title: string; body: string; data?: Record<string, any>; receivedAt: number } | null>(null);
 
   constructor() {
     if (this.isSupported()) {
@@ -42,7 +43,12 @@ export class PushNotificationService {
       this.isSubscribed.set(!!sub);
       this.permission.set(Notification.permission);
 
-      this.checkAndPrompt();
+      // If user already granted permission, ensure their fresh FCM device token is registered with server
+      if (Notification.permission === 'granted') {
+        this.subscribeWithFCM().catch(() => {});
+      } else {
+        this.checkAndPrompt();
+      }
     } catch (err) {
       console.warn('Service Worker registration or Push check skipped:', err);
     }
@@ -220,10 +226,43 @@ export class PushNotificationService {
       }
 
       const { initializeApp, getApps } = await import('firebase/app');
-      const { getMessaging, getToken } = await import('firebase/messaging');
+      const { getMessaging, getToken, onMessage } = await import('firebase/messaging');
 
       const app = getApps().length === 0 ? initializeApp(environment.firebase) : getApps()[0];
       const messaging = getMessaging(app);
+
+      // Listen for foreground push messages
+      try {
+        onMessage(messaging, (payload) => {
+          console.log('[FCM] Foreground message received:', payload);
+          const title = payload.notification?.title || payload.data?.['title'] || 'SchoolLinx Alert';
+          const body = payload.notification?.body || payload.data?.['body'] || '';
+          
+          this.latestNotification.set({
+            title,
+            body,
+            data: payload.data,
+            receivedAt: Date.now()
+          });
+
+          if (typeof window !== 'undefined' && Notification.permission === 'granted') {
+            const icon = payload.notification?.icon || payload.data?.['logo_url'] || payload.data?.['icon'] || '/favicon.ico';
+            const notif = new Notification(title, {
+              body,
+              icon,
+              badge: icon,
+              data: payload.data || { url: '/' }
+            });
+            notif.onclick = () => {
+              window.focus();
+              const url = (payload.data && payload.data['url']) ? payload.data['url'] : '/notifications';
+              window.location.href = url;
+            };
+          }
+        });
+      } catch (e) {
+        console.warn('FCM onMessage registration non-fatal notice:', e);
+      }
 
       const reg = await navigator.serviceWorker.ready;
       const vapidKey = environment.firebase.vapidKey || (await this.getVapidPublicKey());
