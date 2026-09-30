@@ -130,11 +130,21 @@ func (u *guardianUseCase) CreateGuardian(ctx context.Context, guardian *domain.G
 		return "", errors.New("either email or phone number is required to provision portal access")
 	}
 
+	phone := encryption.DeterministicDecryptedString(string(guardian.PhoneNumber))
+	email := encryption.DeterministicDecryptedString(string(guardian.Email))
+
 	var identifier string
 	if hasEmail {
-		identifier = encryption.DeterministicDecryptedString(string(guardian.Email))
+		identifier = email
 	} else {
-		identifier = encryption.DeterministicDecryptedString(string(guardian.PhoneNumber))
+		identifier = phone
+	}
+
+	// 1. Check if Guardian profile already exists in this school
+	if existingG, _ := u.guardianRepo.GetByPhoneOrEmail(ctx, phone, email); existingG != nil {
+		guardian.ID = existingG.ID
+		guardian.UserID = existingG.UserID
+		return "", nil // Existing guardian linked successfully
 	}
 
 	var tempPassword string

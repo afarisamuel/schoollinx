@@ -326,20 +326,68 @@ func (u *studentUseCase) collectAndProvisionGuardians(ctx context.Context, stude
 			continue
 		}
 
-		if _, err := u.provisionGuardianUser(ctx, g); err != nil {
-			log.Printf("[STUDENT GUARDIAN] Provision user warning for %s: %v", phone, err)
+		// 4a. Check if Guardian profile or User account already exists (by Phone or Email)
+		var existingGuardian *domain.Guardian
+		if u.guardianRepo != nil {
+			existingGuardian, _ = u.guardianRepo.GetByPhoneOrEmail(ctx, phone, email)
 		}
 
-		if g.ID == uuid.Nil {
-			if g.UserID != uuid.Nil && u.guardianRepo != nil {
-				existingG, _ := u.guardianRepo.GetByUserID(ctx, g.UserID)
-				if existingG != nil {
-					g.ID = existingG.ID
+		if existingGuardian == nil && u.userRepo != nil {
+			identifier := email
+			if identifier == "" {
+				identifier = phone
+			}
+			existingUser, _ := u.userRepo.GetByIdentifier(ctx, identifier)
+			if existingUser != nil {
+				g.UserID = existingUser.ID
+				if u.guardianRepo != nil {
+					existingGuardian, _ = u.guardianRepo.GetByUserID(ctx, existingUser.ID)
 				}
 			}
-			if g.ID == uuid.Nil && u.guardianRepo != nil {
-				if err := u.guardianRepo.Create(ctx, g); err != nil {
-					log.Printf("[STUDENT GUARDIAN] Error saving guardian record: %v", err)
+		}
+
+		studentName := strings.TrimSpace(fmt.Sprintf("%s %s", string(student.FirstName), string(student.LastName)))
+		if studentName == "" {
+			studentName = "your child"
+		}
+
+		if existingGuardian != nil {
+			// Parent ALREADY EXISTS! Reuse existing account and guardian record
+			g.ID = existingGuardian.ID
+			g.UserID = existingGuardian.UserID
+
+			log.Printf("[STUDENT GUARDIAN] Found existing parent %s (User: %s) for student %s — linking ward\n",
+				g.ID, g.UserID, studentName)
+
+			// Notify parent via SMS that their new child/ward has been linked to their existing portal
+			if u.sms != nil && phone != "" {
+				parentName := strings.TrimSpace(fmt.Sprintf("%s %s",
+					encryption.DeterministicDecryptedString(string(existingGuardian.FirstName)),
+					encryption.DeterministicDecryptedString(string(existingGuardian.LastName)),
+				))
+				if parentName == "" {
+					parentName = "Parent/Guardian"
+				}
+				smsMsg := fmt.Sprintf("Hello %s, your ward %s has been successfully linked to your SchoolLinx Parent Portal account. Log in with your phone (%s) to view their profile, grades, and attendance.", parentName, studentName, phone)
+				u.sendSMSWithFallback(ctx, phone, smsMsg)
+			}
+		} else {
+			// New parent: provision User account with credentials & create Guardian record
+			if _, err := u.provisionGuardianUser(ctx, g); err != nil {
+				log.Printf("[STUDENT GUARDIAN] Provision user warning for %s: %v", phone, err)
+			}
+
+			if g.ID == uuid.Nil {
+				if g.UserID != uuid.Nil && u.guardianRepo != nil {
+					existingG, _ := u.guardianRepo.GetByUserID(ctx, g.UserID)
+					if existingG != nil {
+						g.ID = existingG.ID
+					}
+				}
+				if g.ID == uuid.Nil && u.guardianRepo != nil {
+					if err := u.guardianRepo.Create(ctx, g); err != nil {
+						log.Printf("[STUDENT GUARDIAN] Error saving guardian record: %v", err)
+					}
 				}
 			}
 		}

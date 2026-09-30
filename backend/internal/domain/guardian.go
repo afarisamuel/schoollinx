@@ -94,6 +94,7 @@ type GuardianRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*Guardian, error)
 	GetByUserID(ctx context.Context, userID uuid.UUID) (*Guardian, error)
 	GetByPickupCode(ctx context.Context, code string) (*Guardian, error)
+	GetByPhoneOrEmail(ctx context.Context, phone string, email string) (*Guardian, error)
 	GetLinkedStudents(ctx context.Context, guardianID uuid.UUID) ([]Student, error)
 	// GetForStudent returns all guardians currently linked to the given student.
 	GetForStudent(ctx context.Context, studentID uuid.UUID) ([]*Guardian, error)

@@ -18,16 +18,18 @@ import (
 	"github.com/user/high-school-management/backend/internal/domain"
 	"github.com/user/high-school-management/backend/internal/infrastructure"
 	"github.com/user/high-school-management/backend/internal/infrastructure/logger"
+	"github.com/user/high-school-management/backend/internal/infrastructure/worker"
 	"github.com/user/high-school-management/backend/internal/usecase"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type App struct {
-	Config *config.Config
-	DB     *gorm.DB
-	Router *gin.Engine
-	Server *http.Server
+	Config        *config.Config
+	DB            *gorm.DB
+	Router        *gin.Engine
+	Server        *http.Server
+	WorkerManager *worker.Manager
 }
 
 func NewApp(cfg *config.Config) *App {
@@ -236,9 +238,25 @@ func (a *App) setupRoutes() {
 	telemetryUseCase := usecase.NewTelemetryUseCase(a.DB)
 	telemetryGroup := a.Router.Group("/api/telemetry")
 	handler.NewTelemetryHandler(telemetryGroup, telemetryUseCase)
+
+	// Initialize Background Workers
+	a.WorkerManager = worker.NewManager()
+	a.WorkerManager.Register(
+		worker.NewTokenCleanerWorker(repos.Blacklist, 1*time.Hour),
+		worker.NewTenantMonitorWorker(a.DB, infra.SMTP, infra.SMS, usecases.Notification, 12*time.Hour),
+		worker.NewTruancyWorker(a.DB, repos.Student, repos.Guardian, infra.SMS, usecases.Notification, 4*time.Hour),
+		worker.NewDailyBillingWorker(a.DB, repos.AcademicPeriod, usecases.DailyBill, 6*time.Hour),
+		worker.NewRecommendationWorker(a.DB, usecases.Recommendation, 24*time.Hour),
+		worker.NewCampaignWorker(a.DB, usecases.Campaign, 1*time.Minute),
+	)
 }
 
 func (a *App) Run() {
+	// Start Background Worker Pool
+	if a.WorkerManager != nil {
+		a.WorkerManager.Start(context.Background())
+	}
+
 	a.Server = &http.Server{
 		Addr:    ":" + a.Config.Port,
 		Handler: a.Router,
@@ -256,6 +274,11 @@ func (a *App) Run() {
 	<-quit
 
 	logger.Info("Shutting down server...")
+
+	// Graceful shutdown of background workers
+	if a.WorkerManager != nil {
+		a.WorkerManager.Stop(10 * time.Second)
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()

@@ -3,11 +3,13 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/domain"
+	"github.com/user/high-school-management/backend/pkg/encryption"
 	"gorm.io/gorm"
 )
 
@@ -50,6 +52,95 @@ func (r *guardianRepository) GetByUserID(ctx context.Context, userID uuid.UUID) 
 		guardian.Students[i] = &students[i]
 	}
 	return &guardian, nil
+}
+
+func (r *guardianRepository) GetByPhoneOrEmail(ctx context.Context, phone string, email string) (*domain.Guardian, error) {
+	phone = strings.TrimSpace(phone)
+	email = strings.TrimSpace(email)
+
+	if phone == "" && email == "" {
+		return nil, nil
+	}
+
+	var candidates []string
+	if email != "" {
+		candidates = append(candidates, string(encryption.DeterministicEncryptedString(strings.ToLower(email))))
+	}
+
+	if phone != "" {
+		digitsOnly := strings.Map(func(r rune) rune {
+			if r >= '0' && r <= '9' {
+				return r
+			}
+			return -1
+		}, phone)
+
+		variations := []string{phone, digitsOnly}
+		if strings.HasPrefix(digitsOnly, "0") && len(digitsOnly) == 10 {
+			variations = append(variations, "233"+digitsOnly[1:], "+233"+digitsOnly[1:])
+		} else if strings.HasPrefix(digitsOnly, "233") && len(digitsOnly) == 12 {
+			variations = append(variations, "0"+digitsOnly[3:], "+"+digitsOnly)
+		}
+
+		for _, v := range variations {
+			if v != "" {
+				candidates = append(candidates, string(encryption.DeterministicEncryptedString(v)))
+			}
+		}
+	}
+
+	var guardian domain.Guardian
+	query := r.db.WithContext(ctx)
+	if email != "" && len(candidates) > 0 {
+		query = query.Where("email = ? OR phone_number IN (?)", encryption.DeterministicEncryptedString(strings.ToLower(email)), candidates)
+	} else if len(candidates) > 0 {
+		query = query.Where("phone_number IN (?)", candidates)
+	}
+
+	if err := query.First(&guardian).Error; err == nil && guardian.ID != uuid.Nil {
+		students, _ := r.GetLinkedStudents(ctx, guardian.ID)
+		guardian.Students = make([]*domain.Student, len(students))
+		for i := range students {
+			guardian.Students[i] = &students[i]
+		}
+		return &guardian, nil
+	}
+
+	// Fallback: Scan all guardians in this tenant schema and match decrypted values
+	var allGuardians []domain.Guardian
+	if err := r.db.WithContext(ctx).Find(&allGuardians).Error; err == nil {
+		for _, g := range allGuardians {
+			gPhone := strings.TrimSpace(encryption.DeterministicDecryptedString(string(g.PhoneNumber)))
+			gEmail := strings.TrimSpace(encryption.DeterministicDecryptedString(string(g.Email)))
+
+			if phone != "" && gPhone != "" {
+				// Normalize both
+				d1 := strings.TrimLeft(phone, "+0")
+				d2 := strings.TrimLeft(gPhone, "+0")
+				if phone == gPhone || (len(d1) >= 9 && len(d2) >= 9 && (strings.HasSuffix(d1, d2) || strings.HasSuffix(d2, d1))) {
+					matched := g
+					students, _ := r.GetLinkedStudents(ctx, matched.ID)
+					matched.Students = make([]*domain.Student, len(students))
+					for i := range students {
+						matched.Students[i] = &students[i]
+					}
+					return &matched, nil
+				}
+			}
+
+			if email != "" && gEmail != "" && strings.EqualFold(email, gEmail) {
+				matched := g
+				students, _ := r.GetLinkedStudents(ctx, matched.ID)
+				matched.Students = make([]*domain.Student, len(students))
+				for i := range students {
+					matched.Students[i] = &students[i]
+				}
+				return &matched, nil
+			}
+		}
+	}
+
+	return nil, nil
 }
 
 func (r *guardianRepository) GetLinkedStudents(ctx context.Context, guardianID uuid.UUID) ([]domain.Student, error) {
