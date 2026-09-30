@@ -33,12 +33,18 @@
   <meta name="twitter:image:alt" content="SchoolLinx — Modern Institutional School Operating System">
 
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/app-icon.png">
   <link id="app-manifest" rel="manifest" href="/api/public/tenant-manifest">
   <meta name="theme-color" content="#1e293b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SchoolLinx">
 
   <script>
     (function() {
       try {
+        // Theme initialization
         var saved = localStorage.getItem('theme');
         if (saved === 'light') {
           document.documentElement.classList.add('light-mode');
@@ -48,7 +54,7 @@
           document.documentElement.classList.remove('light-mode');
         }
 
-        // Dynamically point manifest link to the tenant-specific manifest if on a school subdomain or session
+        // Dynamically point manifest link to the tenant-specific manifest
         var hostname = window.location.hostname;
         var parts = hostname.split('.');
         var subdomain = '';
@@ -64,8 +70,16 @@
 
         var manifestLink = document.getElementById('app-manifest') || document.querySelector('link[rel="manifest"]');
         if (manifestLink) {
-          var manifestUrl = subdomain ? ('/api/public/tenant-manifest?subdomain=' + encodeURIComponent(subdomain)) : '/api/public/tenant-manifest';
+          var manifestUrl = subdomain
+            ? ('/api/public/tenant-manifest?subdomain=' + encodeURIComponent(subdomain))
+            : '/api/public/tenant-manifest';
           manifestLink.setAttribute('href', manifestUrl);
+        }
+
+        // Register service worker as early as possible so Chrome can evaluate
+        // the PWA installability criteria before the app fully bootstraps.
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function() {});
         }
       } catch (e) {}
     })();

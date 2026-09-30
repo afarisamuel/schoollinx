@@ -143,6 +143,11 @@ func (h *TenantProfileHandler) GetTenantManifest(c *gin.Context) {
 		}
 	}
 
+	// Determine icon type (external URLs from tenant logos vs. local assets)
+	iconType := "image/png"
+	icon512 := iconSrc
+	icon192 := iconSrc
+
 	manifest := gin.H{
 		"name":             appName,
 		"short_name":       shortName,
@@ -155,9 +160,15 @@ func (h *TenantProfileHandler) GetTenantManifest(c *gin.Context) {
 		"orientation":      "portrait-primary",
 		"icons": []gin.H{
 			{
-				"src":     iconSrc,
-				"sizes":   "512x512 192x192 128x128 64x64",
-				"type":    "image/png",
+				"src":     icon512,
+				"sizes":   "512x512",
+				"type":    iconType,
+				"purpose": "any maskable",
+			},
+			{
+				"src":     icon192,
+				"sizes":   "192x192",
+				"type":    iconType,
 				"purpose": "any maskable",
 			},
 			{

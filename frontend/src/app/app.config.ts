@@ -10,8 +10,6 @@ import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { tenantInterceptor } from './core/interceptors/tenant.interceptor';
 import { errorToastInterceptor } from './core/interceptors/error-toast.interceptor';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
-import { provideServiceWorker } from '@angular/service-worker';
-import { isDevMode } from '@angular/core';
 
 const activeRoutes = isTenantDomain() ? tenantRoutes : publicRoutes;
 
@@ -21,9 +19,5 @@ export const appConfig: ApplicationConfig = {
     provideRouter(activeRoutes, withPreloading(PreloadAllModules)),
     provideAnimations(),
     provideHttpClient(withFetch(), withInterceptors([tenantInterceptor, authInterceptor, loadingInterceptor, errorToastInterceptor])),
-    provideServiceWorker('ngsw-worker.js', {
-      enabled: !isDevMode(),
-      registrationStrategy: 'registerWhenStable:30000'
-    })
   ]
 };
