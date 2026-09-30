@@ -259,9 +259,8 @@ server {
 server {
     listen 443 ssl http2;
     server_name api.schoollinx.com;
-
-    ssl_certificate     /etc/nginx/ssl/api.schoollinx.com/cert.pem;
-    ssl_certificate_key /etc/nginx/ssl/api.schoollinx.com/key.pem;
+    ssl_certificate /etc/nginx/ssl/$DOMAIN/cert.pem;
+    ssl_certificate_key /etc/nginx/ssl/$DOMAIN/key.pem;
 
     # Modern TLS settings
     ssl_protocols       TLSv1.2 TLSv1.3;
