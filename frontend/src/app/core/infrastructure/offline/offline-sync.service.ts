@@ -1,6 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { SwUpdate } from '@angular/service-worker';
 import { firstValueFrom } from 'rxjs';
 
 export interface SyncOperation {
@@ -23,7 +22,6 @@ export interface SyncConflict {
 })
 export class OfflineSyncService {
     private http = inject(HttpClient);
-    private swUpdate = inject(SwUpdate);
 
     isOnline = signal(navigator.onLine);
     pendingOperations = signal<SyncOperation[]>([]);
@@ -39,17 +37,8 @@ export class OfflineSyncService {
             this.loadPendingOperations();
             this.loadConflicts();
         });
-        
-        if (this.swUpdate.isEnabled) {
-            this.swUpdate.versionUpdates.subscribe(evt => {
-                if (evt.type === 'VERSION_READY') {
-                    if (confirm('New version available. Load New Version?')) {
-                        window.location.reload();
-                    }
-                }
-            });
-        }
     }
+
 
     private initDB(): Promise<void> {
         return new Promise((resolve, reject) => {

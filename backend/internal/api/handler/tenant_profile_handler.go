@@ -318,14 +318,17 @@ func (h *TenantProfileHandler) UploadLogo(c *gin.Context) {
 
 	// Construct URL
 	host := c.Request.Host
-	scheme := "http"
-	if c.Request.TLS != nil {
+	scheme := "https"
+	if proto := c.GetHeader("X-Forwarded-Proto"); proto != "" {
+		scheme = proto
+	} else if c.Request.TLS != nil {
 		scheme = "https"
 	}
 	fileURL := fmt.Sprintf("%s://%s/uploads/logos/%s", scheme, host, fileName)
 
 	c.JSON(http.StatusOK, gin.H{"url": fileURL})
 }
+
 
 func (h *TenantProfileHandler) UploadHeadmasterSignature(c *gin.Context) {
 	tenantID, exists := middleware.GetTenantIDFromContext(c.Request.Context())
@@ -365,11 +368,14 @@ func (h *TenantProfileHandler) UploadHeadmasterSignature(c *gin.Context) {
 
 	// Construct URL
 	host := c.Request.Host
-	scheme := "http"
-	if c.Request.TLS != nil {
+	scheme := "https"
+	if proto := c.GetHeader("X-Forwarded-Proto"); proto != "" {
+		scheme = proto
+	} else if c.Request.TLS != nil {
 		scheme = "https"
 	}
 	fileURL := fmt.Sprintf("%s://%s/uploads/signatures/headmaster/%s", scheme, host, fileName)
+
 
 	c.JSON(http.StatusOK, gin.H{"url": fileURL})
 }
