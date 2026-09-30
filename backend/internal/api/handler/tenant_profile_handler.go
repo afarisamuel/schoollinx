@@ -127,7 +127,7 @@ func (h *TenantProfileHandler) GetTenantManifest(c *gin.Context) {
 		// Try to derive subdomain from Host header (e.g. "kendemy.schoollinx.com")
 		host := c.Request.Host
 		parts := strings.SplitN(host, ".", 2)
-		if len(parts) == 2 && parts[0] != "www" && parts[0] != "api" && parts[0] != "admin" {
+		if len(parts) == 2 && parts[0] != "www" && parts[0] != "api" && parts[0] != "hq" {
 			subdomain = parts[0]
 		}
 	}
@@ -212,7 +212,6 @@ func (h *TenantProfileHandler) GetTenantManifest(c *gin.Context) {
 	c.Header("Cache-Control", "public, max-age=300") // 5-minute cache
 	c.JSON(http.StatusOK, manifest)
 }
-
 
 func (h *TenantProfileHandler) GetActiveAnnouncements(c *gin.Context) {
 	var announcements []domain.SystemAnnouncement
@@ -341,7 +340,6 @@ func (h *TenantProfileHandler) UploadLogo(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"url": fileURL})
 }
 
-
 func (h *TenantProfileHandler) UploadHeadmasterSignature(c *gin.Context) {
 	tenantID, exists := middleware.GetTenantIDFromContext(c.Request.Context())
 	if !exists {
@@ -387,7 +385,6 @@ func (h *TenantProfileHandler) UploadHeadmasterSignature(c *gin.Context) {
 		scheme = "https"
 	}
 	fileURL := fmt.Sprintf("%s://%s/uploads/signatures/headmaster/%s", scheme, host, fileName)
-
 
 	c.JSON(http.StatusOK, gin.H{"url": fileURL})
 }
@@ -602,6 +599,3 @@ func (h *TenantProfileHandler) GetSubscriptionSummary(c *gin.Context) {
 
 	c.JSON(http.StatusOK, summary)
 }
-
-
-
