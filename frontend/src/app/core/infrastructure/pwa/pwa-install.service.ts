@@ -1,5 +1,6 @@
 import { Injectable, inject, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { environment } from '../../../../environments/environment';
 
 const DISMISS_KEY = 'schoollinx_pwa_dismissed_until';
 
@@ -38,9 +39,14 @@ export class PwaInstallService {
     if (!this.isBrowser) return;
     try {
       const sub = subdomain || this.detectSubdomain();
+
+      // Use the absolute API base URL (e.g. https://api.schoollinx.com/api) so
+      // the request always goes to the backend, not the tenant frontend nginx
+      // which would serve index.html (HTML) instead of JSON.
+      const apiBase = environment.apiUrl.replace(/\/api$/, '');
       const manifestUrl = sub
-        ? `/api/public/tenant-manifest?subdomain=${encodeURIComponent(sub)}`
-        : '/api/public/tenant-manifest';
+        ? `${apiBase}/api/public/tenant-manifest?subdomain=${encodeURIComponent(sub)}`
+        : `${apiBase}/api/public/tenant-manifest`;
 
       let link = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
       if (!link) {
@@ -55,6 +61,7 @@ export class PwaInstallService {
       console.warn('Could not update dynamic manifest link:', e);
     }
   }
+
 
   private detectSubdomain(): string {
     if (!this.isBrowser) return '';
