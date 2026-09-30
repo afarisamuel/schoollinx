@@ -43,9 +43,9 @@ export class PushNotificationService {
       this.isSubscribed.set(!!sub);
       this.permission.set(Notification.permission);
 
-      // If user already granted permission, ensure their fresh FCM device token is registered with server
+      // If user already granted permission, ensure their fresh device token is registered with server
       if (Notification.permission === 'granted') {
-        this.subscribeWithFCM().catch(() => {});
+        this.subscribeStandardWebPush().catch(() => {});
       } else {
         this.checkAndPrompt();
       }
@@ -53,6 +53,7 @@ export class PushNotificationService {
       console.warn('Service Worker registration or Push check skipped:', err);
     }
   }
+
 
   checkAndPrompt(): void {
     if (!this.isSupported()) return;
@@ -124,69 +125,9 @@ export class PushNotificationService {
     if (!this.isSupported()) {
       throw new Error('Push notifications are not supported in this browser.');
     }
-
-    // If Firebase configuration is present, use FCM Web SDK
-    if (environment.firebase?.apiKey) {
-      return this.subscribeWithFCM();
-    }
-
-    this.isLoading.set(true);
-    try {
-      const perm = await Notification.requestPermission();
-      this.permission.set(perm);
-
-      if (perm !== 'granted') {
-        this.isLoading.set(false);
-        return false;
-      }
-
-      // 1. Fetch VAPID public key from backend (cached after first fetch)
-      const publicKey = await this.getVapidPublicKey();
-
-      // 2. Register Service Worker & Subscribe with PushManager
-      const reg = await navigator.serviceWorker.ready;
-      let subscription = await reg.pushManager.getSubscription();
-
-      // If an existing subscription exists, refresh it to synchronize with current VAPID keys
-      if (subscription) {
-        try {
-          await subscription.unsubscribe();
-        } catch (e) {
-          console.warn('Old subscription unsubscribe:', e);
-        }
-      }
-
-      subscription = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: this.urlB64ToUint8Array(publicKey)
-      });
-
-      // 3. Post subscription to backend
-      const subJson = subscription.toJSON();
-      await firstValueFrom(
-        this.http.post(`${this.apiUrl}/notifications/push/subscribe`, {
-          endpoint: subJson.endpoint,
-          keys: {
-            p256dh: subJson.keys?.['p256dh'] || '',
-            auth: subJson.keys?.['auth'] || ''
-          },
-          user_agent: navigator.userAgent
-        })
-      );
-
-      this.isSubscribed.set(true);
-      this.showPrompt.set(false);
-      try {
-        sessionStorage.setItem('schoollinx_push_prompt_dismissed', 'true');
-      } catch {}
-      return true;
-    } catch (err) {
-      console.error('Failed to subscribe to push notifications:', err);
-      throw err;
-    } finally {
-      this.isLoading.set(false);
-    }
+    return this.subscribeStandardWebPush();
   }
+
 
   async unsubscribeFromPush(): Promise<boolean> {
     this.isLoading.set(true);
