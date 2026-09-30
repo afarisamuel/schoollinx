@@ -189,11 +189,26 @@ func (u *teacherUseCase) ActivatePortalAccess(ctx context.Context, id uuid.UUID)
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
 	// 3. Create User
+	userEmail := teacher.Email
+	hasEmail := string(teacher.Email) != ""
+	hasPhone := string(teacher.PhoneNumber) != ""
+
+	if !hasEmail && hasPhone {
+		ph := strings.TrimSpace(encryption.DeterministicDecryptedString(string(teacher.PhoneNumber)))
+		userEmail = encryption.DeterministicEncryptedString(fmt.Sprintf("teacher_%s@no-email.local", ph))
+	}
+
 	user := &domain.User{
-		Email:    teacher.Email,
-		Username: (*encryption.DeterministicEncryptedString)(&username),
-		Password: string(hashedPassword),
-		Role:     domain.RoleTeacher,
+		Email:              userEmail,
+		Username:           (*encryption.DeterministicEncryptedString)(&username),
+		Password:           string(hashedPassword),
+		Role:               domain.RoleTeacher,
+		MustChangePassword: true,
+	}
+	if hasPhone {
+		cleanPhone := strings.TrimSpace(encryption.DeterministicDecryptedString(string(teacher.PhoneNumber)))
+		phone := encryption.DeterministicEncryptedString(cleanPhone)
+		user.PhoneNumber = &phone
 	}
 	if err := u.userRepo.Create(ctx, user); err != nil {
 		return "", "", err
