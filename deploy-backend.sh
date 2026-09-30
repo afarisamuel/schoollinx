@@ -211,7 +211,7 @@ systemctl restart $APP_NAME
 
 echo -e "${YELLOW}Phase 6: Nginx Configuration${NC}"
 
-SSL_DIR="/etc/nginx/ssl/api.schoollinx.com"
+SSL_DIR="/etc/nginx/ssl/$DOMAIN"
 mkdir -p "$SSL_DIR"
 
 if [ ! -f "$SSL_DIR/cert.pem" ] || [ ! -f "$SSL_DIR/key.pem" ]; then
