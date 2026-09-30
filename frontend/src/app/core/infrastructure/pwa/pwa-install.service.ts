@@ -44,9 +44,13 @@ export class PwaInstallService {
       // the request always goes to the backend, not the tenant frontend nginx
       // which would serve index.html (HTML) instead of JSON.
       const apiBase = environment.apiUrl.replace(/\/api$/, '');
+
+      // Pass the document origin so the backend can set absolute same-origin
+      // URLs for start_url, scope, and shortcuts (PWA requirement).
+      const docOrigin = encodeURIComponent(window.location.origin);
       const manifestUrl = sub
-        ? `${apiBase}/api/public/tenant-manifest?subdomain=${encodeURIComponent(sub)}`
-        : `${apiBase}/api/public/tenant-manifest`;
+        ? `${apiBase}/api/public/tenant-manifest?subdomain=${encodeURIComponent(sub)}&origin=${docOrigin}`
+        : `${apiBase}/api/public/tenant-manifest?origin=${docOrigin}`;
 
       let link = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
       if (!link) {
@@ -61,6 +65,7 @@ export class PwaInstallService {
       console.warn('Could not update dynamic manifest link:', e);
     }
   }
+
 
 
   private detectSubdomain(): string {

@@ -132,9 +132,24 @@ func (h *TenantProfileHandler) GetTenantManifest(c *gin.Context) {
 		}
 	}
 
+	// The frontend passes window.location.origin so we can build absolute URLs
+	// that are same-origin with the document — required by Chrome's PWA spec.
+	// e.g. "https://kendemy.schoollinx.com"
+	docOrigin := c.Query("origin")
+	if docOrigin == "" {
+		// Fallback: reconstruct from subdomain
+		if subdomain != "" {
+			docOrigin = "https://" + subdomain + ".schoollinx.com"
+		} else {
+			docOrigin = "https://schoollinx.com"
+		}
+	}
+	// Strip trailing slash for safe concatenation
+	docOrigin = strings.TrimRight(docOrigin, "/")
+
 	appName := "SchoolLinx — Institutional Operating System"
 	shortName := "SchoolLinx"
-	iconSrc := "/app-icon.png"
+	iconSrc := docOrigin + "/app-icon.png"
 
 	if subdomain != "" && h.db != nil {
 		var t domain.Tenant
@@ -153,7 +168,6 @@ func (h *TenantProfileHandler) GetTenantManifest(c *gin.Context) {
 		}
 	}
 
-	// Determine icon type (external URLs from tenant logos vs. local assets)
 	iconType := "image/png"
 	icon512 := iconSrc
 	icon192 := iconSrc
@@ -162,8 +176,8 @@ func (h *TenantProfileHandler) GetTenantManifest(c *gin.Context) {
 		"name":             appName,
 		"short_name":       shortName,
 		"description":      appName + " Portal",
-		"start_url":        "/",
-		"scope":            "/",
+		"start_url":        docOrigin + "/",
+		"scope":            docOrigin + "/",
 		"display":          "standalone",
 		"background_color": "#0f172a",
 		"theme_color":      "#1e293b",
@@ -182,7 +196,7 @@ func (h *TenantProfileHandler) GetTenantManifest(c *gin.Context) {
 				"purpose": "any maskable",
 			},
 			{
-				"src":   "/favicon.ico",
+				"src":   docOrigin + "/favicon.ico",
 				"sizes": "64x64 32x32 24x24 16x16",
 				"type":  "image/x-icon",
 			},
@@ -191,17 +205,17 @@ func (h *TenantProfileHandler) GetTenantManifest(c *gin.Context) {
 		"shortcuts": []gin.H{
 			{
 				"name":        "Dashboard",
-				"url":         "/dashboard",
+				"url":         docOrigin + "/dashboard",
 				"description": "View institutional executive dashboard",
 			},
 			{
 				"name":        "Student Roster",
-				"url":         "/students",
+				"url":         docOrigin + "/students",
 				"description": "Access core student registry",
 			},
 			{
 				"name":        "Attendance Register",
-				"url":         "/attendance/mark",
+				"url":         docOrigin + "/attendance/mark",
 				"description": "Record daily attendance",
 			},
 		},
@@ -209,6 +223,7 @@ func (h *TenantProfileHandler) GetTenantManifest(c *gin.Context) {
 
 	c.Header("Content-Type", "application/manifest+json")
 	c.Header("Access-Control-Allow-Origin", "*")
+	c.Header("Access-Control-Allow-Headers", "Origin, Content-Type")
 	c.Header("Cache-Control", "public, max-age=300") // 5-minute cache
 	c.JSON(http.StatusOK, manifest)
 }
