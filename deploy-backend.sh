@@ -233,34 +233,31 @@ else
     echo -e "${GREEN}✓ SSL certificate already exists at $SSL_DIR${NC}"
 fi
 
-    cat << 'NGINX_EOF' > /etc/nginx/sites-available/$APP_NAME
+    cat << NGINX_EOF > /etc/nginx/sites-available/$APP_NAME
 # ── WebSocket connection upgrade map ────────────────────────────────────────
-map $http_upgrade $connection_upgrade {
+map \$http_upgrade \$connection_upgrade {
     default upgrade;
     ''      close;
 }
 
 # HTTP → HTTPS redirect (for direct browser access)
-# Cloudflare with Full/Full-Strict SSL also hits 443 on origin, so this
-# redirect is only for clients bypassing Cloudflare.
 server {
     listen 80;
-    server_name api.schoollinx.com;
+    server_name api.$DOMAIN;
 
-    if ($host ~* "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$") {
+    if (\$host ~* "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$") {
         return 444;
     }
 
-    return 301 https://$host$request_uri;
+    return 301 https://\$host\$request_uri;
 }
 
 # HTTPS — Cloudflare Full/Full-Strict SSL with Origin Certificate
-# Cert files: paste your Cloudflare Origin Certificate at these paths.
 server {
     listen 443 ssl http2;
-    server_name api.schoollinx.com;
-    ssl_certificate /etc/nginx/ssl/$DOMAIN/cert.pem;
-    ssl_certificate_key /etc/nginx/ssl/$DOMAIN/key.pem;
+    server_name api.$DOMAIN;
+    ssl_certificate     $SSL_DIR/cert.pem;
+    ssl_certificate_key $SSL_DIR/key.pem;
 
     # Modern TLS settings
     ssl_protocols       TLSv1.2 TLSv1.3;
@@ -268,7 +265,7 @@ server {
     ssl_prefer_server_ciphers on;
 
     # Block raw IP-based access
-    if ($host ~* "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$") {
+    if (\$host ~* "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$") {
         return 444;
     }
 
@@ -276,11 +273,11 @@ server {
     location /ws/ {
         proxy_pass          http://localhost:8080;
         proxy_http_version  1.1;
-        proxy_set_header    Upgrade           $http_upgrade;
-        proxy_set_header    Connection        $connection_upgrade;
-        proxy_set_header    Host              $host;
-        proxy_set_header    X-Real-IP         $remote_addr;
-        proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header    Upgrade           \$http_upgrade;
+        proxy_set_header    Connection        \$connection_upgrade;
+        proxy_set_header    Host              \$host;
+        proxy_set_header    X-Real-IP         \$remote_addr;
+        proxy_set_header    X-Forwarded-For   \$proxy_add_x_forwarded_for;
         proxy_set_header    X-Forwarded-Proto https;
         proxy_read_timeout  3600s;
         proxy_send_timeout  3600s;
@@ -290,11 +287,11 @@ server {
     location /api/ws {
         proxy_pass          http://localhost:8080;
         proxy_http_version  1.1;
-        proxy_set_header    Upgrade           $http_upgrade;
-        proxy_set_header    Connection        $connection_upgrade;
-        proxy_set_header    Host              $host;
-        proxy_set_header    X-Real-IP         $remote_addr;
-        proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header    Upgrade           \$http_upgrade;
+        proxy_set_header    Connection        \$connection_upgrade;
+        proxy_set_header    Host              \$host;
+        proxy_set_header    X-Real-IP         \$remote_addr;
+        proxy_set_header    X-Forwarded-For   \$proxy_add_x_forwarded_for;
         proxy_set_header    X-Forwarded-Proto https;
         proxy_read_timeout  3600s;
         proxy_send_timeout  3600s;
@@ -304,9 +301,9 @@ server {
     location / {
         proxy_pass         http://localhost:8080;
         proxy_http_version 1.1;
-        proxy_set_header   Host              $host;
-        proxy_set_header   X-Real-IP         $remote_addr;
-        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   Host              \$host;
+        proxy_set_header   X-Real-IP         \$remote_addr;
+        proxy_set_header   X-Forwarded-For   \$proxy_add_x_forwarded_for;
         proxy_set_header   X-Forwarded-Proto https;
         proxy_read_timeout 120s;
     }
