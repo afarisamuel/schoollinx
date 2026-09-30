@@ -259,11 +259,24 @@ export class StudentFormComponent implements OnInit {
                     const formData: any = { ...student };
                     
                     if (student.guardians && student.guardians.length > 0) {
-                        const g = student.guardians[0];
-                        formData.guardian_name = [g.first_name, g.last_name].filter(Boolean).join(' ');
-                        formData.guardian_phone = g.phone_number;
-                        formData.guardian_email = g.email;
-                        formData.guardian_relation = g.relationship;
+                        for (const g of student.guardians) {
+                            const name = [g.first_name, g.last_name].filter(Boolean).join(' ');
+                            const rel = (g.relationship || '').toLowerCase();
+                            if (rel === 'father' || rel === 'dad') {
+                                if (!formData.father_name) formData.father_name = name;
+                                if (!formData.father_phone) formData.father_phone = g.phone_number;
+                                if (!formData.father_email) formData.father_email = g.email;
+                            } else if (rel === 'mother' || rel === 'mom') {
+                                if (!formData.mother_name) formData.mother_name = name;
+                                if (!formData.mother_phone) formData.mother_phone = g.phone_number;
+                                if (!formData.mother_email) formData.mother_email = g.email;
+                            } else {
+                                if (!formData.guardian_name) formData.guardian_name = name;
+                                if (!formData.guardian_phone) formData.guardian_phone = g.phone_number;
+                                if (!formData.guardian_email) formData.guardian_email = g.email;
+                                if (!formData.guardian_relation) formData.guardian_relation = g.relationship;
+                            }
+                        }
                     }
                     
                     this.studentForm.patchValue(formData);
@@ -415,32 +428,70 @@ export class StudentFormComponent implements OnInit {
         }
         delete formData.exam_year;
 
-        // Map flat guardian fields to nested guardians array
-        const guardianPhone = formData.guardian_phone;
-        const guardianEmail = formData.guardian_email;
-        const guardianName = formData.guardian_name;
-        const guardianRelation = formData.guardian_relation;
+        // Map Father, Mother, and Legal Guardian to nested guardians array
+        const guardiansList: any[] = [];
 
-        delete formData.guardian_name;
-        delete formData.guardian_phone;
-        delete formData.guardian_email;
-        delete formData.guardian_relation;
-
-        if (guardianPhone || guardianEmail || guardianName) {
-            let fn = guardianName || '';
+        const splitName = (fullName: string) => {
+            let fn = (fullName || '').trim();
             let ln = '';
             const parts = fn.split(' ');
             if (parts.length > 1) {
                 ln = parts.pop() || '';
                 fn = parts.join(' ');
             }
-            formData.guardians = [{
-                first_name: fn,
-                last_name: ln,
-                phone_number: guardianPhone,
-                email: guardianEmail,
-                relationship: guardianRelation || 'Guardian',
-            }];
+            return { first_name: fn, last_name: ln };
+        };
+
+        // 1. Father Details
+        if (formData.father_name || formData.father_phone || formData.father_email) {
+            const { first_name, last_name } = splitName(formData.father_name || 'Father');
+            guardiansList.push({
+                first_name,
+                last_name,
+                phone_number: formData.father_phone || '',
+                email: formData.father_email || '',
+                relationship: 'Father',
+                is_primary: true,
+                can_pickup: true
+            });
+        }
+
+        // 2. Mother Details
+        if (formData.mother_name || formData.mother_phone || formData.mother_email) {
+            const { first_name, last_name } = splitName(formData.mother_name || 'Mother');
+            guardiansList.push({
+                first_name,
+                last_name,
+                phone_number: formData.mother_phone || '',
+                email: formData.mother_email || '',
+                relationship: 'Mother',
+                is_primary: guardiansList.length === 0,
+                can_pickup: true
+            });
+        }
+
+        // 3. Named / Legal Guardian Details (if provided and not identical to father/mother)
+        if (formData.guardian_name || formData.guardian_phone || formData.guardian_email) {
+            const isDuplicate = guardiansList.some(g => 
+                (formData.guardian_phone && g.phone_number && g.phone_number === formData.guardian_phone) ||
+                (formData.guardian_email && g.email && g.email === formData.guardian_email)
+            );
+            if (!isDuplicate) {
+                const { first_name, last_name } = splitName(formData.guardian_name || 'Guardian');
+                guardiansList.push({
+                    first_name,
+                    last_name,
+                    phone_number: formData.guardian_phone || '',
+                    email: formData.guardian_email || '',
+                    relationship: formData.guardian_relation || 'Legal Guardian',
+                    is_primary: guardiansList.length === 0,
+                    can_pickup: true
+                });
+            }
+        }
+
+        if (guardiansList.length > 0) {
+            formData.guardians = guardiansList;
         }
 
         const returnRoute = this.isEditMode && this.studentId

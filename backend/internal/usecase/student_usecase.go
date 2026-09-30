@@ -205,16 +205,163 @@ func (u *studentUseCase) provisionGuardianUser(ctx context.Context, g *domain.Gu
 	return tempPassword, nil
 }
 
+func splitGuardianName(fullName string) (first string, last string) {
+	fullName = strings.TrimSpace(fullName)
+	if fullName == "" {
+		return "", ""
+	}
+	parts := strings.Fields(fullName)
+	if len(parts) == 1 {
+		return parts[0], ""
+	}
+	return strings.Join(parts[:len(parts)-1], " "), parts[len(parts)-1]
+}
+
+func (u *studentUseCase) collectAndProvisionGuardians(ctx context.Context, student *domain.Student) error {
+	var prospective []*domain.Guardian
+
+	for _, g := range student.Guardians {
+		if g != nil {
+			prospective = append(prospective, g)
+		}
+	}
+
+	hasGuardianWith := func(phone string, email string, rel string) bool {
+		phone = strings.TrimSpace(phone)
+		email = strings.TrimSpace(email)
+		for _, g := range prospective {
+			gPhone := strings.TrimSpace(encryption.DeterministicDecryptedString(string(g.PhoneNumber)))
+			gEmail := strings.TrimSpace(encryption.DeterministicDecryptedString(string(g.Email)))
+			if phone != "" && gPhone != "" && phone == gPhone {
+				return true
+			}
+			if email != "" && gEmail != "" && strings.EqualFold(email, gEmail) {
+				return true
+			}
+			if rel != "" && strings.EqualFold(g.Relationship, rel) && g.FirstName != "" {
+				return true
+			}
+		}
+		return false
+	}
+
+	// 1. Father Details
+	fName := strings.TrimSpace(string(student.FatherName))
+	fPhone := strings.TrimSpace(string(student.FatherPhone))
+	fEmail := strings.TrimSpace(string(student.FatherEmail))
+	if (fName != "" || fPhone != "" || fEmail != "") && !hasGuardianWith(fPhone, fEmail, "Father") {
+		fn, ln := splitGuardianName(fName)
+		if fn == "" {
+			fn = "Father"
+		}
+		g := &domain.Guardian{
+			FirstName:    encryption.EncryptedString(fn),
+			LastName:     encryption.EncryptedString(ln),
+			PhoneNumber:  encryption.EncryptedString(fPhone),
+			Email:        encryption.DeterministicEncryptedString(fEmail),
+			Relationship: "Father",
+			IsPrimary:    len(prospective) == 0,
+			CanPickup:    true,
+		}
+		prospective = append(prospective, g)
+	}
+
+	// 2. Mother Details
+	mName := strings.TrimSpace(string(student.MotherName))
+	mPhone := strings.TrimSpace(string(student.MotherPhone))
+	mEmail := strings.TrimSpace(string(student.MotherEmail))
+	if (mName != "" || mPhone != "" || mEmail != "") && !hasGuardianWith(mPhone, mEmail, "Mother") {
+		fn, ln := splitGuardianName(mName)
+		if fn == "" {
+			fn = "Mother"
+		}
+		g := &domain.Guardian{
+			FirstName:    encryption.EncryptedString(fn),
+			LastName:     encryption.EncryptedString(ln),
+			PhoneNumber:  encryption.EncryptedString(mPhone),
+			Email:        encryption.DeterministicEncryptedString(mEmail),
+			Relationship: "Mother",
+			IsPrimary:    len(prospective) == 0,
+			CanPickup:    true,
+		}
+		prospective = append(prospective, g)
+	}
+
+	// 3. Named Guardian Details
+	gName := strings.TrimSpace(string(student.GuardianName))
+	gPhone := strings.TrimSpace(string(student.GuardianPhone))
+	gEmail := strings.TrimSpace(string(student.GuardianEmail))
+	gRel := strings.TrimSpace(string(student.GuardianRelation))
+	if gRel == "" {
+		gRel = "Legal Guardian"
+	}
+	if (gName != "" || gPhone != "" || gEmail != "") && !hasGuardianWith(gPhone, gEmail, "") {
+		fn, ln := splitGuardianName(gName)
+		if fn == "" {
+			fn = "Guardian"
+		}
+		g := &domain.Guardian{
+			FirstName:    encryption.EncryptedString(fn),
+			LastName:     encryption.EncryptedString(ln),
+			PhoneNumber:  encryption.EncryptedString(gPhone),
+			Email:        encryption.DeterministicEncryptedString(gEmail),
+			Relationship: gRel,
+			IsPrimary:    len(prospective) == 0,
+			CanPickup:    true,
+		}
+		prospective = append(prospective, g)
+	}
+
+	// 4. Provision accounts and create/link each guardian
+	var finalGuardians []*domain.Guardian
+	for _, g := range prospective {
+		phone := strings.TrimSpace(encryption.DeterministicDecryptedString(string(g.PhoneNumber)))
+		email := strings.TrimSpace(encryption.DeterministicDecryptedString(string(g.Email)))
+		if phone == "" && email == "" {
+			continue
+		}
+
+		if _, err := u.provisionGuardianUser(ctx, g); err != nil {
+			log.Printf("[STUDENT GUARDIAN] Provision user warning for %s: %v", phone, err)
+		}
+
+		if g.ID == uuid.Nil {
+			if g.UserID != uuid.Nil && u.guardianRepo != nil {
+				existingG, _ := u.guardianRepo.GetByUserID(ctx, g.UserID)
+				if existingG != nil {
+					g.ID = existingG.ID
+				}
+			}
+			if g.ID == uuid.Nil && u.guardianRepo != nil {
+				if err := u.guardianRepo.Create(ctx, g); err != nil {
+					log.Printf("[STUDENT GUARDIAN] Error saving guardian record: %v", err)
+				}
+			}
+		}
+
+		finalGuardians = append(finalGuardians, g)
+	}
+
+	student.Guardians = finalGuardians
+	return nil
+}
+
 func (u *studentUseCase) CreateStudent(ctx context.Context, student *domain.Student) error {
 	student.CapitalizeNames()
-	for i, g := range student.Guardians {
-		if _, err := u.provisionGuardianUser(ctx, g); err != nil {
-			return err
-		}
-		student.Guardians[i] = g
+	if err := u.collectAndProvisionGuardians(ctx, student); err != nil {
+		return err
 	}
 	if err := u.studentRepo.Create(ctx, student); err != nil {
 		return err
+	}
+
+	// Ensure all guardians are linked in join table
+	if u.guardianRepo != nil && student.ID != uuid.Nil {
+		for _, g := range student.Guardians {
+			if g != nil && g.ID != uuid.Nil {
+				_ = u.guardianRepo.LinkStudent(ctx, g.ID, student.ID)
+			}
+		}
 	}
 
 	// Automatically apply term fees if fee structures exist for the current active period
@@ -370,56 +517,21 @@ func (u *studentUseCase) GetStudentsForTeacherPaginated(ctx context.Context, use
 
 func (u *studentUseCase) UpdateStudent(ctx context.Context, student *domain.Student) error {
 	student.CapitalizeNames()
-	// Only process guardian changes if the payload includes guardian data.
-	if len(student.Guardians) > 0 {
-		incoming := student.Guardians[0] // treat the first entry as the primary guardian
 
-		// Fetch guardians currently linked to this student from the DB.
-		existing, err := u.guardianRepo.GetForStudent(ctx, student.ID)
-		if err != nil {
-			return fmt.Errorf("failed to fetch existing guardians: %w", err)
-		}
+	if err := u.collectAndProvisionGuardians(ctx, student); err != nil {
+		log.Printf("[STUDENT UPDATE] collectAndProvisionGuardians error: %v", err)
+	}
 
-		if len(existing) > 0 {
-			// --- UPDATE path: a guardian is already linked ---
-			// Merge the incoming details onto the first existing guardian record.
-			linked := existing[0]
-			if incoming.FirstName != "" {
-				linked.FirstName = incoming.FirstName
-			}
-			if incoming.LastName != "" {
-				linked.LastName = incoming.LastName
-			}
-			if incoming.PhoneNumber != "" {
-				linked.PhoneNumber = incoming.PhoneNumber
-			}
-			if incoming.Email != "" {
-				linked.Email = incoming.Email
-			}
-			if incoming.Relationship != "" {
-				linked.Relationship = incoming.Relationship
-			}
-			if err := u.guardianRepo.Update(ctx, linked); err != nil {
-				return fmt.Errorf("failed to update guardian: %w", err)
-			}
-		} else {
-			// --- CREATE path: student has no guardian yet ---
-			// Provision a user account (creates User + optional email).
-			if _, err := u.provisionGuardianUser(ctx, incoming); err != nil {
-				return err
-			}
-			// Persist the new guardian row.
-			if err := u.guardianRepo.Create(ctx, incoming); err != nil {
-				return fmt.Errorf("failed to create guardian: %w", err)
-			}
-			// Link the new guardian to this student in the join table.
-			if err := u.studentRepo.AppendGuardian(ctx, student.ID, incoming); err != nil {
-				return fmt.Errorf("failed to link guardian to student: %w", err)
+	// Ensure all guardians are linked to this student
+	if u.guardianRepo != nil && student.ID != uuid.Nil {
+		for _, g := range student.Guardians {
+			if g != nil && g.ID != uuid.Nil {
+				_ = u.guardianRepo.LinkStudent(ctx, g.ID, student.ID)
 			}
 		}
 	}
 
-	// Update the student's own scalar fields (guardian association untouched by the repo).
+	// Update the student's own scalar fields
 	return u.studentRepo.Update(ctx, student)
 }
 
