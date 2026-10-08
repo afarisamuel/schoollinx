@@ -208,352 +208,351 @@
         }
       </div>
 
-      <div class="relative z-10 flex flex-col gap-7">
+      <div class="relative z-10 flex flex-col gap-6 print:gap-0">
 
         <!-- ========================================== -->
-        <!-- 1. HEADER: LETTERHEAD & PASSPORT BOX       -->
+        <!-- PAGE 1: DOSSIER HEADER, BIODATA & ACADEMICS -->
         <!-- ========================================== -->
-        <div class="flex items-start justify-between gap-6 pb-5 border-b-2 border-gray-900">
-          <!-- Institutional Brand & Crest -->
-          <div class="flex items-center gap-4 flex-1">
-            @if (tenantProfile()?.logo_url) {
-              <img [src]="tenantProfile()?.logo_url" alt="School Crest" class="w-20 h-20 object-contain rounded-xl border border-gray-300 p-1 flex-shrink-0">
-            } @else {
-              <div class="w-20 h-20 rounded-2xl bg-blue-900 text-white flex flex-col items-center justify-center shadow-md flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-                <span class="text-[9px] font-black uppercase tracking-wider mt-1">SCHOOLLINX</span>
+        <div class="page-1-section flex flex-col gap-5 print:gap-2">
+
+          <!-- 1. HEADER: LETTERHEAD & PASSPORT BOX -->
+          <div class="flex items-start justify-between gap-6 print:gap-3 pb-4 print:pb-1.5 border-b-2 border-gray-900">
+            <!-- Institutional Brand & Crest -->
+            <div class="flex items-center gap-4 print:gap-2.5 flex-1">
+              @if (tenantProfile()?.logo_url) {
+                <img [src]="tenantProfile()?.logo_url" alt="School Crest" class="w-20 h-20 print:w-14 print:h-14 object-contain rounded-xl border border-gray-300 p-1 flex-shrink-0">
+              } @else {
+                <div class="w-20 h-20 print:w-14 print:h-14 rounded-2xl bg-blue-900 text-white flex flex-col items-center justify-center shadow-md flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                  <span class="text-[7px] font-black uppercase tracking-wider mt-0.5">SCHOOLLINX</span>
+                </div>
+              }
+
+              <div class="flex flex-col">
+                <h1 class="text-xl sm:text-2xl print:text-base font-black tracking-tight text-gray-900 uppercase leading-tight font-serif">
+                  {{ tenantProfile()?.name || 'SchoolLinx International Academy' }}
+                </h1>
+                <p class="text-[11px] print:text-[8.5px] font-bold text-gray-600 uppercase tracking-wider mt-0.5">
+                  Official Student Registration & Admission Dossier
+                </p>
+                <p class="text-[11px] print:text-[8px] text-gray-600 mt-0.5">
+                  {{ tenantProfile()?.address || 'Campus Road, Box 104, Accra, Ghana' }} • Tel: {{ tenantProfile()?.contact_numbers || '+233 (0) 24 000 0000' }}
+                </p>
+                <p class="text-[10px] print:text-[7.5px] text-gray-500 font-mono">
+                  Email: {{ tenantProfile()?.email || 'admissions@schoollinx.edu' }} • Web: {{ schoolWebsite() }}
+                </p>
               </div>
-            }
+            </div>
 
-            <div class="flex flex-col">
-              <h1 class="text-xl sm:text-2xl font-black tracking-tight text-gray-900 uppercase leading-tight font-serif">
-                {{ tenantProfile()?.name || 'SchoolLinx International Academy' }}
-              </h1>
-              <p class="text-[11px] font-bold text-gray-600 uppercase tracking-wider mt-0.5">
-                Official Student Registration & Admission Dossier
-              </p>
-              <p class="text-[11px] text-gray-600 mt-1">
-                {{ tenantProfile()?.address || 'Campus Road, Box 104, Accra, Ghana' }} • Tel: {{ tenantProfile()?.contact_numbers || '+233 (0) 24 000 0000' }}
-              </p>
-              <p class="text-[10px] text-gray-500 font-mono">
-                Email: {{ tenantProfile()?.email || 'admissions@schoollinx.edu' }} • Web: {{ schoolWebsite() }}
-              </p>
+            <!-- Right Header Box: Passport Photo Box & Form Reference -->
+            <div class="flex flex-col items-center flex-shrink-0">
+              @if (!isFormBlank() && student()?.photo_url) {
+                <div class="w-24 h-28 print:w-18 print:h-22 rounded-xl border-2 border-gray-900 overflow-hidden shadow-sm bg-gray-100">
+                  <img [src]="getStudentPhotoUrl(student()?.photo_url)" (error)="$any($event.target).parentElement.style.display='none'; $any($event.target).parentElement.nextElementSibling?.classList.remove('hidden')" alt="Candidate Photo" class="w-full h-full object-cover">
+                </div>
+              }
+              <div class="w-24 h-28 print:w-18 print:h-22 rounded-xl border-2 border-dashed border-gray-400 flex flex-col items-center justify-center p-1.5 text-center bg-gray-50/80"
+                   [class.hidden]="!isFormBlank() && student()?.photo_url">
+                <svg class="text-gray-400 mb-0.5 w-4 h-4 print:w-3.5 print:h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <span class="text-[7.5px] font-black text-gray-500 uppercase tracking-wider leading-tight">
+                  Affix 2x2 Photo
+                </span>
+              </div>
+              <span class="text-[8.5px] font-mono font-bold text-gray-500 mt-0.5">REF: {{ referenceNumber() }}</span>
             </div>
           </div>
 
-          <!-- Right Header Box: Passport Photo Box & Form Reference -->
-          <div class="flex flex-col items-center flex-shrink-0">
-            @if (!isFormBlank() && student()?.photo_url) {
-              <div class="w-28 h-32 rounded-xl border-2 border-gray-900 overflow-hidden shadow-sm bg-gray-100">
-                <img [src]="getStudentPhotoUrl(student()?.photo_url)" (error)="$any($event.target).parentElement.style.display='none'; $any($event.target).parentElement.nextElementSibling?.classList.remove('hidden')" alt="Candidate Photo" class="w-full h-full object-cover">
-              </div>
-            }
-            <div class="w-28 h-32 rounded-xl border-2 border-dashed border-gray-400 flex flex-col items-center justify-center p-2 text-center bg-gray-50/80"
-                 [class.hidden]="!isFormBlank() && student()?.photo_url">
-              <svg class="text-gray-400 mb-1" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-              <span class="text-[9px] font-black text-gray-500 uppercase tracking-wider leading-tight">
-                Affix Recent 2x2 Passport Photo
+          <!-- 2. FORM TITLE BANNER & SESSION METADATA -->
+          <div class="border-2 border-gray-900 bg-gray-50 px-3.5 py-1.5 print:py-1 print:px-2.5 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-1.5 shadow-xs">
+            <div class="flex items-center gap-2">
+              <span class="font-black text-xs sm:text-sm print:text-[11px] uppercase tracking-wider text-gray-900 font-serif">
+                STUDENT ADMISSION APPLICATION & ENROLLMENT FORM
               </span>
             </div>
-            <span class="text-[9px] font-mono font-bold text-gray-500 mt-1.5">REF: {{ referenceNumber() }}</span>
-          </div>
-        </div>
-
-        <!-- ========================================== -->
-        <!-- 2. FORM TITLE BANNER & SESSION METADATA    -->
-        <!-- ========================================== -->
-        <div class="border-2 border-gray-900 bg-gray-50 px-4 py-2.5 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-2 shadow-xs">
-          <div class="flex items-center gap-2">
-            <span class="font-black text-xs sm:text-sm uppercase tracking-wider text-gray-900 font-serif">
-              STUDENT ADMISSION APPLICATION & ENROLLMENT FORM
-            </span>
-          </div>
-          <div class="flex items-center gap-4 text-xs font-bold text-gray-700">
-            <span>Academic Session: <strong class="text-gray-900 font-black">{{ academicYear() }}</strong></span>
-            <span>•</span>
-            <span>Date: <strong class="text-gray-900 font-mono">{{ admissionDate() | date:'mediumDate' }}</strong></span>
-          </div>
-        </div>
-
-        <!-- Instructions Notice -->
-        <div class="p-2.5 rounded-lg bg-gray-50 border border-gray-300 text-[10px] text-gray-700 leading-relaxed font-medium">
-          <strong>Instructions:</strong> Please complete all sections clearly in <strong>BLOCK LETTERS</strong> using blue or black ballpoint ink. Write one letter per box where boxes are provided. Ensure all guardian telephone contacts and emergency information are accurate.
-        </div>
-
-        <!-- ========================================== -->
-        <!-- SECTION A: CANDIDATE PERSONAL IDENTIFICATION -->
-        <!-- ========================================== -->
-        <div class="flex flex-col gap-4">
-          <div class="flex items-center justify-between bg-gray-100 px-3.5 py-2 rounded-lg border-l-4 border-gray-900">
-            <span class="text-xs font-black uppercase tracking-wider text-gray-900 font-serif">
-              SECTION A: CANDIDATE PERSONAL IDENTIFICATION
-            </span>
-            <span class="text-[10px] font-bold text-gray-500">BIODATA</span>
+            <div class="flex items-center gap-3 text-xs print:text-[9px] font-bold text-gray-700">
+              <span>Academic Session: <strong class="text-gray-900 font-black">{{ academicYear() }}</strong></span>
+              <span>•</span>
+              <span>Date: <strong class="text-gray-900 font-mono">{{ admissionDate() | date:'mediumDate' }}</strong></span>
+            </div>
           </div>
 
-          <div class="grid grid-cols-12 gap-x-5 gap-y-4 text-xs">
-            
-            <!-- Surname -->
-            <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
-              <span class="text-[10px] font-black uppercase text-gray-700">1. Surname / Family Name:</span>
-              <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-black text-sm text-gray-900 tracking-wide">
-                {{ (!isFormBlank() && student()?.last_name) ? student()?.last_name?.toUpperCase() : '' }}
-              </div>
+          <!-- Instructions Notice -->
+          <div class="p-2 print:py-0.5 print:px-2 rounded-lg bg-gray-50 border border-gray-300 text-[10px] print:text-[7.5px] text-gray-700 leading-relaxed font-medium">
+            <strong>Instructions:</strong> Please complete all sections clearly in <strong>BLOCK LETTERS</strong> using blue or black ballpoint ink. Write one letter per box where boxes are provided. Ensure all guardian telephone contacts and emergency information are accurate.
+          </div>
+
+          <!-- SECTION A: CANDIDATE PERSONAL IDENTIFICATION -->
+          <div class="flex flex-col gap-2.5 print:gap-1">
+            <div class="flex items-center justify-between bg-gray-100 px-3 py-1 print:py-0.5 print:px-2 rounded-lg border-l-4 border-gray-900">
+              <span class="text-xs print:text-[9.5px] font-black uppercase tracking-wider text-gray-900 font-serif">
+                SECTION A: CANDIDATE PERSONAL IDENTIFICATION
+              </span>
+              <span class="text-[9px] print:text-[7.5px] font-bold text-gray-500">BIODATA</span>
             </div>
 
-            <!-- First Name -->
-            <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
-              <span class="text-[10px] font-black uppercase text-gray-700">2. First Given Name:</span>
-              <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-sm text-gray-900">
-                {{ (!isFormBlank() && student()?.first_name) ? student()?.first_name?.toUpperCase() : '' }}
-              </div>
-            </div>
-
-            <!-- Other Names -->
-            <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
-              <span class="text-[10px] font-black uppercase text-gray-700">3. Middle / Other Names:</span>
-              <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-sm text-gray-900">
-                {{ (!isFormBlank() && student()?.other_name) ? student()?.other_name?.toUpperCase() : '' }}
-              </div>
-            </div>
-
-            <!-- Gender -->
-            <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
-              <span class="text-[10px] font-black uppercase text-gray-700">4. Gender:</span>
-              <div class="border-b-2 border-gray-800 h-10 flex items-center gap-6 text-xs font-bold text-gray-900">
-                @if (!isFormBlank() && student()?.gender) {
-                  <span class="font-black uppercase tracking-wider text-sm">[ ✓ ] {{ student()?.gender }}</span>
-                } @else {
-                  <span class="flex items-center gap-2"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Male</span>
-                  <span class="flex items-center gap-2"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Female</span>
-                }
-              </div>
-            </div>
-
-            <!-- Date of Birth & Age -->
-            <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
-              <span class="text-[10px] font-black uppercase text-gray-700">5. Date of Birth:</span>
-              <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
-                @if (!isFormBlank() && student()?.dob) {
-                  <span class="font-mono text-sm font-black">{{ student()?.dob | date:'dd / MM / yyyy' }}</span>
-                } @else {
-                  <span class="text-gray-400 font-mono tracking-widest text-[11px]">DD &nbsp; / &nbsp; MM &nbsp; / &nbsp; YYYY</span>
-                }
-              </div>
-            </div>
-
-            <!-- Calculated Age / Age in Years -->
-            <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
-              <span class="text-[10px] font-black uppercase text-gray-700">6. Age (Years):</span>
-              <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
-                @if (!isFormBlank() && candidateAge() !== null) {
-                  <span class="font-black text-sm">{{ candidateAge() }} Years Old</span>
-                } @else {
-                  <span class="text-gray-400 font-mono text-[11px]">_______ Years</span>
-                }
-              </div>
-            </div>
-
-            <!-- Nationality / Country -->
-            <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
-              <span class="text-[10px] font-black uppercase text-gray-700">7. Nationality / Country:</span>
-              <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
-              </div>
-            </div>
-
-            <!-- Religious Affiliation -->
-            <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
-              <span class="text-[10px] font-black uppercase text-gray-700">8. Religion / Denomination:</span>
-              <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
-              </div>
-            </div>
-
-            <!-- Primary Contact Phone -->
-            <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
-              <span class="text-[10px] font-black uppercase text-gray-700">9. Student / Primary Phone:</span>
-              <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-mono font-bold text-xs text-gray-900">
-                {{ (!isFormBlank() && student()?.phone_number) ? student()?.phone_number : '' }}
-              </div>
-            </div>
-
-            <!-- Residential Physical Address (Spacious 2 Ruled Lines) -->
-            <div class="col-span-12 flex flex-col gap-1 pt-1">
-              <span class="text-[10px] font-black uppercase text-gray-700">10. Residential Physical Address / Town / Digital GPS Code:</span>
-              <div class="flex flex-col gap-2 pt-1">
-                <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
-                  {{ (!isFormBlank() && student()?.address) ? student()?.address : '' }}
-                </div>
-                <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+            <div class="grid grid-cols-12 gap-x-4 print:gap-x-2.5 gap-y-3 print:gap-y-1 text-xs">
+              
+              <!-- Surname -->
+              <div class="col-span-12 sm:col-span-4 flex flex-col gap-0.5">
+                <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">1. Surname / Family Name:</span>
+                <div class="border-b-2 border-gray-800 h-8 print:h-5.5 flex items-end pb-0.5 font-black text-sm print:text-xs text-gray-900 tracking-wide">
+                  {{ (!isFormBlank() && student()?.last_name) ? student()?.last_name?.toUpperCase() : '' }}
                 </div>
               </div>
-            </div>
 
-            <!-- Dynamic Custom Fields for Biodata -->
-            @for (cf of biodataCustomFields(); track cf.id) {
-              <div class="col-span-12" [class.sm:col-span-6]="cf.span === 'half'" [class.sm:col-span-4]="cf.span === 'third'">
-                <span class="text-[10px] font-black uppercase text-gray-700">{{ cf.title }}:</span>
-                @if (cf.lineType === 'checkboxes') {
-                  <div class="border-b-2 border-gray-800 h-10 flex items-center gap-4 text-xs font-bold text-gray-900">
-                    @for (opt of cf.options; track opt) {
-                      <span class="flex items-center gap-1.5">
-                        <span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> {{ opt }}
-                      </span>
-                    }
-                  </div>
-                } @else if (cf.lineType === 'double') {
-                  <div class="flex flex-col gap-2 pt-1">
-                    <div class="border-b-2 border-gray-800 h-8 flex items-end pb-1 font-bold text-xs text-gray-900">{{ cf.value || '' }}</div>
-                    <div class="border-b-2 border-gray-800 h-8"></div>
-                  </div>
-                } @else {
-                  <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
-                    {{ cf.value || '' }}
-                  </div>
-                }
+              <!-- First Name -->
+              <div class="col-span-12 sm:col-span-4 flex flex-col gap-0.5">
+                <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">2. First Given Name:</span>
+                <div class="border-b-2 border-gray-800 h-8 print:h-5.5 flex items-end pb-0.5 font-bold text-sm print:text-xs text-gray-900">
+                  {{ (!isFormBlank() && student()?.first_name) ? student()?.first_name?.toUpperCase() : '' }}
+                </div>
               </div>
-            }
 
+              <!-- Middle / Other Names -->
+              <div class="col-span-12 sm:col-span-4 flex flex-col gap-0.5">
+                <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">3. Middle / Other Names:</span>
+                <div class="border-b-2 border-gray-800 h-8 print:h-5.5 flex items-end pb-0.5 font-bold text-sm print:text-xs text-gray-900">
+                  {{ (!isFormBlank() && student()?.other_name) ? student()?.other_name?.toUpperCase() : '' }}
+                </div>
+              </div>
+
+              <!-- Gender -->
+              <div class="col-span-12 sm:col-span-4 flex flex-col gap-0.5">
+                <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">4. Gender:</span>
+                <div class="border-b-2 border-gray-800 h-8 print:h-5.5 flex items-center gap-6 print:gap-4 text-xs print:text-[9.5px] font-bold text-gray-900">
+                  @if (!isFormBlank() && student()?.gender) {
+                    <span class="font-black uppercase tracking-wider text-xs print:text-[9.5px]">[ ✓ ] {{ student()?.gender }}</span>
+                  } @else {
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 border-2 border-gray-800 inline-block rounded-xs"></span> Male</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 border-2 border-gray-800 inline-block rounded-xs"></span> Female</span>
+                  }
+                </div>
+              </div>
+
+              <!-- Date of Birth -->
+              <div class="col-span-12 sm:col-span-4 flex flex-col gap-0.5">
+                <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">5. Date of Birth:</span>
+                <div class="border-b-2 border-gray-800 h-8 print:h-5.5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
+                  @if (!isFormBlank() && student()?.dob) {
+                    <span class="font-mono text-xs print:text-[9.5px] font-black">{{ student()?.dob | date:'dd / MM / yyyy' }}</span>
+                  } @else {
+                    <span class="text-gray-400 font-mono tracking-widest text-[9px]">DD &nbsp; / &nbsp; MM &nbsp; / &nbsp; YYYY</span>
+                  }
+                </div>
+              </div>
+
+              <!-- Calculated Age / Age in Years -->
+              <div class="col-span-12 sm:col-span-4 flex flex-col gap-0.5">
+                <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">6. Age (Years):</span>
+                <div class="border-b-2 border-gray-800 h-8 print:h-5.5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
+                  @if (!isFormBlank() && candidateAge() !== null) {
+                    <span class="font-black text-xs print:text-[9.5px]">{{ candidateAge() }} Years Old</span>
+                  } @else {
+                    <span class="text-gray-400 font-mono text-[9px]">_______ Years</span>
+                  }
+                </div>
+              </div>
+
+              <!-- Nationality / Country -->
+              <div class="col-span-12 sm:col-span-4 flex flex-col gap-0.5">
+                <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">7. Nationality / Country:</span>
+                <div class="border-b-2 border-gray-800 h-8 print:h-5.5 flex items-end pb-0.5 font-bold text-xs text-gray-900">
+                </div>
+              </div>
+
+              <!-- Religious Affiliation -->
+              <div class="col-span-12 sm:col-span-4 flex flex-col gap-0.5">
+                <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">8. Religion / Denomination:</span>
+                <div class="border-b-2 border-gray-800 h-8 print:h-5.5 flex items-end pb-0.5 font-bold text-xs text-gray-900">
+                </div>
+              </div>
+
+              <!-- Primary Contact Phone -->
+              <div class="col-span-12 sm:col-span-4 flex flex-col gap-0.5">
+                <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">9. Student / Primary Phone:</span>
+                <div class="border-b-2 border-gray-800 h-8 print:h-5.5 flex items-end pb-0.5 font-mono font-bold text-xs print:text-[9.5px] text-gray-900">
+                  {{ (!isFormBlank() && student()?.phone_number) ? student()?.phone_number : '' }}
+                </div>
+              </div>
+
+              <!-- Residential Physical Address -->
+              <div class="col-span-12 flex flex-col gap-0.5 pt-0.5">
+                <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">10. Residential Physical Address / Town / Digital GPS Code:</span>
+                <div class="flex flex-col gap-1 print:gap-0.5 pt-0.5">
+                  <div class="border-b-2 border-gray-800 h-7 print:h-5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
+                    {{ (!isFormBlank() && student()?.address) ? student()?.address : '' }}
+                  </div>
+                  <div class="border-b-2 border-gray-800 h-7 print:h-5">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Dynamic Custom Fields for Biodata -->
+              @for (cf of biodataCustomFields(); track cf.id) {
+                <div class="col-span-12" [class.sm:col-span-6]="cf.span === 'half'" [class.sm:col-span-4]="cf.span === 'third'">
+                  <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">{{ cf.title }}:</span>
+                  @if (cf.lineType === 'checkboxes') {
+                    <div class="border-b-2 border-gray-800 h-7 print:h-5 flex items-center gap-3 text-xs print:text-[9.5px] font-bold text-gray-900">
+                      @for (opt of cf.options; track opt) {
+                        <span class="flex items-center gap-1">
+                          <span class="w-3 h-3 border border-gray-800 inline-block rounded-xs"></span> {{ opt }}
+                        </span>
+                      }
+                    </div>
+                  } @else if (cf.lineType === 'double') {
+                    <div class="flex flex-col gap-1 pt-0.5">
+                      <div class="border-b-2 border-gray-800 h-6 print:h-4.5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">{{ cf.value || '' }}</div>
+                      <div class="border-b-2 border-gray-800 h-6 print:h-4.5"></div>
+                    </div>
+                  } @else {
+                    <div class="border-b-2 border-gray-800 h-7 print:h-5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
+                      {{ cf.value || '' }}
+                    </div>
+                  }
+                </div>
+              }
+
+            </div>
           </div>
-        </div>
 
-        <!-- ========================================== -->
-        <!-- SECTION B: ACADEMIC PROGRAM & PLACEMENT    -->
-        <!-- ========================================== -->
-        <div class="flex flex-col gap-4">
-          <div class="flex items-center justify-between bg-gray-100 px-3.5 py-2 rounded-lg border-l-4 border-gray-900">
-            <span class="text-xs font-black uppercase tracking-wider text-gray-900 font-serif">
-              SECTION B: ACADEMIC PROGRAM & PLACEMENT
-            </span>
-            <span class="text-[10px] font-bold text-gray-500">CLASS & RESIDENCE</span>
+          <!-- SECTION B: ACADEMIC PROGRAM & PLACEMENT -->
+          <div class="flex flex-col gap-2.5 print:gap-1">
+            <div class="flex items-center justify-between bg-gray-100 px-3 py-1 print:py-0.5 print:px-2 rounded-lg border-l-4 border-gray-900">
+              <span class="text-xs print:text-[9.5px] font-black uppercase tracking-wider text-gray-900 font-serif">
+                SECTION B: ACADEMIC PROGRAM & PLACEMENT
+              </span>
+              <span class="text-[9px] print:text-[7.5px] font-bold text-gray-500">CLASS & RESIDENCE</span>
+            </div>
+
+            <div class="grid grid-cols-12 gap-x-4 print:gap-x-2.5 gap-y-3 print:gap-y-1 text-xs">
+              
+              <!-- Scholastic Level -->
+              <div class="col-span-12 sm:col-span-4 flex flex-col gap-0.5">
+                <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">1. Scholastic Level / Grade Applied:</span>
+                <div class="border-b-2 border-gray-800 h-8 print:h-5.5 flex items-end pb-0.5 font-black text-sm print:text-xs text-gray-900">
+                  {{ candidateLevelName() || '' }}
+                </div>
+              </div>
+
+              <!-- Assigned Cohort / Class -->
+              <div class="col-span-12 sm:col-span-4 flex flex-col gap-0.5">
+                <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">2. Assigned Cohort / Stream:</span>
+                <div class="border-b-2 border-gray-800 h-8 print:h-5.5 flex items-end pb-0.5 font-bold text-sm print:text-xs text-gray-900">
+                  {{ candidateClassName() || '' }}
+                </div>
+              </div>
+
+              <!-- Residence Classification -->
+              <div class="col-span-12 sm:col-span-4 flex flex-col gap-0.5">
+                <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">3. Residence Classification:</span>
+                <div class="border-b-2 border-gray-800 h-8 print:h-5.5 flex items-center gap-6 print:gap-4 text-xs print:text-[9.5px] font-bold text-gray-900">
+                  @if (!isFormBlank() && student()?.placed_residence_type) {
+                    <span class="font-black uppercase tracking-wider text-xs print:text-[9.5px]">[ ✓ ] {{ student()?.placed_residence_type }} Student</span>
+                  } @else {
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 border-2 border-gray-800 inline-block rounded-xs"></span> Day Scholar</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 border-2 border-gray-800 inline-block rounded-xs"></span> Boarding</span>
+                  }
+                </div>
+              </div>
+
+              <!-- Dynamic Custom Fields for Academic Section -->
+              @for (cf of academicCustomFields(); track cf.id) {
+                <div class="col-span-12" [class.sm:col-span-6]="cf.span === 'half'" [class.sm:col-span-4]="cf.span === 'third'">
+                  <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">{{ cf.title }}:</span>
+                  @if (cf.lineType === 'checkboxes') {
+                    <div class="border-b-2 border-gray-800 h-7 print:h-5 flex items-center gap-3 text-xs print:text-[9.5px] font-bold text-gray-900">
+                      @for (opt of cf.options; track opt) {
+                        <span class="flex items-center gap-1">
+                          <span class="w-3 h-3 border border-gray-800 inline-block rounded-xs"></span> {{ opt }}
+                        </span>
+                      }
+                    </div>
+                  } @else if (cf.lineType === 'double') {
+                    <div class="flex flex-col gap-1 pt-0.5">
+                      <div class="border-b-2 border-gray-800 h-6 print:h-4.5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">{{ cf.value || '' }}</div>
+                      <div class="border-b-2 border-gray-800 h-6 print:h-4.5"></div>
+                    </div>
+                  } @else {
+                    <div class="border-b-2 border-gray-800 h-7 print:h-5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
+                      {{ cf.value || '' }}
+                    </div>
+                  }
+                </div>
+              }
+
+            </div>
           </div>
 
-          <div class="grid grid-cols-12 gap-x-5 gap-y-4 text-xs">
-            
-            <!-- Scholastic Level -->
-            <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
-              <span class="text-[10px] font-black uppercase text-gray-700">1. Scholastic Level / Grade Applied:</span>
-              <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-black text-sm text-gray-900">
-                {{ candidateLevelName() || '' }}
-              </div>
-            </div>
-
-            <!-- Assigned Cohort / Class -->
-            <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
-              <span class="text-[10px] font-black uppercase text-gray-700">2. Assigned Cohort / Stream:</span>
-              <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-sm text-gray-900">
-                {{ candidateClassName() || '' }}
-              </div>
-            </div>
-
-            <!-- Residence Classification -->
-            <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
-              <span class="text-[10px] font-black uppercase text-gray-700">3. Residence Classification:</span>
-              <div class="border-b-2 border-gray-800 h-10 flex items-center gap-6 text-xs font-bold text-gray-900">
-                @if (!isFormBlank() && student()?.placed_residence_type) {
-                  <span class="font-black uppercase tracking-wider text-sm">[ ✓ ] {{ student()?.placed_residence_type }} Student</span>
-                } @else {
-                  <span class="flex items-center gap-2"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Day Scholar</span>
-                  <span class="flex items-center gap-2"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Boarding</span>
-                }
-              </div>
-            </div>
-
-            <!-- Dynamic Custom Fields for Academic Section -->
-            @for (cf of academicCustomFields(); track cf.id) {
-              <div class="col-span-12" [class.sm:col-span-6]="cf.span === 'half'" [class.sm:col-span-4]="cf.span === 'third'">
-                <span class="text-[10px] font-black uppercase text-gray-700">{{ cf.title }}:</span>
-                @if (cf.lineType === 'checkboxes') {
-                  <div class="border-b-2 border-gray-800 h-10 flex items-center gap-4 text-xs font-bold text-gray-900">
-                    @for (opt of cf.options; track opt) {
-                      <span class="flex items-center gap-1.5">
-                        <span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> {{ opt }}
-                      </span>
-                    }
-                  </div>
-                } @else if (cf.lineType === 'double') {
-                  <div class="flex flex-col gap-2 pt-1">
-                    <div class="border-b-2 border-gray-800 h-8 flex items-end pb-1 font-bold text-xs text-gray-900">{{ cf.value || '' }}</div>
-                    <div class="border-b-2 border-gray-800 h-8"></div>
-                  </div>
-                } @else {
-                  <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
-                    {{ cf.value || '' }}
-                  </div>
-                }
-              </div>
-            }
-
-          </div>
-        </div>
+        </div><!-- end page-1-section -->
 
         <!-- ========================================== -->
         <!-- PAGE 2: PARENTS, MEDICAL & OFFICIAL SIGN-OFF -->
         <!-- ========================================== -->
-        <div class="page-break-section print:break-before-page flex flex-col gap-6 pt-4 print:pt-0">
+        <div class="page-break-section print:break-before-page flex flex-col gap-5 print:gap-2 pt-4 print:pt-0">
 
           <!-- Page 2 Sub-Header for Print -->
-          <div class="hidden print:flex items-center justify-between pb-3 border-b-2 border-gray-900">
+          <div class="hidden print:flex items-center justify-between pb-1.5 border-b-2 border-gray-900">
             <div class="flex items-center gap-3">
               <span class="text-xs font-black uppercase tracking-wider text-gray-900 font-serif">
                 {{ tenantProfile()?.name || 'SchoolLinx International Academy' }}
               </span>
-              <span class="text-[10px] text-gray-500 font-mono">• ADMISSION DOSSIER (PAGE 2 OF 2)</span>
+              <span class="text-[9.5px] text-gray-500 font-mono">• ADMISSION DOSSIER (PAGE 2 OF 2)</span>
             </div>
-            <span class="text-[9px] font-mono font-bold text-gray-500">REF: {{ referenceNumber() }}</span>
+            <span class="text-[8.5px] font-mono font-bold text-gray-500">REF: {{ referenceNumber() }}</span>
           </div>
 
           <!-- SECTION C: PARENTS & GUARDIAN REGISTRY     -->
-          <div class="flex flex-col gap-4">
-            <div class="flex items-center justify-between bg-gray-100 px-3.5 py-2 rounded-lg border-l-4 border-gray-900">
-              <span class="text-xs font-black uppercase tracking-wider text-gray-900 font-serif">
+          <div class="flex flex-col gap-2.5 print:gap-1.5">
+            <div class="flex items-center justify-between bg-gray-100 px-3 py-1 print:py-0.5 print:px-2 rounded-lg border-l-4 border-gray-900">
+              <span class="text-xs print:text-[9.5px] font-black uppercase tracking-wider text-gray-900 font-serif">
                 SECTION C: PARENT, FAMILY & GUARDIAN PARTICULARS
               </span>
-              <span class="text-[10px] font-bold text-gray-500">LEGAL GUARDIANS</span>
+              <span class="text-[9px] print:text-[7.5px] font-bold text-gray-500">LEGAL GUARDIANS</span>
             </div>
 
-            <div class="grid grid-cols-12 gap-5 text-xs">
+            <div class="grid grid-cols-12 gap-4 print:gap-2 text-xs">
               
               <!-- 1. FATHER'S DETAILS BOX -->
-              <div class="col-span-12 sm:col-span-6 p-4 rounded-2xl border-2 border-gray-300 bg-gray-50/40 flex flex-col gap-3">
-                <div class="flex items-center justify-between border-b-2 border-gray-400 pb-1.5">
-                  <span class="text-[11px] font-black uppercase text-gray-900 font-serif">1. Father / Male Guardian</span>
-                  <span class="text-[9px] font-mono text-gray-500 font-bold">PRIMARY CONTACT</span>
+              <div class="col-span-12 sm:col-span-6 p-3.5 print:p-2 rounded-2xl border-2 border-gray-300 bg-gray-50/40 flex flex-col gap-2 print:gap-1">
+                <div class="flex items-center justify-between border-b-2 border-gray-400 pb-1 print:pb-0.5">
+                  <span class="text-[10.5px] print:text-[9px] font-black uppercase text-gray-900 font-serif">1. Father / Male Guardian</span>
+                  <span class="text-[8.5px] print:text-[7.5px] font-mono text-gray-500 font-bold">PRIMARY CONTACT</span>
                 </div>
 
                 <!-- Father Name -->
-                <div class="flex flex-col gap-1">
-                  <span class="text-[9px] font-black uppercase text-gray-600">Full Name (Surname First):</span>
-                  <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-[9px] print:text-[7.5px] font-black uppercase text-gray-600">Full Name (Surname First):</span>
+                  <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
                     {{ (!isFormBlank() && student()?.father_name) ? student()?.father_name : '' }}
                   </div>
                 </div>
 
                 <!-- Father Phone & Occupation -->
-                <div class="grid grid-cols-2 gap-3">
-                  <div class="flex flex-col gap-1">
-                    <span class="text-[9px] font-black uppercase text-gray-600">Telephone / Mobile:</span>
-                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-mono font-bold text-xs text-gray-900">
+                <div class="grid grid-cols-2 gap-2.5 print:gap-2">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-[9px] print:text-[7.5px] font-black uppercase text-gray-600">Telephone / Mobile:</span>
+                    <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-end pb-0.5 font-mono font-bold text-xs print:text-[9.5px] text-gray-900">
                       {{ (!isFormBlank() && student()?.father_phone) ? student()?.father_phone : '' }}
                     </div>
                   </div>
-                  <div class="flex flex-col gap-1">
-                    <span class="text-[9px] font-black uppercase text-gray-600">Occupation / Trade:</span>
-                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-[9px] print:text-[7.5px] font-black uppercase text-gray-600">Occupation / Trade:</span>
+                    <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
                       {{ (!isFormBlank() && student()?.father_occupation) ? student()?.father_occupation : '' }}
                     </div>
                   </div>
                 </div>
 
                 <!-- Father Employer & Email -->
-                <div class="grid grid-cols-2 gap-3">
-                  <div class="flex flex-col gap-1">
-                    <span class="text-[9px] font-black uppercase text-gray-600">Workplace / Employer:</span>
-                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                <div class="grid grid-cols-2 gap-2.5 print:gap-2">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-[9px] print:text-[7.5px] font-black uppercase text-gray-600">Workplace / Employer:</span>
+                    <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
                     </div>
                   </div>
-                  <div class="flex flex-col gap-1">
-                    <span class="text-[9px] font-black uppercase text-gray-600">Email Address:</span>
-                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-[9px] print:text-[7.5px] font-black uppercase text-gray-600">Email Address:</span>
+                    <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
                       {{ (!isFormBlank() && student()?.father_email) ? student()?.father_email : '' }}
                     </div>
                   </div>
@@ -561,46 +560,46 @@
               </div>
 
               <!-- 2. MOTHER'S DETAILS BOX -->
-              <div class="col-span-12 sm:col-span-6 p-4 rounded-2xl border-2 border-gray-300 bg-gray-50/40 flex flex-col gap-3">
-                <div class="flex items-center justify-between border-b-2 border-gray-400 pb-1.5">
-                  <span class="text-[11px] font-black uppercase text-gray-900 font-serif">2. Mother / Female Guardian</span>
-                  <span class="text-[9px] font-mono text-gray-500 font-bold">PRIMARY CONTACT</span>
+              <div class="col-span-12 sm:col-span-6 p-3.5 print:p-2 rounded-2xl border-2 border-gray-300 bg-gray-50/40 flex flex-col gap-2 print:gap-1">
+                <div class="flex items-center justify-between border-b-2 border-gray-400 pb-1 print:pb-0.5">
+                  <span class="text-[10.5px] print:text-[9px] font-black uppercase text-gray-900 font-serif">2. Mother / Female Guardian</span>
+                  <span class="text-[8.5px] print:text-[7.5px] font-mono text-gray-500 font-bold">PRIMARY CONTACT</span>
                 </div>
 
                 <!-- Mother Name -->
-                <div class="flex flex-col gap-1">
-                  <span class="text-[9px] font-black uppercase text-gray-600">Full Name (Surname First):</span>
-                  <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-[9px] print:text-[7.5px] font-black uppercase text-gray-600">Full Name (Surname First):</span>
+                  <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
                     {{ (!isFormBlank() && student()?.mother_name) ? student()?.mother_name : '' }}
                   </div>
                 </div>
 
                 <!-- Mother Phone & Occupation -->
-                <div class="grid grid-cols-2 gap-3">
-                  <div class="flex flex-col gap-1">
-                    <span class="text-[9px] font-black uppercase text-gray-600">Telephone / Mobile:</span>
-                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-mono font-bold text-xs text-gray-900">
+                <div class="grid grid-cols-2 gap-2.5 print:gap-2">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-[9px] print:text-[7.5px] font-black uppercase text-gray-600">Telephone / Mobile:</span>
+                    <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-end pb-0.5 font-mono font-bold text-xs print:text-[9.5px] text-gray-900">
                       {{ (!isFormBlank() && student()?.mother_phone) ? student()?.mother_phone : '' }}
                     </div>
                   </div>
-                  <div class="flex flex-col gap-1">
-                    <span class="text-[9px] font-black uppercase text-gray-600">Occupation / Trade:</span>
-                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-[9px] print:text-[7.5px] font-black uppercase text-gray-600">Occupation / Trade:</span>
+                    <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
                       {{ (!isFormBlank() && student()?.mother_occupation) ? student()?.mother_occupation : '' }}
                     </div>
                   </div>
                 </div>
 
                 <!-- Mother Employer & Email -->
-                <div class="grid grid-cols-2 gap-3">
-                  <div class="flex flex-col gap-1">
-                    <span class="text-[9px] font-black uppercase text-gray-600">Workplace / Employer:</span>
-                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                <div class="grid grid-cols-2 gap-2.5 print:gap-2">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-[9px] print:text-[7.5px] font-black uppercase text-gray-600">Workplace / Employer:</span>
+                    <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
                     </div>
                   </div>
-                  <div class="flex flex-col gap-1">
-                    <span class="text-[9px] font-black uppercase text-gray-600">Email Address:</span>
-                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-[9px] print:text-[7.5px] font-black uppercase text-gray-600">Email Address:</span>
+                    <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
                       {{ (!isFormBlank() && student()?.mother_email) ? student()?.mother_email : '' }}
                     </div>
                   </div>
@@ -608,39 +607,39 @@
               </div>
 
               <!-- 3. PRIMARY LEGAL GUARDIAN / PICKUP REPRESENTATIVE -->
-              <div class="col-span-12 p-4 rounded-2xl border-2 border-gray-300 bg-gray-50/40 flex flex-col gap-3">
-                <div class="flex items-center justify-between border-b-2 border-gray-400 pb-1.5">
-                  <span class="text-[11px] font-black uppercase text-gray-900 font-serif">
+              <div class="col-span-12 p-3.5 print:p-2 rounded-2xl border-2 border-gray-300 bg-gray-50/40 flex flex-col gap-2 print:gap-1">
+                <div class="flex items-center justify-between border-b-2 border-gray-400 pb-1 print:pb-0.5">
+                  <span class="text-[10.5px] print:text-[9px] font-black uppercase text-gray-900 font-serif">
                     3. Primary Legal Guardian / Emergency Pickup Representative (If other than biological parents)
                   </span>
-                  <span class="text-[10px] font-bold text-gray-700">[ ✓ ] Authorized for School Pickup & SMS Alerts</span>
+                  <span class="text-[9px] print:text-[7.5px] font-bold text-gray-700">[ ✓ ] Authorized for School Pickup & SMS Alerts</span>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                  <div class="flex flex-col gap-1">
-                    <span class="text-[9px] font-black uppercase text-gray-600">Guardian Full Name:</span>
-                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 print:gap-2">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-[9px] print:text-[7.5px] font-black uppercase text-gray-600">Guardian Full Name:</span>
+                    <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
                       {{ (!isFormBlank() && primaryGuardian()?.first_name) ? (primaryGuardian()?.first_name + ' ' + (primaryGuardian()?.last_name || '')) : '' }}
                     </div>
                   </div>
 
-                  <div class="flex flex-col gap-1">
-                    <span class="text-[9px] font-black uppercase text-gray-600">Relationship to Ward:</span>
-                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-[9px] print:text-[7.5px] font-black uppercase text-gray-600">Relationship to Ward:</span>
+                    <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
                       {{ (!isFormBlank() && primaryGuardian()?.relationship) ? primaryGuardian()?.relationship : '' }}
                     </div>
                   </div>
 
-                  <div class="flex flex-col gap-1">
-                    <span class="text-[9px] font-black uppercase text-gray-600">Telephone / Mobile:</span>
-                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-mono font-bold text-xs text-gray-900">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-[9px] print:text-[7.5px] font-black uppercase text-gray-600">Telephone / Mobile:</span>
+                    <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-end pb-0.5 font-mono font-bold text-xs print:text-[9.5px] text-gray-900">
                       {{ (!isFormBlank() && primaryGuardian()?.phone_number) ? primaryGuardian()?.phone_number : '' }}
                     </div>
                   </div>
 
-                  <div class="flex flex-col gap-1">
-                    <span class="text-[9px] font-black uppercase text-gray-600">Email Address:</span>
-                    <div class="border-b-2 border-gray-800 h-9 flex items-end pb-1 font-bold text-xs text-gray-900">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-[9px] print:text-[7.5px] font-black uppercase text-gray-600">Email Address:</span>
+                    <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
                       {{ (!isFormBlank() && primaryGuardian()?.email) ? primaryGuardian()?.email : '' }}
                     </div>
                   </div>
@@ -650,22 +649,22 @@
               <!-- Dynamic Custom Fields for Guardian Section -->
               @for (cf of guardianCustomFields(); track cf.id) {
                 <div class="col-span-12" [class.sm:col-span-6]="cf.span === 'half'" [class.sm:col-span-4]="cf.span === 'third'">
-                  <span class="text-[10px] font-black uppercase text-gray-700">{{ cf.title }}:</span>
+                  <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">{{ cf.title }}:</span>
                   @if (cf.lineType === 'checkboxes') {
-                    <div class="border-b-2 border-gray-800 h-10 flex items-center gap-4 text-xs font-bold text-gray-900">
+                    <div class="border-b-2 border-gray-800 h-7 print:h-5 flex items-center gap-3 text-xs print:text-[9.5px] font-bold text-gray-900">
                       @for (opt of cf.options; track opt) {
-                        <span class="flex items-center gap-1.5">
-                          <span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> {{ opt }}
+                        <span class="flex items-center gap-1">
+                          <span class="w-3 h-3 border border-gray-800 inline-block rounded-xs"></span> {{ opt }}
                         </span>
                       }
                     </div>
                   } @else if (cf.lineType === 'double') {
-                    <div class="flex flex-col gap-2 pt-1">
-                      <div class="border-b-2 border-gray-800 h-8 flex items-end pb-1 font-bold text-xs text-gray-900">{{ cf.value || '' }}</div>
-                      <div class="border-b-2 border-gray-800 h-8"></div>
+                    <div class="flex flex-col gap-1 pt-0.5">
+                      <div class="border-b-2 border-gray-800 h-6 print:h-4.5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">{{ cf.value || '' }}</div>
+                      <div class="border-b-2 border-gray-800 h-6 print:h-4.5"></div>
                     </div>
                   } @else {
-                    <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
+                    <div class="border-b-2 border-gray-800 h-7 print:h-5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
                       {{ cf.value || '' }}
                     </div>
                   }
@@ -677,89 +676,89 @@
 
           <!-- SECTION D: HEALTH, MEDICAL & EMERGENCY     -->
           @if (includeMedical()) {
-            <div class="flex flex-col gap-4">
-              <div class="flex items-center justify-between bg-gray-100 px-3.5 py-2 rounded-lg border-l-4 border-gray-900">
-                <span class="text-xs font-black uppercase tracking-wider text-gray-900 font-serif">
+            <div class="flex flex-col gap-2.5 print:gap-1.5">
+              <div class="flex items-center justify-between bg-gray-100 px-3 py-1 print:py-0.5 print:px-2 rounded-lg border-l-4 border-gray-900">
+                <span class="text-xs print:text-[9.5px] font-black uppercase tracking-wider text-gray-900 font-serif">
                   SECTION D: HEALTH, MEDICAL & INFIRMARY PROTOCOL
                 </span>
-                <span class="text-[10px] font-bold text-gray-500">MEDICAL DATA</span>
+                <span class="text-[9px] print:text-[7.5px] font-bold text-gray-500">MEDICAL DATA</span>
               </div>
 
-              <div class="grid grid-cols-12 gap-x-5 gap-y-4 text-xs">
+              <div class="grid grid-cols-12 gap-x-4 print:gap-x-2.5 gap-y-3 print:gap-y-1 text-xs">
                 
                 <!-- Blood Group -->
-                <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
-                  <span class="text-[10px] font-black uppercase text-gray-700">1. Blood Group:</span>
-                  <div class="border-b-2 border-gray-800 h-10 flex items-center gap-3 font-bold text-xs text-gray-900">
+                <div class="col-span-12 sm:col-span-4 flex flex-col gap-0.5">
+                  <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">1. Blood Group:</span>
+                  <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-center gap-2.5 font-bold text-xs print:text-[9.5px] text-gray-900">
                     @if (!isFormBlank() && student()?.blood_group) {
-                      <span class="font-black text-sm text-rose-700">[ ✓ ] Blood Group: {{ student()?.blood_group }}</span>
+                      <span class="font-black text-xs text-rose-700">[ ✓ ] Blood Group: {{ student()?.blood_group }}</span>
                     } @else {
-                      <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> A+</span>
-                      <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> B+</span>
-                      <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> O+</span>
-                      <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> AB+</span>
-                      <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> O-</span>
+                      <span class="flex items-center gap-1"><span class="w-3 h-3 border border-gray-800 inline-block rounded-xs"></span> A+</span>
+                      <span class="flex items-center gap-1"><span class="w-3 h-3 border border-gray-800 inline-block rounded-xs"></span> B+</span>
+                      <span class="flex items-center gap-1"><span class="w-3 h-3 border border-gray-800 inline-block rounded-xs"></span> O+</span>
+                      <span class="flex items-center gap-1"><span class="w-3 h-3 border border-gray-800 inline-block rounded-xs"></span> AB+</span>
+                      <span class="flex items-center gap-1"><span class="w-3 h-3 border border-gray-800 inline-block rounded-xs"></span> O-</span>
                     }
                   </div>
                 </div>
 
                 <!-- Emergency Dispatch Contact Person -->
-                <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
-                  <span class="text-[10px] font-black uppercase text-gray-700">2. Emergency Contact Person:</span>
-                  <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
+                <div class="col-span-12 sm:col-span-4 flex flex-col gap-0.5">
+                  <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">2. Emergency Contact Person:</span>
+                  <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
                     {{ (!isFormBlank() && student()?.emergency_contact_name) ? student()?.emergency_contact_name : '' }}
                   </div>
                 </div>
 
                 <!-- Emergency Phone -->
-                <div class="col-span-12 sm:col-span-4 flex flex-col gap-1">
-                  <span class="text-[10px] font-black uppercase text-gray-700">3. Emergency Telephone Line:</span>
-                  <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-mono font-bold text-xs text-gray-900">
+                <div class="col-span-12 sm:col-span-4 flex flex-col gap-0.5">
+                  <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">3. Emergency Telephone Line:</span>
+                  <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-end pb-0.5 font-mono font-bold text-xs print:text-[9.5px] text-gray-900">
                     {{ (!isFormBlank() && student()?.emergency_contact_phone) ? student()?.emergency_contact_phone : '' }}
                   </div>
                 </div>
 
                 <!-- Known Allergies (2 Ruled Lines) -->
-                <div class="col-span-12 sm:col-span-6 flex flex-col gap-1">
-                  <span class="text-[10px] font-black uppercase text-gray-700">4. Known Allergies (Food, Penicillin, Asthma, Stings):</span>
-                  <div class="flex flex-col gap-2 pt-1">
-                    <div class="border-b-2 border-gray-800 h-8 flex items-end pb-1 font-bold text-xs text-gray-900">
+                <div class="col-span-12 sm:col-span-6 flex flex-col gap-0.5">
+                  <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">4. Known Allergies (Food, Penicillin, Asthma, Stings):</span>
+                  <div class="flex flex-col gap-1 print:gap-0.5 pt-0.5">
+                    <div class="border-b-2 border-gray-800 h-7 print:h-4.5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
                       {{ (!isFormBlank() && student()?.allergies) ? student()?.allergies : '' }}
                     </div>
-                    <div class="border-b-2 border-gray-800 h-8"></div>
+                    <div class="border-b-2 border-gray-800 h-7 print:h-4.5"></div>
                   </div>
                 </div>
 
                 <!-- Pre-existing Medical Conditions (2 Ruled Lines) -->
-                <div class="col-span-12 sm:col-span-6 flex flex-col gap-1">
-                  <span class="text-[10px] font-black uppercase text-gray-700">5. Pre-existing Conditions / Daily Medications:</span>
-                  <div class="flex flex-col gap-2 pt-1">
-                    <div class="border-b-2 border-gray-800 h-8 flex items-end pb-1 font-bold text-xs text-gray-900">
+                <div class="col-span-12 sm:col-span-6 flex flex-col gap-0.5">
+                  <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">5. Pre-existing Conditions / Daily Medications:</span>
+                  <div class="flex flex-col gap-1 print:gap-0.5 pt-0.5">
+                    <div class="border-b-2 border-gray-800 h-7 print:h-4.5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
                       {{ (!isFormBlank() && student()?.health_conditions) ? student()?.health_conditions : '' }}
                     </div>
-                    <div class="border-b-2 border-gray-800 h-8"></div>
+                    <div class="border-b-2 border-gray-800 h-7 print:h-4.5"></div>
                   </div>
                 </div>
 
                 <!-- Dynamic Custom Fields for Medical Section -->
                 @for (cf of medicalCustomFields(); track cf.id) {
                   <div class="col-span-12" [class.sm:col-span-6]="cf.span === 'half'" [class.sm:col-span-4]="cf.span === 'third'">
-                    <span class="text-[10px] font-black uppercase text-gray-700">{{ cf.title }}:</span>
+                    <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">{{ cf.title }}:</span>
                     @if (cf.lineType === 'checkboxes') {
-                      <div class="border-b-2 border-gray-800 h-10 flex items-center gap-4 text-xs font-bold text-gray-900">
+                      <div class="border-b-2 border-gray-800 h-7 print:h-5 flex items-center gap-3 text-xs print:text-[9.5px] font-bold text-gray-900">
                         @for (opt of cf.options; track opt) {
-                          <span class="flex items-center gap-1.5">
-                            <span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> {{ opt }}
+                          <span class="flex items-center gap-1">
+                            <span class="w-3 h-3 border border-gray-800 inline-block rounded-xs"></span> {{ opt }}
                           </span>
                         }
                       </div>
                     } @else if (cf.lineType === 'double') {
-                      <div class="flex flex-col gap-2 pt-1">
-                        <div class="border-b-2 border-gray-800 h-8 flex items-end pb-1 font-bold text-xs text-gray-900">{{ cf.value || '' }}</div>
-                        <div class="border-b-2 border-gray-800 h-8"></div>
+                      <div class="flex flex-col gap-1 pt-0.5">
+                        <div class="border-b-2 border-gray-800 h-6 print:h-4.5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">{{ cf.value || '' }}</div>
+                        <div class="border-b-2 border-gray-800 h-6 print:h-4.5"></div>
                       </div>
                     } @else {
-                      <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
+                      <div class="border-b-2 border-gray-800 h-7 print:h-5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
                         {{ cf.value || '' }}
                       </div>
                     }
@@ -774,33 +773,33 @@
           <!-- SECTION E: ADDITIONAL INSTITUTIONAL INQUIRIES (CUSTOM)   -->
           <!-- ======================================================== -->
           @if (standaloneCustomFields().length > 0) {
-            <div class="flex flex-col gap-4">
-              <div class="flex items-center justify-between bg-gray-100 px-3.5 py-2 rounded-lg border-l-4 border-gray-900">
-                <span class="text-xs font-black uppercase tracking-wider text-gray-900 font-serif">
+            <div class="flex flex-col gap-2.5 print:gap-1.5">
+              <div class="flex items-center justify-between bg-gray-100 px-3 py-1 print:py-0.5 print:px-2 rounded-lg border-l-4 border-gray-900">
+                <span class="text-xs print:text-[9.5px] font-black uppercase tracking-wider text-gray-900 font-serif">
                   SECTION E: ADDITIONAL INSTITUTIONAL INQUIRIES & SPECIAL PARTICULARS
                 </span>
-                <span class="text-[10px] font-bold text-gray-500">CUSTOM RECORDS</span>
+                <span class="text-[9px] print:text-[7.5px] font-bold text-gray-500">CUSTOM RECORDS</span>
               </div>
 
-              <div class="grid grid-cols-12 gap-x-5 gap-y-4 text-xs">
+              <div class="grid grid-cols-12 gap-x-4 print:gap-x-2.5 gap-y-3 print:gap-y-1 text-xs">
                 @for (cf of standaloneCustomFields(); track cf.id) {
                   <div class="col-span-12" [class.sm:col-span-6]="cf.span === 'half'" [class.sm:col-span-4]="cf.span === 'third'">
-                    <span class="text-[10px] font-black uppercase text-gray-700">{{ cf.title }}:</span>
+                    <span class="text-[9.5px] print:text-[8px] font-black uppercase text-gray-700">{{ cf.title }}:</span>
                     @if (cf.lineType === 'checkboxes') {
-                      <div class="border-b-2 border-gray-800 h-10 flex items-center gap-4 text-xs font-bold text-gray-900">
+                      <div class="border-b-2 border-gray-800 h-7 print:h-5 flex items-center gap-3 text-xs print:text-[9.5px] font-bold text-gray-900">
                         @for (opt of cf.options; track opt) {
-                          <span class="flex items-center gap-1.5">
-                            <span class="w-3.5 h-3.5 border border-gray-800 inline-block rounded-xs"></span> {{ opt }}
+                          <span class="flex items-center gap-1">
+                            <span class="w-3 h-3 border border-gray-800 inline-block rounded-xs"></span> {{ opt }}
                           </span>
                         }
                       </div>
                     } @else if (cf.lineType === 'double') {
-                      <div class="flex flex-col gap-2 pt-1">
-                        <div class="border-b-2 border-gray-800 h-8 flex items-end pb-1 font-bold text-xs text-gray-900">{{ cf.value || '' }}</div>
-                        <div class="border-b-2 border-gray-800 h-8"></div>
+                      <div class="flex flex-col gap-1 pt-0.5">
+                        <div class="border-b-2 border-gray-800 h-6 print:h-4.5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">{{ cf.value || '' }}</div>
+                        <div class="border-b-2 border-gray-800 h-6 print:h-4.5"></div>
                       </div>
                     } @else {
-                      <div class="border-b-2 border-gray-800 h-10 flex items-end pb-1 font-bold text-xs text-gray-900">
+                      <div class="border-b-2 border-gray-800 h-7 print:h-5 flex items-end pb-0.5 font-bold text-xs print:text-[9.5px] text-gray-900">
                         {{ cf.value || '' }}
                       </div>
                     }
@@ -814,17 +813,17 @@
           <!-- CHECKLIST OF REQUIRED ENCLOSURES           -->
           <!-- ========================================== -->
           @if (includeChecklist()) {
-            <div class="flex flex-col gap-2.5 p-4 rounded-2xl border-2 border-gray-300 bg-gray-50/60 text-xs">
-              <span class="text-[10px] font-black uppercase tracking-wider text-gray-900 font-serif">
+            <div class="flex flex-col gap-1.5 p-3 print:p-2 rounded-xl border-2 border-gray-300 bg-gray-50/60 text-xs">
+              <span class="text-[9.5px] print:text-[8px] font-black uppercase tracking-wider text-gray-900 font-serif">
                 CHECKLIST OF REQUIRED ADMISSION ATTACHMENTS (For Registrar Office Verification):
               </span>
-              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-[11px] text-gray-800 pt-1">
-                <span class="flex items-center gap-2 font-medium"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Copy of Birth Certificate / Passport</span>
-                <span class="flex items-center gap-2 font-medium"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> 2 Recent Passport Photographs</span>
-                <span class="flex items-center gap-2 font-medium"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Cumulative Terminal Academic Report</span>
-                <span class="flex items-center gap-2 font-medium"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Child Immunization / Health Card</span>
-                <span class="flex items-center gap-2 font-medium"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Placement Slip / BECE Results Sheet</span>
-                <span class="flex items-center gap-2 font-medium"><span class="w-4 h-4 border-2 border-gray-800 inline-block rounded-xs"></span> Official Fee Deposit Receipt</span>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 print:gap-1.5 text-[10.5px] print:text-[8px] text-gray-800 pt-0.5">
+                <span class="flex items-center gap-1.5 font-medium"><span class="w-3.5 h-3.5 print:w-3 print:h-3 border-2 border-gray-800 inline-block rounded-xs"></span> Copy of Birth Certificate / Passport</span>
+                <span class="flex items-center gap-1.5 font-medium"><span class="w-3.5 h-3.5 print:w-3 print:h-3 border-2 border-gray-800 inline-block rounded-xs"></span> 2 Recent Passport Photographs</span>
+                <span class="flex items-center gap-1.5 font-medium"><span class="w-3.5 h-3.5 print:w-3 print:h-3 border-2 border-gray-800 inline-block rounded-xs"></span> Cumulative Terminal Academic Report</span>
+                <span class="flex items-center gap-1.5 font-medium"><span class="w-3.5 h-3.5 print:w-3 print:h-3 border-2 border-gray-800 inline-block rounded-xs"></span> Child Immunization / Health Card</span>
+                <span class="flex items-center gap-1.5 font-medium"><span class="w-3.5 h-3.5 print:w-3 print:h-3 border-2 border-gray-800 inline-block rounded-xs"></span> Placement Slip / BECE Results Sheet</span>
+                <span class="flex items-center gap-1.5 font-medium"><span class="w-3.5 h-3.5 print:w-3 print:h-3 border-2 border-gray-800 inline-block rounded-xs"></span> Official Fee Deposit Receipt</span>
               </div>
             </div>
           }
@@ -833,25 +832,25 @@
           <!-- DECLARATION & OFFICIAL SIGN-OFF            -->
           <!-- ========================================== -->
           @if (includeDeclaration()) {
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t-2 border-gray-900 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 print:gap-2.5 pt-2 print:pt-1 border-t-2 border-gray-900 text-xs">
               
               <!-- Parent / Guardian Undertaking -->
-              <div class="flex flex-col justify-between gap-4 p-5 rounded-2xl border-2 border-gray-300 bg-gray-50/40">
+              <div class="flex flex-col justify-between gap-2.5 print:gap-1.5 p-3.5 print:p-2 rounded-xl border-2 border-gray-300 bg-gray-50/40">
                 <div>
-                  <span class="text-[11px] font-black uppercase text-gray-900 font-serif">Parent / Guardian Legal Undertaking</span>
-                  <p class="text-[10px] text-gray-600 leading-relaxed mt-1.5">
+                  <span class="text-[10px] print:text-[8.5px] font-black uppercase text-gray-900 font-serif">Parent / Guardian Legal Undertaking</span>
+                  <p class="text-[9.5px] print:text-[7.5px] text-gray-600 leading-tight mt-1">
                     "I hereby certify that all information submitted on this form is complete, true, and accurate. I agree that my ward will abide by the academic regulations, school code of conduct, and prompt fee settlement schedules."
                   </p>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 pt-4">
-                  <div class="flex flex-col gap-1">
-                    <span class="text-[9px] font-black uppercase text-gray-600">Parent / Guardian Signature:</span>
-                    <div class="border-b-2 border-gray-800 h-10"></div>
+                <div class="grid grid-cols-2 gap-3 print:gap-2 pt-2 print:pt-1">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-[8.5px] print:text-[7px] font-black uppercase text-gray-600">Parent / Guardian Signature:</span>
+                    <div class="border-b-2 border-gray-800 h-8 print:h-5"></div>
                   </div>
-                  <div class="flex flex-col gap-1">
-                    <span class="text-[9px] font-black uppercase text-gray-600">Date:</span>
-                    <div class="border-b-2 border-gray-800 h-10 flex items-end font-mono text-gray-700 pb-1">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-[8.5px] print:text-[7px] font-black uppercase text-gray-600">Date:</span>
+                    <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-end font-mono text-gray-700 pb-0.5 text-[9px] print:text-[8px]">
                       ____ / ____ / 2026
                     </div>
                   </div>
@@ -859,31 +858,31 @@
               </div>
 
               <!-- Head of Admissions / Registrar Endorsement -->
-              <div class="flex flex-col justify-between gap-4 p-5 rounded-2xl border-2 border-gray-300 bg-gray-50/40">
+              <div class="flex flex-col justify-between gap-2.5 print:gap-1.5 p-3.5 print:p-2 rounded-xl border-2 border-gray-300 bg-gray-50/40">
                 <div>
                   <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-black uppercase text-gray-900 font-serif">Institutional Endorsement</span>
-                    <span class="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded border border-emerald-400">
+                    <span class="text-[10px] print:text-[8.5px] font-black uppercase text-gray-900 font-serif">Institutional Endorsement</span>
+                    <span class="text-[9px] print:text-[7.5px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-400">
                       APPROVED & REGISTERED
                     </span>
                   </div>
-                  <p class="text-[10px] text-gray-600 leading-relaxed mt-1.5">
+                  <p class="text-[9.5px] print:text-[7.5px] text-gray-600 leading-tight mt-1">
                     Provisioned into the student registry ledger. Authorized for classroom participation and academic attendance.
                   </p>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 pt-4">
-                  <div class="flex flex-col gap-1">
-                    <span class="text-[9px] font-black uppercase text-gray-600">Registrar / Head Signature:</span>
-                    <div class="border-b-2 border-gray-800 h-10 flex items-center justify-center">
+                <div class="grid grid-cols-2 gap-3 print:gap-2 pt-2 print:pt-1">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-[8.5px] print:text-[7px] font-black uppercase text-gray-600">Registrar / Head Signature:</span>
+                    <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-center justify-center">
                       @if (tenantProfile()?.headmaster_signature_url) {
-                        <img [src]="tenantProfile()?.headmaster_signature_url" alt="Signature" class="max-h-8 object-contain">
+                        <img [src]="tenantProfile()?.headmaster_signature_url" alt="Signature" class="max-h-6 object-contain">
                       }
                     </div>
                   </div>
-                  <div class="flex flex-col gap-1">
-                    <span class="text-[9px] font-black uppercase text-gray-600">Official Stamp / Date:</span>
-                    <div class="border-b-2 border-gray-800 h-10 flex items-end font-mono text-gray-700 pb-1">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-[8.5px] print:text-[7px] font-black uppercase text-gray-600">Official Stamp / Date:</span>
+                    <div class="border-b-2 border-gray-800 h-8 print:h-5 flex items-end font-mono text-gray-700 pb-0.5 text-[9px] print:text-[8px]">
                       {{ admissionDate() | date:'dd / MM / yyyy' }}
                     </div>
                   </div>
@@ -894,7 +893,7 @@
           }
 
         <!-- Document Footer -->
-        <div class="pt-3 border-t border-gray-300 flex items-center justify-between text-[9px] text-gray-500 font-mono">
+        <div class="pt-2 print:pt-1 border-t border-gray-300 flex items-center justify-between text-[8.5px] print:text-[7.5px] text-gray-500 font-mono">
           <span>SchoolLinx Student Information System • Admission Form Rev 3.5</span>
           <span>Confidential Official Academic Record</span>
         </div>
