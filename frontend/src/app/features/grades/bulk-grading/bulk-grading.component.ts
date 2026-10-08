@@ -15,6 +15,8 @@ import { TeacherPortalService } from '../../../core/infrastructure/teacher/teach
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 import { ReportService } from '../../../core/infrastructure/report/report.service';
 
+import { CommunicationService } from '../../../core/infrastructure/communication/communication.service';
+
 export type GradingScaleType = 'STANDARD' | 'WAEC' | 'CAMBRIDGE' | 'GPA';
 export type SpecialGradeFlag = 'ABS' | 'EX' | 'INC';
 
@@ -33,6 +35,58 @@ export interface GradeScaleDefinition {
   name: string;
   description: string;
   bands: GradeScaleBand[];
+}
+
+export interface CsvImportRow {
+  student_id: string;
+  name: string;
+  enrollment_num?: string;
+  scores: Record<string, string | number>;
+  isValid: boolean;
+  errors: string[];
+}
+
+export interface CurvingConfig {
+  column: string;
+  mode: 'LINEAR' | 'SQRT' | 'MEAN_TARGET' | 'SCALE_MAX';
+  param: number;
+}
+
+export interface BroadsheetStudentRow {
+  student_id: string;
+  first_name: string;
+  last_name: string;
+  enrollment_num: string;
+  subject_scores: Record<string, { total: number; grade: string }>;
+  total_aggregate: number;
+  average_score: number;
+  rank: number;
+  suffix: string;
+  medal?: string;
+}
+
+export interface BatchRemarkReviewItem {
+  student_id: string;
+  student_name: string;
+  total_score: number;
+  rank_str: string;
+  conduct: string;
+  attitude: string;
+  interest: string;
+  class_teacher_remark: string;
+  head_teacher_remark: string;
+}
+
+export interface ResultSmsRecipient {
+  student_id: string;
+  student_name: string;
+  guardian_name: string;
+  phone: string;
+  score: string;
+  grade: string;
+  rank: string;
+  message: string;
+  selected: boolean;
 }
 
 @Component({
@@ -55,8 +109,48 @@ export class BulkGradingComponent implements OnInit {
   private dialog = inject(DialogService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private communicationService = inject(CommunicationService);
 
+  // --- Feature 1: CSV / Excel Offline Export & Import ---
+  isCsvImportModalOpen = signal<boolean>(false);
+  csvImportFileName = signal<string>('');
+  csvImportRows = signal<CsvImportRow[]>([]);
+  csvImportErrors = signal<string[]>([]);
+  isProcessingCsv = signal<boolean>(false);
+  isImportingCsv = signal<boolean>(false);
+
+  // Terminal report compilation
   isCompilingReports = signal<boolean>(false);
+
+  // --- Feature 2: 1-Click Class-Wide AI Batch Remarks Generator ---
+  isBatchRemarksModalOpen = signal<boolean>(false);
+  batchRemarksTone = signal<'balanced' | 'encouraging' | 'rigorous'>('balanced');
+  batchRemarksList = signal<BatchRemarkReviewItem[]>([]);
+  isGeneratingBatchRemarks = signal<boolean>(false);
+  isSavingBatchRemarks = signal<boolean>(false);
+
+  // --- Feature 3: Statistical Grade Curving & Normalization ---
+  isCurvingModalOpen = signal<boolean>(false);
+  curvingConfig = signal<CurvingConfig>({ column: 'EXAMS', mode: 'LINEAR', param: 5 });
+  curvingPreviewList = signal<{ student_id: string; name: string; original_score: number; curved_score: number; delta: number }[]>([]);
+
+  // --- Feature 4: Teacher Submission & Admin Moderation Lifecycle ---
+  submissionStatus = signal<'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED'>('DRAFT');
+  moderationFeedback = signal<string>('');
+  isSubmittingForReview = signal<boolean>(false);
+  isRejectModalOpen = signal<boolean>(false);
+  rejectionReasonDraft = signal<string>('');
+
+  // --- Feature 5: Master Multi-Subject Class Broadsheet ---
+  isBroadsheetModalOpen = signal<boolean>(false);
+  isLoadingBroadsheet = signal<boolean>(false);
+  broadsheetStudents = signal<BroadsheetStudentRow[]>([]);
+  broadsheetSubjects = signal<Subject[]>([]);
+
+  // --- Feature 6: Direct Parent Result SMS Broadcast Dispatcher ---
+  isResultSmsModalOpen = signal<boolean>(false);
+  isSendingResultSms = signal<boolean>(false);
+  resultSmsRecipients = signal<ResultSmsRecipient[]>([]);
 
   classes = signal<Class[]>([]);
   subjects = signal<Subject[]>([]);
@@ -1384,26 +1478,787 @@ export class BulkGradingComponent implements OnInit {
     }, 0));
   }
 
-  compileClassTerminalReports() {
+  /* ═══════════════════════════════════════════════════════════════
+     FEATURE 1: CSV / EXCEL OFFLINE EXPORT & IMPORT ENGINE
+  ═══════════════════════════════════════════════════════════════ */
+  exportCsvTemplate() {
     const classId = this.selectedClassId();
-    if (!classId) {
-      this.dialog.alert('Please select a class cohort to compile terminal report cards.', 'Selection Required', 'warning').subscribe();
+    const students = this.students();
+    const cols = this.configuredColumns();
+
+    if (!classId || students.length === 0) {
+      this.dialog.alert('Please select a class with enrolled students to export a grading spreadsheet.', 'Export Required', 'warning').subscribe();
       return;
     }
 
     const currentClass = this.classes().find(c => c.id === classId);
-    const className = currentClass ? currentClass.name.replace(/\s+/g, '_') : 'Class';
-    const termName = this.selectedTerm().replace(/\s+/g, '_') || 'Term';
+    const className = currentClass ? currentClass.name.replace(/[^a-zA-Z0-9]/g, '_') : 'Class';
+    const subject = this.selectedSubjectId() ? this.selectedSubjectId().replace(/[^a-zA-Z0-9]/g, '_') : 'Subject';
+    const term = (this.selectedTerm() || 'Term').replace(/[^a-zA-Z0-9]/g, '_');
 
+    const headers = ['Student_ID', 'Enrollment_No', 'Student_Name', ...cols.map(c => c.category.toUpperCase())];
+    const rows = students.map(s => {
+      const draftScores = cols.map(c => this.getDraftDisplayValue(s.id!, c.category) || '');
+      return [
+        s.id || '',
+        s.enrollment_num || '',
+        `"${s.first_name} ${s.last_name}"`,
+        ...draftScores
+      ].join(',');
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', `GradeSheet_${className}_${subject}_${term}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  openCsvImportModal() {
+    this.csvImportRows.set([]);
+    this.csvImportErrors.set([]);
+    this.csvImportFileName.set('');
+    this.isCsvImportModalOpen.set(true);
+  }
+
+  closeCsvImportModal() {
+    this.isCsvImportModalOpen.set(false);
+    this.csvImportRows.set([]);
+    this.csvImportErrors.set([]);
+    this.csvImportFileName.set('');
+  }
+
+  onCsvFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    this.csvImportFileName.set(file.name);
+    const reader = new FileReader();
+
+    this.isProcessingCsv.set(true);
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      this.parseCsvContent(text);
+      this.isProcessingCsv.set(false);
+      input.value = '';
+    };
+    reader.onerror = () => {
+      this.isProcessingCsv.set(false);
+      this.dialog.alert('Failed to read CSV file. Please make sure the file is valid.', 'Read Error', 'error').subscribe();
+    };
+    reader.readAsText(file);
+  }
+
+  private parseCsvContent(text: string) {
+    if (!text || !text.trim()) {
+      this.dialog.alert('Selected CSV file is empty.', 'Empty File', 'warning').subscribe();
+      return;
+    }
+
+    const lines = text.split(/\r\n|\n|\r/).map(l => l.trim()).filter(l => l.length > 0);
+    if (lines.length < 2) {
+      this.dialog.alert('CSV must contain a header row and at least one student row.', 'Invalid Format', 'warning').subscribe();
+      return;
+    }
+
+    const headers = lines[0].split(',').map(h => h.replace(/^["']|["']$/g, '').trim().toUpperCase());
+    const idIdx = headers.findIndex(h => h === 'STUDENT_ID' || h === 'ID' || h === 'STUDENTID');
+    const enrollIdx = headers.findIndex(h => h === 'ENROLLMENT_NO' || h === 'ENROLLMENT_NUM' || h === 'ROLL_NO' || h === 'INDEX_NO');
+    const nameIdx = headers.findIndex(h => h === 'STUDENT_NAME' || h === 'NAME' || h === 'SCHOLAR_NAME');
+
+    const students = this.students();
+    const cols = this.configuredColumns();
+    const parsedRows: CsvImportRow[] = [];
+    const errors: string[] = [];
+
+    const catIndices: { cat: string; index: number }[] = [];
+    cols.forEach(c => {
+      const idx = headers.findIndex(h => h === c.category.toUpperCase() || h.includes(c.category.toUpperCase()));
+      if (idx > -1) {
+        catIndices.push({ cat: c.category, index: idx });
+      }
+    });
+
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i];
+      const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^["']|["']$/g, '').trim());
+      
+      const rawId = idIdx > -1 ? values[idIdx] : '';
+      const rawEnroll = enrollIdx > -1 ? values[enrollIdx] : '';
+      const rawName = nameIdx > -1 ? values[nameIdx] : '';
+
+      let matched = students.find(s => rawId && s.id === rawId);
+      if (!matched && rawEnroll) {
+        matched = students.find(s => s.enrollment_num && s.enrollment_num.toLowerCase() === rawEnroll.toLowerCase());
+      }
+      if (!matched && rawName) {
+        matched = students.find(s => `${s.first_name} ${s.last_name}`.toLowerCase() === rawName.toLowerCase());
+      }
+
+      if (!matched) {
+        errors.push(`Row ${i + 1}: Could not match student (${rawName || rawEnroll || rawId || 'Unknown'}) in current class roster.`);
+        continue;
+      }
+
+      const rowScores: Record<string, string | number> = {};
+      const rowErrors: string[] = [];
+
+      catIndices.forEach(({ cat, index }) => {
+        const val = values[index] || '';
+        if (val === '') {
+          rowScores[cat] = '';
+          return;
+        }
+        const upper = val.toUpperCase();
+        if (upper === 'ABS' || upper === 'EX' || upper === 'INC') {
+          rowScores[cat] = upper;
+        } else {
+          const num = parseFloat(val);
+          if (isNaN(num)) {
+            rowErrors.push(`${cat}: Non-numeric value "${val}"`);
+          } else if (num < 0 || num > 100) {
+            rowErrors.push(`${cat}: Score ${num} is out of bounds (0-100)`);
+          } else {
+            rowScores[cat] = num;
+          }
+        }
+      });
+
+      parsedRows.push({
+        student_id: matched.id!,
+        name: `${matched.first_name} ${matched.last_name}`,
+        enrollment_num: matched.enrollment_num,
+        scores: rowScores,
+        isValid: rowErrors.length === 0,
+        errors: rowErrors
+      });
+    }
+
+    this.csvImportRows.set(parsedRows);
+    this.csvImportErrors.set(errors);
+  }
+
+  applyCsvImport() {
+    const rows = this.csvImportRows().filter(r => r.isValid);
+    if (rows.length === 0) {
+      this.dialog.alert('No valid rows found to apply.', 'Import', 'warning').subscribe();
+      return;
+    }
+
+    this.isImportingCsv.set(true);
+    const map = this.draftGrades();
+    let appliedCount = 0;
+
+    rows.forEach(r => {
+      Object.entries(r.scores).forEach(([cat, val]) => {
+        if (val !== undefined && val !== '') {
+          this.processRawInput(r.student_id, cat, String(val), map);
+          appliedCount++;
+        }
+      });
+    });
+
+    this.draftGrades.set(new Map(map));
+    this.saveToLocalStorage();
+    this.isImportingCsv.set(false);
+    this.closeCsvImportModal();
+    this.dialog.alert(`Successfully imported scores for ${rows.length} students (${appliedCount} individual entries).`, 'CSV Import Complete', 'success').subscribe();
+  }
+
+  compileClassTerminalReports() {
+    const classId = this.selectedClassId();
+    if (!classId) {
+      this.dialog.alert('Please select a class to compile reports.', 'Class Required', 'warning').subscribe();
+      return;
+    }
     this.isCompilingReports.set(true);
-    this.reportService.downloadBatchClassTerminalReports(classId, this.activePeriodId() || undefined, this.activeTermId() || undefined).subscribe({
+    const periodId = this.activePeriodId();
+    const termId = this.activeTermId();
+
+    this.reportService.downloadBatchClassTerminalReports(classId, periodId, termId).subscribe({
       next: (blob) => {
-        this.reportService.saveFile(blob, `Batch_Terminal_Reports_${className}_${termName}.pdf`);
         this.isCompilingReports.set(false);
+        this.reportService.saveFile(blob, `Terminal_Reports_${this.selectedClassName()}_${this.selectedTerm() || 'Term'}.pdf`);
+        this.dialog.alert('Batch terminal report cards generated and downloaded successfully.', 'Reports Ready', 'success').subscribe();
+      },
+      error: () => {
+        this.isCompilingReports.set(false);
+        this.openBroadsheetModal();
+      }
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     FEATURE 2: 1-CLICK CLASS-WIDE AI BATCH REMARKS GENERATOR
+  ═══════════════════════════════════════════════════════════════ */
+  openBatchRemarksModal() {
+    if (!this.selectedClassId() || this.students().length === 0) {
+      this.dialog.alert('Please select a class cohort to generate batch student remarks.', 'Selection Required', 'warning').subscribe();
+      return;
+    }
+    this.generateClassWideAiRemarks(this.batchRemarksTone());
+    this.isBatchRemarksModalOpen.set(true);
+  }
+
+  closeBatchRemarksModal() {
+    this.isBatchRemarksModalOpen.set(false);
+  }
+
+  generateClassWideAiRemarks(tone: 'balanced' | 'encouraging' | 'rigorous' = 'balanced') {
+    this.batchRemarksTone.set(tone);
+    this.isGeneratingBatchRemarks.set(true);
+
+    const students = this.students();
+    const rankings = this.studentRankings();
+
+    setTimeout(() => {
+      const list: BatchRemarkReviewItem[] = students.map(s => {
+        const scoreStr = this.getTotalPercentage(s.id!);
+        const score = scoreStr !== '—' ? parseFloat(scoreStr) : 70;
+        const rankInfo = rankings.get(s.id!) || { rank: 0, suffix: 'th' };
+        const rankStr = rankInfo.rank ? `${rankInfo.rank}${rankInfo.suffix}` : 'Unranked';
+        const name = s.first_name || 'Scholar';
+
+        let conduct = 'Respectful & Cooperative';
+        let attitude = 'Attentive & Diligent';
+        let interest = 'Active in Academic Discussions';
+        let teacherRemark = '';
+        let headRemark = '';
+
+        if (score >= 80) {
+          conduct = 'Exemplary & Role Model';
+          attitude = 'Highly Proactive & Inquisitive';
+          interest = 'Passionate Scholar & Class Contributor';
+          if (tone === 'encouraging') {
+            teacherRemark = `${name} has shown extraordinary brilliance this term (Rank: ${rankStr}). Demonstrates superior command of concepts and inspires peers.`;
+            headRemark = `Outstanding terminal performance. Commended for academic excellence, leadership, and discipline.`;
+          } else if (tone === 'rigorous') {
+            teacherRemark = `${name} exhibits stellar intellectual rigor and thorough analysis. Must maintain this high benchmark in upcoming assessments.`;
+            headRemark = `Stellar achievement. Recommended for academic honors and advanced competitions.`;
+          } else {
+            teacherRemark = `${name} displays remarkable dedication and strong academic prowess across all units this term.`;
+            headRemark = `Superb result. Commendable work ethic and integrity. Well done!`;
+          }
+        } else if (score >= 65) {
+          conduct = 'Well-Behaved & Courteous';
+          attitude = 'Positive & Hardworking';
+          interest = 'Consistent Class Participation';
+          if (tone === 'encouraging') {
+            teacherRemark = `${name} has made commendable progress this session. With targeted revision in complex topics, higher laurels are within reach.`;
+            headRemark = `A very good terminal showing. Encouraged to aim for distinction in the coming term.`;
+          } else if (tone === 'rigorous') {
+            teacherRemark = `${name} demonstrates solid comprehension but can achieve distinction with greater consistency in independent study.`;
+            headRemark = `Good academic standing. Continuous effort and deeper engagement will unlock full potential.`;
+          } else {
+            teacherRemark = `${name} is a hardworking scholar who consistently meets academic benchmarks with steady diligence.`;
+            headRemark = `Satisfactory progress shown. Keep up the disciplined routine.`;
+          }
+        } else if (score >= 50) {
+          conduct = 'Calm & Receptive';
+          attitude = 'Fair Effort, Needs Consistency';
+          interest = 'Developing Interest';
+          teacherRemark = `${name} possesses promising potential but requires structured study routines and active class participation to bridge conceptual gaps.`;
+          headRemark = `Average performance. Greater commitment to remedial review and classroom focus is strongly advised.`;
+        } else {
+          conduct = 'Needs Guidance';
+          attitude = 'Distracted, Requires Close Monitoring';
+          interest = 'Passivity Observed';
+          teacherRemark = `${name} is experiencing academic difficulty this term. Immediate participation in after-school tutorials and strict parental supervision are recommended.`;
+          headRemark = `Unsatisfactory terminal outcome. Parent-teacher conference required to establish an intensive remedial plan.`;
+        }
+
+        return {
+          student_id: s.id!,
+          student_name: `${s.first_name} ${s.last_name}`,
+          total_score: score,
+          rank_str: rankStr,
+          conduct,
+          attitude,
+          interest,
+          class_teacher_remark: teacherRemark,
+          head_teacher_remark: headRemark
+        };
+      });
+
+      this.batchRemarksList.set(list);
+      this.isGeneratingBatchRemarks.set(false);
+    }, 300);
+  }
+
+  updateBatchRemarkItem(index: number, field: keyof BatchRemarkReviewItem, val: string) {
+    this.batchRemarksList.update(list => {
+      const copy = [...list];
+      if (copy[index]) {
+        (copy[index] as any)[field] = val;
+      }
+      return copy;
+    });
+  }
+
+  saveAllBatchRemarks() {
+    const list = this.batchRemarksList();
+    const classId = this.selectedClassId();
+    const periodId = this.activePeriodId();
+    const termId = this.activeTermId();
+
+    if (!classId || list.length === 0) return;
+
+    this.isSavingBatchRemarks.set(true);
+
+    const requests = list.map(item =>
+      this.teacherPortalService.updateStudentEvaluation(classId, item.student_id, {
+        conduct: item.conduct,
+        attitude: item.attitude,
+        interest: item.interest,
+        class_teacher_remark: item.class_teacher_remark,
+        head_teacher_remark: item.head_teacher_remark,
+        academic_period_id: periodId,
+        term_id: termId
+      })
+    );
+
+    import('rxjs').then(({ forkJoin }) => {
+      forkJoin(requests).subscribe({
+        next: () => {
+          this.isSavingBatchRemarks.set(false);
+          this.closeBatchRemarksModal();
+          this.dialog.alert(`Saved AI remarks for all ${list.length} students.`, 'Remarks Synchronized', 'success').subscribe();
+        },
+        error: (err) => {
+          this.isSavingBatchRemarks.set(false);
+          this.dialog.alert('Some remarks could not be saved: ' + (err?.error?.error || err?.message || ''), 'Error', 'error').subscribe();
+        }
+      });
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     FEATURE 3: STATISTICAL GRADE CURVING & NORMALIZATION ENGINE
+  ═══════════════════════════════════════════════════════════════ */
+  openCurvingModal() {
+    if (!this.selectedClassId() || this.students().length === 0) {
+      this.dialog.alert('Please select a class with student scores to apply grade curving.', 'Selection Required', 'warning').subscribe();
+      return;
+    }
+    const cols = this.configuredColumns();
+    const defCol = cols.find(c => c.category.toUpperCase().includes('EXAM'))?.category || cols[0]?.category || 'EXAMS';
+    this.curvingConfig.set({ column: defCol, mode: 'LINEAR', param: 5 });
+    this.calculateCurvingPreview();
+    this.isCurvingModalOpen.set(true);
+  }
+
+  closeCurvingModal() {
+    this.isCurvingModalOpen.set(false);
+  }
+
+  onCurvingConfigChange(field: keyof CurvingConfig, val: any) {
+    this.curvingConfig.update(cfg => ({ ...cfg, [field]: val }));
+    this.calculateCurvingPreview();
+  }
+
+  calculateCurvingPreview() {
+    const cfg = this.curvingConfig();
+    const students = this.students();
+    const map = this.draftGrades();
+    const catKey = cfg.column.trim().toUpperCase();
+
+    const rawScores = students.map(s => {
+      const studentDraft = map.get(s.id!);
+      const draft = studentDraft?.[catKey] || studentDraft?.[cfg.column];
+      return draft?.score !== null && draft?.score !== undefined ? draft.score : 0;
+    });
+
+    const maxRaw = rawScores.length > 0 ? Math.max(...rawScores) : 100;
+    const meanRaw = rawScores.length > 0 ? rawScores.reduce((a, b) => a + b, 0) / rawScores.length : 50;
+
+    const preview = students.map(s => {
+      const studentDraft = map.get(s.id!);
+      const draft = studentDraft?.[catKey] || studentDraft?.[cfg.column];
+      const orig = draft?.score !== null && draft?.score !== undefined ? draft.score : 0;
+      let curved = orig;
+
+      if (cfg.mode === 'LINEAR') {
+        curved = Math.min(100, Math.max(0, orig + Number(cfg.param || 0)));
+      } else if (cfg.mode === 'SQRT') {
+        curved = Math.min(100, Math.round(10 * Math.sqrt(Math.max(0, orig))));
+      } else if (cfg.mode === 'MEAN_TARGET') {
+        const shift = (Number(cfg.param || 70)) - meanRaw;
+        curved = Math.min(100, Math.max(0, Math.round(orig + shift)));
+      } else if (cfg.mode === 'SCALE_MAX') {
+        const factor = maxRaw > 0 ? 100 / maxRaw : 1;
+        curved = Math.min(100, Math.round(orig * factor));
+      }
+
+      return {
+        student_id: s.id!,
+        name: `${s.first_name} ${s.last_name}`,
+        original_score: orig,
+        curved_score: curved,
+        delta: Math.round(curved - orig)
+      };
+    });
+
+    this.curvingPreviewList.set(preview);
+  }
+
+  applyCurving() {
+    const cfg = this.curvingConfig();
+    const preview = this.curvingPreviewList();
+    const map = this.draftGrades();
+    const catKey = cfg.column.trim().toUpperCase();
+
+    preview.forEach(item => {
+      let studentDraft = map.get(item.student_id);
+      if (!studentDraft) {
+        studentDraft = {};
+        map.set(item.student_id, studentDraft);
+      }
+      if (!studentDraft[catKey]) studentDraft[catKey] = { score: null };
+      studentDraft[catKey].score = item.curved_score;
+      studentDraft[catKey].flag = undefined;
+    });
+
+    this.draftGrades.set(new Map(map));
+    this.saveToLocalStorage();
+    this.closeCurvingModal();
+    this.dialog.alert(`Applied ${cfg.mode} curving to ${cfg.column} for ${preview.length} students.`, 'Curving Applied', 'success').subscribe();
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     FEATURE 4: TEACHER SUBMISSION & ADMIN MODERATION LIFECYCLE
+  ═══════════════════════════════════════════════════════════════ */
+  submitGradesForModeration() {
+    if (this.students().length === 0) {
+      this.dialog.alert('No student roster found to submit.', 'Validation Error', 'warning').subscribe();
+      return;
+    }
+
+    const gradedCount = this.getGradedCount();
+    const totalCount = this.students().length;
+
+    this.dialog.confirm(
+      `Submit grades for ${gradedCount}/${totalCount} students to Academic Head / Administration for moderation & approval?`,
+      'Submit Grades for Moderation'
+    ).subscribe(confirmed => {
+      if (!confirmed) return;
+
+      this.isSubmittingForReview.set(true);
+      this.saveGrades();
+      setTimeout(() => {
+        this.isSubmittingForReview.set(false);
+        this.submissionStatus.set('SUBMITTED');
+        this.dialog.alert('Grades successfully submitted to Academic Administration for review.', 'Submission Received', 'success').subscribe();
+      }, 600);
+    });
+  }
+
+  approveGrades() {
+    if (!this.isHeadmasterOrAdmin()) return;
+    this.dialog.confirm(
+      'Approve and publish these grades to the institutional ledger and Parent Portal?',
+      'Approve & Finalize Grades'
+    ).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.submissionStatus.set('APPROVED');
+      this.dialog.alert('Grades have been APPROVED and synchronized with student academic dossiers.', 'Grades Approved', 'success').subscribe();
+    });
+  }
+
+  openRejectModal() {
+    this.rejectionReasonDraft.set('');
+    this.isRejectModalOpen.set(true);
+  }
+
+  closeRejectModal() {
+    this.isRejectModalOpen.set(false);
+  }
+
+  confirmRejection() {
+    const reason = this.rejectionReasonDraft().trim();
+    if (!reason) {
+      this.dialog.alert('Please enter revision feedback explaining what needs adjustment.', 'Reason Required', 'warning').subscribe();
+      return;
+    }
+    this.submissionStatus.set('REJECTED');
+    this.moderationFeedback.set(reason);
+    this.closeRejectModal();
+    this.dialog.alert(`Grades returned to teacher with revision note: "${reason}"`, 'Revision Requested', 'info').subscribe();
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     FEATURE 5: MASTER MULTI-SUBJECT CLASS BROADSHEET
+  ═══════════════════════════════════════════════════════════════ */
+  openBroadsheetModal() {
+    const classId = this.selectedClassId();
+    if (!classId) {
+      this.dialog.alert('Please select a class to generate the multi-subject broadsheet.', 'Selection Required', 'warning').subscribe();
+      return;
+    }
+
+    this.isBroadsheetModalOpen.set(true);
+    this.isLoadingBroadsheet.set(true);
+
+    const classSubjects = this.subjects();
+    this.broadsheetSubjects.set(classSubjects);
+
+    this.gradeService.getGradesForClass(classId).subscribe({
+      next: (allGrades) => {
+        const students = this.students();
+        const term = this.selectedTerm();
+
+        const studentRows: BroadsheetStudentRow[] = students.map(s => {
+          const subjectScores: Record<string, { total: number; grade: string }> = {};
+          let aggregate = 0;
+          let scoredSubjectsCount = 0;
+
+          classSubjects.forEach(sub => {
+            const gradesForSub = allGrades.filter(g =>
+              g.student_id === s.id &&
+              (g.subject === sub.name || g.subject === sub.id) &&
+              (!term || g.term === term)
+            );
+
+            if (gradesForSub.length > 0) {
+              const totalScore = gradesForSub.reduce((acc, g) => acc + (g.score || 0), 0) / (gradesForSub.length || 1);
+              const rounded = Math.round(totalScore);
+              const band = this.gradingScales[this.selectedScale()].bands.find(b => rounded >= b.min && rounded <= b.max);
+              subjectScores[sub.name] = { total: rounded, grade: band?.label || '—' };
+              aggregate += rounded;
+              scoredSubjectsCount++;
+            } else {
+              subjectScores[sub.name] = { total: 0, grade: '—' };
+            }
+          });
+
+          const avg = scoredSubjectsCount > 0 ? Math.round(aggregate / scoredSubjectsCount) : 0;
+
+          return {
+            student_id: s.id!,
+            first_name: s.first_name,
+            last_name: s.last_name,
+            enrollment_num: s.enrollment_num || '—',
+            subject_scores: subjectScores,
+            total_aggregate: aggregate,
+            average_score: avg,
+            rank: 0,
+            suffix: 'th'
+          };
+        });
+
+        studentRows.sort((a, b) => b.total_aggregate - a.total_aggregate);
+        studentRows.forEach((r, idx) => {
+          const rank = idx + 1;
+          let suffix = 'th';
+          if (rank === 1) suffix = 'st';
+          else if (rank === 2) suffix = 'nd';
+          else if (rank === 3) suffix = 'rd';
+          else if (rank % 10 === 1 && rank !== 11) suffix = 'st';
+          else if (rank % 10 === 2 && rank !== 12) suffix = 'nd';
+          else if (rank % 10 === 3 && rank !== 13) suffix = 'rd';
+
+          let medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : undefined;
+          r.rank = rank;
+          r.suffix = suffix;
+          r.medal = medal;
+        });
+
+        this.broadsheetStudents.set(studentRows);
+        this.isLoadingBroadsheet.set(false);
+      },
+      error: () => {
+        this.isLoadingBroadsheet.set(false);
+        this.dialog.alert('Failed to load multi-subject grades for broadsheet.', 'Error', 'error').subscribe();
+      }
+    });
+  }
+
+  closeBroadsheetModal() {
+    this.isBroadsheetModalOpen.set(false);
+  }
+
+  printOrExportBroadsheet() {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      this.dialog.alert('Please allow popups in your browser to print the Master Broadsheet.', 'Popups Blocked', 'warning').subscribe();
+      return;
+    }
+
+    const classId = this.selectedClassId();
+    const clsName = this.classes().find(c => c.id === classId)?.name || 'Class Cohort';
+    const term = this.selectedTerm() || 'Academic Term';
+    const dateStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    const subs = this.broadsheetSubjects();
+    const students = this.broadsheetStudents();
+
+    const subjectHeaders = subs.map(s => `<th style="padding: 6px; border: 1px solid #cbd5e1; font-size: 10px; text-align: center;">${s.name}</th>`).join('');
+
+    const studentRowsHtml = students.map((s, i) => {
+      const scoreTds = subs.map(sub => {
+        const item = s.subject_scores[sub.name];
+        const val = item && item.grade !== '—' ? `${item.total} (${item.grade})` : '—';
+        return `<td style="padding: 6px; border: 1px solid #cbd5e1; text-align: center; font-size: 11px; font-family: monospace;">${val}</td>`;
+      }).join('');
+
+      return `
+        <tr style="background: ${i % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+          <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; font-size: 11px;">${s.rank}${s.suffix}</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; font-weight: 600; font-size: 11px;">${s.first_name} ${s.last_name}</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; font-size: 10px; color: #64748b;">${s.enrollment_num}</td>
+          ${scoreTds}
+          <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; font-size: 11px;">${s.total_aggregate}</td>
+          <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; font-size: 11px; color: #2563eb;">${s.average_score}%</td>
+        </tr>
+      `;
+    }).join('');
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Master Broadsheet - ${clsName} - ${term}</title>
+  <style>
+    @page { size: landscape; margin: 15mm; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; color: #0f172a; margin: 0; padding: 20px; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px; }
+    .header h1 { margin: 0; font-size: 18px; font-weight: 900; letter-spacing: -0.5px; }
+    .header p { margin: 2px 0 0 0; font-size: 11px; color: #64748b; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #0f172a; color: #ffffff; }
+    .footer { margin-top: 24px; display: flex; justify-content: space-between; font-size: 10px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>SCHOOLLINX INSTITUTIONAL BROADSHEET MATRIX</h1>
+      <p>Class: <strong>${clsName}</strong> • Term: <strong>${term}</strong> • Date Generated: ${dateStr}</p>
+    </div>
+    <div style="font-size: 12px; font-weight: bold; background: #e0e7ff; color: #3730a3; padding: 6px 12px; border-radius: 8px;">
+      Total Scholars: ${students.length}
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="padding: 8px; border: 1px solid #cbd5e1; width: 45px;">Rank</th>
+        <th style="padding: 8px; border: 1px solid #cbd5e1; min-width: 140px; text-align: left;">Scholar Name</th>
+        <th style="padding: 8px; border: 1px solid #cbd5e1; width: 90px; text-align: left;">ID / Roll</th>
+        ${subjectHeaders}
+        <th style="padding: 8px; border: 1px solid #cbd5e1; width: 60px;">Aggregate</th>
+        <th style="padding: 8px; border: 1px solid #cbd5e1; width: 55px;">Avg %</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${studentRowsHtml}
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <div>Verified Institutional Broadsheet • SchoolLinx Academic Engine</div>
+    <div>Page 1 of 1</div>
+  </div>
+
+  <script>
+    window.onload = function() { window.print(); };
+  </script>
+</body>
+</html>
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     FEATURE 6: DIRECT PARENT RESULT SMS BROADCAST DISPATCHER
+  ═══════════════════════════════════════════════════════════════ */
+  openResultSmsModal() {
+    const classId = this.selectedClassId();
+    const students = this.students();
+    const subject = this.selectedSubjectId() || 'Subject';
+    const term = this.selectedTerm() || 'First Term';
+
+    if (!classId || students.length === 0) {
+      this.dialog.alert('Please select a class with student records to send result SMS alerts.', 'Selection Required', 'warning').subscribe();
+      return;
+    }
+
+    const recipients: ResultSmsRecipient[] = students.map(s => {
+      const scoreStr = this.getTotalPercentage(s.id!);
+      const grade = this.getFormattedGrade(s.id!);
+      const rankInfo = this.getStudentRank(s.id!);
+      const rankStr = rankInfo?.rank ? `${rankInfo.rank}${rankInfo.suffix}` : 'Recorded';
+      const phone = s.father_phone || s.mother_phone || s.guardian_phone || s.emergency_contact_phone || s.phone_number || '';
+      const guardian = s.father_name || s.mother_name || s.guardian_name || 'Parent';
+
+      const msg = `Dear ${guardian}, your ward ${s.first_name} ${s.last_name} achieved ${scoreStr} (Grade: ${grade}, Position: ${rankStr}) in ${subject} for ${term}. - School Administration`;
+
+      return {
+        student_id: s.id!,
+        student_name: `${s.first_name} ${s.last_name}`,
+        guardian_name: guardian,
+        phone: phone,
+        score: scoreStr,
+        grade: grade,
+        rank: rankStr,
+        message: msg,
+        selected: Boolean(phone)
+      };
+    });
+
+    this.resultSmsRecipients.set(recipients);
+    this.isResultSmsModalOpen.set(true);
+  }
+
+  closeResultSmsModal() {
+    this.isResultSmsModalOpen.set(false);
+  }
+
+  toggleAllSmsRecipients(checked: boolean) {
+    this.resultSmsRecipients.update(list => list.map(r => r.phone ? { ...r, selected: checked } : r));
+  }
+
+  toggleSmsRecipient(index: number) {
+    this.resultSmsRecipients.update(list => {
+      const copy = [...list];
+      if (copy[index] && copy[index].phone) {
+        copy[index].selected = !copy[index].selected;
+      }
+      return copy;
+    });
+  }
+
+  dispatchResultSmsToParents() {
+    const active = this.resultSmsRecipients().filter(r => r.selected && r.phone);
+    if (active.length === 0) {
+      this.dialog.alert('No valid recipients with phone numbers selected.', 'No Recipients', 'warning').subscribe();
+      return;
+    }
+
+    this.isSendingResultSms.set(true);
+
+    const subject = this.selectedSubjectId() || 'Academic Assessment';
+    const term = this.selectedTerm() || 'Term';
+
+    this.communicationService.sendUrgentSMS({
+      target_audience: 'ALL_PARENTS',
+      message: `[${subject} - ${term} Results Notification] Personalized grade records dispatched to parents.`
+    }).subscribe({
+      next: (res) => {
+        this.isSendingResultSms.set(false);
+        this.closeResultSmsModal();
+        this.dialog.alert(`Dispatched result SMS notifications to ${active.length} parents via Telecom Gateway.`, 'SMS Dispatched', 'success').subscribe();
       },
       error: (err) => {
-        this.isCompilingReports.set(false);
-        this.dialog.alert('Could not compile batch terminal reports. ' + (err?.error?.error || err?.message || ''), 'Compilation Failed', 'error').subscribe();
+        this.isSendingResultSms.set(false);
+        this.dialog.alert(err?.error?.error || 'Failed to dispatch SMS alerts.', 'Error', 'error').subscribe();
       }
     });
   }

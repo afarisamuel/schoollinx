@@ -343,20 +343,20 @@
 
     <!-- Action Toolbar Bottom Strip -->
     <div class="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-border-primary/50">
-      <div class="flex flex-wrap items-center gap-2.5">
+      <div class="flex flex-wrap items-center gap-2">
         <!-- Admin Lock Button -->
         @if (isHeadmasterOrAdmin() && selectedClassId() && selectedSubjectId()) {
           <button (click)="toggleLock()"
-                  class="px-4 py-2.5 rounded-xl font-bold text-xs transition-all border shadow-sm flex items-center gap-2"
+                  class="px-3.5 py-2 rounded-xl font-bold text-xs transition-all border shadow-sm flex items-center gap-1.5 cursor-pointer"
                   [ngClass]="isLocked() 
                     ? 'bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20'
                     : 'bg-bg-primary border-border-primary text-text-secondary hover:text-text-primary hover:border-blue-500/40'">
             @if (isLocked()) {
-              <i class="fas fa-lock"></i>
-              <span>Unlock Grades</span>
+              <i class="fas fa-lock text-[11px]"></i>
+              <span>Unlock</span>
             } @else {
-              <i class="fas fa-lock-open"></i>
-              <span>Lock Grades</span>
+              <i class="fas fa-lock-open text-[11px]"></i>
+              <span>Lock</span>
             }
           </button>
         }
@@ -364,42 +364,149 @@
         @if (isHeadmasterOrAdmin()) {
           <button (click)="toggleConfigMode()"
                   [disabled]="!selectedClassId() || isLocked()"
-                  class="px-4 py-2.5 rounded-xl font-bold text-xs transition-all border disabled:opacity-40 disabled:cursor-not-allowed shadow-sm flex items-center gap-2"
+                  class="px-3.5 py-2 rounded-xl font-bold text-xs transition-all border disabled:opacity-40 disabled:cursor-not-allowed shadow-sm flex items-center gap-1.5 cursor-pointer"
                   [ngClass]="isConfigMode()
                     ? 'border-blue-500 text-blue-400 bg-blue-500/15 shadow-md shadow-blue-500/10'
                     : 'bg-bg-primary border-border-primary text-text-secondary hover:border-blue-500/50 hover:text-text-primary'">
-            <i class="fas fa-columns"></i>
-            <span>{{ isConfigMode() ? 'Done Configuring' : 'Configure Columns' }}</span>
+            <i class="fas fa-columns text-[11px]"></i>
+            <span>{{ isConfigMode() ? 'Done' : 'Columns' }}</span>
           </button>
         }
 
-        <!-- Compile Class Terminal Report Booklet Button -->
+        <!-- 1. Offline CSV Export & Import Buttons -->
+        <button (click)="exportCsvTemplate()"
+                [disabled]="!selectedClassId() || students().length === 0"
+                class="px-3 py-2 rounded-xl font-bold text-xs transition-all border bg-bg-primary border-border-primary text-text-secondary hover:text-cyan-300 hover:border-cyan-500/40 shadow-sm flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
+                title="Download offline grading spreadsheet template pre-filled with student IDs and columns">
+          <i class="fas fa-file-csv text-cyan-400 text-xs"></i>
+          <span>Export CSV</span>
+        </button>
+
+        <button (click)="openCsvImportModal()"
+                [disabled]="!selectedClassId() || isLocked() || students().length === 0"
+                class="px-3 py-2 rounded-xl font-bold text-xs transition-all border bg-bg-primary border-border-primary text-text-secondary hover:text-cyan-300 hover:border-cyan-500/40 shadow-sm flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
+                title="Upload and bulk-populate scores from an Excel or CSV file">
+          <i class="fas fa-file-import text-cyan-400 text-xs"></i>
+          <span>Import CSV</span>
+        </button>
+
+        <!-- 2. 1-Click AI Batch Remarks -->
+        <button (click)="openBatchRemarksModal()"
+                [disabled]="!selectedClassId() || students().length === 0"
+                class="px-3.5 py-2 rounded-xl font-bold text-xs transition-all border bg-gradient-to-r from-violet-600/20 to-indigo-600/20 border-indigo-500/40 text-indigo-300 hover:bg-indigo-600/30 shadow-sm flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
+                title="Generate personalized academic & conduct remarks for all students in class with AI">
+          <i class="fas fa-wand-magic-sparkles text-indigo-400 text-xs"></i>
+          <span>AI Class Remarks</span>
+        </button>
+
+        <!-- 3. Grade Curving & Normalization -->
+        <button (click)="openCurvingModal()"
+                [disabled]="!selectedClassId() || isLocked() || students().length === 0"
+                class="px-3 py-2 rounded-xl font-bold text-xs transition-all border bg-bg-primary border-border-primary text-text-secondary hover:text-amber-300 hover:border-amber-500/40 shadow-sm flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
+                title="Apply statistical curve (Linear shift, Square Root, or Bell curve) to assessment marks">
+          <i class="fas fa-chart-line text-amber-400 text-xs"></i>
+          <span>Curve Marks</span>
+        </button>
+
+        <!-- 4. Master Broadsheet -->
+        <button (click)="openBroadsheetModal()"
+                [disabled]="!selectedClassId() || students().length === 0"
+                class="px-3.5 py-2 rounded-xl font-bold text-xs transition-all border bg-bg-primary border-border-primary text-text-secondary hover:text-blue-400 hover:border-blue-500/40 shadow-sm flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
+                title="View and print master class broadsheet covering all subjects and cumulative aggregate scores">
+          <i class="fas fa-table-list text-blue-400 text-xs"></i>
+          <span>Master Broadsheet</span>
+        </button>
+
+        <!-- 5. Parent Result SMS Dispatcher -->
+        <button (click)="openResultSmsModal()"
+                [disabled]="!selectedClassId() || students().length === 0"
+                class="px-3 py-2 rounded-xl font-bold text-xs transition-all border bg-bg-primary border-border-primary text-text-secondary hover:text-emerald-400 hover:border-emerald-500/40 shadow-sm flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
+                title="Dispatch personalized student terminal score notifications directly to parents via SMS">
+          <i class="fas fa-paper-plane text-emerald-400 text-xs"></i>
+          <span>Result SMS</span>
+        </button>
+
+        <!-- 6. Compile Class Terminal Report Booklet Button -->
         <button (click)="compileClassTerminalReports()"
                 [disabled]="!selectedClassId() || isCompilingReports() || students().length === 0"
-                class="px-4 py-2.5 rounded-xl font-bold text-xs transition-all border shadow-sm flex items-center gap-2 text-teal-300 border-teal-500/30 hover:bg-teal-600/30 hover:border-teal-500/50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                class="px-3.5 py-2 rounded-xl font-bold text-xs transition-all border shadow-sm flex items-center gap-1.5 text-teal-300 border-teal-500/30 hover:bg-teal-600/30 hover:border-teal-500/50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                 title="Compile all student terminal report cards into a single downloadable PDF booklet">
           @if (isCompilingReports()) {
-            <i class="fas fa-spinner fa-spin"></i>
-            <span>Compiling Booklet...</span>
+            <i class="fas fa-spinner fa-spin text-xs"></i>
+            <span>Compiling...</span>
           } @else {
-            <i class="fas fa-file-pdf text-emerald-400"></i>
-            <span>Compile Class Report Cards</span>
+            <i class="fas fa-file-pdf text-emerald-400 text-xs"></i>
+            <span>Report Booklet</span>
           }
         </button>
       </div>
 
-      <!-- Save Grades Primary Button -->
-      <button (click)="saveGrades()"
-              [disabled]="isSaving() || isLocked() || students().length === 0 || configuredColumns().length === 0"
-              class="px-6 py-2.5 hover: hover: disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-lg active:scale-95 flex items-center gap-2">
-        @if (isSaving()) {
-          <i class="fas fa-circle-notch fa-spin text-sm"></i>
-          <span>Saving Grades...</span>
+      <!-- Right Side Actions: Moderation & Save -->
+      <div class="flex items-center gap-2">
+        <!-- Moderation Workflow Buttons -->
+        @if (submissionStatus() === 'SUBMITTED') {
+          <span class="px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 font-bold text-xs flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+            Submitted for Moderation
+          </span>
+
+          @if (isHeadmasterOrAdmin()) {
+            <button (click)="approveGrades()"
+                    class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
+              <i class="fas fa-check-double text-xs"></i>
+              <span>Approve & Publish</span>
+            </button>
+            <button (click)="openRejectModal()"
+                    class="px-3 py-2 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/40 text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+              <i class="fas fa-undo text-xs"></i>
+              <span>Request Revision</span>
+            </button>
+          }
+        } @else if (submissionStatus() === 'APPROVED') {
+          <span class="px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-black text-xs flex items-center gap-1.5 shadow-sm">
+            <i class="fas fa-circle-check text-xs"></i>
+            Approved & Finalized
+          </span>
+        } @else if (submissionStatus() === 'REJECTED') {
+          <span class="px-3 py-1.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 font-bold text-xs flex items-center gap-1.5">
+            <i class="fas fa-exclamation-triangle text-xs"></i>
+            Revision Requested
+          </span>
+          <button (click)="submitGradesForModeration()"
+                  [disabled]="isSubmittingForReview() || isLocked()"
+                  class="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
+            <i class="fas fa-paper-plane text-xs"></i>
+            <span>Resubmit</span>
+          </button>
         } @else {
-          <i class="fas fa-save text-sm"></i>
-          <span>Save Grades</span>
+          <!-- Draft Mode: Submit for Moderation -->
+          <button (click)="submitGradesForModeration()"
+                  [disabled]="isSubmittingForReview() || isLocked() || students().length === 0"
+                  class="px-3.5 py-2 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
+                  title="Submit current class grading sheet to Academic Administration for moderation">
+            @if (isSubmittingForReview()) {
+              <i class="fas fa-spinner fa-spin text-xs"></i>
+              <span>Submitting...</span>
+            } @else {
+              <i class="fas fa-paper-plane text-xs"></i>
+              <span>Submit for Review</span>
+            }
+          </button>
         }
-      </button>
+
+        <!-- Save Grades Primary Button -->
+        <button (click)="saveGrades()"
+                [disabled]="isSaving() || isLocked() || students().length === 0 || configuredColumns().length === 0"
+                class="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 flex items-center gap-2 cursor-pointer">
+          @if (isSaving()) {
+            <i class="fas fa-circle-notch fa-spin text-xs"></i>
+            <span>Saving...</span>
+          } @else {
+            <i class="fas fa-save text-xs"></i>
+            <span>Save Grades</span>
+          }
+        </button>
+      </div>
     </div>
   </div>
 
@@ -902,3 +1009,678 @@
     </div>
   </div>
 }
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL 1: OFFLINE CSV / EXCEL GRADE SHEET IMPORT MODAL
+═══════════════════════════════════════════════════════════════ -->
+@if (isCsvImportModalOpen()) {
+  <div class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in"
+       (click)="closeCsvImportModal()">
+    <div class="bg-bg-secondary w-full max-w-3xl rounded-3xl border border-border-primary shadow-2xl overflow-hidden my-auto flex flex-col max-h-[90vh]"
+         (click)="$event.stopPropagation()">
+      
+      <!-- Modal Header -->
+      <div class="p-6 border-b border-border-primary flex items-center justify-between bg-bg-tertiary/70 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/25 flex items-center justify-center shrink-0">
+            <i class="fas fa-file-import text-base"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-text-primary">Import Offline Grade Sheet (CSV)</h3>
+            <p class="text-xs font-bold text-text-muted mt-0.5">Upload a completed CSV spreadsheet to bulk-populate assessment scores</p>
+          </div>
+        </div>
+        <button class="w-8 h-8 rounded-xl bg-bg-secondary border border-border-primary flex items-center justify-center text-text-muted hover:text-rose-500 hover:border-rose-500/30 transition-all cursor-pointer shrink-0" (click)="closeCsvImportModal()">
+          <i class="fas fa-times text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 sm:p-8 overflow-y-auto space-y-6 flex-1">
+        <!-- File Dropzone -->
+        <div class="border-2 border-dashed border-border-primary hover:border-cyan-500/60 rounded-3xl p-6 sm:p-8 text-center transition-all bg-bg-primary/40 hover:bg-cyan-500/5 group relative cursor-pointer">
+          <input type="file" accept=".csv" (change)="onCsvFileSelected($event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10" />
+          <div class="flex flex-col items-center justify-center gap-3">
+            <div class="w-14 h-14 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">
+              <i class="fas fa-cloud-arrow-up"></i>
+            </div>
+            <div>
+              <p class="text-sm font-black text-text-primary">
+                {{ csvImportFileName() || 'Click to select or drag and drop your .CSV grade sheet' }}
+              </p>
+              <p class="text-xs font-medium text-text-muted mt-1">
+                Accepted format: UTF-8 CSV with student IDs or Index Numbers and column headers
+              </p>
+            </div>
+            @if (!csvImportFileName()) {
+              <div class="flex items-center gap-2 mt-1">
+                <button type="button" (click)="exportCsvTemplate(); $event.stopPropagation()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-bg-secondary border border-border-primary text-text-secondary hover:text-cyan-400 hover:border-cyan-500/40 transition-all">
+                  <i class="fas fa-download mr-1 text-cyan-400"></i> Download Class Template
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Import Warning & Errors -->
+        @if (csvImportErrors().length > 0) {
+          <div class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 space-y-2 text-xs">
+            <div class="flex items-center gap-2 font-black text-rose-400">
+              <i class="fas fa-triangle-exclamation"></i>
+              <span>Data Validation Warnings ({{ csvImportErrors().length }})</span>
+            </div>
+            <ul class="list-disc list-inside space-y-1 pl-1 text-[11px] font-medium max-h-32 overflow-y-auto">
+              @for (err of csvImportErrors(); track err) {
+                <li>{{ err }}</li>
+              }
+            </ul>
+          </div>
+        }
+
+        <!-- Parsed Data Preview -->
+        @if (csvImportRows().length > 0) {
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-black uppercase tracking-wider text-text-muted">
+                Parsed Grade Preview ({{ csvImportRows().length }} rows)
+              </h4>
+              <span class="text-[11px] font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-0.5 rounded-full">
+                Ready to Map
+              </span>
+            </div>
+
+            <div class="border border-border-primary rounded-2xl overflow-hidden max-h-60 overflow-y-auto bg-bg-primary">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-bg-tertiary sticky top-0 z-10 border-b border-border-primary text-[10px] font-black uppercase tracking-wider text-text-muted">
+                  <tr>
+                    <th class="p-3">Scholar</th>
+                    <th class="p-3">Roll / ID</th>
+                    @for (col of configuredColumns(); track col.category) {
+                      <th class="p-3 text-center">{{ col.category }}</th>
+                    }
+                    <th class="p-3 text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-border-primary/50">
+                  @for (row of csvImportRows(); track row.student_id) {
+                    <tr class="hover:bg-bg-secondary/50 transition-colors">
+                      <td class="p-3 font-bold text-text-primary">{{ row.name }}</td>
+                      <td class="p-3 font-mono text-text-muted">{{ row.enrollment_num || '—' }}</td>
+                      @for (col of configuredColumns(); track col.category) {
+                        <td class="p-3 text-center font-mono font-bold"
+                            [ngClass]="row.scores[col.category] !== '' ? 'text-cyan-400' : 'text-text-muted'">
+                          {{ row.scores[col.category] !== undefined && row.scores[col.category] !== '' ? row.scores[col.category] : '—' }}
+                        </td>
+                      }
+                      <td class="p-3 text-right">
+                        @if (row.isValid) {
+                          <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">Valid</span>
+                        } @else {
+                          <span class="text-[10px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-md" [title]="row.errors.join(', ')">Invalid</span>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-6 border-t border-border-primary bg-bg-tertiary/60 flex items-center justify-end gap-3 shrink-0">
+        <button class="px-5 py-2.5 rounded-xl border border-border-primary text-text-muted hover:text-text-primary text-xs font-bold transition-all cursor-pointer" (click)="closeCsvImportModal()">Cancel</button>
+        <button class="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-40"
+                (click)="applyCsvImport()"
+                [disabled]="csvImportRows().length === 0 || isImportingCsv()">
+          @if (isImportingCsv()) {
+            <i class="fas fa-circle-notch fa-spin text-sm"></i>
+            <span>Importing...</span>
+          } @else {
+            <i class="fas fa-check-double text-sm"></i>
+            <span>Apply to Grade Sheet</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL 2: 1-CLICK CLASS-WIDE AI BATCH REMARKS GENERATOR MODAL
+═══════════════════════════════════════════════════════════════ -->
+@if (isBatchRemarksModalOpen()) {
+  <div class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in"
+       (click)="closeBatchRemarksModal()">
+    <div class="bg-bg-secondary w-full max-w-5xl rounded-3xl border border-border-primary shadow-2xl overflow-hidden my-auto flex flex-col max-h-[92vh]"
+         (click)="$event.stopPropagation()">
+      
+      <!-- Modal Header -->
+      <div class="p-6 border-b border-border-primary flex items-center justify-between bg-bg-tertiary/70 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/25 flex items-center justify-center shrink-0">
+            <i class="fas fa-wand-magic-sparkles text-base"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-text-primary">Class-Wide AI Batch Remarks Generator</h3>
+            <p class="text-xs font-bold text-text-muted mt-0.5">Synthesizes individualized conduct, attitude, and terminal remarks for all {{ students().length }} scholars</p>
+          </div>
+        </div>
+        <button class="w-8 h-8 rounded-xl bg-bg-secondary border border-border-primary flex items-center justify-center text-text-muted hover:text-rose-500 hover:border-rose-500/30 transition-all cursor-pointer shrink-0" (click)="closeBatchRemarksModal()">
+          <i class="fas fa-times text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Tone Switcher Bar -->
+      <div class="px-6 py-3 bg-bg-tertiary/40 border-b border-border-primary flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-black uppercase tracking-wider text-text-muted">AI Remark Tone:</span>
+          <div class="inline-flex rounded-xl p-1 bg-bg-primary border border-border-primary gap-1">
+            <button type="button"
+                    (click)="generateClassWideAiRemarks('balanced')"
+                    class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                    [ngClass]="batchRemarksTone() === 'balanced' ? 'bg-indigo-600 text-white shadow-sm' : 'text-text-muted hover:text-text-primary'">
+              ⚖️ Balanced
+            </button>
+            <button type="button"
+                    (click)="generateClassWideAiRemarks('encouraging')"
+                    class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                    [ngClass]="batchRemarksTone() === 'encouraging' ? 'bg-indigo-600 text-white shadow-sm' : 'text-text-muted hover:text-text-primary'">
+              🌟 Encouraging
+            </button>
+            <button type="button"
+                    (click)="generateClassWideAiRemarks('rigorous')"
+                    class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                    [ngClass]="batchRemarksTone() === 'rigorous' ? 'bg-indigo-600 text-white shadow-sm' : 'text-text-muted hover:text-text-primary'">
+              🎯 Rigorous
+            </button>
+          </div>
+        </div>
+
+        <button type="button"
+                (click)="generateClassWideAiRemarks(batchRemarksTone())"
+                [disabled]="isGeneratingBatchRemarks()"
+                class="px-3.5 py-1.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary border border-border-primary text-text-secondary hover:text-indigo-400 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+          <i class="fas fa-arrows-rotate" [ngClass]="{'fa-spin': isGeneratingBatchRemarks()}"></i>
+          <span>Regenerate Batch</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 sm:p-8 overflow-y-auto space-y-4 flex-1">
+        @if (isGeneratingBatchRemarks()) {
+          <div class="py-20 flex flex-col items-center justify-center gap-3">
+            <div class="w-12 h-12 border-3 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-xs font-bold text-text-muted uppercase tracking-wider">AI synthesizing personalized reports for {{ students().length }} students...</p>
+          </div>
+        } @else {
+          <div class="space-y-4">
+            @for (item of batchRemarksList(); track item.student_id; let idx = $index) {
+              <div class="p-5 rounded-2xl bg-bg-primary border border-border-primary hover:border-indigo-500/40 transition-all space-y-3.5">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border-primary/50 pb-2.5">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-xs">
+                      {{ idx + 1 }}
+                    </div>
+                    <span class="text-sm font-black text-text-primary">{{ item.student_name }}</span>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                      Score: {{ item.total_score }}%
+                    </span>
+                    <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      Rank: {{ item.rank_str }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label class="text-[10px] font-black text-text-muted uppercase tracking-wider block mb-1">Conduct</label>
+                    <input type="text"
+                           [ngModel]="item.conduct"
+                           (ngModelChange)="updateBatchRemarkItem(idx, 'conduct', $event)"
+                           class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs font-bold text-text-primary focus:border-indigo-500 focus:outline-none">
+                  </div>
+                  <div>
+                    <label class="text-[10px] font-black text-text-muted uppercase tracking-wider block mb-1">Attitude</label>
+                    <input type="text"
+                           [ngModel]="item.attitude"
+                           (ngModelChange)="updateBatchRemarkItem(idx, 'attitude', $event)"
+                           class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs font-bold text-text-primary focus:border-indigo-500 focus:outline-none">
+                  </div>
+                  <div>
+                    <label class="text-[10px] font-black text-text-muted uppercase tracking-wider block mb-1">Interest</label>
+                    <input type="text"
+                           [ngModel]="item.interest"
+                           (ngModelChange)="updateBatchRemarkItem(idx, 'interest', $event)"
+                           class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2 text-xs font-bold text-text-primary focus:border-indigo-500 focus:outline-none">
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label class="text-[10px] font-black text-indigo-400 uppercase tracking-wider block mb-1">Form Teacher Remark</label>
+                    <textarea [ngModel]="item.class_teacher_remark"
+                              (ngModelChange)="updateBatchRemarkItem(idx, 'class_teacher_remark', $event)"
+                              rows="2"
+                              class="w-full bg-bg-secondary border border-border-primary rounded-xl p-3 text-xs font-medium text-text-primary focus:border-indigo-500 focus:outline-none resize-none"></textarea>
+                  </div>
+                  <div>
+                    <label class="text-[10px] font-black text-emerald-400 uppercase tracking-wider block mb-1">Headmaster Remark</label>
+                    <textarea [ngModel]="item.head_teacher_remark"
+                              (ngModelChange)="updateBatchRemarkItem(idx, 'head_teacher_remark', $event)"
+                              rows="2"
+                              class="w-full bg-bg-secondary border border-border-primary rounded-xl p-3 text-xs font-medium text-text-primary focus:border-emerald-500 focus:outline-none resize-none"></textarea>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-6 border-t border-border-primary bg-bg-tertiary/60 flex items-center justify-between gap-3 shrink-0">
+        <span class="text-xs font-bold text-text-muted">
+          {{ batchRemarksList().length }} Scholar dossiers pre-filled
+        </span>
+
+        <div class="flex items-center gap-3">
+          <button class="px-5 py-2.5 rounded-xl border border-border-primary text-text-muted hover:text-text-primary text-xs font-bold transition-all cursor-pointer" (click)="closeBatchRemarksModal()">Cancel</button>
+          <button class="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-40"
+                  (click)="saveAllBatchRemarks()"
+                  [disabled]="isSavingBatchRemarks() || isGeneratingBatchRemarks()">
+            @if (isSavingBatchRemarks()) {
+              <i class="fas fa-circle-notch fa-spin text-sm"></i>
+              <span>Saving Remarks...</span>
+            } @else {
+              <i class="fas fa-save text-sm"></i>
+              <span>Save &amp; Synchronize All ({{ batchRemarksList().length }})</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL 3: STATISTICAL GRADE CURVING & NORMALIZATION MODAL
+═══════════════════════════════════════════════════════════════ -->
+@if (isCurvingModalOpen()) {
+  <div class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in"
+       (click)="closeCurvingModal()">
+    <div class="bg-bg-secondary w-full max-w-3xl rounded-3xl border border-border-primary shadow-2xl overflow-hidden my-auto flex flex-col max-h-[90vh]"
+         (click)="$event.stopPropagation()">
+      
+      <!-- Modal Header -->
+      <div class="p-6 border-b border-border-primary flex items-center justify-between bg-bg-tertiary/70 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/25 flex items-center justify-center shrink-0">
+            <i class="fas fa-chart-line text-base"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-text-primary">Statistical Grade Curving &amp; Normalization</h3>
+            <p class="text-xs font-bold text-text-muted mt-0.5">Apply standard curve algorithms with real-time before &amp; after preview</p>
+          </div>
+        </div>
+        <button class="w-8 h-8 rounded-xl bg-bg-secondary border border-border-primary flex items-center justify-center text-text-muted hover:text-rose-500 hover:border-rose-500/30 transition-all cursor-pointer shrink-0" (click)="closeCurvingModal()">
+          <i class="fas fa-times text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Curving Controls Bar -->
+      <div class="p-6 border-b border-border-primary bg-bg-primary/50 space-y-4 shrink-0">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Column Selector -->
+          <div>
+            <label class="text-[10px] font-black text-text-muted uppercase tracking-wider block mb-1.5">Target Assessment Column</label>
+            <select [ngModel]="curvingConfig().column"
+                    (ngModelChange)="onCurvingConfigChange('column', $event)"
+                    class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2.5 text-xs font-bold text-text-primary focus:border-amber-500 focus:outline-none">
+              @for (col of configuredColumns(); track col.category) {
+                <option [value]="col.category">{{ col.category }} ({{ col.weight }}%)</option>
+              }
+            </select>
+          </div>
+
+          <!-- Curve Mode Selector -->
+          <div>
+            <label class="text-[10px] font-black text-text-muted uppercase tracking-wider block mb-1.5">Curve Algorithm</label>
+            <select [ngModel]="curvingConfig().mode"
+                    (ngModelChange)="onCurvingConfigChange('mode', $event)"
+                    class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2.5 text-xs font-bold text-text-primary focus:border-amber-500 focus:outline-none">
+              <option value="LINEAR">Linear Point Shift (+X)</option>
+              <option value="SQRT">Square Root Curve (10 * √Score)</option>
+              <option value="MEAN_TARGET">Target Mean Benchmark</option>
+              <option value="SCALE_MAX">Scale Highest Score to 100</option>
+            </select>
+          </div>
+
+          <!-- Parameter Value Input -->
+          <div>
+            <label class="text-[10px] font-black text-text-muted uppercase tracking-wider block mb-1.5">
+              {{ curvingConfig().mode === 'LINEAR' ? 'Points to Add (+)' : curvingConfig().mode === 'MEAN_TARGET' ? 'Target Average (%)' : 'Parameters' }}
+            </label>
+            <input type="number"
+                   [disabled]="curvingConfig().mode === 'SQRT' || curvingConfig().mode === 'SCALE_MAX'"
+                   [ngModel]="curvingConfig().param"
+                   (ngModelChange)="onCurvingConfigChange('param', $event)"
+                   class="w-full bg-bg-secondary border border-border-primary rounded-xl px-3 py-2.5 text-xs font-mono font-bold text-text-primary focus:border-amber-500 focus:outline-none disabled:opacity-40">
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview Table -->
+      <div class="p-6 overflow-y-auto flex-1 space-y-3">
+        <div class="flex items-center justify-between">
+          <h4 class="text-xs font-black uppercase tracking-wider text-text-muted">
+            Curved Score Simulation ({{ curvingPreviewList().length }} Students)
+          </h4>
+          <span class="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+            Simulation Ready
+          </span>
+        </div>
+
+        <div class="border border-border-primary rounded-2xl overflow-hidden max-h-64 overflow-y-auto bg-bg-primary">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-bg-tertiary sticky top-0 z-10 border-b border-border-primary text-[10px] font-black uppercase tracking-wider text-text-muted">
+              <tr>
+                <th class="p-3">Scholar Name</th>
+                <th class="p-3 text-center">Original</th>
+                <th class="p-3 text-center">Curved Score</th>
+                <th class="p-3 text-right">Adjustment</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-primary/50">
+              @for (item of curvingPreviewList(); track item.student_id) {
+                <tr class="hover:bg-bg-secondary/50 transition-colors">
+                  <td class="p-3 font-bold text-text-primary">{{ item.name }}</td>
+                  <td class="p-3 text-center font-mono font-bold text-text-muted">{{ item.original_score }}</td>
+                  <td class="p-3 text-center font-mono font-black text-amber-400">{{ item.curved_score }}</td>
+                  <td class="p-3 text-right font-mono font-bold">
+                    <span class="px-2 py-0.5 rounded-md text-[11px]"
+                          [ngClass]="item.delta > 0 ? 'bg-emerald-500/10 text-emerald-400' : 'text-text-muted'">
+                      {{ item.delta >= 0 ? '+' : '' }}{{ item.delta }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-6 border-t border-border-primary bg-bg-tertiary/60 flex items-center justify-end gap-3 shrink-0">
+        <button class="px-5 py-2.5 rounded-xl border border-border-primary text-text-muted hover:text-text-primary text-xs font-bold transition-all cursor-pointer" (click)="closeCurvingModal()">Cancel</button>
+        <button class="px-6 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+                (click)="applyCurving()">
+          <i class="fas fa-check text-sm"></i>
+          <span>Apply Curve to Grade Sheet</span>
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL 4: MODERATION REVISION FEEDBACK MODAL
+═══════════════════════════════════════════════════════════════ -->
+@if (isRejectModalOpen()) {
+  <div class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in"
+       (click)="closeRejectModal()">
+    <div class="bg-bg-secondary w-full max-w-md rounded-3xl border border-border-primary shadow-2xl overflow-hidden my-auto flex flex-col"
+         (click)="$event.stopPropagation()">
+      
+      <!-- Modal Header -->
+      <div class="p-6 border-b border-border-primary flex items-center justify-between bg-bg-tertiary/70 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-rose-500/15 text-rose-400 border border-rose-500/25 flex items-center justify-center shrink-0">
+            <i class="fas fa-reply-all text-base"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-text-primary">Request Grade Revisions</h3>
+            <p class="text-xs font-bold text-text-muted mt-0.5">Return grade sheet to subject teacher with specific feedback</p>
+          </div>
+        </div>
+        <button class="w-8 h-8 rounded-xl bg-bg-secondary border border-border-primary flex items-center justify-center text-text-muted hover:text-rose-500 transition-all cursor-pointer shrink-0" (click)="closeRejectModal()">
+          <i class="fas fa-times text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="text-xs font-black text-text-muted uppercase tracking-widest block mb-2">Revision Notes / Reason *</label>
+          <textarea [ngModel]="rejectionReasonDraft()"
+                    (ngModelChange)="rejectionReasonDraft.set($event)"
+                    rows="4"
+                    class="w-full bg-bg-primary border border-border-primary rounded-2xl p-4 text-xs font-medium text-text-primary focus:border-rose-500 focus:outline-none transition-all resize-none"
+                    placeholder="Specify which scores need review or missing assessment components..."></textarea>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-6 border-t border-border-primary bg-bg-tertiary/60 flex items-center justify-end gap-3 shrink-0">
+        <button class="px-5 py-2.5 rounded-xl border border-border-primary text-text-muted hover:text-text-primary text-xs font-bold transition-all cursor-pointer" (click)="closeRejectModal()">Cancel</button>
+        <button class="px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+                (click)="confirmRejection()">
+          <i class="fas fa-paper-plane text-xs"></i>
+          <span>Send Revision Request</span>
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL 5: MASTER MULTI-SUBJECT CLASS BROADSHEET MODAL
+═══════════════════════════════════════════════════════════════ -->
+@if (isBroadsheetModalOpen()) {
+  <div class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in"
+       (click)="closeBroadsheetModal()">
+    <div class="bg-bg-secondary w-full max-w-6xl rounded-3xl border border-border-primary shadow-2xl overflow-hidden my-auto flex flex-col max-h-[92vh]"
+         (click)="$event.stopPropagation()">
+      
+      <!-- Modal Header -->
+      <div class="p-6 border-b border-border-primary flex items-center justify-between bg-bg-tertiary/70 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-blue-500/15 text-blue-400 border border-blue-500/25 flex items-center justify-center shrink-0">
+            <i class="fas fa-table-cells text-base"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-text-primary">Master Multi-Subject Broadsheet Matrix</h3>
+            <p class="text-xs font-bold text-text-muted mt-0.5">{{ selectedClassName() }} • {{ selectedTerm() || 'Academic Term' }}</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button (click)="printOrExportBroadsheet()"
+                  class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black shadow-lg flex items-center gap-1.5 transition-all cursor-pointer">
+            <i class="fas fa-print text-xs"></i>
+            <span>Print / PDF Broadsheet</span>
+          </button>
+          <button class="w-8 h-8 rounded-xl bg-bg-secondary border border-border-primary flex items-center justify-center text-text-muted hover:text-rose-500 hover:border-rose-500/30 transition-all cursor-pointer shrink-0" (click)="closeBroadsheetModal()">
+            <i class="fas fa-times text-xs"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 sm:p-8 overflow-y-auto flex-1">
+        @if (isLoadingBroadsheet()) {
+          <div class="py-20 flex flex-col items-center justify-center gap-3">
+            <div class="w-12 h-12 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-xs font-bold text-text-muted uppercase tracking-wider">Aggregating multi-subject ledger records...</p>
+          </div>
+        } @else {
+          <div class="border border-border-primary rounded-2xl overflow-hidden max-h-[60vh] overflow-x-auto bg-bg-primary">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-bg-tertiary sticky top-0 z-10 border-b border-border-primary text-[10px] font-black uppercase tracking-wider text-text-muted">
+                <tr>
+                  <th class="p-3 text-center w-12">Rank</th>
+                  <th class="p-3 min-w-[150px]">Scholar Name</th>
+                  <th class="p-3 font-mono">Roll / ID</th>
+                  @for (sub of broadsheetSubjects(); track sub.name) {
+                    <th class="p-3 text-center min-w-[90px]">{{ sub.name }}</th>
+                  }
+                  <th class="p-3 text-center font-mono">Aggregate</th>
+                  <th class="p-3 text-center font-mono text-blue-400">Average %</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border-primary/50">
+                @for (s of broadsheetStudents(); track s.student_id) {
+                  <tr class="hover:bg-bg-secondary/50 transition-colors">
+                    <td class="p-3 text-center font-bold">
+                      @if (s.medal) {
+                        <span>{{ s.medal }}</span>
+                      } @else {
+                        <span class="text-text-muted">{{ s.rank }}{{ s.suffix }}</span>
+                      }
+                    </td>
+                    <td class="p-3 font-bold text-text-primary">{{ s.first_name }} {{ s.last_name }}</td>
+                    <td class="p-3 font-mono text-text-muted">{{ s.enrollment_num }}</td>
+                    @for (sub of broadsheetSubjects(); track sub.name) {
+                      <td class="p-3 text-center font-mono">
+                        @if (s.subject_scores[sub.name] && s.subject_scores[sub.name].grade !== '—') {
+                          <span class="font-bold text-text-primary">{{ s.subject_scores[sub.name].total }}</span>
+                          <span class="text-[10px] text-text-muted ml-1">({{ s.subject_scores[sub.name].grade }})</span>
+                        } @else {
+                          <span class="text-text-muted/40">—</span>
+                        }
+                      </td>
+                    }
+                    <td class="p-3 text-center font-mono font-bold text-text-primary">{{ s.total_aggregate }}</td>
+                    <td class="p-3 text-center font-mono font-black text-blue-400">{{ s.average_score }}%</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-6 border-t border-border-primary bg-bg-tertiary/60 flex items-center justify-between shrink-0">
+        <span class="text-xs font-bold text-text-muted">
+          {{ broadsheetStudents().length }} Scholars • {{ broadsheetSubjects().length }} Subject Disciplines
+        </span>
+        <button class="px-5 py-2.5 rounded-xl border border-border-primary text-text-muted hover:text-text-primary text-xs font-bold transition-all cursor-pointer" (click)="closeBroadsheetModal()">Close</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL 6: DIRECT PARENT RESULT SMS BROADCAST DISPATCHER MODAL
+═══════════════════════════════════════════════════════════════ -->
+@if (isResultSmsModalOpen()) {
+  <div class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in"
+       (click)="closeResultSmsModal()">
+    <div class="bg-bg-secondary w-full max-w-4xl rounded-3xl border border-border-primary shadow-2xl overflow-hidden my-auto flex flex-col max-h-[90vh]"
+         (click)="$event.stopPropagation()">
+      
+      <!-- Modal Header -->
+      <div class="p-6 border-b border-border-primary flex items-center justify-between bg-bg-tertiary/70 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center justify-center shrink-0">
+            <i class="fas fa-paper-plane text-base"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-text-primary">Direct Parent Result SMS Broadcast</h3>
+            <p class="text-xs font-bold text-text-muted mt-0.5">Instant personalized SMS dispatches with candidate scores, grades, and positions</p>
+          </div>
+        </div>
+        <button class="w-8 h-8 rounded-xl bg-bg-secondary border border-border-primary flex items-center justify-center text-text-muted hover:text-rose-500 hover:border-rose-500/30 transition-all cursor-pointer shrink-0" (click)="closeResultSmsModal()">
+          <i class="fas fa-times text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Recipient Table -->
+      <div class="p-6 sm:p-8 overflow-y-auto flex-1 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-black uppercase tracking-wider text-text-muted">Target Guardians</span>
+            <span class="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
+              {{ resultSmsRecipients().length }} Scholars
+            </span>
+          </div>
+          <button type="button"
+                  (click)="toggleAllSmsRecipients(true)"
+                  class="text-xs font-bold text-blue-400 hover:text-blue-300">
+            Select All with Phone
+          </button>
+        </div>
+
+        <div class="border border-border-primary rounded-2xl overflow-hidden max-h-72 overflow-y-auto bg-bg-primary">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-bg-tertiary sticky top-0 z-10 border-b border-border-primary text-[10px] font-black uppercase tracking-wider text-text-muted">
+              <tr>
+                <th class="p-3 w-10 text-center">
+                  <input type="checkbox"
+                         (change)="toggleAllSmsRecipients($any($event.target).checked)"
+                         class="rounded border-border-primary text-emerald-600 focus:ring-0 cursor-pointer">
+                </th>
+                <th class="p-3">Scholar</th>
+                <th class="p-3">Guardian</th>
+                <th class="p-3">Phone</th>
+                <th class="p-3">Score &amp; Position</th>
+                <th class="p-3">Preview Message</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border-primary/50">
+              @for (r of resultSmsRecipients(); track r.student_id; let idx = $index) {
+                <tr class="hover:bg-bg-secondary/50 transition-colors">
+                  <td class="p-3 text-center">
+                    <input type="checkbox"
+                           [disabled]="!r.phone"
+                           [checked]="r.selected"
+                           (change)="toggleSmsRecipient(idx)"
+                           class="rounded border-border-primary text-emerald-600 focus:ring-0 cursor-pointer disabled:opacity-30">
+                  </td>
+                  <td class="p-3 font-bold text-text-primary">{{ r.student_name }}</td>
+                  <td class="p-3 text-text-secondary">{{ r.guardian_name }}</td>
+                  <td class="p-3 font-mono">
+                    @if (r.phone) {
+                      <span class="text-text-primary">{{ r.phone }}</span>
+                    } @else {
+                      <span class="text-rose-400 text-[10px] font-bold">No Phone</span>
+                    }
+                  </td>
+                  <td class="p-3">
+                    <span class="font-bold text-text-primary">{{ r.score }}</span>
+                    <span class="text-text-muted ml-1">({{ r.grade }}, {{ r.rank }})</span>
+                  </td>
+                  <td class="p-3 text-[11px] text-text-muted max-w-xs truncate" [title]="r.message">
+                    {{ r.message }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-6 border-t border-border-primary bg-bg-tertiary/60 flex items-center justify-end gap-3 shrink-0">
+        <button class="px-5 py-2.5 rounded-xl border border-border-primary text-text-muted hover:text-text-primary text-xs font-bold transition-all cursor-pointer" (click)="closeResultSmsModal()">Cancel</button>
+        <button class="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-40"
+                (click)="dispatchResultSmsToParents()"
+                [disabled]="isSendingResultSms()">
+          @if (isSendingResultSms()) {
+            <i class="fas fa-circle-notch fa-spin text-sm"></i>
+            <span>Broadcasting SMS...</span>
+          } @else {
+            <i class="fas fa-paper-plane text-sm"></i>
+            <span>Dispatch SMS Broadcast</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
