@@ -10,8 +10,8 @@ import { LibraryService } from '../../../core/infrastructure/library/library.ser
 
 export interface ChatAction {
     label: string;
-    action_type: 'NAVIGATE' | 'EXPORT_CSV' | 'GENERATE_PDF' | 'SEND_PROMPT' | 'FILTER_VIEW';
-    payload: any;
+    action_type: 'NAVIGATE' | 'EXPORT_CSV' | 'GENERATE_PDF' | 'SEND_PROMPT' | 'FILTER_VIEW' | 'SCAN_ADMISSION';
+    payload?: any;
     icon?: string;
 }
 
@@ -34,7 +34,7 @@ export interface ChatMessage {
     type?: 'text' | 'student-list' | 'kpi-summary' | 'error' | 'markdown' | 'action';
 }
 
-export type AIMode = 'general' | 'lesson_planner' | 'quiz_generator' | 'remarks' | 'parent_notice' | 'analytics';
+export type AIMode = 'general' | 'admission_ocr' | 'lesson_planner' | 'quiz_generator' | 'remarks' | 'parent_notice' | 'analytics';
 
 export interface AIModeOption {
     id: AIMode;
@@ -953,6 +953,7 @@ export class ChatbotService {
 
     readonly modeOptions: AIModeOption[] = [
         { id: 'general', label: 'All-Round Copilot', icon: 'fa-wand-magic-sparkles', badge: 'Auto', description: 'Institutional navigation, RAG search & live stats' },
+        { id: 'admission_ocr', label: 'Admission OCR', icon: 'fa-id-card-clip', badge: 'Vision OCR', description: 'Scan handwritten/printed admission forms & auto-enroll' },
         { id: 'lesson_planner', label: 'Lesson Planner', icon: 'fa-book-open-reader', badge: 'Pedagogy', description: 'Curriculum lesson plans, schemes of work & 5E model' },
         { id: 'quiz_generator', label: 'Quiz & Exam Maker', icon: 'fa-file-signature', badge: 'Assessment', description: 'Generate MCQs, exam questions, and answer keys' },
         { id: 'remarks', label: 'Report Remarks', icon: 'fa-pen-nib', badge: 'Terminal', description: 'Personalized terminal academic and conduct remarks' },
@@ -973,6 +974,13 @@ export class ChatbotService {
 
     getModePrompts(mode: AIMode, currentUrl: string): string[] {
         switch (mode) {
+            case 'admission_ocr':
+                return [
+                    "Scan and extract student admission form",
+                    "How to scan handwritten admission paper",
+                    "Required admission attachments checklist",
+                    "Open Student Enrollment Wizard"
+                ];
             case 'lesson_planner':
                 return [
                     "Draft a JHS 2 Science Lesson Plan on Photosynthesis",

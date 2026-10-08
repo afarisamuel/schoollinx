@@ -17,6 +17,10 @@ import { Subscription } from 'rxjs';
 import { ChatbotService, ChatMessage, ChatAction, ChatAttachment, AIMode } from './chatbot.service';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 import { MessagingService } from '../../../core/infrastructure/communications/messaging.service';
+import { StudentService } from '../../../core/infrastructure/student/student.service';
+import { ClassService, Class } from '../../../core/infrastructure/curriculum/class.service';
+import { ToastService } from '../toast/toast.service';
+import { Student } from '../../../core/domain/student.model';
 
 @Component({
     selector: 'app-ai-chatbot',
@@ -28,11 +32,15 @@ import { MessagingService } from '../../../core/infrastructure/communications/me
 export class AiChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     @ViewChild('messageContainer') private messageContainer!: ElementRef;
     @ViewChild('fileInput') private fileInputRef!: ElementRef<HTMLInputElement>;
+    @ViewChild('admissionScanInput') private admissionScanInputRef!: ElementRef<HTMLInputElement>;
 
     private chatbot = inject(ChatbotService);
     private auth = inject(AuthService);
     private router = inject(Router);
     private messagingService = inject(MessagingService);
+    private studentService = inject(StudentService);
+    private classService = inject(ClassService);
+    private toast = inject(ToastService);
     private routeSub?: Subscription;
 
     // Authorization: Admin, Teachers, Bursars, Librarians
@@ -59,6 +67,49 @@ export class AiChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     speechRecognitionAvailable = signal(false);
     private recognition: any = null;
 
+    // Admission Form OCR & Verification Modal State
+    isScanReviewModalOpen = signal(false);
+    isScanningAdmissionForm = signal(false);
+    isEnrollingStudent = signal(false);
+    scanConfidence = signal<number>(0);
+    detectedFieldsCount = signal<number>(0);
+    scanPreviewThumbnail = signal<string | null>(null);
+    activeReviewTab = signal<'biodata' | 'guardians' | 'health'>('biodata');
+    availableClasses = signal<Class[]>([]);
+
+    // Scanned Student Data
+    scannedStudent = signal<any>({
+        first_name: '',
+        last_name: '',
+        other_name: '',
+        gender: 'male',
+        dob: '',
+        phone_number: '',
+        address: '',
+        level: 1,
+        class_id: '',
+        placed_residence_type: 'Day',
+        father_name: '',
+        father_phone: '',
+        father_email: '',
+        father_occupation: '',
+        mother_name: '',
+        mother_phone: '',
+        mother_email: '',
+        mother_occupation: '',
+        guardian_name: '',
+        guardian_phone: '',
+        guardian_email: '',
+        guardian_relation: 'Parent',
+        emergency_contact_name: '',
+        emergency_contact_phone: '',
+        blood_group: '',
+        allergies: '',
+        health_conditions: ''
+    });
+
+    commonAllergies = ['Peanuts', 'Penicillin', 'Dust', 'Latex', 'Dairy', 'Eggs', 'Seafood', 'Asthma Trigger'];
+
     isSpeaking = signal(false);
     activeSpeakingId = signal<string | null>(null);
     copiedMessageId = signal<string | null>(null);
@@ -76,11 +127,19 @@ export class AiChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     ngOnInit() {
         this.messages.set([this.chatbot.getGreeting()]);
         this.initSpeechRecognition();
+        this.loadClasses();
 
         this.routeSub = this.router.events.pipe(
             filter(event => event instanceof NavigationEnd)
         ).subscribe((event: any) => {
             this.currentRoute.set(event.urlAfterRedirects || event.url);
+        });
+    }
+
+    private loadClasses() {
+        this.classService.getClasses().subscribe({
+            next: cls => this.availableClasses.set(cls || []),
+            error: () => this.availableClasses.set([]),
         });
     }
 
@@ -131,6 +190,12 @@ export class AiChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
         const attachment = this.selectedAttachment();
         if (!text && !attachment) return;
 
+        // If in admission_ocr mode and attachment is present, trigger admission OCR
+        if (this.selectedMode() === 'admission_ocr' && attachment) {
+            this.handleAdmissionOcrFromAttachment(attachment, text);
+            return;
+        }
+
         const userMsg: ChatMessage = {
             id: crypto.randomUUID(),
             role: 'user',
@@ -176,6 +241,32 @@ export class AiChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
         });
     }
 
+    private handleAdmissionOcrFromAttachment(attachment: { name: string; type: string; base64: string; previewUrl?: string }, userNote: string) {
+        // Convert base64 to Blob
+        fetch(attachment.base64)
+            .then(res => res.blob())
+            .then(blob => {
+                const file = new File([blob], attachment.name, { type: attachment.type });
+                this.selectedAttachment.set(null);
+                this.userInput.set('');
+                this.messages.update(msgs => [
+                    ...msgs,
+                    {
+                        id: crypto.randomUUID(),
+                        role: 'user',
+                        content: userNote ? `${userNote} (Attached Form: ${attachment.name})` : `Analyze handwritten admission form: ${attachment.name}`,
+                        timestamp: new Date(),
+                        type: 'text',
+                        attachment: { ...attachment },
+                    },
+                ]);
+                this.processAdmissionScanFile(file);
+            })
+            .catch(() => {
+                this.toast.error('Failed to process image attachment for admission scan.');
+            });
+    }
+
     onKeyDown(event: KeyboardEvent) {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
@@ -184,8 +275,271 @@ export class AiChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     }
 
     sendQuickPrompt(prompt: string) {
+        const lower = prompt.toLowerCase();
+        if (lower.includes('scan admission') || lower.includes('scan handwritten') || lower.includes('digitize student')) {
+            this.triggerAdmissionScan();
+            return;
+        }
         this.userInput.set(prompt);
         this.sendMessage();
+    }
+
+    /* ----------------------------------------------------
+       Admission Form OCR Scan & Verification Modal Logic
+    ---------------------------------------------------- */
+    triggerAdmissionScan() {
+        this.admissionScanInputRef?.nativeElement?.click();
+    }
+
+    onAdmissionScanFileSelected(event: Event) {
+        const input = event.target as HTMLInputElement;
+        if (!input.files || input.files.length === 0) return;
+
+        const file = input.files[0];
+        if (file.size > 15 * 1024 * 1024) {
+            this.toast.error('File size exceeds 15MB limit.');
+            input.value = '';
+            return;
+        }
+
+        // Preview thumbnail
+        const reader = new FileReader();
+        reader.onload = () => {
+            this.scanPreviewThumbnail.set(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+
+        this.processAdmissionScanFile(file);
+        input.value = '';
+    }
+
+    processAdmissionScanFile(file: File | Blob) {
+        this.isScanningAdmissionForm.set(true);
+
+        this.studentService.scanAdmissionForm(file, false).subscribe({
+            next: res => {
+                this.isScanningAdmissionForm.set(false);
+                const raw = res.extracted_data || {};
+
+                this.scannedStudent.set({
+                    first_name: raw.first_name || '',
+                    last_name: raw.last_name || '',
+                    other_name: raw.other_name || '',
+                    gender: raw.gender ? raw.gender.toLowerCase() : 'male',
+                    dob: raw.dob || '',
+                    phone_number: raw.phone_number || '',
+                    address: raw.address || '',
+                    level: raw.level || 1,
+                    class_id: raw.class_id || '',
+                    placed_residence_type: raw.placed_residence_type || 'Day',
+                    father_name: raw.father_name || '',
+                    father_phone: raw.father_phone || '',
+                    father_email: raw.father_email || '',
+                    father_occupation: raw.father_occupation || '',
+                    mother_name: raw.mother_name || '',
+                    mother_phone: raw.mother_phone || '',
+                    mother_email: raw.mother_email || '',
+                    mother_occupation: raw.mother_occupation || '',
+                    guardian_name: raw.guardian_name || '',
+                    guardian_phone: raw.guardian_phone || '',
+                    guardian_email: raw.guardian_email || '',
+                    guardian_relation: raw.guardian_relation || 'Parent',
+                    emergency_contact_name: raw.emergency_contact_name || '',
+                    emergency_contact_phone: raw.emergency_contact_phone || '',
+                    blood_group: raw.blood_group || '',
+                    allergies: raw.allergies || '',
+                    health_conditions: raw.health_conditions || '',
+                });
+
+                this.scanConfidence.set(Math.round(res.confidence_score || 95));
+                this.detectedFieldsCount.set(res.detected_fields_count || Object.keys(raw).length || 15);
+                this.activeReviewTab.set('biodata');
+                this.isScanReviewModalOpen.set(true);
+                this.playChime();
+
+                // Post a status message to Chatbot
+                const candidateName = [raw.first_name, raw.last_name].filter(Boolean).join(' ') || 'Candidate';
+                this.messages.update(msgs => [
+                    ...msgs,
+                    {
+                        id: crypto.randomUUID(),
+                        role: 'assistant',
+                        content: `📄 **Admission Document Digitize Complete**\n\nExtracted particulars for **${candidateName}** with **${Math.round(res.confidence_score || 95)}% AI Confidence**.\n\nPlease review and verify the candidate information in the verification modal before final enrollment.`,
+                        timestamp: new Date(),
+                        type: 'text',
+                    },
+                ]);
+            },
+            error: err => {
+                this.isScanningAdmissionForm.set(false);
+                const errorMsg = err?.error?.error || 'Failed to scan admission document. Please ensure document is sharp and legible.';
+                this.toast.error(errorMsg, 'OCR Scan Failed');
+                this.messages.update(msgs => [
+                    ...msgs,
+                    {
+                        id: crypto.randomUUID(),
+                        role: 'assistant',
+                        content: `⚠️ **OCR Scan Error**: ${errorMsg}`,
+                        timestamp: new Date(),
+                        type: 'error',
+                    },
+                ]);
+            },
+        });
+    }
+
+    closeScanReviewModal() {
+        this.isScanReviewModalOpen.set(false);
+    }
+
+    setReviewTab(tab: 'biodata' | 'guardians' | 'health') {
+        this.activeReviewTab.set(tab);
+    }
+
+    updateScannedField(field: string, value: any) {
+        this.scannedStudent.update(curr => ({
+            ...curr,
+            [field]: value,
+        }));
+    }
+
+    setGender(gender: string) {
+        this.updateScannedField('gender', gender);
+    }
+
+    setResidenceType(type: string) {
+        this.updateScannedField('placed_residence_type', type);
+    }
+
+    setBloodGroup(bg: string) {
+        const current = this.scannedStudent().blood_group;
+        this.updateScannedField('blood_group', current === bg ? '' : bg);
+    }
+
+    toggleAllergy(allergy: string) {
+        const current = this.scannedStudent().allergies || '';
+        const list = current ? current.split(',').map((s: string) => s.trim()).filter(Boolean) : [];
+        const idx = list.findIndex((a: string) => a.toLowerCase() === allergy.toLowerCase());
+        if (idx > -1) {
+            list.splice(idx, 1);
+        } else {
+            list.push(allergy);
+        }
+        this.updateScannedField('allergies', list.join(', '));
+    }
+
+    isAllergySelected(allergy: string): boolean {
+        const current = this.scannedStudent().allergies || '';
+        if (!current) return false;
+        return current.split(',').map((s: string) => s.trim().toLowerCase()).includes(allergy.toLowerCase());
+    }
+
+    confirmAndEnrollStudent() {
+        const student = this.scannedStudent();
+
+        // Validation
+        if (!student.first_name?.trim() || !student.last_name?.trim()) {
+            this.activeReviewTab.set('biodata');
+            this.toast.warning('First Name and Last Name are required.');
+            return;
+        }
+
+        if (!student.gender) {
+            this.activeReviewTab.set('biodata');
+            this.toast.warning('Gender is required.');
+            return;
+        }
+
+        if (!student.dob) {
+            this.activeReviewTab.set('biodata');
+            this.toast.warning('Date of Birth is required.');
+            return;
+        }
+
+        this.isEnrollingStudent.set(true);
+
+        const payload: Student = {
+            first_name: student.first_name.trim(),
+            last_name: student.last_name.trim(),
+            other_name: student.other_name?.trim() || '',
+            gender: student.gender,
+            dob: student.dob,
+            phone_number: student.phone_number?.trim() || '',
+            address: student.address?.trim() || '',
+            level: Number(student.level) || 1,
+            class_id: student.class_id || undefined,
+            placed_residence_type: student.placed_residence_type || 'Day',
+            father_name: student.father_name?.trim() || '',
+            father_phone: student.father_phone?.trim() || '',
+            father_email: student.father_email?.trim() || '',
+            father_occupation: student.father_occupation?.trim() || '',
+            mother_name: student.mother_name?.trim() || '',
+            mother_phone: student.mother_phone?.trim() || '',
+            mother_email: student.mother_email?.trim() || '',
+            mother_occupation: student.mother_occupation?.trim() || '',
+            guardian_name: student.guardian_name?.trim() || '',
+            guardian_phone: student.guardian_phone?.trim() || '',
+            guardian_email: student.guardian_email?.trim() || '',
+            guardian_relation: student.guardian_relation || 'Parent',
+            emergency_contact_name: student.emergency_contact_name?.trim() || '',
+            emergency_contact_phone: student.emergency_contact_phone?.trim() || '',
+            blood_group: student.blood_group || '',
+            allergies: student.allergies || '',
+            health_conditions: student.health_conditions?.trim() || '',
+        };
+
+        this.studentService.createStudent(payload).subscribe({
+            next: (created: Student) => {
+                this.isEnrollingStudent.set(false);
+                this.isScanReviewModalOpen.set(false);
+                const fullName = `${created.first_name} ${created.last_name}`;
+                this.toast.success(`${fullName} successfully enrolled into school database!`, 'Student Enrolled');
+                this.playChime();
+
+                // Inject celebration and action cards in AI Chatbot
+                this.messages.update(msgs => [
+                    ...msgs,
+                    {
+                        id: crypto.randomUUID(),
+                        role: 'assistant',
+                        content: `🎉 **Student Successfully Enrolled!**\n\n- **Candidate:** **${fullName}**\n- **Gender / DOB:** ${created.gender.toUpperCase()} · ${created.dob}\n- **Placement:** Level ${created.level || 1} (${created.placed_residence_type || 'Day'})\n- **Parent/Guardian:** ${created.father_name || created.mother_name || created.guardian_name || 'Recorded'}\n- **Emergency Contact:** ${created.emergency_contact_phone || created.father_phone || created.mother_phone || 'None'}\n\nCandidate is registered in active student ledger. What would you like to do next?`,
+                        timestamp: new Date(),
+                        type: 'action',
+                        actions: [
+                            {
+                                label: 'View Student Profile',
+                                action_type: 'NAVIGATE',
+                                payload: `/students/details/${created.id}`,
+                                icon: 'fa-user-graduate',
+                            },
+                            {
+                                label: 'Design ID Badge',
+                                action_type: 'NAVIGATE',
+                                payload: '/students/id-card-studio',
+                                icon: 'fa-id-badge',
+                            },
+                            {
+                                label: 'Class Assignments',
+                                action_type: 'NAVIGATE',
+                                payload: '/students/class-assignment',
+                                icon: 'fa-users-rectangle',
+                            },
+                        ],
+                    },
+                ]);
+            },
+            error: err => {
+                this.isEnrollingStudent.set(false);
+                this.toast.error(err?.error?.error || 'Failed to enroll student. Please check all required fields.');
+            },
+        });
+    }
+
+    openInFullEnrollmentWizard() {
+        this.isScanReviewModalOpen.set(false);
+        this.router.navigate(['/students/new'], {
+            queryParams: { scan: 'true' },
+        });
     }
 
     /* ----------------------------------------------------
@@ -266,6 +620,12 @@ export class AiChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
         const files = event.dataTransfer?.files;
         if (files && files.length > 0) {
             const file = files[0];
+            // If in admission_ocr mode, directly run admission OCR scanner
+            if (this.selectedMode() === 'admission_ocr') {
+                this.processAdmissionScanFile(file);
+                return;
+            }
+
             const reader = new FileReader();
             reader.onload = () => {
                 const resultStr = reader.result as string;
@@ -306,6 +666,11 @@ export class AiChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     ---------------------------------------------------- */
     executeAction(action: ChatAction) {
         if (!action) return;
+
+        if (action.action_type === 'SCAN_ADMISSION' || action.label?.toLowerCase().includes('scan admission')) {
+            this.triggerAdmissionScan();
+            return;
+        }
 
         if (action.action_type === 'NAVIGATE') {
             const url = typeof action.payload === 'string' ? action.payload : action.payload?.url;
