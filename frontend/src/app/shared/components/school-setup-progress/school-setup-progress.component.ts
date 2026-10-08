@@ -17,6 +17,7 @@ export class SchoolSetupProgressComponent implements OnInit {
   isLoading = signal<boolean>(true);
   progressData = signal<SetupProgressResponse | null>(null);
   isCollapsed = signal<boolean>(false);
+  activeTab = signal<string>('ALL'); // 'ALL' | 'PENDING' | 'Identity' | 'Curriculum' | 'Finance' | 'Community'
 
   pendingSteps = computed(() => {
     const data = this.progressData();
@@ -30,6 +31,43 @@ export class SchoolSetupProgressComponent implements OnInit {
     return data.steps.filter(s => s.completed);
   });
 
+  nextRecommendedStep = computed(() => {
+    const pending = this.pendingSteps();
+    return pending.length > 0 ? pending[0] : null;
+  });
+
+  filteredSteps = computed(() => {
+    const data = this.progressData();
+    if (!data) return [];
+    const tab = this.activeTab();
+    if (tab === 'ALL') return data.steps;
+    if (tab === 'PENDING') return data.steps.filter(s => !s.completed);
+    return data.steps.filter(s => s.category.toLowerCase() === tab.toLowerCase());
+  });
+
+  categories = computed(() => {
+    const data = this.progressData();
+    if (!data) return [];
+    const set = new Set(data.steps.map(s => s.category));
+    return Array.from(set);
+  });
+
+  getCategoryCount(cat: string): number {
+    const data = this.progressData();
+    if (!data) return 0;
+    if (cat === 'ALL') return data.steps.length;
+    if (cat === 'PENDING') return this.pendingSteps().length;
+    return data.steps.filter(s => s.category.toLowerCase() === cat.toLowerCase()).length;
+  }
+
+  getStageLabel(progress: number): string {
+    if (progress === 100) return 'Institutional Readiness Complete';
+    if (progress >= 75) return 'Final Operational Tuning';
+    if (progress >= 50) return 'Academic & Fee Configuration';
+    if (progress >= 25) return 'Foundational Curriculum Setup';
+    return 'Initial Onboarding Kickoff';
+  }
+
   ngOnInit(): void {
     this.loadSetupProgress();
   }
@@ -40,7 +78,7 @@ export class SchoolSetupProgressComponent implements OnInit {
       next: (data) => {
         this.progressData.set(data);
         this.isLoading.set(false);
-        // Auto-collapse if 100% complete to save screen real estate
+        // If 100% complete, default to collapsed
         if (data.is_complete) {
           this.isCollapsed.set(true);
         }
@@ -49,6 +87,10 @@ export class SchoolSetupProgressComponent implements OnInit {
         this.isLoading.set(false);
       }
     });
+  }
+
+  setTab(tab: string): void {
+    this.activeTab.set(tab);
   }
 
   toggleCollapse(): void {

@@ -675,37 +675,57 @@ func (h *TenantProfileHandler) GetSetupProgress(c *gin.Context) {
 	_ = h.db.WithContext(ctx).Model(&domain.GradeWeight{}).Count(&gradeWeightCount).Error
 	gradingCompleted := gradeWeightCount > 0
 
-	// 6. Fee Structures & Tariffs
+	// 6. Departments & Faculties
+	var departmentCount int64
+	_ = h.db.WithContext(ctx).Model(&domain.Department{}).Count(&departmentCount).Error
+	departmentCompleted := departmentCount > 0
+
+	// 7. Fee Structures & Tariffs
 	var feeCount int64
 	_ = h.db.WithContext(ctx).Model(&domain.FeeStructure{}).Count(&feeCount).Error
 	feeCompleted := feeCount > 0
 
-	// 7. Teaching Staff
+	// 8. Teaching Staff
 	var teacherCount int64
 	_ = h.db.WithContext(ctx).Model(&domain.Teacher{}).Count(&teacherCount).Error
 	teacherCompleted := teacherCount > 0
 
-	// 8. Student Enrollment
+	// 9. Student Enrollment
 	var studentCount int64
 	_ = h.db.WithContext(ctx).Model(&domain.Student{}).Where("status = ?", domain.StatusActive).Count(&studentCount).Error
 	studentCompleted := studentCount > 0
 
+	// 10. Parent & Guardian Directory
+	var guardianCount int64
+	_ = h.db.WithContext(ctx).Model(&domain.Guardian{}).Count(&guardianCount).Error
+	guardianCompleted := guardianCount > 0
+
+	// 11. Master Timetable & Scheduling
+	var timetableCount int64
+	_ = h.db.WithContext(ctx).Model(&domain.TimetableEntry{}).Count(&timetableCount).Error
+	timetableCompleted := timetableCount > 0
+
+	// 12. Student Houses & Points
+	var houseCount int64
+	_ = h.db.WithContext(ctx).Model(&domain.House{}).Count(&houseCount).Error
+	houseCompleted := houseCount > 0
+
 	steps := []SetupStep{
 		{
 			ID:          "profile",
-			Title:       "School Profile & Logo",
-			Description: "Set school logo, address, contact phone, and website",
-			Route:       "/auth/profile-settings",
+			Title:       "School Profile & Identity",
+			Description: "Configure institutional branding, logo, contact information, and address",
+			Route:       "/profile",
 			Completed:   profileCompleted,
-			Category:    "Branding",
+			Category:    "Identity",
 			Icon:        "school",
 			Count:       1,
 		},
 		{
 			ID:          "academic_period",
 			Title:       "Academic Calendar & Terms",
-			Description: "Configure active academic year and terms",
-			Route:       "/admin/academic-periods",
+			Description: "Set up active academic years, semester terms, and operational boundaries",
+			Route:       "/academic-periods",
 			Completed:   academicCompleted,
 			Category:    "Curriculum",
 			Icon:        "calendar",
@@ -714,18 +734,28 @@ func (h *TenantProfileHandler) GetSetupProgress(c *gin.Context) {
 		{
 			ID:          "scholastic_levels",
 			Title:       "Scholastic Levels",
-			Description: "Define educational levels (e.g. Primary, JHS, SHS)",
-			Route:       "/admin/scholastic-levels",
+			Description: "Define educational progression stages (e.g., Primary, JHS, Senior High)",
+			Route:       "/scholastic-levels",
 			Completed:   scholasticCount > 0,
 			Category:    "Curriculum",
 			Icon:        "layers",
 			Count:       scholasticCount,
 		},
 		{
+			ID:          "departments",
+			Title:       "Departments & Faculties",
+			Description: "Structure academic departments (Sciences, Arts, Languages, Commercial)",
+			Route:       "/department-management",
+			Completed:   departmentCompleted,
+			Category:    "Curriculum",
+			Icon:        "building",
+			Count:       departmentCount,
+		},
+		{
 			ID:          "classes",
 			Title:       "Classes & Streams",
-			Description: "Create class divisions (e.g. Basic 1, Grade 5, JHS 1)",
-			Route:       "/admin/classes",
+			Description: "Create distinct class divisions, rooms, and stream allocations",
+			Route:       "/classes",
 			Completed:   classCompleted,
 			Category:    "Curriculum",
 			Icon:        "chalkboard",
@@ -734,8 +764,8 @@ func (h *TenantProfileHandler) GetSetupProgress(c *gin.Context) {
 		{
 			ID:          "subjects",
 			Title:       "Subjects & Courses",
-			Description: "Set up curriculum subjects and department allocations",
-			Route:       "/admin/subjects",
+			Description: "Define syllabus courses, academic credits, and departmental assignments",
+			Route:       "/subjects",
 			Completed:   subjectCompleted,
 			Category:    "Curriculum",
 			Icon:        "book",
@@ -743,9 +773,9 @@ func (h *TenantProfileHandler) GetSetupProgress(c *gin.Context) {
 		},
 		{
 			ID:          "grading",
-			Title:       "Grading Scale & Assessment Setup",
-			Description: "Set assessment weights and grading boundaries",
-			Route:       "/admin/grading-configuration",
+			Title:       "Assessment & Grading Scales",
+			Description: "Set assessment components, continuous assessment %, and GPA boundaries",
+			Route:       "/grading-configuration",
 			Completed:   gradingCompleted,
 			Category:    "Curriculum",
 			Icon:        "award",
@@ -754,8 +784,8 @@ func (h *TenantProfileHandler) GetSetupProgress(c *gin.Context) {
 		{
 			ID:          "fees",
 			Title:       "Fee Billing & Tariffs",
-			Description: "Define termly school fees, tuition, and breakdown items",
-			Route:       "/fiscal/fee-structures",
+			Description: "Define termly school fees, tuition schedules, and breakdown line items",
+			Route:       "/fiscal/fees",
 			Completed:   feeCompleted,
 			Category:    "Finance",
 			Icon:        "credit-card",
@@ -763,23 +793,53 @@ func (h *TenantProfileHandler) GetSetupProgress(c *gin.Context) {
 		},
 		{
 			ID:          "teachers",
-			Title:       "Teaching Staff Onboarding",
-			Description: "Add teachers and assign class supervisors",
+			Title:       "Faculty & Teaching Staff",
+			Description: "Onboard academic staff, assign qualifications, and designate supervisors",
 			Route:       "/teachers",
 			Completed:   teacherCompleted,
-			Category:    "Personnel",
+			Category:    "Community",
 			Icon:        "users",
 			Count:       teacherCount,
 		},
 		{
 			ID:          "students",
-			Title:       "Student Enrollment",
-			Description: "Enroll students into classes and generate admission numbers",
+			Title:       "Student Enrollment & Roster",
+			Description: "Admit students into class cohorts and generate institutional index numbers",
 			Route:       "/students",
 			Completed:   studentCompleted,
-			Category:    "Students",
+			Category:    "Community",
 			Icon:        "graduation-cap",
 			Count:       studentCount,
+		},
+		{
+			ID:          "guardians",
+			Title:       "Parents & Guardians Directory",
+			Description: "Link family guardians, emergency contacts, and portal access accounts",
+			Route:       "/guardians",
+			Completed:   guardianCompleted,
+			Category:    "Community",
+			Icon:        "user-group",
+			Count:       guardianCount,
+		},
+		{
+			ID:          "timetable",
+			Title:       "Master Timetable & Lessons",
+			Description: "Schedule weekly class periods, teaching allocations, and room venues",
+			Route:       "/timetable",
+			Completed:   timetableCompleted,
+			Category:    "Curriculum",
+			Icon:        "clock",
+			Count:       timetableCount,
+		},
+		{
+			ID:          "houses",
+			Title:       "Houses & Residential Hostels",
+			Description: "Organize student house leagues, boarding dorms, and points tracking",
+			Route:       "/house-points",
+			Completed:   houseCompleted,
+			Category:    "Community",
+			Icon:        "shield",
+			Count:       houseCount,
 		},
 	}
 
