@@ -1,34 +1,34 @@
-<div *ngIf="progressData() as data" class="mb-8 rounded-3xl border transition-all duration-300 overflow-hidden shadow-2xl"
+<div *ngIf="progressData() as data" class="mb-8 rounded-3xl border transition-all duration-300 overflow-hidden shadow-xl"
      [ngClass]="data.is_complete 
-       ? 'bg-slate-900/60 border-emerald-500/30 backdrop-blur-xl shadow-emerald-950/20' 
-       : 'bg-gradient-to-b from-slate-900/90 via-slate-900/80 to-slate-950/95 border-slate-700/60 backdrop-blur-xl shadow-blue-950/20'">
+       ? 'bg-bg-secondary border-emerald-500/30 backdrop-blur-xl shadow-emerald-500/10' 
+       : 'bg-bg-secondary border-border-primary backdrop-blur-xl shadow-blue-500/10'">
   
   <!-- ═══════════════════════════════════════════════════ -->
   <!-- TOP EXECUTIVE HERO BAR                             -->
   <!-- ═══════════════════════════════════════════════════ -->
-  <div class="p-5 sm:p-6 lg:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-slate-800/80">
+  <div class="p-5 sm:p-6 lg:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-border-primary bg-bg-secondary">
     
     <!-- Left: Radial Gauge + Title Block -->
     <div class="flex items-center gap-5">
       
       <!-- Circular Progress Ring -->
-      <div class="relative flex items-center justify-center shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-800/80 border border-slate-700/60 shadow-inner group">
+      <div class="relative flex items-center justify-center shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-bg-tertiary border border-border-primary shadow-inner group">
         <svg class="w-14 h-14 sm:w-16 sm:h-16 transform -rotate-90" viewBox="0 0 36 36">
-          <path class="text-slate-700/50" stroke-width="3.5" stroke="currentColor" fill="none"
+          <path class="text-border-primary opacity-60" stroke-width="3.5" stroke="currentColor" fill="none"
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
           <path class="transition-all duration-1000 ease-out"
                 [attr.stroke-dasharray]="data.overall_progress + ', 100'"
-                [ngClass]="data.is_complete ? 'text-emerald-400' : 'text-blue-500'"
+                [ngClass]="data.is_complete ? 'text-emerald-500' : 'text-blue-600 dark:text-blue-500'"
                 stroke-width="3.8" stroke-linecap="round" stroke="currentColor" fill="none"
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
         </svg>
         <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           @if (data.is_complete) {
-            <svg class="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
             </svg>
           } @else {
-            <span class="text-base sm:text-lg font-black tracking-tight text-white">{{ data.overall_progress }}%</span>
+            <span class="text-base sm:text-lg font-black tracking-tight text-text-primary">{{ data.overall_progress }}%</span>
           }
         </div>
       </div>
@@ -36,30 +36,30 @@
       <!-- Title & Context -->
       <div>
         <div class="flex flex-wrap items-center gap-2.5">
-          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/20">
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
             Institutional Setup Engine
           </span>
           @if (!data.is_complete) {
-            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 animate-pulse">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30 animate-pulse">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
               {{ pendingSteps().length }} Action Items Needed
             </span>
           } @else {
-            <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+            <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30">
               <i class="fas fa-check-circle"></i>
               100% Institution Ready
             </span>
           }
         </div>
 
-        <h2 class="text-lg sm:text-2xl font-black text-white tracking-tight mt-1.5 flex items-center gap-2">
+        <h2 class="text-lg sm:text-2xl font-black text-text-primary tracking-tight mt-1.5 flex items-center gap-2">
           School Configuration &amp; Onboarding Hub
         </h2>
         
-        <p class="text-xs sm:text-sm text-slate-400 mt-0.5 max-w-xl">
+        <p class="text-xs sm:text-sm text-text-muted mt-0.5 max-w-xl">
           {{ getStageLabel(data.overall_progress) }} &bull; 
-          <span class="text-slate-200 font-semibold">{{ data.completed_steps }}</span> of 
-          <span class="text-slate-200 font-semibold">{{ data.total_steps }}</span> core modules configured.
+          <span class="text-text-primary font-bold">{{ data.completed_steps }}</span> of 
+          <span class="text-text-primary font-bold">{{ data.total_steps }}</span> core modules configured.
         </p>
       </div>
     </div>
@@ -70,12 +70,12 @@
       <!-- Linear Stage Bar (Desktop) -->
       <div class="hidden sm:flex flex-col gap-1.5 w-48">
         <div class="flex justify-between items-center text-xs">
-          <span class="text-slate-400 font-medium">Readiness Level</span>
-          <span class="font-black" [ngClass]="data.is_complete ? 'text-emerald-400' : 'text-blue-400'">
+          <span class="text-text-muted font-medium">Readiness Level</span>
+          <span class="font-black" [ngClass]="data.is_complete ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400'">
             {{ data.completed_steps }}/{{ data.total_steps }}
           </span>
         </div>
-        <div class="h-2 w-full rounded-full bg-slate-800 border border-slate-700 overflow-hidden">
+        <div class="h-2 w-full rounded-full bg-bg-tertiary border border-border-primary overflow-hidden">
           <div class="h-full rounded-full transition-all duration-1000 ease-out"
                [ngClass]="data.is_complete ? 'bg-gradient-to-r from-emerald-500 to-teal-400' : 'bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-400'"
                [style.width.%]="data.overall_progress"></div>
@@ -84,7 +84,7 @@
 
       <!-- Expand / Minimize Toggle -->
       <button type="button" (click)="toggleCollapse()"
-              class="px-4 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 border border-slate-700/80 text-xs font-bold text-slate-300 hover:text-white transition-all flex items-center gap-2 cursor-pointer shadow-sm active:scale-95">
+              class="px-4 py-2.5 rounded-xl bg-bg-tertiary hover:bg-bg-secondary border border-border-primary text-xs font-bold text-text-primary transition-all flex items-center gap-2 cursor-pointer shadow-xs active:scale-95">
         <span>{{ isCollapsed() ? 'Show Checklist' : 'Hide Details' }}</span>
         <svg class="h-4 w-4 transform transition-transform duration-300" [ngClass]="{ 'rotate-180': !isCollapsed() }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
@@ -97,29 +97,29 @@
   <!-- EXPANDABLE DETAILS & CHECKLIST BODY                 -->
   <!-- ═══════════════════════════════════════════════════ -->
   @if (!isCollapsed()) {
-    <div class="p-5 sm:p-6 lg:p-7 space-y-6 bg-slate-950/60 backdrop-blur-md animate-fade-in">
+    <div class="p-5 sm:p-6 lg:p-7 space-y-6 bg-bg-secondary/60 animate-fade-in">
       
       <!-- Recommended Next Milestone Banner (If pending steps exist) -->
       @if (nextRecommendedStep(); as nextStep) {
-        <div class="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-blue-500/10 to-indigo-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg shadow-amber-950/10">
+        <div class="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-blue-500/10 to-indigo-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
           <div class="flex items-center gap-3.5">
-            <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center shrink-0 text-sm font-black shadow-inner">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0 text-sm font-black shadow-inner">
               <i class="fas fa-arrow-trend-up"></i>
             </div>
             <div>
               <div class="flex items-center gap-2">
-                <span class="text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-500/20 px-2 py-0.2 rounded-md">
+                <span class="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded-md">
                   Recommended Next Action
                 </span>
-                <span class="text-xs font-bold text-slate-300">&bull; {{ nextStep.category }}</span>
+                <span class="text-xs font-bold text-text-muted">&bull; {{ nextStep.category }}</span>
               </div>
-              <h4 class="text-sm font-bold text-white mt-0.5">{{ nextStep.title }}</h4>
-              <p class="text-xs text-slate-300 line-clamp-1">{{ nextStep.description }}</p>
+              <h4 class="text-sm font-bold text-text-primary mt-0.5">{{ nextStep.title }}</h4>
+              <p class="text-xs text-text-muted line-clamp-1">{{ nextStep.description }}</p>
             </div>
           </div>
 
           <button (click)="navigateTo(nextStep.route)"
-                  class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black uppercase tracking-wider rounded-xl shadow-md transition-all shrink-0 flex items-center justify-center gap-2 cursor-pointer hover:scale-105 active:scale-95">
+                  class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white dark:text-slate-950 text-xs font-black uppercase tracking-wider rounded-xl shadow-md transition-all shrink-0 flex items-center justify-center gap-2 cursor-pointer hover:scale-105 active:scale-95">
             <span>Configure Now</span>
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -129,7 +129,7 @@
       }
 
       <!-- Interactive Category Filter Tabs -->
-      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border-primary pb-3">
         <div class="flex flex-wrap items-center gap-2">
           
           <!-- All Tab -->
@@ -137,10 +137,10 @@
                   class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer border"
                   [ngClass]="activeTab() === 'ALL' 
                     ? 'bg-blue-600 border-blue-500 text-white shadow-md shadow-blue-600/30' 
-                    : 'bg-slate-800/80 border-slate-700/80 text-slate-300 hover:bg-slate-700/80 hover:text-white'">
+                    : 'bg-bg-tertiary border-border-primary text-text-muted hover:text-text-primary hover:bg-bg-secondary'">
             <span>All Modules</span>
             <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black"
-                  [ngClass]="activeTab() === 'ALL' ? 'bg-white/20 text-white' : 'bg-slate-700 text-slate-300'">
+                  [ngClass]="activeTab() === 'ALL' ? 'bg-white/20 text-white' : 'bg-bg-secondary border border-border-primary text-text-muted'">
               {{ getCategoryCount('ALL') }}
             </span>
           </button>
@@ -151,11 +151,11 @@
                     class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer border"
                     [ngClass]="activeTab() === 'PENDING' 
                       ? 'bg-amber-600 border-amber-500 text-white shadow-md shadow-amber-600/30' 
-                      : 'bg-slate-800/80 border-slate-700/80 text-amber-400 hover:bg-slate-700/80'">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                      : 'bg-bg-tertiary border-border-primary text-amber-700 dark:text-amber-400 hover:bg-bg-secondary'">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
               <span>Pending Action</span>
               <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black"
-                    [ngClass]="activeTab() === 'PENDING' ? 'bg-white/20 text-white' : 'bg-amber-500/20 text-amber-300'">
+                    [ngClass]="activeTab() === 'PENDING' ? 'bg-white/20 text-white' : 'bg-amber-500/20 text-amber-700 dark:text-amber-300'">
                 {{ getCategoryCount('PENDING') }}
               </span>
             </button>
@@ -167,18 +167,18 @@
                     class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer border"
                     [ngClass]="activeTab().toLowerCase() === cat.toLowerCase() 
                       ? 'bg-blue-600 border-blue-500 text-white shadow-md shadow-blue-600/30' 
-                      : 'bg-slate-800/80 border-slate-700/80 text-slate-300 hover:bg-slate-700/80 hover:text-white'">
+                      : 'bg-bg-tertiary border-border-primary text-text-muted hover:text-text-primary hover:bg-bg-secondary'">
               <span>{{ cat }}</span>
               <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black"
-                    [ngClass]="activeTab().toLowerCase() === cat.toLowerCase() ? 'bg-white/20 text-white' : 'bg-slate-700 text-slate-300'">
-                {{ getCategoryCount(cat) }}
-              </span>
+                    [ngClass]="activeTab().toLowerCase() === cat.toLowerCase() ? 'bg-white/20 text-white' : 'bg-bg-secondary border border-border-primary text-text-muted'">
+              {{ getCategoryCount(cat) }}
+            </span>
             </button>
           }
         </div>
 
-        <div class="text-xs text-slate-400 font-medium">
-          Showing <span class="text-white font-bold">{{ filteredSteps().length }}</span> module(s)
+        <div class="text-xs text-text-muted font-medium">
+          Showing <span class="text-text-primary font-bold">{{ filteredSteps().length }}</span> module(s)
         </div>
       </div>
 
@@ -186,63 +186,63 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         @for (step of filteredSteps(); track step.id) {
           <div (click)="navigateTo(step.route)"
-               class="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.99]"
+               class="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl border transition-all duration-200 cursor-pointer shadow-xs hover:scale-[1.02] active:scale-[0.99]"
                [ngClass]="step.completed 
-                 ? 'bg-slate-900/80 border-slate-800 hover:border-emerald-500/40 hover:shadow-emerald-950/20' 
-                 : 'bg-gradient-to-br from-slate-900/95 to-slate-950 border-amber-500/30 hover:border-amber-400/80 hover:shadow-amber-950/30'">
+                 ? 'bg-bg-secondary border-border-primary hover:border-emerald-500/40 hover:shadow-md' 
+                 : 'bg-bg-secondary border-amber-500/30 hover:border-amber-500/60 hover:shadow-md'">
             
             <!-- Top Row: Category Pill & Status Badge -->
             <div>
               <div class="flex items-center justify-between gap-2 mb-3">
                 <span class="text-[10px] uppercase font-black tracking-wider px-2.5 py-0.5 rounded-lg border"
                       [ngClass]="{
-                        'bg-purple-500/10 text-purple-300 border-purple-500/20': step.category === 'Identity',
-                        'bg-blue-500/10 text-blue-300 border-blue-500/20': step.category === 'Curriculum',
-                        'bg-emerald-500/10 text-emerald-300 border-emerald-500/20': step.category === 'Finance',
-                        'bg-amber-500/10 text-amber-300 border-amber-500/20': step.category === 'Community'
+                        'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20': step.category === 'Identity',
+                        'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20': step.category === 'Curriculum',
+                        'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20': step.category === 'Finance',
+                        'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20': step.category === 'Community'
                       }">
                   {{ step.category }}
                 </span>
 
                 <!-- Status Chip -->
                 @if (step.completed) {
-                  <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
+                  <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
                     <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
                       <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                     </svg>
                     Done
                   </span>
                 } @else {
-                  <span class="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-lg border border-amber-500/30 shadow-xs">
-                    <span class="h-1.5 w-1.5 rounded-full bg-amber-400 animate-ping"></span>
+                  <span class="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-lg border border-amber-500/30 shadow-xs">
+                    <span class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-ping"></span>
                     Action Required
                   </span>
                 }
               </div>
 
               <!-- Title & Description -->
-              <h4 class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors flex items-center gap-2">
+              <h4 class="text-sm font-bold text-text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex items-center gap-2">
                 <span>{{ step.title }}</span>
               </h4>
-              <p class="text-xs text-slate-400 mt-1.5 leading-relaxed line-clamp-2">
+              <p class="text-xs text-text-muted mt-1.5 leading-relaxed line-clamp-2">
                 {{ step.description }}
               </p>
             </div>
 
             <!-- Bottom Metrics & Action Link -->
-            <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs font-semibold">
-              <span class="text-slate-400 font-medium">
+            <div class="mt-4 pt-3 border-t border-border-primary flex items-center justify-between text-xs font-semibold">
+              <span class="text-text-muted font-medium">
                 @if (step.completed && step.count > 0) {
-                  <span class="text-slate-200 font-bold">{{ step.count }}</span> configured
+                  <span class="text-text-primary font-bold">{{ step.count }}</span> configured
                 } @else if (step.completed) {
                   Active
                 } @else {
-                  <span class="text-amber-400">Setup needed</span>
+                  <span class="text-amber-700 dark:text-amber-400 font-bold">Setup needed</span>
                 }
               </span>
 
               <span class="inline-flex items-center gap-1 transition-transform group-hover:translate-x-1"
-                    [ngClass]="step.completed ? 'text-blue-400' : 'text-amber-400 font-bold'">
+                    [ngClass]="step.completed ? 'text-blue-600 dark:text-blue-400' : 'text-amber-700 dark:text-amber-400 font-bold'">
                 <span>{{ step.completed ? 'Manage' : 'Set Up Now' }}</span>
                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />

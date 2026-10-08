@@ -78,4 +78,14 @@ export class IntelligenceService {
     askNaturalLanguageQuery(prompt: string): Observable<NaturalQueryResponse> {
         return this.http.post<NaturalQueryResponse>(`${this.apiUrl}/natural-query`, { prompt });
     }
+
+    chatWithAI(payload: {
+        prompt: string;
+        messages?: { role: string; content: string }[];
+        active_route?: string;
+        attachment_base64?: string;
+        attachment_mime?: string;
+    }): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/chat`, payload);
+    }
 }

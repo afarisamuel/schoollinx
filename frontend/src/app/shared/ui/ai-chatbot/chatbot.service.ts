@@ -8,13 +8,29 @@ import { FiscalService } from '../../../core/infrastructure/fiscal/fiscal.servic
 import { HrService } from '../../../core/infrastructure/hr/hr.service';
 import { LibraryService } from '../../../core/infrastructure/library/library.service';
 
+export interface ChatAction {
+    label: string;
+    action_type: 'NAVIGATE' | 'EXPORT_CSV' | 'GENERATE_PDF' | 'SEND_PROMPT' | 'FILTER_VIEW';
+    payload: any;
+    icon?: string;
+}
+
+export interface ChatAttachment {
+    name: string;
+    type: string;
+    base64?: string;
+    previewUrl?: string;
+}
+
 export interface ChatMessage {
     id: string;
     role: 'user' | 'assistant';
     content: string;
     timestamp: Date;
     data?: any;
-    type?: 'text' | 'student-list' | 'kpi-summary' | 'error';
+    actions?: ChatAction[];
+    attachment?: ChatAttachment;
+    type?: 'text' | 'student-list' | 'kpi-summary' | 'error' | 'markdown' | 'action';
 }
 
 export interface Intent {
@@ -919,9 +935,9 @@ export class ChatbotService {
     ];
 
     private greetings = [
-        "Hello! I'm your school intelligence assistant. Ask me anything about student data, attendance, or financials — or ask me *how to* set up any feature!",
-        "Hi there! I have access to live school data. I can also walk you through how to set up academic periods, fees, grades, and more. What would you like to know?",
-        "Welcome! I can pull up student risk reports, KPIs, attendance stats, and guide you through common setup tasks. Type \"help\" to see everything I can do.",
+        "Hello! I am your AI School Intelligence Assistant powered by Google Gemini. Ask me anything about student performance, attendance, financials, staff, or system how-tos!",
+        "Greetings! I have live access to your school's data and workflows. You can ask for stats, reports, step-by-step guidance, or attach documents/images to analyze.",
+        "Welcome! How can I assist with your institutional operations or analytics today?",
     ];
 
     getGreeting(): ChatMessage {
@@ -935,28 +951,143 @@ export class ChatbotService {
         };
     }
 
-    processMessage(userText: string): Observable<ChatMessage> {
-        const intent = this.intents.find(i => i.patterns.some(p => p.test(userText)));
-
-        if (!intent) {
-            return of({
-                id: crypto.randomUUID(),
-                role: 'assistant' as const,
-                content: `I'm not sure how to answer that yet. Try asking about students, attendance, grades, or revenue. Type *"help"* to see what I can do.`,
-                timestamp: new Date(),
-                type: 'text' as const,
-            });
+    getRoutePrompts(currentUrl: string): string[] {
+        if (currentUrl.includes('/students')) {
+            return [
+                "Show at-risk students",
+                "Who has outstanding fee arrears?",
+                "How to enroll a new student",
+                "Generate student ID cards"
+            ];
+        }
+        if (currentUrl.includes('/finance') || currentUrl.includes('/fiscal') || currentUrl.includes('/bursar')) {
+            return [
+                "Show revenue summary",
+                "Daily bills collection today",
+                "Who owes money?",
+                "How to configure fee structures"
+            ];
+        }
+        if (currentUrl.includes('/gradebook') || currentUrl.includes('/academic') || currentUrl.includes('/portal/teacher')) {
+            return [
+                "What is the average GPA?",
+                "How to enter student grades",
+                "Show course demand projections",
+                "How to set up exams"
+            ];
+        }
+        if (currentUrl.includes('/hr') || currentUrl.includes('/staff')) {
+            return [
+                "Pending staff leave requests",
+                "How to process monthly payroll",
+                "How to add a teacher",
+                "Biometric clock-in summary"
+            ];
+        }
+        if (currentUrl.includes('/logistics') || currentUrl.includes('/transport')) {
+            return [
+                "Show school bus routes",
+                "How to set up transport routes",
+                "Canteen meal subscriptions",
+                "Digital wallet top-ups"
+            ];
+        }
+        if (currentUrl.includes('/library')) {
+            return [
+                "Show overdue library books",
+                "How to catalog new books",
+                "How to issue a library loan",
+                "Active library loans overview"
+            ];
+        }
+        if (currentUrl.includes('/analytics') || currentUrl.includes('/insights')) {
+            return [
+                "Show at-risk student breakdown",
+                "Attendance rate overview",
+                "Executive dashboard summary",
+                "Explain composite risk scores"
+            ];
         }
 
-        return intent.handler().pipe(
-            map(result => ({
-                id: crypto.randomUUID(),
-                role: 'assistant' as const,
-                content: result.content,
-                data: result.data,
-                timestamp: new Date(),
-                type: result.type || 'text',
-            }))
+        return [
+            "Show school overview",
+            "Show at-risk students",
+            "What is the attendance rate?",
+            "Show revenue summary",
+            "Help with system features"
+        ];
+    }
+
+    processMessage(
+        userText: string,
+        history: ChatMessage[] = [],
+        activeRoute: string = '',
+        attachment?: { base64: string; mime: string; name: string }
+    ): Observable<ChatMessage> {
+        const payloadHistory = history
+            .filter(m => m.type === 'text' || m.type === 'markdown')
+            .slice(-8)
+            .map(m => ({
+                role: m.role,
+                content: m.content,
+            }));
+
+        const chatPayload: any = {
+            prompt: userText,
+            messages: payloadHistory,
+            active_route: activeRoute,
+        };
+
+        if (attachment?.base64) {
+            chatPayload.attachment_base64 = attachment.base64;
+            chatPayload.attachment_mime = attachment.mime;
+        }
+
+        return this.intelligence.chatWithAI(chatPayload).pipe(
+            map(res => {
+                let responseContent = res.reply || res.answer || "I've processed your request.";
+                let actions = res.actions || [];
+                let actionType: ChatMessage['type'] = actions.length > 0 ? 'action' : 'markdown';
+
+                return {
+                    id: crypto.randomUUID(),
+                    role: 'assistant' as const,
+                    content: responseContent,
+                    data: res.data_points,
+                    actions: actions,
+                    timestamp: new Date(),
+                    type: actionType,
+                };
+            }),
+            catchError(err => {
+                console.warn('[AI Chatbot] Live AI endpoint unavailable, using intelligent local engine:', err);
+                return this.fallbackLocalIntent(userText);
+            })
         );
     }
+
+    private fallbackLocalIntent(userText: string): Observable<ChatMessage> {
+        const intent = this.intents.find(i => i.patterns.some(p => p.test(userText)));
+        if (intent) {
+            return intent.handler().pipe(
+                map(result => ({
+                    id: crypto.randomUUID(),
+                    role: 'assistant' as const,
+                    content: result.content,
+                    data: result.data,
+                    timestamp: new Date(),
+                    type: result.type || 'text',
+                }))
+            );
+        }
+
+        return of({
+            id: crypto.randomUUID(),
+            role: 'assistant' as const,
+            content: `I'm having trouble connecting to the AI neural service right now, but you can ask about **at-risk students**, **revenue**, **attendance**, **grades**, or type **"help"** for any how-to guide!`,
+            timestamp: new Date(),
+            type: 'text' as const,
+        });
+    }
 }
+
