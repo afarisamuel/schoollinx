@@ -1025,7 +1025,7 @@ export class ChatbotService {
         attachment?: { base64: string; mime: string; name: string }
     ): Observable<ChatMessage> {
         const payloadHistory = history
-            .filter(m => m.type === 'text' || m.type === 'markdown')
+            .filter(m => m.type === 'text' || m.type === 'markdown' || m.type === 'action')
             .slice(-8)
             .map(m => ({
                 role: m.role,
@@ -1045,16 +1045,39 @@ export class ChatbotService {
 
         return this.intelligence.chatWithAI(chatPayload).pipe(
             map(res => {
-                let responseContent = res.reply || res.answer || "I've processed your request.";
-                let actions = res.actions || [];
-                let actionType: ChatMessage['type'] = actions.length > 0 ? 'action' : 'markdown';
+                let responseContent = '';
+                if (typeof res === 'string') {
+                    responseContent = res;
+                } else if (res) {
+                    responseContent = res.content || res.reply || res.answer || res.message || res.text || '';
+                }
+
+                if (!responseContent) {
+                    responseContent = "I've analyzed your institutional data, but no additional details were returned for this query.";
+                }
+
+                let rawActions: any[] = [];
+                if (Array.isArray(res?.actions)) {
+                    rawActions = res.actions;
+                } else if (res?.action) {
+                    rawActions = [res.action];
+                }
+
+                const actions: ChatAction[] = rawActions.map((a: any) => ({
+                    label: a.label || a.title || 'View',
+                    action_type: (a.type || a.action_type || 'NAVIGATE') as any,
+                    payload: a.route || a.url || a.payload || a,
+                    icon: a.icon,
+                }));
+
+                const actionType: ChatMessage['type'] = actions.length > 0 ? 'action' : 'markdown';
 
                 return {
                     id: crypto.randomUUID(),
                     role: 'assistant' as const,
                     content: responseContent,
-                    data: res.data_points,
-                    actions: actions,
+                    data: res?.kpis || res?.data_points || res?.data,
+                    actions: actions.length > 0 ? actions : undefined,
                     timestamp: new Date(),
                     type: actionType,
                 };

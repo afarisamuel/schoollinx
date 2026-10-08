@@ -272,19 +272,27 @@ Guidelines:
 		}
 	}
 
+	var actionsList []AIChatAction
+	if aiAction != nil {
+		actionsList = append(actionsList, *aiAction)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"content":           aiContent,
+		"reply":             aiContent,
+		"answer":            aiContent,
 		"type":              "text",
 		"action":            aiAction,
+		"actions":           actionsList,
 		"suggested_prompts": suggestedPrompts,
 		"timestamp":         time.Now(),
 		"kpis": gin.H{
-			"total_students":    totalStudents,
-			"total_teachers":    totalTeachers,
+			"total_students":     totalStudents,
+			"total_teachers":     totalTeachers,
 			"average_attendance": avgAttendance,
-			"average_gpa":       avgGPA,
-			"at_risk_count":     len(atRisk),
-			"total_revenue":     totalRevenue,
+			"average_gpa":        avgGPA,
+			"at_risk_count":      len(atRisk),
+			"total_revenue":      totalRevenue,
 		},
 	})
 }
