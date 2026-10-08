@@ -13,12 +13,26 @@
   display: flex;
   align-items: center;
   overflow: hidden;
+  color-scheme: dark !important;
 }
 
 .ph-overlay {
   position: absolute;
   inset: 0;
   z-index: 1;
+  background: linear-gradient(
+    90deg,
+    rgba(11, 17, 32, 0.92) 0%,
+    rgba(11, 17, 32, 0.78) 45%,
+    rgba(11, 17, 32, 0.52) 80%,
+    rgba(11, 17, 32, 0.38) 100%
+  ),
+  linear-gradient(
+    180deg,
+    rgba(11, 17, 32, 0.45) 0%,
+    transparent 35%,
+    rgba(11, 17, 32, 0.85) 100%
+  ) !important;
 }
 
 .ph-content {
@@ -34,21 +48,26 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(255,255,255,0.10);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255, 255, 255, 0.14) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
   border-radius: 9999px;
   padding: 0.4rem 1.1rem;
   font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.07em;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.92);
+  color: #ffffff !important;
   margin-bottom: 1.35rem;
   animation: phFadeUp 0.6s ease 0.05s both;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
 }
 
-.ph-badge i { font-size: 0.78rem; color: #60a5fa; }
+.ph-badge span {
+  color: #ffffff !important;
+}
+
+.ph-badge i { font-size: 0.78rem; color: #60a5fa !important; }
 
 /* Heading */
 .ph-heading {
@@ -56,28 +75,33 @@
   font-weight: 900;
   letter-spacing: -0.035em;
   line-height: 1.1;
-  color: #ffffff;
+  color: #ffffff !important;
   margin: 0 0 1.1rem 0;
-  text-shadow: 0 2px 20px rgba(0,0,0,0.35);
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.95), 0 4px 40px rgba(0, 0, 0, 0.75);
   animation: phFadeUp 0.7s ease 0.15s both;
 }
 
 /* Heading accent span — set by each page via [innerHTML] */
-:host ::ng-deep .ph-heading .ph-accent {
-  background: transparent;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+:host ::ng-deep .ph-heading .ph-accent,
+:host ::ng-deep .ph-heading span,
+.ph-heading .ph-accent {
+  color: #60a5fa !important;
+  background: linear-gradient(135deg, #60a5fa 0%, #93c5fd 50%, #38bdf8 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  text-shadow: none;
 }
 
 /* Subtitle */
 .ph-subtitle {
-  font-size: clamp(0.95rem, 1.6vw, 1.1rem);
-  color: rgba(255,255,255,0.76);
+  font-size: clamp(0.95rem, 1.6vw, 1.15rem);
+  color: #f8fafc !important;
   line-height: 1.65;
   margin-bottom: 2rem;
   max-width: 580px;
   animation: phFadeUp 0.7s ease 0.28s both;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9);
 }
 
 /* CTA Row */
@@ -94,19 +118,20 @@
   align-items: center;
   gap: 0.55rem;
   padding: 0.85rem 1.85rem;
-  background: transparent;
-  color: #fff;
+  background: #2563eb !important;
+  color: #ffffff !important;
   font-size: 0.92rem;
   font-weight: 700;
   border-radius: 0.75rem;
   text-decoration: none;
-  box-shadow: 0 4px 18px rgba(59,130,246,0.45);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 18px rgba(37, 99, 235, 0.5);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
 .ph-btn-primary:hover {
+  background: #1d4ed8 !important;
   transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(59,130,246,0.60);
+  box-shadow: 0 8px 28px rgba(37, 99, 235, 0.7);
 }
 
 .ph-btn-ghost {
@@ -114,20 +139,22 @@
   align-items: center;
   gap: 0.55rem;
   padding: 0.85rem 1.6rem;
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(8px);
-  color: rgba(255,255,255,0.9);
+  background: rgba(255, 255, 255, 0.14) !important;
+  backdrop-filter: blur(10px);
+  color: #ffffff !important;
   font-size: 0.92rem;
-  font-weight: 600;
+  font-weight: 700;
   border-radius: 0.75rem;
   text-decoration: none;
-  border: 1px solid rgba(255,255,255,0.2);
-  transition: background 0.2s, border-color 0.2s;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
 }
 
 .ph-btn-ghost:hover {
-  background: rgba(255,255,255,0.18);
-  border-color: rgba(255,255,255,0.4);
+  background: rgba(255, 255, 255, 0.24) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  transform: translateY(-2px);
 }
 
 /* Scroll Hint */
@@ -141,18 +168,18 @@
   flex-direction: column;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: 0.65rem;
+  font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.38);
+  color: rgba(255, 255, 255, 0.8) !important;
   animation: scrollBounce 2.2s ease infinite;
 }
 
 .ph-scroll-line {
   width: 1px;
   height: 2rem;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.4) !important;
 }
 
 /* Keyframes */
