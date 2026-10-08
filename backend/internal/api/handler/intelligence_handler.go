@@ -185,23 +185,29 @@ func (h *IntelligenceHandler) ChatWithAI(c *gin.Context) {
 	suggestedPrompts := []string{"Show at-risk students", "What is the fee collection rate?", "Help me draft a lesson plan"}
 
 	if geminiKey != "" {
-		systemInstruction := fmt.Sprintf(`You are SchoolLinx Intelligence, the elite institutional AI Copilot for African schools and high school leaders.
-Live School Real-Time Database Snapshot:
+		systemInstruction := fmt.Sprintf(`You are SchoolLinx Intelligence, the premier institutional AI Copilot & Pedagogical Assistant designed for school administrators, principals, and educators.
+
+Live School Database Grounding Snapshot:
 - Active Academic Year / Term: %s (%s)
 - Total Enrolled Students: %d
 - Total Faculty & Staff: %d
 - Average Attendance Rate: %.1f%%
-- Overall Average GPA / Score: %.2f
+- School-Wide Average GPA / Score: %.2f
 - Early-Warning At-Risk Retention Watchlist: %d students
 - Total Revenue Collected to Date: GH₵ %.2f
 - User Current Active Screen: %s
 
-Guidelines:
-1. Provide accurate, professional, and warmly encouraging guidance.
-2. Use GitHub-style Markdown formatting with bolding, lists, and markdown tables for tabular data.
-3. If the user asks for a lesson plan, exam quiz, conduct remark, or parent announcement, generate high quality ready-to-use content.
-4. Keep answers clean, concise, and structured.
-5. If the request suggests navigating to a portal, mention the portal name naturally.
+Capabilities & Specialized Modes:
+1. **School Administration & Real-Time Data**: Answer questions about enrollment, fee arrears, daily attendance, retention risk, and institutional workflows accurately using the live data above.
+2. **Pedagogy & Lesson Planning**: If asked to draft a lesson plan, follow standard structured instructional frameworks (Topic, Grade Level, Objectives based on Bloom's Taxonomy, Teaching Materials, Introduction, Main Activities, Assessment, and Conclusion).
+3. **Assessment & Quiz Generation**: When asked to create tests or quizzes, provide clear questions (Multiple Choice or Short Answer) complete with answer keys and scoring rubrics.
+4. **Student Report Card Remarks**: When asked to write report remarks, generate thoughtful, constructive, and motivating comments tailored to the student's performance level.
+5. **Parent & Community Communications**: When drafting SMS or broadcast notices, keep messages concise, professional, and within standard SMS limits (or provide full letter format if requested).
+6. **Navigation & Action Suggestions**: If the query relates to an institutional portal (e.g. Admission Form, Financial Ledger, Gradebook, ID Badges, Timetable, or At-Risk Analytics), naturally mention where to find it.
+
+Formatting Guidelines:
+- Use clean GitHub-style Markdown with bolding, bullet points, numbered lists, and Markdown tables for comparisons and summaries.
+- Keep answers clear, structured, and easy to read.
 `, acadYear, term, totalStudents, totalTeachers, avgAttendance, avgGPA, len(atRisk), totalRevenue, req.ActiveRoute)
 
 		geminiResp, err := callGeminiChat(c.Request.Context(), geminiKey, systemInstruction, req.Messages, prompt, req.AttachmentBase64, req.AttachmentMime)
@@ -246,6 +252,14 @@ Guidelines:
 				Route: "/attendance/mark",
 			}
 			suggestedPrompts = []string{"Show chronic absentees", "Daily attendance logs", "Open Barcode Scanner"}
+		case strings.Contains(lower, "lesson"):
+			aiContent = "### Standard Lesson Plan Outline\n\n- **Topic:** Selected Curriculum Module\n- **Objectives:** Recall, understand, and apply core concepts\n- **Activities:** Direct instruction, group exploration, and formative check\n- **Assessment:** 3-question exit ticket\n\nOpen the **Lesson Planner** to build and publish full schemes of work."
+			aiAction = &AIChatAction{
+				Type:  "NAVIGATE",
+				Label: "Open Lesson Planner",
+				Route: "/teachers/lessons",
+			}
+			suggestedPrompts = []string{"Draft 5-question math quiz", "Write student report remark", "Create science lesson plan"}
 		default:
 			aiContent = fmt.Sprintf("Based on live institutional records, **SchoolLinx** currently tracks **%d enrolled students** and **%d faculty members** for **%s (%s)** with an overall attendance rate of **%.1f%%**.", totalStudents, totalTeachers, acadYear, term, avgAttendance)
 			suggestedPrompts = []string{"Show at-risk students", "Daily attendance rate", "How to print admission form"}
@@ -257,18 +271,22 @@ Guidelines:
 		lower := strings.ToLower(prompt + " " + aiContent)
 		if strings.Contains(lower, "admission form") || strings.Contains(lower, "print admission") {
 			aiAction = &AIChatAction{Type: "NAVIGATE", Label: "Open Admission Form", Route: "/students/admission-form"}
-		} else if strings.Contains(lower, "student directory") || strings.Contains(lower, "view students") {
+		} else if strings.Contains(lower, "student directory") || strings.Contains(lower, "view students") || strings.Contains(lower, "enrolled students") {
 			aiAction = &AIChatAction{Type: "NAVIGATE", Label: "View Students Directory", Route: "/students"}
 		} else if strings.Contains(lower, "id card") || strings.Contains(lower, "badging") {
 			aiAction = &AIChatAction{Type: "NAVIGATE", Label: "Open ID Card Studio", Route: "/students/id-cards"}
-		} else if strings.Contains(lower, "fee") || strings.Contains(lower, "debtor") || strings.Contains(lower, "ledger") {
+		} else if strings.Contains(lower, "fee") || strings.Contains(lower, "debtor") || strings.Contains(lower, "ledger") || strings.Contains(lower, "revenue") {
 			aiAction = &AIChatAction{Type: "NAVIGATE", Label: "View Financial Ledger", Route: "/fiscal"}
 		} else if strings.Contains(lower, "at risk") || strings.Contains(lower, "at-risk") {
 			aiAction = &AIChatAction{Type: "NAVIGATE", Label: "Open Retention Risk Watchlist", Route: "/analytics/at-risk"}
-		} else if strings.Contains(lower, "lesson plan") {
+		} else if strings.Contains(lower, "lesson plan") || strings.Contains(lower, "scheme of work") {
 			aiAction = &AIChatAction{Type: "NAVIGATE", Label: "Open Lesson Planner", Route: "/teachers/lessons"}
-		} else if strings.Contains(lower, "cbt") || strings.Contains(lower, "quiz") {
+		} else if strings.Contains(lower, "cbt") || strings.Contains(lower, "quiz") || strings.Contains(lower, "exam") {
 			aiAction = &AIChatAction{Type: "NAVIGATE", Label: "Open CBT Assessment Builder", Route: "/teachers/cbt-builder"}
+		} else if strings.Contains(lower, "timetable") || strings.Contains(lower, "schedule") {
+			aiAction = &AIChatAction{Type: "NAVIGATE", Label: "Open Timetable Manager", Route: "/timetables"}
+		} else if strings.Contains(lower, "broadcast") || strings.Contains(lower, "sms") || strings.Contains(lower, "message") {
+			aiAction = &AIChatAction{Type: "NAVIGATE", Label: "Open Messaging Hub", Route: "/communications/messages"}
 		}
 	}
 

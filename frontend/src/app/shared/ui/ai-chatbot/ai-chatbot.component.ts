@@ -14,7 +14,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
-import { ChatbotService, ChatMessage, ChatAction, ChatAttachment } from './chatbot.service';
+import { ChatbotService, ChatMessage, ChatAction, ChatAttachment, AIMode } from './chatbot.service';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 import { MessagingService } from '../../../core/infrastructure/communications/messaging.service';
 
@@ -50,6 +50,10 @@ export class AiChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     userInput = signal('');
     messages = signal<ChatMessage[]>([]);
 
+    // Focus Mode State
+    readonly modeOptions = this.chatbot.modeOptions;
+    selectedMode = signal<AIMode>('general');
+
     // Speech & Voice State
     isRecording = signal(false);
     speechRecognitionAvailable = signal(false);
@@ -57,15 +61,17 @@ export class AiChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
 
     isSpeaking = signal(false);
     activeSpeakingId = signal<string | null>(null);
+    copiedMessageId = signal<string | null>(null);
 
-    // Attachment State
+    // Attachment & Drag/Drop State
     selectedAttachment = signal<{ name: string; type: string; base64: string; previewUrl?: string } | null>(null);
+    isDragging = signal(false);
 
     // Sound toggle
     soundEnabled = signal(true);
 
-    // Dynamic Prompts based on active route
-    currentPrompts = computed(() => this.chatbot.getRoutePrompts(this.currentRoute()));
+    // Dynamic Prompts based on active focus mode & active route
+    currentPrompts = computed(() => this.chatbot.getModePrompts(this.selectedMode(), this.currentRoute()));
 
     ngOnInit() {
         this.messages.set([this.chatbot.getGreeting()]);
@@ -215,8 +221,84 @@ export class AiChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
         reader.readAsDataURL(file);
     }
 
+    onPaste(event: ClipboardEvent) {
+        const items = event.clipboardData?.items;
+        if (!items) return;
+
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (item.type.indexOf('image') !== -1) {
+                const file = item.getAsFile();
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const resultStr = reader.result as string;
+                        this.selectedAttachment.set({
+                            name: file.name || `Pasted_Image_${Date.now()}.png`,
+                            type: file.type || 'image/png',
+                            base64: resultStr,
+                            previewUrl: resultStr,
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+    }
+
+    onDragOver(event: DragEvent) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.isDragging.set(true);
+    }
+
+    onDragLeave(event: DragEvent) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.isDragging.set(false);
+    }
+
+    onDrop(event: DragEvent) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.isDragging.set(false);
+
+        const files = event.dataTransfer?.files;
+        if (files && files.length > 0) {
+            const file = files[0];
+            const reader = new FileReader();
+            reader.onload = () => {
+                const resultStr = reader.result as string;
+                const isImage = file.type.startsWith('image/');
+                this.selectedAttachment.set({
+                    name: file.name,
+                    type: file.type || 'application/octet-stream',
+                    base64: resultStr,
+                    previewUrl: isImage ? resultStr : undefined,
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
     removeAttachment() {
         this.selectedAttachment.set(null);
+    }
+
+    setMode(mode: AIMode) {
+        this.selectedMode.set(mode);
+    }
+
+    copyMessageText(msg: ChatMessage) {
+        if (!msg.content) return;
+        navigator.clipboard.writeText(msg.content).then(() => {
+            this.copiedMessageId.set(msg.id);
+            setTimeout(() => {
+                if (this.copiedMessageId() === msg.id) {
+                    this.copiedMessageId.set(null);
+                }
+            }, 2000);
+        }).catch(() => {});
     }
 
     /* ----------------------------------------------------

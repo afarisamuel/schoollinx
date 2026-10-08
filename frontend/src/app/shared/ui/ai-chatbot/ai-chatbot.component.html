@@ -22,11 +22,23 @@
 
 <!-- Chat Panel / Modal Dialog -->
 @if (isOpen()) {
-<div class="fixed z-[100] flex flex-col rounded-3xl border border-border-primary overflow-hidden shadow-2xl shadow-black/50 transition-all duration-300 animate-slide-up"
+<div (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)"
+     class="fixed z-[100] flex flex-col rounded-3xl border border-border-primary overflow-hidden shadow-2xl shadow-black/50 transition-all duration-300 animate-slide-up relative"
      [ngClass]="isExpanded() 
         ? 'inset-4 sm:inset-8 md:inset-12 max-w-5xl max-h-[90vh] m-auto' 
-        : 'bottom-22 sm:bottom-24 right-4 sm:right-6 w-[390px] sm:w-[440px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-7.5rem)]'"
+        : 'bottom-22 sm:bottom-24 right-4 sm:right-6 w-[390px] sm:w-[450px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-7.5rem)]'"
      style="background: var(--bg-secondary); backdrop-filter: blur(20px);">
+
+    <!-- Drag & Drop Overlay Zone -->
+    @if (isDragging()) {
+        <div class="absolute inset-0 z-50 bg-indigo-900/90 backdrop-blur-sm border-2 border-dashed border-cyan-400 rounded-3xl flex flex-col items-center justify-center text-white p-6 text-center animate-fade-in pointer-events-none">
+            <div class="w-16 h-16 rounded-2xl bg-cyan-400/20 text-cyan-300 flex items-center justify-center text-3xl mb-3 shadow-lg">
+                <i class="fas fa-cloud-arrow-up animate-bounce"></i>
+            </div>
+            <h4 class="text-base font-bold">Drop Image or Document Here</h4>
+            <p class="text-xs text-indigo-200 mt-1 max-w-xs">Supports question papers, handwritten sheets, receipts, syllabus PDFs, and timetable photos.</p>
+        </div>
+    }
 
     <!-- Header -->
     <div class="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-border-primary flex items-center gap-3 flex-shrink-0 bg-gradient-to-r from-violet-700 via-indigo-600 to-cyan-700 text-white shadow-md">
@@ -38,7 +50,7 @@
                 <h3 class="text-xs sm:text-sm font-black truncate leading-tight tracking-tight">School Intelligence</h3>
                 <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-white/20 text-cyan-200 border border-white/20">Gemini 2.5</span>
             </div>
-            <p class="text-[10px] text-white/80 font-semibold uppercase tracking-wider truncate leading-tight mt-0.5">Live Data Grounding & Assistant</p>
+            <p class="text-[10px] text-white/80 font-semibold uppercase tracking-wider truncate leading-tight mt-0.5">Live Data Grounding & Neural Copilot</p>
         </div>
 
         <div class="flex items-center gap-1.5 sm:gap-2">
@@ -79,9 +91,28 @@
         </div>
     </div>
 
+    <!-- Specialized AI Focus Mode Pills -->
+    <div class="px-3.5 py-2 border-b border-border-primary/70 flex items-center gap-1.5 overflow-x-auto flex-shrink-0 no-scrollbar bg-bg-tertiary/60">
+        @for (mode of modeOptions; track mode.id) {
+            <button (click)="setMode(mode.id)"
+                    class="flex-shrink-0 px-2.5 py-1 rounded-lg text-[10.5px] font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                    [class.bg-indigo-600]="selectedMode() === mode.id"
+                    [class.text-white]="selectedMode() === mode.id"
+                    [class.shadow-xs]="selectedMode() === mode.id"
+                    [class.bg-bg-secondary]="selectedMode() !== mode.id"
+                    [class.text-text-primary]="selectedMode() !== mode.id"
+                    [class.border]="selectedMode() !== mode.id"
+                    [class.border-border-primary]="selectedMode() !== mode.id"
+                    [title]="mode.description">
+                <i [class]="'fas ' + mode.icon + ' text-[10px]'"></i>
+                <span>{{ mode.label }}</span>
+            </button>
+        }
+    </div>
+
     <!-- Messages Container -->
     <div #messageContainer class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 min-h-0"
-         [style.max-height]="isExpanded() ? 'calc(90vh - 200px)' : '400px'">
+         [style.max-height]="isExpanded() ? 'calc(90vh - 230px)' : '390px'">
         @for (msg of messages(); track msg.id) {
             <div [class]="msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'">
                 @if (msg.role === 'assistant') {
@@ -97,15 +128,25 @@
                                 <div class="rounded-2xl rounded-tl-sm px-4 py-3 text-xs sm:text-sm text-text-primary border border-border-primary leading-relaxed shadow-sm relative group"
                                      style="background: var(--bg-tertiary);">
                                     
-                                    <!-- TTS Speaker Button -->
-                                    <button (click)="toggleSpeak(msg)"
-                                            class="absolute top-2.5 right-2.5 w-6 h-6 rounded-md bg-white/5 hover:bg-white/15 text-text-primary/60 hover:text-cyan-400 flex items-center justify-center text-[10px] transition-colors cursor-pointer"
-                                            [title]="isSpeaking() && activeSpeakingId() === msg.id ? 'Stop reading' : 'Read aloud'">
-                                        <i class="fas" [ngClass]="isSpeaking() && activeSpeakingId() === msg.id ? 'fa-stop text-cyan-400 animate-pulse' : 'fa-volume-high'"></i>
-                                    </button>
+                                    <!-- Top Right Action Icons (TTS + Copy) -->
+                                    <div class="absolute top-2.5 right-2.5 flex items-center gap-1">
+                                        <!-- Copy Button -->
+                                        <button (click)="copyMessageText(msg)"
+                                                class="w-6 h-6 rounded-md bg-white/5 hover:bg-white/15 text-text-primary/60 hover:text-cyan-400 flex items-center justify-center text-[10px] transition-colors cursor-pointer"
+                                                [title]="copiedMessageId() === msg.id ? 'Copied to clipboard!' : 'Copy response'">
+                                            <i class="fas" [ngClass]="copiedMessageId() === msg.id ? 'fa-check text-emerald-400' : 'fa-copy'"></i>
+                                        </button>
+
+                                        <!-- TTS Speaker Button -->
+                                        <button (click)="toggleSpeak(msg)"
+                                                class="w-6 h-6 rounded-md bg-white/5 hover:bg-white/15 text-text-primary/60 hover:text-cyan-400 flex items-center justify-center text-[10px] transition-colors cursor-pointer"
+                                                [title]="isSpeaking() && activeSpeakingId() === msg.id ? 'Stop reading' : 'Read aloud'">
+                                            <i class="fas" [ngClass]="isSpeaking() && activeSpeakingId() === msg.id ? 'fa-stop text-cyan-400 animate-pulse' : 'fa-volume-high'"></i>
+                                        </button>
+                                    </div>
 
                                     <!-- Content -->
-                                    <div class="pr-6" [innerHTML]="formatContent(msg.content)"></div>
+                                    <div class="pr-14" [innerHTML]="formatContent(msg.content)"></div>
 
                                     <!-- Action Buttons if available -->
                                     @if (msg.actions && msg.actions.length > 0) {
@@ -128,6 +169,18 @@
                                         </div>
                                     }
                                 </div>
+
+                                <!-- Dynamic Follow-Up Suggested Prompt Chips -->
+                                @if (msg.suggested_prompts && msg.suggested_prompts.length > 0) {
+                                    <div class="flex flex-wrap gap-1.5 mt-2 ml-1">
+                                        @for (sp of msg.suggested_prompts; track sp) {
+                                            <button (click)="sendQuickPrompt(sp)"
+                                                    class="text-[10px] font-bold px-2.5 py-1 rounded-full border border-indigo-500/30 text-indigo-400 bg-indigo-500/5 hover:bg-indigo-500/20 hover:border-indigo-500/60 transition-all text-left cursor-pointer">
+                                                <i class="fas fa-sparkles text-[9px] mr-1"></i>{{ sp }}
+                                            </button>
+                                        }
+                                    </div>
+                                }
 
                                 <!-- Timestamp -->
                                 <span class="text-[9px] text-text-primary/40 ml-1 mt-1 block">
@@ -299,9 +352,9 @@
             <i class="fas" [ngClass]="isRecording() ? 'fa-microphone-lines' : 'fa-microphone'"></i>
         </button>
 
-        <!-- Text Input -->
-        <input type="text" [value]="userInput()" (input)="userInput.set($any($event.target).value)" (keydown)="onKeyDown($event)"
-               placeholder="Ask anything or command AI..."
+        <!-- Text Input with Paste listener -->
+        <input type="text" [value]="userInput()" (input)="userInput.set($any($event.target).value)" (keydown)="onKeyDown($event)" (paste)="onPaste($event)"
+               placeholder="Ask anything, command AI, or paste screenshots..."
                class="flex-1 bg-bg-tertiary text-text-primary text-xs sm:text-sm rounded-full px-4 py-2.5 border border-border-primary outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-text-primary/30">
 
         <!-- Send Button -->

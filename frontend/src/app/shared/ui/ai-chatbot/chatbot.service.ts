@@ -30,7 +30,18 @@ export interface ChatMessage {
     data?: any;
     actions?: ChatAction[];
     attachment?: ChatAttachment;
+    suggested_prompts?: string[];
     type?: 'text' | 'student-list' | 'kpi-summary' | 'error' | 'markdown' | 'action';
+}
+
+export type AIMode = 'general' | 'lesson_planner' | 'quiz_generator' | 'remarks' | 'parent_notice' | 'analytics';
+
+export interface AIModeOption {
+    id: AIMode;
+    label: string;
+    icon: string;
+    badge: string;
+    description: string;
 }
 
 export interface Intent {
@@ -940,6 +951,15 @@ export class ChatbotService {
         "Welcome! How can I assist with your institutional operations or analytics today?",
     ];
 
+    readonly modeOptions: AIModeOption[] = [
+        { id: 'general', label: 'All-Round Copilot', icon: 'fa-wand-magic-sparkles', badge: 'Auto', description: 'Institutional navigation, RAG search & live stats' },
+        { id: 'lesson_planner', label: 'Lesson Planner', icon: 'fa-book-open-reader', badge: 'Pedagogy', description: 'Curriculum lesson plans, schemes of work & 5E model' },
+        { id: 'quiz_generator', label: 'Quiz & Exam Maker', icon: 'fa-file-signature', badge: 'Assessment', description: 'Generate MCQs, exam questions, and answer keys' },
+        { id: 'remarks', label: 'Report Remarks', icon: 'fa-pen-nib', badge: 'Terminal', description: 'Personalized terminal academic and conduct remarks' },
+        { id: 'parent_notice', label: 'Parent Broadcast', icon: 'fa-bullhorn', badge: 'SMS', description: 'Draft parent SMS, fee notices, and circulars' },
+        { id: 'analytics', label: 'Fiscal & Retention', icon: 'fa-chart-pie', badge: 'Executive', description: 'Debtors analysis, fee collections, and retention risks' }
+    ];
+
     getGreeting(): ChatMessage {
         const idx = Math.floor(Math.random() * this.greetings.length);
         return {
@@ -951,7 +971,58 @@ export class ChatbotService {
         };
     }
 
+    getModePrompts(mode: AIMode, currentUrl: string): string[] {
+        switch (mode) {
+            case 'lesson_planner':
+                return [
+                    "Draft a JHS 2 Science Lesson Plan on Photosynthesis",
+                    "Create a SHS 1 Core Mathematics Lesson Plan on Quadratic Equations",
+                    "Design a 5E Instructional Plan for Primary English Grammar",
+                    "Generate Bloom's Taxonomy learning objectives for Social Studies"
+                ];
+            case 'quiz_generator':
+                return [
+                    "Generate 5 Multiple-Choice Questions on ICT & Computer Networking",
+                    "Create 10 BECE-standard Science revision questions with answers",
+                    "Draft a 4-question Math test with step-by-step marking scheme",
+                    "Create 5 French comprehension questions with English translation"
+                ];
+            case 'remarks':
+                return [
+                    "Draft 5 encouraging report card remarks for excellent students",
+                    "Write constructive remarks for a student struggling in Mathematics",
+                    "Draft terminal conduct remarks for an active but talkative student",
+                    "Generate report remarks for an improving average student"
+                ];
+            case 'parent_notice':
+                return [
+                    "Draft an SMS notice for upcoming Mid-Term PTA Meeting",
+                    "Generate a courteous fee arrears reminder SMS to parents",
+                    "Draft an urgent school closure & reopening notice",
+                    "Create an invitation letter for Speech & Prize Giving Day"
+                ];
+            case 'analytics':
+                return [
+                    "Show early-warning retention risk watchlist",
+                    "Who owes outstanding fee arrears?",
+                    "What is the average attendance rate this term?",
+                    "Summarize total revenue and bill collections"
+                ];
+            case 'general':
+            default:
+                return this.getRoutePrompts(currentUrl);
+        }
+    }
+
     getRoutePrompts(currentUrl: string): string[] {
+        if (currentUrl.includes('/admission') || currentUrl.includes('/students/admission-form')) {
+            return [
+                "How to print 2-page admission form",
+                "How to scan handwritten student form",
+                "Required admission enclosures checklist",
+                "Show student directory"
+            ];
+        }
         if (currentUrl.includes('/students')) {
             return [
                 "Show at-risk students",
@@ -972,8 +1043,8 @@ export class ChatbotService {
             return [
                 "What is the average GPA?",
                 "How to enter student grades",
-                "Show course demand projections",
-                "How to set up exams"
+                "Draft 5 math quiz questions",
+                "Write report card remarks"
             ];
         }
         if (currentUrl.includes('/hr') || currentUrl.includes('/staff')) {
@@ -1012,9 +1083,9 @@ export class ChatbotService {
         return [
             "Show school overview",
             "Show at-risk students",
+            "Draft a lesson plan",
             "What is the attendance rate?",
-            "Show revenue summary",
-            "Help with system features"
+            "How to print admission form"
         ];
     }
 
@@ -1071,6 +1142,7 @@ export class ChatbotService {
                 }));
 
                 const actionType: ChatMessage['type'] = actions.length > 0 ? 'action' : 'markdown';
+                const suggestedPrompts = Array.isArray(res?.suggested_prompts) ? res.suggested_prompts : undefined;
 
                 return {
                     id: crypto.randomUUID(),
@@ -1078,6 +1150,7 @@ export class ChatbotService {
                     content: responseContent,
                     data: res?.kpis || res?.data_points || res?.data,
                     actions: actions.length > 0 ? actions : undefined,
+                    suggested_prompts: suggestedPrompts,
                     timestamp: new Date(),
                     type: actionType,
                 };
