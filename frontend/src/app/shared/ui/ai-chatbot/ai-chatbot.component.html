@@ -1,36 +1,22 @@
 @if (isAuthorized()) {
-<!-- Floating AI Assistant Trigger Bubble -->
-<button (click)="toggle()"
-    class="fixed bottom-5 z-40 w-13 h-13 sm:w-14 sm:h-14 rounded-2xl sm:rounded-3xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-500 hover:from-violet-500 hover:via-indigo-500 hover:to-cyan-400 text-white shadow-xl hover:shadow-2xl shadow-indigo-500/25 flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-300 border-2 border-white/30 dark:border-white/20 cursor-pointer group"
-    [ngClass]="isOnMessagingHub() ? 'right-5' : 'right-20 sm:right-22'"
-    title="School Intelligence (Gemini AI Assistant)">
-    @if (!isOpen()) {
-        <i class="fas fa-wand-magic-sparkles text-lg transition-transform group-hover:scale-110"></i>
-        <!-- AI Chip Badge -->
-        <span class="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-cyan-400 text-slate-950 text-[9px] font-black tracking-wider shadow-sm ring-2 ring-white dark:ring-bg-primary">
-            AI
-        </span>
-        <!-- Pulse ring -->
-        <span class="absolute inset-0 rounded-2xl sm:rounded-3xl bg-indigo-500 opacity-40 animate-ping pointer-events-none"></span>
-    } @else {
-        <i class="fas fa-xmark text-lg transition-transform group-hover:rotate-90"></i>
-    }
-</button>
-
 <!-- Hidden File Picker for Multi-Modal Attachments -->
 <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*,.pdf,.csv,.txt,.docx" class="hidden" />
 
 <!-- Hidden File Picker for Admission Form OCR -->
 <input #admissionScanInput type="file" (change)="onAdmissionScanFileSelected($event)" accept="image/*,.pdf" class="hidden" />
 
-<!-- Chat Panel / Modal Dialog -->
-@if (isOpen()) {
-<div (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)"
-     class="fixed z-[100] flex flex-col rounded-3xl border border-border-primary overflow-hidden shadow-2xl shadow-black/50 transition-all duration-300 animate-slide-up relative"
-     [ngClass]="isExpanded() 
-        ? 'inset-4 sm:inset-8 md:inset-12 max-w-5xl max-h-[90vh] m-auto' 
-        : 'bottom-20 sm:bottom-22 right-4 sm:right-6 w-[410px] sm:w-[470px] max-w-[calc(100vw-2rem)] h-[590px] max-h-[calc(100vh-6.5rem)]'"
-     style="background: var(--bg-secondary); backdrop-filter: blur(20px);">
+<!-- Floating AI Chatbot Container (Fixed at viewport bottom right, stacked above its trigger button) -->
+<div class="fixed bottom-5 z-50 flex flex-col items-end pointer-events-none select-none font-sans"
+     [ngClass]="isOnMessagingHub() ? 'right-5' : 'right-20 sm:right-22'">
+
+    <!-- 1. Floating AI Assistant Popup Window -->
+    @if (isOpen()) {
+    <div (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)"
+         class="pointer-events-auto mb-3 select-auto flex flex-col rounded-3xl border border-border-primary overflow-hidden shadow-2xl shadow-black/50 transition-all duration-300 animate-slide-up ring-1 ring-black/5 dark:ring-white/10"
+         [ngClass]="isExpanded() 
+            ? 'fixed inset-4 sm:inset-8 md:inset-12 max-w-5xl max-h-[90vh] m-auto z-[100]' 
+            : 'w-[390px] sm:w-[440px] max-w-[calc(100vw-2rem)] h-[560px] sm:h-[600px] max-h-[calc(100vh-6.5rem)] relative'"
+         style="background: var(--bg-secondary); backdrop-filter: blur(20px);">
 
     <!-- Drag & Drop Overlay Zone -->
     @if (isDragging()) {
@@ -570,6 +556,24 @@
     </div>
 </div>
 }
+
+    <!-- 2. Floating AI Assistant Trigger Bubble -->
+    <button (click)="toggle()"
+        class="pointer-events-auto w-13 h-13 sm:w-14 sm:h-14 rounded-2xl sm:rounded-3xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-500 hover:from-violet-500 hover:via-indigo-500 hover:to-cyan-400 text-white shadow-xl hover:shadow-2xl shadow-indigo-500/25 flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-300 border-2 border-white/30 dark:border-white/20 cursor-pointer group relative"
+        title="School Intelligence (Gemini AI Assistant)">
+        @if (!isOpen()) {
+            <i class="fas fa-wand-magic-sparkles text-lg transition-transform group-hover:scale-110"></i>
+            <!-- AI Chip Badge -->
+            <span class="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-cyan-400 text-slate-950 text-[9px] font-black tracking-wider shadow-sm ring-2 ring-white dark:ring-bg-primary">
+                AI
+            </span>
+            <!-- Pulse ring -->
+            <span class="absolute inset-0 rounded-2xl sm:rounded-3xl bg-indigo-500 opacity-40 animate-ping pointer-events-none"></span>
+        } @else {
+            <i class="fas fa-xmark text-lg transition-transform group-hover:rotate-90"></i>
+        }
+    </button>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════════════
      ADMISSION OCR REVIEW & VERIFICATION MODAL DIALOG
