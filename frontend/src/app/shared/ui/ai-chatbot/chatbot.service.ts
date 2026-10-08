@@ -990,6 +990,14 @@ export class ChatbotService {
             content: this.greetings[idx],
             timestamp: new Date(),
             type: 'text',
+            suggested_prompts: [
+                "📊 Show attendance & fee arrears breakdown",
+                "📝 Draft a JHS Science lesson plan (Printable)",
+                "📄 Generate a 10-question math exam paper",
+                "📋 Quick class attendance roll-call",
+                "📢 Broadcast urgent SMS to parents",
+                "📷 Scan handwritten admission form"
+            ],
         };
     }
 

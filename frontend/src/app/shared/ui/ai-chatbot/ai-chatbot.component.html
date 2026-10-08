@@ -29,7 +29,7 @@
      class="fixed z-[100] flex flex-col rounded-3xl border border-border-primary overflow-hidden shadow-2xl shadow-black/50 transition-all duration-300 animate-slide-up relative"
      [ngClass]="isExpanded() 
         ? 'inset-4 sm:inset-8 md:inset-12 max-w-5xl max-h-[90vh] m-auto' 
-        : 'bottom-22 sm:bottom-24 right-4 sm:right-6 w-[390px] sm:w-[450px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-7.5rem)]'"
+        : 'bottom-20 sm:bottom-22 right-4 sm:right-6 w-[410px] sm:w-[470px] max-w-[calc(100vw-2rem)] h-[590px] max-h-[calc(100vh-6.5rem)]'"
      style="background: var(--bg-secondary); backdrop-filter: blur(20px);">
 
     <!-- Drag & Drop Overlay Zone -->
@@ -44,19 +44,21 @@
     }
 
     <!-- Header -->
-    <div class="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-border-primary flex items-center gap-3 flex-shrink-0 bg-gradient-to-r from-violet-700 via-indigo-600 to-cyan-700 text-white shadow-md">
-        <div class="w-9 h-9 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center text-white text-sm shadow-sm flex-shrink-0">
-            <i class="fas fa-wand-magic-sparkles"></i>
-        </div>
-        <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2">
-                <h3 class="text-xs sm:text-sm font-black truncate leading-tight tracking-tight">School Intelligence</h3>
-                <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-white/20 text-cyan-200 border border-white/20">Gemini 2.5</span>
+    <div class="px-4 py-3 sm:px-5 sm:py-3.5 border-b border-border-primary flex items-center justify-between gap-2.5 flex-shrink-0 bg-gradient-to-r from-violet-700 via-indigo-600 to-cyan-700 text-white shadow-md">
+        <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center text-white text-xs shadow-sm flex-shrink-0">
+                <i class="fas fa-wand-magic-sparkles"></i>
             </div>
-            <p class="text-[10px] text-white/80 font-semibold uppercase tracking-wider truncate leading-tight mt-0.5">Live Data Grounding & Neural Copilot</p>
+            <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                    <h3 class="text-xs sm:text-sm font-black truncate leading-tight tracking-tight">School Intelligence</h3>
+                    <span class="px-1.5 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider bg-white/20 text-cyan-200 border border-white/20">Gemini 2.5</span>
+                </div>
+                <p class="text-[9.5px] text-white/80 font-semibold uppercase tracking-wider truncate leading-tight mt-0.5">Live Data Grounding & Neural Copilot</p>
+            </div>
         </div>
 
-        <div class="flex items-center gap-1.5 sm:gap-2">
+        <div class="flex items-center gap-1 flex-shrink-0">
             <!-- Continuous Two-Way Voice Mode Call Toggle -->
             <button (click)="toggleTwoWayVoiceMode()"
                     class="px-2 py-1 rounded-lg border flex items-center gap-1.5 text-[10px] font-bold transition-all cursor-pointer shadow-xs"
@@ -66,14 +68,6 @@
                     [title]="isTwoWayVoiceMode() ? 'End continuous two-way voice conversation' : 'Start hands-free Two-Way Voice Conversation'">
                 <i class="fas" [ngClass]="isTwoWayVoiceMode() ? 'fa-headset animate-bounce' : 'fa-headset'"></i>
                 <span class="hidden sm:inline">{{ isTwoWayVoiceMode() ? 'Live Voice' : 'Voice Call' }}</span>
-            </button>
-
-            <!-- Scan Admission Form Quick Action -->
-            <button (click)="triggerAdmissionScan()"
-                    class="px-2 py-1 rounded-lg bg-cyan-400/20 hover:bg-cyan-400/30 text-cyan-200 border border-cyan-300/30 flex items-center gap-1 text-[10px] font-bold transition-all cursor-pointer shadow-xs"
-                    title="Scan handwritten or printed admission form with AI OCR">
-                <i class="fas fa-camera text-[9px]"></i>
-                <span class="hidden sm:inline">Scan Form</span>
             </button>
 
             <!-- Sound Toggle -->
@@ -106,7 +100,7 @@
 
             <!-- Close Button -->
             <button (click)="close()"
-                    class="w-7 h-7 rounded-lg bg-rose-500/30 hover:bg-rose-500/50 flex items-center justify-center text-white text-xs transition-colors cursor-pointer ml-1"
+                    class="w-7 h-7 rounded-lg bg-rose-500/30 hover:bg-rose-500/50 flex items-center justify-center text-white text-xs transition-colors cursor-pointer ml-0.5"
                     title="Close">
                 <i class="fas fa-times"></i>
             </button>
