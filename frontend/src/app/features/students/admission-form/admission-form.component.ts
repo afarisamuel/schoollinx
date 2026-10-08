@@ -197,6 +197,7 @@ export class AdmissionFormComponent implements OnInit {
         this.studentId.set(id);
         this.loadStudent(id);
       } else {
+        this.isFormBlank.set(true);
         this.isLoading.set(false);
       }
     });
@@ -338,7 +339,11 @@ export class AdmissionFormComponent implements OnInit {
     if (id) {
       this.router.navigate(['/students/details', id]);
     } else {
-      this.router.navigate(['/students']);
+      if (typeof window !== 'undefined' && window.history.length > 1) {
+        window.history.back();
+      } else {
+        this.router.navigate(['/students']);
+      }
     }
   }
 }

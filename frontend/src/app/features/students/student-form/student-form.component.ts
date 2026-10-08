@@ -35,6 +35,13 @@ export class StudentFormComponent implements OnInit {
     classes = signal<Class[]>([]);
     scholasticLevels = signal<ScholasticLevel[]>([]);
 
+    // AI Document Scanner & Handwritten Form OCR
+    isScanModalOpen = signal(false);
+    isScanning = signal(false);
+    scanPreviewUrl = signal<string | null>(null);
+    scanResult = signal<any | null>(null);
+    scanError = signal<string>('');
+
     // Active Section / Tab for Navigation
     activeSection = signal<'identity' | 'academic' | 'family' | 'health'>('identity');
 
@@ -164,6 +171,12 @@ export class StudentFormComponent implements OnInit {
                 this.isEditMode = true;
                 this.studentId = id;
                 this.loadStudentData(this.studentId);
+            }
+        });
+
+        this.route.queryParams.subscribe(params => {
+            if (params['scan'] === 'true' || params['scan'] === '1') {
+                this.openScanModal();
             }
         });
     }
@@ -571,6 +584,100 @@ export class StudentFormComponent implements OnInit {
             error: (err) => {
                 this.isSubmitting.set(false);
                 this.errorMessage.set(err?.error?.error || 'An error occurred while saving the candidate record.');
+                setTimeout(() => this.errorMessage.set(''), 5000);
+            }
+        });
+    }
+
+    // ── AI Handwritten Form Scanner & Digitizer ───────────────
+    openScanModal() {
+        this.isScanModalOpen.set(true);
+        this.scanError.set('');
+    }
+
+    closeScanModal() {
+        this.isScanModalOpen.set(false);
+        this.scanResult.set(null);
+        this.scanPreviewUrl.set(null);
+    }
+
+    onScanFileSelected(event: any) {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            this.scanPreviewUrl.set(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+
+        this.processAdmissionScan(file);
+    }
+
+    processAdmissionScan(file: File | Blob) {
+        this.isScanning.set(true);
+        this.scanError.set('');
+        this.studentService.scanAdmissionForm(file, false).subscribe({
+            next: (res) => {
+                this.isScanning.set(false);
+                this.scanResult.set(res);
+            },
+            error: (err) => {
+                this.isScanning.set(false);
+                this.scanError.set(err.error?.error || 'Failed to analyze admission document. Please verify image clarity and orientation.');
+            }
+        });
+    }
+
+    applyScanToForm(extracted: any) {
+        if (!extracted) return;
+        this.studentForm.patchValue({
+            first_name: extracted.first_name || '',
+            last_name: extracted.last_name || '',
+            other_name: extracted.other_name || '',
+            gender: extracted.gender || '',
+            dob: extracted.dob || '',
+            phone_number: extracted.phone_number || '',
+            address: extracted.address || '',
+            level: extracted.level || null,
+            placed_residence_type: extracted.placed_residence_type || 'Day',
+            father_name: extracted.father_name || '',
+            father_phone: extracted.father_phone || '',
+            father_email: extracted.father_email || '',
+            father_occupation: extracted.father_occupation || '',
+            mother_name: extracted.mother_name || '',
+            mother_phone: extracted.mother_phone || '',
+            mother_email: extracted.mother_email || '',
+            mother_occupation: extracted.mother_occupation || '',
+            guardian_name: extracted.guardian_name || '',
+            guardian_phone: extracted.guardian_phone || '',
+            guardian_email: extracted.guardian_email || '',
+            guardian_relation: extracted.guardian_relation || 'Parent',
+            emergency_contact_name: extracted.emergency_contact_name || '',
+            emergency_contact_phone: extracted.emergency_contact_phone || '',
+            blood_group: extracted.blood_group || '',
+            allergies: extracted.allergies || '',
+            health_conditions: extracted.health_conditions || '',
+        });
+        this.closeScanModal();
+        this.successMessage.set('Handwritten admission form successfully parsed! Candidate particulars and parent contacts loaded.');
+        setTimeout(() => this.successMessage.set(''), 6000);
+    }
+
+    autoEnrollFromScan(extracted: any) {
+        if (!extracted) return;
+        this.isSubmitting.set(true);
+        this.applyScanToForm(extracted);
+        
+        // Immediately trigger candidate creation which also auto-provisions parent/guardian accounts
+        this.studentService.createStudent(this.studentForm.value).subscribe({
+            next: (res: any) => {
+                this.isSubmitting.set(false);
+                this.router.navigate(['/students/details', res.id]);
+            },
+            error: (err) => {
+                this.isSubmitting.set(false);
+                this.errorMessage.set(err?.error?.error || 'Failed to auto-enroll candidate.');
                 setTimeout(() => this.errorMessage.set(''), 5000);
             }
         });

@@ -126,4 +126,20 @@ export class StudentService {
             next_class_id: nextClassId
         });
     }
+
+    scanAdmissionForm(file: File | Blob, autoEnroll: boolean = false): Observable<{
+        success: boolean;
+        confidence_score: number;
+        detected_fields_count: number;
+        extracted_data: any;
+        field_confidence: Record<string, number>;
+        is_auto_enrolled?: boolean;
+        student?: Student;
+        student_id?: string;
+        message: string;
+    }> {
+        const form = new FormData();
+        form.append('file', file);
+        return this.http.post<any>(`${this.apiUrl}/scan-admission-form?auto_enroll=${autoEnroll}`, form);
+    }
 }

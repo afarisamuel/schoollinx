@@ -87,6 +87,11 @@ export class NavbarComponent {
     return 'ADMIN';
   }
 
+  isAdminOrTeacher(): boolean {
+    const role = this.authService.currentUserValue?.role;
+    return role === 'ADMIN' || role === 'TEACHER';
+  }
+
   toggleFullscreen(): void {
     if (!isPlatformBrowser(this.platformId)) return;
     if (!document.fullscreenElement) {

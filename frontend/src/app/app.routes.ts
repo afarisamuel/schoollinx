@@ -50,6 +50,22 @@ export const publicRoutes: Routes = [
         redirectTo: 'pay/:id',
         pathMatch: 'full'
     },
+    {
+        path: 'admission-form',
+        loadComponent: () => import('./features/students/admission-form/admission-form.component').then(m => m.AdmissionFormComponent)
+    },
+    {
+        path: 'admission-form/:id',
+        loadComponent: () => import('./features/students/admission-form/admission-form.component').then(m => m.AdmissionFormComponent)
+    },
+    {
+        path: 'students/admission-form',
+        loadComponent: () => import('./features/students/admission-form/admission-form.component').then(m => m.AdmissionFormComponent)
+    },
+    {
+        path: 'students/admission-form/:id',
+        loadComponent: () => import('./features/students/admission-form/admission-form.component').then(m => m.AdmissionFormComponent)
+    },
     { path: '**', redirectTo: '' }
 ];
 
@@ -311,6 +327,22 @@ export const tenantRoutes: Routes = [
         path: 'checkout/:id',
         redirectTo: 'pay/:id',
         pathMatch: 'full'
+    },
+    {
+        path: 'admission-form',
+        loadComponent: () => import('./features/students/admission-form/admission-form.component').then(m => m.AdmissionFormComponent)
+    },
+    {
+        path: 'admission-form/:id',
+        loadComponent: () => import('./features/students/admission-form/admission-form.component').then(m => m.AdmissionFormComponent)
+    },
+    {
+        path: 'students/admission-form',
+        loadComponent: () => import('./features/students/admission-form/admission-form.component').then(m => m.AdmissionFormComponent)
+    },
+    {
+        path: 'students/admission-form/:id',
+        loadComponent: () => import('./features/students/admission-form/admission-form.component').then(m => m.AdmissionFormComponent)
     },
     { path: '**', redirectTo: '' }
 ];

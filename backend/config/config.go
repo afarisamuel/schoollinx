@@ -37,6 +37,8 @@ type Config struct {
 	FCMCredentialsJSON         string
 	PushWorkerIntervalSec      int
 	PushWorkerRateLimit        int
+	GeminiAPIKey               string
+	OpenAIAPIKey               string
 }
 
 func LoadConfig() *Config {
@@ -161,6 +163,16 @@ func LoadConfig() *Config {
 			}
 			return 10
 		}(),
+		GeminiAPIKey: func() string {
+			if k := os.Getenv("GEMINI_API_KEY"); k != "" {
+				return k
+			}
+			if k := os.Getenv("GOOGLE_API_KEY"); k != "" {
+				return k
+			}
+			return os.Getenv("AI_API_KEY")
+		}(),
+		OpenAIAPIKey: os.Getenv("OPENAI_API_KEY"),
 	}
 }
 
