@@ -57,6 +57,17 @@
         </div>
 
         <div class="flex items-center gap-1.5 sm:gap-2">
+            <!-- Continuous Two-Way Voice Mode Call Toggle -->
+            <button (click)="toggleTwoWayVoiceMode()"
+                    class="px-2 py-1 rounded-lg border flex items-center gap-1.5 text-[10px] font-bold transition-all cursor-pointer shadow-xs"
+                    [ngClass]="isTwoWayVoiceMode() 
+                        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-emerald-300 animate-pulse shadow-emerald-500/30' 
+                        : 'bg-white/15 hover:bg-white/25 text-white border-white/20'"
+                    [title]="isTwoWayVoiceMode() ? 'End continuous two-way voice conversation' : 'Start hands-free Two-Way Voice Conversation'">
+                <i class="fas" [ngClass]="isTwoWayVoiceMode() ? 'fa-headset animate-bounce' : 'fa-headset'"></i>
+                <span class="hidden sm:inline">{{ isTwoWayVoiceMode() ? 'Live Voice' : 'Voice Call' }}</span>
+            </button>
+
             <!-- Scan Admission Form Quick Action -->
             <button (click)="triggerAdmissionScan()"
                     class="px-2 py-1 rounded-lg bg-cyan-400/20 hover:bg-cyan-400/30 text-cyan-200 border border-cyan-300/30 flex items-center gap-1 text-[10px] font-bold transition-all cursor-pointer shadow-xs"
@@ -102,7 +113,27 @@
         </div>
     </div>
 
-    <!-- Specialized AI Focus Mode Pills & Direct Scan Action -->
+    <!-- Live Two-Way Voice Audio Wave Visualizer Overlay Bar -->
+    @if (isTwoWayVoiceMode()) {
+        <div class="px-4 py-2 bg-gradient-to-r from-emerald-950/80 via-teal-950/80 to-slate-900 border-b border-emerald-500/30 flex items-center justify-between text-xs text-emerald-300 animate-fade-in flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="flex items-center gap-1 h-3.5">
+                    <span class="w-1 bg-emerald-400 rounded-full animate-bounce" style="height: 14px; animation-delay: 0ms"></span>
+                    <span class="w-1 bg-teal-300 rounded-full animate-bounce" style="height: 10px; animation-delay: 150ms"></span>
+                    <span class="w-1 bg-cyan-400 rounded-full animate-bounce" style="height: 16px; animation-delay: 300ms"></span>
+                    <span class="w-1 bg-emerald-300 rounded-full animate-bounce" style="height: 8px; animation-delay: 450ms"></span>
+                </div>
+                <span class="font-bold text-[11px] tracking-wide">
+                    {{ isSpeaking() ? 'Copilot Speaking...' : (isRecording() ? 'Listening for your voice...' : 'Hands-Free Voice Active') }}
+                </span>
+            </div>
+            <button (click)="toggleTwoWayVoiceMode()" class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 hover:bg-rose-500/30 text-emerald-200 hover:text-rose-200 border border-emerald-400/30 transition-all cursor-pointer">
+                End Call
+            </button>
+        </div>
+    }
+
+    <!-- Specialized AI Focus Mode Pills & Direct Actions -->
     <div class="px-3.5 py-2 border-b border-border-primary/70 flex items-center gap-1.5 overflow-x-auto flex-shrink-0 no-scrollbar bg-bg-tertiary/60">
         <!-- Direct Scan Form Button Pill -->
         <button (click)="triggerAdmissionScan()"
@@ -110,6 +141,22 @@
                 title="Scan Admission Document">
             <i class="fas fa-camera text-[10px]"></i>
             <span>Scan Admission Form</span>
+        </button>
+
+        <!-- Direct Quick Roll-Call Pill -->
+        <button (click)="openRollCallModal()"
+                class="flex-shrink-0 px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                title="Quick Class Attendance Roll-Call">
+            <i class="fas fa-clipboard-check text-[10px]"></i>
+            <span>Roll-Call</span>
+        </button>
+
+        <!-- Direct Broadcast SMS Pill -->
+        <button (click)="openSmsBroadcastModal()"
+                class="flex-shrink-0 px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-violet-500/15 text-violet-300 border border-violet-500/30 hover:bg-violet-500/25 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                title="Send Broadcast SMS">
+            <i class="fas fa-paper-plane text-[10px]"></i>
+            <span>Broadcast SMS</span>
         </button>
 
         @for (mode of modeOptions; track mode.id) {
@@ -160,8 +207,17 @@
                                 <div class="rounded-2xl rounded-tl-sm px-4 py-3 text-xs sm:text-sm text-text-primary border border-border-primary leading-relaxed shadow-sm relative group"
                                      style="background: var(--bg-tertiary);">
                                     
-                                    <!-- Top Right Action Icons (TTS + Copy) -->
+                                    <!-- Top Right Action Icons (TTS + Print + Copy) -->
                                     <div class="absolute top-2.5 right-2.5 flex items-center gap-1">
+                                        <!-- Print Document Button (if printable) -->
+                                        @if (msg.printableDoc) {
+                                            <button (click)="printOrExportDocument(msg.printableDoc.type, msg.printableDoc.title, msg.content)"
+                                                    class="w-6 h-6 rounded-md bg-white/5 hover:bg-white/15 text-text-primary/60 hover:text-emerald-400 flex items-center justify-center text-[10px] transition-colors cursor-pointer"
+                                                    title="Print / Export PDF">
+                                                <i class="fas fa-print"></i>
+                                            </button>
+                                        }
+
                                         <!-- Copy Button -->
                                         <button (click)="copyMessageText(msg)"
                                                 class="w-6 h-6 rounded-md bg-white/5 hover:bg-white/15 text-text-primary/60 hover:text-cyan-400 flex items-center justify-center text-[10px] transition-colors cursor-pointer"
@@ -178,22 +234,28 @@
                                     </div>
 
                                     <!-- Content -->
-                                    <div class="pr-14" [innerHTML]="formatContent(msg.content)"></div>
+                                    <div class="pr-16" [innerHTML]="formatContent(msg.content)"></div>
 
                                     <!-- Action Buttons if available -->
                                     @if (msg.actions && msg.actions.length > 0) {
                                         <div class="mt-3 pt-2.5 border-t border-border-primary/60 flex flex-wrap gap-2">
                                             @for (action of msg.actions; track action.label) {
-                                                <button (click)="executeAction(action)"
+                                                <button (click)="executeAction(action, msg)"
                                                         class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white text-xs font-semibold shadow-sm hover:shadow active:scale-95 transition-all cursor-pointer">
-                                                    @if (action.action_type === 'NAVIGATE') {
+                                                    @if (action.icon) {
+                                                        <i [class]="'fas ' + action.icon + ' text-[10px]'"></i>
+                                                    } @else if (action.action_type === 'NAVIGATE') {
                                                         <i class="fas fa-arrow-right text-[10px]"></i>
                                                     } @else if (action.action_type === 'EXPORT_CSV') {
                                                         <i class="fas fa-file-csv text-[10px]"></i>
-                                                    } @else if (action.action_type === 'GENERATE_PDF') {
+                                                    } @else if (action.action_type === 'GENERATE_PDF' || action.action_type === 'PRINT_DOCUMENT') {
                                                         <i class="fas fa-file-pdf text-[10px]"></i>
                                                     } @else if (action.action_type === 'SCAN_ADMISSION') {
                                                         <i class="fas fa-camera text-[10px]"></i>
+                                                    } @else if (action.action_type === 'TRIGGER_SMS_BROADCAST') {
+                                                        <i class="fas fa-paper-plane text-[10px]"></i>
+                                                    } @else if (action.action_type === 'TRIGGER_ROLLCALL_MODAL') {
+                                                        <i class="fas fa-clipboard-check text-[10px]"></i>
                                                     } @else {
                                                         <i class="fas fa-bolt text-[10px]"></i>
                                                     }
@@ -203,6 +265,121 @@
                                         </div>
                                     }
                                 </div>
+
+                                <!-- ════════════════════════════════════════════════════════
+                                     INTERACTIVE SVG CHARTS & VISUAL ANALYTICS
+                                ════════════════════════════════════════════════════════ -->
+                                @if (msg.chart) {
+                                    <div class="rounded-2xl border border-border-primary overflow-hidden shadow-sm p-4 space-y-3" style="background: var(--bg-tertiary);">
+                                        <!-- Chart Header -->
+                                        <div class="flex items-center justify-between border-b border-border-primary/60 pb-2">
+                                            <div>
+                                                <h4 class="text-xs font-bold text-text-primary flex items-center gap-1.5">
+                                                    <i class="fas fa-chart-simple text-cyan-400"></i>
+                                                    {{ msg.chart.title }}
+                                                </h4>
+                                                @if (msg.chart.subtitle) {
+                                                    <p class="text-[10px] text-text-primary/60">{{ msg.chart.subtitle }}</p>
+                                                }
+                                            </div>
+                                            @if (msg.chart.meta?.badge) {
+                                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
+                                                    {{ msg.chart.meta?.badge }}
+                                                </span>
+                                            }
+                                        </div>
+
+                                        <!-- 1. Bar Chart -->
+                                        @if (msg.chart.type === 'bar' && msg.chart.datasets[0]) {
+                                            <div class="pt-2">
+                                                <div class="flex items-end justify-between gap-2 h-28 px-1 pb-1 border-b border-border-primary/40">
+                                                    @for (val of msg.chart.datasets[0].data; track $index) {
+                                                        <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group cursor-pointer">
+                                                            <span class="text-[9px] font-bold text-cyan-300 opacity-80 group-hover:opacity-100 transition-opacity">
+                                                                {{ val }}
+                                                            </span>
+                                                            <div class="w-full max-w-[32px] rounded-t-lg bg-gradient-to-t from-indigo-600 to-cyan-500 group-hover:from-indigo-500 group-hover:to-cyan-400 transition-all duration-300 shadow-sm"
+                                                                 [style.height.%]="getBarHeight(val, getMaxValue(msg.chart.datasets[0].data))">
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                                <div class="flex justify-between gap-2 mt-1.5 px-1">
+                                                    @for (lbl of msg.chart.labels; track $index) {
+                                                        <span class="flex-1 text-[8.5px] font-medium text-text-primary/60 text-center truncate" [title]="lbl">
+                                                            {{ lbl }}
+                                                        </span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+
+                                        <!-- 2. Line / Trend Area Chart -->
+                                        @if (msg.chart.type === 'line' && msg.chart.datasets[0]) {
+                                            <div class="pt-2">
+                                                <div class="relative h-28 w-full overflow-hidden">
+                                                    <svg class="w-full h-full" viewBox="0 0 320 120" preserveAspectRatio="none">
+                                                        <defs>
+                                                            <linearGradient id="chartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                                <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.4" />
+                                                                <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.0" />
+                                                            </linearGradient>
+                                                        </defs>
+                                                        <!-- Area Fill -->
+                                                        <path [attr.d]="getLineAreaPath(msg.chart.datasets[0].data)" fill="url(#chartGrad)" />
+                                                        <!-- Line Stroke -->
+                                                        <path [attr.d]="getLinePath(msg.chart.datasets[0].data)" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                                                    </svg>
+                                                </div>
+                                                <div class="flex justify-between gap-2 mt-1 px-1">
+                                                    @for (lbl of msg.chart.labels; track $index) {
+                                                        <div class="flex-1 text-center">
+                                                            <span class="block text-[8.5px] font-medium text-text-primary/60 truncate">{{ lbl }}</span>
+                                                            <span class="block text-[9px] font-bold text-cyan-400">{{ msg.chart.datasets[0].data[$index] }}%</span>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+
+                                        <!-- 3. Donut / Breakdown Chart -->
+                                        @if (msg.chart.type === 'donut' && msg.chart.datasets[0]) {
+                                            <div class="pt-2 flex flex-col sm:flex-row items-center gap-4">
+                                                <div class="relative w-24 h-24 flex-shrink-0 flex items-center justify-center">
+                                                    <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                                                        <circle cx="18" cy="18" r="15.915" fill="transparent" stroke="rgba(255,255,255,0.06)" stroke-width="3.5" />
+                                                        @for (val of msg.chart.datasets[0].data; track $index) {
+                                                            <circle cx="18" cy="18" r="15.915" fill="transparent"
+                                                                    [attr.stroke]="['#06b6d4', '#6366f1', '#10b981', '#f43f5e'][$index % 4]"
+                                                                    stroke-width="3.5"
+                                                                    [attr.stroke-dasharray]="getDonutDashArray(val, getSumValue(msg.chart.datasets[0].data))"
+                                                                    [attr.stroke-dashoffset]="getDonutOffset($index, msg.chart.datasets[0].data)" />
+                                                        }
+                                                    </svg>
+                                                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                                                        <span class="text-[10px] font-black text-text-primary">{{ msg.chart.meta?.total || getSumValue(msg.chart.datasets[0].data) }}</span>
+                                                        <span class="text-[8px] font-bold uppercase tracking-wider text-text-primary/50">Total</span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="flex-1 space-y-1.5 w-full">
+                                                    @for (lbl of msg.chart.labels; track $index) {
+                                                        <div class="flex items-center justify-between text-xs py-0.5">
+                                                            <div class="flex items-center gap-1.5 truncate">
+                                                                <span class="w-2 h-2 rounded-full flex-shrink-0"
+                                                                      [style.background-color]="['#06b6d4', '#6366f1', '#10b981', '#f43f5e'][$index % 4]"></span>
+                                                                <span class="text-[11px] font-medium text-text-primary/80 truncate">{{ lbl }}</span>
+                                                            </div>
+                                                            <span class="text-[11px] font-bold text-text-primary ml-2 flex-shrink-0">
+                                                                {{ msg.chart.datasets[0].data[$index] | number:'1.0-0' }}
+                                                            </span>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
 
                                 <!-- Dynamic Follow-Up Suggested Prompt Chips -->
                                 @if (msg.suggested_prompts && msg.suggested_prompts.length > 0) {
@@ -355,7 +532,7 @@
     }
 
     <!-- Dictation Recording Live Indicator -->
-    @if (isRecording()) {
+    @if (isRecording() && !isTwoWayVoiceMode()) {
         <div class="px-4 py-1.5 bg-rose-500/15 border-t border-rose-500/30 flex items-center justify-between text-xs text-rose-400 animate-pulse">
             <div class="flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
@@ -817,45 +994,284 @@
             }
         </div>
 
-        <!-- Modal Bottom Actions Bar -->
-        <div class="px-5 py-4 border-t border-border-primary bg-bg-tertiary/80 flex flex-col sm:flex-row items-center justify-between gap-3 flex-shrink-0">
-            <div class="flex items-center gap-2 w-full sm:w-auto">
-                <button (click)="closeScanReviewModal()"
-                        class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-border-primary text-xs font-bold text-text-primary/70 hover:text-rose-400 hover:border-rose-400/40 hover:bg-rose-500/10 transition-all cursor-pointer">
-                    Discard
+        <!-- Review Modal Footer Action Bar -->
+        <div class="px-6 py-4 border-t border-border-primary bg-bg-tertiary/80 flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
+            <div class="flex items-center gap-2">
+                <button type="button" (click)="closeScanReviewModal()"
+                        class="px-4 py-2.5 rounded-xl border border-border-primary text-xs font-bold text-text-primary/70 hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer">
+                    Discard Scan
                 </button>
-                <button (click)="openInFullEnrollmentWizard()"
-                        class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-indigo-500/30 text-xs font-bold text-indigo-400 hover:bg-indigo-500/15 hover:border-indigo-500/60 transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                <button type="button" (click)="openInFullEnrollmentWizard()"
+                        class="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer">
                     <i class="fas fa-up-right-from-square text-[10px]"></i>
-                    <span>Full Wizard</span>
+                    <span>Open Full Wizard</span>
                 </button>
             </div>
 
-            <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-                @if (activeReviewTab() !== 'health') {
-                    <button (click)="setReviewTab(activeReviewTab() === 'biodata' ? 'guardians' : 'health')"
-                            class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-text-primary text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5">
-                        <span>Next Section</span>
-                        <i class="fas fa-chevron-right text-[10px]"></i>
-                    </button>
+            <button type="button" (click)="confirmAndEnrollStudent()" [disabled]="isEnrollingStudent()"
+                    class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-emerald-600 hover:from-indigo-500 hover:to-emerald-500 text-white text-xs font-black shadow-lg shadow-indigo-500/25 flex items-center gap-2 disabled:opacity-40 cursor-pointer">
+                @if (isEnrollingStudent()) {
+                    <i class="fas fa-circle-notch fa-spin"></i>
+                    <span>Enrolling Candidate...</span>
+                } @else {
+                    <i class="fas fa-user-check text-[11px]"></i>
+                    <span>Confirm & Enroll Candidate</span>
                 }
+            </button>
+        </div>
+    </div>
+</div>
+}
 
-                <!-- Confirm & Submit Enrollment Button -->
-                <button (click)="confirmAndEnrollStudent()" [disabled]="isEnrollingStudent()"
-                        class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:via-teal-500 hover:to-cyan-500 text-white text-xs font-black shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:scale-[1.02] active:scale-98 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:scale-100 cursor-pointer">
-                    @if (isEnrollingStudent()) {
-                        <i class="fas fa-circle-notch fa-spin"></i>
-                        <span>Enrolling Candidate...</span>
-                    } @else {
-                        <i class="fas fa-user-check"></i>
-                        <span>Confirm & Enroll Candidate</span>
+<!-- ═══════════════════════════════════════════════════════════════
+     ONE-CLICK BROADCAST SMS MODAL
+═══════════════════════════════════════════════════════════════ -->
+@if (isSmsBroadcastModalOpen()) {
+<div class="fixed inset-0 z-[140] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto animate-fade-in">
+    <div class="w-full max-w-xl bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] my-auto animate-scale-in">
+        <!-- Header -->
+        <div class="px-5 py-4 bg-gradient-to-r from-violet-700 via-indigo-700 to-blue-700 text-white flex items-center justify-between flex-shrink-0 shadow-md">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center text-white text-base shadow-sm">
+                    <i class="fas fa-paper-plane"></i>
+                </div>
+                <div>
+                    <h2 class="text-sm sm:text-base font-black tracking-tight">Dispatch Broadcast SMS</h2>
+                    <p class="text-[11px] text-white/80 font-medium">Instant gateway dispatch via SchoolLinx Telecom Engine</p>
+                </div>
+            </div>
+            <button (click)="closeSmsBroadcastModal()"
+                    class="w-8 h-8 rounded-xl bg-white/10 hover:bg-rose-500/80 text-white flex items-center justify-center transition-all cursor-pointer">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-5 sm:p-6 space-y-4 flex-1 overflow-y-auto">
+            <!-- Target Audience Selector -->
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-text-primary/70 mb-2">
+                    Target Recipient Audience
+                </label>
+                <div class="grid grid-cols-2 gap-2">
+                    @for (aud of [
+                        { id: 'ALL_PARENTS', label: 'All Parents', icon: 'fa-users' },
+                        { id: 'FEE_DEFAULTERS', label: 'Fee Defaulters', icon: 'fa-file-invoice-dollar' },
+                        { id: 'STAFF', label: 'Teachers & Staff', icon: 'fa-chalkboard-user' },
+                        { id: 'BOARDING_PARENTS', label: 'Boarding Parents', icon: 'fa-bed' }
+                    ]; track aud.id) {
+                        <button type="button" (click)="smsTargetAudience.set(aud.id)"
+                                class="py-2.5 px-3 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 cursor-pointer"
+                                [class.bg-indigo-600]="smsTargetAudience() === aud.id"
+                                [class.text-white]="smsTargetAudience() === aud.id"
+                                [class.border-indigo-600]="smsTargetAudience() === aud.id"
+                                [class.bg-bg-tertiary]="smsTargetAudience() !== aud.id"
+                                [class.border-border-primary]="smsTargetAudience() !== aud.id">
+                            <i [class]="'fas ' + aud.icon + ' text-xs'"></i>
+                            <span class="truncate">{{ aud.label }}</span>
+                        </button>
                     }
+                </div>
+            </div>
+
+            <!-- Message Draft -->
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="text-xs font-bold uppercase tracking-wider text-text-primary/70">
+                        SMS Message Content
+                    </label>
+                    <span class="text-[10px] text-text-primary/60 font-mono">
+                        {{ smsMessageDraft().length }} chars · {{ getSmsPageCount() }} SMS Page(s)
+                    </span>
+                </div>
+                <textarea rows="4" [value]="smsMessageDraft()" (input)="smsMessageDraft.set($any($event.target).value)"
+                          placeholder="Type or paste your SMS broadcast content here..."
+                          class="w-full bg-bg-tertiary text-text-primary text-xs sm:text-sm rounded-2xl p-3.5 border border-border-primary outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 resize-none font-medium leading-relaxed"></textarea>
+            </div>
+
+            <!-- Quick Template Chips -->
+            <div>
+                <span class="block text-[10px] font-bold uppercase tracking-wider text-text-primary/50 mb-1.5">
+                    Insert Quick Template
+                </span>
+                <div class="flex flex-wrap gap-1.5">
+                    <button type="button" (click)="smsMessageDraft.set('Dear Parent, this is a reminder for our General PTA Meeting on Friday at 2:00 PM in the Assembly Hall. Attendance is vital. Thank you.')"
+                            class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-cyan-300 border border-cyan-500/30 transition-all cursor-pointer">
+                        + PTA Meeting Reminder
+                    </button>
+                    <button type="button" (click)="smsMessageDraft.set('Dear Parent, please be reminded of outstanding term fees for your ward. Kindly clear the balance at the bursar desk by Friday. Thank you.')"
+                            class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-rose-300 border border-rose-500/30 transition-all cursor-pointer">
+                        + Fee Arrears Notice
+                    </button>
+                    <button type="button" (click)="smsMessageDraft.set('Notice: School will close early on Thursday at 12:30 PM for staff training. Busses will depart at 1:00 PM. Thank you.')"
+                            class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-amber-300 border border-amber-500/30 transition-all cursor-pointer">
+                        + Early Closing Notice
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-5 py-4 border-t border-border-primary bg-bg-tertiary/80 flex items-center justify-between gap-3 flex-shrink-0">
+            <button (click)="closeSmsBroadcastModal()"
+                    class="px-4 py-2.5 rounded-xl border border-border-primary text-xs font-bold text-text-primary/70 hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer">
+                Cancel
+            </button>
+            <button (click)="sendSmsBroadcast()" [disabled]="isSendingSms() || !smsMessageDraft().trim()"
+                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white text-xs font-black shadow-lg shadow-indigo-500/25 flex items-center gap-2 disabled:opacity-40 cursor-pointer">
+                @if (isSendingSms()) {
+                    <i class="fas fa-circle-notch fa-spin"></i>
+                    <span>Dispatching SMS...</span>
+                } @else {
+                    <i class="fas fa-paper-plane text-[11px]"></i>
+                    <span>Send SMS Broadcast</span>
+                }
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ONE-CLICK QUICK CLASS ROLL-CALL MODAL
+═══════════════════════════════════════════════════════════════ -->
+@if (isRollCallModalOpen()) {
+<div class="fixed inset-0 z-[140] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto animate-fade-in">
+    <div class="w-full max-w-2xl bg-bg-secondary border border-border-primary rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] my-auto animate-scale-in">
+        <!-- Header -->
+        <div class="px-5 py-4 bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 text-white flex items-center justify-between flex-shrink-0 shadow-md">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center text-white text-base shadow-sm">
+                    <i class="fas fa-clipboard-user"></i>
+                </div>
+                <div>
+                    <h2 class="text-sm sm:text-base font-black tracking-tight">Quick Daily Roll-Call</h2>
+                    <p class="text-[11px] text-white/80 font-medium">Record and synchronize daily attendance roll for class</p>
+                </div>
+            </div>
+            <button (click)="closeRollCallModal()"
+                    class="w-8 h-8 rounded-xl bg-white/10 hover:bg-rose-500/80 text-white flex items-center justify-center transition-all cursor-pointer">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Controls Bar -->
+        <div class="p-4 border-b border-border-primary bg-bg-tertiary/60 flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
+            <div class="flex items-center gap-3 flex-1 min-w-[200px]">
+                <!-- Class Selector -->
+                <div class="flex-1">
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-text-primary/60 mb-1">Select Class</label>
+                    <select [value]="selectedRollCallClassId()" (change)="onRollCallClassSelected($any($event.target).value)"
+                            class="w-full bg-bg-secondary text-text-primary text-xs rounded-xl px-3 py-2 border border-border-primary outline-none focus:border-emerald-500 font-bold cursor-pointer">
+                        @for (cls of availableClasses(); track cls.id) {
+                            <option [value]="cls.id">{{ cls.name }}</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Date Picker -->
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-text-primary/60 mb-1">Date</label>
+                    <input type="date" [value]="rollCallDate()" (input)="rollCallDate.set($any($event.target).value)"
+                           class="bg-bg-secondary text-text-primary text-xs rounded-xl px-3 py-2 border border-border-primary outline-none focus:border-emerald-500 font-bold" />
+                </div>
+            </div>
+
+            <!-- Quick Bulk Buttons -->
+            <div class="flex items-end gap-1.5">
+                <button type="button" (click)="markAllRollCall('PRESENT')"
+                        class="px-2.5 py-2 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 transition-all cursor-pointer">
+                    All Present
+                </button>
+                <button type="button" (click)="markAllRollCall('ABSENT')"
+                        class="px-2.5 py-2 rounded-xl text-xs font-bold bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/30 transition-all cursor-pointer">
+                    All Absent
                 </button>
             </div>
         </div>
 
+        <!-- Student Roster Body -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-2">
+            @if (isLoadingRollCallStudents()) {
+                <div class="py-12 flex flex-col items-center justify-center text-text-primary/60">
+                    <i class="fas fa-circle-notch fa-spin text-2xl text-emerald-400 mb-2"></i>
+                    <span class="text-xs font-bold">Loading class roster...</span>
+                </div>
+            } @else if (rollCallStudents().length === 0) {
+                <div class="py-12 text-center text-text-primary/60">
+                    <i class="fas fa-user-slash text-3xl mb-2 text-text-primary/30"></i>
+                    <p class="text-xs font-bold">No students found in this class.</p>
+                </div>
+            } @else {
+                <div class="divide-y border border-border-primary rounded-2xl overflow-hidden" style="border-color: var(--border-primary)">
+                    @for (st of rollCallStudents(); track st.id) {
+                        <div class="p-3 flex items-center justify-between gap-3 hover:bg-white/5 transition-colors" style="background: var(--bg-tertiary);">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-black text-xs flex items-center justify-center flex-shrink-0">
+                                    {{ st.first_name[0] }}{{ st.last_name[0] }}
+                                </div>
+                                <div class="truncate">
+                                    <span class="block text-xs font-bold text-text-primary truncate">{{ st.first_name }} {{ st.last_name }}</span>
+                                    <span class="text-[10px] text-text-primary/50">{{ st.enrollment_num || 'Enrolled' }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Status Selection Pills -->
+                            <div class="flex items-center gap-1 flex-shrink-0">
+                                <button type="button" (click)="setStudentRollCallStatus(st.id!, 'PRESENT')"
+                                        class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer"
+                                        [class.bg-emerald-600]="rollCallStatusMap()[st.id!] === 'PRESENT'"
+                                        [class.text-white]="rollCallStatusMap()[st.id!] === 'PRESENT'"
+                                        [class.border-emerald-600]="rollCallStatusMap()[st.id!] === 'PRESENT'"
+                                        [class.bg-bg-secondary]="rollCallStatusMap()[st.id!] !== 'PRESENT'"
+                                        [class.border-border-primary]="rollCallStatusMap()[st.id!] !== 'PRESENT'">
+                                    Present
+                                </button>
+                                <button type="button" (click)="setStudentRollCallStatus(st.id!, 'ABSENT')"
+                                        class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer"
+                                        [class.bg-rose-600]="rollCallStatusMap()[st.id!] === 'ABSENT'"
+                                        [class.text-white]="rollCallStatusMap()[st.id!] === 'ABSENT'"
+                                        [class.border-rose-600]="rollCallStatusMap()[st.id!] === 'ABSENT'"
+                                        [class.bg-bg-secondary]="rollCallStatusMap()[st.id!] !== 'ABSENT'"
+                                        [class.border-border-primary]="rollCallStatusMap()[st.id!] !== 'ABSENT'">
+                                    Absent
+                                </button>
+                                <button type="button" (click)="setStudentRollCallStatus(st.id!, 'LATE')"
+                                        class="px-2 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer"
+                                        [class.bg-amber-600]="rollCallStatusMap()[st.id!] === 'LATE'"
+                                        [class.text-white]="rollCallStatusMap()[st.id!] === 'LATE'"
+                                        [class.border-amber-600]="rollCallStatusMap()[st.id!] === 'LATE'"
+                                        [class.bg-bg-secondary]="rollCallStatusMap()[st.id!] !== 'LATE'"
+                                        [class.border-border-primary]="rollCallStatusMap()[st.id!] !== 'LATE'">
+                                    Late
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Footer -->
+        <div class="px-5 py-4 border-t border-border-primary bg-bg-tertiary/80 flex items-center justify-between gap-3 flex-shrink-0">
+            <button (click)="closeRollCallModal()"
+                    class="px-4 py-2.5 rounded-xl border border-border-primary text-xs font-bold text-text-primary/70 hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer">
+                Cancel
+            </button>
+            <button (click)="saveRollCall()" [disabled]="isSavingRollCall() || rollCallStudents().length === 0"
+                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white text-xs font-black shadow-lg shadow-emerald-500/25 flex items-center gap-2 disabled:opacity-40 cursor-pointer">
+                @if (isSavingRollCall()) {
+                    <i class="fas fa-circle-notch fa-spin"></i>
+                    <span>Saving Records...</span>
+                } @else {
+                    <i class="fas fa-check-double text-[11px]"></i>
+                    <span>Save Attendance Records</span>
+                }
+            </button>
+        </div>
     </div>
 </div>
 }
 }
+
 

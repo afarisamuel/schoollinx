@@ -9,23 +9,26 @@ import {
     ElementRef,
     AfterViewChecked,
 } from '@angular/core';
-import { CommonModule, DecimalPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
-import { ChatbotService, ChatMessage, ChatAction, ChatAttachment, AIMode } from './chatbot.service';
+import { ChatbotService, ChatMessage, ChatAction, ChatAttachment, AIMode, ChatChart } from './chatbot.service';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 import { MessagingService } from '../../../core/infrastructure/communications/messaging.service';
 import { StudentService } from '../../../core/infrastructure/student/student.service';
 import { ClassService, Class } from '../../../core/infrastructure/curriculum/class.service';
+import { CommunicationService } from '../../../core/infrastructure/communication/communication.service';
+import { AttendanceService } from '../../../core/infrastructure/attendance/attendance.service';
 import { ToastService } from '../toast/toast.service';
 import { Student } from '../../../core/domain/student.model';
+import { Attendance, AttendanceStatus } from '../../../core/domain/attendance.model';
 
 @Component({
     selector: 'app-ai-chatbot',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterLink, DecimalPipe],
+    imports: [CommonModule, FormsModule, RouterLink],
     templateUrl: './ai-chatbot.component.html',
     styleUrl: './ai-chatbot.component.css',
 })
@@ -40,6 +43,8 @@ export class AiChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     private messagingService = inject(MessagingService);
     private studentService = inject(StudentService);
     private classService = inject(ClassService);
+    private communicationService = inject(CommunicationService);
+    private attendanceService = inject(AttendanceService);
     private toast = inject(ToastService);
     private routeSub?: Subscription;
 
@@ -65,7 +70,23 @@ export class AiChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     // Speech & Voice State
     isRecording = signal(false);
     speechRecognitionAvailable = signal(false);
+    isTwoWayVoiceMode = signal(false);
     private recognition: any = null;
+
+    // One-Click Broadcast SMS Automation State
+    isSmsBroadcastModalOpen = signal(false);
+    smsTargetAudience = signal<string>('ALL_PARENTS');
+    smsMessageDraft = signal<string>('');
+    isSendingSms = signal(false);
+
+    // One-Click Quick Class Roll-Call Automation State
+    isRollCallModalOpen = signal(false);
+    selectedRollCallClassId = signal<string>('');
+    rollCallDate = signal<string>(new Date().toISOString().slice(0, 10));
+    rollCallStudents = signal<Student[]>([]);
+    rollCallStatusMap = signal<{ [studentId: string]: 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED' }>({});
+    isLoadingRollCallStudents = signal(false);
+    isSavingRollCall = signal(false);
 
     // Admission Form OCR & Verification Modal State
     isScanReviewModalOpen = signal(false);
@@ -664,11 +685,30 @@ export class AiChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     /* ----------------------------------------------------
        Action Execution Handler
     ---------------------------------------------------- */
-    executeAction(action: ChatAction) {
+    executeAction(action: ChatAction, messageContext?: ChatMessage) {
         if (!action) return;
 
         if (action.action_type === 'SCAN_ADMISSION' || action.label?.toLowerCase().includes('scan admission')) {
             this.triggerAdmissionScan();
+            return;
+        }
+
+        if (action.action_type === 'PRINT_DOCUMENT' || action.label?.toLowerCase().includes('print')) {
+            const docType = action.payload?.docType || messageContext?.printableDoc?.type || 'generic';
+            const title = action.payload?.title || messageContext?.printableDoc?.title || 'Institutional Document';
+            const content = messageContext?.content || '';
+            this.printOrExportDocument(docType, title, content);
+            return;
+        }
+
+        if (action.action_type === 'TRIGGER_SMS_BROADCAST' || action.label?.toLowerCase().includes('sms')) {
+            const defaultMsg = typeof action.payload === 'string' ? action.payload : (action.payload?.message || messageContext?.content || '');
+            this.openSmsBroadcastModal(defaultMsg);
+            return;
+        }
+
+        if (action.action_type === 'TRIGGER_ROLLCALL_MODAL' || action.label?.toLowerCase().includes('roll-call')) {
+            this.openRollCallModal();
             return;
         }
 
@@ -696,7 +736,7 @@ export class AiChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     private exportToCsv(payload: any) {
         const rows: any[] = Array.isArray(payload) ? payload : (payload?.data || []);
         if (!rows || rows.length === 0) {
-            alert('No export data found.');
+            this.toast.error('No export data found.');
             return;
         }
 
@@ -718,6 +758,329 @@ export class AiChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     }
 
     /* ----------------------------------------------------
+       Printable PDF / Document Exporter Engine
+    ---------------------------------------------------- */
+    printOrExportDocument(docType: 'exam' | 'lesson' | 'letter' | 'generic', title: string, rawContent: string) {
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            this.toast.error('Please allow popups to print / export document.');
+            return;
+        }
+
+        const dateStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+        const formattedHtml = this.formatContent(rawContent);
+
+        const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>${title} - SchoolLinx Intelligence</title>
+    <style>
+        @page { size: A4; margin: 20mm; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #1e293b; line-height: 1.6; margin: 0; padding: 20px; }
+        .header { border-bottom: 2px solid #3b82f6; padding-bottom: 12px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .header h1 { margin: 0; font-size: 20px; font-weight: 800; color: #1e3a8a; text-transform: uppercase; letter-spacing: 0.5px; }
+        .header p { margin: 2px 0 0 0; font-size: 11px; color: #64748b; }
+        .doc-badge { background: #eff6ff; color: #1d4ed8; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; border: 1px solid #bfdbfe; }
+        .candidate-box { border: 1px dashed #cbd5e1; background: #f8fafc; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; display: flex; justify-content: space-between; }
+        .content { font-size: 13px; }
+        .content h2, .content h3, .content h4 { color: #0f172a; margin-top: 18px; margin-bottom: 6px; }
+        .content table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 12px; }
+        .content th, .content td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+        .content th { background: #f1f5f9; font-weight: bold; }
+        .content pre { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 11px; }
+        .content blockquote { border-left: 3px solid #3b82f6; padding-left: 10px; color: #475569; font-style: italic; margin: 10px 0; }
+        .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; }
+        .signature-grid { display: flex; justify-content: space-between; margin-top: 40px; padding-top: 10px; }
+        .sig-line { width: 200px; border-top: 1px solid #475569; text-align: center; font-size: 11px; padding-top: 4px; color: #475569; }
+        @media print {
+            body { padding: 0; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>SCHOOLLINX ACADEMIC INTELLIGENCE</h1>
+            <p>Official Institutional Record & Assessment System • Date: ${dateStr}</p>
+        </div>
+        <div class="doc-badge">${title}</div>
+    </div>
+
+    ${docType === 'exam' ? `
+    <div class="candidate-box">
+        <div><strong>Student Name:</strong> ________________________________</div>
+        <div><strong>Class / Grade:</strong> ________________</div>
+        <div><strong>Score:</strong> ______ / 100</div>
+    </div>
+    ` : ''}
+
+    <div class="content">
+        ${formattedHtml}
+    </div>
+
+    <div class="signature-grid">
+        <div class="sig-line">Instructor / Teacher Signature</div>
+        <div class="sig-line">Principal / Academic Head</div>
+    </div>
+
+    <div class="footer">
+        <div>SchoolLinx AI Verified Document</div>
+        <div>Page 1 of 1</div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            window.print();
+        };
+    </script>
+</body>
+</html>
+`;
+        printWindow.document.open();
+        printWindow.document.write(html);
+        printWindow.document.close();
+    }
+
+    /* ----------------------------------------------------
+       Continuous Two-Way Voice Mode
+    ---------------------------------------------------- */
+    toggleTwoWayVoiceMode() {
+        const next = !this.isTwoWayVoiceMode();
+        this.isTwoWayVoiceMode.set(next);
+
+        if (next) {
+            this.playChime();
+            this.toast.info('Continuous Two-Way Voice Mode active. AI will listen and speak hands-free.');
+            this.startVoiceInput();
+        } else {
+            this.stopSpeechSynthesis();
+            this.stopVoiceInput();
+            this.toast.info('Two-Way Voice Mode ended.');
+        }
+    }
+
+    /* ----------------------------------------------------
+       One-Click SMS Broadcast Modal Handlers
+    ---------------------------------------------------- */
+    getSmsPageCount(): number {
+        const len = this.smsMessageDraft().length;
+        if (len <= 160) return 1;
+        return Math.ceil(len / 153);
+    }
+
+    openSmsBroadcastModal(defaultMessage: string = '', defaultTarget: string = 'ALL_PARENTS') {
+        this.smsMessageDraft.set(defaultMessage);
+        this.smsTargetAudience.set(defaultTarget);
+        this.isSmsBroadcastModalOpen.set(true);
+    }
+
+    closeSmsBroadcastModal() {
+        this.isSmsBroadcastModalOpen.set(false);
+    }
+
+    sendSmsBroadcast() {
+        const msg = this.smsMessageDraft().trim();
+        if (!msg) {
+            this.toast.warning('Please enter message text to broadcast.');
+            return;
+        }
+
+        this.isSendingSms.set(true);
+        this.communicationService.sendUrgentSMS({
+            target_audience: this.smsTargetAudience(),
+            message: msg,
+        }).subscribe({
+            next: (res) => {
+                this.isSendingSms.set(false);
+                this.isSmsBroadcastModalOpen.set(false);
+                this.toast.success(res?.message || 'Broadcast SMS dispatched successfully!', 'SMS Dispatched');
+                this.playChime();
+
+                this.messages.update(msgs => [
+                    ...msgs,
+                    {
+                        id: crypto.randomUUID(),
+                        role: 'assistant',
+                        content: `📢 **Broadcast SMS Dispatched Successfully!**\n\n- **Target Audience:** ${this.smsTargetAudience()}\n- **Content:** "${msg}"\n- **Status:** Queued to Telecom Gateways`,
+                        timestamp: new Date(),
+                        type: 'text',
+                    },
+                ]);
+            },
+            error: (err) => {
+                this.isSendingSms.set(false);
+                this.toast.error(err?.error?.error || 'Failed to dispatch broadcast SMS. Check SMS balance.');
+            },
+        });
+    }
+
+    /* ----------------------------------------------------
+       One-Click Quick Class Roll-Call Automation Handlers
+    ---------------------------------------------------- */
+    openRollCallModal(classId?: string) {
+        const classes = this.availableClasses();
+        const initialClassId = classId || (classes.length > 0 ? classes[0].id : '');
+        this.selectedRollCallClassId.set(initialClassId);
+        this.rollCallDate.set(new Date().toISOString().slice(0, 10));
+        this.isRollCallModalOpen.set(true);
+
+        if (initialClassId) {
+            this.onRollCallClassSelected(initialClassId);
+        }
+    }
+
+    closeRollCallModal() {
+        this.isRollCallModalOpen.set(false);
+    }
+
+    onRollCallClassSelected(classId: string) {
+        this.selectedRollCallClassId.set(classId);
+        if (!classId) return;
+
+        this.isLoadingRollCallStudents.set(true);
+        this.studentService.getStudentsByClass(classId).subscribe({
+            next: students => {
+                this.isLoadingRollCallStudents.set(false);
+                const list = students || [];
+                this.rollCallStudents.set(list);
+
+                const map: { [id: string]: 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED' } = {};
+                list.forEach(s => {
+                    if (s.id) map[s.id] = 'PRESENT';
+                });
+                this.rollCallStatusMap.set(map);
+            },
+            error: () => {
+                this.isLoadingRollCallStudents.set(false);
+                this.rollCallStudents.set([]);
+            },
+        });
+    }
+
+    setStudentRollCallStatus(studentId: string, status: 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED') {
+        this.rollCallStatusMap.update(m => ({ ...m, [studentId]: status }));
+    }
+
+    markAllRollCall(status: 'PRESENT' | 'ABSENT') {
+        const current = { ...this.rollCallStatusMap() };
+        Object.keys(current).forEach(id => current[id] = status);
+        this.rollCallStatusMap.set(current);
+    }
+
+    saveRollCall() {
+        const classId = this.selectedRollCallClassId();
+        const date = this.rollCallDate();
+        const students = this.rollCallStudents();
+        const map = this.rollCallStatusMap();
+
+        if (!classId || students.length === 0) {
+            this.toast.warning('No students to record attendance for.');
+            return;
+        }
+
+        this.isSavingRollCall.set(true);
+
+        const attendances: Attendance[] = students.map(s => {
+            const rawStatus = map[s.id || ''];
+            let status: AttendanceStatus = 'Present';
+            if (rawStatus === 'ABSENT') status = 'Absent';
+            else if (rawStatus === 'LATE') status = 'Tardy';
+
+            return {
+                student_id: s.id || '',
+                class_id: classId,
+                date: date,
+                status: status,
+            };
+        });
+
+        this.attendanceService.markBulkAttendance(attendances).subscribe({
+            next: () => {
+                this.isSavingRollCall.set(false);
+                this.isRollCallModalOpen.set(false);
+                const presentCount = Object.values(map).filter(v => v === 'PRESENT').length;
+                const clsName = this.availableClasses().find(c => c.id === classId)?.name || 'Class';
+                this.toast.success(`Attendance saved for ${clsName} (${presentCount}/${students.length} Present)`);
+                this.playChime();
+
+                this.messages.update(msgs => [
+                    ...msgs,
+                    {
+                        id: crypto.randomUUID(),
+                        role: 'assistant',
+                        content: `✅ **Daily Attendance Recorded for ${clsName}**\n\n- **Date:** ${date}\n- **Total Students:** ${students.length}\n- **Present:** ${presentCount} (${Math.round((presentCount / (students.length || 1)) * 100)}%)\n- **Absent:** ${students.length - presentCount}\n\nAttendance synchronized with school records.`,
+                        timestamp: new Date(),
+                        type: 'text',
+                    },
+                ]);
+            },
+            error: err => {
+                this.isSavingRollCall.set(false);
+                this.toast.error(err?.error?.error || 'Failed to save class attendance.');
+            },
+        });
+    }
+
+    /* ----------------------------------------------------
+       SVG Chart Math & Path Helpers
+    ---------------------------------------------------- */
+    getMaxValue(data: number[]): number {
+        if (!data || data.length === 0) return 100;
+        const max = Math.max(...data);
+        return max > 0 ? max : 100;
+    }
+
+    getSumValue(data: number[]): number {
+        if (!data || data.length === 0) return 0;
+        return data.reduce((a, b) => a + b, 0);
+    }
+
+    getBarHeight(val: number, max: number): number {
+        if (max === 0) return 0;
+        return Math.min(100, Math.max(4, Math.round((val / max) * 100)));
+    }
+
+    getLinePath(data: number[]): string {
+        if (!data || data.length < 2) return '';
+        const max = this.getMaxValue(data);
+        const min = Math.min(...data);
+        const range = max - min || 1;
+        const width = 320;
+        const height = 100;
+        const step = width / (data.length - 1);
+
+        return data.map((val, idx) => {
+            const x = Math.round(idx * step);
+            const normalized = (val - min) / range;
+            const y = Math.round(height - normalized * (height - 20) - 10);
+            return `${idx === 0 ? 'M' : 'L'} ${x} ${y}`;
+        }).join(' ');
+    }
+
+    getLineAreaPath(data: number[]): string {
+        const line = this.getLinePath(data);
+        if (!line) return '';
+        return `${line} L 320 120 L 0 120 Z`;
+    }
+
+    getDonutDashArray(val: number, total: number): string {
+        if (!total) return '0 100';
+        const pct = Math.round((val / total) * 100);
+        return `${pct} ${100 - pct}`;
+    }
+
+    getDonutOffset(idx: number, data: number[]): number {
+        const total = this.getSumValue(data);
+        if (!total || idx === 0) return 25;
+        const priorSum = data.slice(0, idx).reduce((a, b) => a + b, 0);
+        const priorPct = (priorSum / total) * 100;
+        return 25 - priorPct;
+    }
+
+    /* ----------------------------------------------------
        Speech-to-Text (STT) Recognition
     ---------------------------------------------------- */
     private initSpeechRecognition() {
@@ -735,6 +1098,10 @@ export class AiChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
                     const transcript = event.results[i][0].transcript;
                     if (event.results[i].isFinal) {
                         this.userInput.update(current => (current ? `${current} ${transcript}` : transcript));
+                        // In Continuous Two-Way Voice mode, auto-submit when finalized
+                        if (this.isTwoWayVoiceMode()) {
+                            setTimeout(() => this.sendMessage(), 300);
+                        }
                     } else {
                         interimTranscript += transcript;
                     }
@@ -810,6 +1177,10 @@ export class AiChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
         utterance.onend = () => {
             this.isSpeaking.set(false);
             this.activeSpeakingId.set(null);
+            // In continuous two-way mode, immediately start listening for next turn
+            if (this.isTwoWayVoiceMode()) {
+                setTimeout(() => this.startVoiceInput(), 400);
+            }
         };
         utterance.onerror = () => {
             this.isSpeaking.set(false);
