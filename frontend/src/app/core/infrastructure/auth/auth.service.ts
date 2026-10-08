@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { User, Role } from '../../domain/user.model';
 import { environment } from '../../../../environments/environment';
+import { getTenantSubdomain } from '../../utils/tenant.util';
 
 @Injectable({
     providedIn: 'root'
@@ -28,20 +29,7 @@ export class AuthService {
 
     private getSubdomainHeader(): Record<string, string> {
         if (!this.isBrowser) return {};
-        
-        const hostname = window.location.hostname;
-        const parts = hostname.split('.');
-        
-        // Basic check: if hostname is trust.localhost or school.schoollinx.com
-        let subdomain = '';
-        if (parts.length >= 2) {
-            subdomain = parts[0];
-            // Ignore common top-levels/non-tenants
-            if (subdomain === 'www' || subdomain === 'localhost' || subdomain === '127') {
-                subdomain = '';
-            }
-        }
-        
+        const subdomain = getTenantSubdomain();
         return subdomain ? { 'X-Tenant-Subdomain': subdomain } : {};
     }
 

@@ -28,14 +28,13 @@ app.set('trust proxy', true);
 const angularApp = new AngularNodeAppEngine({
   trustProxyHeaders: true,
   allowedHosts: [
+    '*',
     'localhost',
-    '.localhost',
+    '*.localhost',
     'thinkce.localhost',
     'schoollinx.com',
-    '.schoollinx.com',
-    'kendemy.schoollinx.com',
-    'kwame.schoollinx.com',
-    'great.schoollinx.com',
+    'www.schoollinx.com',
+    '*.schoollinx.com',
   ],
 });
 

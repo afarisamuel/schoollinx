@@ -221,6 +221,7 @@ func (a *App) setupRoutes() {
 	publicRateLimiter := middleware.NewIPRateLimiter(300, time.Minute)
 	public.Use(publicRateLimiter.Middleware())
 	handler.NewPublicHandler(public, usecases.Tenant)
+	handler.NewUSSDHandler(public, usecases.USSD)
 
 	// Super Admin
 	superAdmin := a.Router.Group("/api/system")

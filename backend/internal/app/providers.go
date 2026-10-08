@@ -129,6 +129,7 @@ type UseCases struct {
 	Notification   domain.NotificationUseCase
 	CampusOps      domain.CampusOpsUseCase
 	Hostel         domain.HostelUseCase
+	USSD           domain.USSDUseCase
 }
 
 func initInfrastructure(cfg *config.Config) *Infrastructure {
@@ -267,5 +268,6 @@ func initUseCases(repos *Repositories, infra *Infrastructure, db *gorm.DB, cfg *
 		Notification:   notifUC,
 		CampusOps:      usecase.NewCampusOpsUseCase(repos.CampusOps),
 		Hostel:         usecase.NewHostelUseCase(repos.Hostel, repos.Student),
+		USSD:           usecase.NewUSSDUseCase(db, repos.Payment, infra.Paystack, infra.SMS, cfg, feeNotifier),
 	}
 }

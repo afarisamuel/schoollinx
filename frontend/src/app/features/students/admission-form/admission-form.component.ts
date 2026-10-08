@@ -185,19 +185,19 @@ export class AdmissionFormComponent implements OnInit {
     this.loadMetadata();
     this.loadPersistedCustomFields();
 
+    this.route.queryParamMap.subscribe(q => {
+      if (q.get('blank') === 'true') {
+        this.isFormBlank.set(true);
+      }
+    });
+
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
       if (id) {
         this.studentId.set(id);
         this.loadStudent(id);
       } else {
-        // Query param check (e.g. ?blank=true)
-        this.route.queryParamMap.subscribe(q => {
-          if (q.get('blank') === 'true') {
-            this.isFormBlank.set(true);
-          }
-          this.isLoading.set(false);
-        });
+        this.isLoading.set(false);
       }
     });
   }

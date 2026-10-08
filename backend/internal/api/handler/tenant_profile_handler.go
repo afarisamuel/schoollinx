@@ -23,6 +23,7 @@ type TenantProfileHandler struct {
 func NewTenantProfileHandler(r *gin.RouterGroup, db *gorm.DB, uc usecase.TenantUseCase) {
 	h := &TenantProfileHandler{db: db, uc: uc}
 	r.GET("/tenant/profile", h.GetProfile)
+	r.GET("/tenant/setup-progress", h.GetSetupProgress)
 	r.PUT("/tenant/profile", h.UpdateProfile)
 	r.POST("/tenant/profile/logo", h.UploadLogo)
 	r.POST("/tenant/profile/headmaster-signature", h.UploadHeadmasterSignature)
@@ -613,4 +614,189 @@ func (h *TenantProfileHandler) GetSubscriptionSummary(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, summary)
+}
+
+type SetupStep struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Route       string `json:"route"`
+	Completed   bool   `json:"completed"`
+	Category    string `json:"category"`
+	Icon        string `json:"icon"`
+	Count       int64  `json:"count"`
+}
+
+type SetupProgressResponse struct {
+	OverallProgress int         `json:"overall_progress"`
+	IsComplete      bool        `json:"is_complete"`
+	CompletedSteps  int         `json:"completed_steps"`
+	TotalSteps      int         `json:"total_steps"`
+	Steps           []SetupStep `json:"steps"`
+}
+
+func (h *TenantProfileHandler) GetSetupProgress(c *gin.Context) {
+	tenantID, exists := middleware.GetTenantIDFromContext(c.Request.Context())
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Tenant context not found"})
+		return
+	}
+
+	var tenant domain.Tenant
+	if err := h.db.Where("id = ?", tenantID).First(&tenant).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Tenant not found"})
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	// 1. Profile / Branding Setup
+	profileCompleted := (tenant.LogoURL != "" || tenant.ContactNumbers != "") && (tenant.Address != "" || tenant.Name != "")
+
+	// 2. Scholastic Levels & Academic Calendar
+	var scholasticCount int64
+	var periodCount int64
+	_ = h.db.WithContext(ctx).Model(&domain.ScholasticLevel{}).Count(&scholasticCount).Error
+	_ = h.db.WithContext(ctx).Model(&domain.AcademicPeriod{}).Count(&periodCount).Error
+	academicCompleted := periodCount > 0
+
+	// 3. Classes & Streams
+	var classCount int64
+	_ = h.db.WithContext(ctx).Model(&domain.Class{}).Count(&classCount).Error
+	classCompleted := classCount > 0
+
+	// 4. Subjects & Curriculum
+	var subjectCount int64
+	_ = h.db.WithContext(ctx).Model(&domain.Subject{}).Count(&subjectCount).Error
+	subjectCompleted := subjectCount > 0
+
+	// 5. Grading Configuration
+	var gradeWeightCount int64
+	_ = h.db.WithContext(ctx).Model(&domain.GradeWeight{}).Count(&gradeWeightCount).Error
+	gradingCompleted := gradeWeightCount > 0
+
+	// 6. Fee Structures & Tariffs
+	var feeCount int64
+	_ = h.db.WithContext(ctx).Model(&domain.FeeStructure{}).Count(&feeCount).Error
+	feeCompleted := feeCount > 0
+
+	// 7. Teaching Staff
+	var teacherCount int64
+	_ = h.db.WithContext(ctx).Model(&domain.Teacher{}).Count(&teacherCount).Error
+	teacherCompleted := teacherCount > 0
+
+	// 8. Student Enrollment
+	var studentCount int64
+	_ = h.db.WithContext(ctx).Model(&domain.Student{}).Where("status = ?", domain.StatusActive).Count(&studentCount).Error
+	studentCompleted := studentCount > 0
+
+	steps := []SetupStep{
+		{
+			ID:          "profile",
+			Title:       "School Profile & Logo",
+			Description: "Set school logo, address, contact phone, and website",
+			Route:       "/auth/profile-settings",
+			Completed:   profileCompleted,
+			Category:    "Branding",
+			Icon:        "school",
+			Count:       1,
+		},
+		{
+			ID:          "academic_period",
+			Title:       "Academic Calendar & Terms",
+			Description: "Configure active academic year and terms",
+			Route:       "/admin/academic-periods",
+			Completed:   academicCompleted,
+			Category:    "Curriculum",
+			Icon:        "calendar",
+			Count:       periodCount,
+		},
+		{
+			ID:          "scholastic_levels",
+			Title:       "Scholastic Levels",
+			Description: "Define educational levels (e.g. Primary, JHS, SHS)",
+			Route:       "/admin/scholastic-levels",
+			Completed:   scholasticCount > 0,
+			Category:    "Curriculum",
+			Icon:        "layers",
+			Count:       scholasticCount,
+		},
+		{
+			ID:          "classes",
+			Title:       "Classes & Streams",
+			Description: "Create class divisions (e.g. Basic 1, Grade 5, JHS 1)",
+			Route:       "/admin/classes",
+			Completed:   classCompleted,
+			Category:    "Curriculum",
+			Icon:        "chalkboard",
+			Count:       classCount,
+		},
+		{
+			ID:          "subjects",
+			Title:       "Subjects & Courses",
+			Description: "Set up curriculum subjects and department allocations",
+			Route:       "/admin/subjects",
+			Completed:   subjectCompleted,
+			Category:    "Curriculum",
+			Icon:        "book",
+			Count:       subjectCount,
+		},
+		{
+			ID:          "grading",
+			Title:       "Grading Scale & Assessment Setup",
+			Description: "Set assessment weights and grading boundaries",
+			Route:       "/admin/grading-configuration",
+			Completed:   gradingCompleted,
+			Category:    "Curriculum",
+			Icon:        "award",
+			Count:       gradeWeightCount,
+		},
+		{
+			ID:          "fees",
+			Title:       "Fee Billing & Tariffs",
+			Description: "Define termly school fees, tuition, and breakdown items",
+			Route:       "/fiscal/fee-structures",
+			Completed:   feeCompleted,
+			Category:    "Finance",
+			Icon:        "credit-card",
+			Count:       feeCount,
+		},
+		{
+			ID:          "teachers",
+			Title:       "Teaching Staff Onboarding",
+			Description: "Add teachers and assign class supervisors",
+			Route:       "/teachers",
+			Completed:   teacherCompleted,
+			Category:    "Personnel",
+			Icon:        "users",
+			Count:       teacherCount,
+		},
+		{
+			ID:          "students",
+			Title:       "Student Enrollment",
+			Description: "Enroll students into classes and generate admission numbers",
+			Route:       "/students",
+			Completed:   studentCompleted,
+			Category:    "Students",
+			Icon:        "graduation-cap",
+			Count:       studentCount,
+		},
+	}
+
+	completedCount := 0
+	for _, s := range steps {
+		if s.Completed {
+			completedCount++
+		}
+	}
+
+	overallPct := int((float64(completedCount) / float64(len(steps))) * 100)
+
+	c.JSON(http.StatusOK, SetupProgressResponse{
+		OverallProgress: overallPct,
+		IsComplete:      completedCount == len(steps),
+		CompletedSteps:  completedCount,
+		TotalSteps:      len(steps),
+		Steps:           steps,
+	})
 }

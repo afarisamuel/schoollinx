@@ -27,6 +27,25 @@ export interface TenantProfile {
   paystack_secret_key?: string; // Only sent during update
 }
 
+export interface SetupStep {
+  id: string;
+  title: string;
+  description: string;
+  route: string;
+  completed: boolean;
+  category: string;
+  icon: string;
+  count: number;
+}
+
+export interface SetupProgressResponse {
+  overall_progress: number;
+  is_complete: boolean;
+  completed_steps: number;
+  total_steps: number;
+  steps: SetupStep[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -57,6 +76,10 @@ export class TenantProfileService {
     return this.http.get<TenantProfile>('/api/tenant/profile').pipe(
       map(p => this.sanitizeProfile(p))
     );
+  }
+
+  getSetupProgress(): Observable<SetupProgressResponse> {
+    return this.http.get<SetupProgressResponse>('/api/tenant/setup-progress');
   }
 
   /** No auth required — safe to call from public-facing pages. */

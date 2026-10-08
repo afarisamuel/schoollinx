@@ -11,31 +11,49 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
     const platformId = inject(PLATFORM_ID);
     const isBrowser = isPlatformBrowser(platformId);
     
-    const expectedRoles = route.data['roles'] as string[];
+    const expectedRoles = (route.data['roles'] as string[]) || [];
 
     return authService.currentUser$.pipe(
         take(1),
         map(user => {
             if (!user) {
                 if (isBrowser) {
-                    router.navigate(['/login']);
+                    const token = authService.getToken();
+                    if (!token) {
+                        router.navigate(['/login']);
+                        return false;
+                    }
                 }
                 return isBrowser ? false : true;
             }
 
-            // Super Admin (ECOPOWER_ADMIN) has access to all admin-accessible routes
-            if (user.role === Role.ECOPOWER_ADMIN || (user.role as string) === 'ECOPOWER_ADMIN') {
+            const userRoleStr = String(user.role || '').toUpperCase();
+
+            // Super Admin (ECOPOWER_ADMIN / SUPER_ADMIN) has access to all routes
+            if (userRoleStr === 'ECOPOWER_ADMIN' || userRoleStr === 'SUPER_ADMIN') {
                 return true;
             }
 
             if (expectedRoles && expectedRoles.length > 0) {
-                const userRoleStr = String(user.role);
-                const hasRole = expectedRoles.some(r => {
+                const normalizedExpected = expectedRoles.map(r => r.toUpperCase());
+                
+                // Comprehensive administrative roles that satisfy 'ADMIN' permission
+                const adminRoles = [
+                    'ADMIN', 'ADMINISTRATOR', 'HEADMASTER', 'PRINCIPAL', 
+                    'IT_ADMIN', 'ECOPOWER_ADMIN', 'SUPER_ADMIN', 
+                    'CLERK', 'SECRETARY', 'REGISTRAR', 'BURSAR', 'ACCOUNTANT',
+                    'OPERATIONS_MANAGER', 'HR_MANAGER', 'LOGISTICS_MANAGER'
+                ];
+
+                const hasRole = normalizedExpected.some(r => {
                     if (r === userRoleStr) return true;
-                    if (r === 'ADMIN' && (userRoleStr === 'ADMIN' || userRoleStr === 'HEADMASTER' || userRoleStr === 'IT_ADMIN' || userRoleStr === 'ECOPOWER_ADMIN')) {
+                    if (r === 'ADMIN' && adminRoles.includes(userRoleStr)) {
                         return true;
                     }
                     if ((r === 'GUARDIAN' || r === 'PARENT') && (userRoleStr === 'GUARDIAN' || userRoleStr === 'PARENT')) {
+                        return true;
+                    }
+                    if ((r === 'TEACHER' || r === 'FACULTY') && (userRoleStr === 'TEACHER' || userRoleStr === 'FACULTY')) {
                         return true;
                     }
                     return false;

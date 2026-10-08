@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../../environments/environment';
+import { getTenantSubdomain } from '../utils/tenant.util';
 
 export const tenantInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> => {
     const platformId = inject(PLATFORM_ID);
@@ -23,35 +24,7 @@ export const tenantInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, 
     }
 
     if (isBrowser) {
-        // Attempt to extract the subdomain from the current window location
-        const hostname = window.location.hostname;
-        let subdomain = '';
-        const parts = hostname.split('.');
-        
-        // Accurate subdomain detection:
-        // - "myschool.schoollinx.com" (parts.length >= 3) -> "myschool"
-        // - "myschool.localhost" (parts.length === 2 && parts[1] === 'localhost') -> "myschool"
-        // - "schoollinx.com" (parts.length === 2) -> apex domain, no tenant subdomain
-        // - "localhost" / "127.0.0.1" -> no subdomain
-        const isIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname);
-        if (!isIp) {
-            if (parts.length >= 3) {
-                const sub = parts[0].toLowerCase();
-                if (sub !== 'www' && sub !== 'api' && sub !== 'admin' && sub !== 'app') {
-                    subdomain = sub;
-                }
-            } else if (parts.length === 2 && parts[1].toLowerCase() === 'localhost') {
-                const sub = parts[0].toLowerCase();
-                if (sub !== 'www') {
-                    subdomain = sub;
-                }
-            }
-        }
-        
-        // Fall back to the subdomain cached in localStorage during login ONLY if we're on localhost or an internal route.
-        if (!subdomain && (hostname === 'localhost' || hostname === '127.0.0.1')) {
-            subdomain = localStorage.getItem('tenant_subdomain') || '';
-        }
+        const subdomain = getTenantSubdomain();
 
         // Always attach X-Tenant-Subdomain if we found one
         if (subdomain) {

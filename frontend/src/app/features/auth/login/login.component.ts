@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/infrastructure/auth/auth.service';
 import { SeoService } from '../../../shared/services/seo';
+import { getTenantSubdomain } from '../../../core/utils/tenant.util';
 
 @Component({
     selector: 'app-login',
@@ -86,17 +87,7 @@ export class LoginComponent implements OnDestroy {
     }
 
     private getSubdomain(): string {
-        const hostname = window.location.hostname;
-        const parts = hostname.split('.');
-
-        if (parts.length >= 2) {
-            const sub = parts[0];
-            if (sub !== 'www' && sub !== 'localhost' && sub !== '127') {
-                return sub;
-            }
-        }
-
-        return localStorage.getItem('tenant_subdomain') || '';
+        return getTenantSubdomain();
     }
 
     private loadTenantName() {

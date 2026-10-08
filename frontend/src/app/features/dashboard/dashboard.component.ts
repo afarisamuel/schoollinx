@@ -68,10 +68,12 @@ export interface InspectedStudentData {
   recentTransactions: InspectedStudentTransaction[];
 }
 
+import { SchoolSetupProgressComponent } from '../../shared/components/school-setup-progress/school-setup-progress.component';
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, DecimalPipe, FormsModule],
+  imports: [CommonModule, RouterLink, DecimalPipe, FormsModule, SchoolSetupProgressComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })

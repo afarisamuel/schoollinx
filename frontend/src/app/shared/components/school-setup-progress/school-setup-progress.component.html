@@ -1,0 +1,117 @@
+<div *ngIf="progressData() as data" class="mb-8 overflow-hidden rounded-2xl border transition-all duration-300"
+     [ngClass]="data.is_complete ? 'bg-surface-elevated/40 border-border-default/60' : 'bg-gradient-to-r from-primary-950/40 via-surface-elevated to-surface-elevated border-primary-500/30 shadow-lg shadow-primary-500/5'">
+  
+  <!-- Header / Summary Bar -->
+  <div class="flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6 cursor-pointer select-none" (click)="toggleCollapse()">
+    <div class="flex items-center gap-4">
+      <!-- Percentage Circular Badge / Icon -->
+      <div class="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border transition-transform duration-300 group-hover:scale-105"
+           [ngClass]="data.is_complete ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-primary-500/10 border-primary-500/30 text-primary-400'">
+        <svg *ngIf="data.is_complete" class="h-7 w-7 text-emerald-400 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+        </svg>
+        <span *ngIf="!data.is_complete" class="text-sm font-black tracking-tight">{{ data.overall_progress }}%</span>
+      </div>
+
+      <div>
+        <div class="flex items-center gap-2.5">
+          <h3 class="text-base sm:text-lg font-bold text-text-primary tracking-tight">
+            School Configuration &amp; Onboarding
+          </h3>
+          <span *ngIf="!data.is_complete" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            Action Required
+          </span>
+          <span *ngIf="data.is_complete" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            100% Ready
+          </span>
+        </div>
+        <p class="text-xs sm:text-sm text-text-muted mt-0.5">
+          <span *ngIf="!data.is_complete">{{ data.completed_steps }} of {{ data.total_steps }} modules configured &bull; Complete the remaining setup to unlock all automated workflows</span>
+          <span *ngIf="data.is_complete">All core institutional modules configured and operational</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Right Side: Progress Bar + Toggle Button -->
+    <div class="flex items-center gap-4 w-full sm:w-auto">
+      <div class="flex-1 sm:w-48">
+        <div class="flex justify-between text-xs font-semibold mb-1.5">
+          <span class="text-text-muted">Setup Progress</span>
+          <span [ngClass]="data.is_complete ? 'text-emerald-400' : 'text-primary-400'">{{ data.overall_progress }}%</span>
+        </div>
+        <div class="h-2 w-full rounded-full bg-surface-base/80 overflow-hidden border border-border-default/40">
+          <div class="h-full rounded-full transition-all duration-700 ease-out"
+               [ngClass]="data.is_complete ? 'bg-gradient-to-r from-emerald-500 to-teal-400' : 'bg-gradient-to-r from-primary-500 via-indigo-500 to-primary-400'"
+               [style.width.%]="data.overall_progress"></div>
+        </div>
+      </div>
+
+      <button type="button" class="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-surface-base/60 transition-colors shrink-0"
+              [title]="isCollapsed() ? 'Expand Checklist' : 'Collapse Checklist'">
+        <svg class="h-5 w-5 transform transition-transform duration-300" [ngClass]="{ 'rotate-180': !isCollapsed() }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Expandable Checklist Details -->
+  <div *ngIf="!isCollapsed()" class="border-t border-border-default/60 bg-surface-base/40 p-5 sm:p-6 transition-all">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div *ngFor="let step of data.steps"
+           (click)="navigateTo(step.route)"
+           class="group relative flex flex-col justify-between p-4 rounded-xl border transition-all duration-200 cursor-pointer"
+           [ngClass]="step.completed 
+             ? 'bg-surface-elevated/60 border-border-default/40 hover:border-emerald-500/30' 
+             : 'bg-surface-elevated border-amber-500/20 hover:border-primary-500/50 hover:shadow-md hover:shadow-primary-500/5'">
+        
+        <!-- Top Row: Icon, Category & Status Badge -->
+        <div>
+          <div class="flex items-center justify-between gap-2 mb-2.5">
+            <span class="text-2xs uppercase tracking-wider font-bold px-2 py-0.5 rounded-md"
+                  [ngClass]="step.completed ? 'bg-surface-base text-text-muted' : 'bg-primary-500/10 text-primary-400 border border-primary-500/20'">
+              {{ step.category }}
+            </span>
+            
+            <span *ngIf="step.completed" class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400">
+              <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+              Done
+            </span>
+
+            <span *ngIf="!step.completed" class="inline-flex items-center gap-1 text-xs font-semibold text-amber-400">
+              <span class="h-2 w-2 rounded-full bg-amber-400 animate-pulse"></span>
+              Setup Needed
+            </span>
+          </div>
+
+          <!-- Step Title & Description -->
+          <h4 class="text-sm font-bold text-text-primary group-hover:text-primary-400 transition-colors flex items-center gap-1.5">
+            {{ step.title }}
+          </h4>
+          <p class="text-xs text-text-muted mt-1 leading-relaxed line-clamp-2">
+            {{ step.description }}
+          </p>
+        </div>
+
+        <!-- Bottom Action CTA -->
+        <div class="mt-4 pt-3 border-t border-border-default/30 flex items-center justify-between text-xs font-medium">
+          <span *ngIf="step.completed && step.count > 0" class="text-text-muted">
+            {{ step.count }} configured
+          </span>
+          <span *ngIf="!step.completed" class="text-amber-400/90 font-semibold">
+            Action required
+          </span>
+          
+          <span class="text-primary-400 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 font-semibold">
+            <span>{{ step.completed ? 'Manage' : 'Set Up Now' }}</span>
+            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

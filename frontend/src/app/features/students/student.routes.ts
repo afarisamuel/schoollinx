@@ -15,6 +15,18 @@ export const studentRoutes: Routes = [
         data: { roles: ['ADMIN'] }
     },
     {
+        path: 'admission-form',
+        loadComponent: () => import('./admission-form/admission-form.component').then(c => c.AdmissionFormComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'TEACHER'] }
+    },
+    {
+        path: 'admission-form/:id',
+        loadComponent: () => import('./admission-form/admission-form.component').then(c => c.AdmissionFormComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'TEACHER'] }
+    },
+    {
         path: 'details/:id',
         loadComponent: () => import('./student-detail/student-detail.component').then(c => c.StudentDetailComponent)
     },
@@ -41,14 +53,14 @@ export const studentRoutes: Routes = [
         data: { roles: ['STUDENT', 'ADMIN'] }
     },
     {
-        path: ':studentId/grades',
-        loadComponent: () => import('../grades/grade-list/grade-list.component').then(c => c.GradeListComponent)
-    },
-    {
         path: 'reports/generate',
         loadComponent: () => import('../academic/reports/report-generator.component').then(c => c.ReportGeneratorComponent),
         canActivate: [roleGuard],
         data: { roles: ['ADMIN', 'TEACHER'] }
+    },
+    {
+        path: ':studentId/grades',
+        loadComponent: () => import('../grades/grade-list/grade-list.component').then(c => c.GradeListComponent)
     },
     {
         path: ':studentId/grades/new',
@@ -61,18 +73,6 @@ export const studentRoutes: Routes = [
     {
         path: ':studentId/report-card',
         loadComponent: () => import('./report-card/report-card.component').then(c => c.ReportCardComponent)
-    },
-    {
-        path: 'admission-form',
-        loadComponent: () => import('./admission-form/admission-form.component').then(c => c.AdmissionFormComponent),
-        canActivate: [roleGuard],
-        data: { roles: ['ADMIN', 'TEACHER'] }
-    },
-    {
-        path: 'admission-form/:id',
-        loadComponent: () => import('./admission-form/admission-form.component').then(c => c.AdmissionFormComponent),
-        canActivate: [roleGuard],
-        data: { roles: ['ADMIN', 'TEACHER'] }
     }
 ];
 
