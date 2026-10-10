@@ -48,6 +48,7 @@ func (u *notificationUseCase) SendToUser(ctx context.Context, userID uuid.UUID, 
 	}
 
 	schema, _ := middleware.GetTenantSchemaFromContext(ctx)
+	tenantID, _ := middleware.GetTenantIDFromContext(ctx)
 	if u.hub != nil {
 		u.hub.SendToUserWithTenant(schema, userID, n)
 	}
@@ -57,6 +58,9 @@ func (u *notificationUseCase) SendToUser(ctx context.Context, userID uuid.UUID, 
 		bgCtx := context.Background()
 		if schema != "" {
 			bgCtx = context.WithValue(bgCtx, middleware.TenantSchemaKey, schema)
+		}
+		if tenantID != uuid.Nil {
+			bgCtx = context.WithValue(bgCtx, middleware.TenantIDKey, tenantID)
 		}
 		go func(targetUID uuid.UUID, notif domain.Notification) {
 			_ = u.SendPushNotification(bgCtx, targetUID, notif.Title, notif.Message, "/favicon.ico", "/notifications")
@@ -81,15 +85,10 @@ func (u *notificationUseCase) SendToRole(ctx context.Context, role domain.Role, 
 	if u.db != nil {
 		var userIDs []uuid.UUID
 		if err := u.db.WithContext(ctx).Model(&domain.User{}).Where("role = ?", role).Pluck("id", &userIDs).Error; err == nil {
-			schema, _ := middleware.GetTenantSchemaFromContext(ctx)
 			for _, uid := range userIDs {
 				userNotif := n
 				userNotif.ID = uuid.New()
-				userNotif.UserID = uid
-				_ = u.db.WithContext(ctx).Create(&userNotif).Error
-				if u.hub != nil {
-					u.hub.SendToUserWithTenant(schema, uid, userNotif)
-				}
+				_ = u.SendToUser(ctx, uid, userNotif)
 			}
 		}
 	}
