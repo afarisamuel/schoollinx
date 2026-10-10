@@ -158,7 +158,7 @@ func initInfrastructure(cfg *config.Config) *Infrastructure {
 	}
 }
 
-func initRepositories(db *gorm.DB, cacheService cache.CacheService) *Repositories {
+func initRepositories(db *gorm.DB, cacheService cache.CacheService, pushServices ...interface{}) *Repositories {
 	return &Repositories{
 		Tenant:         repository.NewTenantRepository(db),
 		User:           repository.NewUserRepository(db),
@@ -175,7 +175,7 @@ func initRepositories(db *gorm.DB, cacheService cache.CacheService) *Repositorie
 		Timetable:      repository.NewTimetableRepository(db),
 		Recommendation: repository.NewRecommendationRepository(db),
 		Campaign:       repository.NewCampaignRepository(db),
-		Message:        repository.NewMessageRepository(db),
+		Message:        repository.NewMessageRepository(db, pushServices...),
 		Resource:       repository.NewResourceRepository(db),
 		Fiscal:         repository.NewFiscalRepository(db),
 		Library:        repository.NewLibraryRepository(db),
@@ -215,7 +215,7 @@ func initRepositories(db *gorm.DB, cacheService cache.CacheService) *Repositorie
 
 func initUseCases(repos *Repositories, infra *Infrastructure, db *gorm.DB, cfg *config.Config) *UseCases {
 	campaignManager := usecase.NewCampaignManager(repos.Campaign, repos.Student, repos.User, infra.SMTP)
-	notifUC := usecase.NewNotificationUseCase(infra.Hub, db, repos.PushSubscription, infra.WebPush)
+	notifUC := usecase.NewNotificationUseCase(infra.Hub, db, repos.PushSubscription, infra.WebPush, infra.FCM)
 	feeNotifier := usecase.NewFeeNotifier(infra.SMS, notifUC, repos.Student, repos.Guardian, repos.Tenant, repos.Message, infra.Hub, db)
 	fiscalUC := usecase.NewFiscalUseCase(repos.Fiscal, repos.Student, repos.Donation, repos.AcademicPeriod, repos.Tenant, repos.Communication, repos.Logistics, feeNotifier)
 

@@ -18,15 +18,20 @@ type notificationUseCase struct {
 	db       *gorm.DB
 	pushRepo domain.PushSubscriptionRepository
 	webPush  push.WebPushService
+	fcm      push.FCMService
 }
 
-func NewNotificationUseCase(hub *ws.Hub, db *gorm.DB, pushRepo domain.PushSubscriptionRepository, webPush push.WebPushService) domain.NotificationUseCase {
-	return &notificationUseCase{
+func NewNotificationUseCase(hub *ws.Hub, db *gorm.DB, pushRepo domain.PushSubscriptionRepository, webPush push.WebPushService, fcm ...push.FCMService) domain.NotificationUseCase {
+	uc := &notificationUseCase{
 		hub:      hub,
 		db:       db,
 		pushRepo: pushRepo,
 		webPush:  webPush,
 	}
+	if len(fcm) > 0 {
+		uc.fcm = fcm[0]
+	}
+	return uc
 }
 
 func (u *notificationUseCase) SendToUser(ctx context.Context, userID uuid.UUID, n domain.Notification) error {
@@ -45,6 +50,21 @@ func (u *notificationUseCase) SendToUser(ctx context.Context, userID uuid.UUID, 
 	schema, _ := middleware.GetTenantSchemaFromContext(ctx)
 	if u.hub != nil {
 		u.hub.SendToUserWithTenant(schema, userID, n)
+	}
+
+	// Dispatch instant push notification in background
+	if u.pushRepo != nil && (u.webPush != nil || (u.fcm != nil && u.fcm.IsConfigured())) {
+		bgCtx := context.Background()
+		if schema != "" {
+			bgCtx = context.WithValue(bgCtx, middleware.TenantSchemaKey, schema)
+		}
+		go func(targetUID uuid.UUID, notif domain.Notification) {
+			_ = u.SendPushNotification(bgCtx, targetUID, notif.Title, notif.Message, "/favicon.ico", "/notifications")
+			if u.db != nil {
+				now := time.Now()
+				_ = u.db.WithContext(bgCtx).Table("public.notifications").Where("id = ?", notif.ID).Update("pushed_at", &now).Error
+			}
+		}(userID, n)
 	}
 
 	return nil
@@ -193,7 +213,7 @@ func (u *notificationUseCase) UpdatePreferences(ctx context.Context, pref *domai
 }
 
 func (u *notificationUseCase) SendPushNotification(ctx context.Context, userID uuid.UUID, title, body, icon, url string) error {
-	if u.pushRepo == nil || u.webPush == nil {
+	if u.pushRepo == nil || (u.webPush == nil && (u.fcm == nil || !u.fcm.IsConfigured())) {
 		return fmt.Errorf("push notification service not configured")
 	}
 
@@ -221,9 +241,16 @@ func (u *notificationUseCase) SendPushNotification(ctx context.Context, userID u
 	var lastErr error
 	successCount := 0
 	for _, sub := range subs {
-		if err := u.webPush.SendNotification(ctx, &sub, payload); err != nil {
-			lastErr = err
-			if err.Error() == "subscription_expired" {
+		var sendErr error
+		if (sub.P256dh == "" || sub.Auth == "") && u.fcm != nil && u.fcm.IsConfigured() {
+			sendErr = u.fcm.SendNotification(ctx, &sub, payload)
+		} else if u.webPush != nil {
+			sendErr = u.webPush.SendNotification(ctx, &sub, payload)
+		}
+
+		if sendErr != nil {
+			lastErr = sendErr
+			if sendErr.Error() == "subscription_expired" {
 				_ = u.pushRepo.DeleteByEndpoint(ctx, sub.Endpoint)
 			}
 		} else {

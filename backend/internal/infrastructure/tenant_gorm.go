@@ -50,6 +50,7 @@ var globalTables = map[string]bool{
 	// push_subscriptions is queried from background goroutines that propagate
 	// the tenant schema context; keep it global so GORM doesn't double-prefix.
 	"push_subscriptions":           true,
+	"notification_preferences":     true,
 }
 
 // setupTenantSchema automatically prepends the schema name to the table name

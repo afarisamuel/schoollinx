@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -709,13 +710,24 @@ func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 	}
 
 	var resetLink string
+	origin := c.GetHeader("Origin")
+	if origin == "" {
+		if ref := c.GetHeader("Referer"); ref != "" {
+			if u, err := url.Parse(ref); err == nil && u.Host != "" {
+				origin = fmt.Sprintf("%s://%s", u.Scheme, u.Host)
+			}
+		}
+	}
+
 	tenantSubdomain, exists := c.Get("tenantSubdomain")
 	if !exists && foundTenant != nil {
 		tenantSubdomain = foundTenant.Subdomain
 		exists = true
 	}
 
-	if exists && tenantSubdomain != "" && tenantSubdomain != "admin" {
+	if origin != "" && !strings.Contains(origin, "api.") {
+		resetLink = fmt.Sprintf("%s/reset-password?token=%s", strings.TrimRight(origin, "/"), token)
+	} else if exists && tenantSubdomain != "" && tenantSubdomain != "admin" {
 		// Tenant portal
 		resetLink = fmt.Sprintf("https://%s.schoollinx.com/reset-password?token=%s", tenantSubdomain.(string), token)
 	} else {

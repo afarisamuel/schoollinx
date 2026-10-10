@@ -2,12 +2,14 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { firstValueFrom } from 'rxjs';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PushNotificationService {
   private http = inject(HttpClient);
+  private authService = inject(AuthService, { optional: true });
   private apiUrl = environment.apiUrl || '/api';
 
   readonly isSupported = signal<boolean>(
@@ -42,6 +44,15 @@ export class PushNotificationService {
       const sub = await reg.pushManager.getSubscription();
       this.isSubscribed.set(!!sub);
       this.permission.set(Notification.permission);
+
+      // Listen for authenticated user changes to bind/refresh device token
+      if (this.authService) {
+        this.authService.currentUser$.subscribe((user) => {
+          if (user && Notification.permission === 'granted') {
+            this.subscribeStandardWebPush().catch(() => {});
+          }
+        });
+      }
 
       // If user already granted permission, ensure their fresh device token is registered with server
       if (Notification.permission === 'granted') {

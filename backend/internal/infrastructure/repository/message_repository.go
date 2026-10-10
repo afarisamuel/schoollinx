@@ -8,16 +8,29 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/user/high-school-management/backend/internal/api/middleware"
 	"github.com/user/high-school-management/backend/internal/domain"
+	"github.com/user/high-school-management/backend/internal/infrastructure/push"
 	"gorm.io/gorm"
 )
 
 type messageRepository struct {
-	db *gorm.DB
+	db      *gorm.DB
+	webPush push.WebPushService
+	fcm     push.FCMService
 }
 
-func NewMessageRepository(db *gorm.DB) domain.MessageRepository {
-	return &messageRepository{db: db}
+func NewMessageRepository(db *gorm.DB, pushServices ...interface{}) domain.MessageRepository {
+	repo := &messageRepository{db: db}
+	for _, p := range pushServices {
+		if wp, ok := p.(push.WebPushService); ok {
+			repo.webPush = wp
+		}
+		if fc, ok := p.(push.FCMService); ok {
+			repo.fcm = fc
+		}
+	}
+	return repo
 }
 
 func (r *messageRepository) resolveToUserID(ctx context.Context, id uuid.UUID) uuid.UUID {
@@ -215,6 +228,12 @@ func (r *messageRepository) resolveUserName(ctx context.Context, id uuid.UUID) s
 			return name
 		}
 	}
+	var user domain.User
+	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&user).Error; err == nil {
+		if user.Username != nil && string(*user.Username) != "" {
+			return string(*user.Username)
+		}
+	}
 	return "New Message"
 }
 
@@ -226,10 +245,18 @@ func (r *messageRepository) SendMessage(ctx context.Context, msg *domain.Message
 		Where("id = ?", msg.ConversationID).
 		Update("updated_at", msg.CreatedAt).Error
 
-	// Generate notification for recipient(s) in background so FCM push worker triggers
+	// Generate notification and dispatch instant push in detached background context
+	bgCtx := context.Background()
+	if schema, ok := middleware.GetTenantSchemaFromContext(ctx); ok {
+		bgCtx = context.WithValue(bgCtx, middleware.TenantSchemaKey, schema)
+	}
+	if tid, ok := ctx.Value(middleware.TenantIDKey).(uuid.UUID); ok {
+		bgCtx = context.WithValue(bgCtx, middleware.TenantIDKey, tid)
+	}
+
 	go func() {
 		var conv domain.Conversation
-		if err := r.db.WithContext(ctx).First(&conv, "id = ?", msg.ConversationID).Error; err == nil {
+		if err := r.db.WithContext(bgCtx).First(&conv, "id = ?", msg.ConversationID).Error; err == nil {
 			var recipients []uuid.UUID
 
 			if conv.Type == "DIRECT" || (conv.ParticipantA != uuid.Nil && conv.ParticipantB != uuid.Nil) {
@@ -240,7 +267,7 @@ func (r *messageRepository) SendMessage(ctx context.Context, msg *domain.Message
 				}
 			} else if conv.ClassID != nil && *conv.ClassID != uuid.Nil {
 				var studentUserIDs []uuid.UUID
-				_ = r.db.WithContext(ctx).Table("students").Where("class_id = ? AND user_id IS NOT NULL", *conv.ClassID).Pluck("user_id", &studentUserIDs).Error
+				_ = r.db.WithContext(bgCtx).Table("students").Where("class_id = ? AND user_id IS NOT NULL", *conv.ClassID).Pluck("user_id", &studentUserIDs).Error
 				for _, uid := range studentUserIDs {
 					if uid != msg.SenderID && uid != uuid.Nil {
 						recipients = append(recipients, uid)
@@ -249,7 +276,7 @@ func (r *messageRepository) SendMessage(ctx context.Context, msg *domain.Message
 			}
 
 			if len(recipients) > 0 {
-				senderName := r.resolveUserName(ctx, msg.SenderID)
+				senderName := r.resolveUserName(bgCtx, msg.SenderID)
 
 				preview := msg.Content
 				if len(preview) > 100 {
@@ -258,17 +285,63 @@ func (r *messageRepository) SendMessage(ctx context.Context, msg *domain.Message
 				if preview == "" && msg.AttachmentName != "" {
 					preview = fmt.Sprintf("Sent an attachment: %s", msg.AttachmentName)
 				}
+				if preview == "" {
+					preview = "New message received"
+				}
 
 				for _, recipientID := range recipients {
 					if recipientID != uuid.Nil {
 						notif := domain.Notification{
+							ID:        uuid.New(),
 							UserID:    recipientID,
 							Title:     senderName,
 							Message:   preview,
 							Type:      domain.NotificationMessage,
 							CreatedAt: time.Now(),
 						}
-						_ = r.db.WithContext(ctx).Create(&notif).Error
+						_ = r.db.WithContext(bgCtx).Create(&notif).Error
+
+						// Instant WebPush / FCM Dispatch
+						if r.webPush != nil || (r.fcm != nil && r.fcm.IsConfigured()) {
+							var subs []domain.PushSubscription
+							_ = r.db.WithContext(bgCtx).Table("public.push_subscriptions").Where("user_id = ?", recipientID).Find(&subs).Error
+
+							if len(subs) > 0 {
+								payload := map[string]interface{}{
+									"title":   senderName,
+									"body":    preview,
+									"icon":    "/favicon.ico",
+									"badge":   "/favicon.ico",
+									"vibrate": []int{100, 50, 100},
+									"data": map[string]string{
+										"id":       notif.ID.String(),
+										"type":     "chat",
+										"url":      "/communications/messaging",
+										"logo_url": "/favicon.ico",
+									},
+								}
+
+								pushedSuccess := false
+								for _, sub := range subs {
+									var sendErr error
+									if (sub.P256dh == "" || sub.Auth == "") && r.fcm != nil && r.fcm.IsConfigured() {
+										sendErr = r.fcm.SendNotification(bgCtx, &sub, payload)
+									} else if r.webPush != nil {
+										sendErr = r.webPush.SendNotification(bgCtx, &sub, payload)
+									}
+									if sendErr == nil {
+										pushedSuccess = true
+									} else if sendErr.Error() == "subscription_expired" {
+										_ = r.db.WithContext(bgCtx).Table("public.push_subscriptions").Where("endpoint = ?", sub.Endpoint).Delete(&domain.PushSubscription{}).Error
+									}
+								}
+
+								if pushedSuccess {
+									now := time.Now()
+									_ = r.db.WithContext(bgCtx).Table("public.notifications").Where("id = ?", notif.ID).Update("pushed_at", &now).Error
+								}
+							}
+						}
 					}
 				}
 			}

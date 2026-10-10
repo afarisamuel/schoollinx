@@ -108,7 +108,7 @@ func (a *App) readinessCheckHandler(c *gin.Context) {
 func (a *App) setupRoutes() {
 	// Initialize Providers
 	infra := initInfrastructure(a.Config)
-	repos := initRepositories(a.DB, infra.Cache)
+	repos := initRepositories(a.DB, infra.Cache, infra.WebPush, infra.FCM)
 	usecases := initUseCases(repos, infra, a.DB, a.Config)
 
 	// Auth Handlers (Tenant-scoped, with brute-force rate limiter: 30 req/min per IP)
