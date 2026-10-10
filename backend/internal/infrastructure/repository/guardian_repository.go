@@ -43,15 +43,37 @@ func (r *guardianRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain
 
 func (r *guardianRepository) GetByUserID(ctx context.Context, userID uuid.UUID) (*domain.Guardian, error) {
 	var guardian domain.Guardian
-	if err := r.db.WithContext(ctx).Where("user_id = ?", userID).First(&guardian).Error; err != nil {
-		return nil, err
+	if err := r.db.WithContext(ctx).Where("user_id = ?", userID).First(&guardian).Error; err == nil {
+		students, _ := r.GetLinkedStudents(ctx, guardian.ID)
+		guardian.Students = make([]*domain.Student, len(students))
+		for i := range students {
+			guardian.Students[i] = &students[i]
+		}
+		return &guardian, nil
 	}
-	students, _ := r.GetLinkedStudents(ctx, guardian.ID)
-	guardian.Students = make([]*domain.Student, len(students))
-	for i := range students {
-		guardian.Students[i] = &students[i]
+
+	// Fallback: If user exists, find guardian by user's phone or email and auto-link
+	var user domain.User
+	if err := r.db.WithContext(ctx).Where("id = ?", userID).First(&user).Error; err == nil {
+		phone := ""
+		if user.PhoneNumber != nil {
+			phone = encryption.DeterministicDecryptedString(string(*user.PhoneNumber))
+		}
+		email := encryption.DeterministicDecryptedString(string(user.Email))
+
+		if matchedG, _ := r.GetByPhoneOrEmail(ctx, phone, email); matchedG != nil {
+			matchedG.UserID = userID
+			_ = r.db.WithContext(ctx).Model(&domain.Guardian{}).Where("id = ?", matchedG.ID).Update("user_id", userID)
+			students, _ := r.GetLinkedStudents(ctx, matchedG.ID)
+			matchedG.Students = make([]*domain.Student, len(students))
+			for i := range students {
+				matchedG.Students[i] = &students[i]
+			}
+			return matchedG, nil
+		}
 	}
-	return &guardian, nil
+
+	return nil, gorm.ErrRecordNotFound
 }
 
 func (r *guardianRepository) GetByPhoneOrEmail(ctx context.Context, phone string, email string) (*domain.Guardian, error) {
@@ -147,12 +169,66 @@ func (r *guardianRepository) GetLinkedStudents(ctx context.Context, guardianID u
 	var students []domain.Student
 	tbl := r.studentGuardiansTable(ctx)
 	err := r.db.WithContext(ctx).
-		Joins(fmt.Sprintf("JOIN %s ON %s.student_id = students.id", tbl, tbl)).
-		Where(fmt.Sprintf("%s.guardian_id = ?", tbl), guardianID).
+		Where(fmt.Sprintf("id IN (SELECT student_id FROM %s WHERE guardian_id = ?)", tbl), guardianID).
 		Preload("User").
 		Preload("Class.Subjects").
 		Preload("Class").
 		Find(&students).Error
+
+	if err == nil && len(students) > 0 {
+		return students, nil
+	}
+
+	// Also check if guardian has phone/email matching student guardian/parent fields
+	var guardian domain.Guardian
+	if errG := r.db.WithContext(ctx).Where("id = ?", guardianID).First(&guardian).Error; errG == nil {
+		gPhone := strings.TrimSpace(encryption.DeterministicDecryptedString(string(guardian.PhoneNumber)))
+		gEmail := strings.TrimSpace(encryption.DeterministicDecryptedString(string(guardian.Email)))
+		if gPhone != "" || gEmail != "" {
+			var allStudents []domain.Student
+			if errS := r.db.WithContext(ctx).Preload("User").Preload("Class.Subjects").Preload("Class").Find(&allStudents).Error; errS == nil {
+				for _, s := range allStudents {
+					matched := false
+					sEmails := []string{
+						strings.TrimSpace(string(s.GuardianEmail)),
+						strings.TrimSpace(string(s.FatherEmail)),
+						strings.TrimSpace(string(s.MotherEmail)),
+					}
+					sPhones := []string{
+						strings.TrimSpace(string(s.GuardianPhone)),
+						strings.TrimSpace(string(s.FatherPhone)),
+						strings.TrimSpace(string(s.MotherPhone)),
+						strings.TrimSpace(string(s.EmergencyContactPhone)),
+					}
+					for _, em := range sEmails {
+						if gEmail != "" && em != "" && strings.EqualFold(gEmail, em) {
+							matched = true
+							break
+						}
+					}
+					if !matched && gPhone != "" {
+						d1 := strings.TrimLeft(gPhone, "+0")
+						for _, ph := range sPhones {
+							if ph == "" {
+								continue
+							}
+							d2 := strings.TrimLeft(ph, "+0")
+							if gPhone == ph || (len(d1) >= 9 && len(d2) >= 9 && (strings.HasSuffix(d1, d2) || strings.HasSuffix(d2, d1))) {
+								matched = true
+								break
+							}
+						}
+					}
+
+					if matched {
+						// Link in student_guardians table for future fast lookups
+						_ = r.LinkStudent(ctx, guardianID, s.ID)
+						students = append(students, s)
+					}
+				}
+			}
+		}
+	}
 
 	return students, err
 }
@@ -239,8 +315,7 @@ func (r *guardianRepository) GetForStudent(ctx context.Context, studentID uuid.U
 	var guardians []*domain.Guardian
 	tbl := r.studentGuardiansTable(ctx)
 	err := r.db.WithContext(ctx).
-		Joins(fmt.Sprintf("JOIN %s ON %s.guardian_id = guardians.id", tbl, tbl)).
-		Where(fmt.Sprintf("%s.student_id = ?", tbl), studentID).
+		Where(fmt.Sprintf("id IN (SELECT guardian_id FROM %s WHERE student_id = ?)", tbl), studentID).
 		Find(&guardians).Error
 	return guardians, err
 }

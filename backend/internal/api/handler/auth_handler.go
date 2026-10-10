@@ -636,6 +636,12 @@ func (h *AuthHandler) ChangePassword(c *gin.Context) {
 // @Produce      json
 // @Success      200      {object}  map[string]string
 // @Router       /auth/forgot-password [post]
+// @Summary      Forgot Password
+// @Description  Requests a password reset link to be sent via email
+// @Tags         auth
+// @Produce      json
+// @Success      200      {object}  map[string]string
+// @Router       /auth/forgot-password [post]
 func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 	var req ForgotPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -643,44 +649,114 @@ func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 		return
 	}
 
-	user, err := h.userRepo.GetByIdentifier(c.Request.Context(), req.Email)
-	if err != nil {
-		// Silent fail to prevent email enumeration
+	trimmedEmail := strings.TrimSpace(req.Email)
+	if trimmedEmail == "" {
+		c.JSON(http.StatusOK, gin.H{"message": "If an account with that email exists, a password reset link has been sent."})
+		return
+	}
+
+	user, err := h.userRepo.GetByIdentifier(c.Request.Context(), trimmedEmail)
+	var foundTenant *domain.Tenant
+	var userSchema string
+
+	// Fallback: If not found in current context, search active tenant schemas
+	if err != nil && h.tenantRepo != nil {
+		tenants, tErr := h.tenantRepo.GetAll(c.Request.Context())
+		if tErr == nil {
+			for _, t := range tenants {
+				if t.SchemaName != "" && t.SchemaName != "public" && t.IsActive {
+					tenantCtx := context.WithValue(c.Request.Context(), middleware.TenantSchemaKey, t.SchemaName)
+					tenantCtx = context.WithValue(tenantCtx, middleware.TenantIDKey, t.ID)
+					u, uErr := h.userRepo.GetByIdentifier(tenantCtx, trimmedEmail)
+					if uErr == nil && u != nil {
+						user = u
+						foundTenant = &t
+						userSchema = t.SchemaName
+						c.Set("tenantSubdomain", t.Subdomain)
+						c.Set("tenantSchema", t.SchemaName)
+						c.Set("tenantID", t.ID)
+						err = nil
+						break
+					}
+				}
+			}
+		}
+	}
+
+	if err != nil || user == nil {
+		// Silent return to prevent email enumeration attacks
 		c.JSON(http.StatusOK, gin.H{"message": "If an account with that email exists, a password reset link has been sent."})
 		return
 	}
 
 	token := uuid.New().String()
-	expiresAt := time.Now().Add(1 * time.Hour)
+	expiresAt := time.Now().Add(2 * time.Hour)
 
 	user.ResetToken = &token
 	user.ResetTokenExpiresAt = &expiresAt
 
-	if err := h.userRepo.Update(c.Request.Context(), user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process request"})
+	var updateErr error
+	if userSchema != "" {
+		updateErr = h.db.Table(userSchema + ".users").Save(user).Error
+	} else {
+		updateErr = h.userRepo.Update(c.Request.Context(), user)
+	}
+
+	if updateErr != nil {
+		logger.Error("Failed to update user reset token", updateErr)
+		c.JSON(http.StatusOK, gin.H{"message": "If an account with that email exists, a password reset link has been sent."})
 		return
 	}
 
 	var resetLink string
 	tenantSubdomain, exists := c.Get("tenantSubdomain")
-	if exists && tenantSubdomain != "" {
+	if !exists && foundTenant != nil {
+		tenantSubdomain = foundTenant.Subdomain
+		exists = true
+	}
+
+	if exists && tenantSubdomain != "" && tenantSubdomain != "admin" {
 		// Tenant portal
-		resetLink = "https://" + tenantSubdomain.(string) + ".schoollinx.com/reset-password?token=" + token
+		resetLink = fmt.Sprintf("https://%s.schoollinx.com/reset-password?token=%s", tenantSubdomain.(string), token)
 	} else {
-		// Admin portal
-		resetLink = "https://admin.schoollinx.com/reset-password?token=" + token
+		// Admin / Platform portal
+		resetLink = fmt.Sprintf("https://admin.schoollinx.com/reset-password?token=%s", token)
 	}
 
 	subject := "Reset Your Password - School Linx"
-	htmlBody := "<h1>Password Reset Request</h1><p>You requested a password reset. Click the link below to set a new password:</p><p><a href=\"" + resetLink + "\">Reset Password</a></p><p>This link will expire in 1 hour.</p>"
+	htmlBody := fmt.Sprintf(`
+		<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b;">
+			<div style="margin-bottom: 20px;">
+				<h2 style="color: #4338ca; margin: 0 0 8px 0; font-size: 22px;">School Linx Password Reset</h2>
+				<p style="color: #64748b; font-size: 14px; margin: 0;">Account Recovery Assistance</p>
+			</div>
+			<p style="font-size: 15px; line-height: 1.6; color: #334155;">Hello,</p>
+			<p style="font-size: 15px; line-height: 1.6; color: #334155;">You recently requested to reset your password for your School Linx account. Click the button below to choose a new password:</p>
+			<div style="margin: 28px 0; text-align: left;">
+				<a href="%s" style="padding: 14px 28px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block;">Reset My Password</a>
+			</div>
+			<p style="color: #64748b; font-size: 13px; line-height: 1.5;">If the button above does not work, copy and paste this link into your browser:</p>
+			<p style="color: #4f46e5; font-size: 12px; word-break: break-all; margin: 4px 0 20px 0;">%s</p>
+			<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+			<p style="color: #94a3b8; font-size: 12px; margin: 0;">This password reset link will expire in 2 hours. If you did not request this, you can safely ignore this email.</p>
+		</div>
+	`, resetLink, resetLink)
 
-	decryptedEmail, err := encryption.DecryptDeterministic(string(user.Email), "")
-	if err == nil && decryptedEmail != "" {
-		go func() {
+	targetEmail := trimmedEmail
+	if targetEmail == "" && user != nil {
+		targetEmail = encryption.DeterministicDecryptedString(string(user.Email))
+	}
+
+	if targetEmail != "" {
+		go func(recipient, subj, body string) {
 			if h.mailer != nil {
-				h.mailer.SendBulkHTML(context.Background(), subject, htmlBody, []string{decryptedEmail})
+				if err := h.mailer.SendBulkHTML(context.Background(), subj, body, []string{recipient}); err != nil {
+					logger.Error("Failed to send password reset email", err, zap.String("recipient", recipient))
+				} else {
+					logger.Info("Password reset email sent successfully", zap.String("recipient", recipient))
+				}
 			}
-		}()
+		}(targetEmail, subject, htmlBody)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "If an account with that email exists, a password reset link has been sent."})
@@ -700,7 +776,32 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 	}
 
 	user, err := h.userRepo.GetByResetToken(c.Request.Context(), req.Token)
-	if err != nil {
+	var userSchema string
+
+	if err != nil && h.tenantRepo != nil {
+		// Federated search across tenant schemas if not found in current context
+		tenants, tErr := h.tenantRepo.GetAll(c.Request.Context())
+		if tErr == nil {
+			for _, t := range tenants {
+				if t.SchemaName != "" && t.SchemaName != "public" && t.IsActive {
+					tenantCtx := context.WithValue(c.Request.Context(), middleware.TenantSchemaKey, t.SchemaName)
+					tenantCtx = context.WithValue(tenantCtx, middleware.TenantIDKey, t.ID)
+					u, uErr := h.userRepo.GetByResetToken(tenantCtx, req.Token)
+					if uErr == nil && u != nil {
+						user = u
+						userSchema = t.SchemaName
+						c.Set("tenantSubdomain", t.Subdomain)
+						c.Set("tenantSchema", t.SchemaName)
+						c.Set("tenantID", t.ID)
+						err = nil
+						break
+					}
+				}
+			}
+		}
+	}
+
+	if err != nil || user == nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired reset token"})
 		return
 	}
@@ -726,7 +827,14 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 	user.ResetTokenExpiresAt = nil
 	user.MustChangePassword = false
 
-	if err := h.userRepo.Update(c.Request.Context(), user); err != nil {
+	var updateErr error
+	if userSchema != "" {
+		updateErr = h.db.Table(userSchema + ".users").Save(user).Error
+	} else {
+		updateErr = h.userRepo.Update(c.Request.Context(), user)
+	}
+
+	if updateErr != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
 		return
 	}

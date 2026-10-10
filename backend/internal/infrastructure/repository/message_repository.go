@@ -51,6 +51,22 @@ func (r *messageRepository) FindOrCreateConversation(ctx context.Context, a, b u
 	a = r.resolveToUserID(ctx, a)
 	b = r.resolveToUserID(ctx, b)
 
+	// Check if either participant is a guardian
+	var userA, userB domain.User
+	_ = r.db.WithContext(ctx).First(&userA, "id = ?", a).Error
+	_ = r.db.WithContext(ctx).First(&userB, "id = ?", b).Error
+
+	if userA.Role == domain.RoleGuardian {
+		if userB.Role == domain.RoleGuardian || userB.Role == domain.RoleStudent {
+			return nil, fmt.Errorf("guardians are only permitted to message teachers and school administration")
+		}
+	}
+	if userB.Role == domain.RoleGuardian {
+		if userA.Role == domain.RoleGuardian || userA.Role == domain.RoleStudent {
+			return nil, fmt.Errorf("guardians are only permitted to message teachers and school administration")
+		}
+	}
+
 	var conv domain.Conversation
 	err := r.db.WithContext(ctx).
 		Where("(participant_a = ? AND participant_b = ?) OR (participant_a = ? AND participant_b = ?)", a, b, b, a).
@@ -268,7 +284,7 @@ func (r *messageRepository) MarkAsRead(ctx context.Context, conversationID, read
 	if err := r.db.WithContext(ctx).
 		Where("conversation_id = ? AND sender_id != ? AND is_read = false", conversationID, readerID).
 		Find(&unreadMsgs).Error; err == nil {
-		
+
 		for _, msg := range unreadMsgs {
 			var receipts []domain.ReadReceiptEntry
 			if msg.ReadBy != "" {
@@ -317,8 +333,8 @@ func (r *messageRepository) TogglePinMessage(ctx context.Context, msgID, userID 
 	err := r.db.WithContext(ctx).Model(&domain.Message{}).
 		Where("id = ?", msgID).
 		Updates(map[string]interface{}{
-			"is_pinned":  newPinned,
-			"pinned_by":  pinnedBy,
+			"is_pinned": newPinned,
+			"pinned_by": pinnedBy,
 		}).Error
 	return newPinned, err
 }
@@ -473,7 +489,35 @@ func (r *messageRepository) GetContacts(ctx context.Context, callerID uuid.UUID,
 	var users []domain.User
 	dbQuery := r.db.WithContext(ctx).Where("id != ?", callerID)
 
-	if roleFilter != "" && roleFilter != "ALL" {
+	// Guardians can ONLY view and message Teachers, Headmasters, and Administrative staff
+	if callerRole == domain.RoleGuardian {
+		allowedRoles := []domain.Role{
+			domain.RoleTeacher,
+			domain.RoleHeadmaster,
+			domain.RoleAdmin,
+			domain.RoleEcopowerAdmin,
+			domain.RoleAccountant,
+			domain.RoleBursar,
+			domain.RoleLibrarian,
+		}
+		if roleFilter != "" && roleFilter != "ALL" {
+			isAllowed := false
+			for _, ar := range allowedRoles {
+				if string(ar) == roleFilter {
+					isAllowed = true
+					break
+				}
+			}
+			if isAllowed {
+				dbQuery = dbQuery.Where("role = ?", roleFilter)
+			} else {
+				// Denied filter (e.g. STUDENT or GUARDIAN) -> return empty
+				return []domain.ChatContact{}, nil
+			}
+		} else {
+			dbQuery = dbQuery.Where("role IN ?", allowedRoles)
+		}
+	} else if roleFilter != "" && roleFilter != "ALL" {
 		dbQuery = dbQuery.Where("role = ?", roleFilter)
 	}
 
@@ -679,4 +723,3 @@ func (r *messageRepository) GetChannelAnalytics(ctx context.Context, conversatio
 		PeakHour:               peakHourStr,
 	}, nil
 }
-

@@ -113,39 +113,60 @@ func (u *tenantUseCase) ResendSetupEmail(ctx context.Context, id string) error {
 	// Find the admin user in the tenant schema
 	var user domain.User
 	if err := u.db.Table(tenant.SchemaName+".users").Where("role = ?", domain.RoleAdmin).First(&user).Error; err != nil {
-		return fmt.Errorf("failed to find tenant admin: %v", err)
+		return fmt.Errorf("failed to find tenant admin in schema %s: %w", tenant.SchemaName, err)
 	}
 
 	// Generate new token
 	setupToken := uuid.New().String()
-	expiresAt := time.Now().Add(24 * time.Hour)
+	expiresAt := time.Now().Add(48 * time.Hour)
 
 	user.SetupToken = &setupToken
 	user.SetupTokenExpiresAt = &expiresAt
 
 	if err := u.db.Table(tenant.SchemaName + ".users").Save(&user).Error; err != nil {
-		return fmt.Errorf("failed to update setup token: %v", err)
+		return fmt.Errorf("failed to update setup token: %w", err)
 	}
 
 	// Send Email
 	setupLink := fmt.Sprintf("https://%s.schoollinx.com/setup-password?token=%s", tenant.Subdomain, setupToken)
-	subject := "Action Required: Complete Your Admin Setup"
+	subject := fmt.Sprintf("Action Required: Set Up Admin Account for %s", tenant.Name)
 	body := fmt.Sprintf(`
-		<h1>Welcome back to School Linx</h1>
-		<p>Your tenant environment for <strong>%s</strong> is ready.</p>
-		<p>Please click the link below to set your password and complete your admin account setup:</p>
-		<p><a href="%s" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Set Up Your Password</a></p>
-		<p>This link will expire in 24 hours.</p>
-	`, tenant.Name, setupLink)
+		<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b;">
+			<div style="margin-bottom: 20px;">
+				<h2 style="color: #4338ca; margin: 0 0 8px 0; font-size: 22px;">School Linx Administrator Access</h2>
+				<p style="color: #64748b; font-size: 14px; margin: 0;">Institutional Onboarding &amp; Setup</p>
+			</div>
+			<p style="font-size: 15px; line-height: 1.6; color: #334155;">Hello Administrator,</p>
+			<p style="font-size: 15px; line-height: 1.6; color: #334155;">Your institutional tenant environment for <strong>%s</strong> is ready on the School Linx platform.</p>
+			<p style="font-size: 15px; line-height: 1.6; color: #334155;">Please click the button below to initialize your credentials and choose your administrative password:</p>
+			<div style="margin: 28px 0; text-align: left;">
+				<a href="%s" style="padding: 14px 28px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block;">Set Up Administrator Password</a>
+			</div>
+			<p style="color: #64748b; font-size: 13px; line-height: 1.5;">If the button above does not work, copy and paste this link into your browser:</p>
+			<p style="color: #4f46e5; font-size: 12px; word-break: break-all; margin: 4px 0 20px 0;">%s</p>
+			<div style="background-color: #f8fafc; border-left: 4px solid #4f46e5; padding: 12px 16px; border-radius: 4px; margin-bottom: 24px;">
+				<p style="margin: 0; font-size: 13px; color: #475569;"><strong>Portal Subdomain:</strong> %s.schoollinx.com</p>
+			</div>
+			<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+			<p style="color: #94a3b8; font-size: 12px; margin: 0;">This invitation link will expire in 48 hours. If you need any assistance, contact School Linx Support.</p>
+		</div>
+	`, tenant.Name, setupLink, setupLink, tenant.Subdomain)
 
-	// Send email asynchronously — SMTP errors should not block or fail the request
 	recipientEmail := encryption.DeterministicDecryptedString(string(user.Email))
-	go func() {
-		if err := u.mailer.SendBulkHTML(context.Background(), subject, body, []string{recipientEmail}); err != nil {
-			// Log but don't surface — the token was already saved
-			fmt.Printf("ResendSetupEmail: failed to send email to %s: %v\n", recipientEmail, err)
+	if recipientEmail == "" {
+		recipientEmail = string(user.Email)
+	}
+
+	go func(toEmail, subj, b string) {
+		if u.mailer != nil && toEmail != "" {
+			if err := u.mailer.SendBulkHTML(context.Background(), subj, b, []string{toEmail}); err != nil {
+				logger.Error("ResendSetupEmail: failed to send setup email", err, zap.String("recipient", toEmail))
+			} else {
+				logger.Info("ResendSetupEmail: setup email delivered successfully", zap.String("recipient", toEmail))
+			}
 		}
-	}()
+	}(recipientEmail, subject, body)
+
 	return nil
 }
 
@@ -236,38 +257,61 @@ func (u *tenantUseCase) OnboardTenant(ctx context.Context, req OnboardTenantReq)
 	if setupToken != nil {
 		// Setup-token flow: admin needs to set a password via email link
 		setupLink := fmt.Sprintf("https://%s.schoollinx.com/setup-password?token=%s", req.Subdomain, *setupToken)
-		subject = "Welcome to School Linx - Complete Your Admin Setup"
+		subject = fmt.Sprintf("Welcome to School Linx - Complete Setup for %s", req.Name)
 		body = fmt.Sprintf(`
-		<h1>Welcome to School Linx</h1>
-		<p>Your tenant environment for <strong>%s</strong> has been successfully provisioned.</p>
-		<p>Please click the link below to set your password and complete your admin account setup:</p>
-		<p><a href="%s" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Set Up Your Password</a></p>
-		<p>This link will expire in 24 hours.</p>
-		<hr>
-		<p>If you did not request this, please ignore this email.</p>
-	`, req.Name, setupLink)
+		<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b;">
+			<div style="margin-bottom: 20px;">
+				<h2 style="color: #4338ca; margin: 0 0 8px 0; font-size: 22px;">Welcome to School Linx</h2>
+				<p style="color: #64748b; font-size: 14px; margin: 0;">Your School Management System is Ready</p>
+			</div>
+			<p style="font-size: 15px; line-height: 1.6; color: #334155;">Hello Administrator,</p>
+			<p style="font-size: 15px; line-height: 1.6; color: #334155;">Your dedicated school tenant environment for <strong>%s</strong> has been provisioned successfully.</p>
+			<p style="font-size: 15px; line-height: 1.6; color: #334155;">Please click the button below to initialize your credentials and choose your administrative password:</p>
+			<div style="margin: 28px 0; text-align: left;">
+				<a href="%s" style="padding: 14px 28px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block;">Set Up Administrator Password</a>
+			</div>
+			<p style="color: #64748b; font-size: 13px; line-height: 1.5;">If the button does not work, copy and paste this link into your browser:</p>
+			<p style="color: #4f46e5; font-size: 12px; word-break: break-all; margin: 4px 0 20px 0;">%s</p>
+			<div style="background-color: #f8fafc; border-left: 4px solid #4f46e5; padding: 12px 16px; border-radius: 4px; margin-bottom: 24px;">
+				<p style="margin: 0; font-size: 13px; color: #475569;"><strong>School Portal URL:</strong> https://%s.schoollinx.com</p>
+				<p style="margin: 4px 0 0 0; font-size: 13px; color: #475569;"><strong>Admin Login Email:</strong> %s</p>
+			</div>
+			<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+			<p style="color: #94a3b8; font-size: 12px; margin: 0;">This link will expire in 48 hours. If you did not request this, please contact support.</p>
+		</div>
+	`, req.Name, setupLink, setupLink, req.Subdomain, req.AdminEmail)
 	} else {
 		// Self-onboarding flow: account is ready, just send a welcome email
 		loginURL := fmt.Sprintf("https://%s.schoollinx.com/login", req.Subdomain)
-		subject = "Your School Linx Portal is Ready!"
+		subject = fmt.Sprintf("Your School Linx Portal is Ready - %s", req.Name)
 		body = fmt.Sprintf(`
-		<h1>Welcome to School Linx, %s!</h1>
-		<p>Your school portal has been successfully provisioned and your admin account is ready.</p>
-		<p><strong>Login URL:</strong> <a href="%s">%s</a></p>
-		<p><strong>Email:</strong> %s</p>
-		<p>Log in now to start setting up your institution.</p>
-		<hr>
-		<p>If you did not register for this, please contact support immediately.</p>
-	`, req.Name, loginURL, loginURL, req.AdminEmail)
+		<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; color: #1e293b;">
+			<h2 style="color: #4338ca; margin: 0 0 8px 0; font-size: 22px;">Welcome to School Linx, %s!</h2>
+			<p style="font-size: 15px; line-height: 1.6; color: #334155;">Your school portal has been successfully provisioned and your admin account is active.</p>
+			<div style="background-color: #f8fafc; border-left: 4px solid #4f46e5; padding: 12px 16px; border-radius: 4px; margin: 20px 0;">
+				<p style="margin: 0; font-size: 13px; color: #475569;"><strong>Login URL:</strong> <a href="%s" style="color: #4f46e5;">%s</a></p>
+				<p style="margin: 4px 0 0 0; font-size: 13px; color: #475569;"><strong>Email:</strong> %s</p>
+			</div>
+			<div style="margin: 28px 0;">
+				<a href="%s" style="padding: 14px 28px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block;">Log in to Dashboard</a>
+			</div>
+			<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+			<p style="color: #94a3b8; font-size: 12px; margin: 0;">If you need assistance, please contact School Linx Support.</p>
+		</div>
+	`, req.Name, loginURL, loginURL, req.AdminEmail, loginURL)
 	}
 
-	if err := u.mailer.SendBulkHTML(ctx, subject, body, []string{req.AdminEmail}); err != nil {
-		logger.Error("CRITICAL: Failed to send welcome email", err, zap.String("admin_email", req.AdminEmail))
-		logger.Warn("Tenant provisioned successfully but welcome email failed. Use ResendSetupEmail to retry.",
-			zap.String("tenant_id", tenant.ID.String()))
-	}
+	go func(toEmail, subj, b string) {
+		if u.mailer != nil && toEmail != "" {
+			if err := u.mailer.SendBulkHTML(context.Background(), subj, b, []string{toEmail}); err != nil {
+				logger.Error("CRITICAL: Failed to send welcome email", err, zap.String("admin_email", toEmail))
+			} else {
+				logger.Info("SUCCESS: Welcome email sent", zap.String("admin_email", toEmail))
+			}
+		}
+	}(req.AdminEmail, subject, body)
 
-	logger.Info("SUCCESS: Tenant provisioned and email sent", zap.String("tenant_name", req.Name), zap.String("admin_email", req.AdminEmail))
+	logger.Info("SUCCESS: Tenant provisioned and email dispatched", zap.String("tenant_name", req.Name), zap.String("admin_email", req.AdminEmail))
 	return tenant, nil
 }
 

@@ -221,6 +221,16 @@
         <div class="spinner"></div>
         <p>Loading family matrix...</p>
     </div>
+    } @else if (children().length === 0) {
+    <div class="glass-panel text-center py-12 px-6 rounded-3xl border border-slate-800 bg-slate-900/60 max-w-xl mx-auto my-8">
+        <div class="w-16 h-16 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mx-auto mb-4 text-blue-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h3 class="text-lg font-bold text-white mb-2">No Linked Wards Found</h3>
+        <p class="text-xs text-slate-400 leading-relaxed max-w-md mx-auto">
+            We couldn't locate any student records linked to your account yet. Please make sure the phone number or email you logged in with matches the contact information registered on your ward's student file, or contact the school administration to link your profile.
+        </p>
+    </div>
     } @else {
     <div class="children-grid">
         @for (child of children(); track child.id) {
@@ -231,7 +241,16 @@
             </div>
             <div class="child-info">
                 <h3>{{ child.first_name }} {{ child.last_name }}</h3>
-                <span class="badge badge-outline">Grade Level / Class Info</span>
+                <div class="flex items-center gap-2 flex-wrap mb-1.5">
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                        {{ child.class?.name || ('Class Level ' + (child.level || 1)) }}
+                    </span>
+                    @if (child.enrollment_num) {
+                        <span class="text-[10px] font-mono text-slate-400">
+                            #{{ child.enrollment_num }}
+                        </span>
+                    }
+                </div>
                 <a [routerLink]="['/students', child.id, 'report-card']" class="mt-2 text-xs font-bold text-blue-400 hover:text-blue-300 inline-flex items-center gap-1" (click)="$event.stopPropagation()">
                     View Report Card
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>

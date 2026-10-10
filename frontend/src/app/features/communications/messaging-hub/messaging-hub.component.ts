@@ -196,14 +196,22 @@ export class MessagingHubComponent implements OnInit, OnDestroy, AfterViewChecke
     currentUser = computed(() => this.authService.currentUserValue);
     currentUserId = computed(() => this.currentUser()?.id ?? '');
     currentUserRole = computed(() => this.currentUser()?.role ?? Role.STUDENT);
-
-    roleFilterTabs = [
-        { label: 'All Contacts', value: 'ALL', icon: 'fa-users' },
-        { label: 'Teachers & Faculty', value: 'TEACHER', icon: 'fa-chalkboard-user' },
-        { label: 'Parents & Guardians', value: 'GUARDIAN', icon: 'fa-user-group' },
-        { label: 'Students', value: 'STUDENT', icon: 'fa-graduation-cap' },
-        { label: 'School Admin', value: 'ADMIN', icon: 'fa-shield-halved' }
-    ];
+    roleFilterTabs = computed(() => {
+        if (this.currentUserRole() === 'GUARDIAN' || (this.currentUserRole() as any) === 'PARENT') {
+            return [
+                { label: 'All School Staff', value: 'ALL', icon: 'fa-users' },
+                { label: 'Teachers & Faculty', value: 'TEACHER', icon: 'fa-chalkboard-user' },
+                { label: 'School Admin', value: 'ADMIN', icon: 'fa-shield-halved' }
+            ];
+        }
+        return [
+            { label: 'All Contacts', value: 'ALL', icon: 'fa-users' },
+            { label: 'Teachers & Faculty', value: 'TEACHER', icon: 'fa-chalkboard-user' },
+            { label: 'Parents & Guardians', value: 'GUARDIAN', icon: 'fa-user-group' },
+            { label: 'Students', value: 'STUDENT', icon: 'fa-graduation-cap' },
+            { label: 'School Admin', value: 'ADMIN', icon: 'fa-shield-halved' }
+        ];
+    });
 
     filteredConversations = computed(() => {
         const query = this.searchQuery().toLowerCase().trim();

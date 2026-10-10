@@ -105,6 +105,10 @@ func (h *MessagingHandler) StartConversation(c *gin.Context) {
 	senderID := val.(uuid.UUID)
 	conv, err := h.useCase.FindOrCreateConversation(c.Request.Context(), senderID, body.RecipientID)
 	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "guardians are only permitted") {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Parents and guardians are only permitted to message teachers and school administration."})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

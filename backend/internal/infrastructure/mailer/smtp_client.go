@@ -2,10 +2,12 @@ package mailer
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/user/high-school-management/backend/config"
 	"gopkg.in/gomail.v2"
@@ -55,39 +57,48 @@ func (s *smtpService) SendBulkHTML(ctx context.Context, subject, htmlBody string
 		return nil
 	}
 
-	m := gomail.NewMessage()
-	m.SetHeader("From", s.from)
-	m.SetHeader("Subject", subject)
-
-	// Add anti-spam headers for bulk/transactional emails
-	m.SetHeader("Precedence", "bulk")
-	m.SetHeader("Auto-Submitted", "auto-generated")
+	var validRecipients []string
+	for _, r := range recipients {
+		r = strings.TrimSpace(r)
+		if r != "" && strings.Contains(r, "@") {
+			validRecipients = append(validRecipients, r)
+		}
+	}
+	if len(validRecipients) == 0 {
+		return nil
+	}
 
 	// Generate a plain-text version by removing HTML tags
-	// This satisfies spam filters looking for multi-part bodies that match the HTML content.
 	re := regexp.MustCompile(`<[^>]*>`)
 	plainText := re.ReplaceAllString(htmlBody, "")
-	// Also replace common HTML entities if necessary, but this basic strip is usually enough for spam filters
-	m.SetBody("text/plain", plainText)
-	m.AddAlternative("text/html", htmlBody)
 
 	d := gomail.NewDialer(s.host, s.port, s.username, s.password)
+	d.TLSConfig = &tls.Config{
+		InsecureSkipVerify: true,
+		ServerName:         s.host,
+	}
 
-	// Open a single physical TCP connection to the SMTP server.
+	// Open physical TCP connection to the SMTP server
 	sc, err := d.Dial()
 	if err != nil {
-		return fmt.Errorf("failed to open SMTP connection: %w", err)
+		log.Printf("[SMTP DIAL ERROR] Failed to connect to SMTP %s:%d: %v", s.host, s.port, err)
+		return fmt.Errorf("failed to open SMTP connection to %s:%d: %w", s.host, s.port, err)
 	}
 	defer sc.Close()
 
-	// Iterate through targets, transmitting the specific payload over the active socket
-	for _, recipient := range recipients {
+	for _, recipient := range validRecipients {
+		m := gomail.NewMessage()
+		m.SetHeader("From", s.from)
+		m.SetHeader("Subject", subject)
 		m.SetHeader("To", recipient)
+		m.SetBody("text/html", htmlBody)
+		m.AddAlternative("text/plain", plainText)
 
 		if err := gomail.Send(sc, m); err != nil {
 			log.Printf("[SMTP ERROR] Failed dropping mail to %s: %v", recipient, err)
 			continue // Do not fail the entire batch if one email bounces locally
 		}
+		log.Printf("[SMTP SUCCESS] Email delivered to %s (Subject: %s)", recipient, subject)
 	}
 
 	return nil

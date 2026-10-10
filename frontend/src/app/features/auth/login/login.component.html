@@ -1,12 +1,12 @@
-<div class="min-h-screen bg-white text-gray-900 flex flex-col justify-between font-sans selection:bg-indigo-500 selection:text-white">
+<div class="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col justify-between font-sans selection:bg-indigo-500 selection:text-white">
 
   <!-- ═══════════════════════════════════════════════════════════════ -->
-  <!-- TOP NAVIGATION BAR                                              -->
+  <!-- TOP NAVIGATION HEADER                                           -->
   <!-- ═══════════════════════════════════════════════════════════════ -->
-  <header class="w-full px-6 sm:px-12 py-4 flex items-center justify-between border-b border-gray-100/80">
-    <div class="flex items-center gap-2.5">
-      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-500 via-indigo-500 to-pink-500 p-[1.5px] shadow-xs flex items-center justify-center">
-        <div class="w-full h-full rounded-[9px] bg-white flex items-center justify-center overflow-hidden p-1">
+  <header class="w-full px-6 sm:px-12 py-4 flex items-center justify-between bg-white border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-600 p-[1.5px] shadow-xs flex items-center justify-center">
+        <div class="w-full h-full rounded-[10px] bg-white flex items-center justify-center overflow-hidden p-1">
           @if (tenantLogo()) {
             <img [src]="tenantLogo()" class="w-full h-full object-contain" alt="Logo">
           } @else {
@@ -14,86 +14,81 @@
           }
         </div>
       </div>
-      <span class="text-lg font-extrabold tracking-tight text-gray-900 uppercase">
-        {{ tenantName() || 'SchoolLinx' }}
-      </span>
+      <div>
+        <span class="text-base sm:text-lg font-black tracking-tight text-slate-900 uppercase block leading-tight">
+          {{ tenantName() || 'SchoolLinx' }}
+        </span>
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Education Cloud</span>
+      </div>
     </div>
 
-    <div class="flex items-center gap-3 text-gray-400">
-      <button type="button" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 hover:text-gray-700 transition-colors cursor-pointer" title="Global System">
-        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-      </button>
-      <a routerLink="/contact" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 hover:text-gray-700 transition-colors cursor-pointer" title="Support & Help">
-        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <div class="flex items-center gap-3 text-slate-500">
+      <a routerLink="/contact" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>Help & Support</span>
       </a>
     </div>
   </header>
 
   <!-- ═══════════════════════════════════════════════════════════════ -->
-  <!-- MAIN TWO-COLUMN BODY (Compact & Balanced)                       -->
+  <!-- MAIN SIDE-BY-SIDE CONTAINER                                     -->
   <!-- ═══════════════════════════════════════════════════════════════ -->
-  <main class="flex-1 max-w-4xl w-full mx-auto px-6 py-6 sm:py-10 flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-14">
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 sm:py-12 flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12">
     
-    <!-- LEFT SIDE: Modern Hero Graphic Illustration -->
-    <div class="w-full lg:w-1/2 flex items-center justify-center">
-      <div class="relative w-full max-w-[340px] sm:max-w-[380px] flex items-center justify-center">
-        <!-- Ambient Decorative Glow -->
-        <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-purple-100/70 via-indigo-100/40 to-pink-100/50 blur-2xl -z-10 scale-95"></div>
-        
-        <img src="assets/images/auth-hero.png" 
-             alt="School Community & Management Illustration" 
-             class="w-full h-auto object-contain drop-shadow-[0_12px_24px_rgba(99,102,241,0.06)]">
-      </div>
-    </div>
-
-    <!-- RIGHT SIDE: Compact & Elevated Clean White Login Card -->
-    <div class="w-full lg:w-1/2 flex justify-center">
-      <div class="w-full max-w-[380px] bg-white rounded-[24px] border border-gray-100/90 shadow-[0_15px_45px_-12px_rgba(0,0,0,0.06)] p-7 sm:p-8 relative">
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <!-- LEFT SIDE: LOGIN FORM CARD (Always Visible)                 -->
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <div class="w-full lg:w-[480px] flex justify-center">
+      <div class="w-full max-w-[460px] bg-white rounded-[28px] border border-slate-200 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.08)] p-6 sm:p-9 relative">
         
         <!-- Header -->
         <div class="mb-6">
-          <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-[11px] font-bold uppercase tracking-wider mb-3">
+            <span class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+            Institutional Sign In
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
             Welcome back <span class="text-2xl">👋</span>
           </h1>
-          <p class="text-xs sm:text-sm text-gray-500 font-medium mt-1">
-            Log in to your account
+          <p class="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+            Sign in to access your administrative, faculty, or guardian portal.
           </p>
         </div>
 
         <!-- Mode Switcher Tabs (Password vs Phone OTP) -->
         @if (!requires2FA()) {
-          <div class="flex p-1 bg-gray-100/80 rounded-xl mb-5">
+          <div class="flex p-1 bg-slate-100/90 rounded-2xl mb-5 border border-slate-200/60">
             <button type="button" (click)="switchMode('password')"
                     [class]="loginMode() === 'password' 
-                      ? 'bg-white text-indigo-600 shadow-xs font-bold' 
-                      : 'text-gray-500 hover:text-gray-900 font-medium'"
-                    class="flex-1 py-1.5 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                      ? 'bg-white text-indigo-600 shadow-sm font-bold border border-slate-200/80' 
+                      : 'text-slate-600 hover:text-slate-900 font-medium'"
+                    class="flex-1 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
               <span>Password</span>
             </button>
             <button type="button" (click)="switchMode('otp')"
                     [class]="loginMode() === 'otp' 
-                      ? 'bg-white text-indigo-600 shadow-xs font-bold' 
-                      : 'text-gray-500 hover:text-gray-900 font-medium'"
-                    class="flex-1 py-1.5 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                      ? 'bg-white text-indigo-600 shadow-sm font-bold border border-slate-200/80' 
+                      : 'text-slate-600 hover:text-slate-900 font-medium'"
+                    class="flex-1 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-              <span>Phone OTP</span>
+              <span>Phone SMS OTP</span>
             </button>
           </div>
         }
 
         <!-- Error Toast -->
         @if (error()) {
-          <div class="bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2.5 rounded-xl text-xs font-semibold mb-5 flex items-start gap-2 animate-shake">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="mt-0.5 shrink-0 text-rose-500"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <span class="flex-1">{{ error() }}</span>
+          <div class="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-2xl text-xs font-semibold mb-5 flex items-start gap-2.5 animate-shake">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="mt-0.5 shrink-0 text-rose-500"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span class="flex-1 leading-relaxed">{{ error() }}</span>
           </div>
         }
 
         <!-- Success Toast -->
         @if (successMsg()) {
-          <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-3.5 py-2.5 rounded-xl text-xs font-semibold mb-5 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="shrink-0 text-emerald-600"><polyline points="20 6 9 17 4 12"/></svg>
+          <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-2xl text-xs font-semibold mb-5 flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="shrink-0 text-emerald-600"><polyline points="20 6 9 17 4 12"/></svg>
             <span class="flex-1">{{ successMsg() }}</span>
           </div>
         }
@@ -102,54 +97,63 @@
         <!-- 1. PASSWORD FORM                                            -->
         <!-- ═══════════════════════════════════════════════════════════ -->
         @if (!requires2FA() && loginMode() === 'password') {
-          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-3.5">
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
             
             <!-- Email / Identifier Field -->
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            <div>
+              <label class="block text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Identifier or Email</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                </div>
+                <input type="text" formControlName="identifier" required autofocus
+                       class="w-full bg-slate-50 border border-slate-200 focus:border-indigo-600 focus:bg-white text-slate-900 placeholder-slate-400 rounded-xl py-3.5 pl-10 pr-3.5 text-xs sm:text-sm font-medium transition-all outline-none focus:ring-4 focus:ring-indigo-500/10 shadow-2xs"
+                       placeholder="Phone number, Username, or Email">
               </div>
-              <input type="text" formControlName="identifier" required autofocus
-                     class="w-full bg-[#f4f5f7] border border-transparent focus:border-indigo-500 focus:bg-white text-gray-900 placeholder-gray-400 rounded-xl py-3 pl-10 pr-3.5 text-xs sm:text-sm font-medium transition-all outline-none focus:ring-4 focus:ring-indigo-500/10"
-                     placeholder="Phone number, Username, or Email">
             </div>
 
             <!-- Password Field -->
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-[11px] font-black uppercase tracking-wider text-slate-500">Password</label>
+                <a routerLink="/forgot-password" class="text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors">
+                  Forgot password?
+                </a>
               </div>
-              <input [type]="showPassword() ? 'text' : 'password'" formControlName="password" required
-                     class="w-full bg-[#f4f5f7] border border-transparent focus:border-indigo-500 focus:bg-white text-gray-900 placeholder-gray-400 rounded-xl py-3 pl-10 pr-10 text-xs sm:text-sm font-medium transition-all outline-none focus:ring-4 focus:ring-indigo-500/10"
-                     placeholder="Enter your password">
-              <button type="button" (click)="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-700 transition-colors cursor-pointer" title="Toggle password visibility">
-                @if (showPassword()) {
-                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                } @else {
-                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                }
-              </button>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <input [type]="showPassword() ? 'text' : 'password'" formControlName="password" required
+                       class="w-full bg-slate-50 border border-slate-200 focus:border-indigo-600 focus:bg-white text-slate-900 placeholder-slate-400 rounded-xl py-3.5 pl-10 pr-10 text-xs sm:text-sm font-medium transition-all outline-none focus:ring-4 focus:ring-indigo-500/10 shadow-2xs"
+                       placeholder="Enter your password">
+                <button type="button" (click)="togglePassword()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 transition-colors cursor-pointer" title="Toggle password visibility">
+                  @if (showPassword()) {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  }
+                </button>
+              </div>
             </div>
 
-            <!-- Remember me & Forgot Password Row -->
-            <div class="flex items-center justify-between pt-0.5">
-              <label class="flex items-center gap-2 text-xs text-gray-600 font-medium cursor-pointer select-none">
-                <input type="checkbox" checked class="w-3.5 h-3.5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
-                <span>Remember me</span>
+            <!-- Remember me Row -->
+            <div class="flex items-center justify-between pt-1">
+              <label class="flex items-center gap-2 text-xs text-slate-600 font-medium cursor-pointer select-none">
+                <input type="checkbox" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300">
+                <span>Remember me on this device</span>
               </label>
-              <a routerLink="/forgot-password" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
-                Forgot password?
-              </a>
             </div>
 
             <!-- Primary Action Button -->
             <button type="submit" [disabled]="loginForm.invalid || loading()"
-                    class="w-full mt-3 bg-[#6366f1] hover:bg-[#5558e6] active:scale-[0.99] text-white font-bold py-3 rounded-xl text-sm transition-all shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/35 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none flex items-center justify-center gap-2 cursor-pointer">
+                    class="w-full mt-2 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-md shadow-indigo-600/20 hover:shadow-indigo-600/35 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none flex items-center justify-center gap-2 cursor-pointer">
               @if (!loading()) {
-                <span>Continue</span>
+                <span>Sign In to Dashboard</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
               } @else {
                 <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                <span>Signing in...</span>
+                <span>Authenticating...</span>
               }
             </button>
           </form>
@@ -159,26 +163,29 @@
         <!-- 2. PHONE OTP FORM                                           -->
         <!-- ═══════════════════════════════════════════════════════════ -->
         @if (!requires2FA() && loginMode() === 'otp') {
-          <div class="space-y-3.5">
-            
+          <div class="space-y-4">
             @if (otpStep() === 'phone') {
-              <form [formGroup]="phoneForm" (ngSubmit)="onRequestOTP()" class="space-y-3.5">
-                <div class="relative">
-                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <form [formGroup]="phoneForm" (ngSubmit)="onRequestOTP()" class="space-y-4">
+                <div>
+                  <label class="block text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Registered Phone Number</label>
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    </div>
+                    <input type="tel" formControlName="phoneNumber" required autofocus
+                           class="w-full bg-slate-50 border border-slate-200 focus:border-indigo-600 focus:bg-white text-slate-900 placeholder-slate-400 rounded-xl py-3.5 pl-10 pr-3.5 text-xs sm:text-sm font-medium transition-all outline-none focus:ring-4 focus:ring-indigo-500/10 shadow-2xs"
+                           placeholder="e.g. 0244123456 or +233244123456">
                   </div>
-                  <input type="tel" formControlName="phoneNumber" required autofocus
-                         class="w-full bg-[#f4f5f7] border border-transparent focus:border-indigo-500 focus:bg-white text-gray-900 placeholder-gray-400 rounded-xl py-3 pl-10 pr-3.5 text-xs sm:text-sm font-medium transition-all outline-none focus:ring-4 focus:ring-indigo-500/10"
-                         placeholder="Registered mobile phone">
+                  <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                    Guardians, Teachers, and Staff can sign in instantly using an SMS verification code sent to their registered contact number.
+                  </p>
                 </div>
-                <p class="text-xs text-gray-500 leading-normal">
-                  Admins, Teachers, and Guardians can sign in instantly using their registered mobile phone.
-                </p>
 
                 <button type="submit" [disabled]="phoneForm.invalid || loading()"
-                        class="w-full mt-3 bg-[#6366f1] hover:bg-[#5558e6] active:scale-[0.99] text-white font-bold py-3 rounded-xl text-sm transition-all shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/35 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer">
+                        class="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-md shadow-indigo-600/20 hover:shadow-indigo-600/35 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer">
                   @if (!loading()) {
-                    <span>Send SMS Code</span>
+                    <span>Send SMS Passcode</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                   } @else {
                     <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                     <span>Sending SMS...</span>
@@ -188,25 +195,28 @@
             }
 
             @if (otpStep() === 'code') {
-              <form [formGroup]="otpForm" (ngSubmit)="onVerifyOTP()" class="space-y-3.5">
-                <div class="p-2.5 bg-indigo-50/70 border border-indigo-100 rounded-xl flex items-center justify-between text-xs">
+              <form [formGroup]="otpForm" (ngSubmit)="onVerifyOTP()" class="space-y-4">
+                <div class="p-3 bg-indigo-50/80 border border-indigo-100 rounded-xl flex items-center justify-between text-xs">
                   <div>
-                    <span class="text-gray-500">Sent to </span>
-                    <span class="font-bold text-gray-900">{{ maskedPhone() }}</span>
+                    <span class="text-slate-500">Sent code to </span>
+                    <span class="font-bold text-slate-900">{{ maskedPhone() }}</span>
                   </div>
                   <button type="button" (click)="changePhoneNumber()" class="font-bold text-indigo-600 hover:text-indigo-700 cursor-pointer">
                     Change
                   </button>
                 </div>
 
-                <input type="text" formControlName="otp" maxlength="6" required autofocus
-                       class="w-full bg-[#f4f5f7] border border-transparent focus:border-indigo-500 focus:bg-white text-gray-900 placeholder-gray-400 rounded-xl py-3 text-center font-mono font-bold tracking-[0.4em] text-lg transition-all outline-none focus:ring-4 focus:ring-indigo-500/10"
-                       placeholder="••••••">
+                <div>
+                  <label class="block text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1.5 text-center">6-Digit SMS Code</label>
+                  <input type="text" formControlName="otp" maxlength="6" required autofocus
+                         class="w-full bg-slate-50 border border-slate-200 focus:border-indigo-600 focus:bg-white text-slate-900 placeholder-slate-400 rounded-xl py-3.5 text-center font-mono font-bold tracking-[0.4em] text-xl transition-all outline-none focus:ring-4 focus:ring-indigo-500/10 shadow-2xs"
+                         placeholder="••••••">
+                </div>
 
-                <div class="flex items-center justify-between text-xs pt-0.5">
-                  <span class="text-gray-500">Didn't receive code?</span>
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-slate-500">Didn't receive code?</span>
                   @if (countdown() > 0) {
-                    <span class="text-gray-500 font-bold font-mono">{{ countdown() }}s</span>
+                    <span class="text-slate-500 font-bold font-mono">Resend in {{ countdown() }}s</span>
                   } @else {
                     <button type="button" (click)="onResendOTP()" [disabled]="loading()" class="font-bold text-indigo-600 hover:text-indigo-700 cursor-pointer">
                       Resend Code
@@ -215,9 +225,9 @@
                 </div>
 
                 <button type="submit" [disabled]="otpForm.invalid || loading()"
-                        class="w-full mt-3 bg-[#6366f1] hover:bg-[#5558e6] active:scale-[0.99] text-white font-bold py-3 rounded-xl text-sm transition-all shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/35 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer">
+                        class="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-md shadow-indigo-600/20 hover:shadow-indigo-600/35 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer">
                   @if (!loading()) {
-                    <span>Verify &amp; Continue</span>
+                    <span>Verify &amp; Enter Portal</span>
                   } @else {
                     <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                     <span>Verifying...</span>
@@ -225,7 +235,6 @@
                 </button>
               </form>
             }
-
           </div>
         }
 
@@ -233,18 +242,18 @@
         <!-- 3. TWO-FACTOR AUTHENTICATION FORM                           -->
         <!-- ═══════════════════════════════════════════════════════════ -->
         @if (requires2FA()) {
-          <form [formGroup]="twoFaForm" (ngSubmit)="on2FASubmit()" class="space-y-3.5">
-            <div class="text-center space-y-1 mb-1">
-              <h3 class="text-xs font-bold text-gray-900">Security Verification</h3>
-              <p class="text-xs text-gray-500">Enter the 6-digit authenticator code.</p>
+          <form [formGroup]="twoFaForm" (ngSubmit)="on2FASubmit()" class="space-y-4">
+            <div class="text-center space-y-1 mb-2">
+              <h3 class="text-sm font-bold text-slate-900">Security Verification</h3>
+              <p class="text-xs text-slate-500">Enter the 6-digit authenticator code.</p>
             </div>
 
             <input type="text" formControlName="token" maxlength="6" required autofocus
-                   class="w-full bg-[#f4f5f7] border border-transparent focus:border-indigo-500 focus:bg-white text-gray-900 placeholder-gray-400 rounded-xl py-3 text-center font-mono font-bold tracking-[0.4em] text-lg transition-all outline-none focus:ring-4 focus:ring-indigo-500/10"
+                   class="w-full bg-slate-50 border border-slate-200 focus:border-indigo-600 focus:bg-white text-slate-900 placeholder-slate-400 rounded-xl py-3.5 text-center font-mono font-bold tracking-[0.4em] text-xl transition-all outline-none focus:ring-4 focus:ring-indigo-500/10"
                    placeholder="••••••">
 
             <button type="submit" [disabled]="twoFaForm.invalid || loading()"
-                    class="w-full mt-3 bg-[#6366f1] hover:bg-[#5558e6] text-white font-bold py-3 rounded-xl text-sm transition-all shadow-md shadow-indigo-500/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer">
+                    class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-md shadow-indigo-600/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer">
               @if (!loading()) {
                 <span>Verify Token</span>
               } @else {
@@ -252,8 +261,8 @@
               }
             </button>
 
-            <div class="text-center pt-1.5">
-              <button type="button" (click)="requires2FA.set(false); error.set('')" class="text-xs font-semibold text-gray-500 hover:text-gray-900 cursor-pointer">
+            <div class="text-center pt-1">
+              <button type="button" (click)="requires2FA.set(false); error.set('')" class="text-xs font-semibold text-slate-500 hover:text-slate-900 cursor-pointer">
                 Cancel
               </button>
             </div>
@@ -262,17 +271,99 @@
 
         <!-- Bottom Sign up Link -->
         @if (!requires2FA()) {
-          <div class="text-center pt-5 mt-5 border-t border-gray-100">
-            <p class="text-xs text-gray-500">
-              Don't have an account? 
+          <div class="text-center pt-5 mt-5 border-t border-slate-100">
+            <p class="text-xs text-slate-500">
+              Need a new school deployment? 
               <a routerLink="/signup" class="text-indigo-600 hover:text-indigo-700 font-bold ml-1 hover:underline transition-colors">
-                Sign up
+                Register School Tenant
               </a>
             </p>
           </div>
         }
 
       </div>
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <!-- RIGHT SIDE: INFORMATION & BENEFIT HIGHLIGHTS                -->
+    <!-- (Hidden on mobile / tablet, Visible on lg: and xl: screens) -->
+    <!-- ─────────────────────────────────────────────────────────── -->
+    <div class="hidden lg:flex flex-1 w-full max-w-[560px] flex-col justify-between bg-gradient-to-br from-indigo-50/90 via-blue-50/50 to-slate-50 border border-indigo-100/90 rounded-[32px] p-8 xl:p-10 relative overflow-hidden shadow-sm">
+      
+      <!-- Subtle Ambient Decorative Glows -->
+      <div class="absolute -top-16 -right-16 w-56 h-56 bg-indigo-400/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-16 -left-16 w-56 h-56 bg-blue-400/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Top Header & Pill Badge -->
+      <div class="relative z-10">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-indigo-100 text-indigo-700 text-[11px] font-extrabold uppercase tracking-widest mb-4 shadow-2xs">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+          Unified School Operating System
+        </div>
+        <h2 class="text-2xl xl:text-3xl font-black text-slate-900 tracking-tight leading-snug">
+          Next-Generation Academic Administration & Guardian Intelligence
+        </h2>
+        <p class="text-xs xl:text-sm text-slate-600 font-medium mt-2 leading-relaxed">
+          One unified platform connecting students, parents, teachers, and school leadership with real-time academic records, automated fee management, and safety protocols.
+        </p>
+      </div>
+
+      <!-- 4 Key Core Feature Pillars -->
+      <div class="grid grid-cols-1 gap-3.5 my-6 relative z-10">
+        <div class="p-3.5 bg-white/90 rounded-2xl border border-indigo-100/80 shadow-2xs flex items-start gap-3.5">
+          <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 text-sm font-bold border border-blue-100">
+            🛡️
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-slate-900">Live Campus Attendance & RFID Gate Ingress</h4>
+            <p class="text-[11px] text-slate-500 mt-0.5 leading-normal">Automated SMS gate notifications and homeroom roll call verification for enhanced child safeguarding.</p>
+          </div>
+        </div>
+
+        <div class="p-3.5 bg-white/90 rounded-2xl border border-indigo-100/80 shadow-2xs flex items-start gap-3.5">
+          <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 text-sm font-bold border border-indigo-100">
+            📊
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-slate-900">Continuous Assessment & Automated Terminal Reports</h4>
+            <p class="text-[11px] text-slate-500 mt-0.5 leading-normal">Instant weighted grading formulas, digital report cards, and AI-powered performance recommendations.</p>
+          </div>
+        </div>
+
+        <div class="p-3.5 bg-white/90 rounded-2xl border border-indigo-100/80 shadow-2xs flex items-start gap-3.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 text-sm font-bold border border-emerald-100">
+            💳
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-slate-900">Prepaid Smart Wallets & Fee Collection Gateway</h4>
+            <p class="text-[11px] text-slate-500 mt-0.5 leading-normal">Cashless daily canteen deductions, Mobile Money top-ups, and automated fee invoice tracking.</p>
+          </div>
+        </div>
+
+        <div class="p-3.5 bg-white/90 rounded-2xl border border-indigo-100/80 shadow-2xs flex items-start gap-3.5">
+          <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 text-sm font-bold border border-purple-100">
+            💬
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-slate-900">Direct Staff-Guardian Communications Hub</h4>
+            <p class="text-[11px] text-slate-500 mt-0.5 leading-normal">Dedicated private channels between parents, homeroom faculty, and school leadership.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trust & Accreditation Stats Bar -->
+      <div class="pt-4 border-t border-indigo-100/80 relative z-10 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="flex -space-x-2 overflow-hidden">
+            <div class="inline-block h-7 w-7 rounded-full ring-2 ring-white bg-blue-600 text-[10px] text-white font-bold flex items-center justify-center">L</div>
+            <div class="inline-block h-7 w-7 rounded-full ring-2 ring-white bg-indigo-600 text-[10px] text-white font-bold flex items-center justify-center">A</div>
+            <div class="inline-block h-7 w-7 rounded-full ring-2 ring-white bg-purple-600 text-[10px] text-white font-bold flex items-center justify-center">S</div>
+          </div>
+          <span class="text-xs font-bold text-slate-700">Trusted by leading schools & institutions</span>
+        </div>
+        <span class="text-[11px] font-black text-indigo-700 bg-white px-2.5 py-1 rounded-full border border-indigo-100 shadow-2xs">99.9% Uptime</span>
+      </div>
+
     </div>
 
   </main>
