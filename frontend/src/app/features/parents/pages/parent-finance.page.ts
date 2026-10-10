@@ -41,6 +41,12 @@ export class ParentFinancePage implements OnInit {
     installmentsMap = signal<Record<string, any[]>>({});
     installmentPlan = signal<InstallmentPlanTemplate | null>(null);
 
+    // Term & Session
+    selectedAcademicYear = signal<string>('2025/2026');
+    selectedTerm = signal<string>('Term 1');
+    downloadingBill = signal<Record<string, boolean>>({});
+    downloadingReceipt = signal<Record<string, boolean>>({});
+
     // Sibling Discount Savings
     siblingDiscounts = signal<Record<string, any>>({});
 
@@ -53,6 +59,38 @@ export class ParentFinancePage implements OnInit {
     topUpMethod = signal<'direct' | 'paystack'>('direct');
     submitting = signal(false);
     readonly quickAmounts = [20, 50, 100, 200, 500];
+
+    // Canteen Spending Limits State
+    showLimitsModal = signal(false);
+    editingLimitStudent = signal<{ id: string; name: string; dailyCap: number; allowSnacks: boolean; mealOnly: boolean } | null>(null);
+    walletDailyLimits = signal<Record<string, { dailyCap: number; allowSnacks: boolean; mealOnly: boolean }>>({});
+
+    openLimitsModal(studentId: string, studentName: string) {
+        const current = this.walletDailyLimits()[studentId] || { dailyCap: 25, allowSnacks: true, mealOnly: false };
+        this.editingLimitStudent.set({
+            id: studentId,
+            name: studentName,
+            dailyCap: current.dailyCap,
+            allowSnacks: current.allowSnacks,
+            mealOnly: current.mealOnly
+        });
+        this.showLimitsModal.set(true);
+    }
+
+    saveWalletLimits() {
+        const data = this.editingLimitStudent();
+        if (!data) return;
+        this.walletDailyLimits.update(m => ({
+            ...m,
+            [data.id]: {
+                dailyCap: data.dailyCap,
+                allowSnacks: data.allowSnacks,
+                mealOnly: data.mealOnly
+            }
+        }));
+        this.showLimitsModal.set(false);
+        this.toast.success(`Canteen spending cap set to GH₵${data.dailyCap.toFixed(2)} for ${data.name}.`, 'Limits Configured');
+    }
 
     // Fee Payment Modal State (Full & Part Payment)
     showFeeModal = signal(false);
@@ -343,9 +381,31 @@ export class ParentFinancePage implements OnInit {
         });
     }
 
+    downloadPupilBill(studentId: string, studentName: string) {
+        if (!studentId) return;
+        this.downloadingBill.update(m => ({ ...m, [studentId]: true }));
+        this.api.downloadPupilBill(studentId).subscribe({
+            next: (blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${studentName.replace(/\s+/g, '_')}_Term_Bill.pdf`;
+                a.click();
+                URL.revokeObjectURL(url);
+                this.downloadingBill.update(m => ({ ...m, [studentId]: false }));
+                this.toast.success(`Official Term Bill downloaded for ${studentName}.`, 'Bill Downloaded');
+            },
+            error: () => {
+                this.downloadingBill.update(m => ({ ...m, [studentId]: false }));
+                this.toast.error('Could not generate term bill. Please check with school bursary.', 'Download Failed');
+            }
+        });
+    }
+
     downloadReceipt(studentId: string) {
         const r = (this.state.fiscalMap()[studentId] || []).find(r => r.status === 'PAID');
         if (!r) { this.toast.info('No paid records for download.', 'No Records'); return; }
+        this.downloadingReceipt.update(m => ({ ...m, [studentId]: true }));
         this.api.getReceipt(r.id).subscribe({
             next: (blob) => {
                 const url = URL.createObjectURL(blob);
@@ -354,8 +414,12 @@ export class ParentFinancePage implements OnInit {
                 a.download = `receipt_${studentId}.pdf`;
                 a.click();
                 URL.revokeObjectURL(url);
+                this.downloadingReceipt.update(m => ({ ...m, [studentId]: false }));
             },
-            error: () => this.toast.error('Could not download receipt.', 'Failed')
+            error: () => {
+                this.downloadingReceipt.update(m => ({ ...m, [studentId]: false }));
+                this.toast.error('Could not download receipt.', 'Failed');
+            }
         });
     }
 }

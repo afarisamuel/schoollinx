@@ -4,9 +4,8 @@ import { roleGuard } from '../../core/guards/role.guard';
 export const portalRoutes: Routes = [
     {
         path: 'guardian',
-        loadComponent: () => import('./guardian-portal/guardian-portal.component').then(c => c.GuardianPortalComponent),
-        canActivate: [roleGuard],
-        data: { roles: ['GUARDIAN'] }
+        redirectTo: '/parents',
+        pathMatch: 'full'
     },
     {
         path: 'learning-path',

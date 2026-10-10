@@ -58,6 +58,10 @@ export class ParentHealthPage implements OnInit {
             ) + 1), 0);
     }
 
+    callClinic(phone: string = '+233244000111') {
+        window.location.href = `tel:${phone}`;
+    }
+
     statusClass(status: string): string {
         switch (status) {
             case 'APPROVED': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';

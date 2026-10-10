@@ -46,6 +46,20 @@ export class ParentStateService {
     // ── Absence ──────────────────────────────────────────────────────────
     absenceRequests = signal<AbsenceRequest[]>([]);
 
+    // ── Active Student Context ──────────────────────────────────────────
+    selectedStudentId = signal<string | null>(null);
+
+    activeStudent = computed(() => {
+        const students = this.profile()?.students || [];
+        if (!students.length) return null;
+        const selId = this.selectedStudentId();
+        return students.find(s => s.id === selId) || students[0];
+    });
+
+    selectStudent(studentId: string) {
+        this.selectedStudentId.set(studentId);
+    }
+
     // ── Computed ─────────────────────────────────────────────────────────
     gpaMap = computed(() => {
         const result: Record<string, number> = {};
@@ -98,6 +112,10 @@ export class ParentStateService {
                 this.absenceRequests.set(res.absences);
                 this.familyLedger.set(res.ledger);
                 this.loading.set(false);
+
+                if (res.profile?.students?.length && !this.selectedStudentId()) {
+                    this.selectedStudentId.set(res.profile.students[0].id || null);
+                }
 
                 // Per-student lazy loads
                 res.profile?.students?.forEach(s => {

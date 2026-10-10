@@ -67,6 +67,17 @@ export class ParentTransportPage implements OnInit {
         window.location.href = `tel:${phone}`;
     }
 
+    whatsappDriver(phone: string, driverName: string) {
+        if (!phone) return;
+        const cleanPhone = phone.replace(/[^0-9]/g, '');
+        const text = encodeURIComponent(`Hello ${driverName || 'Driver'}, checking in regarding my child's pickup/drop-off stop.`);
+        window.open(`https://wa.me/${cleanPhone}?text=${text}`, '_blank');
+    }
+
+    triggerGeofenceNotification(route: any) {
+        this.toast.info(`🚌 ${route.name || 'Bus'}: Approaching pickup stop (~4 minutes ETA). Please prepare at the stop.`, 'Live Bus Alert');
+    }
+
     refreshLiveTelemetry() {
         this.refreshing.set(true);
         this.portalService.getAllBusRoutes().subscribe({

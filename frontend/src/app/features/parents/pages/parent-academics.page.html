@@ -1,7 +1,6 @@
 <div class="max-w-[1600px] w-full mx-auto animate-fade-in pb-16 px-4 sm:px-6 md:px-8 space-y-6 sm:space-y-8 relative overflow-hidden">
 
-    <!-- ── 0. AMBIENT BACKDROP LIGHTING ────────────────────────────── -->
-<!-- ── 1. Page Header (Academic Hub) ───────────────────────────── -->
+    <!-- ── 1. Page Header (Academic Hub) ───────────────────────────── -->
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2">
         <div class="min-w-0">
             <div class="flex items-center gap-2 text-xs font-bold text-text-muted mb-1.5 flex-wrap">
@@ -12,16 +11,16 @@
                 <span class="text-text-muted/40">/</span>
                 <span class="text-text-muted">Parent Portal</span>
                 <span class="text-text-muted/40">/</span>
-                <span class="text-text-primary font-black">Academic Records</span>
+                <span class="text-text-primary font-black">Academic Records &amp; Report Cards</span>
             </div>
             <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
                 <span>Academic</span>
-                <span class="dark: dark: dark:">
+                <span class="text-blue-600 dark:text-blue-400">
                     Performance &amp; Grades
                 </span>
             </h1>
             <p class="text-xs sm:text-sm font-medium text-text-muted mt-1 max-w-3xl">
-                Continuous assessment marks, CBE competency evaluations, verifiable official transcripts, and counselor remarks.
+                Continuous assessment marks by term, terminal report cards, CBE competency evaluations, and official transcripts.
             </p>
         </div>
 
@@ -33,9 +32,18 @@
             </a>
 
             @if (selectedStudent(); as s) {
+                <!-- Direct Terminal Report Card Download -->
+                <button (click)="downloadTerminalReport(s.id || '', s.first_name + ' ' + s.last_name)"
+                        [disabled]="isDownloading()['term_' + (s.id || '')]"
+                        class="px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black shadow-md active:scale-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50">
+                    <i class="fas text-xs" [ngClass]="isDownloading()['term_' + (s.id || '')] ? 'fa-spinner fa-spin' : 'fa-file-invoice'"></i>
+                    <span>Terminal Report Card</span>
+                </button>
+
+                <!-- Official Transcript Download -->
                 <button (click)="downloadTranscript(s.id || '', s.first_name + ' ' + s.last_name)"
                         [disabled]="isDownloading()[s.id || '']"
-                        class="px-4.5 py-2.5 rounded-2xl hover: hover: text-white text-xs font-black shadow-md active:scale-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50">
+                        class="px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black shadow-md active:scale-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50">
                     <i class="fas text-xs" [ngClass]="isDownloading()[s.id || ''] ? 'fa-spinner fa-spin' : 'fa-file-pdf'"></i>
                     <span>Official Transcript</span>
                 </button>
@@ -49,9 +57,9 @@
             <span class="text-xs font-bold">Synchronizing academic records...</span>
         </div>
     } @else if (selectedStudent(); as student) {
-        @let grades = state.gradesMap()[student.id || ''] || [];
+        @let grades = filteredGrades();
         @let bySubj = gradesBySubject(grades);
-        @let gpa = state.gpaMap()[student.id || ''] || 0;
+        @let gpa = termGpa();
         @let insights = state.insightsMap()[student.id || ''] || [];
         @let hw = state.homeworkMap()[student.id || ''] || [];
         @let pendingHw = hw.filter(h => h.due_date >= today());
@@ -60,7 +68,7 @@
         <!-- ── Ward Selector Pills (if multiple scholars) ───────────── -->
         @if ((state.profile()?.students || []).length > 1) {
             <div class="flex items-center gap-2 overflow-x-auto pb-1">
-                <span class="text-xs font-bold text-text-muted uppercase tracking-wider mr-1 shrink-0">Select Ward:</span>
+                <span class="text-xs font-bold text-text-muted uppercase tracking-wider mr-1 shrink-0">Select Scholar:</span>
                 @for (s of state.profile()?.students || []; track s.id) {
                     <button (click)="selectedStudentId.set(s.id || '')"
                             [ngClass]="selectedStudent()?.id === s.id ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-600/20 border-blue-600' : 'bg-bg-secondary text-text-muted hover:text-text-primary border-border-primary hover:bg-bg-tertiary'"
@@ -75,6 +83,38 @@
                 }
             </div>
         }
+
+        <!-- ── Academic Year & Term Filter Controls Bar ──────────────── -->
+        <div class="p-4 sm:p-5 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0">
+                    <i class="fas fa-calendar-alt text-base"></i>
+                </div>
+                <div>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-text-muted block">Academic Session</span>
+                    <span class="text-sm font-black text-text-primary flex items-center gap-1.5">
+                        <span>{{ selectedAcademicYear() }}</span>
+                        <span class="text-xs font-normal text-text-muted">&bull; {{ studentClassName() }}</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Term Filter Pills -->
+            <div class="flex items-center gap-1.5 p-1 bg-bg-tertiary rounded-2xl border border-border-primary/80 overflow-x-auto">
+                <button (click)="selectedTerm.set('ALL')"
+                        [ngClass]="selectedTerm() === 'ALL' ? 'bg-blue-600 text-white font-black shadow-xs' : 'text-text-muted hover:text-text-primary'"
+                        class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0">
+                    All Terms
+                </button>
+                @for (t of availableTerms(); track t) {
+                    <button (click)="selectedTerm.set(t)"
+                            [ngClass]="selectedTerm() === t ? 'bg-blue-600 text-white font-black shadow-xs' : 'text-text-muted hover:text-text-primary'"
+                            class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0">
+                        {{ t }}
+                    </button>
+                }
+            </div>
+        </div>
 
         <!-- ── Top 4 Metric KPI Cards for Selected Ward ────────────── -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
@@ -91,7 +131,9 @@
                     </span>
                 </div>
                 <div class="mt-4 space-y-1">
-                    <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Cumulative Grade Average</p>
+                    <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">
+                        {{ selectedTerm() === 'ALL' ? 'Cumulative Average' : selectedTerm() + ' Average' }}
+                    </p>
                     <div class="flex items-baseline gap-2">
                         <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight font-mono">
                             {{ gpa | number:'1.1-1' }}
@@ -104,7 +146,9 @@
                     </div>
                 </div>
                 <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
-                    <div class="h-full rounded-full transition-all duration-1000" [style.width.%]="gpa > 0 ? gpa : 15"></div>
+                    <div class="h-full rounded-full transition-all duration-1000"
+                         [ngClass]="gpa >= 80 ? 'bg-emerald-500' : gpa >= 65 ? 'bg-blue-500' : 'bg-amber-500'"
+                         [style.width.%]="gpa > 0 ? gpa : 15"></div>
                 </div>
             </div>
 
@@ -119,79 +163,71 @@
                     </span>
                 </div>
                 <div class="mt-4 space-y-1">
-                    <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Total Evaluated Marks</p>
-                    <div class="flex items-baseline gap-2">
-                        <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight font-mono">
-                            {{ grades.length }}
-                        </p>
-                        <span class="text-xs font-bold text-text-muted">Recorded</span>
-                    </div>
+                    <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Tests &amp; Exams Recorded</p>
+                    <p class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight font-mono">
+                        {{ grades.length }}
+                    </p>
                     <div class="flex items-center justify-between text-xs text-text-muted pt-1">
-                        <span>Across active curriculum subjects</span>
-                        <span class="font-bold text-emerald-600 dark:text-emerald-400">Graded</span>
+                        <span>Recorded by faculty</span>
+                        <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ objectKeys(bySubj).length }} Graded Subjects</span>
                     </div>
                 </div>
                 <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
-                    <div class="h-full rounded-full transition-all duration-1000" style="width: 90%"></div>
+                    <div class="h-full bg-emerald-500 rounded-full transition-all duration-1000" style="width: 100%"></div>
                 </div>
             </div>
 
-            <!-- Card 3: Enrolled Class Subjects -->
+            <!-- Card 3: Terminal Report Cards Available -->
+            <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-indigo-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
+                <div class="flex items-center justify-between">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 shadow-2xs">
+                        Report Cards
+                    </span>
+                </div>
+                <div class="mt-4 space-y-1">
+                    <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Published Terminal Reports</p>
+                    <p class="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight font-mono">
+                        {{ studentReports().length > 0 ? studentReports().length : (grades.length > 0 ? 1 : 0) }}
+                    </p>
+                    <div class="flex items-center justify-between text-xs text-text-muted pt-1">
+                        <span>Signed by Headmaster</span>
+                        <button (click)="activeTab.set('reports')" class="font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">
+                            View All &rarr;
+                        </button>
+                    </div>
+                </div>
+                <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
+                    <div class="h-full bg-indigo-500 rounded-full transition-all duration-1000" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <!-- Card 4: CBE Competencies -->
             <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-purple-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
                 <div class="flex items-center justify-between">
                     <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
-                        <i class="fas fa-book-bookmark"></i>
+                        <i class="fas fa-award"></i>
                     </div>
                     <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 shadow-2xs">
-                        Curriculum
+                        21st Century Skills
                     </span>
                 </div>
                 <div class="mt-4 space-y-1">
-                    <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Enrolled Subjects</p>
-                    <div class="flex items-baseline gap-2">
-                        <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight font-mono">
-                            {{ classSubjects().length || objectKeys(bySubj).length || 0 }}
-                        </p>
-                        <span class="text-xs font-bold text-text-muted">Courses</span>
-                    </div>
+                    <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">NaCCA CBE Rubrics</p>
+                    <p class="text-2xl sm:text-3xl font-black text-purple-600 dark:text-purple-400 tracking-tight font-mono">
+                        {{ (competenciesMap()[student.id || ''] || []).length }}
+                    </p>
                     <div class="flex items-center justify-between text-xs text-text-muted pt-1">
-                        <span>Core &amp; Elective Streams</span>
-                        <span class="font-bold text-purple-600 dark:text-purple-400">Active</span>
+                        <span>Critical thinking &amp; teamwork</span>
+                        <button (click)="activeTab.set('competencies')" class="font-bold text-purple-600 dark:text-purple-400 hover:underline cursor-pointer">
+                            Details &rarr;
+                        </button>
                     </div>
                 </div>
                 <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
-                    <div class="h-full rounded-full transition-all duration-1000" style="width: 100%"></div>
-                </div>
-            </div>
-
-            <!-- Card 4: Pending Homework & Tasks -->
-            <div class="p-5 sm:p-6 rounded-3xl bg-bg-secondary border border-border-primary shadow-xs hover:border-amber-500/40 transition-all flex flex-col justify-between relative overflow-hidden group">
-                <div class="flex items-center justify-between">
-                    <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform">
-                        <i class="fas fa-tasks"></i>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black border shadow-2xs"
-                          [ngClass]="pendingHw.length > 0 ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'">
-                        {{ pendingHw.length > 0 ? 'Action Required' : 'All Clear' }}
-                    </span>
-                </div>
-                <div class="mt-4 space-y-1">
-                    <p class="text-[10px] font-black tracking-widest text-text-muted uppercase">Pending Homework</p>
-                    <div class="flex items-baseline gap-2">
-                        <p class="text-2xl sm:text-3xl font-black text-text-primary tracking-tight font-mono">
-                            {{ pendingHw.length }}
-                        </p>
-                        <span class="text-xs font-bold text-text-muted">Assignments</span>
-                    </div>
-                    <div class="flex items-center justify-between text-xs text-text-muted pt-1">
-                        <span>Due this week</span>
-                        <a routerLink="/parents/homework" class="font-bold text-amber-600 dark:text-amber-400 hover:underline">
-                            View &rarr;
-                        </a>
-                    </div>
-                </div>
-                <div class="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden mt-3">
-                    <div class="h-full rounded-full transition-all duration-1000" [style.width.%]="pendingHw.length > 0 ? 65 : 100"></div>
+                    <div class="h-full bg-purple-500 rounded-full transition-all duration-1000" style="width: 100%"></div>
                 </div>
             </div>
 
@@ -208,6 +244,22 @@
                             class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
                         <i class="fas fa-chart-bar text-xs"></i>
                         <span>Subjects &amp; Grade Marks</span>
+                        @if (selectedTerm() !== 'ALL') {
+                            <span class="px-2 py-0.5 text-[9px] font-black rounded-full bg-blue-500/20 text-blue-300">
+                                {{ selectedTerm() }}
+                            </span>
+                        }
+                    </button>
+                    <button (click)="activeTab.set('reports')"
+                            [ngClass]="activeTab() === 'reports' ? 'bg-blue-600 text-white font-black shadow-sm shadow-blue-600/25' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
+                            class="px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fas fa-file-invoice text-xs"></i>
+                        <span>Terminal Report Cards</span>
+                        @if (studentReports().length > 0) {
+                            <span class="px-2 py-0.5 text-[9px] font-black rounded-full bg-emerald-400 text-slate-900">
+                                {{ studentReports().length }}
+                            </span>
+                        }
                     </button>
                     <button (click)="activeTab.set('competencies')"
                             [ngClass]="activeTab() === 'competencies' ? 'bg-blue-600 text-white font-black shadow-sm shadow-blue-600/25' : 'text-text-muted hover:text-text-primary hover:bg-bg-tertiary'"
@@ -251,15 +303,46 @@
                             <div>
                                 <h3 class="text-base font-black text-text-primary flex items-center gap-2">
                                     <i class="fas fa-book-open text-blue-500"></i>
-                                    <span>Class Curriculum &amp; Continuous Assessment</span>
+                                    <span>Class Curriculum &amp; Continuous Assessment Marks</span>
                                 </h3>
                                 <p class="text-xs text-text-muted mt-0.5">
                                     Continuous assessment breakdown for <strong class="text-blue-600 dark:text-blue-400">{{ student.first_name }}</strong> &bull; Class: <strong class="text-text-primary">{{ studentClassName() }}</strong>
+                                    @if (selectedTerm() !== 'ALL') {
+                                        &bull; Filtered by: <strong class="text-blue-500">{{ selectedTerm() }}</strong>
+                                    }
                                 </p>
                             </div>
                             <span class="text-xs font-bold text-text-muted px-3 py-1.5 rounded-xl bg-bg-tertiary border border-border-primary self-start sm:self-auto">
                                 {{ classSubjects().length > 0 ? classSubjects().length + ' Enrolled Subjects' : (objectKeys(bySubj).length > 0 ? objectKeys(bySubj).length + ' Subjects Graded' : 'No Subjects Assigned') }}
                             </span>
+                        </div>
+
+                        <!-- Term-over-Term Progression Curve -->
+                        <div class="p-4 bg-bg-tertiary/30 border border-border-primary/80 rounded-2xl space-y-3">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-black uppercase tracking-widest text-text-muted text-[10px] flex items-center gap-1.5">
+                                    <i class="fas fa-chart-line text-blue-500"></i>
+                                    <span>Term-Over-Term Progression Trajectory</span>
+                                </span>
+                                <span class="text-blue-600 dark:text-blue-400 font-bold text-[11px]">{{ selectedAcademicYear() }} Session</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                @for (tp of termProgression(); track tp.term) {
+                                    <div class="p-3.5 bg-bg-secondary rounded-xl border border-border-primary flex items-center justify-between shadow-2xs">
+                                        <div>
+                                            <span class="text-[10px] font-black uppercase text-text-muted block">{{ tp.term }}</span>
+                                            <span class="text-lg font-black text-text-primary font-mono">{{ tp.average }}%</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="text-[10px] font-bold text-text-muted block">{{ tp.count }} tests</span>
+                                            <span class="px-2 py-0.5 rounded-lg text-[9px] font-black"
+                                                  [ngClass]="tp.average >= 80 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-blue-500/15 text-blue-600 dark:text-blue-400'">
+                                                {{ tp.average >= 80 ? 'Exceeding' : 'Meeting' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
                         </div>
 
                         @if (classSubjects().length > 0) {
@@ -289,11 +372,24 @@
                                                     <div class="h-full rounded-full transition-all duration-700" [style.width.%]="avg"
                                                          [ngClass]="avg >= 80 ? 'bg-emerald-500' : avg >= 65 ? 'bg-blue-500' : 'bg-amber-500'"></div>
                                                 </div>
+
+                                                <!-- Recent Test Records in Card -->
+                                                <div class="space-y-1.5 mt-3 pt-3 border-t border-border-primary/40">
+                                                    @for (g of sg.slice(0, 2); track g.id) {
+                                                        <div class="flex items-center justify-between text-[11px]">
+                                                            <span class="text-text-muted truncate max-w-[120px]">{{ g.remarks || g.category || 'Test' }}</span>
+                                                            <span class="font-mono font-bold text-text-primary">{{ g.score }}/{{ g.max_score || 100 }}</span>
+                                                        </div>
+                                                    }
+                                                </div>
                                             </div>
 
-                                            <div class="text-[11px] text-text-muted flex justify-between items-center pt-1 border-t border-border-primary/40">
-                                                <span>{{ sg.length }} recorded mark{{ sg.length > 1 ? 's' : '' }}</span>
-                                                <span class="text-emerald-600 dark:text-emerald-400 font-bold">Graded</span>
+                                            <div class="pt-3 mt-3 border-t border-border-primary/40 flex items-center justify-between">
+                                                <span class="text-[11px] text-text-muted">{{ sg.length }} test mark{{ sg.length > 1 ? 's' : '' }}</span>
+                                                <button (click)="activeDetailSubject.set({ name: sub.name, grades: sg })"
+                                                        class="text-[11px] font-black text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
+                                                    View All Marks &rarr;
+                                                </button>
                                             </div>
                                         </div>
                                     } @else {
@@ -320,8 +416,8 @@
                                             </div>
 
                                             <div class="text-[11px] text-text-muted flex justify-between items-center pt-1 border-t border-border-primary/40">
-                                                <span>In Progress</span>
-                                                <span class="text-blue-500 font-medium">Pending Entry</span>
+                                                <span>{{ selectedTerm() !== 'ALL' ? selectedTerm() : 'Term Coursework' }}</span>
+                                                <span class="text-blue-500 font-medium">Pending Mark Entry</span>
                                             </div>
                                         </div>
                                     }
@@ -332,23 +428,28 @@
                                 @for (subj of objectKeys(bySubj); track subj) {
                                     @let sg = bySubj[subj];
                                     @let avg = subjectAvg(sg);
-                                    <div class="p-5 bg-bg-tertiary/40 border border-border-primary rounded-2xl">
-                                        <div class="flex items-center justify-between mb-3">
-                                            <div class="flex items-center gap-2.5">
-                                                <div class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-black">{{ subj[0] }}</div>
-                                                <span class="text-xs font-bold text-text-primary truncate max-w-[130px]">{{ subj }}</span>
+                                    <div class="p-5 bg-bg-tertiary/40 border border-border-primary rounded-2xl flex flex-col justify-between">
+                                        <div>
+                                            <div class="flex items-center justify-between mb-3">
+                                                <div class="flex items-center gap-2.5">
+                                                    <div class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-black">{{ subj[0] }}</div>
+                                                    <span class="text-xs font-bold text-text-primary truncate max-w-[130px]">{{ subj }}</span>
+                                                </div>
+                                                <span class="px-2.5 py-1 text-[10px] font-black rounded-lg border font-mono" [ngClass]="gradeLetterClass(avg)">
+                                                    {{ gradeLetter(avg) }} &bull; {{ avg | number:'1.0-0' }}%
+                                                </span>
                                             </div>
-                                            <span class="px-2.5 py-1 text-[10px] font-black rounded-lg border font-mono" [ngClass]="gradeLetterClass(avg)">
-                                                {{ gradeLetter(avg) }} &bull; {{ avg | number:'1.0-0' }}%
-                                            </span>
+                                            <div class="h-1.5 bg-bg-secondary rounded-full overflow-hidden my-3">
+                                                <div class="h-full rounded-full" [style.width.%]="avg"
+                                                     [ngClass]="avg >= 80 ? 'bg-emerald-500' : avg >= 65 ? 'bg-blue-500' : 'bg-rose-500'"></div>
+                                            </div>
                                         </div>
-                                        <div class="h-1.5 bg-bg-secondary rounded-full overflow-hidden my-3">
-                                            <div class="h-full rounded-full" [style.width.%]="avg"
-                                                 [ngClass]="avg >= 80 ? 'bg-emerald-500' : avg >= 65 ? 'bg-blue-500' : 'bg-rose-500'"></div>
-                                        </div>
-                                        <div class="text-[11px] text-text-muted flex justify-between">
-                                            <span>{{ sg.length }} test(s)</span>
-                                            <span>Benchmark: 80%</span>
+                                        <div class="pt-3 mt-3 border-t border-border-primary/40 flex items-center justify-between">
+                                            <span class="text-[11px] text-text-muted">{{ sg.length }} mark{{ sg.length > 1 ? 's' : '' }}</span>
+                                            <button (click)="activeDetailSubject.set({ name: subj, grades: sg })"
+                                                    class="text-[11px] font-black text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
+                                                View Marks &rarr;
+                                            </button>
                                         </div>
                                     </div>
                                 }
@@ -358,14 +459,96 @@
                                 <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center text-xl mx-auto mb-3">
                                     <i class="fas fa-book-open"></i>
                                 </div>
-                                <p class="text-xs font-bold text-text-primary mb-1">No Subjects Assigned to {{ studentClassName() }}</p>
-                                <p class="text-xs text-text-muted max-w-sm mx-auto">There are currently no curriculum subjects assigned to {{ student.first_name }}'s class.</p>
+                                <p class="text-xs font-bold text-text-primary mb-1">No Grade Records for {{ selectedTerm() === 'ALL' ? 'Current Session' : selectedTerm() }}</p>
+                                <p class="text-xs text-text-muted max-w-sm mx-auto">There are currently no assessment records filed under {{ student.first_name }}'s profile for this selection.</p>
                             </div>
                         }
                     </div>
                 }
 
-                <!-- TAB 2: Competency-Based Assessment -->
+                <!-- TAB 2: Terminal Report Cards -->
+                @if (activeTab() === 'reports') {
+                    <div class="animate-fade-in space-y-5">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <h3 class="text-base font-black text-text-primary flex items-center gap-2">
+                                    <i class="fas fa-file-invoice text-indigo-500"></i>
+                                    <span>Official Terminal Report Cards</span>
+                                </h3>
+                                <p class="text-xs text-text-muted mt-0.5">End-of-term comprehensive performance dossiers signed by school administration</p>
+                            </div>
+
+                            <button (click)="downloadTerminalReport(student.id || '', student.first_name + ' ' + student.last_name)"
+                                    [disabled]="isDownloading()['term_' + (student.id || '')]"
+                                    class="px-4.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs rounded-2xl shadow-md transition-all flex items-center gap-2 cursor-pointer self-start sm:self-auto disabled:opacity-50">
+                                <i class="fas text-xs" [ngClass]="isDownloading()['term_' + (student.id || '')] ? 'fa-spinner fa-spin' : 'fa-download'"></i>
+                                <span>Download Latest Terminal Report</span>
+                            </button>
+                        </div>
+
+                        <!-- Published Reports List -->
+                        @if (studentReports().length > 0) {
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                @for (r of studentReports(); track r.id) {
+                                    <div class="p-5 bg-bg-tertiary/40 border border-border-primary/80 rounded-2xl flex flex-col justify-between space-y-4">
+                                        <div>
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span class="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                                                    {{ r.status || 'PUBLISHED' }}
+                                                </span>
+                                                <span class="text-xs text-text-muted font-mono">{{ r.generated_at | date:'mediumDate' }}</span>
+                                            </div>
+                                            <h4 class="text-sm font-black text-text-primary">{{ r.academic_period?.name || 'Terminal Academic Report' }}</h4>
+                                            <p class="text-xs text-text-muted mt-1 leading-relaxed">
+                                                Overall Score: <strong class="text-text-primary font-mono">{{ r.overall_score || 0 }}%</strong> &bull; Attendance Rate: <strong class="text-text-primary font-mono">{{ r.attendance_rate || 100 }}%</strong>
+                                            </p>
+                                            @if (r.ai_generated_remarks) {
+                                                <p class="text-[11px] text-text-secondary italic mt-2 bg-bg-secondary p-3 rounded-xl border border-border-primary/50">
+                                                    "{{ r.ai_generated_remarks }}"
+                                                </p>
+                                            }
+                                        </div>
+
+                                        <div class="flex items-center justify-between pt-3 border-t border-border-primary/40">
+                                            <span class="text-[10px] text-text-muted uppercase tracking-widest font-mono">Verified Hash Available</span>
+                                            <button (click)="downloadSpecificReport(r, student.first_name + ' ' + student.last_name)"
+                                                    [disabled]="downloadingReport()[r.id]"
+                                                    class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
+                                                <i class="fas text-xs" [ngClass]="downloadingReport()[r.id] ? 'fa-spinner fa-spin' : 'fa-download'"></i>
+                                                <span>Download PDF</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        } @else {
+                            <!-- Default Terminal Report Card Presentation based on active grades -->
+                            <div class="p-6 md:p-8 bg-gradient-to-br from-indigo-500/10 via-bg-tertiary/50 to-bg-secondary border border-indigo-500/20 rounded-3xl space-y-4">
+                                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-14 h-14 rounded-2xl bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-2xl shrink-0">
+                                            <i class="fas fa-file-invoice"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-base font-black text-text-primary">{{ selectedAcademicYear() }} Terminal Evaluation Dossier</h4>
+                                            <p class="text-xs text-text-muted mt-0.5">
+                                                Aggregated continuous assessment grades, teacher remarks, and attendance record for <strong class="text-text-primary">{{ student.first_name }} {{ student.last_name }}</strong>.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button (click)="downloadTerminalReport(student.id || '', student.first_name + ' ' + student.last_name)"
+                                            [disabled]="isDownloading()['term_' + (student.id || '')]"
+                                            class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-95">
+                                        <i class="fas text-xs" [ngClass]="isDownloading()['term_' + (student.id || '')] ? 'fa-spinner fa-spin' : 'fa-file-pdf'"></i>
+                                        <span>Download Full Report Card PDF</span>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- TAB 3: Competency-Based Assessment -->
                 @if (activeTab() === 'competencies') {
                     <div class="animate-fade-in space-y-5">
                         <div class="flex items-center justify-between">
@@ -418,7 +601,7 @@
                     </div>
                 }
 
-                <!-- TAB 3: Homework & Assignments -->
+                <!-- TAB 4: Homework & Assignments -->
                 @if (activeTab() === 'homework') {
                     <div class="animate-fade-in space-y-5">
                         <div class="flex items-center justify-between">
@@ -467,7 +650,7 @@
                     </div>
                 }
 
-                <!-- TAB 4: Verifiable Official Transcript Banner -->
+                <!-- TAB 5: Verifiable Official Transcript Banner -->
                 @if (activeTab() === 'transcript') {
                     <div class="animate-fade-in space-y-5">
                         <div class="p-6 md:p-7 border border-blue-500/30 rounded-3xl flex flex-col md:flex-row items-start md:items-center justify-between gap-5 shadow-xs">
@@ -517,7 +700,7 @@
                     </div>
                 }
 
-                <!-- TAB 5: Counselor Remarks & AI Learning Insights -->
+                <!-- TAB 6: Counselor Remarks & AI Learning Insights -->
                 @if (activeTab() === 'insights') {
                     <div class="animate-fade-in space-y-6">
                         <!-- AI Terminal Performance Remarks -->
@@ -559,3 +742,69 @@
         </div>
     }
 </div>
+
+<!-- Detailed Subject Test Marks Modal -->
+@if (activeDetailSubject(); as ds) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" (click)="activeDetailSubject.set(null)">
+        <div class="w-full max-w-2xl bg-bg-secondary border border-border-primary rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto animate-scale-in" (click)="$event.stopPropagation()">
+            <div class="flex items-center justify-between border-b border-border-primary/50 pb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-black">
+                        {{ ds.name[0] }}
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-text-primary">{{ ds.name }} Marks Breakdown</h3>
+                        <p class="text-xs text-text-muted">{{ ds.grades.length }} assessment record(s) on file &bull; Average: <strong class="text-blue-500 font-mono">{{ subjectAvg(ds.grades) }}%</strong></p>
+                    </div>
+                </div>
+                <button (click)="activeDetailSubject.set(null)" class="text-text-muted hover:text-text-primary p-1 cursor-pointer">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Marks Table -->
+            <div class="border border-border-primary/80 rounded-2xl overflow-hidden bg-bg-tertiary/20">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-bg-tertiary/60 border-b border-border-primary text-[10px] font-black uppercase tracking-wider text-text-muted">
+                        <tr>
+                            <th class="py-3 px-4">Assessment / Category</th>
+                            <th class="py-3 px-4">Term</th>
+                            <th class="py-3 px-4">Score</th>
+                            <th class="py-3 px-4">Max</th>
+                            <th class="py-3 px-4">Percentage</th>
+                            <th class="py-3 px-4">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border-primary/50 font-medium">
+                        @for (g of ds.grades; track g.id) {
+                            @let pct = (g.score / (g.max_score || 100)) * 100;
+                            <tr class="hover:bg-bg-tertiary/40 transition-colors">
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-0.5 rounded-md text-[9px] font-black border font-mono uppercase"
+                                          [ngClass]="categoryBadgeClass(g.category || 'TEST')">
+                                        {{ g.category || 'ASSIGNMENT' }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-text-muted font-mono font-bold">{{ g.term || 'Term 1' }}</td>
+                                <td class="py-3 px-4 font-mono font-bold text-text-primary">{{ g.score }}</td>
+                                <td class="py-3 px-4 font-mono text-text-muted">{{ g.max_score || 100 }}</td>
+                                <td class="py-3 px-4 font-mono font-bold"
+                                    [ngClass]="pct >= 80 ? 'text-emerald-500' : pct >= 65 ? 'text-blue-500' : 'text-amber-500'">
+                                    {{ pct | number:'1.0-0' }}%
+                                </td>
+                                <td class="py-3 px-4 text-text-muted italic">{{ g.remarks || 'Standard Evaluation' }}</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button (click)="activeDetailSubject.set(null)"
+                        class="px-5 py-2.5 rounded-2xl bg-bg-tertiary hover:bg-bg-secondary border border-border-primary text-xs font-bold text-text-primary transition-all cursor-pointer">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+}

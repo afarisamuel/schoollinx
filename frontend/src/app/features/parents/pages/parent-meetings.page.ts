@@ -120,5 +120,38 @@ export class ParentMeetingsPage implements OnInit {
         const t = this.teachers().find(x => x.id === teacherId);
         return t ? `${t.first_name} ${t.last_name}` : 'Faculty Educator';
     }
+
+    exportToCalendar(booking: any) {
+        const teacher = this.getTeacherName(booking.teacher_id);
+        const student = this.getStudentName(booking.student_id);
+        const title = `Parent-Teacher Consultation: ${teacher}`;
+        const desc = `Ward: ${student}\\nTopic: ${booking.reason || 'General Academic Progress'}`;
+        
+        const now = new Date();
+        const start = booking.slot?.start_time ? new Date(booking.slot.start_time).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z' : '';
+        const end = booking.slot?.end_time ? new Date(booking.slot.end_time).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z' : '';
+
+        const ics = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//SchoolLinx//PTC//EN',
+            'BEGIN:VEVENT',
+            `SUMMARY:${title}`,
+            `DESCRIPTION:${desc}`,
+            start ? `DTSTART:${start}` : '',
+            end ? `DTEND:${end}` : '',
+            'STATUS:CONFIRMED',
+            'END:VEVENT',
+            'END:VCALENDAR'
+        ].filter(Boolean).join('\r\n');
+
+        const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = `Consultation_${student.replace(/\s+/g, '_')}.ics`;
+        link.click();
+        window.URL.revokeObjectURL(link.href);
+        this.toast.success('Consultation (.ics) exported to calendar.', 'Calendar Sync');
+    }
 }
 

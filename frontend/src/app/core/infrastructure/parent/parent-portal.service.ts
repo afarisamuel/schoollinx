@@ -145,6 +145,16 @@ export class ParentPortalService {
         );
     }
 
+    downloadPupilBill(studentId: string): Observable<Blob> {
+        return this.http.get(`/api/fiscal/students/${studentId}/bill/print`, { responseType: 'blob' });
+    }
+
+    getStudentReports(studentId: string): Observable<any[]> {
+        return this.http.get<any[]>(`/api/reports/students/${studentId}`).pipe(
+            catchError(() => of([]))
+        );
+    }
+
     getReceipt(recordId: string): Observable<Blob> {
         return this.http.get(`/api/fiscal/records/${recordId}/receipt`, { responseType: 'blob' });
     }

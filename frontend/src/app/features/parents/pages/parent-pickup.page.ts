@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ParentStateService } from '../../../core/infrastructure/parent/parent-state.service';
@@ -11,13 +11,40 @@ import { ToastService } from '../../../shared/ui/toast/toast.service';
     imports: [CommonModule, FormsModule],
     templateUrl: './parent-pickup.page.html'
 })
-export class ParentPickupPage {
+export class ParentPickupPage implements OnInit, OnDestroy {
     state = inject(ParentStateService);
     private portalService = inject(ParentPortalService);
     private toast = inject(ToastService);
 
     // Active Tab
-    activeTab = signal<'permanent' | 'guest'>('permanent');
+    activeTab = signal<'permanent' | 'dynamic' | 'guest'>('permanent');
+
+    // Dynamic Rotating Security Code
+    dynamicToken = signal<string>('849-210');
+    secondsRemaining = signal<number>(60);
+    private timerInterval: any;
+
+    ngOnInit() {
+        this.generateDynamicToken();
+        this.timerInterval = setInterval(() => {
+            const current = this.secondsRemaining();
+            if (current <= 1) {
+                this.generateDynamicToken();
+                this.secondsRemaining.set(60);
+            } else {
+                this.secondsRemaining.set(current - 1);
+            }
+        }, 1000);
+    }
+
+    ngOnDestroy() {
+        if (this.timerInterval) clearInterval(this.timerInterval);
+    }
+
+    generateDynamicToken() {
+        const rand = Math.floor(100000 + Math.random() * 900000);
+        this.dynamicToken.set(`${rand.toString().slice(0, 3)}-${rand.toString().slice(3)}`);
+    }
 
     // Third-party OTP Delegation
     showOtpModal = signal(false);

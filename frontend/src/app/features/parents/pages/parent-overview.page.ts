@@ -2,7 +2,9 @@ import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ParentStateService } from '../../../core/infrastructure/parent/parent-state.service';
-import { HomeworkItem, TimetableEntry } from '../../../core/infrastructure/parent/parent-portal.service';
+import { ParentPortalService, HomeworkItem, TimetableEntry } from '../../../core/infrastructure/parent/parent-portal.service';
+import { ReportService } from '../../../core/infrastructure/report/report.service';
+import { ToastService } from '../../../shared/ui/toast/toast.service';
 
 @Component({
     selector: 'app-parent-overview',
@@ -13,7 +15,27 @@ import { HomeworkItem, TimetableEntry } from '../../../core/infrastructure/paren
 })
 export class ParentOverviewPage {
     state = inject(ParentStateService);
+    private api = inject(ParentPortalService);
+    private reportService = inject(ReportService);
+    private toast = inject(ToastService);
+
     isSyncing = signal(false);
+    downloadingDoc = signal<Record<string, boolean>>({});
+
+    timeOfDay = computed(() => {
+        const hr = new Date().getHours();
+        if (hr < 12) return 'morning';
+        if (hr < 17) return 'afternoon';
+        return 'evening';
+    });
+
+    greeting = computed(() => {
+        const t = this.timeOfDay();
+        const name = this.state.profile()?.first_name || 'Guardian';
+        if (t === 'morning') return `Good morning, ${name}`;
+        if (t === 'afternoon') return `Good afternoon, ${name}`;
+        return `Good evening, ${name}`;
+    });
 
     avgAttendance = computed(() => {
         const students = this.state.profile()?.students || [];
@@ -106,6 +128,44 @@ export class ParentOverviewPage {
         const today = new Date().toISOString().slice(0, 10);
         const hw = this.state.homeworkMap()[studentId] || [];
         return hw.filter(h => h.due_date >= today).length;
+    }
+
+    downloadBill(studentId?: string, studentName?: string) {
+        if (!studentId) return;
+        const key = `bill_${studentId}`;
+        this.downloadingDoc.update(m => ({ ...m, [key]: true }));
+
+        this.api.downloadPupilBill(studentId).subscribe({
+            next: (blob) => {
+                const name = (studentName || 'Student').replace(/\s+/g, '_');
+                this.reportService.saveFile(blob, `${name}_Official_Term_Bill.pdf`);
+                this.downloadingDoc.update(m => ({ ...m, [key]: false }));
+                this.toast.success(`Official Term Bill downloaded for ${studentName || 'Student'}.`, 'Bill Downloaded');
+            },
+            error: () => {
+                this.downloadingDoc.update(m => ({ ...m, [key]: false }));
+                this.toast.error('Could not generate bill PDF. Please check bursary.', 'Download Failed');
+            }
+        });
+    }
+
+    downloadReportCard(studentId?: string, studentName?: string) {
+        if (!studentId) return;
+        const key = `report_${studentId}`;
+        this.downloadingDoc.update(m => ({ ...m, [key]: true }));
+
+        this.reportService.downloadStudentTerminalReport(studentId).subscribe({
+            next: (blob) => {
+                const name = (studentName || 'Student').replace(/\s+/g, '_');
+                this.reportService.saveFile(blob, `${name}_Terminal_Report_Card.pdf`);
+                this.downloadingDoc.update(m => ({ ...m, [key]: false }));
+                this.toast.success(`Terminal Report Card downloaded for ${studentName || 'Student'}.`, 'Report Card Ready');
+            },
+            error: () => {
+                this.downloadingDoc.update(m => ({ ...m, [key]: false }));
+                this.toast.error('Terminal report card not generated yet.', 'Download Failed');
+            }
+        });
     }
 
     syncData() {
